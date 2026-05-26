@@ -1,4 +1,3 @@
-import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -82,7 +81,7 @@ function AddressForm({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const zipSampleFormat = (country && (COMMON_CONST.COUNTRY_ZIP_REGEX_DATA[country] as CountryZipRegex)?.samples) ?? '';
+    const zipSampleFormat = (country && (CONST.COUNTRY_ZIP_REGEX_DATA[country] as CountryZipRegex)?.samples) ?? '';
 
     const zipFormat = translate('common.zipCodeExampleFormat', zipSampleFormat);
 
@@ -137,7 +136,7 @@ function AddressForm({
             }
 
             // If no country is selected, default value is an empty string and there's no related regex data so we default to an empty object
-            const countryRegexDetails = (values.country ? COMMON_CONST.COUNTRY_ZIP_REGEX_DATA?.[values.country] : {}) as CountryZipRegex;
+            const countryRegexDetails = (values.country ? CONST.COUNTRY_ZIP_REGEX_DATA?.[values.country] : {}) as CountryZipRegex;
 
             // The postal code system might not exist for a country, so no regex either for them.
             const countrySpecificZipRegex = countryRegexDetails?.regex;
@@ -151,7 +150,7 @@ function AddressForm({
                         errors.zipPostCode = translate('common.error.fieldRequired');
                     }
                 }
-            } else if (!COMMON_CONST.GENERIC_ZIP_CODE_REGEX.test(values?.zipPostCode?.trim()?.toUpperCase() ?? '')) {
+            } else if (!CONST.GENERIC_ZIP_CODE_REGEX.test(values?.zipPostCode?.trim()?.toUpperCase() ?? '')) {
                 errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat');
             }
 

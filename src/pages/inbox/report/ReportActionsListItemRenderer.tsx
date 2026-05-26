@@ -53,19 +53,8 @@ type ReportActionsListItemRendererProps = {
     /** Personal details list */
     personalDetails: OnyxEntry<PersonalDetailsList>;
 
-    /** User billing fund ID */
-    userBillingFundID: number | undefined;
-
-    /** Did the user dismiss trying out NewDot? If true, it means they prefer using OldDot */
-    isTryNewDotNVPDismissed: boolean | undefined;
-    /** Whether the report is archived */
-    isReportArchived: boolean;
-
-    /** Report name value pairs origin */
-    reportNameValuePairsOrigin?: string;
-
-    /** Report name value pairs originalID */
-    reportNameValuePairsOriginalID?: string;
+    /** Whether the action is the "Created" action of a harvest-created expense report */
+    isHarvestCreatedExpenseReport?: boolean;
 };
 
 function ReportActionsListItemRenderer({
@@ -83,12 +72,8 @@ function ReportActionsListItemRenderer({
     shouldUseThreadDividerLine = false,
     shouldHighlight = false,
     parentReportActionForTransactionThread,
-    userBillingFundID,
     personalDetails,
-    isTryNewDotNVPDismissed = false,
-    isReportArchived = false,
-    reportNameValuePairsOrigin,
-    reportNameValuePairsOriginalID,
+    isHarvestCreatedExpenseReport = false,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
@@ -179,9 +164,6 @@ function ReportActionsListItemRenderer({
                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                 personalDetails={personalDetails}
-                userBillingFundID={userBillingFundID}
-                isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
-                isReportArchived={isReportArchived}
             />
         );
     }
@@ -202,10 +184,7 @@ function ReportActionsListItemRenderer({
             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
             shouldHighlight={shouldHighlight}
             personalDetails={personalDetails}
-            userBillingFundID={userBillingFundID}
-            isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
-            reportNameValuePairsOrigin={reportNameValuePairsOrigin}
-            reportNameValuePairsOriginalID={reportNameValuePairsOriginalID}
+            isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReport}
         />
     );
 }

@@ -49,16 +49,22 @@ function ParticipantPicker({
     onClose,
 }: ParticipantPickerProps) {
     const {translate} = useLocalize();
+    const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
+    const selectedParticipant = isSplitRequest ? undefined : participants?.find((participant) => participant.selected && !participant.isSender);
+    const selectedParticipantsWithoutReport = selectedParticipant && !selectedParticipant.reportID ? [selectedParticipant] : CONST.EMPTY_ARRAY;
 
     const pickerContent = (
         <MoneyRequestParticipantsSelector
-            participants={participants}
+            participants={isSplitRequest ? participants : selectedParticipantsWithoutReport}
             onParticipantsAdded={onParticipantsAdded}
             onFinish={onFinish}
             iouType={iouType}
             action={action}
             isPerDiemRequest={isPerDiemRequest}
             isTimeRequest={isTimeRequest}
+            onRestrictedParticipantSelected={onClose}
+            initiallySelectedReportID={selectedParticipant?.reportID}
+            shouldMoveSelectedToTop
         />
     );
 
