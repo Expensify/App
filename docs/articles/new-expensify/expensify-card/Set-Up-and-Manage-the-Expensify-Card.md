@@ -17,7 +17,7 @@ Workspace Admins can enable and issue Expensify Visa® Commercial Cards to manag
 - Real-time visibility and cash back rewards
 
 **Prerequisites:** 
-1. Your primary login must be an email associated with your company's domain.
+1. Your primary login must be an email associated with your company's domain. See this guide on [updating your login](https://help.expensify.com/articles/new-expensify/settings/Update-Email-Address). 
 2. You must be a workspace admin and have a U.S. business bank account connected to Expensify. See this guide on [connecting a business bank account](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Business-Bank-Account).
 
 ---
