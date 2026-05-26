@@ -294,15 +294,6 @@ describe('PersonalDetailOptionsListUtils', () => {
         },
     };
 
-    const PERSONAL_DETAILS_WITH_MANAGER_MCTEST: PersonalDetailsList = {
-        ...PERSONAL_DETAILS,
-        '1003': {
-            accountID: 1003,
-            displayName: 'Manager McTest',
-            login: CONST.EMAIL.MANAGER_MCTEST,
-        },
-    };
-
     const ACCOUNT_ID_TO_REPORT_ID_MAP: Record<number, string> = {
         1: '3',
         2: '17', // Self-DM
@@ -344,7 +335,6 @@ describe('PersonalDetailOptionsListUtils', () => {
     let OPTIONS_WITH_CONCIERGE: OptionList;
     let OPTIONS_WITH_CHRONOS: OptionList;
     let OPTIONS_WITH_RECEIPTS: OptionList;
-    let OPTIONS_WITH_MANAGER_MCTEST: OptionList;
     let OPTIONS_WITH_SELF_DM: OptionList;
 
     function translateReportObjectToOnyxCollection(reports: OnyxCollection<Report>): OnyxCollection<Report> {
@@ -398,15 +388,6 @@ describe('PersonalDetailOptionsListUtils', () => {
             {},
             formatPhoneNumber,
         );
-        OPTIONS_WITH_MANAGER_MCTEST = createOptionList(
-            currentUserAccountID,
-            PERSONAL_DETAILS_WITH_MANAGER_MCTEST,
-            ACCOUNT_ID_TO_REPORT_ID_MAP,
-            translateReportObjectToOnyxCollection(REPORTS),
-            undefined,
-            {},
-            formatPhoneNumber,
-        );
     });
 
     describe('Basic option list test', () => {
@@ -416,7 +397,6 @@ describe('PersonalDetailOptionsListUtils', () => {
             expect(OPTIONS_WITH_CONCIERGE.options.length).toBe(Object.keys(PERSONAL_DETAILS_WITH_CONCIERGE).length);
             expect(OPTIONS_WITH_CHRONOS.options.length).toBe(Object.keys(PERSONAL_DETAILS_WITH_CHRONOS).length);
             expect(OPTIONS_WITH_RECEIPTS.options.length).toBe(Object.keys(PERSONAL_DETAILS_WITH_RECEIPTS).length);
-            expect(OPTIONS_WITH_MANAGER_MCTEST.options.length).toBe(Object.keys(PERSONAL_DETAILS_WITH_MANAGER_MCTEST).length);
         });
 
         it('should have created the expected current user option', () => {
