@@ -5,9 +5,9 @@ import Hoverable from '@components/Hoverable';
 import {useLHNTooltipContext} from '@components/LHNOptionsList/LHNTooltipContext';
 import useLHNRowProductTrainingTooltip from '@components/LHNOptionsList/OptionRowLHN/useLHNRowProductTrainingTooltip';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
+import getActionBadgeText from '@components/utils/getActionBadgeText';
 import getContextMenuAccessibilityHint from '@components/utils/getContextMenuAccessibilityHint';
 import getContextMenuAccessibilityProps from '@components/utils/getContextMenuAccessibilityProps';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -42,14 +42,16 @@ type PressableProps = {
 
     /** Row content. */
     children: ReactNode;
+
+    /** Whether to show the "Mark as Done" state for this row. */
+    isMarkAsDone?: boolean;
 };
 
-function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverIn, onHoverOut, children}: PressableProps) {
+function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverIn, onHoverOut, children, isMarkAsDone}: PressableProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {isProduction} = useEnvironment();
     const {isScreenFocused} = useLHNTooltipContext();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {hideProductTrainingTooltip} = useLHNRowProductTrainingTooltip();
@@ -59,7 +61,8 @@ function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverI
 
     const reportID = optionItem.reportID;
     const brickRoadIndicator = optionItem.brickRoadIndicator;
-    const actionBadgeText = !isProduction && optionItem.actionBadge ? translate(`common.actionBadge.${optionItem.actionBadge}`) : '';
+
+    const actionBadgeText = getActionBadgeText(optionItem.actionBadge, translate, isMarkAsDone);
 
     let accessibilityLabelForBadge = '';
     if (brickRoadIndicator) {

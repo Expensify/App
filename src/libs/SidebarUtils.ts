@@ -213,6 +213,8 @@ type WelcomeMessageParams = {
     reportDetailsLink?: string;
     shouldShowUsePlusButtonText?: boolean;
     additionalText?: string;
+    isTrackIntentUser?: boolean;
+    currentUserAccountID?: number;
 };
 
 function compareStringDates(a: string, b: string): 0 | 1 | -1 {
@@ -274,6 +276,8 @@ type ShouldDisplayReportInLHNParams = {
     isOffline: boolean;
     isReportArchived?: boolean;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
+    currentUserLogin: string;
+    currentUserAccountID: number;
 };
 
 function shouldDisplayReportInLHN({
@@ -288,6 +292,8 @@ function shouldDisplayReportInLHN({
     isOffline,
     isReportArchived,
     reportAttributes,
+    currentUserAccountID,
+    currentUserLogin,
 }: ShouldDisplayReportInLHNParams) {
     if (!report) {
         return {shouldDisplay: false};
@@ -345,23 +351,40 @@ function shouldDisplayReportInLHN({
         includeSelfDM: true,
         isReportArchived,
         requiresAttention,
+        currentUserLogin,
+        currentUserAccountID,
     });
 
     return {shouldDisplay};
 }
 
-function getReportsToDisplayInLHN(
-    currentReportId: string | undefined,
-    reports: OnyxCollection<Report>,
-    betas: OnyxEntry<Beta[]>,
-    priorityMode: OnyxEntry<PriorityMode>,
-    draftComments: OnyxCollection<string>,
-    transactionViolations: OnyxCollection<TransactionViolation[]>,
-    transactions: OnyxCollection<Transaction>,
-    isOffline: boolean,
-    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
-    reportAttributes?: ReportAttributesDerivedValue['reports'],
-) {
+function getReportsToDisplayInLHN({
+    currentReportId,
+    reports,
+    betas,
+    priorityMode,
+    draftComments,
+    transactionViolations,
+    transactions,
+    isOffline,
+    currentUserLogin,
+    currentUserAccountID,
+    reportNameValuePairs,
+    reportAttributes,
+}: {
+    currentReportId: string | undefined;
+    reports: OnyxCollection<Report>;
+    betas: OnyxEntry<Beta[]>;
+    priorityMode: OnyxEntry<PriorityMode>;
+    draftComments: OnyxCollection<string>;
+    transactionViolations: OnyxCollection<TransactionViolation[]>;
+    transactions: OnyxCollection<Transaction>;
+    isOffline: boolean;
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
+    reportAttributes?: ReportAttributesDerivedValue['reports'];
+}) {
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const allReportsDictValues = reports ?? {};
     const reportsToDisplay: ReportsToDisplayInLHN = {};
@@ -385,6 +408,8 @@ function getReportsToDisplayInLHN(
             isOffline,
             isReportArchived: isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]),
             reportAttributes,
+            currentUserLogin,
+            currentUserAccountID,
         });
 
         if (shouldDisplay) {
@@ -410,6 +435,8 @@ type UpdateReportsToDisplayInLHNProps = {
     draftComments: OnyxCollection<string>;
     transactions: OnyxCollection<Transaction>;
     isOffline: boolean;
+    currentUserLogin: string;
+    currentUserAccountID: number;
 };
 
 function updateReportsToDisplayInLHN({
@@ -425,6 +452,8 @@ function updateReportsToDisplayInLHN({
     draftComments,
     transactions,
     isOffline,
+    currentUserLogin,
+    currentUserAccountID,
 }: UpdateReportsToDisplayInLHNProps) {
     // Use a lazy copy to avoid creating a new object reference when no entries actually change.
     let displayedReportsCopy: ReportsToDisplayInLHN | undefined;
@@ -460,6 +489,8 @@ function updateReportsToDisplayInLHN({
             isOffline,
             isReportArchived: isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`] ?? {}),
             reportAttributes,
+            currentUserLogin,
+            currentUserAccountID,
         });
 
         if (shouldDisplay) {
@@ -762,6 +793,7 @@ function getOptionData({
     reportAttributesDerived,
     policyTags,
     currentUserLogin,
+    isTrackIntentUser,
 }: {
     report: OnyxEntry<Report>;
     oneTransactionThreadReport: OnyxEntry<Report>;
@@ -786,6 +818,7 @@ function getOptionData({
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     policyTags?: OnyxEntry<PolicyTagLists>;
     currentUserLogin: string;
+    isTrackIntentUser?: boolean;
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -944,6 +977,7 @@ function getOptionData({
             policyTags,
             currentUserLogin,
             lastAction,
+            isTrackIntentUser,
         });
     }
 
@@ -1137,7 +1171,7 @@ function getOptionData({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
             result.alternateText = getPolicyChangeLogDeleteMemberMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-            result.alternateText = Parser.htmlToText(getUnreportedTransactionMessage(translate, lastAction));
+            result.alternateText = Parser.htmlToText(getUnreportedTransactionMessage(translate, lastAction, reportAttributesDerived));
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE) {
             result.alternateText = getReportActionMessageText(lastAction) ?? '';
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_INTEGRATION) {
@@ -1207,7 +1241,7 @@ function getOptionData({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OWNERSHIP) {
             result.alternateText = Parser.htmlToText(getUpdatedOwnershipMessage(translate, lastAction, policy));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
-            result.alternateText = Parser.htmlToText(getMovedTransactionMessage(translate, lastAction, conciergeReportID));
+            result.alternateText = Parser.htmlToText(getMovedTransactionMessage(translate, lastAction, reportAttributesDerived));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
             result.alternateText = Parser.htmlToText(getSettlementAccountLockedMessage(translate, lastAction));
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
@@ -1242,6 +1276,8 @@ function getOptionData({
                         conciergeReportID,
                         reportAttributes: reportAttributesDerived,
                         isReportArchived,
+                        isTrackIntentUser,
+                        currentUserAccountID,
                     }).messageText ?? translate('report.noActivityYet'),
                 );
             }
@@ -1347,6 +1383,8 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
         reportDetailsLink = '',
         shouldShowUsePlusButtonText = false,
         additionalText = '',
+        isTrackIntentUser = false,
+        currentUserAccountID,
     } = params;
 
     const welcomeMessage: WelcomeMessage = {};
@@ -1361,6 +1399,9 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
     if (isPolicyExpenseChat(report)) {
         if (policy?.description) {
             welcomeMessage.messageHtml = policy.description;
+            welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
+        } else if (isTrackIntentUser && report?.ownerAccountID === currentUserAccountID) {
+            welcomeMessage.messageHtml = translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatTrack');
             welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
         } else {
             welcomeMessage.messageHtml = translate(
