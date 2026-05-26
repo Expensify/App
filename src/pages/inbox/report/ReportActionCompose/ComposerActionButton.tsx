@@ -2,13 +2,13 @@ import ComposerActionMenu from './ComposerActionMenu';
 import {useComposerEditState} from './ComposerContext';
 import ComposerEditingButtons from './ComposerEditingButtons';
 
-function ReportActionComposeActionButton({reportID}: {reportID: string}) {
+function ComposerActionButton() {
     const {isEditingInComposer} = useComposerEditState();
 
     if (isEditingInComposer) {
-        return <ComposerEditingButtons reportID={reportID} />;
+        return <ComposerEditingButtons />;
     }
-    return <ComposerActionMenu reportID={reportID} />;
+    return <ComposerActionMenu />;
 }
 
-export default ReportActionComposeActionButton;
+export default ComposerActionButton;

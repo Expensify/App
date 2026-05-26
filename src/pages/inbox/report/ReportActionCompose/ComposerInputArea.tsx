@@ -5,16 +5,15 @@ import ComposerDropZone from './ComposerDropZone';
 import ComposerEmojiPicker from './ComposerEmojiPicker';
 import ComposerInput from './ComposerInput';
 import ComposerSendButton from './ComposerSendButton';
-import type {ReportActionComposeProps} from './types';
 
-function ComposerInputArea({reportID}: ReportActionComposeProps) {
+function ComposerInputArea() {
     return (
-        <ComposerDropZone reportID={reportID}>
-            <ComposerBox reportID={reportID}>
-                <ComposerActionButton reportID={reportID} />
-                <ComposerInput reportID={reportID} />
-                <ComposerEmojiPicker reportID={reportID} />
-                <ComposerSendButton reportID={reportID} />
+        <ComposerDropZone>
+            <ComposerBox>
+                <ComposerActionButton />
+                <ComposerInput />
+                <ComposerEmojiPicker />
+                <ComposerSendButton />
             </ComposerBox>
         </ComposerDropZone>
     );

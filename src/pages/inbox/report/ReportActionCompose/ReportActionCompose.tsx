@@ -1,5 +1,4 @@
 import React from 'react';
-import AgentZeroAwareTypingIndicator from './AgentZeroAwareTypingIndicator';
 import ComposerActionMenu from './ComposerActionMenu';
 import ComposerBox from './ComposerBox';
 import ComposerContainer from './ComposerContainer';
@@ -17,16 +16,17 @@ import ComposerLayout from './ComposerLayout';
 import ComposerLocalTime from './ComposerLocalTime';
 import ComposerProvider from './ComposerProvider';
 import ComposerSendButton from './ComposerSendButton';
+import ComposerTypingIndicator from './ComposerTypingIndicator';
 import EditOnlyReportActionCompose from './EditOnlyReportActionCompose';
-import type {ReportActionComposeProps} from './types';
+import type ReportActionComposeProps from './types';
 
 function ReportActionCompose({reportID}: ReportActionComposeProps) {
     return (
         <ComposerProvider reportID={reportID}>
-            <ComposerLayout reportID={reportID}>
-                <ComposerInputArea reportID={reportID} />
+            <ComposerLayout>
+                <ComposerInputArea />
             </ComposerLayout>
-            <ComposerDefaultFooter reportID={reportID} />
+            <ComposerDefaultFooter />
         </ComposerProvider>
     );
 }
@@ -42,7 +42,7 @@ ReportActionCompose.EmojiPicker = ComposerEmojiPicker;
 ReportActionCompose.SendButton = ComposerSendButton;
 ReportActionCompose.EditingButtons = ComposerEditingButtons;
 ReportActionCompose.Footer = ComposerFooter;
-ReportActionCompose.TypingIndicator = AgentZeroAwareTypingIndicator;
+ReportActionCompose.TypingIndicator = ComposerTypingIndicator;
 ReportActionCompose.ExceededLength = ComposerExceededLength;
 ReportActionCompose.Layout = ComposerLayout;
 ReportActionCompose.InputArea = ComposerInputArea;

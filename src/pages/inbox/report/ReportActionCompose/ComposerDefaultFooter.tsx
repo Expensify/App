@@ -2,22 +2,21 @@ import React from 'react';
 import OfflineIndicator from '@components/OfflineIndicator';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import AgentZeroAwareTypingIndicator from './AgentZeroAwareTypingIndicator';
 import ComposerExceededLength from './ComposerExceededLength';
 import ComposerFooter from './ComposerFooter';
-import type {ReportActionComposeProps} from './ReportActionComposeTypes';
+import ComposerTypingIndicator from './ComposerTypingIndicator';
 
-function ReportActionComposeDefaultFooter({reportID}: ReportActionComposeProps) {
+function ComposerDefaultFooter() {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
         <ComposerFooter>
             {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
-            <AgentZeroAwareTypingIndicator reportID={reportID} />
+            <ComposerTypingIndicator />
             <ComposerExceededLength />
         </ComposerFooter>
     );
 }
 
-export default ReportActionComposeDefaultFooter;
+export default ComposerDefaultFooter;

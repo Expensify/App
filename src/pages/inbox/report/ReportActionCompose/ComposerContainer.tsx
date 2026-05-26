@@ -1,12 +1,14 @@
 import React from 'react';
+import type {PropsWithChildren} from 'react';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportActionComposeWithChildrenProps} from './ReportActionComposeTypes';
+import {useComposerState} from './ComposerContext';
 
-function ReportActionComposerContainer({reportID, children}: ReportActionComposeWithChildrenProps) {
+function ComposerContainer({children}: PropsWithChildren) {
+    const {reportID} = useComposerState();
     const styles = useThemeStyles();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
@@ -24,4 +26,4 @@ function ReportActionComposerContainer({reportID, children}: ReportActionCompose
     );
 }
 
-export default ReportActionComposerContainer;
+export default ComposerContainer;
