@@ -23,7 +23,7 @@ There are two ways you can create an expense that stays in your records but isn'
 
 **On mobile:**
 1. Tap the green camera button and take a photo of the receipt or upload from gallery.
-2. Choose yourself under Personal.
+2. Choose yourself as the recipient under Personal.
 3. Add details like description, category, tags, and tax.
    - Members with a default workspace will see expense fields that mirror their workspace's rules.
    - Members without a default workspace will see the expense fields: Amount, Description, Merchant, Category, Date, Report.
@@ -31,7 +31,7 @@ There are two ways you can create an expense that stays in your records but isn'
 
 **On desktop:**
 1. Click the green receipt button and drag and drop the receipt or click **Choose files** to upload.
-2. Choose yourself under Personal. 
+2. Choose yourself as the recipient under Personal. 
 3. Add details like description, category, tags, and tax.
    - Members with a default workspace will see expense fields that mirror their workspace's rules.
    - Members without a default workspace will see the expense fields: Amount, Description, Merchant, Category, Date, Report.
@@ -48,7 +48,7 @@ Other ways to SmartScan receipts include:
 1. Tap the green camera button.
 2. Select **Manual**.
 3. Enter the amount and currency, then tap **Next**.
-4. Choose yourself under Personal.
+4. Choose yourself as the recipient under Personal.
 5. Add optional fields like category, tags, or description.
    - Members with a default workspace will see expense fields that mirror their workspace's rules.
    - Members without a default workspace will see the expense fields: Amount, Description, Merchant, Category, Date, Report.
@@ -58,7 +58,7 @@ Other ways to SmartScan receipts include:
 1. Click the green add receipt button.
 2. Select **Manual**.
 3. Enter the amount and currency, then click **Next**.
-4. Choose yourself under Personal.
+4. Choose yourself as the recipient under Personal.
 5. Add optional fields like category, tags, or description.
    - Members with a default workspace will see expense fields that mirror their workspace's rules.
    - Members without a default workspace will see the expense fields: Amount, Description, Merchant, Category, Date, Report.
