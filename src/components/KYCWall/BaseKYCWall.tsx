@@ -219,7 +219,9 @@ function KYCWall({
                     return;
                 }
 
-                const bankAccountRoute = addBankAccountRoute ?? getBankAccountRoute(chatReport);
+                const invoiceReceiverPolicyID = chatReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? chatReport.invoiceReceiver.policyID : undefined;
+                const invoiceReceiverPolicy = invoiceReceiverPolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`] : undefined;
+                const bankAccountRoute = addBankAccountRoute ?? getBankAccountRoute(chatReport, invoiceReceiverPolicy);
                 Navigation.navigate(bankAccountRoute);
             }
         },

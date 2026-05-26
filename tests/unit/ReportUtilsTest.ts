@@ -76,6 +76,7 @@ import {
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getApprovalChain,
     getAvailableReportFields,
+    getBankAccountRoute,
     getBillableAndTaxTotal,
     getChatByParticipants,
     getChatListItemReportName,
@@ -17945,6 +17946,49 @@ describe('ReportUtils', () => {
                 },
             ] as ReportAction[];
             expect(hasExportError(reportActions, report)).toBe(true);
+        });
+    });
+
+    describe('getBankAccountRoute', () => {
+        it('returns the policy bank account setup route when the report is a policy expense chat', () => {
+            const policyID = 'POLICY_EXP_1';
+            const report = {
+                reportID: '1',
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID,
+            } as Report;
+
+            expect(getBankAccountRoute(report, undefined)).toBe(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, backTo: 'mock-route'}));
+        });
+
+        it('returns the workspace invoices route when the report is a business invoice room and invoiceReceiverPolicy.areInvoicesEnabled is true', () => {
+            const invoiceReceiverPolicyID = 'POLICY_INVOICE_1';
+            const report = {
+                reportID: '2',
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                invoiceReceiver: {
+                    type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS,
+                    policyID: invoiceReceiverPolicyID,
+                },
+            } as Report;
+            const invoiceReceiverPolicy = {id: invoiceReceiverPolicyID, areInvoicesEnabled: true} as Policy;
+
+            expect(getBankAccountRoute(report, invoiceReceiverPolicy)).toBe(ROUTES.WORKSPACE_INVOICES.getRoute(invoiceReceiverPolicyID));
+        });
+
+        it('returns the personal add bank account route when the report is a business invoice room and invoiceReceiverPolicy.areInvoicesEnabled is false', () => {
+            const invoiceReceiverPolicyID = 'POLICY_INVOICE_2';
+            const report = {
+                reportID: '3',
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                invoiceReceiver: {
+                    type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS,
+                    policyID: invoiceReceiverPolicyID,
+                },
+            } as Report;
+            const invoiceReceiverPolicy = {id: invoiceReceiverPolicyID, areInvoicesEnabled: false} as Policy;
+
+            expect(getBankAccountRoute(report, invoiceReceiverPolicy)).toBe(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route);
         });
     });
 });
