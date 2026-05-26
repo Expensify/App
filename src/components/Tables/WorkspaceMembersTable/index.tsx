@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import WorkspaceMembersTableRow from './WorkspaceMembersTableRow';
 
-type WorkspaceMembersTableColumnKey = 'member' | 'role' | 'actions';
+type WorkspaceMembersTableColumnKey = 'member' | 'role' | 'actions' | 'customField1' | 'customField2';
 
 type WorkspaceMemberRowData = TableData & {
     accountID: number;
@@ -31,9 +31,11 @@ type WorkspaceMemberRowData = TableData & {
 type WorkspaceMembersTableProps = {
     ref?: React.Ref<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey, string>> | undefined;
     members: WorkspaceMemberRowData[];
+    shouldShowCustomField1Column: boolean;
+    shouldShowCustomField2Column: boolean;
 };
 
-export default function WorkspaceMembersTable({ref, members}: WorkspaceMembersTableProps) {
+export default function WorkspaceMembersTable({ref, shouldShowCustomField1Column, shouldShowCustomField2Column, members}: WorkspaceMembersTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -50,6 +52,24 @@ export default function WorkspaceMembersTable({ref, members}: WorkspaceMembersTa
             key: 'role',
             label: translate('common.role'),
         },
+        ...(shouldShowCustomField1Column
+            ? [
+                  {
+                      sortable: true,
+                      key: 'customField1' as const,
+                      label: translate('workspace.common.customField1'),
+                  },
+              ]
+            : []),
+        ...(shouldShowCustomField2Column
+            ? [
+                  {
+                      sortable: true,
+                      key: 'customField2' as const,
+                      label: translate('workspace.common.customField2'),
+                  },
+              ]
+            : []),
         {
             sortable: false,
             key: 'actions',
@@ -66,6 +86,12 @@ export default function WorkspaceMembersTable({ref, members}: WorkspaceMembersTa
         if (activeSorting.columnKey === 'role') {
         }
 
+        if (activeSorting.columnKey === 'customField1') {
+        }
+
+        if (activeSorting.columnKey === 'customField2') {
+        }
+
         return 1;
     };
 
@@ -79,6 +105,8 @@ export default function WorkspaceMembersTable({ref, members}: WorkspaceMembersTa
                 item={item}
                 rowIndex={index}
                 shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
+                shouldShowCustomField1Column={shouldShowCustomField1Column}
+                shouldShowCustomField2Column={shouldShowCustomField2Column}
             />
         );
     };
