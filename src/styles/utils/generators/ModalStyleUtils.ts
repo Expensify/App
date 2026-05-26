@@ -167,7 +167,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 shouldAddTopSafeAreaMargin = !isSmallScreenWidth;
                 shouldAddBottomSafeAreaMargin = !isSmallScreenWidth;
                 shouldAddTopSafeAreaPadding = isSmallScreenWidth;
-                shouldAddBottomSafeAreaPadding = false;
+                shouldAddBottomSafeAreaPadding = isSmallScreenWidth;
                 break;
             case CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE:
                 // A centered modal that cannot be dismissed with a swipe.
