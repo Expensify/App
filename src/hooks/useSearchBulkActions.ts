@@ -608,16 +608,15 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         }
 
         const isGroupExport = !!queryJSON?.groupBy && selectedTransactionsKeys.some((key) => key.startsWith(CONST.SEARCH.GROUP_PREFIX));
+        const reportIDList = selectedReports.length > 0 ? selectedReportIDs : selectedTransactionReportIDs;
         let didFail = false;
         await exportSearchItemsToCSV(
             {
                 query: status,
                 jsonQuery: isGroupExport
                     ? serializeQueryJSONForBackend(addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data))
-                    : queryJSON
-                      ? serializeQueryJSONForBackend(queryJSON)
-                      : JSON.stringify(queryJSON),
-                reportIDList: isGroupExport ? [] : selectedReports.length > 0 ? selectedReportIDs : selectedTransactionReportIDs,
+                    : serializeQueryJSONForBackend(queryJSON ?? ({} as SearchQueryJSON)),
+                reportIDList: isGroupExport ? [] : reportIDList,
                 transactionIDList: isGroupExport ? [] : selectedTransactionsKeys,
             },
             () => {
