@@ -124,6 +124,7 @@ const translations: TranslationDeepObject<typeof en> = {
             approve: '承認する',
             pay: '支払う',
             fix: '修正',
+            task: 'タスク',
         },
         success: '成功しました',
         group: 'グループ',
