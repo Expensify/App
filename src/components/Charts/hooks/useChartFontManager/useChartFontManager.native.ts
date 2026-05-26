@@ -9,6 +9,7 @@ function useChartFontManager(): SkTypefaceFontProvider | null {
             require('@assets/fonts/native/ExpensifyNeue-Italic.otf') as DataModule,
             require('@assets/fonts/native/ExpensifyNeue-BoldItalic.otf') as DataModule,
         ],
+        ExpensifyNewKansas: [require('@assets/fonts/native/ExpensifyNewKansas-Medium.otf') as DataModule, require('@assets/fonts/native/ExpensifyNewKansas-MediumItalic.otf') as DataModule],
         NotoSansSymbols: [require('@assets/fonts/NotoSans-Symbols.ttf') as DataModule],
         NotoSansSCMonths: [require('@assets/fonts/NotoSansSC-Months.ttf') as DataModule],
     });
@@ -17,7 +18,10 @@ function useChartFontManager(): SkTypefaceFontProvider | null {
 function useChartDefaultTypeface() {
     const regular = useTypeface(require('@assets/fonts/native/ExpensifyNeue-Regular.otf') as DataModule);
     const bold = useTypeface(require('@assets/fonts/native/ExpensifyNeue-Bold.otf') as DataModule);
-    return {regular, bold};
+    const newKansas = useTypeface(require('@assets/fonts/native/ExpensifyNewKansas-Medium.otf') as DataModule);
+    const newKansasItalic = useTypeface(require('@assets/fonts/native/ExpensifyNewKansas-MediumItalic.otf') as DataModule);
+
+    return {regular, bold, newKansas, newKansasItalic};
 }
 
 export {useChartDefaultTypeface};

@@ -16,6 +16,8 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null): Pro
     let yAxis: ProcessNodeResult['yAxis'];
     const labelItems: ProcessNodeResult['labelItems'] = [];
     const legendItems: ProcessNodeResult['legendItems'] = [];
+    let polarData: ProcessNodeResult['polarData'] = [];
+    let pieConfig: ProcessNodeResult['pieConfig'];
 
     const parser = PARSER_REGISTRY[tnode.tagName ?? ''];
     if (parser) {
@@ -31,6 +33,12 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null): Pro
         }
         if (result.yAxis?.length) {
             yAxis = [...(yAxis ?? []), ...result.yAxis];
+        }
+        if (result.polarData?.length) {
+            polarData = result.polarData;
+        }
+        if (result.pieConfig) {
+            pieConfig = result.pieConfig;
         }
         if (result.labelItems) {
             labelItems.push(...result.labelItems);
@@ -50,11 +58,17 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null): Pro
         if (childResult.yAxis?.length) {
             yAxis = [...(yAxis ?? []), ...childResult.yAxis];
         }
+        if (childResult.polarData.length) {
+            polarData = childResult.polarData;
+        }
+        if (childResult.pieConfig) {
+            pieConfig = childResult.pieConfig;
+        }
         labelItems.push(...childResult.labelItems);
         legendItems.push(...childResult.legendItems);
     }
 
-    return {data, xKey: X_KEY, yKeys, xAxis, yAxis, labelItems, legendItems};
+    return {data, xKey: X_KEY, yKeys, xAxis, yAxis, polarData, pieConfig, labelItems, legendItems};
 }
 
 export default processVictoryChartTree;

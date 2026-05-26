@@ -1,4 +1,4 @@
-import type {SkParagraph} from '@shopify/react-native-skia';
+import type {SkParagraph, SkTypeface} from '@shopify/react-native-skia';
 import type {ValueOf} from 'type-fest';
 import type {LABEL_ROTATIONS} from './VictoryTheme';
 
@@ -71,4 +71,17 @@ type LabelRotation = ValueOf<typeof LABEL_ROTATIONS>;
 
 type ParagraphWithWidth = {para: SkParagraph | null; width: number};
 
-export type {ChartDataPoint, ChartProps, CartesianChartProps, LabelRotation, ParagraphWithWidth, PieSlice, UnitPosition, UnitWithFallback};
+type ChartLabelFontStyle = {
+    fontFamily?: string;
+    fontWeight?: string | number;
+    fontStyle?: string;
+};
+
+type ChartTypefaces = {
+    regular: SkTypeface | null;
+    bold: SkTypeface | null;
+    newKansas: SkTypeface | null;
+    newKansasItalic: SkTypeface | null;
+};
+
+export type {ChartDataPoint, ChartProps, CartesianChartProps, ChartLabelFontStyle, ChartTypefaces, LabelRotation, ParagraphWithWidth, PieSlice, UnitPosition, UnitWithFallback};

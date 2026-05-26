@@ -36,6 +36,8 @@ type RawLabelStyle = {
     fill?: Color;
     fontSize?: string | number;
     fontWeight?: string | number;
+    fontFamily?: string;
+    fontStyle?: string;
 };
 
 type RawLegendStyle = {
@@ -72,6 +74,42 @@ type LabelItem = {
 
     /** Font weight */
     fontWeight?: 'normal' | 'bold';
+
+    /** Horizontal text alignment relative to x */
+    textAnchor?: 'start' | 'middle' | 'end';
+
+    /** Vertical text alignment relative to y */
+    verticalAnchor?: 'start' | 'middle' | 'end';
+
+    /** Per-line line-height multipliers for multi-line labels */
+    lineHeight?: number[];
+
+    /** Per-line styles for multi-line labels */
+    styles?: RawLabelStyle[];
+};
+
+type PolarChartDatum = {
+    x: string;
+    y: number;
+    label: string;
+    color: Color;
+};
+
+type PieChartConfig = {
+    innerRadius: number;
+    radius?: number;
+    padAngle: number;
+    labelRadius?: number;
+    colorScale: Color[];
+    strokeColor?: Color;
+    strokeWidth?: number;
+    labelIndicatorInnerOffset?: number;
+    labelIndicatorOuterOffset?: number;
+    labelIndicatorDy?: number;
+    labelIndicatorStroke?: Color;
+    labelIndicatorStrokeWidth?: number;
+    labelComponentLineHeights?: number[];
+    labelComponentStyles?: RawLabelStyle[];
 };
 
 type LegendItemEntry = {
@@ -121,6 +159,8 @@ type ProcessNodeResult = {
     yKeys: YKey[];
     xAxis: CartesianChartProps['xAxis'];
     yAxis: CartesianChartProps['yAxis'];
+    polarData: PolarChartDatum[];
+    pieConfig?: PieChartConfig;
     labelItems: LabelItem[];
     legendItems: LegendItem[];
 };
@@ -146,6 +186,8 @@ export type {
     LabelItem,
     LegendItemEntry,
     LegendItem,
+    PolarChartDatum,
+    PieChartConfig,
     ProcessNodeResult,
     PartialProcessNodeResult,
     NodeParser,

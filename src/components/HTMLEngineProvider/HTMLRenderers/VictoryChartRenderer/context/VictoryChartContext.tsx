@@ -13,6 +13,8 @@ type VictoryChartContextValue = {
     yKeys: ProcessNodeResult['yKeys'];
     xAxis: ProcessNodeResult['xAxis'];
     yAxis: ProcessNodeResult['yAxis'];
+    polarData: ProcessNodeResult['polarData'];
+    pieConfig: ProcessNodeResult['pieConfig'];
     labelItems: ProcessNodeResult['labelItems'];
     legendItems: ProcessNodeResult['legendItems'];
     chartContentStyles: ReturnType<typeof parseStyles>['nodeStyles'];
@@ -28,11 +30,11 @@ const VictoryChartContext = createContext<VictoryChartContextValue | null>(null)
  */
 function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.ReactNode}) {
     const {regular: regularTypeface} = useChartDefaultTypeface();
-    const {data, xKey, yKeys, xAxis, yAxis, labelItems, legendItems} = processVictoryChartTree(tnode, regularTypeface);
+    const {data, xKey, yKeys, xAxis, yAxis, polarData, pieConfig, labelItems, legendItems} = processVictoryChartTree(tnode, regularTypeface);
     const {nodeStyles: chartContentStyles, parentNodeStyles: chartContainerStyles} = parseStyles(tnode);
 
     const hasCartesianData = Object.keys(data).length > 0;
-    const hasPolarData = false;
+    const hasPolarData = polarData.length > 0;
     let type: ChartType | null = null;
 
     // XNOR Check. There must be one and only one valid chart
@@ -55,6 +57,8 @@ function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.
         yKeys,
         xAxis,
         yAxis,
+        polarData,
+        pieConfig,
         labelItems,
         legendItems,
         chartContentStyles,

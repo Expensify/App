@@ -17,6 +17,10 @@ function useChartFontManager(): SkTypefaceFontProvider | null {
             webFont(require('@assets/fonts/web/ExpensifyNeue-Italic.woff2') as string),
             webFont(require('@assets/fonts/web/ExpensifyNeue-BoldItalic.woff2') as string),
         ],
+        ExpensifyNewKansas: [
+            webFont(require('@assets/fonts/web/ExpensifyNewKansas-Medium.woff2') as string),
+            webFont(require('@assets/fonts/web/ExpensifyNewKansas-MediumItalic.woff2') as string),
+        ],
         NotoSansSymbols: [webFont(require('@assets/fonts/NotoSans-Symbols.ttf') as string)],
         NotoSansSCMonths: [webFont(require('@assets/fonts/NotoSansSC-Months.ttf') as string)],
     });
@@ -25,7 +29,10 @@ function useChartFontManager(): SkTypefaceFontProvider | null {
 function useChartDefaultTypeface() {
     const regular = useTypeface(webFont(require('@assets/fonts/web/ExpensifyNeue-Regular.woff2') as string));
     const bold = useTypeface(webFont(require('@assets/fonts/web/ExpensifyNeue-Bold.woff2') as string));
-    return {regular, bold};
+    const newKansas = useTypeface(webFont(require('@assets/fonts/web/ExpensifyNewKansas-Medium.woff2') as string));
+    const newKansasItalic = useTypeface(webFont(require('@assets/fonts/web/ExpensifyNewKansas-MediumItalic.woff2') as string));
+
+    return {regular, bold, newKansas, newKansasItalic};
 }
 
 export {useChartDefaultTypeface};
