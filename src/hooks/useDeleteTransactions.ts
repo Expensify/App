@@ -1,7 +1,7 @@
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import {deleteMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
 import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
 import {getIOURequestPolicyID} from '@libs/actions/IOU/MoneyRequest';
@@ -60,7 +60,8 @@ function redistributeRemainingPerDiemSplitExpenses(splitExpenses: SplitExpense[]
  * All data must be provided through function parameters
  */
 function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransactionsParams) {
-    const {currentSearchResults, currentSearchQueryJSON} = useSearchStateContext();
+    const {currentSearchResults} = useSearchResultsContext();
+    const {currentSearchQueryJSON} = useSearchQueryContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`);

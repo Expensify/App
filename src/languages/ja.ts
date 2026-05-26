@@ -124,6 +124,7 @@ const translations: TranslationDeepObject<typeof en> = {
             approve: '承認する',
             pay: '支払う',
             fix: '修正',
+            task: 'タスク',
         },
         success: '成功しました',
         group: 'グループ',
@@ -207,6 +208,7 @@ const translations: TranslationDeepObject<typeof en> = {
         admin: '管理者',
         owner: 'オーナー',
         dateFormat: 'YYYY-MM-DD',
+        calendarOpened: 'カレンダーが開きました',
         send: '送信',
         na: '該当なし',
         noResultsFound: '結果が見つかりません',
@@ -683,6 +685,7 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'カードを発送できませんでした。もう一度お試しください。'},
         revealPin: {couldNotReveal: 'PIN を表示できませんでした。もう一度お試しください。'},
         changePin: {didNotChange: 'お客様の暗証番号は変更されていません。もう一度お試しください。'},
+        revealCardDetail: {couldNotReveal: 'カード情報を表示できませんでした。もう一度お試しください。'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -899,7 +902,6 @@ const translations: TranslationDeepObject<typeof en> = {
         buttonFind: '何かを検索…',
         buttonMySettings: '自分の設定',
         fabNewChat: 'チャットを開始',
-        fabNewChatExplained: 'アクションメニューを開く',
         fabScanReceiptExplained: 'レシートをスキャン',
         chatPinned: 'チャットをピン留めしました',
         draftedMessage: '作成中のメッセージ',
@@ -1027,6 +1029,7 @@ const translations: TranslationDeepObject<typeof en> = {
             repaidLast30Days: '過去30日間に返済済み',
             recentTransactions: ({lastFour}: {lastFour: string}) => `最近の取引 • ${lastFour}`,
         },
+        seeMore: ({count}: {count: number}) => `さらに${count}件表示`,
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -1263,7 +1266,7 @@ const translations: TranslationDeepObject<typeof en> = {
         receiptStatusTitle: 'スキャン中…',
         receiptStatusText: 'スキャン中のレシートは、あなただけが見ることができます。後でまた確認するか、今すぐ詳細を入力してください。',
         receiptScanningFailed: 'レシートのスキャンに失敗しました。詳細を手入力してください。',
-        transactionPendingDescription: '取引は保留中です。記帳されるまで数日かかる場合があります。',
+        allTransactionsPendingNextStep: 'すべての取引が保留中です。数日後に処理が完了するまで、このレポートを提出することはできません。',
         companyInfo: '会社情報',
         companyInfoDescription: '最初の請求書を送信する前に、いくつか追加の情報が必要です。',
         yourCompanyName: '会社名',
@@ -1303,6 +1306,10 @@ const translations: TranslationDeepObject<typeof en> = {
         settlePayment: (formattedAmount: string) => `${formattedAmount} を支払う`,
         settleBusiness: (formattedAmount?: string) => (formattedAmount ? `${formattedAmount} をビジネスとして支払う` : `ビジネスアカウントで支払う`),
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `${formattedAmount} を支払済みにする` : `支払い済みにする`),
+        confirmPaymentReceivedModalTitle: '支払いを受領したことを確認',
+        receivedPayment: '支払い受領済み',
+        receivedPaymentConfirmation: 'Expensify以外で支払いを受け取っている場合のみ続行してください。',
+        confirmReceivedPayment: 'はい、支払いを受け取りました。',
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `個人アカウント（下4桁 ${last4Digits}）で ${amount} を支払いました` : `個人アカウントで支払い済み`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `ビジネス口座（末尾${last4Digits}）で${amount}を支払いました` : `ビジネスアカウントで支払済み`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `${policyName}で${formattedAmount}を支払う` : `${policyName}で支払う`),
@@ -1449,6 +1456,8 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: '終了日は開始日と同じにはできません',
             manySplitsProvided: `分割できる最大数は${CONST.IOU.SPLITS_LIMIT}件です。`,
             dateRangeExceedsMaxDays: `日付範囲は${CONST.IOU.SPLITS_LIMIT}日を超えることはできません。`,
+            unableToSubmitReport: 'レポートを送信できません',
+            allTransactionsPendingDescription: 'すべての取引が保留中のため、このレポートは提出できません。反映されるまでに数日かかる場合があります。',
             stitchOdometerImagesFailed: '走行距離計の画像を結合できませんでした。後でもう一度お試しください。',
             failedToSaveOdometerDraft: 'オドメーターの下書きを保存できませんでした。もう一度お試しください。',
         },
@@ -1495,7 +1504,6 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'これらの重複の一部は、すでに承認または支払い済みです。',
         reviewDuplicates: '重複を確認',
         keepAll: 'すべて保持',
-        keepSelected: '選択したものを保持',
         noDuplicatesTitle: '準備完了！',
         noDuplicatesDescription: '確認が必要な重複取引はありません。',
         confirmApprove: '承認金額を確認',
@@ -2193,7 +2201,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     deviceManagementPage: {
         title: 'デバイス管理',
-        description: 'Expensifyアカウントでログインしたすべてのデバイスを管理します。',
+        description:
+            'Expensify アカウントでログインしているすべてのデバイスを管理できます。<a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">詳しくはこちら</a>.',
         revoke: '取り消す',
         unknownDevice: '不明なデバイス',
     },
@@ -2207,11 +2216,11 @@ const translations: TranslationDeepObject<typeof en> = {
         disabled: '二要素認証は現在無効になっています',
         noAuthenticatorApp: '今後、Expensify にログインする際に認証アプリは不要になります。',
         stepCodes: 'リカバリーコード',
-        keepCodesSafe: 'これらのリカバリーコードを安全に保管してください！',
+        keepCodesSafe: 'これらのコードを安全に保管してください。',
         codesLoseAccess: dedent(`
-            認証アプリへのアクセスを失い、これらのコードも持っていない場合は、アカウントにアクセスできなくなります。
+            認証アプリへのアクセスを失い、これらのコードも持っていない場合は、お客さまのアカウントへのアクセスもできなくなります。
 
-            注: 二要素認証を設定すると、他のすべてのアクティブなセッションからログアウトされます。
+            <strong>注意</strong>：二要素認証を設定すると、他のすべてのアクティブなセッションからログアウトされます。
         `),
         errorStepCodes: '続行する前にコードをコピーまたはダウンロードしてください',
         stepVerify: '確認',
@@ -2240,6 +2249,9 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyOldDeviceDescription: '現在使用している認証アプリに表示されている6桁のコードを入力して、アクセスできることを確認してください。',
         verifyNewDeviceTitle: '新しいデバイスを設定',
         verifyNewDeviceDescription: '新しいデバイスでQRコードをスキャンし、表示されたコードを入力して設定を完了してください。',
+        downloadCodes: 'コードをダウンロード',
+        screenshotTip: 'ヒント：スクリーンショットを撮ってフォトライブラリに保存しましょう',
+        copyCodes: 'コードをコピー',
     },
     recoveryCodeForm: {
         error: {
@@ -2658,6 +2670,7 @@ ${date} の ${merchant} への ${amount}`,
     reportFraudConfirmationPage: {
         title: 'カード不正利用を報告済み',
         description: '既存のカードは永久に無効化しました。カードの詳細画面に戻ると、新しいバーチャルカードが利用可能になっています。',
+        descriptionCardNotReplaced: 'カードは完全に無効化されました。新しいカードを発行するには管理者に連絡してください。',
         buttonText: '了解しました、ありがとうございます！',
     },
     activateCardPage: {
@@ -2928,7 +2941,7 @@ ${date} の ${merchant} への ${amount}`,
         peopleYouMayKnow: '知り合いがすでにここに参加しています！一緒に参加するには、メールアドレスを確認してください。',
         workspaceYouMayJoin: (domain: string, email: string) => `${domain} のユーザーがすでにワークスペースを作成しています。${email} に送信されたマジックコードを入力してください。`,
         joinAWorkspace: 'ワークスペースに参加',
-        listOfWorkspaces: '参加できるワークスペースの一覧です。今参加しなくても、後からいつでも参加できます。',
+        listOfWorkspaces: '参加できるワークスペースの一覧です。',
         skipForNow: '今はスキップ',
         workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount}人のメンバー${employeeCount > 1 ? 's' : ''}・${policyOwner}`,
         whereYouWork: '勤務先はどこですか？',
@@ -3268,6 +3281,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             title: 'メンバーを招待',
             subtitle: 'チームを追加するか、会計士を招待しましょう。人数が多いほど、もっと便利になります！',
         },
+        workEmail2FAError: 'このログインは、二要素認証（2FA）が有効になっている既存のアカウントです。',
     },
     featureTraining: {
         doNotShowAgain: '今後このメッセージを表示しない',
@@ -5316,6 +5330,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     duplicateColumns: (duplicateColumn: string) => `おっと！1 つのフィールド（"${duplicateColumn}"）を複数の列にマッピングしています。確認して、もう一度お試しください。`,
                 },
                 fileImportDescription: '銀行からフィードを送信できない場合の手動オプションです。',
+                duplicateFeedModal: {title: 'カードフィードはすでに接続されています', prompt: '同じカードフィードを同じワークスペースに二重に追加することはできません。'},
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: '月末最終日',
@@ -6041,8 +6056,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             approvers: '承認者',
             auditors: '監査担当者',
             emptyRoleFilter: {title: 'このフィルターに一致するメンバーはいません', subtitle: 'メンバーを招待するか、上のフィルターを変更してください。'},
-            configureGustoSync: 'Gusto 同期を設定する。',
-            syncWithGusto: 'Gusto と同期',
+            configureHRSync: (providerName: string) => `${providerName} の同期を設定します。`,
+            syncWithHR: (providerName: string) => `${providerName}と同期`,
         },
         card: {
             getStartedIssuing: 'まずは最初のバーチャルカードまたは物理カードを発行しましょう。',
@@ -6185,6 +6200,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'この会計連携'} を接続してもよろしいですか？これにより、既存の会計連携はすべて削除されます。`,
             enterCredentials: '認証情報を入力してください',
+            updateCredentials: '認証情報を更新',
             claimOffer: {
                 badgeText: 'オファーをご利用いただけます！',
                 xero: {
@@ -6669,8 +6685,7 @@ ${reportName}
                 perActiveMember: 'アクティブメンバー1人あたり月額',
                 perMember: 'メンバー1人あたり月額',
             },
-            note: (subscriptionLink: string) =>
-                `<muted-text>この機能を利用するにはアップグレードするか、プランと料金の詳細は<a href="${subscriptionLink}">こちら</a>をご覧ください。</muted-text>`,
+            note: (subscriptionLink: string) => `<muted-text>プランと料金については<a href="${subscriptionLink}">詳しく見る</a>をご覧ください。</muted-text>`,
             upgradeToUnlock: 'この機能を有効にする',
             completed: {
                 headline: `ワークスペースをアップグレードしました！`,
@@ -7094,6 +7109,8 @@ ${reportName}
             disconnect: '切断',
             disconnectTitle: (providerName: string) => `${providerName}を切断`,
             disconnectPrompt: (providerName: string) => `${providerName}を切断してもよろしいですか？`,
+            alreadyConnectedTitle: '複数の人事プラットフォームには接続できません',
+            alreadyConnectedPrompt: '別の人事プラットフォームに接続する前に、現在の人事プラットフォームとの接続を解除する必要があります。',
             lastSync: (relativeDate: string) => `最終同期: ${relativeDate}`,
             syncError: (providerName: string) => `${providerName}に接続できません`,
             connectionDescription: (providerName: string) => `${providerName}を接続して、従業員の承認をワークスペースと同期させましょう。`,
@@ -7153,6 +7170,9 @@ ${reportName}
             zenefits: {
                 title: 'TriNet',
             },
+            syncingModalTitle: '接続を同期しています',
+            syncingModalDescription: '最初の接続には時間がかかる場合があります。エラーが発生した場合は通知されます。',
+            syncing: '従業員を同期しています',
         },
     },
     getAssistancePage: {
@@ -7732,6 +7752,7 @@ ${reportName}
     search: {
         resultsAreLimited: '検索結果は制限されています。',
         viewResults: '結果を表示',
+        applyFilters: 'フィルターを適用する',
         appliedFilters: '適用されたフィルター',
         resetFilters: 'フィルターをリセット',
         searchResults: {
@@ -7841,7 +7862,12 @@ ${reportName}
             amount: {
                 lessThan: (amount?: string) => `${amount ?? ''} 未満`,
                 greaterThan: (amount?: string) => `${amount ?? ''}より大きい`,
-                between: (greaterThan: string, lessThan: string) => `${greaterThan} 以上 ${lessThan} 未満`,
+                between: (greaterThan?: string, lessThan?: string) => {
+                    if (greaterThan && lessThan) {
+                        return `${greaterThan} 以上 ${lessThan} 未満`;
+                    }
+                    return '間';
+                },
                 equalTo: (amount?: string) => `${amount ?? ''} に等しい`,
             },
             card: {
@@ -8199,6 +8225,7 @@ ${reportName}
         selectAllFeatures: 'すべての機能を選択',
         selectAllTransactions: 'すべての取引を選択',
         selectAllItems: 'すべての項目を選択',
+        openActionsMenu: 'アクションメニューを開く',
         selectAllCategories: 'すべてのカテゴリを選択',
         selectAllDistanceRates: 'すべての距離レートを選択',
         selectAllTags: 'すべてのタグを選択',
