@@ -106,9 +106,8 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     const [allSuperWideRHPRouteKeys, setAllSuperWideRHPRouteKeys] = useState<string[]>([]);
     const [superWideRHPRouteKeys, setSuperWideRHPRouteKeys] = useState<string[]>([]);
 
-    // Report IDs that should be displayed in Wide/Super Wide RHP
-    const [expenseReportIDs, setExpenseReportIDs] = useState<Set<string>>(new Set());
-    const [multiTransactionExpenseReportIDs, setMultiTransactionExpenseReportIDs] = useState<Set<string>>(new Set());
+    // A reportID maps to at most one hint, making "wide vs super-wide" structurally mutually exclusive.
+    const [reportRHPWidthHints, setReportRHPWidthHints] = useState<Map<string, RHPWidthHint>>(() => new Map());
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: expenseReportSelector});
 
@@ -226,59 +225,37 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             if (report?.type === CONST.REPORT.TYPE.INVOICE || report?.type === CONST.REPORT.TYPE.TASK) {
                 return;
             }
-            setExpenseReportIDs((prev) => {
-                const newSet = new Set(prev);
-                newSet.add(reportID);
-                return newSet;
-            });
-            return;
         }
-        setMultiTransactionExpenseReportIDs((prev) => {
-            const newSet = new Set(prev);
-            newSet.add(reportID);
-            return newSet;
+        setReportRHPWidthHints((prev) => {
+            if (prev.get(reportID) === width) {
+                return prev;
+            }
+            const next = new Map(prev);
+            next.set(reportID, width);
+            return next;
         });
     };
 
     /**
-     * Clears optimistic width hints for a reportID. Pass `width` to clear only that hint; omit to clear both.
-     * Used (e.g.) when a report no longer qualifies for a previously-applied hint.
+     * Clears the optimistic width hint for a reportID. Pass `width` to clear only when it matches the
+     * current hint; omit to clear unconditionally. Called when a report no longer qualifies for a hint.
      */
     const unmarkReportRHPWidth = (reportID: string, width?: RHPWidthHint) => {
-        if (width === undefined || width === 'wide') {
-            setExpenseReportIDs((prev) => {
-                if (!prev.has(reportID)) {
-                    return prev;
-                }
-                const newSet = new Set(prev);
-                newSet.delete(reportID);
-                return newSet;
-            });
-        }
-        if (width === undefined || width === 'super-wide') {
-            setMultiTransactionExpenseReportIDs((prev) => {
-                if (!prev.has(reportID)) {
-                    return prev;
-                }
-                const newSet = new Set(prev);
-                newSet.delete(reportID);
-                return newSet;
-            });
-        }
+        setReportRHPWidthHints((prev) => {
+            const current = prev.get(reportID);
+            if (current === undefined) {
+                return prev;
+            }
+            if (width !== undefined && current !== width) {
+                return prev;
+            }
+            const next = new Map(prev);
+            next.delete(reportID);
+            return next;
+        });
     };
 
-    /**
-     * Reads the optimistic width hint for a reportID. super-wide takes precedence when both hints are set.
-     */
-    const getReportRHPWidthHint = (reportID: string): RHPWidthHint | undefined => {
-        if (multiTransactionExpenseReportIDs.has(reportID)) {
-            return 'super-wide';
-        }
-        if (expenseReportIDs.has(reportID)) {
-            return 'wide';
-        }
-        return undefined;
-    };
+    const getReportRHPWidthHint = (reportID: string): RHPWidthHint | undefined => reportRHPWidthHints.get(reportID);
 
     /**
      * Effect that handles responsive RHP width calculation when window dimensions change.
