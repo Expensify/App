@@ -23,7 +23,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {getReportName} from '@libs/ReportNameUtils';
-import {isExpenseReport} from '@libs/ReportUtils';
+import {getReimbursableTotal, isExpenseReport} from '@libs/ReportUtils';
 import {
     getAmount,
     getConvertedAmount,
@@ -76,7 +76,6 @@ function TransactionItemRowWide({
     isInSingleTransactionReport = false,
     shouldShowRadioButton = false,
     onRadioButtonPress = () => {},
-    radioButtonContainerStyle,
     shouldShowErrors = true,
     isDisabled = false,
     violations,
@@ -290,7 +289,7 @@ function TransactionItemRowWide({
                                 reportID={transactionItem.reportID}
                                 policyID={report?.policyID}
                                 hash={transactionItem?.hash}
-                                amount={report?.total}
+                                amount={getReimbursableTotal(report)}
                                 shouldDisablePointerEvents={isDisabled}
                             />
                         )}
@@ -593,7 +592,7 @@ function TransactionItemRowWide({
                     )}
                     {columns?.map(renderColumn)}
                     {shouldShowRadioButton && (
-                        <View style={[styles.ml1, styles.justifyContentCenter, radioButtonContainerStyle]}>
+                        <View style={[styles.ml1, styles.justifyContentCenter]}>
                             <RadioButton
                                 isChecked={isSelected}
                                 disabled={isDisabled}

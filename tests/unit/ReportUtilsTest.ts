@@ -91,10 +91,12 @@ import {
     getIndicatedMissingPaymentMethod,
     getIOUReportActionDisplayMessage,
     getLinkedIOUTransaction,
+    getMoneyRequestSpendBreakdown,
     getMostRecentlyVisitedReport,
     getMovedActionMessage,
     getMovedTransactionMessage,
     getNextApproverAccountID,
+    getNonHeldAndFullAmount,
     getOriginalReportID,
     getOutstandingChildRequest,
     getParentNavigationSubtitle,
@@ -103,6 +105,7 @@ import {
     getPolicyIDsWithEmptyReportsForAccount,
     getPolicyName,
     getReasonAndReportActionThatRequiresAttention,
+    getReimbursableTotal,
     getReportActionWithSmartscanError,
     getReportIDFromLink,
     getReportOrDraftReport,
@@ -114,6 +117,7 @@ import {
     getTransactionDetails,
     getTransactionReportName,
     getTransactionSortValue,
+    getUnheldReimbursableTotal,
     getUnreportedTransactionMessage,
     getViolatingReportIDForRBRInLHN,
     getWorkspaceIcon,
@@ -141,6 +145,7 @@ import {
     isRootGroupChat,
     isSelfDMOrSelfDMThread,
     isSortableColumnName,
+    isUnread,
     isWorkspaceMemberLeavingWorkspaceRoom,
     parseReportActionHtmlToText,
     parseReportRouteParams,
@@ -838,7 +843,7 @@ describe('ReportUtils', () => {
 
             expect(setupSpecialistDetail).toBeDefined();
             expect(setupSpecialistDetail?.accountID).toBeDefined();
-            expect(setupSpecialistDetail?.accountID).toBe(515109196);
+            expect(setupSpecialistDetail?.accountID).toBe(CONST.ACCOUNT_ID.QA_GUIDE);
             expect(setupSpecialistDetail?.avatar).toBeDefined();
             expect(setupSpecialistDetail?.avatar).toContain('images/avatars/');
 
@@ -3242,7 +3247,7 @@ describe('ReportUtils', () => {
         });
 
         it('returns false when there is no report', () => {
-            expect(requiresAttentionFromCurrentUser(undefined)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(undefined, currentUserEmail, currentUserAccountID)).toBe(false);
         });
 
         it('returns false when the matched IOU report does not have an owner accountID', () => {
@@ -3250,7 +3255,7 @@ describe('ReportUtils', () => {
                 ...LHNTestUtils.getFakeReport(),
                 ownerAccountID: undefined,
             };
-            expect(requiresAttentionFromCurrentUser(report)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
         });
 
         it('returns false when the linked iou report has an outstanding IOU', () => {
@@ -3262,7 +3267,7 @@ describe('ReportUtils', () => {
                 reportID: '1',
                 ownerAccountID: 99,
             }).then(() => {
-                expect(requiresAttentionFromCurrentUser(report)).toBe(false);
+                expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
             });
         });
 
@@ -3272,7 +3277,7 @@ describe('ReportUtils', () => {
                 ownerAccountID: currentUserAccountID,
                 isWaitingOnBankAccount: true,
             };
-            expect(requiresAttentionFromCurrentUser(report)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
         });
 
         it('returns false when the report has outstanding IOU and is not waiting for a bank account and the logged user is the report owner', () => {
@@ -3281,7 +3286,7 @@ describe('ReportUtils', () => {
                 ownerAccountID: currentUserAccountID,
                 isWaitingOnBankAccount: false,
             };
-            expect(requiresAttentionFromCurrentUser(report)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
         });
 
         it('returns false when the report has no outstanding IOU but is waiting for a bank account and the logged user is not the report owner', () => {
@@ -3290,7 +3295,7 @@ describe('ReportUtils', () => {
                 ownerAccountID: 97,
                 isWaitingOnBankAccount: true,
             };
-            expect(requiresAttentionFromCurrentUser(report)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
         });
 
         it('returns true when the report has an unread mention', () => {
@@ -3298,7 +3303,7 @@ describe('ReportUtils', () => {
                 ...LHNTestUtils.getFakeReport(),
                 isUnreadWithMention: true,
             };
-            expect(requiresAttentionFromCurrentUser(report)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(true);
         });
 
         it('returns true for @here mention in an admin room', () => {
@@ -3308,7 +3313,7 @@ describe('ReportUtils', () => {
                 lastReadTime: '2024-03-01 12:00:00.000',
                 lastMentionedTime: '2024-03-01 12:00:01.000',
             };
-            expect(requiresAttentionFromCurrentUser(report)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(true);
         });
 
         it('returns false for @here in an admin room when user already read after mention', () => {
@@ -3318,7 +3323,7 @@ describe('ReportUtils', () => {
                 lastReadTime: '2024-03-01 12:00:02.000',
                 lastMentionedTime: '2024-03-01 12:00:01.000',
             };
-            expect(requiresAttentionFromCurrentUser(report)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
         });
 
         it('returns true when the report is an outstanding task', () => {
@@ -3331,7 +3336,7 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 hasParentAccess: false,
             };
-            expect(requiresAttentionFromCurrentUser(report)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(true);
         });
 
         it('returns true when the report has outstanding child expense', () => {
@@ -3341,7 +3346,7 @@ describe('ReportUtils', () => {
                 hasOutstandingChildRequest: true,
                 isWaitingOnBankAccount: false,
             };
-            expect(requiresAttentionFromCurrentUser(report)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(true);
         });
 
         it('returns false if the user is not on free trial', async () => {
@@ -3355,7 +3360,7 @@ describe('ReportUtils', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.SYSTEM,
             };
 
-            expect(requiresAttentionFromCurrentUser(report)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
         });
 
         it("returns false if the user free trial hasn't ended yet", async () => {
@@ -3369,7 +3374,7 @@ describe('ReportUtils', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.SYSTEM,
             };
 
-            expect(requiresAttentionFromCurrentUser(report)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
         });
 
         it('returns true when expense report is awaiting current user approval without parent access', () => {
@@ -3382,7 +3387,7 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
 
-            expect(requiresAttentionFromCurrentUser(report)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(true);
         });
 
         it('returns false when awaiting approval but parent accessible or user is not approver', () => {
@@ -3395,7 +3400,7 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
 
-            expect(requiresAttentionFromCurrentUser(reportWithParentAccess)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(reportWithParentAccess, currentUserEmail, currentUserAccountID)).toBe(false);
 
             const reportWithDifferentManager = {
                 ...LHNTestUtils.getFakeReport(),
@@ -3406,7 +3411,7 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
 
-            expect(requiresAttentionFromCurrentUser(reportWithDifferentManager)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(reportWithDifferentManager, currentUserEmail, currentUserAccountID)).toBe(false);
         });
 
         it('returns false when expense report is awaiting user submission, delayed submission on > daily', async () => {
@@ -3418,7 +3423,7 @@ describe('ReportUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL});
 
-            expect(requiresAttentionFromCurrentUser(report)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
         });
 
         it('returns false when expense report is awaiting user submission, delayed submission on > manually', async () => {
@@ -3430,7 +3435,7 @@ describe('ReportUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL});
 
-            expect(requiresAttentionFromCurrentUser(report)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(true);
         });
 
         it('returns true for expense report awaiting submission with manual submit', async () => {
@@ -3453,8 +3458,8 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL});
 
             // The GBR should appear on the policy expense chat but not on the report itself
-            expect(requiresAttentionFromCurrentUser(report)).toBe(false);
-            expect(requiresAttentionFromCurrentUser(policyExpenseChat)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(true);
         });
 
         it('returns true for expense report awaiting user payment/reimbursement', async () => {
@@ -3475,8 +3480,8 @@ describe('ReportUtils', () => {
             };
 
             // The GBR should appear on the policy expense chat but not on the report itself
-            expect(requiresAttentionFromCurrentUser(report)).toBe(false);
-            expect(requiresAttentionFromCurrentUser(policyExpenseChat)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(true);
         });
 
         it('returns false and does not surface GBR when expense report is approved and reimbursement is enabled', async () => {
@@ -3500,7 +3505,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             // When we evaluate if the report requires attention from the current user
-            const requiresAttention = requiresAttentionFromCurrentUser(report);
+            const requiresAttention = requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID);
 
             // Then it should return false because the report is already approved and reimbursement is enabled
             expect(requiresAttention).toBe(false);
@@ -4437,29 +4442,6 @@ describe('ReportUtils', () => {
                 childReportID: reportID,
             } as ReportAction;
             expect(shouldDisableThread(reportAction, true)).toBeTruthy();
-        });
-
-        it('should disable thread for messages sent by MANAGER_MCTEST', () => {
-            // Given a report action from MANAGER_MCTEST
-            const reportAction = {
-                actorAccountID: CONST.ACCOUNT_ID.MANAGER_MCTEST,
-                message: [
-                    {
-                        translationKey: '',
-                        type: 'COMMENT',
-                        html: 'Test message from Manager McTest',
-                        text: 'Test message from Manager McTest',
-                    },
-                ],
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-            } as ReportAction;
-
-            // When it's checked to see if the thread should be disabled
-            const isThreadDisabled = shouldDisableThread(reportAction, false);
-
-            // Then the thread should be disabled
-            // This ensures "Reply in thread" and "Join thread" context menu options won't be shown
-            expect(isThreadDisabled).toBeTruthy();
         });
 
         it('should disable on a DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action', () => {
@@ -7505,6 +7487,26 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('isUnread', () => {
+        it('returns false when the newest visible action was sent by the current user in a one-transaction report', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1',
+                lastReadTime: '2024-03-01 12:00:00.000',
+                lastVisibleActionCreated: '2024-03-01 12:00:01.000',
+                lastActorAccountID: currentUserAccountID,
+            };
+            const transactionThreadReport = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '2',
+                lastReadTime: '2024-03-01 12:00:00.000',
+                lastVisibleActionCreated: '2024-03-01 12:00:00.000',
+            };
+
+            expect(isUnread(report, transactionThreadReport, false)).toBe(false);
+        });
+    });
+
     describe('getPolicyExpenseChat', () => {
         it('should return the correct policy expense chat when we have a task report is the child of this report', async () => {
             const policyExpenseChat: Report = {
@@ -8872,10 +8874,27 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-            const result = canAddTransaction(report, isReportArchived.current);
+            const result = canDeleteTransaction(report, isReportArchived.current);
 
             // Then the result is false
             expect(result).toBe(false);
+        });
+
+        it('should return true for a non-archived invoice report', async () => {
+            // Given a non-archived open invoice report
+            const report: Report = {
+                ...createInvoiceReport(20002),
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            // When it's checked if the transactions can be deleted
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = canDeleteTransaction(report, isReportArchived.current);
+
+            // Then the result is true
+            expect(result).toBe(true);
         });
 
         describe('with workflow disabled', () => {
@@ -12972,7 +12991,7 @@ describe('ReportUtils', () => {
             const reasonForAttention = getReasonAndReportActionThatRequiresAttention(expenseReport, currentUserEmail, currentUserAccountID, undefined, false);
             expect(reasonForAttention?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
 
-            const requiresAttention = requiresAttentionFromCurrentUser(expenseReport, undefined, false);
+            const requiresAttention = requiresAttentionFromCurrentUser(expenseReport, currentUserEmail, currentUserAccountID, undefined, false);
             expect(requiresAttention).toBe(true);
 
             const reasonForOptionList = reasonForReportToBeInOptionList({
@@ -13015,7 +13034,7 @@ describe('ReportUtils', () => {
             const reasonForAttention = getReasonAndReportActionThatRequiresAttention(expenseReport, currentUserEmail, currentUserAccountID, undefined, false);
             expect(reasonForAttention?.reason).toBe(undefined);
 
-            const requiresAttention = requiresAttentionFromCurrentUser(expenseReport, undefined, false);
+            const requiresAttention = requiresAttentionFromCurrentUser(expenseReport, currentUserEmail, currentUserAccountID, undefined, false);
             expect(requiresAttention).toBe(false);
 
             const reasonForOptionList = reasonForReportToBeInOptionList({
@@ -16644,7 +16663,7 @@ describe('ReportUtils', () => {
             expect(getOutstandingChildRequest(expenseReport).hasOutstandingChildRequest).toBe(true);
 
             // GBR shows on the workspace chat
-            expect(requiresAttentionFromCurrentUser(policyExpenseChat)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(true);
 
             const reason = reasonForReportToBeInOptionList({
                 report: policyExpenseChat,
@@ -16713,7 +16732,7 @@ describe('ReportUtils', () => {
             expect(getOutstandingChildRequest(expenseReport)).toEqual({});
 
             // The workspace chat still has hasOutstandingChildRequest: true, so GBR persists
-            expect(requiresAttentionFromCurrentUser(policyExpenseChat)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(true);
 
             const reason = reasonForReportToBeInOptionList({
                 report: policyExpenseChat,
@@ -17851,6 +17870,166 @@ describe('ReportUtils', () => {
 
             expect(transactionThread).toBeUndefined();
             expect(createdActionForThread).toBeNull();
+        });
+    });
+
+    describe('getReimbursableTotal', () => {
+        it('returns 0 when the report is undefined', () => {
+            expect(getReimbursableTotal(undefined)).toBe(0);
+        });
+
+        it('returns the freshly computed reimbursableTotal when set', () => {
+            const report = {total: -1000, nonReimbursableTotal: -200, reimbursableTotal: -750};
+            expect(getReimbursableTotal(report)).toBe(-750);
+        });
+
+        it('falls back to total minus nonReimbursableTotal when reimbursableTotal is missing', () => {
+            const report = {total: -1000, nonReimbursableTotal: -200};
+            expect(getReimbursableTotal(report)).toBe(-800);
+        });
+
+        it('treats missing total and nonReimbursableTotal as 0 when reimbursableTotal is missing', () => {
+            expect(getReimbursableTotal({})).toBe(0);
+        });
+
+        it('prefers reimbursableTotal of 0 over the legacy derivation', () => {
+            const report = {total: -1000, nonReimbursableTotal: -1000, reimbursableTotal: 0};
+            expect(getReimbursableTotal(report)).toBe(0);
+        });
+    });
+
+    describe('getUnheldReimbursableTotal', () => {
+        it('returns 0 when the report is undefined', () => {
+            expect(getUnheldReimbursableTotal(undefined)).toBe(0);
+        });
+
+        it('returns the freshly computed unheldReimbursableTotal when set', () => {
+            const report = {unheldTotal: -1000, unheldNonReimbursableTotal: -200, unheldReimbursableTotal: -750};
+            expect(getUnheldReimbursableTotal(report)).toBe(-750);
+        });
+
+        it('falls back to unheldTotal minus unheldNonReimbursableTotal when unheldReimbursableTotal is missing', () => {
+            const report = {unheldTotal: -1000, unheldNonReimbursableTotal: -200};
+            expect(getUnheldReimbursableTotal(report)).toBe(-800);
+        });
+
+        it('treats missing unheldTotal and unheldNonReimbursableTotal as 0 when unheldReimbursableTotal is missing', () => {
+            expect(getUnheldReimbursableTotal({})).toBe(0);
+        });
+    });
+
+    describe('getMoneyRequestSpendBreakdown', () => {
+        it('returns zeroes when the report is empty', () => {
+            const fields = getMoneyRequestSpendBreakdown(undefined);
+            expect(fields.totalDisplaySpend).toBe(0);
+            expect(fields.reimbursableSpend).toBe(0);
+            expect(fields.nonReimbursableSpend).toBe(0);
+        });
+
+        it('uses the freshly tracked reimbursableTotal for an expense report', () => {
+            const expenseReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: -10000,
+                nonReimbursableTotal: -3000,
+                reimbursableTotal: -7000,
+            };
+            const fields = getMoneyRequestSpendBreakdown(expenseReport);
+            expect(fields.reimbursableSpend).toBe(7000);
+            expect(fields.nonReimbursableSpend).toBe(3000);
+            expect(fields.totalDisplaySpend).toBe(10000);
+        });
+
+        it('falls back to total minus nonReimbursableTotal when reimbursableTotal is missing', () => {
+            const expenseReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: -10000,
+                nonReimbursableTotal: -3000,
+            };
+            const fields = getMoneyRequestSpendBreakdown(expenseReport);
+            expect(fields.reimbursableSpend).toBe(7000);
+            expect(fields.nonReimbursableSpend).toBe(3000);
+            expect(fields.totalDisplaySpend).toBe(10000);
+        });
+
+        it('returns 0 reimbursableSpend (not -0) for an all-non-reimbursable expense report', () => {
+            const expenseReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: -4000,
+                nonReimbursableTotal: -4000,
+                reimbursableTotal: 0,
+            };
+            const fields = getMoneyRequestSpendBreakdown(expenseReport);
+            expect(fields.reimbursableSpend).toBe(0);
+            expect(Object.is(fields.reimbursableSpend, -0)).toBe(false);
+            expect(fields.nonReimbursableSpend).toBe(4000);
+            expect(fields.totalDisplaySpend).toBe(4000);
+        });
+
+        it('uses Math.abs for an IOU report so values are positive', () => {
+            const iouReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                total: 5000,
+                nonReimbursableTotal: 0,
+                reimbursableTotal: 5000,
+            };
+            const fields = getMoneyRequestSpendBreakdown(iouReport);
+            expect(fields.reimbursableSpend).toBe(5000);
+            expect(fields.nonReimbursableSpend).toBe(0);
+            expect(fields.totalDisplaySpend).toBe(5000);
+        });
+    });
+
+    describe('getNonHeldAndFullAmount', () => {
+        it('uses the freshly tracked unheldReimbursableTotal when shouldExcludeNonReimbursables is true', () => {
+            const expenseReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: CONST.CURRENCY.USD,
+                total: -10000,
+                unheldTotal: -8000,
+                nonReimbursableTotal: -3000,
+                unheldNonReimbursableTotal: -2000,
+                reimbursableTotal: -7000,
+                unheldReimbursableTotal: -6000,
+            };
+            const result = getNonHeldAndFullAmount(expenseReport, true, []);
+            expect(result.fullAmount).toContain('70.00');
+            expect(result.nonHeldAmount).toContain('60.00');
+        });
+
+        it('uses the full reimbursable plus non-reimbursable when shouldExcludeNonReimbursables is false', () => {
+            const expenseReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: CONST.CURRENCY.USD,
+                total: -10000,
+                unheldTotal: -8000,
+                nonReimbursableTotal: -3000,
+                unheldNonReimbursableTotal: -2000,
+                reimbursableTotal: -7000,
+                unheldReimbursableTotal: -6000,
+            };
+            const result = getNonHeldAndFullAmount(expenseReport, false, []);
+            expect(result.fullAmount).toContain('100.00');
+            expect(result.nonHeldAmount).toContain('80.00');
+        });
+
+        it('falls back to legacy unheldTotal minus unheldNonReimbursableTotal when unheldReimbursableTotal is missing', () => {
+            const expenseReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: CONST.CURRENCY.USD,
+                total: -10000,
+                unheldTotal: -8000,
+                nonReimbursableTotal: -3000,
+                unheldNonReimbursableTotal: -2000,
+            };
+            const result = getNonHeldAndFullAmount(expenseReport, true, []);
+            expect(result.nonHeldAmount).toContain('60.00');
         });
     });
 

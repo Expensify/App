@@ -3,16 +3,17 @@ import type {ReactNode} from 'react';
 import {ListFilterHeightContextProvider} from '@components/Search/FilterComponents/ListFilterHeightContext';
 import AmountPopup from '@components/Search/FilterDropdowns/AmountPopup';
 import CommonPopup from '@components/Search/FilterDropdowns/CommonPopup';
-import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
+import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import ReportFieldPopup from '@components/Search/FilterDropdowns/ReportFieldPopup';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchResultsContext} from '@components/Search/SearchContext';
 import type {ReportFieldKey, SearchFilterKey, SearchQueryJSON} from '@components/Search/types';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import {FILTER_LABEL_MAP, isAmountFilterKey, isDateFilterKey, mapFiltersFormToLabelValueList, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
+import {getAdvancedFiltersToReset} from '@libs/SearchQueryUtils';
+import {FILTER_VIEW_MAP, isAmountFilterKey, isDateFilterKey, mapFiltersFormToLabelValueList, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,6 +32,7 @@ type UseSearchFiltersBarResult = {
     filters: Array<SearchFilter & FilterItem>;
     hasErrors: boolean;
     shouldShowFiltersBarLoading: boolean;
+    clearFilters: () => void;
 };
 
 type FilterPopupProps = {
@@ -47,7 +49,7 @@ function getFilterSentryLabel(filterKey: SearchAdvancedFiltersKey | SearchFilter
 
 function FilterPopup({filterKey, searchAdvancedFiltersForm, queryJSON, closeOverlay, setPopoverWidth}: FilterPopupProps) {
     const {translate} = useLocalize();
-    const label = translate(FILTER_LABEL_MAP[filterKey]);
+    const label = translate(FILTER_VIEW_MAP[filterKey].labelKey);
 
     const updateFilterForm = useUpdateFilterQuery(queryJSON, true);
 
@@ -114,7 +116,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
-    const {shouldShowFiltersBarLoading, currentSearchResults} = useSearchStateContext();
+    const {shouldShowFiltersBarLoading, currentSearchResults} = useSearchResultsContext();
     const updateFilterForm = useUpdateFilterQuery(queryJSON, false);
     const filters = mapFiltersFormToLabelValueList<FilterItem>(
         searchAdvancedFiltersForm,
@@ -170,10 +172,15 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
         }),
     );
 
+    const clearFilters = () => {
+        updateFilterForm(getAdvancedFiltersToReset(searchAdvancedFiltersForm ?? {}));
+    };
+
     return {
         filters,
         hasErrors: Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline,
         shouldShowFiltersBarLoading,
+        clearFilters,
     };
 }
 
