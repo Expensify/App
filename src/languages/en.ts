@@ -126,6 +126,7 @@ const translations = {
             approve: 'Approve',
             pay: 'Pay',
             fix: 'Fix',
+            task: 'Task',
         },
         // @context Used in confirmation or result messages indicating that an action completed successfully, not the abstract noun “success.”
         success: 'Success',
@@ -7884,7 +7885,6 @@ const translations = {
         },
         resultsAreLimited: 'Search results are limited.',
         viewResults: 'View results',
-        applyFilters: 'Apply filters',
         appliedFilters: 'Applied filters',
         resetFilters: 'Reset filters',
         searchResults: {
@@ -7997,12 +7997,7 @@ const translations = {
             amount: {
                 lessThan: (amount?: string) => `Less than ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Greater than ${amount ?? ''}`,
-                between: (greaterThan?: string, lessThan?: string) => {
-                    if (greaterThan && lessThan) {
-                        return `Between ${greaterThan} and ${lessThan}`;
-                    }
-                    return 'Between';
-                },
+                between: (greaterThan: string, lessThan: string) => `Between ${greaterThan} and ${lessThan}`,
                 equalTo: (amount?: string) => `Equal to ${amount ?? ''}`,
             },
             card: {

@@ -83,7 +83,7 @@ export default function DomainListTable({domains}: DomainListTableProps) {
             ListEmptyComponent={DomainListEmptyState}
             keyExtractor={(row, index) => `${row.domainAccountID}-${index}`}
         >
-            {domains.length > CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.common.findDomain')} />}
+            {domains.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.common.findDomain')} />}
             <Table.Header />
             <Table.Body />
         </Table>
