@@ -10,12 +10,12 @@ import parseCornerRadius from '@components/HTMLEngineProvider/HTMLRenderers/Vict
 import parseOffset from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseOffset';
 import parseStyles from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseStyles';
 
-type VictoryCharBarGroupProps = {
+type VictoryChartBarGroupProps = {
     tnode: TNode;
     isHorizontal?: boolean;
 };
 
-function VictoryCharBarGroup({tnode, isHorizontal}: VictoryCharBarGroupProps) {
+function VictoryChartBarGroup({tnode, isHorizontal}: VictoryChartBarGroupProps) {
     const {points, chartBounds} = useVictoryChartRenderArgs();
     const barChildren = tnode.children.filter((child) => child.tagName === 'victorybar');
     const firstBarChild = barChildren.at(0);
