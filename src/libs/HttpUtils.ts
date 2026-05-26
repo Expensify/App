@@ -14,9 +14,9 @@ import {getCommandURL} from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
 import Log from './Log';
 import {setLoadTestParameters} from './Network/LoadTestState';
-import registerPrefetchTokenRefresh from './NitroFetchTokenRefresh';
 import {PREFETCH_HEADER_KEY} from './PrefetchQueries';
 import prepareRequestPayload from './prepareRequestPayload';
+import registerPrefetchTokenRefresh from './registerPrefetchTokenRefresh';
 import markAppStartupNetworkRequestEnd from './telemetry/markAppStartupNetworkRequestEnd';
 
 let shouldFailAllRequests = false;
