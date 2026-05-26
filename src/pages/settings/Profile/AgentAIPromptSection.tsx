@@ -3,13 +3,10 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, TextInputKeyPressEvent} from 'react-native';
-import {View} from 'react-native';
+import {Keyboard} from 'react-native';
 import Button from '@components/Button';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import RenderHTML from '@components/RenderHTML';
-import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
@@ -17,7 +14,6 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAgentPromptUpdateError, openProfilePage, updateAgentPrompt} from '@libs/actions/Agent';
 import getPlatform from '@libs/getPlatform';
-import Parser from '@libs/Parser';
 import {containsHtmlTag} from '@libs/ValidationUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -52,10 +48,10 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
     const styles = useThemeStyles();
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const [isEditing, setIsEditing] = useState(false);
     const [draftPrompt, setDraftPrompt] = useState('');
     const [showEmptyError, setShowEmptyError] = useState(false);
     const inputRef = useRef<BaseTextInputRef>(null);
+    const isSaving = agentPrompt?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
 
     // Mirrors FormProvider's HTML-tag validation so inputs like `<script>...</script>` are blocked
     // here the same way they are in EditPromptPage (which uses FormProvider).
@@ -79,7 +75,12 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
     }, [isLoadingApp, accountID]);
 
     useEffect(() => {
-        if (!isEditing || !agentPrompt?.promptErrors) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setDraftPrompt(storedPrompt);
+    }, [accountID, storedPrompt]);
+
+    useEffect(() => {
+        if (!agentPrompt?.promptErrors) {
             return;
         }
         // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -87,12 +88,10 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [agentPrompt?.promptErrors]);
 
-    useEffect(() => {
-        if (!isEditing || !parentScrollViewRef) {
-            return;
-        }
-        scrollInputIntoView(parentScrollViewRef);
-    }, [isEditing, parentScrollViewRef]);
+    const dismissInput = useCallback(() => {
+        inputRef.current?.blur();
+        Keyboard.dismiss();
+    }, []);
 
     const handleInputFocus = useCallback(() => {
         if (!parentScrollViewRef) {
@@ -101,13 +100,11 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
         scrollInputIntoView(parentScrollViewRef);
     }, [parentScrollViewRef]);
 
-    const handleEditPress = () => {
-        setDraftPrompt(storedPrompt);
-        setShowEmptyError(false);
-        setIsEditing(true);
-    };
-
     const handleSave = () => {
+        if (isSaving) {
+            return;
+        }
+
         const trimmed = draftPrompt.trim();
         if (!trimmed) {
             setShowEmptyError(true);
@@ -118,14 +115,8 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
             inputRef.current?.focus();
             return;
         }
+        dismissInput();
         updateAgentPrompt(accountID, trimmed, agentPrompt?.prompt ?? '');
-        setIsEditing(false);
-    };
-
-    const handleCancel = () => {
-        setIsEditing(false);
-        setDraftPrompt('');
-        setShowEmptyError(false);
     };
 
     const handleChangeText = (text: string) => {
@@ -156,63 +147,31 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
                 pendingAction={agentPrompt?.pendingAction}
                 onClose={() => clearAgentPromptUpdateError(accountID)}
             >
-                {isEditing ? (
-                    <TextInput
-                        ref={inputRef}
-                        label={translate('profilePage.aiPromptSection.prompt')}
-                        accessibilityLabel={translate('profilePage.aiPromptSection.prompt')}
-                        value={draftPrompt}
-                        onChangeText={handleChangeText}
-                        onKeyPress={handleKeyPress}
-                        multiline
-                        autoGrowHeight
-                        maxAutoGrowHeight={variables.lineHeightNormal * MAX_VISIBLE_PROMPT_LINES}
-                        errorText={errorText}
-                        containerStyles={[styles.mb4]}
-                        testID="ai-prompt-input"
-                        autoFocus
-                        onFocus={handleInputFocus}
-                    />
-                ) : (
-                    <View
-                        style={[styles.border, styles.borderRadiusComponentLarge, styles.p4, styles.mb4]}
-                        testID="ai-prompt-box"
-                    >
-                        <Text style={[styles.textLabelSupporting, styles.mb2]}>{translate('profilePage.aiPromptSection.prompt')}</Text>
-                        <ScrollView
-                            style={{maxHeight: variables.lineHeightNormal * MAX_VISIBLE_PROMPT_LINES}}
-                            testID="ai-prompt-text"
-                        >
-                            <RenderHTML html={Parser.replace(storedPrompt)} />
-                        </ScrollView>
-                    </View>
-                )}
-            </OfflineWithFeedback>
-            {isEditing ? (
-                <View style={[styles.flexRow, styles.gap3]}>
-                    <Button
-                        success
-                        text={translate('common.save')}
-                        onPress={handleSave}
-                        isDisabled={hasHtmlTag}
-                        style={[styles.alignSelfStart]}
-                        testID="save-prompt-button"
-                    />
-                    <Button
-                        text={translate('common.cancel')}
-                        onPress={handleCancel}
-                        style={[styles.alignSelfStart]}
-                        testID="cancel-prompt-button"
-                    />
-                </View>
-            ) : (
-                <Button
-                    text={translate('profilePage.aiPromptSection.editPrompt')}
-                    onPress={handleEditPress}
-                    style={[styles.alignSelfStart]}
-                    testID="edit-prompt-button"
+                <TextInput
+                    ref={inputRef}
+                    label={translate('profilePage.aiPromptSection.prompt')}
+                    accessibilityLabel={translate('profilePage.aiPromptSection.prompt')}
+                    value={draftPrompt}
+                    onChangeText={handleChangeText}
+                    onKeyPress={handleKeyPress}
+                    multiline
+                    autoGrowHeight
+                    maxAutoGrowHeight={variables.lineHeightNormal * MAX_VISIBLE_PROMPT_LINES}
+                    errorText={errorText}
+                    containerStyles={[styles.mb4]}
+                    testID="ai-prompt-input"
+                    onFocus={handleInputFocus}
                 />
-            )}
+            </OfflineWithFeedback>
+            <Button
+                success
+                text={translate('common.save')}
+                onPress={handleSave}
+                isLoading={isSaving}
+                isDisabled={hasHtmlTag || isSaving}
+                style={[styles.alignSelfStart]}
+                testID="save-prompt-button"
+            />
         </Section>
     );
 }

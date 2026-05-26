@@ -265,9 +265,9 @@ describe('ProfilePage - agent account', () => {
         renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByTestId('ai-prompt-box')).toBeDefined();
-        expect(screen.getByTestId('ai-prompt-text')).toHaveTextContent('Reject gambling expenses.');
-        expect(screen.getByTestId('edit-prompt-button')).toBeDefined();
+        expect(screen.getByTestId('ai-prompt-input')).toBeDefined();
+        expect(screen.getByTestId('ai-prompt-input').props.value).toBe('Reject gambling expenses.');
+        expect(screen.getByTestId('save-prompt-button')).toBeDefined();
     });
 
     it('hides AI prompt section for non-agent account', async () => {
@@ -276,8 +276,8 @@ describe('ProfilePage - agent account', () => {
         renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.queryByTestId('ai-prompt-box')).toBeNull();
-        expect(screen.queryByTestId('edit-prompt-button')).toBeNull();
+        expect(screen.queryByTestId('ai-prompt-input')).toBeNull();
+        expect(screen.queryByTestId('save-prompt-button')).toBeNull();
     });
 
     it('calls openProfilePage on mount for agent account', async () => {
@@ -300,56 +300,7 @@ describe('ProfilePage - agent account', () => {
         expect(mockOpenProfilePage).not.toHaveBeenCalled();
     });
 
-    it('switches to edit mode when edit button pressed', async () => {
-        const accountID = 123;
-        await setupUser('agent_123@expensify.ai');
-
-        await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
-                prompt: 'Reject gambling expenses.',
-                pendingAction: null,
-            });
-        });
-        await waitForBatchedUpdatesWithAct();
-
-        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
-        await waitForBatchedUpdatesWithAct();
-
-        fireEvent.press(screen.getByTestId('edit-prompt-button'));
-        await waitForBatchedUpdatesWithAct();
-
-        expect(screen.getByTestId('ai-prompt-input')).toBeDefined();
-        expect(screen.getByTestId('save-prompt-button')).toBeDefined();
-        expect(screen.getByTestId('cancel-prompt-button')).toBeDefined();
-        expect(screen.queryByTestId('ai-prompt-box')).toBeNull();
-    });
-
-    it('returns to view mode when cancel button pressed', async () => {
-        const accountID = 123;
-        await setupUser('agent_123@expensify.ai');
-
-        await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
-                prompt: 'Reject gambling expenses.',
-                pendingAction: null,
-            });
-        });
-        await waitForBatchedUpdatesWithAct();
-
-        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
-        await waitForBatchedUpdatesWithAct();
-
-        fireEvent.press(screen.getByTestId('edit-prompt-button'));
-        await waitForBatchedUpdatesWithAct();
-
-        fireEvent.press(screen.getByTestId('cancel-prompt-button'));
-        await waitForBatchedUpdatesWithAct();
-
-        expect(screen.getByTestId('ai-prompt-box')).toBeDefined();
-        expect(screen.queryByTestId('ai-prompt-input')).toBeNull();
-    });
-
-    it('calls updateAgentPrompt and returns to view mode when saving non-empty prompt', async () => {
+    it('calls updateAgentPrompt when saving non-empty prompt', async () => {
         const accountID = 123;
         const mockUpdateAgentPrompt = jest.mocked(AgentActions.updateAgentPrompt);
         await setupUser('agent_123@expensify.ai');
@@ -363,9 +314,6 @@ describe('ProfilePage - agent account', () => {
         await waitForBatchedUpdatesWithAct();
 
         renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
-        await waitForBatchedUpdatesWithAct();
-
-        fireEvent.press(screen.getByTestId('edit-prompt-button'));
         await waitForBatchedUpdatesWithAct();
 
         fireEvent.changeText(screen.getByTestId('ai-prompt-input'), 'Updated prompt text');
@@ -373,11 +321,29 @@ describe('ProfilePage - agent account', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(mockUpdateAgentPrompt).toHaveBeenCalledWith(accountID, 'Updated prompt text', 'Reject gambling expenses.');
-        expect(screen.getByTestId('ai-prompt-box')).toBeDefined();
-        expect(screen.queryByTestId('ai-prompt-input')).toBeNull();
+        expect(screen.getByTestId('ai-prompt-input')).toBeDefined();
     });
 
-    it('stays in edit mode and does not call updateAgentPrompt when saving blank prompt', async () => {
+    it('shows loading state on save button while prompt update is pending', async () => {
+        const accountID = 123;
+        const agentPromptKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`;
+        await setupUser('agent_123@expensify.ai');
+
+        await act(async () => {
+            await Onyx.merge(agentPromptKey, {
+                prompt: 'Reject gambling expenses.',
+                pendingAction: 'update',
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('save-prompt-button').props.accessibilityState?.disabled).toBe(true);
+    });
+
+    it('does not call updateAgentPrompt when saving blank prompt', async () => {
         const accountID = 123;
         const mockUpdateAgentPrompt = jest.mocked(AgentActions.updateAgentPrompt);
         await setupUser('agent_123@expensify.ai');
@@ -391,9 +357,6 @@ describe('ProfilePage - agent account', () => {
         await waitForBatchedUpdatesWithAct();
 
         renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
-        await waitForBatchedUpdatesWithAct();
-
-        fireEvent.press(screen.getByTestId('edit-prompt-button'));
         await waitForBatchedUpdatesWithAct();
 
         fireEvent.changeText(screen.getByTestId('ai-prompt-input'), '   ');
