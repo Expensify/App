@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {getReimbursableTotal, isMoneyRequestReport} from '@libs/ReportUtils';
+import {isMoneyRequestReport} from '@libs/ReportUtils';
 import {isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 import {hasValidModifiedAmount} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -47,11 +47,7 @@ function deriveSelectedReports(
             .map((item) => ({
                 reportID: item.reportID,
                 action: item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW,
-                total: getReimbursableTotal({
-                    total: item.total ?? CONST.DEFAULT_NUMBER_ID,
-                    nonReimbursableTotal: item.nonReimbursableTotal,
-                    reimbursableTotal: item.reimbursableTotal,
-                }),
+                total: item.total ?? CONST.DEFAULT_NUMBER_ID,
                 policyID: item.policyID,
                 canPay: item.canPay,
                 canApprove: item.canApprove,
