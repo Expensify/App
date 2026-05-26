@@ -2,6 +2,7 @@ import React, {useEffect} from 'react';
 import type {TNode} from 'react-native-render-html';
 import Log from '@libs/Log';
 import VictoryChartBar from './VictoryChartBar';
+import VictoryChartBarGroup from './VictoryChartBarGroup';
 import VictoryChartLine from './VictoryChartLine';
 
 type VictoryChartSeriesProps = {tnode: TNode};
@@ -14,6 +15,7 @@ type SeriesComponent = (props: VictoryChartSeriesProps) => React.ReactElement | 
  */
 const SERIES_RENDERERS: Partial<Record<string, SeriesComponent>> = {
     victorybar: VictoryChartBar,
+    victorygroup: VictoryChartBarGroup,
     victoryline: VictoryChartLine,
 };
 
