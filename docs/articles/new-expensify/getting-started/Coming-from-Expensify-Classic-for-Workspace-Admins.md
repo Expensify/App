@@ -1,17 +1,23 @@
 ---
 title: Coming from Expensify Classic for Workspace Admins
-description: Learn how familiar Workspace management, approval, reimbursement, company card, and policy workflows work in New Expensify.
+description: Learn how familiar Workspace management, approval, reimbursement, company card, and workflows work in New Expensify.
 keywords: [Expensify Classic admin, New Expensify Workspace Admin, company cards, approval workflows, Workspace rules, migration guide]
-internalScope: Audience is Workspace Admins transitioning from Expensify Classic to New Expensify. Covers how familiar Workspace management, approvals, reimbursements, company cards, and policy workflows work in New Expensify. Does not cover Workspace setup or troubleshooting workflows.
+internalScope: Audience is Workspace Admins transitioning from Expensify Classic to New Expensify. Covers how familiar Workspace management, approvals, reimbursements, company cards, and workflows work in New Expensify. Does not cover Workspace setup or troubleshooting workflows.
 ---
 
 # Coming from Expensify Classic for Workspace Admins
 
 If you previously managed Workspaces in Expensify Classic, many of the administrative workflows you already know — including approvals, reimbursements, company cards, and member management — still work similarly in New Expensify.
 
-New Expensify reorganizes these workflows into a more unified experience to make collaboration easier and help you complete common tasks faster.
+New Expensify reorganizes these workflows into a more unified experience to make collaboration easier, centralize Workspace management, and help you complete familiar administrative tasks more efficiently.
 
-This guide explains how familiar workflows work in New Expensify and highlights new features available to Workspace Admins.
+This guide explains where familiar Workspace workflows now happen in New Expensify and highlights new tools available to Workspace Admins.
+
+If you'd like a guided walkthrough of common Workspace workflows in New Expensify, explore the interactive product tours:
+- [Launch the New Expensify interactive tour for web](https://expensify.storylane.io/share/qlgnexxbsdtp)
+- [Launch the New Expensify interactive tour for mobile](https://expensify.storylane.io/share/fgireksbt2oh)
+
+You can find additional training resources in [How to Access Expensify Training](/articles/new-expensify/getting-started/How-to-Access-Expensify-Training).
 
 ---
 
@@ -54,19 +60,31 @@ Visit the [Expensify Product Updates blog](https://use.expensify.com/blog/catego
 
 # FAQ
 
-## Do Workspace approval workflows still work the same way in New Expensify?
+## What new features can I use in New Expensify?
 
-Yes. Reports still move through your Workspace approval workflow, including approvals, reimbursements, and policy enforcement. New Expensify mainly changes how these workflows are organized and managed.
+New Expensify includes several collaboration and workflow tools that were not available in Expensify Classic.
 
-## Do I still use reports in New Expensify?
+For example, you can:
+- Chat directly inside expenses and reports
+- Tag coworkers or approvers in conversations
+- Attach supporting documents directly to expenses
+- Assign and track tasks within workflows
+- Use Concierge to help answer questions and complete actions
+- Follow guided actions surfaced throughout the app
 
-Yes. Reports continue to organize expenses for approval, reimbursement, company card reconciliation, and tracking workflows. In New Expensify, reports and expenses are managed together through the **Spend** tab.
+These features help keep conversations, approvals, and expense activity together in one place.
+
+## How do I know what to do next in New Expensify?
+
+The Inbox shows a quick overview of what needs your attention. You’ll see 🟢 on actions to take, and 🔴 on errors to review.
+
+The **Home** tab also highlights important tasks and issues that need your attention through the **For you** and **Time sensitive** sections.
 
 ## Will my Workspace settings carry over to New Expensify?
 
 Yes. Workspace settings, approval workflows, company cards, accounting integrations, categories, tags, and reimbursement workflows continue to work in New Expensify.
 
-## Will my data carry over when I switch to New Expensify?
+## Will my expenses data carry over to New Expensify?
 
 Yes. Expenses, reports, Workspace settings, and integrations are shared across both experiences. Switching to New Expensify does not remove or reset your data.
 
