@@ -522,7 +522,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     policyID,
                 });
             } else {
-                const isGroupExport = !!queryJSON?.groupBy;
+                const isGroupExport = !!queryJSON?.groupBy && selectedTransactionsKeys.some((key) => key.startsWith(CONST.SEARCH.GROUP_PREFIX));
                 queueExportSearchWithTemplate({
                     templateName,
                     templateType,
@@ -607,7 +607,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return;
         }
 
-        const isGroupExport = !!queryJSON?.groupBy;
+        const isGroupExport = !!queryJSON?.groupBy && selectedTransactionsKeys.some((key) => key.startsWith(CONST.SEARCH.GROUP_PREFIX));
         let didFail = false;
         await exportSearchItemsToCSV(
             {
