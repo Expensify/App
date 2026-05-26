@@ -30,7 +30,9 @@ import {
     getCategoryTaxDetails,
     getDefaultTaxCode,
     getDistanceInMeters,
+    getRequestType,
     getValidWaypoints,
+    isDistanceExpenseType,
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
 } from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
@@ -598,6 +600,8 @@ function handleMoneyRequestStepDistanceNavigation({
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
+    const requestType = getRequestType(transaction);
+    const distanceRequestType = isDistanceExpenseType(requestType) ? requestType : undefined;
 
     if (transaction?.splitShares && !isManualDistance && !isOdometerDistance) {
         resetSplitShares(transaction, undefined, undefined, currentUserAccountID);
@@ -704,6 +708,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             }),
                             attendees: transaction?.comment?.attendees,
                             gpsCoordinates,
+                            distanceRequestType,
                             odometerStart,
                             odometerEnd,
                             taxCode: distanceTaxCode,
@@ -748,6 +753,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             splitShares: transaction?.splitShares,
                             attendees: transaction?.comment?.attendees,
                             gpsCoordinates,
+                            distanceRequestType,
                             odometerStart,
                             odometerEnd,
                             taxCode: distanceTaxCode,

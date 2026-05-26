@@ -34,8 +34,10 @@ import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
 import {
     getDefaultTaxCode,
     getRateID,
+    getRequestType,
     getTaxValue,
     getValidWaypoints,
+    isDistanceExpenseType,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
@@ -244,6 +246,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     // Derived values from transaction
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isGPSDistanceRequest = isGPSDistanceRequestTransactionUtils(transaction);
+    const requestType = getRequestType(transaction);
+    const distanceRequestType = isDistanceExpenseType(requestType) ? requestType : undefined;
+
     const customUnitRateID = getRateID(transaction) ?? '';
     const transactionDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (transaction?.comment?.customUnit?.quantity ?? undefined) : undefined;
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
@@ -548,6 +553,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     odometerEnd: isOdometerDistanceRequest ? item.comment?.odometerEnd : undefined,
                     isFromGlobalCreate: item?.isFromFloatingActionButton ?? item?.isFromGlobalCreate,
                     gpsCoordinates: isGPSDistanceRequest ? getStringifiedGPSCoordinates(gpsDraftDetails) : undefined,
+                    distanceRequestType,
                 },
                 accountantParams: {
                     accountant: item.accountant,
@@ -612,6 +618,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 odometerEnd: isOdometerDistanceRequest ? transaction.comment?.odometerEnd : undefined,
                 isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
                 gpsCoordinates: isGPSDistanceRequest ? getStringifiedGPSCoordinates(gpsDraftDetails) : undefined,
+                distanceRequestType,
             },
             backToReport,
             isASAPSubmitBetaEnabled,

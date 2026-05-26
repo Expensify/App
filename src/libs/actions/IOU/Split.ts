@@ -107,6 +107,7 @@ type DistanceRequestTransactionParams = BaseTransactionParams & {
     odometerStart?: number;
     odometerEnd?: number;
     gpsCoordinates?: string;
+    distanceRequestType?: string;
 };
 
 type CreateDistanceRequestInformation = {
@@ -1920,6 +1921,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         odometerEnd,
         isFromGlobalCreate,
         gpsCoordinates,
+        distanceRequestType,
     } = transactionParams;
 
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
@@ -2009,6 +2011,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             odometerStart,
             odometerEnd,
             gpsCoordinates,
+            distanceRequestType,
         };
     } else {
         const participant = participants.at(0) ?? {};
@@ -2123,6 +2126,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             description: parsedComment,
             attendees: attendees ? JSON.stringify(attendees) : undefined,
             gpsCoordinates,
+            distanceRequestType,
             shouldDeferAutoSubmit,
         };
     }
