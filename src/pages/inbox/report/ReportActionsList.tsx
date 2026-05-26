@@ -30,6 +30,7 @@ import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlight
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {
     getFirstVisibleReportActionID,
     getReportActionMessage,
@@ -620,12 +621,14 @@ function ReportActionsList({
             return;
         }
 
-        InteractionManager.runAfterInteractions(() => {
-            if (shouldFocusToTopOnMount) {
-                return;
-            }
-            setIsFloatingMessageCounterVisible(false);
-            reportScrollManager.scrollToBottom();
+        TransitionTracker.runAfterTransitions({
+            callback: () => {
+                if (shouldFocusToTopOnMount) {
+                    return;
+                }
+                setIsFloatingMessageCounterVisible(false);
+                reportScrollManager.scrollToBottom();
+            },
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
