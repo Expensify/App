@@ -150,10 +150,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
     const parentReportAction = useParentReportAction(report);
 
-    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const personalDetails = usePersonalDetails();
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
-    const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
 
@@ -478,7 +475,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         hasNewestReportAction,
         setIsFloatingMessageCounterVisible,
         scrollToEnd: reportScrollManager.scrollToEnd,
-        resetKey: report.reportID,
+        resetKey: report?.reportID ?? reportIDFromRoute ?? '',
     });
 
     /**
@@ -593,11 +590,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                     shouldHideThreadDividerLine
                     linkedReportActionID={linkedReportActionID}
                     personalDetails={personalDetails}
-                    userBillingFundID={userBillingFundID}
-                    isReportArchived={isReportArchived}
-                    isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
-                    reportNameValuePairsOrigin={reportNameValuePairs?.origin}
-                    reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
+                    isHarvestCreatedExpenseReport={shouldShowHarvestCreatedAction}
                 />
             );
         },
@@ -611,11 +604,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             firstVisibleReportActionID,
             linkedReportActionID,
             personalDetails,
-            userBillingFundID,
-            isTryNewDotNVPDismissed,
-            isReportArchived,
-            reportNameValuePairs?.origin,
-            reportNameValuePairs?.originalID,
+            shouldShowHarvestCreatedAction,
         ],
     );
 
