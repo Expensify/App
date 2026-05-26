@@ -28,7 +28,6 @@ function parseVictorySeriesNode(tnode: TNode, typeface: SkTypeface | null, rootP
             } as CartesianChartData;
         }
     }
-    console.log({data});
     return {data, yKeys: [yKey]};
 }
 
