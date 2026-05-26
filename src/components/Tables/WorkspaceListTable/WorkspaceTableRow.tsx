@@ -149,7 +149,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                                     {item.isJoinRequestPending && JoinRequestPendingBadge}
                                     <Text
                                         numberOfLines={1}
-                                        style={[styles.textLabelSupporting]}
+                                        style={[styles.textLabelSupporting, styles.flex1]}
                                     >
                                         {narrowWorkspaceLabel}
                                     </Text>

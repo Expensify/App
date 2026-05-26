@@ -106,7 +106,7 @@ export default function WorkspaceListTable({ref, workspaces}: WorkspaceListTable
             ListEmptyComponent={WorkspacesEmptyStateComponent}
             keyExtractor={(row, index) => `${row.policyID}-${index}`}
         >
-            {workspaces.length > CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.common.findWorkspace')} />}
+            {workspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.common.findWorkspace')} />}
             <Table.Header />
             <Table.Body />
         </Table>
