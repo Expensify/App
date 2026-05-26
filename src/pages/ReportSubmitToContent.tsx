@@ -1,14 +1,17 @@
 import {delegateEmailSelector} from '@selectors/Account';
-import React, {useCallback, useMemo, useState} from 'react';
+import omit from 'lodash/omit';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import BlockingView from '@components/BlockingViews/BlockingView';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -16,34 +19,35 @@ import usePermissions from '@hooks/usePermissions';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {search} from '@libs/actions/Search';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
-import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
+import {getSearchValueForPhoneOrEmail, getUserToInviteOption, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getDefaultApprover, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils, isExpenseReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+import variables from '@styles/variables';
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
+import {searchUserInServer} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type WorkspaceMemberItem = ListItem & {email: string};
+type WorkspaceMemberItem = ListItem & {email: string; accountID?: number};
 
 type ReportSubmitToContentProps = {
     report: OnyxEntry<Report>;
     policy: OnyxEntry<Policy>;
     isLoadingReportData: OnyxEntry<boolean>;
     onDismiss: () => void;
-    /** When true, shows a compact title row (e.g. inside a popover). */
-    shouldShowTitle?: boolean;
     /** Called after submit API path invokes success (e.g. primary-action payment animation). */
     onSubmitSuccess?: () => void;
     /** When false, skips closing the RHP stack after submit (e.g. submit-to popover on report screen). */
     shouldDismissRHPAfterSubmit?: boolean;
 };
 
-function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, shouldShowTitle = false, onSubmitSuccess, shouldDismissRHPAfterSubmit = true}: ReportSubmitToContentProps) {
+function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, onSubmitSuccess, shouldDismissRHPAfterSubmit = true}: ReportSubmitToContentProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -54,6 +58,7 @@ function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, 
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -61,7 +66,7 @@ function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, 
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
-
+    const lazyIllustrations = useMemoizedLazyIllustrations(['PaperAirplane']);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
 
@@ -72,6 +77,7 @@ function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, 
     }, [policy, currentUserDetails.login]);
 
     const [userSelectedManagerEmail, setUserSelectedManagerEmail] = useState<string | undefined>();
+    const [extraSubmitToRecipients, setExtraSubmitToRecipients] = useState<WorkspaceMemberItem[]>([]);
     const managerEmail = userSelectedManagerEmail ?? prepopulatedEmail;
 
     const workspaceMembers = useMemo((): WorkspaceMemberItem[] => {
@@ -86,13 +92,14 @@ function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, 
                 return [];
             }
             const accountID = emailsToAccountIDs[email];
-            if (!accountID) {
+            if (!accountID || accountID === currentUserDetails.accountID) {
                 return [];
             }
             const details = personalDetails?.[accountID];
             const displayName = details?.displayName ?? details?.login ?? email;
             return [
                 {
+                    accountID,
                     text: displayName,
                     alternateText: email,
                     keyForList: email,
@@ -101,36 +108,81 @@ function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, 
                 },
             ];
         });
-    }, [policy?.employeeList, personalDetails, managerEmail]);
+    }, [policy?.employeeList, personalDetails, managerEmail, currentUserDetails.accountID]);
 
-    const sortedWorkspaceMembers = useMemo(() => sortAlphabetically(workspaceMembers, 'text', localeCompare), [workspaceMembers, localeCompare]);
+    const combinedSubmitToMembers = useMemo(() => {
+        const workspaceEmailSet = new Set(workspaceMembers.map((m) => m.email.toLowerCase()));
+        const extrasWithSelection = extraSubmitToRecipients.map((item) => ({
+            ...item,
+            isSelected: managerEmail.trim().toLowerCase() === item.email.trim().toLowerCase(),
+        }));
+        const extrasDeduped = extrasWithSelection.filter((item) => !workspaceEmailSet.has(item.email.toLowerCase()));
+        return sortAlphabetically([...workspaceMembers, ...extrasDeduped], 'text', localeCompare);
+    }, [workspaceMembers, extraSubmitToRecipients, managerEmail, localeCompare]);
 
     const filteredWorkspaceMembers = useMemo(() => {
-        if (!debouncedSearchTerm.trim()) {
-            return sortedWorkspaceMembers;
+        if (!searchTerm.trim()) {
+            return combinedSubmitToMembers;
         }
-        const normalized = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode);
-        return tokenizedSearch(sortedWorkspaceMembers, normalized, (item) => [item.text ?? '', item.alternateText ?? '', item.email]);
-    }, [sortedWorkspaceMembers, debouncedSearchTerm, countryCode]);
+        const normalized = getSearchValueForPhoneOrEmail(searchTerm, countryCode);
+        return tokenizedSearch(combinedSubmitToMembers, normalized, (item) => [item.text ?? '', item.alternateText ?? '', item.email]);
+    }, [combinedSubmitToMembers, searchTerm, countryCode]);
 
-    const noMatchingMembers = !!debouncedSearchTerm.trim() && filteredWorkspaceMembers.length === 0;
+    useEffect(() => {
+        searchUserInServer(debouncedSearchTerm.trim());
+    }, [debouncedSearchTerm]);
+
+    const nonWorkspaceInviteRow = useMemo((): WorkspaceMemberItem | null => {
+        const trimmed = searchTerm.trim();
+        if (!trimmed || filteredWorkspaceMembers.length !== 0) {
+            return null;
+        }
+
+        const inviteOption = getUserToInviteOption({
+            searchValue: trimmed,
+            personalDetails,
+            loginList,
+            currentUserEmail: currentUserDetails.email ?? '',
+            countryCode,
+            selectedOptions: [],
+            loginsToExclude: CONST.EXPENSIFY_EMAILS_OBJECT,
+        });
+
+        if (!inviteOption?.login) {
+            return null;
+        }
+
+        const {login} = inviteOption;
+        return {
+            ...inviteOption,
+            email: login,
+            keyForList: `nonWorkspace:${login}`,
+            isSelected: managerEmail.trim().toLowerCase() === login.trim().toLowerCase(),
+        };
+    }, [countryCode, currentUserDetails.email, searchTerm, filteredWorkspaceMembers.length, loginList, managerEmail, personalDetails]);
+
+    const submitToSelectionData = useMemo(() => {
+        if (!nonWorkspaceInviteRow) {
+            return filteredWorkspaceMembers;
+        }
+        return [nonWorkspaceInviteRow, ...filteredWorkspaceMembers];
+    }, [filteredWorkspaceMembers, nonWorkspaceInviteRow]);
+
+    const noMatchingMembers = !!searchTerm.trim() && submitToSelectionData.length === 0;
 
     const textInputOptions = useMemo(
         () => ({
             value: searchTerm,
-            label: translate('common.search'),
+            label: translate('selectionList.nameEmailOrPhoneNumber'),
             onChangeText: setSearchTerm,
             headerMessage: noMatchingMembers ? translate('common.noResultsFound') : undefined,
-            style: {
-                containerStyle: styles.pv3,
-            },
         }),
-        [searchTerm, setSearchTerm, translate, noMatchingMembers, styles.pv3],
+        [searchTerm, setSearchTerm, translate, noMatchingMembers],
     );
 
     const handleSubmit = useCallback(() => {
         const trimmed = managerEmail.trim();
-        if (!report) {
+        if (!report || !trimmed) {
             return;
         }
         submitReport({
@@ -187,9 +239,47 @@ function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, 
         shouldDismissRHPAfterSubmit,
     ]);
 
-    const onSelectMember = useCallback((item: WorkspaceMemberItem) => {
-        setUserSelectedManagerEmail(item.email);
-    }, []);
+    const onSelectMember = useCallback(
+        (item: WorkspaceMemberItem) => {
+            setUserSelectedManagerEmail(item.email);
+            setSearchTerm('');
+
+            const itemEmailLower = item.email.trim().toLowerCase();
+            const isAlreadyWorkspaceMember = workspaceMembers.some((member) => member.email.toLowerCase() === itemEmailLower);
+            if (isAlreadyWorkspaceMember) {
+                return;
+            }
+
+            setExtraSubmitToRecipients((previous) => {
+                if (previous.some((member) => member.email.toLowerCase() === itemEmailLower)) {
+                    return previous;
+                }
+                return [
+                    ...previous,
+                    {
+                        ...omit(item, 'isSelected'),
+                        keyForList: item.keyForList?.startsWith('nonWorkspace:') ? item.keyForList : `nonWorkspace:${item.email}`,
+                    },
+                ];
+            });
+        },
+        [setSearchTerm, workspaceMembers],
+    );
+
+    const listEmptyContent = useMemo(() => {
+        return (
+            <BlockingView
+                icon={lazyIllustrations.PaperAirplane}
+                iconWidth={variables.iconSizeSuperLarge}
+                iconHeight={variables.iconSizeSuperLarge}
+                title={translate('iou.submitReportTo.sendExpense')}
+                subtitle={translate('iou.submitReportTo.sendExpenseSubtitle')}
+                subtitleStyle={styles.textSupporting}
+                containerStyle={styles.pb10}
+                contentFitImage="contain"
+            />
+        );
+    }, [lazyIllustrations.PaperAirplane, styles.pb10, styles.textSupporting, translate]);
 
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isExpenseReport(report) || isMoneyRequestReportPendingDeletion(report);
 
@@ -199,8 +289,9 @@ function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, 
             text: translate('common.confirm'),
             onConfirm: handleSubmit,
             confirmButtonSize: 'medium' as const,
+            isDisabled: !combinedSubmitToMembers.some((item) => item.isSelected),
         }),
-        [handleSubmit, translate],
+        [combinedSubmitToMembers, handleSubmit, translate],
     );
 
     if (shouldShowNotFoundView) {
@@ -212,20 +303,21 @@ function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, 
     }
 
     return (
-        <View style={[styles.w100, styles.flex1, styles.flexColumn, shouldShowTitle && styles.gap2]}>
+        <View style={[styles.w100, styles.flex1, styles.pt5, {minHeight: CONST.POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT}]}>
             <SelectionList
-                data={filteredWorkspaceMembers}
-                ListItem={SingleSelectListItem}
+                data={submitToSelectionData}
+                ListItem={InviteMemberListItem}
                 onSelectRow={onSelectMember}
                 confirmButtonOptions={confirmButtonOptions}
+                listEmptyContent={listEmptyContent}
                 textInputOptions={textInputOptions}
                 shouldShowTextInput
+                shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                shouldSingleExecuteRowSelect
+                initiallyFocusedItemKey={submitToSelectionData.find((m) => m.isSelected)?.keyForList}
+                isRowMultilineSupported
                 style={{containerStyle: styles.flex1}}
-                shouldUpdateFocusedIndex
-                initiallyFocusedItemKey={filteredWorkspaceMembers.find((m) => m.isSelected)?.keyForList}
-                shouldShowLoadingPlaceholder={!noMatchingMembers}
                 disableMaintainingScrollPosition
-                addBottomSafeAreaPadding={!shouldShowTitle}
             />
         </View>
     );

@@ -8,12 +8,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useOnyx from './useOnyx';
 import usePopoverPosition from './usePopoverPosition';
+import useResponsiveLayout from './useResponsiveLayout';
 import useStyleUtils from './useStyleUtils';
 import useThemeStyles from './useThemeStyles';
 
 const popoverDimensions = {
     width: CONST.POPOVER_DROPDOWN_WIDTH,
     height: CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
+    minHeight: CONST.POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT,
 };
 
 const ANCHOR_ALIGNMENT = {
@@ -33,6 +35,9 @@ type UseReportSubmitToPopoverParams = {
 function useReportSubmitToPopover({reportID, onSubmitSuccess}: UseReportSubmitToPopoverParams) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    // Bottom-docked Modal path only; aligns with Popover path that omits modal shell padding chrome
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const anchorRef = useRef<View>(null);
     const oneShotOnSubmitSuccessRef = useRef<(() => void) | undefined>(undefined);
     const {calculatePopoverPosition} = usePopoverPosition();
@@ -84,27 +89,27 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess}: UseReportSubmitTo
                 anchorPosition={anchorPosition}
                 popoverDimensions={popoverDimensions}
                 anchorAlignment={ANCHOR_ALIGNMENT}
-                innerContainerStyle={StyleUtils.getWidthStyle(popoverDimensions.width)}
+                innerContainerStyle={isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DROPDOWN_WIDTH}}
                 restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
                 shouldSwitchPositionIfOverflow
                 shouldEnableNewFocusManagement
                 shouldSkipRemeasurement
                 shouldDisplayBelowModals
+                shouldUseModalPaddingStyle={!isSmallScreenWidth}
             >
-                <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, styles.flex1]}>
+                <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flex1]}>
                     <ReportSubmitToContent
                         report={report}
                         policy={policy}
                         isLoadingReportData={isLoadingReportData}
                         onDismiss={closeReportSubmitToPopover}
-                        shouldShowTitle
                         onSubmitSuccess={handleCombinedSubmitSuccess}
                         shouldDismissRHPAfterSubmit={false}
                     />
                 </View>
             </PopoverWithMeasuredContent>
         ),
-        [StyleUtils, styles.flex1, styles.flexColumn, isVisible, closeReportSubmitToPopover, anchorPosition, report, policy, isLoadingReportData, handleCombinedSubmitSuccess],
+        [StyleUtils, styles.w100, styles.flex1, isSmallScreenWidth, isVisible, closeReportSubmitToPopover, anchorPosition, report, policy, isLoadingReportData, handleCombinedSubmitSuccess],
     );
 
     return {

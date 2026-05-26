@@ -1685,6 +1685,8 @@ const translations = {
             subtitle: 'Choose a workspace member or enter an email address for who should receive this submission.',
             emailLabel: 'Email address',
             workspaceMembers: 'Workspace members',
+            sendExpense: 'Send your expense to anyone',
+            sendExpenseSubtitle: 'Invite anyone to Expensify by using their email address or phone number.',
         },
         changeApprover: {
             title: 'Change approver',
