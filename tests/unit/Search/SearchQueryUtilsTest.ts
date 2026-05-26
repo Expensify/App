@@ -17,7 +17,6 @@ import {
     getDateRangeDisplayValueFromFormValue,
     getDisplayQueryFiltersForKey,
     getFilterDisplayValue,
-    getKeywordQueryWithCurrentSearchContext,
     getQueryWithUpdatedValues,
     getRangeBoundariesFromFormValue,
     serializeQueryJSONForBackend,
