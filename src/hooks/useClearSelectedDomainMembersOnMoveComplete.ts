@@ -8,7 +8,7 @@ import usePrevious from './usePrevious';
  * transition of `DOMAIN_MEMBERS_SELECTED_FOR_MOVE` from non-empty to empty.
  */
 function useClearSelectedDomainMembersOnMoveComplete(clearSelectedMembers: () => void) {
-    const [selectedMemberAccountIDs] = useOnyx(ONYXKEYS.DOMAIN_MEMBERS_SELECTED_FOR_MOVE, {initWithStoredValues: false});
+    const [selectedMemberAccountIDs] = useOnyx(ONYXKEYS.DOMAIN_MEMBERS_SELECTED_FOR_MOVE);
     const prevSelectedMemberAccountIDs = usePrevious(selectedMemberAccountIDs);
     const selectedCount = selectedMemberAccountIDs?.length ?? 0;
     const previousSelectedCount = prevSelectedMemberAccountIDs?.length ?? 0;
