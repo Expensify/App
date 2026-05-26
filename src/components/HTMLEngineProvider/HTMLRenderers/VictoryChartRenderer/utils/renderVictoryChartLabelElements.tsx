@@ -1,7 +1,7 @@
 import {Skia, Text as SkText} from '@shopify/react-native-skia';
 import React from 'react';
 import type {ChartTypefaces} from '@components/Charts/types';
-import {getChartLabelTypeface} from '@components/Charts/utils/getChartLabelTypeface';
+import {getChartLabelTypeface, isBoldFontWeight} from '@components/Charts/utils/getChartLabelTypeface';
 import type {LabelItem, RawLabelStyle} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 
 type RenderVictoryChartLabelElementsParams = {
@@ -9,21 +9,22 @@ type RenderVictoryChartLabelElementsParams = {
     typefaces: ChartTypefaces;
 };
 
-function getLineStyle(labelItem: LabelItem, lineIndex: number): Pick<LabelItem, 'color' | 'fontSize' | 'fontWeight'> & Pick<RawLabelStyle, 'fontFamily' | 'fontStyle'> {
+function getLineStyle(labelItem: LabelItem, lineIndex: number): Pick<LabelItem, 'color' | 'fontSize' | 'fontWeight' | 'fontFamily'> & Pick<RawLabelStyle, 'fontStyle'> {
     const style = labelItem.styles?.at(lineIndex);
     if (!style) {
         return {
             color: labelItem.color,
             fontSize: labelItem.fontSize,
             fontWeight: labelItem.fontWeight,
+            fontFamily: labelItem.fontFamily,
         };
     }
 
     return {
         color: style.fill,
         fontSize: style.fontSize !== undefined ? Number(style.fontSize) : labelItem.fontSize,
-        fontWeight: Number(style.fontWeight) === 700 ? 'bold' : labelItem.fontWeight,
-        fontFamily: style.fontFamily,
+        fontWeight: isBoldFontWeight(style.fontWeight) ? 'bold' : labelItem.fontWeight,
+        fontFamily: style.fontFamily ?? labelItem.fontFamily,
         fontStyle: style.fontStyle,
     };
 }

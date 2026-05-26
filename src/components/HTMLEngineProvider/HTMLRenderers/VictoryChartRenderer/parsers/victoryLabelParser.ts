@@ -26,7 +26,7 @@ function parseVerticalAnchor(verticalAnchor: string | undefined): VerticalAnchor
     return undefined;
 }
 
-function parseLabelStyle(style: RawLabelStyle | RawLabelStyle[] | undefined): Pick<LabelItem, 'color' | 'fontSize' | 'fontWeight' | 'styles'> {
+function parseLabelStyle(style: RawLabelStyle | RawLabelStyle[] | undefined): Pick<LabelItem, 'color' | 'fontSize' | 'fontWeight' | 'fontFamily' | 'styles'> {
     if (Array.isArray(style)) {
         return {
             styles: style,
@@ -37,6 +37,7 @@ function parseLabelStyle(style: RawLabelStyle | RawLabelStyle[] | undefined): Pi
         color: style?.fill,
         fontSize: style?.fontSize !== undefined ? Number(style.fontSize) : undefined,
         fontWeight: Number(style?.fontWeight) === 700 ? 'bold' : undefined,
+        fontFamily: style?.fontFamily,
     };
 }
 

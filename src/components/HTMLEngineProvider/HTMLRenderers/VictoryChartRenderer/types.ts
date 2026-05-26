@@ -75,6 +75,9 @@ type LabelItem = {
     /** Font weight */
     fontWeight?: 'normal' | 'bold';
 
+    /** Font family */
+    fontFamily?: string;
+
     /** Horizontal text alignment relative to x */
     textAnchor?: 'start' | 'middle' | 'end';
 

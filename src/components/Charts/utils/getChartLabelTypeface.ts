@@ -23,11 +23,23 @@ function normalizeChartFontFamily(fontFamily?: string): 'ExpensifyNeue' | 'Expen
 }
 
 /**
+ * Returns true when a label style should use the bold chart typeface.
+ */
+function isBoldFontWeight(fontWeight?: string | number): boolean {
+    if (fontWeight === 'bold') {
+        return true;
+    }
+
+    const numericWeight = Number(fontWeight);
+    return Number.isFinite(numericWeight) && numericWeight >= 700;
+}
+
+/**
  * Resolves the Skia typeface for a chart label style.
  */
 function getChartLabelTypeface(typefaces: ChartTypefaces, style?: ChartLabelFontStyle): SkTypeface | null {
     const fontFamily = normalizeChartFontFamily(style?.fontFamily);
-    const isBold = Number(style?.fontWeight) === 700;
+    const isBold = isBoldFontWeight(style?.fontWeight);
     const isItalic = style?.fontStyle === 'italic';
 
     if (fontFamily === 'ExpensifyNewKansas') {
@@ -45,4 +57,4 @@ function getChartLabelTypeface(typefaces: ChartTypefaces, style?: ChartLabelFont
     return typefaces.regular;
 }
 
-export {getChartLabelTypeface, normalizeChartFontFamily};
+export {getChartLabelTypeface, isBoldFontWeight, normalizeChartFontFamily};
