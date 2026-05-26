@@ -1,7 +1,7 @@
 ---
 title: Manage Your Expensify Card PIN (GBP/EUR Cards Only)
 description: Learn how to set, view, change, and unblock the PIN on your UK/EU Expensify Card.
-keywords: [Expensify Card, PIN, GBP, EUR, UK, EU, set PIN, change PIN, reveal PIN, unblock PIN, card locked, biometrics]
+keywords: [Expensify Card, PIN, GBP, EUR, UK, EU, set PIN, change PIN, reveal PIN, card locked, biometrics]
 ---
 
 Physical Expensify Cards issued on the GBP or EUR program have a card PIN that is used for in-person transactions. You can manage your PIN directly in New Expensify. Virtual cards and US Expensify Cards do not have PINs.
