@@ -1,6 +1,6 @@
 import useOnyx from '@hooks/useOnyx';
 import {getOriginalMessage, isReimbursementDirectionInformationRequiredAction} from '@libs/ReportActionsUtils';
-import CONST from '@src/CONST';
+import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type PendingSignerInfo = {
