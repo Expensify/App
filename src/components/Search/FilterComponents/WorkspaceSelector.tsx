@@ -1,7 +1,12 @@
 import React from 'react';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {SearchFilterSelectionListProps} from '@components/Search/types';
-import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
+import {advancedSearchPoliciesSelector, useAdvancedSearchFiltersWorkspaces} from '@hooks/useAdvancedSearchFilters';
+import useOnyx from '@hooks/useOnyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {MultiSelectItem} from './MultiSelect';
 import MultiSelect from './MultiSelect';
 
@@ -13,7 +18,8 @@ type WorkspaceSelectorProps = SearchFilterSelectionListProps & {
 };
 
 function WorkspaceSelector({policyIDQuery, value, selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: WorkspaceSelectorProps) {
-    const {workspaces, shouldShowWorkspaceSearchInput} = useAdvancedSearchFilters();
+    const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: advancedSearchPoliciesSelector});
+    const {workspaces, shouldShowWorkspaceSearchInput} = useAdvancedSearchFiltersWorkspaces(policies);
     const workspaceOptions: Array<MultiSelectItem<string>> = workspaces
         .flatMap((section) => section.data)
         .filter((workspace): workspace is typeof workspace & {policyID: string; icons: Icon[]} => !!workspace.policyID && !!workspace.icons)

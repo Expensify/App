@@ -17,7 +17,7 @@ type FilterListProps = {
 
 function FilterList({selectedFilter, style, onFilterSelected}: FilterListProps) {
     const styles = useThemeStyles();
-    const {typeFiltersKeys} = useAdvancedSearchFilters();
+    const typeFiltersKeys = useAdvancedSearchFilters();
     const fullscreen = useFullscreenAdvancedFilters();
 
     return (
