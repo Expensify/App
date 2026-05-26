@@ -7,11 +7,8 @@ type ResponsiveLayoutProperties = WindowDimensions & {
 };
 
 type FullScreenStateContextType = {
-    /** Whether the application is currently in fullscreen mode (mirrors ref; triggers re-renders). */
+    /** Whether the application is currently in fullscreen mode. */
     isFullScreen: boolean;
-
-    /** Synchronous fullscreen flag for effects and callbacks. */
-    isFullScreenRef: RefObject<boolean>;
 
     /** Window dimensions saved before entering fullscreen mode. */
     lockedWindowDimensionsRef: RefObject<ResponsiveLayoutProperties | null>;
@@ -24,7 +21,7 @@ type FullScreenActionsContextType = {
     /** Clears the locked window dimensions. */
     unlockWindowDimensions: () => void;
 
-    /** Updates fullscreen state (keeps ref and state in sync). */
+    /** Updates fullscreen state. */
     setIsFullScreen: (next: boolean) => void;
 };
 

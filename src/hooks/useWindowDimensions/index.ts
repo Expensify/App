@@ -1,5 +1,5 @@
 import type {RefObject} from 'react';
-import {useContext, useEffect, useMemo, useRef} from 'react';
+import {useContext, useEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Dimensions, useWindowDimensions} from 'react-native';
 import type {ResponsiveLayoutProperties} from '@components/VideoPlayerContexts/FullScreenContextProvider';
@@ -18,15 +18,10 @@ const isMobile = isMobileBrowser();
  * A wrapper around React Native's useWindowDimensions hook.
  */
 export default function (useCachedViewportHeight = false): WindowDimensions {
-    const defaultFullScreenState = useMemo(
-        () => ({
-            isFullScreen: false,
-            isFullScreenRef: {current: false},
-            lockedWindowDimensionsRef: {current: null} as RefObject<ResponsiveLayoutProperties | null>,
-        }),
-        [],
-    );
-    const {isFullScreen, lockedWindowDimensionsRef} = useContext(FullScreenStateContext) ?? defaultFullScreenState;
+    const {isFullScreen, lockedWindowDimensionsRef} = useContext(FullScreenStateContext) ?? {
+        isFullScreen: false,
+        lockedWindowDimensionsRef: {current: null} as RefObject<ResponsiveLayoutProperties | null>,
+    };
     const {lockWindowDimensions, unlockWindowDimensions} = useContext(FullScreenActionsContext) ?? {
         lockWindowDimensions: () => {},
         unlockWindowDimensions: () => {},

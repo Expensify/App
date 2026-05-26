@@ -1,6 +1,6 @@
 // This component is compiled by the React Compiler
 /* eslint-disable react/jsx-no-constructed-context-values */
-import React, {createContext, useCallback, useContext, useRef, useState} from 'react';
+import React, {createContext, useContext, useRef, useState} from 'react';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {FullScreenActionsContextType, FullScreenStateContextType, ResponsiveLayoutProperties} from './types';
 
@@ -8,14 +8,8 @@ const FullScreenStateContext = createContext<FullScreenStateContextType | null>(
 const FullScreenActionsContext = createContext<FullScreenActionsContextType | null>(null);
 
 function FullScreenContextProvider({children}: ChildrenProps) {
-    const [isFullScreen, setIsFullScreenState] = useState(false);
-    const isFullScreenRef = useRef(false);
+    const [isFullScreen, setIsFullScreen] = useState(false);
     const lockedWindowDimensionsRef = useRef<ResponsiveLayoutProperties | null>(null);
-
-    const setIsFullScreen = useCallback((next: boolean) => {
-        isFullScreenRef.current = next;
-        setIsFullScreenState(next);
-    }, []);
 
     const lockWindowDimensions = (newResponsiveLayoutProperties: ResponsiveLayoutProperties) => {
         lockedWindowDimensionsRef.current = newResponsiveLayoutProperties;
@@ -25,7 +19,7 @@ function FullScreenContextProvider({children}: ChildrenProps) {
         lockedWindowDimensionsRef.current = null;
     };
 
-    const stateValue = {isFullScreen, isFullScreenRef, lockedWindowDimensionsRef};
+    const stateValue = {isFullScreen, lockedWindowDimensionsRef};
     const actionsValue = {lockWindowDimensions, unlockWindowDimensions, setIsFullScreen};
 
     return (
