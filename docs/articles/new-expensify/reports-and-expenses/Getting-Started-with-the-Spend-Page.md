@@ -1,7 +1,7 @@
 ---
 title: Getting Started with the Spend Page
 description: Learn how to use the Spend page in New Expensify to view, filter, and manage your expense data using report previews, tables, filters, and smart suggestions.
-keywords: [New Expensify, Spend page, report preview, report table, filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline]
+keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters]
 ---
 
 The Spend page in New Expensify gives you a complete view of your submitted, approved, and reimbursed expenses—all in one place. This guide shows you how to use report previews, tables, filters, and smart suggestions to track, manage, and take action on your expenses more efficiently.
@@ -84,17 +84,38 @@ Filters help you narrow down expenses or reports so you can find exactly what yo
   - **Submitter**
   - **Report status** (e.g., Open, Approved, Reimbursed)
 
-### Available Filters in New Expensify
+## How to apply advanced filters in New Expensify
 
-You can filter your **expenses** and **reports** using dropdowns, search bars, and chips. 
+You can filter your **expenses** and **reports** using dropdowns, search bars, and the **Filters** button on the **Spend** page.
 
-- **Expenses:** can be filtered by `Date`, `Merchant`, `Category`, `Tag`, `Amount`, `Reimbursable`, `Billable`, `Status` (e.g. Unreported, Deleted)
+- **Expenses** can be filtered by `Date`, `Merchant`, `Category`, `Tag`, `Amount`, `Reimbursable`, `Billable`, `Status` (e.g. Unreported, Deleted)
 
-- **Reports**: can be filtered by `Submitter`, `Workspace`, `Report Status` (e.g. Draft, Outstanding, Approved, Paid), `Date`
+- **Reports** can be filtered by `Submitter`, `Workspace`, `Report Status` (e.g. Draft, Outstanding, Approved, Paid), `Date`
 
-To view other available filters, click into the **search box** on the **Spend** page while viewing **Reports** or **Expenses** under **Explore**.
+Web:
 
-## How Filtering Works
+1. Go to the **Spend** page.
+2. Click the **Filters** button.
+3. A popover opens showing available filters.
+4. Hover over a filter to see its options.
+5. For selection-based filters (e.g., Category, Tag, Status), click a value to apply the filter immediately.
+6. For text input-based filters, enter a value and click **Apply**.
+7. For date-based filters, select **Custom date** or **Custom range**, set the value, and click **Apply**.
+8. For amount-based filters, select a comparison option (e.g., greater than, less than, or between), enter the value, and click **Apply**.
+
+Mobile:
+
+1. Go to the **Spend** page.
+2. Tap the **Filters** button.
+3. The advanced filters open in a full-screen view.
+4. Tap any filter to see its options.
+5. Set a value and tap **Apply** to confirm the selection.
+6. Tap **Apply** again on the filter list to apply your filters.
+7. To clear active filters, tap **Reset** at the bottom of the filter list.
+
+You can also type search operators directly into the search box on the **Spend** page while viewing **Reports** or **Expenses** under **Explore**. [Learn how to use search operators to filter and analyze](/articles/new-expensify/reports-and-expenses/Use-Search-Operators-to-Filter-and-Analyze).
+
+## How filtering works on the Spend page
 
 1. Apply filters to view only the results that match your criteria.
 2. Once filters are applied:
