@@ -338,6 +338,52 @@ describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', 
         expect(result.current).toEqual([]);
     });
 
+    it('returns pending new transactions after regaining focus (e.g. split flow)', () => {
+        const {rerender, result} = renderHook<
+            Transaction[],
+            {
+                transactions: Transaction[];
+                hasOnceLoadedReportActions: boolean;
+                pendingNewTransactionIDs: Record<string, true | null> | undefined;
+                isFocused?: boolean;
+            }
+        >((props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions, props.pendingNewTransactionIDs, '1', props.isFocused), {
+            initialProps: {
+                hasOnceLoadedReportActions: true,
+                transactions: transactionsAlreadyInReport,
+                pendingNewTransactionIDs: undefined,
+                isFocused: true,
+            },
+        });
+
+        // While the report screen isn't focused, new transactions should not be returned.
+        rerender({
+            hasOnceLoadedReportActions: true,
+            transactions: transactionsAlreadyInReport,
+            pendingNewTransactionIDs: undefined,
+            isFocused: false,
+        });
+        expect(result.current).toEqual([]);
+
+        // The split flow inserts the new transaction while the report is not focused and records it as pending.
+        rerender({
+            hasOnceLoadedReportActions: true,
+            transactions: [...transactionsAlreadyInReport, newTransaction],
+            pendingNewTransactionIDs: {[newTransaction.transactionID]: true},
+            isFocused: false,
+        });
+        expect(result.current).toEqual([]);
+
+        // When focus returns, the pending transaction should be surfaced for highlight.
+        rerender({
+            hasOnceLoadedReportActions: true,
+            transactions: [...transactionsAlreadyInReport, newTransaction],
+            pendingNewTransactionIDs: {[newTransaction.transactionID]: true},
+            isFocused: true,
+        });
+        expect(result.current).toEqual([newTransaction]);
+    });
+
     it('does not highlight transactions without pendingNewTransactionIDs', () => {
         // Normal navigation to a report (no cross-navigation pending IDs)
         const {rerender, result} = renderHook<

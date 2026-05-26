@@ -58,6 +58,7 @@ import {getAllReports, getMoneyRequestPolicyTags, getPolicyTagsData} from './ind
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
 import {getMoneyRequestInformation, getReportPreviewAction} from './MoneyRequestBuilder';
 import type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformationParams} from './MoneyRequestBuilder';
+import {addPendingNewTransactionIDs} from './PendingNewTransactions';
 import {getDeleteTrackExpenseInformation} from './TrackExpense';
 import {getUpdateMoneyRequestParams} from './UpdateMoneyRequest';
 import type {UpdateMoneyRequestDataKeys} from './UpdateMoneyRequest';
@@ -524,6 +525,12 @@ function updateSplitTransactions({
             betas,
             personalDetails,
         });
+
+        // Ensure newly-created split transactions are highlighted in the report table after the split flow finishes.
+        // Without this, the transactions can be inserted while the report screen isn't focused and the highlight can be missed.
+        if (!isReverseSplitOperation && !splitTransaction) {
+            addPendingNewTransactionIDs(expenseReport?.reportID, optimisticTransactionFromGetMoneyRequest?.transactionID);
+        }
 
         let updateMoneyRequestParamsOnyxData: OnyxData<UpdateMoneyRequestDataKeys> = {};
         const currentSplit = splits.at(index);
