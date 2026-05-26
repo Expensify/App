@@ -3557,7 +3557,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         searchInputSkeleton: {
-            height: 46,
+            height: 54,
             justifyContent: 'center',
         },
 
@@ -5002,26 +5002,6 @@ const staticStyles = (theme: ThemeColors) =>
             marginTop: 3,
         },
 
-        typeFiltersContainer: {
-            borderRightWidth: 1,
-            borderRightColor: theme.border,
-            paddingVertical: 8,
-        },
-
-        typeFilterMenu: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            height: 52,
-            paddingHorizontal: 20,
-            paddingVertical: 4,
-            gap: 12,
-        },
-
-        filterContentContainer: {
-            flex: 1,
-            minWidth: CONST.ADVANCED_FILTERS_CONTENT_WIDTH,
-        },
-
         searchActionsBarContainer: {
             marginBottom: 16,
             paddingHorizontal: 20,
@@ -5033,15 +5013,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         searchActionsBarCreateButton: {
             alignSelf: 'flex-start',
-        },
-
-        searchFiltersClearButton: {
-            flexDirection: 'row',
-            gap: 4,
-            alignItems: 'center',
-            borderRadius: variables.buttonBorderRadius,
-            paddingHorizontal: 12,
-            minHeight: 28,
         },
 
         searchPageInputWideTouchableWrapper: {height: 32, width: 200},

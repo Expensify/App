@@ -24,7 +24,6 @@ import {
     generateReportID,
     getDisplayedReportID,
     getParsedComment,
-    getReimbursableTotal,
     getReportTransactions,
     hasOutstandingChildRequest,
     isIOUReport,
@@ -205,7 +204,6 @@ function prepareRejectMoneyRequestData(
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
                         total: (report?.total ?? 0) + transactionAmount,
-                        reimbursableTotal: getReimbursableTotal(report) + transactionAmount,
                         pendingFields: {
                             total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
@@ -236,7 +234,6 @@ function prepareRejectMoneyRequestData(
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     total: report?.total ?? 0,
-                    reimbursableTotal: getReimbursableTotal(report),
                     pendingFields: {total: null},
                 },
             });
@@ -386,7 +383,6 @@ function prepareRejectMoneyRequestData(
                     value: {
                         ...movedToReport,
                         total: (movedToReport?.total ?? 0) - transactionAmount,
-                        reimbursableTotal: getReimbursableTotal(movedToReport) - transactionAmount,
                     },
                 },
                 {
@@ -615,7 +611,6 @@ function prepareRejectMoneyRequestData(
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     total: (report?.total ?? 0) + transactionAmount,
-                    reimbursableTotal: getReimbursableTotal(report) + transactionAmount,
                 },
             },
             {
@@ -654,7 +649,6 @@ function prepareRejectMoneyRequestData(
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 total: report?.total ?? 0,
-                reimbursableTotal: getReimbursableTotal(report),
             },
         });
 
