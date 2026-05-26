@@ -293,19 +293,22 @@ function MoneyRequestReportTransactionList({
     // Convert reportActions array to a record keyed by reportActionID for transactionHasRBR
     const reportActionsMap = useMemo(() => Object.fromEntries(reportActions.map((ra) => [ra.reportActionID, ra])), [reportActions]);
 
-    // Precompute the set of RBR-flagged transaction IDs once per render
-    let rbrTransactionIDs: Set<string> | null = null;
-    if (isDefaultSort && allTransactionViolations) {
+    // Precompute the set of RBR-flagged transaction IDs
+    const rbrTransactionIDs = useMemo(() => {
+        if (!isDefaultSort || !allTransactionViolations) {
+            return null;
+        }
         const login = currentUserDetails?.login ?? '';
         const accountID = currentUserDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-        rbrTransactionIDs = new Set<string>();
+        const ids = new Set<string>();
         for (const transaction of transactions) {
             const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
             if (transactionHasRBR(transaction, violations, login, accountID, report, policy, reportActionsMap)) {
-                rbrTransactionIDs.add(transaction.transactionID);
+                ids.add(transaction.transactionID);
             }
         }
-    }
+        return ids;
+    }, [isDefaultSort, allTransactionViolations, currentUserDetails?.login, currentUserDetails?.accountID, transactions, report, policy, reportActionsMap]);
 
     const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
         return [...transactions].sort((a, b) => {
