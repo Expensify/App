@@ -99,7 +99,7 @@ function AncestorReportActionItem({
     const {isOffline} = useNetwork();
     const {isInNarrowPaneModal} = useResponsiveLayout();
 
-    const navigateToAncestorReportAction = (isArchived: boolean) => {
+    const openLinkedAncestorReport = (isArchived: boolean) => {
         navigateToLinkedReportAction(
             {
                 report,
@@ -112,15 +112,15 @@ function AncestorReportActionItem({
         );
     };
 
-    const onPressReportActionItem = () => {
-        navigateToAncestorReportAction(isReportArchived);
+    const openAncestorReport = () => {
+        openLinkedAncestorReport(isReportArchived);
     };
 
-    const onPressThreadDivider = () => {
-        navigateToAncestorReportAction(isAncestorReportArchived);
+    const openAncestorReportFromThreadDivider = () => {
+        openLinkedAncestorReport(isAncestorReportArchived);
     };
 
-    const onCloseReportActionItem = () => {
+    const deleteAncestorReportAndNavigateToConcierge = () => {
         navigateToConciergeChatAndDeleteReport(
             report?.reportID,
             conciergeReportID,
@@ -140,18 +140,18 @@ function AncestorReportActionItem({
             pendingAction={report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat}
             errors={report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat}
             errorRowStyles={[styles.ml10, styles.mr2]}
-            onClose={onCloseReportActionItem}
+            onClose={deleteAncestorReportAndNavigateToConcierge}
         >
             {shouldDisplayThreadDivider && (
                 <ThreadDivider
                     shouldDisplayNewMarker={shouldDisplayNewMarker}
-                    onPress={canOpenAncestorReport ? onPressThreadDivider : undefined}
+                    onPress={canOpenAncestorReport ? openAncestorReportFromThreadDivider : undefined}
                 />
             )}
             <ReportActionItem
                 report={report}
                 action={reportAction}
-                onPress={canOpenAncestorReport ? onPressReportActionItem : undefined}
+                onPress={canOpenAncestorReport ? openAncestorReport : undefined}
                 parentReportAction={parentReportAction}
                 transactionThreadReport={transactionThreadReport}
                 displayAsGroup={false}
