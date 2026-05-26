@@ -30,9 +30,6 @@ type TransactionDetailsFieldsProps = {
     /** ID of the originating report action when editing */
     reportActionID: string | undefined;
 
-    /** Active transaction */
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
-
     /** Active policy */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
@@ -119,6 +116,9 @@ type TransactionDetailsFieldsProps = {
 
     /** Triggers submit from inline inputs */
     onSubmitForm?: () => void;
+
+    /** Whether the parent-owned participant picker modal is currently open (new manual expense flow). Drives amount autofocus on picker close. */
+    isParticipantPickerVisible: boolean;
 };
 
 function TransactionDetailsFields({
@@ -127,7 +127,6 @@ function TransactionDetailsFields({
     transactionID,
     reportID,
     reportActionID,
-    transaction,
     policy,
     isReadOnly,
     didConfirm,
@@ -157,6 +156,7 @@ function TransactionDetailsFields({
     isCompactMode,
     fieldVisibility,
     onSubmitForm,
+    isParticipantPickerVisible,
 }: TransactionDetailsFieldsProps) {
     const shouldAutoFocusAmountField = !canUseTouchScreen();
 
@@ -176,7 +176,6 @@ function TransactionDetailsFields({
                     shouldShowTimeRequestFields={fieldVisibility.time}
                     shouldDisplayFieldError={shouldDisplayFieldError}
                     formError={formError}
-                    transaction={transaction}
                     transactionID={transactionID}
                     iouType={iouType}
                     reportID={reportID}
@@ -186,6 +185,7 @@ function TransactionDetailsFields({
                     clearFormErrors={clearFormErrors}
                     setFormError={setFormError}
                     autoFocus={shouldAutoFocusAmountField}
+                    isParticipantPickerVisible={isParticipantPickerVisible}
                 />
             )}
 
@@ -202,7 +202,6 @@ function TransactionDetailsFields({
                     iouType={iouType}
                     reportID={reportID}
                     reportActionID={reportActionID}
-                    transaction={transaction}
                     isEditingSplitBill={isEditingSplitBill}
                 />
             )}
@@ -218,7 +217,6 @@ function TransactionDetailsFields({
                 reportID={reportID}
                 reportActionID={reportActionID}
                 policy={policy}
-                transaction={transaction}
                 isEditingSplitBill={isEditingSplitBill}
                 onSubmitForm={onSubmitForm}
             />
@@ -265,7 +263,6 @@ function TransactionDetailsFields({
 
             {!isCompactMode && fieldVisibility.time && (
                 <TimeFields
-                    transaction={transaction}
                     isReadOnly={isReadOnly}
                     didConfirm={didConfirm}
                     transactionID={transactionID}

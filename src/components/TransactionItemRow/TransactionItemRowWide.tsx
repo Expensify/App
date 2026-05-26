@@ -17,12 +17,13 @@ import type {SearchColumnType} from '@components/Search/types';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {getReportName} from '@libs/ReportNameUtils';
-import {isExpenseReport} from '@libs/ReportUtils';
+import {getReimbursableTotal, isExpenseReport} from '@libs/ReportUtils';
 import {
     getAmount,
     getConvertedAmount,
@@ -32,11 +33,13 @@ import {
     getReimbursable,
     getTaxName,
     isDeletedTransaction as isDeletedTransactionUtil,
+    isExpenseUnreported,
     isScanning,
     isTimeRequest,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import CategoryCell from './DataCells/CategoryCell';
 import DeferredChatBubbleCell from './DataCells/DeferredChatBubbleCell';
 import MerchantOrDescriptionCell from './DataCells/MerchantCell';
@@ -83,6 +86,18 @@ function TransactionItemRowWide({
     checkboxSentryLabel,
     isActionColumnWide: isActionColumnWideProp,
     shouldRemoveTotalColumnFlex,
+    onEditDate,
+    onEditMerchant,
+    onEditDescription,
+    onEditCategory,
+    onEditAmount,
+    onEditTag,
+    canEditDate,
+    canEditMerchant,
+    canEditDescription,
+    canEditCategory,
+    canEditAmount,
+    canEditTag,
     bgActiveStyles,
     merchant,
     description,
@@ -101,6 +116,9 @@ function TransactionItemRowWide({
     const theme = useTheme();
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const isDeletedTransaction = isDeletedTransactionUtil(transactionItem);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const reportPolicyID = report?.policyID ?? transactionItem.report?.policyID;
+    const effectivePolicyID = isExpenseUnreported(transactionItem) ? activePolicyID : reportPolicyID;
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isSubmittedColumnWide = submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
@@ -148,6 +166,9 @@ function TransactionItemRowWide({
                             transactionItem={transactionItem}
                             shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={false}
+                            canEdit={canEditTag}
+                            onSave={onEditTag}
+                            policyID={effectivePolicyID}
                         />
                     </View>
                 );
@@ -158,7 +179,9 @@ function TransactionItemRowWide({
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, {isDateColumnWide})]}
                     >
                         <DateCell
+                            canEdit={canEditDate}
                             date={createdAt}
+                            onSave={onEditDate}
                             showTooltip={shouldShowTooltip}
                             isLargeScreenWidth
                         />
@@ -226,6 +249,9 @@ function TransactionItemRowWide({
                             transactionItem={transactionItem}
                             shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={false}
+                            canEdit={canEditCategory}
+                            onSave={onEditCategory}
+                            policyID={effectivePolicyID}
                         />
                     </View>
                 );
@@ -263,7 +289,7 @@ function TransactionItemRowWide({
                                 reportID={transactionItem.reportID}
                                 policyID={report?.policyID}
                                 hash={transactionItem?.hash}
-                                amount={report?.total}
+                                amount={getReimbursableTotal(report)}
                                 shouldDisablePointerEvents={isDisabled}
                             />
                         )}
@@ -275,13 +301,13 @@ function TransactionItemRowWide({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}
                     >
-                        {!!merchant && (
-                            <MerchantOrDescriptionCell
-                                merchantOrDescription={merchant}
-                                shouldShowTooltip={shouldShowTooltip}
-                                shouldUseNarrowLayout={false}
-                            />
-                        )}
+                        <MerchantOrDescriptionCell
+                            merchantOrDescription={merchant ?? ''}
+                            shouldShowTooltip={shouldShowTooltip}
+                            shouldUseNarrowLayout={false}
+                            canEdit={canEditMerchant}
+                            onSave={onEditMerchant}
+                        />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
@@ -290,14 +316,14 @@ function TransactionItemRowWide({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION)]}
                     >
-                        {!!description && (
-                            <MerchantOrDescriptionCell
-                                merchantOrDescription={description}
-                                shouldShowTooltip={shouldShowTooltip}
-                                shouldUseNarrowLayout={false}
-                                isDescription
-                            />
-                        )}
+                        <MerchantOrDescriptionCell
+                            merchantOrDescription={description}
+                            shouldShowTooltip={shouldShowTooltip}
+                            shouldUseNarrowLayout={false}
+                            isDescription
+                            canEdit={canEditDescription}
+                            onSave={onEditDescription}
+                        />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TO:
@@ -387,6 +413,10 @@ function TransactionItemRowWide({
                             transactionItem={transactionItem}
                             shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={false}
+                            canEdit={canEditAmount}
+                            onSave={onEditAmount}
+                            report={report}
+                            policy={policy}
                         />
                     </View>
                 );
@@ -574,7 +604,7 @@ function TransactionItemRowWide({
                     {onArrowRightPress ? (
                         <PressableWithFeedback
                             disabled={!!isDisabled}
-                            onPress={() => onArrowRightPress?.()}
+                            onPress={onArrowRightPress}
                             style={[styles.pv2, styles.justifyContentCenter, styles.alignItemsEnd]}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={CONST.ROLE.BUTTON}

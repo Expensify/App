@@ -27,6 +27,7 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
@@ -50,12 +51,15 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
+    canAccessSubmitWorkspaceFeatures,
     canEditWorkspaceSettings,
+    getConnectedHRProvider,
     getCorrectedAutoReportingFrequency,
     hasDynamicExternalWorkflow,
+    isAnyHRConnected,
+    isAnyHRReadOnlyWorkflowMode,
     isControlPolicy,
     isGroupPolicy as isGroupPolicyUtil,
-    isGustoConnected as isGustoConnectionEnabled,
     isPolicyAdmin as isPolicyAdminUtil,
 } from '@libs/PolicyUtils';
 import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
@@ -120,6 +124,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const {isBetaEnabled} = usePermissions();
+    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds);
     const {showConfirmModal} = useConfirmModal();
@@ -140,7 +146,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         localeCompare,
         currentUserLogin: currentUserEmail,
     });
-
+    const canAccessSubmit2026Features = canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled);
     const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true).length > 0;
 
     const isAdvanceApproval = (approvalWorkflows.length > 1 || (approvalWorkflows?.at(0)?.approvers ?? []).length > 1) && isControlPolicy(policy);
@@ -194,22 +200,31 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         });
     }, [allReportNextSteps, betas, policy, transactionViolations, currentUserAccountID, currentUserEmail]);
 
-    const navigateToGustoSettings = useCallback(() => {
+    const navigateToHRSettings = useCallback(() => {
         Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(route.params.policyID));
     }, [route.params.policyID]);
 
-    const promptConfigureApprovalsInGusto = useCallback(async () => {
+    const connectedHRProvider = getConnectedHRProvider(policy);
+    const hrProviderName = connectedHRProvider?.displayName ?? '';
+
+    const promptConfigureApprovalsInHR = useCallback(async () => {
         const {action} = await showConfirmModal({
             title: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle'),
-            prompt: translate('workflowsPage.gustoApprovalWorkflowLockedPrompt'),
-            confirmText: translate('workflowsPage.goToGustoSettings'),
+            prompt: translate('workflowsPage.hrApprovalWorkflowLockedPrompt', {provider: hrProviderName}),
+            confirmText: translate('workflowsPage.goToHRSettings', {provider: hrProviderName}),
             cancelText: translate('common.cancel'),
         });
         if (action !== ModalActions.CONFIRM) {
             return;
         }
-        navigateToGustoSettings();
-    }, [navigateToGustoSettings, showConfirmModal, translate]);
+        navigateToHRSettings();
+    }, [navigateToHRSettings, hrProviderName, showConfirmModal, translate]);
+
+    const navigateToSubmitWorkspaceApprovalsUpgrade = useCallback(() => {
+        Navigation.navigate(
+            ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.alias, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID)),
+        );
+    }, [route.params.policyID]);
 
     // User should be allowed to add new Approval Workflow only if he's upgraded to Control Plan, otherwise redirected to the Upgrade Page
     const addApprovalAction = useCallback(() => {
@@ -218,6 +233,11 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             availableMembers,
             usedApproverEmails,
         });
+
+        if (canAccessSubmit2026Features) {
+            navigateToSubmitWorkspaceApprovalsUpgrade();
+            return;
+        }
 
         if (!isControlPolicy(policy)) {
             Navigation.navigate(
@@ -231,7 +251,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         }
 
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID));
-    }, [policy, route.params.policyID, availableMembers, usedApproverEmails]);
+    }, [policy, route.params.policyID, availableMembers, usedApproverEmails, canAccessSubmit2026Features, navigateToSubmitWorkspaceApprovalsUpgrade]);
 
     const filteredApprovalWorkflows =
         policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED || policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL
@@ -274,20 +294,20 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     }, [filteredApprovalWorkflows.length, setWorkflowSearchInput]);
 
     const isDEWEnabled = hasDynamicExternalWorkflow(policy);
-    const isGustoConnected = isGustoConnectionEnabled(policy);
-    const shouldBlockApprovalWorkflowEditing =
-        isGustoConnected && [CONST.GUSTO.APPROVAL_MODE.BASIC, CONST.GUSTO.APPROVAL_MODE.MANAGER].some((approvalMode) => approvalMode === policy?.connections?.gusto?.config?.approvalMode);
+    const isHRConnected = isAnyHRConnected(policy);
+    const shouldBlockApprovalWorkflowEditing = isAnyHRReadOnlyWorkflowMode(policy);
     const approvalSubtitle = useMemo(() => {
-        if (!isGustoConnected) {
+        if (!isHRConnected) {
             return translate('workflowsPage.addApprovalsDescription');
         }
 
         return (
             <Text style={[styles.textLabelSupportingEmptyValue, styles.lh20, styles.mt1, styles.mr5]}>
-                {translate('workflowsPage.addApprovalsDescription')} <TextLink onPress={navigateToGustoSettings}>{translate('workflowsPage.configureViaGusto')}</TextLink>
+                {translate('workflowsPage.addApprovalsDescription')}{' '}
+                <TextLink onPress={navigateToHRSettings}>{translate('workflowsPage.configureViaHR', {provider: hrProviderName})}</TextLink>
             </Text>
         );
-    }, [isGustoConnected, navigateToGustoSettings, styles.lh20, styles.mr5, styles.mt1, styles.textLabelSupportingEmptyValue, translate]);
+    }, [isHRConnected, hrProviderName, navigateToHRSettings, styles.lh20, styles.mr5, styles.mt1, styles.textLabelSupportingEmptyValue, translate]);
 
     const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
         const isBankAccountFullySetup = policy?.achAccount && (policy?.achAccount.state === CONST.BANK_ACCOUNT.STATE.OPEN || policy?.achAccount.state === CONST.BANK_ACCOUNT.STATE.LOCKED);
@@ -302,6 +322,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         const isBusinessBankAccountLocked = state === CONST.BANK_ACCOUNT.STATE.LOCKED;
 
         const shouldShowBankAccount = (!!isBankAccountFullySetup || !!bankAccountConnectedToWorkspace) && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+        const bankAccountPendingAction = bankAccountConnectedToWorkspace?.pendingAction;
+        const isBankAccountPendingDelete = bankAccountPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
         const bankIcon = getBankIcon({bankName: bankName as BankName, isCard: false, styles});
 
@@ -325,7 +347,17 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 <RenderHTML html={translate('workspace.bankAccount.yourWorkspace')} />
             </View>
         );
-        const approvalOptionSubtitle = isGustoConnected || !isSmartLimitEnabled ? approvalSubtitle : translate('workspace.moreFeatures.workflows.disableApprovalPrompt');
+        const approvalOptionSubtitle = isHRConnected || !isSmartLimitEnabled ? approvalSubtitle : translate('workspace.moreFeatures.workflows.disableApprovalPrompt');
+
+        const getAddApprovalsToggleDisabledAction = () => {
+            if (canAccessSubmit2026Features) {
+                return navigateToSubmitWorkspaceApprovalsUpgrade;
+            }
+            if (isHRConnected) {
+                return promptConfigureApprovalsInHR;
+            }
+            return undefined;
+        };
 
         return [
             {
@@ -357,7 +389,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 subtitle: approvalOptionSubtitle,
                 switchAccessibilityLabel: isSmartLimitEnabled ? translate('workspace.moreFeatures.workflows.disableApprovalPrompt') : translate('workflowsPage.addApprovalsDescription'),
                 onToggle: (isEnabled: boolean) => {
-                    if (isGustoConnected) {
+                    if (isHRConnected) {
                         return;
                     }
                     if (!isEnabled) {
@@ -445,10 +477,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         )}
                     </>
                 ),
-                disabled: isSmartLimitEnabled || isDEWEnabled || isGustoConnected,
-                disabledAction: isGustoConnected ? promptConfigureApprovalsInGusto : undefined,
+                disabled: isSmartLimitEnabled || isDEWEnabled || isHRConnected || canAccessSubmit2026Features,
+                disabledAction: getAddApprovalsToggleDisabledAction(),
                 isActive:
-                    isGustoConnected ||
+                    isHRConnected ||
                     isDEWEnabled ||
                     (([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policy?.approvalMode) && !hasApprovalError) ?? false),
                 pendingAction: policy?.pendingFields?.approvalMode,
@@ -460,6 +492,16 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 subtitle: translate('workflowsPage.makeOrTrackPaymentsDescription'),
                 switchAccessibilityLabel: translate('workflowsPage.makeOrTrackPaymentsDescription'),
                 onToggle: (isEnabled: boolean) => {
+                    if (isEnabled && canAccessSubmit2026Features) {
+                        Navigation.navigate(
+                            ROUTES.WORKSPACE_UPGRADE.getRoute(
+                                route.params.policyID,
+                                CONST.UPGRADE_FEATURE_INTRO_MAPPING.payments.alias,
+                                ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID),
+                            ),
+                        );
+                        return;
+                    }
                     let newReimbursementChoice;
                     if (!isEnabled) {
                         newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
@@ -486,7 +528,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 subMenuItems: (
                     <>
                         {shouldShowBankAccount ? (
-                            <>
+                            <OfflineWithFeedback pendingAction={bankAccountPendingAction}>
                                 <View style={[styles.sectionMenuItemTopDescription, styles.mt5, styles.pb1, styles.pt1]}>
                                     <Text style={[styles.textLabelSupportingNormal, styles.colorMuted]}>{translate('workflowsPayerPage.paymentAccount')}</Text>
                                 </View>
@@ -521,6 +563,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                     iconHeight={bankIcon.iconHeight ?? bankIcon.iconSize}
                                     iconWidth={bankIcon.iconWidth ?? bankIcon.iconSize}
                                     iconStyles={bankIcon.iconStyles}
+                                    titleStyle={isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined}
+                                    descriptionTextStyle={isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined}
                                     disabled={isOffline || !isPolicyAdmin}
                                     badgeText={getBadgeText(accountData?.state)}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BANK_ACCOUNT}
@@ -532,7 +576,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                     wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
                                     brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                 />
-                            </>
+                            </OfflineWithFeedback>
                         ) : (
                             <MenuItem
                                 title={translate('bankAccount.addBankAccount')}
@@ -616,10 +660,11 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         translate,
         onPressAutoReportingFrequency,
         isSmartLimitEnabled,
-        isGustoConnected,
+        isHRConnected,
         shouldBlockApprovalWorkflowEditing,
         approvalSubtitle,
-        promptConfigureApprovalsInGusto,
+        navigateToSubmitWorkspaceApprovalsUpgrade,
+        promptConfigureApprovalsInHR,
         isDEWEnabled,
         shouldUseNarrowLayout,
         expensifyIcons.Info,
@@ -654,6 +699,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         shouldShowContinueModal,
         confirmCurrencyChangeAndHideModal,
         delegateAccountID,
+        canAccessSubmit2026Features,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (

@@ -11,7 +11,7 @@ import useFilterReportValue from '@components/Search/hooks/useFilterReportValue'
 import useFilterTaxRateValue from '@components/Search/hooks/useFilterTaxRateValue';
 import useFilterUserValue from '@components/Search/hooks/useFilterUserValue';
 import useFilterWorkspaceValue from '@components/Search/hooks/useFilterWorkspaceValue';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -143,7 +143,7 @@ function SearchSavePage() {
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [name, setName] = useState('');
 
-    const {currentSearchQueryJSON} = useSearchStateContext();
+    const {currentSearchQueryJSON} = useSearchQueryContext();
 
     const onSaveSearch = () => {
         if (!currentSearchQueryJSON) {
