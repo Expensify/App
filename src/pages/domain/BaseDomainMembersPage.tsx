@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import type {RefObject} from 'react';
 import {View} from 'react-native';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
@@ -102,6 +102,15 @@ type BaseDomainMembersPageProps = {
 
     /** Ref forwarded to the inner SelectionListWithModal for scroll-and-highlight operations */
     selectionListRef?: RefObject<SelectionListHandle<MemberOption> | null>;
+
+    /** Keys (accountID strings) pending scroll-and-highlight after an add flow */
+    highlightKeys?: string[] | null;
+
+    /** Whether the parent screen is focused */
+    isPageFocused?: boolean;
+
+    /** Called after a successful scroll-and-highlight (e.g. to clear Onyx highlight state) */
+    onHighlightComplete?: () => void;
 };
 
 function BaseDomainMembersPage({
@@ -127,6 +136,9 @@ function BaseDomainMembersPage({
     emptyStateTitle,
     emptyStateSubtitle,
     selectionListRef,
+    highlightKeys,
+    isPageFocused,
+    onHighlightComplete,
 }: BaseDomainMembersPageProps) {
     const {formatPhoneNumber, localeCompare, translate} = useLocalize();
     const styles = useThemeStyles();
@@ -179,6 +191,29 @@ function BaseDomainMembersPage({
     const sortMembers = (options: MemberOption[]) => sortAlphabetically(options, 'text', localeCompare);
 
     const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers, preFilter);
+
+    useEffect(() => {
+        if (!isPageFocused || !highlightKeys?.length) {
+            return;
+        }
+
+        const highlightedKey = highlightKeys.at(0);
+        if (!highlightedKey || !accountIDs.includes(Number(highlightedKey))) {
+            return;
+        }
+
+        if (inputValue.trim() && !filteredData.some((item) => item.keyForList === highlightedKey)) {
+            setInputValue('');
+            return;
+        }
+
+        if (!filteredData.some((item) => item.keyForList === highlightedKey)) {
+            return;
+        }
+
+        selectionListRef?.current?.scrollAndHighlightItem?.(highlightKeys);
+        onHighlightComplete?.();
+    }, [highlightKeys, isPageFocused, accountIDs, inputValue, filteredData, setInputValue, selectionListRef, onHighlightComplete]);
 
     const isUserToggleEnabled = setSelectedMembers && filteredData.length > 0;
 

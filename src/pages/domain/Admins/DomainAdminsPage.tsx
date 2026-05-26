@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import {adminAccountIDsSelector, adminPendingActionSelector, domainNameSelector, technicalContactSettingsSelector} from '@selectors/Domain';
-import React, {useEffect, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
@@ -80,19 +80,6 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     );
 
     const highlightAdmins = highlightItems?.admins;
-    useEffect(() => {
-        if (!isFocused || !highlightAdmins?.length) {
-            return;
-        }
-
-        const highlightedAccountID = Number(highlightAdmins.at(0));
-        if (!adminAccountIDs?.includes(highlightedAccountID)) {
-            return;
-        }
-
-        selectionListRef.current?.scrollAndHighlightItem?.(highlightAdmins);
-        clearDomainHighlightItems(domainAccountID, 'admins');
-    }, [highlightAdmins, isFocused, adminAccountIDs, domainAccountID]);
 
     const hasSettingsErrors = hasDomainAdminsSettingsErrors(domainErrors);
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
@@ -133,6 +120,9 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             onDismissError={(item) => clearAdminError(domainAccountID, item.accountID)}
             onSelectRow={(item) => Navigation.navigate(ROUTES.DOMAIN_ADMIN_DETAILS.getRoute(domainAccountID, item.accountID))}
             selectionListRef={selectionListRef}
+            highlightKeys={highlightAdmins}
+            isPageFocused={isFocused}
+            onHighlightComplete={() => clearDomainHighlightItems(domainAccountID, 'admins')}
         />
     );
 }

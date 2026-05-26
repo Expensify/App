@@ -143,9 +143,18 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
             return;
         }
 
+        if (inputValue.trim() && !filteredData.some((item) => item.keyForList === highlightedGroupID)) {
+            setInputValue('');
+            return;
+        }
+
+        if (!filteredData.some((item) => item.keyForList === highlightedGroupID)) {
+            return;
+        }
+
         selectionListRef.current?.scrollAndHighlightItem?.(highlightGroups);
         clearDomainHighlightItems(domainAccountID, 'groups');
-    }, [highlightGroups, isFocused, groups, domainAccountID]);
+    }, [highlightGroups, isFocused, groups, inputValue, filteredData, setInputValue, domainAccountID]);
 
     const createGroupHeaderButton = (
         <Button
