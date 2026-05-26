@@ -8278,7 +8278,7 @@ const CONST = {
             TAX_RATE: 'tax-rate',
             CARD_ID: 'card',
             FEED: 'feed',
-            BANK_ACCOUNT: 'bankAccount',
+            BANK_ACCOUNT: 'bank-account',
             REPORT_ID: 'report-id',
             KEYWORD: 'keyword',
             IN: 'in',
