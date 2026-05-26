@@ -69,7 +69,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
         return (route?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT])?.reportActionID;
     });
 
-    const [doesLastReportExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${lastReportRouteReportID}`, {selector: doesLastReportExistSelector}, [lastReportRouteReportID]);
+    const [doesLastReportExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${lastReportRouteReportID}`, {selector: doesLastReportExistSelector});
 
     const doesLastReportActionExistSelector = (reportActions: OnyxEntry<ReportActions>) => {
         const reportAction = lastReportRouteReportActionID ? reportActions?.[lastReportRouteReportActionID] : undefined;

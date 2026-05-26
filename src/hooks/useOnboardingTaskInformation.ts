@@ -8,7 +8,7 @@ import useReportIsArchived from './useReportIsArchived';
 function useOnboardingTaskInformation(taskName: IntroSelectedTask) {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const taskReportID = introSelected?.[taskName];
-    const [taskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`, undefined, [taskReportID]);
+    const [taskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`);
     const [taskParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${taskReport?.parentReportID}`);
     const hasOutstandingChildTask = useHasOutstandingChildTask(taskReport);
     const isOnboardingTaskParentReportArchived = useReportIsArchived(taskParentReport?.reportID);

@@ -35,13 +35,9 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
         [hasWriteAccess, nonEmptyStringReportID],
     );
 
-    const [sortedAllReportActions] = useOnyx(
-        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nonEmptyStringReportID}`,
-        {
-            selector: getSortedAllReportActionsSelector,
-        },
-        [getSortedAllReportActionsSelector],
-    );
+    const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nonEmptyStringReportID}`, {
+        selector: getSortedAllReportActionsSelector,
+    });
     const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${nonEmptyStringReportID}`);
 
     const initialReportLastReadTime = useRef(report?.lastReadTime);

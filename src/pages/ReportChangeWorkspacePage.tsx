@@ -69,7 +69,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
         (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[reportOwnerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.login,
         [reportOwnerAccountID],
     );
-    const [submitterEmail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: submitterEmailSelector}, [submitterEmailSelector]);
+    const [submitterEmail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: submitterEmailSelector});
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);

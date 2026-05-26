@@ -42,13 +42,9 @@ const useShowNotFoundPageInIOUStep = (action: IOUAction, iouType: IOUType, repor
         [report?.parentReportActionID, reportActionID],
     );
 
-    const [reportAction] = useOnyx(
-        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsReportID}`,
-        {
-            selector: getReportActionSelector,
-        },
-        [getReportActionSelector],
-    );
+    const [reportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsReportID}`, {
+        selector: getReportActionSelector,
+    });
 
     let shouldShowNotFoundPage = false;
     const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction, iouReport);

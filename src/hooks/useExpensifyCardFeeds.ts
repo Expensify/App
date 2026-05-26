@@ -24,13 +24,9 @@ function useExpensifyCardFeeds(policyID: string | undefined) {
         [policyID, workspaceAccountID],
     );
 
-    const [allExpensifyCardFeeds] = useOnyx(
-        ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS,
-        {
-            selector: getAllExpensifyCardFeeds,
-        },
-        [getAllExpensifyCardFeeds],
-    );
+    const [allExpensifyCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS, {
+        selector: getAllExpensifyCardFeeds,
+    });
 
     return allExpensifyCardFeeds;
 }
