@@ -6,6 +6,7 @@ import Log from '@libs/Log';
 import {replay as replayMainQueue} from '@libs/Network/MainQueue';
 import {isAuthenticating as isAuthenticatingNetworkStore, setIsAuthenticating} from '@libs/Network/NetworkStore';
 import type {RequestError} from '@libs/Network/SequentialQueue';
+import {getIsOffline} from '@libs/NetworkState';
 import reauthenticateLibs from '@libs/Reauthentication';
 import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
@@ -64,7 +65,13 @@ function handleExpiredSession<TKey extends OnyxKey>(
     request: Request<TKey> | PaginatedRequest<TKey>,
     isFromSequentialQueue: boolean,
     data: Response<TKey> = {jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED} as Response<TKey>,
+    shouldIgnoreOfflineStatus = false,
 ): Promise<Response<TKey> | void> {
+    if (!shouldIgnoreOfflineStatus && getIsOffline()) {
+        // Body-level 407 responses should continue to honor the existing offline pause.
+        throw new Error('Unable to reauthenticate because we are offline');
+    }
+
     // There are some API requests that should not be retried when there is an auth failure like
     // creating and deleting logins. In those cases, they should handle the original response instead
     // of the new response created by handleExpiredAuthToken.
@@ -146,7 +153,7 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
         })
         .catch((error) => {
             if (isExpiredSessionError(error)) {
-                return handleExpiredSession(request, isFromSequentialQueue).catch((reauthenticationError) => {
+                return handleExpiredSession(request, isFromSequentialQueue, undefined, true).catch((reauthenticationError) => {
                     if (isFromSequentialQueue) {
                         throw reauthenticationError;
                     }
