@@ -124,6 +124,7 @@ const translations: TranslationDeepObject<typeof en> = {
             approve: '承認する',
             pay: '支払う',
             fix: '修正',
+            task: 'タスク',
         },
         success: '成功しました',
         group: 'グループ',
@@ -1028,6 +1029,7 @@ const translations: TranslationDeepObject<typeof en> = {
             repaidLast30Days: '過去30日間に返済済み',
             recentTransactions: ({lastFour}: {lastFour: string}) => `最近の取引 • ${lastFour}`,
         },
+        seeMore: ({count}: {count: number}) => `さらに${count}件表示`,
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -2200,7 +2202,7 @@ const translations: TranslationDeepObject<typeof en> = {
     deviceManagementPage: {
         title: 'デバイス管理',
         description:
-            'Expensify アカウントでログインしているすべてのデバイスを管理できます。<a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">詳しくはこちら</a>',
+            'Expensify アカウントでログインしているすべてのデバイスを管理できます。<a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">詳しくはこちら</a>.',
         revoke: '取り消す',
         unknownDevice: '不明なデバイス',
     },
@@ -2214,11 +2216,11 @@ const translations: TranslationDeepObject<typeof en> = {
         disabled: '二要素認証は現在無効になっています',
         noAuthenticatorApp: '今後、Expensify にログインする際に認証アプリは不要になります。',
         stepCodes: 'リカバリーコード',
-        keepCodesSafe: 'これらのリカバリーコードを安全に保管してください！',
+        keepCodesSafe: 'これらのコードを安全に保管してください。',
         codesLoseAccess: dedent(`
-            認証アプリへのアクセスを失い、これらのコードも持っていない場合は、アカウントにアクセスできなくなります。
+            認証アプリへのアクセスを失い、これらのコードも持っていない場合は、お客さまのアカウントへのアクセスもできなくなります。
 
-            注: 二要素認証を設定すると、他のすべてのアクティブなセッションからログアウトされます。
+            <strong>注意</strong>：二要素認証を設定すると、他のすべてのアクティブなセッションからログアウトされます。
         `),
         errorStepCodes: '続行する前にコードをコピーまたはダウンロードしてください',
         stepVerify: '確認',
@@ -2247,6 +2249,9 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyOldDeviceDescription: '現在使用している認証アプリに表示されている6桁のコードを入力して、アクセスできることを確認してください。',
         verifyNewDeviceTitle: '新しいデバイスを設定',
         verifyNewDeviceDescription: '新しいデバイスでQRコードをスキャンし、表示されたコードを入力して設定を完了してください。',
+        downloadCodes: 'コードをダウンロード',
+        screenshotTip: 'ヒント：スクリーンショットを撮ってフォトライブラリに保存しましょう',
+        copyCodes: 'コードをコピー',
     },
     recoveryCodeForm: {
         error: {
@@ -2665,6 +2670,7 @@ ${date} の ${merchant} への ${amount}`,
     reportFraudConfirmationPage: {
         title: 'カード不正利用を報告済み',
         description: '既存のカードは永久に無効化しました。カードの詳細画面に戻ると、新しいバーチャルカードが利用可能になっています。',
+        descriptionCardNotReplaced: 'カードは完全に無効化されました。新しいカードを発行するには管理者に連絡してください。',
         buttonText: '了解しました、ありがとうございます！',
     },
     activateCardPage: {
@@ -2935,7 +2941,7 @@ ${date} の ${merchant} への ${amount}`,
         peopleYouMayKnow: '知り合いがすでにここに参加しています！一緒に参加するには、メールアドレスを確認してください。',
         workspaceYouMayJoin: (domain: string, email: string) => `${domain} のユーザーがすでにワークスペースを作成しています。${email} に送信されたマジックコードを入力してください。`,
         joinAWorkspace: 'ワークスペースに参加',
-        listOfWorkspaces: '参加できるワークスペースの一覧です。今参加しなくても、後からいつでも参加できます。',
+        listOfWorkspaces: '参加できるワークスペースの一覧です。',
         skipForNow: '今はスキップ',
         workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount}人のメンバー${employeeCount > 1 ? 's' : ''}・${policyOwner}`,
         whereYouWork: '勤務先はどこですか？',
@@ -3295,7 +3301,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         enterPhoneNumber: '電話番号は何ですか？',
         personalDetails: '個人情報',
         privateDataMessage: 'これらの詳細は出張と支払いに使用されます。公開プロフィールに表示されることは決してありません。',
-        basicDetails: '基本情報',
         legalName: '法的氏名',
         legalFirstName: '法的な名',
         legalLastName: '法的な姓',
@@ -3487,7 +3492,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             noBankAccountSelected: 'アカウントを選択してください',
             taxID: '有効な納税者番号を入力してください',
             website: '有効なウェブサイトを入力してください',
-            zipCode: `有効なZIPコードを、次の形式で入力してください: ${COMMON_CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
+            zipCode: `有効なZIPコードを、次の形式で入力してください: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
             phoneNumber: '有効な電話番号を入力してください',
             email: '有効なメールアドレスを入力してください',
             companyName: '有効な会社名を入力してください',
@@ -5325,6 +5330,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     duplicateColumns: (duplicateColumn: string) => `おっと！1 つのフィールド（"${duplicateColumn}"）を複数の列にマッピングしています。確認して、もう一度お試しください。`,
                 },
                 fileImportDescription: '銀行からフィードを送信できない場合の手動オプションです。',
+                duplicateFeedModal: {title: 'カードフィードはすでに接続されています', prompt: '同じカードフィードを同じワークスペースに二重に追加することはできません。'},
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: '月末最終日',
@@ -6194,6 +6200,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'この会計連携'} を接続してもよろしいですか？これにより、既存の会計連携はすべて削除されます。`,
             enterCredentials: '認証情報を入力してください',
+            updateCredentials: '認証情報を更新',
             claimOffer: {
                 badgeText: 'オファーをご利用いただけます！',
                 xero: {
@@ -6678,8 +6685,7 @@ ${reportName}
                 perActiveMember: 'アクティブメンバー1人あたり月額',
                 perMember: 'メンバー1人あたり月額',
             },
-            note: (subscriptionLink: string) =>
-                `<muted-text>この機能を利用するにはアップグレードするか、プランと料金の詳細は<a href="${subscriptionLink}">こちら</a>をご覧ください。</muted-text>`,
+            note: (subscriptionLink: string) => `<muted-text>プランと料金については<a href="${subscriptionLink}">詳しく見る</a>をご覧ください。</muted-text>`,
             upgradeToUnlock: 'この機能を有効にする',
             completed: {
                 headline: `ワークスペースをアップグレードしました！`,
@@ -7746,6 +7752,7 @@ ${reportName}
     search: {
         resultsAreLimited: '検索結果は制限されています。',
         viewResults: '結果を表示',
+        applyFilters: 'フィルターを適用する',
         appliedFilters: '適用されたフィルター',
         resetFilters: 'フィルターをリセット',
         searchResults: {
@@ -7855,7 +7862,12 @@ ${reportName}
             amount: {
                 lessThan: (amount?: string) => `${amount ?? ''} 未満`,
                 greaterThan: (amount?: string) => `${amount ?? ''}より大きい`,
-                between: (greaterThan: string, lessThan: string) => `${greaterThan} 以上 ${lessThan} 未満`,
+                between: (greaterThan?: string, lessThan?: string) => {
+                    if (greaterThan && lessThan) {
+                        return `${greaterThan} 以上 ${lessThan} 未満`;
+                    }
+                    return '間';
+                },
                 equalTo: (amount?: string) => `${amount ?? ''} に等しい`,
             },
             card: {

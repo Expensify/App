@@ -1,8 +1,10 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -11,8 +13,9 @@ import {openExternalLink} from '@libs/actions/Link';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import convertToLTR from '@libs/convertToLTR';
 import Log from '@libs/Log';
+import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {findLastAccessedReport} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -27,6 +30,8 @@ function MigratedUserWelcomeModal() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isBetaEnabled} = usePermissions();
+    const archivedReportsIdSet = useArchivedReportsIdSet();
     const isReduceMotionEnabled = Accessibility.useReducedMotion();
     const illustrations = useMemoizedLazyIllustrations(['ChatBubbles', 'ConciergeBot', 'PlanetWithMobileApp', 'MagnifyingGlassReceipt']);
     const isCurrentUserPolicyAdmin = useIsPaidPolicyAdmin();
@@ -61,7 +66,10 @@ function MigratedUserWelcomeModal() {
     const onClose = () => {
         Log.hmmm('[MigratedUserWelcomeModal] onClose called, dismissing product training');
         dismissProductTraining(CONST.MIGRATED_USER_WELCOME_MODAL);
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})}));
+        const lastAccessedReportID = findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), shouldOpenOnAdminRoom(), undefined, archivedReportsIdSet)?.reportID;
+        if (lastAccessedReportID) {
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID));
+        }
     };
 
     const featureListContent = (

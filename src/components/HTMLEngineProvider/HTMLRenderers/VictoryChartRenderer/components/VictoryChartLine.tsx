@@ -1,7 +1,7 @@
 import React from 'react';
 import type {TNode} from 'react-native-render-html';
 import {Line} from 'victory-native';
-import {DEFAULT_CHART_COLOR} from '@components/Charts/utils';
+import VictoryTheme from '@components/Charts/VictoryTheme';
 import {useVictoryChartRenderArgs} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartRenderArgsContext';
 import getYKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getYKey';
 import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
@@ -16,7 +16,7 @@ function VictoryChartLine({tnode}: VictoryChartLineProps) {
     return (
         <Line
             points={points[yKey]}
-            color={nodeStyles.stroke ?? DEFAULT_CHART_COLOR}
+            color={nodeStyles.stroke ?? VictoryTheme.colors.default}
             strokeWidth={nodeStyles.strokeWidth !== undefined ? Number(nodeStyles.strokeWidth) : undefined}
             curveType={parseAttribute(tnode.attributes.interpolation)}
         />
