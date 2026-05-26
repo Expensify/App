@@ -265,16 +265,11 @@ function ReportFetchHandler() {
         // This function is only triggered when a user is invited to a room after opening the link.
         // When a user opens a room they are not a member of, and the admin then invites them, only the INVITE_TO_ROOM action is available, so the background will be empty and room description is not available.
         // See https://github.com/Expensify/App/issues/57769 for more details
-        if (
-            !prevReportActions ||
-            prevReportActions.length !== 0 ||
-            reportActions.length !== 1 ||
-            reportActions.at(0)?.actionName !== CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM
-        ) {
+        if (prevReportActions.length !== 0 || reportActions.length !== 1 || reportActions.at(0)?.actionName !== CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM) {
             return;
         }
         fetchReport();
-    }, [prevReportActions, reportActions]);
+    }, [prevReportActions.length, reportActions]);
 
     useEffect(() => {
         if (!isFocused || prevIsFocused) {

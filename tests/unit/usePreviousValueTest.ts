@@ -1,14 +1,14 @@
 import {renderHook} from '@testing-library/react-native';
-import usePrevious from '@hooks/usePrevious';
+import usePreviousValue from '@hooks/usePreviousValue';
 
-describe('usePrevious', () => {
+describe('usePreviousValue', () => {
     it('returns undefined on the first render', () => {
-        const {result} = renderHook((value: number) => usePrevious(value), {initialProps: 1});
+        const {result} = renderHook((value: number) => usePreviousValue(value), {initialProps: 1});
         expect(result.current).toBeUndefined();
     });
 
     it('returns the value from the previous render on subsequent renders', () => {
-        const {result, rerender} = renderHook((value: number) => usePrevious(value), {initialProps: 1});
+        const {result, rerender} = renderHook((value: number) => usePreviousValue(value), {initialProps: 1});
         expect(result.current).toBeUndefined();
 
         rerender(2);
@@ -22,7 +22,7 @@ describe('usePrevious', () => {
     });
 
     it('preserves the previous value across stable rerenders', () => {
-        const {result, rerender} = renderHook((value: string) => usePrevious(value), {initialProps: 'a'});
+        const {result, rerender} = renderHook((value: string) => usePreviousValue(value), {initialProps: 'a'});
         rerender('b');
         expect(result.current).toBe('a');
         rerender('b');
@@ -34,19 +34,19 @@ describe('usePrevious', () => {
     it('handles object references by identity', () => {
         const first = {id: 1};
         const second = {id: 2};
-        const {result, rerender} = renderHook((value: {id: number}) => usePrevious(value), {initialProps: first});
+        const {result, rerender} = renderHook((value: {id: number}) => usePreviousValue(value), {initialProps: first});
         expect(result.current).toBeUndefined();
         rerender(second);
         expect(result.current).toBe(first);
     });
 
     it('starts fresh after remount', () => {
-        const {result, rerender, unmount} = renderHook((value: number) => usePrevious(value), {initialProps: 1});
+        const {result, rerender, unmount} = renderHook((value: number) => usePreviousValue(value), {initialProps: 1});
         rerender(2);
         expect(result.current).toBe(1);
         unmount();
 
-        const remounted = renderHook((value: number) => usePrevious(value), {initialProps: 10});
+        const remounted = renderHook((value: number) => usePreviousValue(value), {initialProps: 10});
         expect(remounted.result.current).toBeUndefined();
     });
 });

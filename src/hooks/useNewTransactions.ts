@@ -3,7 +3,7 @@ import {deletePendingNewTransactionIDs} from '@libs/actions/IOU/PendingNewTransa
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import usePrevious from './usePrevious';
+import usePreviousValue from './usePreviousValue';
 
 /**
  * This hook returns new transactions that have been added since the last transactions update.
@@ -21,7 +21,7 @@ function useNewTransactions(
     isFocused?: boolean,
 ) {
     // If we haven't loaded report yet we set previous transaction ids to undefined.
-    const prevTransactions = usePrevious(hasOnceLoadedReportActions ? transactions : undefined);
+    const prevTransactions = usePreviousValue(hasOnceLoadedReportActions ? transactions : undefined);
 
     // We need to skip the first transactions change, to avoid highlighting transactions on the first load.
     const skipFirstTransactionsChange = useRef(!hasOnceLoadedReportActions);

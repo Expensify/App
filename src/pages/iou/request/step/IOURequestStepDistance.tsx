@@ -137,7 +137,7 @@ function IOURequestStepDistance({
     const {shouldFetchRoute, validatedWaypoints} = useFetchRoute(currentTransaction, waypoints, action, transactionState);
     const previousWaypoints = usePrevious(waypoints);
     const numberOfWaypoints = Object.keys(waypoints).length;
-    const numberOfPreviousWaypoints = Object.keys(previousWaypoints ?? {}).length;
+    const numberOfPreviousWaypoints = Object.keys(previousWaypoints).length;
     const scrollViewRef = useRef<RNScrollView>(null);
     const isLoadingRoute = currentTransaction?.comment?.isLoading ?? false;
     const isLoading = currentTransaction?.isLoading ?? false;

@@ -641,9 +641,6 @@ function ReportActionsList({
         if (!isSafari()) {
             return;
         }
-        if (!prevSortedVisibleReportActionsObjects) {
-            return;
-        }
         const prevSorted = lastAction?.reportActionID ? prevSortedVisibleReportActionsObjects[lastAction?.reportActionID] : null;
         if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER && !prevSorted) {
             InteractionManager.runAfterInteractions(() => {

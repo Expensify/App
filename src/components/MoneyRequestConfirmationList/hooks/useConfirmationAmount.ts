@@ -46,7 +46,7 @@ type UseConfirmationAmountParams = {
     currency: string | undefined;
 
     /** Per-diem sub-rates from the previous render, used to detect rate changes */
-    prevSubRates: SubRates | undefined;
+    prevSubRates: SubRates;
 };
 
 /**

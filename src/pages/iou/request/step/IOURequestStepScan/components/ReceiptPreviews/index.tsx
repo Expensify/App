@@ -68,7 +68,7 @@ function ReceiptPreviews({submit, isMultiScanEnabled, isCapturingPhoto = false, 
     }, [isMultiScanEnabled, isPreviewsVisible]);
 
     useEffect(() => {
-        const hasRemovedReceipt = previousReceiptsPhotosLength !== undefined && receiptsPhotosLength < previousReceiptsPhotosLength;
+        const hasRemovedReceipt = receiptsPhotosLength < previousReceiptsPhotosLength;
 
         if (hasRemovedReceipt) {
             flatListRef.current?.scrollToOffset({offset: 0, animated: true});
@@ -76,11 +76,7 @@ function ReceiptPreviews({submit, isMultiScanEnabled, isCapturingPhoto = false, 
     }, [receiptsPhotosLength, previousReceiptsPhotosLength]);
 
     useEffect(() => {
-        const shouldScrollToReceipt =
-            receiptsPhotosLength &&
-            previousReceiptsPhotosLength !== undefined &&
-            receiptsPhotosLength > previousReceiptsPhotosLength &&
-            receiptsPhotosLength > Math.floor(initialReceiptsAmount);
+        const shouldScrollToReceipt = receiptsPhotosLength && receiptsPhotosLength > previousReceiptsPhotosLength && receiptsPhotosLength > Math.floor(initialReceiptsAmount);
         if (!shouldScrollToReceipt) {
             return;
         }
