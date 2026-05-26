@@ -76,15 +76,6 @@ function updateSplitExpenseDistanceFromAmount(
 }
 
 /**
- * Resolve the `reportID` to assign to a split item, matching the logic used when the split flow is initialized.
- * For selfDM-rooted splits, unreported children (or children that themselves point at a selfDM report) collapse
- * to the selfDM context report; children moved to a workspace report keep their workspace `reportID`. For
- * workspace-rooted splits with an unreported child, fall back to the user's selfDM report.
- *
- * Keep this in sync between split init and any recomputation used for deep-equal checks against the draft —
- * drift here made the equality check always-false for selfDM splits and re-triggered the save API.
- */
-/**
  * Resolve the effective mileage rate to use across the split flow.
  *
  * For selfDM splits whose original workspace rate was deleted (`enabled: false` or pending DELETE),
@@ -129,8 +120,8 @@ function resolveSplitMileageRate({
     }
     // No policy resolved (e.g. source workspace deleted and no other paid workspace either) AND the
     // policy-driven lookup above produced nothing useful: reconstruct a rate from the transaction
-    // itself (amount / quantity) so distance splits still get sensible labels instead of falling back
-    // to the original-merchant string.
+    // itself (amount / quantity) so distance splits render an accurate "X mi @ rate" merchant
+    // string instead of falling back to the original-merchant string.
     if (!baseMileageRate.rate && !isP2PRate) {
         const quantity = transaction?.comment?.customUnit?.quantity;
         const transactionAmount = transaction?.amount;

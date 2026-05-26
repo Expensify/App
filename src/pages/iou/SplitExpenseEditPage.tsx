@@ -75,8 +75,8 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     const effectivePolicy = useSplitEffectivePolicy(currentReport, splitExpenseDraftTransaction, transaction);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+
     // Detect selfDM splits whose source workspace is gone: nothing for the Rate step to render.
-    // Used below to short-circuit the Rate menu navigation into the upgrade screen.
     const hasAnyPaidWorkspace = useMemo(() => getGroupPaidPoliciesWithExpenseChatEnabled(allPolicies ?? {}).length > 0, [allPolicies]);
     const {policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
     const shouldNavigateToUpgradePath = !policyForMovingExpenses && !shouldSelectPolicy;

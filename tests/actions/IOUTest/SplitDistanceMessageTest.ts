@@ -155,12 +155,12 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
             delegateAccountID: undefined,
         });
 
-        const txnOptimisticEntry = findSelfDMTransactionOptimisticEntry(onyxData.optimisticData as AnyOnyxEntry[], selfDMTransaction.transactionID);
+        const transactionOptimisticEntry = findSelfDMTransactionOptimisticEntry(onyxData.optimisticData as AnyOnyxEntry[], selfDMTransaction.transactionID);
 
-        expect(txnOptimisticEntry).toBeDefined();
-        expect(txnOptimisticEntry?.onyxMethod).toBe(Onyx.METHOD.MERGE);
-        expect((txnOptimisticEntry?.value as Partial<Transaction>)?.amount).toBeDefined();
-        expect((txnOptimisticEntry?.value as Partial<Transaction>)?.currency).toBeDefined();
+        expect(transactionOptimisticEntry).toBeDefined();
+        expect(transactionOptimisticEntry?.onyxMethod).toBe(Onyx.METHOD.MERGE);
+        expect((transactionOptimisticEntry?.value as Partial<Transaction>)?.amount).toBeDefined();
+        expect((transactionOptimisticEntry?.value as Partial<Transaction>)?.currency).toBeDefined();
     });
 
     it('adds failureData transaction merge restoring original values when isSelfDMSplit=true and isSplitTransaction=true', async () => {
@@ -186,17 +186,17 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
 
         // The selfDM failureData entry is distinguished from the general failure entry by
         // lacking errorFields (which the general entry sets to restore validation state).
-        const txnFailureEntry = (onyxData.failureData as AnyOnyxEntry[])?.find(
+        const transactionFailureEntry = (onyxData.failureData as AnyOnyxEntry[])?.find(
             (entry) =>
                 entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${selfDMTransaction.transactionID}` &&
                 (entry.value as Partial<Transaction>)?.amount !== undefined &&
                 !(entry.value as Partial<Transaction> & {errorFields?: unknown})?.errorFields,
         );
 
-        expect(txnFailureEntry).toBeDefined();
-        expect(txnFailureEntry?.onyxMethod).toBe(Onyx.METHOD.MERGE);
+        expect(transactionFailureEntry).toBeDefined();
+        expect(transactionFailureEntry?.onyxMethod).toBe(Onyx.METHOD.MERGE);
 
-        const value = txnFailureEntry?.value as Partial<Transaction>;
+        const value = transactionFailureEntry?.value as Partial<Transaction>;
         expect(value?.amount).toBe(selfDMTransaction.amount);
         expect(value?.currency).toBe(selfDMTransaction.currency);
     });
