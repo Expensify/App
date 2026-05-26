@@ -4279,7 +4279,7 @@ function getReasonAndReportActionThatRequiresAttention(
             .at(0);
 
         // If there's a valid IOU action that is older than the task, use the IOU badge instead
-        if (hasValidIOUAction && iouReportActionToApproveOrPay?.created && oldestTaskAction?.created && iouReportActionToApproveOrPay.created < oldestTaskAction.created) {
+        if (hasValidIOUAction && iouReportActionToApproveOrPay?.created && (!oldestTaskAction || iouReportActionToApproveOrPay.created < oldestTaskAction.created)) {
             return {
                 reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION,
                 reportAction: iouReportActionToApproveOrPay,

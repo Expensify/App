@@ -9399,6 +9399,55 @@ describe('ReportUtils', () => {
             expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.TASK);
         });
 
+        it('should return the IOU badge when task action has no childManagerAccountID (backend bug before opening report)', async () => {
+            const iouReportID = 'iou-report-for-missing-manager';
+
+            // Task action without childManagerAccountID — simulates the backend bug
+            // where childManagerAccountID is missing before the report is opened
+            const taskAction: ReportAction = {
+                reportActionID: 'task-action-no-manager',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+                childType: CONST.REPORT.TYPE.TASK,
+                childReportID: 'task-report-no-manager',
+                created: '2024-01-01 00:00:00',
+                originalMessage: {
+                    assigneeAccountID: currentUserAccountID,
+                    cardID: 99003,
+                },
+            };
+
+            const iouAction: ReportAction = {
+                reportActionID: 'iou-action-fallback',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childType: CONST.REPORT.TYPE.IOU,
+                childReportID: iouReportID,
+                childManagerAccountID: currentUserAccountID,
+                created: '2024-01-02 00:00:00',
+                message: [{html: 'iou preview', text: 'iou preview', type: 'COMMENT'}],
+            };
+
+            const workspaceChat = {
+                ...createPolicyExpenseChat(42003),
+                hasOutstandingChildTask: true,
+                hasOutstandingChildRequest: true,
+                iouReportID,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChat.reportID}`, {
+                [taskAction.reportActionID]: taskAction,
+                [iouAction.reportActionID]: iouAction,
+            });
+            await waitForBatchedUpdates();
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
+            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+
+            // When oldestTaskAction is undefined (no childManagerAccountID), IOU badge should be returned
+            expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
+            expect(result?.reportAction?.reportActionID).toBe('iou-action-fallback');
+        });
+
         it('should return the earliest matching report action for invoice rooms with missing bank account', async () => {
             const invoiceRoomID = '50000';
             const olderChildReportID = '50001';
