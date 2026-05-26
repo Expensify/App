@@ -7,6 +7,7 @@ import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 type Followup = {
     text: string;
     response?: string;
+    source?: string;
 };
 
 /**
@@ -49,13 +50,14 @@ function parseFollowupsFromHtml(html: string): Followup[] | null {
         return [];
     }
 
+    const source = DomUtils.getAttributeValue(followupList, 'source');
     const followupElements = DomUtils.getElementsByTagName('followup', followupList, true);
     return followupElements.map((followupEl) => {
         const followupTextElement = DomUtils.getElementsByTagName('followup-text', followupEl, true).at(0);
         const followupResponseElement = DomUtils.getElementsByTagName('followup-response', followupEl, true).at(0);
         const text = followupTextElement ? DomUtils.textContent(followupTextElement) : '';
         const response = followupResponseElement ? render(followupResponseElement.children) : undefined;
-        return {text, response};
+        return {text, response, source};
     });
 }
 
