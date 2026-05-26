@@ -111,6 +111,8 @@ describe('PureReportActionItem', () => {
     beforeEach(async () => {
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
         setHasRadio(true);
+        // ReimbursementQueuedContent and PureReportActionItem read display names from Onyx instead of the removed personalDetails prop.
+        // Seed the report owner's personal details so waiting messages use actorEmail, not the "Hidden" fallback from getDisplayNameOrDefault.
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
                 [ACTOR_ACCOUNT_ID]: {
@@ -1610,7 +1612,9 @@ describe('PureReportActionItem', () => {
 
             expect(screen.queryByText(translateLocal('bankAccount.addBankAccount'))).toBeNull();
             expect(screen.queryByText(translateLocal('iou.enableWallet'))).toBeNull();
+            // Submitter name is resolved from Onyx (see beforeEach), matching main where personalDetails was passed as a prop.
             expect(screen.getByText(translateLocal('iou.waitingOnBankAccount', actorEmail))).toBeOnTheScreen();
+            expect(screen.queryByText(translateLocal('iou.waitingOnBankAccount', translateLocal('common.hidden')))).toBeNull();
         });
 
         it('REIMBURSEMENT_QUEUED with a Gold wallet tier hides the enable wallet button', async () => {
@@ -1649,7 +1653,9 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.queryByText(translateLocal('iou.enableWallet'))).toBeNull();
+            // Submitter name is resolved from Onyx (see beforeEach), matching main where personalDetails was passed as a prop.
             expect(screen.getByText(translateLocal('iou.waitingOnEnabledWallet', actorEmail))).toBeOnTheScreen();
+            expect(screen.queryByText(translateLocal('iou.waitingOnEnabledWallet', translateLocal('common.hidden')))).toBeNull();
         });
 
         it('IOU PAY VBBA manual renders business bank account message with last 4 digits', async () => {
