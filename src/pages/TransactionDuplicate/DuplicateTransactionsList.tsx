@@ -1,35 +1,44 @@
-import React from 'react';
-import {View} from 'react-native';
+import React, {useCallback} from 'react';
+import type {FlatListProps, ListRenderItemInfo, ScrollViewProps} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import useTheme from '@hooks/useTheme';
+import FlatList from '@components/FlatList/FlatList';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {Transaction} from '@src/types/onyx';
 import DuplicateTransactionItem from './DuplicateTransactionItem';
 
 type DuplicateTransactionsListProps = {
     transactions: Array<OnyxEntry<Transaction>>;
-    selectedTransactionID?: string;
-    onSelectTransaction: (transactionID: string) => void;
     onPreviewPressed: (reportID: string) => void;
 };
 
-function DuplicateTransactionsList({transactions, selectedTransactionID, onSelectTransaction, onPreviewPressed}: DuplicateTransactionsListProps) {
+const keyExtractor: FlatListProps<OnyxEntry<Transaction>>['keyExtractor'] = (item, index) => `${item?.transactionID}+${index}`;
+
+const maintainVisibleContentPosition: ScrollViewProps['maintainVisibleContentPosition'] = {
+    minIndexForVisible: 1,
+};
+
+function DuplicateTransactionsList({transactions, onPreviewPressed}: DuplicateTransactionsListProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
+
+    const renderItem = useCallback(
+        ({item, index}: ListRenderItemInfo<OnyxEntry<Transaction>>) => (
+            <DuplicateTransactionItem
+                transaction={item}
+                index={index}
+                onPreviewPressed={onPreviewPressed}
+            />
+        ),
+        [onPreviewPressed],
+    );
 
     return (
-        <View style={[styles.expenseWidgetRadius, styles.overflowHidden, {backgroundColor: theme.cardBG}]}>
-            {transactions.map((transaction, index) => (
-                <DuplicateTransactionItem
-                    key={transaction?.transactionID ?? transaction?.created ?? 'duplicate-transaction'}
-                    transaction={transaction}
-                    isLastItem={index === transactions.length - 1}
-                    isSelected={transaction?.transactionID === selectedTransactionID}
-                    onSelectTransaction={onSelectTransaction}
-                    onPreviewPressed={onPreviewPressed}
-                />
-            ))}
-        </View>
+        <FlatList
+            data={transactions}
+            renderItem={renderItem}
+            keyExtractor={keyExtractor}
+            maintainVisibleContentPosition={maintainVisibleContentPosition}
+            contentContainerStyle={styles.pt5}
+        />
     );
 }
 

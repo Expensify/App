@@ -42,6 +42,9 @@ type HRCardDescriptor = {
     /** Whether a sync operation is currently running for this provider. */
     isSyncInProgress: boolean;
 
+    /** Whether this provider's first-ever (initial) sync is currently running (Merge HR only). */
+    isInitialSyncInProgress?: boolean;
+
     /** ISO date string of the last successful sync, used for "last synced" display. */
     successfulDate?: string;
 
@@ -87,28 +90,50 @@ type GetHRCardStateParams = {
     mergeSlug?: MergeHRProviderSlug;
 };
 
+function getMergeHRSyncState(policy: OnyxEntry<Policy>) {
+    const lastSync = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]?.lastSync;
+    const isSyncInProgress = lastSync?.syncStatus === CONST.MERGE_HR.SYNC_STATUS.SYNCING;
+    return {
+        isSyncInProgress,
+        isInitialSyncInProgress: isSyncInProgress && lastSync?.syncType === CONST.MERGE_HR.SYNC_TYPE.INITIAL,
+        hasError: lastSync?.syncStatus === CONST.MERGE_HR.SYNC_STATUS.FAILED,
+        syncStageInProgress: undefined,
+        successfulDate: lastSync?.successfulDate,
+    };
+}
+
+function getHRSyncState(
+    policy: OnyxEntry<Policy>,
+    connectionName: ConnectionName,
+    connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>,
+    getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'],
+) {
+    const connection = policy?.connections?.[connectionName];
+    const syncProgress = connectionSyncProgress?.connectionName === connectionName ? connectionSyncProgress : undefined;
+    const isSyncInProgress = !!syncProgress && isConnectionInProgress(syncProgress, policy);
+    return {
+        isSyncInProgress,
+        isInitialSyncInProgress: undefined,
+        hasError: hasSynchronizationErrorMessage(policy, connectionName, isSyncInProgress),
+        syncStageInProgress: isSyncInProgress && syncProgress?.stageInProgress ? syncProgress.stageInProgress : undefined,
+        successfulDate: getIntegrationLastSuccessfulDate(getLocalDateFromDatetime, connection, syncProgress),
+    };
+}
+
 /** Derives the runtime state (connected, syncing, errors, last sync date) for a single HR provider on a given policy. */
 function getHRCardState({policy, connectionName, connectionSyncProgress, getLocalDateFromDatetime, mergeSlug}: GetHRCardStateParams) {
-    const isSyncInProgress = connectionSyncProgress?.connectionName === connectionName && isConnectionInProgress(connectionSyncProgress, policy);
-
     const connectedProvider = getConnectedHRProvider(policy);
     const isConnected = connectedProvider?.connectionName === connectionName && (!mergeSlug || connectedProvider.mergeSlug === mergeSlug);
 
-    const connection = policy?.connections?.[connectionName];
-    const syncProgress = connectionSyncProgress?.connectionName === connectionName ? connectionSyncProgress : undefined;
-    const successfulDate = getIntegrationLastSuccessfulDate(getLocalDateFromDatetime, connection, syncProgress);
+    const syncState =
+        connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR ? getMergeHRSyncState(policy) : getHRSyncState(policy, connectionName, connectionSyncProgress, getLocalDateFromDatetime);
 
-    const hasError = hasSynchronizationErrorMessage(policy, connectionName, !!isSyncInProgress);
-    const lastSyncErrorMessage = hasError ? (connection?.lastSync?.errorMessage ?? undefined) : undefined;
-    const syncStageInProgress = isSyncInProgress && syncProgress?.stageInProgress ? syncProgress.stageInProgress : undefined;
+    const lastSyncErrorMessage = syncState.hasError ? (policy?.connections?.[connectionName]?.lastSync?.errorMessage ?? undefined) : undefined;
 
     return {
         isConnected,
-        isSyncInProgress: !!isSyncInProgress,
-        successfulDate,
-        hasError,
+        ...syncState,
         lastSyncErrorMessage,
-        syncStageInProgress,
     };
 }
 
@@ -237,7 +262,7 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
 
     if (isBetaEnabled(CONST.BETAS.MERGE_HR)) {
         const mergeConnectionName = CONST.POLICY.CONNECTIONS.NAME.MERGE_HR;
-        const disconnectedState = {isConnected: false, isSyncInProgress: false, hasError: false} as const;
+        const disconnectedState = {isConnected: false, isSyncInProgress: false, isInitialSyncInProgress: false, hasError: false} as const;
 
         for (const [slug, providerEntry] of Object.entries(MERGE_HR_PROVIDERS) as Array<[MergeHRProviderSlug, (typeof MERGE_HR_PROVIDERS)[MergeHRProviderSlug]]>) {
             const state = getHRCardState({policy, connectionName: mergeConnectionName, connectionSyncProgress, getLocalDateFromDatetime, mergeSlug: slug});

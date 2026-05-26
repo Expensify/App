@@ -2730,25 +2730,20 @@ describe('PolicyUtils', () => {
         });
 
         it('returns false and does not navigate when isEnabling is false', () => {
-            expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, false, featureAlias, true)).toBe(false);
+            expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, false, featureAlias)).toBe(false);
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
         it('returns false when policy is not Submit', () => {
-            expect(tryNavigateToSubmitWorkspaceUpgrade(teamPolicyForNavTest, true, featureAlias, true)).toBe(false);
+            expect(tryNavigateToSubmitWorkspaceUpgrade(teamPolicyForNavTest, true, featureAlias)).toBe(false);
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
-        it('returns false when Submit policy but beta is disabled', () => {
-            expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, true, featureAlias, false)).toBe(false);
-            expect(Navigation.navigate).not.toHaveBeenCalled();
-        });
-
-        it('navigates to workspace upgrade with More features back route and returns true when eligible', () => {
+        it('navigates to workspace upgrade and returns true for Submit policy regardless of beta', () => {
             const policyID = submitPolicyForNavTest.id;
             const expectedRoute = ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, featureAlias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
 
-            expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, true, featureAlias, true)).toBe(true);
+            expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, true, featureAlias)).toBe(true);
 
             expect(Navigation.navigate).toHaveBeenCalledTimes(1);
             expect(Navigation.navigate).toHaveBeenCalledWith(expectedRoute);
