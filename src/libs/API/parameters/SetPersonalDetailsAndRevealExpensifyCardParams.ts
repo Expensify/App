@@ -13,7 +13,6 @@ type SetPersonalDetailsAndRevealExpensifyCardParams = {
     dob: string;
     addressState: string;
     addressProvince: string;
-    // US magic-code flow uses validateCode; UK/EU SCA flow uses signedChallenge + authenticationMethod.
     validateCode?: string;
     signedChallenge?: string;
     authenticationMethod?: MarqetaAuthTypeName;

@@ -325,7 +325,7 @@ async function revealCardDetailsWithSCA(params: MultifactorAuthenticationScenari
 async function setPersonalDetailsAndRevealExpensifyCardWithSCA(params: MultifactorAuthenticationScenarioParameters['SET-PERSONAL-DETAILS-AND-REVEAL-CARD-DETAILS']) {
     try {
         const response = await makeRequestWithSideEffects(
-            SIDE_EFFECT_REQUEST_COMMANDS.SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD_WITH_SCA,
+            SIDE_EFFECT_REQUEST_COMMANDS.SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD,
             {
                 ...params,
                 signedChallenge: JSON.stringify(params.signedChallenge),
@@ -353,7 +353,7 @@ async function setPersonalDetailsAndRevealExpensifyCardWithSCA(params: Multifact
         );
 
         const {jsonCode, message, pan, expiration, cvv} = response ?? {};
-        const parsed = parseHttpResponse(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD_WITH_SCA, message);
+        const parsed = parseHttpResponse(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD, message);
 
         return {
             ...parsed,
@@ -365,7 +365,7 @@ async function setPersonalDetailsAndRevealExpensifyCardWithSCA(params: Multifact
         };
     } catch (error) {
         Log.hmmm('[MultifactorAuthentication] Failed to set personal details and reveal card details for card', {error});
-        return parseHttpResponse(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD_WITH_SCA, undefined);
+        return parseHttpResponse(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD, undefined);
     }
 }
 
