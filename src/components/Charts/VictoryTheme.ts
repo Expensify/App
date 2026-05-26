@@ -87,7 +87,7 @@ const VictoryTheme = {
         /** Ratio of the inner radius to the outer radius, creating the donut hole (0 = full pie, 1 = no fill) */
         innerRadiusRatio: 0.8,
         /** Gap between pie slices in degrees */
-        padAngle: 0.5,
+        padAngle: 1,
     },
 } as const;
 
