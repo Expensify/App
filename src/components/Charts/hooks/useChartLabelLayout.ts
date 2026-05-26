@@ -1,7 +1,7 @@
 import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
-import {LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/constants';
 import type {ChartDataPoint, LabelRotation} from '@components/Charts/types';
 import {edgeLabelsFit, edgeMaxLabelWidth, effectiveHeight, effectiveWidth, maxVisibleCount} from '@components/Charts/utils';
+import {LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
 import type useChartLabelMeasurements from './useChartLabelMeasurements';
 
 type LabelLayoutConfig = {
@@ -131,5 +131,4 @@ function useChartLabelLayout({data, fontMgr, tickSpacing, labelAreaWidth, firstT
     };
 }
 
-export {useChartLabelLayout};
-export type {LabelLayoutConfig};
+export default useChartLabelLayout;

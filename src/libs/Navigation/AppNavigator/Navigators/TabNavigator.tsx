@@ -15,11 +15,12 @@ import {getSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+// Do not lazy load Search navigator for performance reasons
+import SearchFullscreenNavigator from './SearchFullscreenNavigator';
 import TabNavigatorBar from './TabNavigatorBar';
 
 const LazyHomePage = lazy(() => import('@pages/home/HomePage'));
 const LazyReportsSplitNavigator = lazy(() => import('./ReportsSplitNavigator'));
-const LazySearchFullscreenNavigator = lazy(() => import('./SearchFullscreenNavigator'));
 const LazySettingsSplitNavigator = lazy(() => import('./SettingsSplitNavigator'));
 const LazyWorkspaceNavigator = lazy(() => import('./WorkspaceNavigator'));
 
@@ -53,7 +54,6 @@ function withSuspense<P extends Record<string, unknown>>(LazyComponent: React.La
     function SuspenseWrapper(props: P) {
         return (
             <Suspense fallback={<LazyFallback tabSpanName={tabSpanName} />}>
-                {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                 <LazyComponent {...props} />
             </Suspense>
         );
@@ -63,7 +63,6 @@ function withSuspense<P extends Record<string, unknown>>(LazyComponent: React.La
 
 const HomePageScreen = withSuspense(LazyHomePage);
 const ReportsSplitNavigatorScreen = withSuspense(LazyReportsSplitNavigator, CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB);
-const SearchFullscreenNavigatorScreen = withSuspense(LazySearchFullscreenNavigator, CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
 const SettingsSplitNavigatorScreen = withSuspense(LazySettingsSplitNavigator);
 const WorkspaceNavigatorScreen = withSuspense(LazyWorkspaceNavigator);
 
@@ -91,7 +90,6 @@ function TabNavigator() {
     const navigation = useNavigation();
     const parentNavigation = navigation.getParent();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
-
     useEffect(() => {
         if (!shouldUseNarrowLayout || !parentNavigation) {
             return;
@@ -122,7 +120,7 @@ function TabNavigator() {
             />
             <Tab.Screen
                 name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
-                component={SearchFullscreenNavigatorScreen}
+                component={SearchFullscreenNavigator}
             />
             <Tab.Screen
                 name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
