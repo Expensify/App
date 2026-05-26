@@ -107,7 +107,7 @@ Use this guide to understand:
 | **Export** | Approved or Paid reports not yet exported | Workspace Admin | Sends report data to an accounting system |
 | **Review** | When issues are detected | All roles | Prompts required fixes before continuing |
 
-**Note:** If your workspace does not use approvals, **Submit** and **Approve** may appear as **Mark as done**.
+**Note:** If your workspace does not use approvals, **Submit** and **Approve** may appear as **Mark as done**. If you selected **Track and budget expenses** during onboarding, system messages and activity entries will also say **"marked as done"** instead of **"submitted"** or **"approved"**.
 
 ---
 

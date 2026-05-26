@@ -27,7 +27,7 @@ Follow these steps to build an expense report manually.
 
 After submitting, the report status updates and a **”submitted”** entry appears in the activity at the bottom of the report. For details on what each report status means, see [Understanding Report Statuses](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Understanding-Report-Statuses-and-Actions).
 
-**Note:** If your workspace does not use an approval workflow, you’ll see **Mark as done** instead of **Submit**. 
+**Note:** If your workspace does not use an approval workflow, you’ll see **Mark as done** instead of **Submit**. If you selected **Track and budget expenses** during onboarding, the activity entry will show **”marked as done”** instead of **”submitted”**.
 
 ---
 
@@ -177,7 +177,7 @@ Unsubmitted reports will remain in your Open reports section. You can go back an
 
 ## Why don’t I see the “Submit” button?
 
-The **Submit** button only appears once your report includes at least one valid expense. If the report has already been submitted, the button will no longer be visible. If your workspace has no approval workflow, the button will say **Mark as done** instead of **Submit**.
+The **Submit** button only appears once your report includes at least one valid expense. If the report has already been submitted, the button will no longer be visible. If your workspace has no approval workflow, the button will say **Mark as done** instead of **Submit**. If you selected **Track and budget expenses** during onboarding, system messages will also say **"marked as done"** instead of **"submitted"**.
 
 ## Can I remove an expense after submitting?
 
