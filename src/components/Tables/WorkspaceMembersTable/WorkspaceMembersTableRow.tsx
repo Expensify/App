@@ -1,3 +1,4 @@
+import Table from '@components/Table';
 import {WorkspaceMemberRowData} from '.';
 
 type WorkspaceMembersTableRowProps = {
@@ -9,5 +10,5 @@ type WorkspaceMembersTableRowProps = {
 };
 
 export default function WorkspaceMembersTableRow({item, rowIndex, shouldUseNarrowTableLayout}: WorkspaceMembersTableRowProps) {
-    return <></>;
+    return <Table.Row interactive={!item.disabled}>{(hovered) => <></>}</Table.Row>;
 }

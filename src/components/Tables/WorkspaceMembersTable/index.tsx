@@ -1,6 +1,6 @@
 import {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
-import Table, {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
+import Table, {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -10,14 +10,13 @@ import WorkspaceMembersTableRow from './WorkspaceMembersTableRow';
 
 type WorkspaceMembersTableColumnKey = 'member' | 'role' | 'actions';
 
-type WorkspaceMemberRowData = {
-    keyForList: string;
+type WorkspaceMemberRowData = TableData & {
     accountID: number;
     login: string;
-    employeeUserID: number;
-    employeePayrollID: number;
+    role: string;
+    employeeUserID?: string;
+    employeePayrollID?: string;
     isSelectionDisabled: boolean;
-    isDisabled: boolean;
     isInteractive: boolean;
     name: string;
     email: string;
@@ -60,6 +59,12 @@ export default function WorkspaceMembersTable({ref, members}: WorkspaceMembersTa
 
     const compareTableItems: CompareItemsCallback<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey> = (item1, item2, activeSorting) => {
         const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
+
+        if (activeSorting.columnKey === 'member') {
+        }
+
+        if (activeSorting.columnKey === 'role') {
+        }
 
         return 1;
     };

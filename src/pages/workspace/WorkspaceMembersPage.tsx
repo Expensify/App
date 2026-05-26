@@ -20,7 +20,7 @@ import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
-import {WorkspaceMemberRowData} from '@components/Tables/WorkspaceMembersTable';
+import WorkspaceMembersTable, {WorkspaceMemberRowData} from '@components/Tables/WorkspaceMembersTable';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import TextLink from '@components/TextLink';
@@ -328,19 +328,16 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     );
 
     /** Opens the member details page */
-    const openMemberDetails = useCallback(
-        (item: MemberOption) => {
-            if (!isPolicyAdmin || !isPaidGroupPolicy(policy)) {
-                Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID, Navigation.getActiveRoute()));
-                return;
-            }
-            clearWorkspaceOwnerChangeFlow(policyID);
-            Navigation.setNavigationActionToMicrotaskQueue(() => {
-                Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, item.accountID));
-            });
-        },
-        [isPolicyAdmin, policy, policyID, route.params.policyID],
-    );
+    const openMemberDetails = (accountID: number) => {
+        if (!isPolicyAdmin || !isPaidGroupPolicy(policy)) {
+            Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
+            return;
+        }
+        clearWorkspaceOwnerChangeFlow(policyID);
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, accountID));
+        });
+    };
 
     /**
      * Dismisses the errors on one item
@@ -407,102 +404,38 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         return filteredMembers.map(({policyEmployee, accountID, details}) => {
             const isPendingDeleteOrError = isPolicyAdmin && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors));
 
-            let roleBadgeText = '';
+            let role = '';
             if (policy?.owner === details.login) {
-                roleBadgeText = translate('common.owner');
+                role = translate('common.owner');
             } else if (policyEmployee.role === CONST.POLICY.ROLE.ADMIN) {
-                roleBadgeText = translate('common.admin');
+                role = translate('common.admin');
             } else if (policyEmployee.role === CONST.POLICY.ROLE.AUDITOR) {
-                roleBadgeText = translate('common.auditor');
+                role = translate('common.auditor');
             }
 
             const memberName = formatPhoneNumber(getDisplayNameOrDefault(details));
             const memberEmail = formatPhoneNumber(details?.login ?? '');
-            const accessibilityLabel = [memberName, memberEmail, roleBadgeText].filter(Boolean).join(', ');
+            const accessibilityLabel = [memberName, memberEmail, role].filter(Boolean).join(', ');
 
             return {
                 keyForList: accountID.toString(),
+                role,
                 accountID,
+                name: memberName,
+                email: memberEmail,
                 login: details.login ?? '',
                 employeeUserID: policyEmployee.employeeUserID,
                 employeePayrollID: policyEmployee.employeePayrollID,
-                isSelectionDisabled: !(isPolicyAdmin && accountID !== policy?.ownerAccountID && accountID !== session?.accountID),
                 isDisabled: isPendingDeleteOrError,
                 isInteractive: !details.isOptimisticPersonalDetail,
-                name: memberName,
-                email: memberEmail,
+                isSelectionDisabled: !(isPolicyAdmin && accountID !== policy?.ownerAccountID && accountID !== session?.accountID),
                 shouldShowEmployeeUserID: shouldShowCustomField1Column,
                 shouldShowEmployeePayrollID: shouldShowCustomField2Column,
                 errors: getLatestErrorMessageField(policyEmployee),
                 pendingAction: policyEmployee.pendingAction,
                 // Note which secondary login was used to invite this primary login
                 invitedSecondaryLogin: details?.login ? (invitedPrimaryToSecondaryLogins[details.login] ?? '') : '',
-                // action: () => openMemberDetails({accountID, login: details.login ?? '', text: memberName, alternateText: memberEmail}),
-            };
-
-            return {
-                keyForList: details.login ?? '',
-                accountID,
-                login: details.login ?? '',
-                customField1: policyEmployee.employeeUserID,
-                customField2: policyEmployee.employeePayrollID,
-                isDisabledCheckbox: !(isPolicyAdmin && accountID !== policy?.ownerAccountID && accountID !== session?.accountID),
-                isDisabled: isPendingDeleteOrError,
-                isInteractive: !details.isOptimisticPersonalDetail,
-                cursorStyle: details.isOptimisticPersonalDetail ? styles.cursorDefault : {},
-                text: memberName,
-                alternateText: memberEmail,
-                accessibilityLabel,
-                rightElement: shouldShowAnyCustomFieldColumn ? (
-                    <>
-                        {shouldShowCustomField1Column && (
-                            <View style={[styles.flex1, styles.pr3]}>
-                                <Text
-                                    numberOfLines={1}
-                                    style={[styles.alignSelfStart]}
-                                >
-                                    {policyEmployee.employeeUserID}
-                                </Text>
-                            </View>
-                        )}
-                        {shouldShowCustomField2Column && (
-                            <View style={[styles.flex1, styles.pr3]}>
-                                <Text
-                                    numberOfLines={1}
-                                    style={[styles.alignSelfStart]}
-                                >
-                                    {policyEmployee.employeePayrollID}
-                                </Text>
-                            </View>
-                        )}
-                        <View style={[StyleUtils.getMinimumWidth(variables.w72)]}>
-                            <MemberRightIcon
-                                role={policyEmployee.role}
-                                owner={policy?.owner}
-                                login={details.login}
-                                badgeStyles={[styles.alignSelfEnd]}
-                            />
-                        </View>
-                    </>
-                ) : (
-                    <MemberRightIcon
-                        role={policyEmployee.role}
-                        owner={policy?.owner}
-                        login={details.login}
-                    />
-                ),
-                icons: [
-                    {
-                        source: details.avatar ?? icons.FallbackAvatar,
-                        name: formatPhoneNumber(details?.login ?? ''),
-                        type: CONST.ICON_TYPE_AVATAR,
-                        id: accountID,
-                    },
-                ],
-                errors: getLatestErrorMessageField(policyEmployee),
-                pendingAction: policyEmployee.pendingAction,
-                // Note which secondary login was used to invite this primary login
-                invitedSecondaryLogin: details?.login ? (invitedPrimaryToSecondaryLogins[details.login] ?? '') : '',
+                action: () => openMemberDetails(accountID),
             };
         });
     }, [
@@ -1019,7 +952,10 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         isVisible={isDownloadFailureModalVisible}
                         onClose={() => setIsDownloadFailureModalVisible(false)}
                     />
-                    <SelectionListWithModal
+
+                    <WorkspaceMembersTable members={data} />
+
+                    {/* <SelectionListWithModal
                         data={filteredData}
                         ref={selectionListRef}
                         ListItem={TableListItem}
@@ -1059,7 +995,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                                 />
                             ) : undefined
                         }
-                    />
+                    /> */}
                 </>
             )}
         </WorkspacePageWithSections>
