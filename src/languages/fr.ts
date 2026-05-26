@@ -961,6 +961,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'Portefeuille',
             },
+            addVirtualCardPersonalDetails: {
+                title: 'Ajoutez vos informations personnelles',
+                subtitle: 'Ajoutez vos informations pour afficher et commencer à utiliser votre Carte Expensify.',
+                cta: 'Ajouter des détails',
+            },
         },
         announcements: 'Annonces',
         discoverSection: {
