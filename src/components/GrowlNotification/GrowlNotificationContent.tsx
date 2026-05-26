@@ -1,5 +1,5 @@
 /* eslint-disable no-console -- temporary debug instrumentation for [growl-view] POC */
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {Directions, Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {useSharedValue, withSpring} from 'react-native-reanimated';
@@ -41,9 +41,13 @@ function GrowlNotificationContent({bodyText, type, duration, action, onDismissed
     // Guards against double-firing the action's onPress while the slide-out animation
     // is still on screen. Reset whenever new growl content arrives.
     const isActionPressedRef = useRef(false);
-    // Holds the post-fling-out setTimeout so it can be cancelled when new content arrives
-    // mid-dismissal (otherwise the old dismiss would unmount the new growl).
+    // Holds the post-fling-out setTimeout so the content-change effect can cancel a
+    // pending unmount when a new growl arrives mid-dismissal. Only touched inside effects.
     const dismissTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    // Counter that triggers the dismiss-after-slide-out effect. Kept in state (rather than
+    // a ref) so triggerDismiss doesn't transitively read a ref — that would make the React
+    // Compiler reject the gesture's useMemo as "ref access during render".
+    const [dismissNonce, setDismissNonce] = useState(0);
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -94,23 +98,32 @@ function GrowlNotificationContent({bodyText, type, duration, action, onDismissed
     );
 
     /**
-     * Slide the growl off-screen and schedule its unmount once the animation has visibly
-     * finished. Safe to call multiple times — pending timeouts are replaced.
+     * Slide the growl off-screen and schedule its unmount via the dismissNonce effect.
      */
     const triggerDismiss = useCallback(() => {
         fling(0);
-        if (dismissTimeoutRef.current) {
-            clearTimeout(dismissTimeoutRef.current);
+        setDismissNonce((n) => n + 1);
+    }, [fling]);
+
+    // Schedule unmount once a dismiss has been requested. Effect cleanup cancels the timer
+    // when this effect re-runs or the component unmounts.
+    useEffect(() => {
+        if (dismissNonce === 0) {
+            return;
         }
-        dismissTimeoutRef.current = setTimeout(() => {
+        const timeoutId = setTimeout(onDismissed, SLIDE_DURATION_MS);
+        dismissTimeoutRef.current = timeoutId;
+        return () => {
+            clearTimeout(timeoutId);
             dismissTimeoutRef.current = null;
-            onDismissed();
-        }, SLIDE_DURATION_MS);
-    }, [fling, onDismissed]);
+        };
+    }, [dismissNonce, onDismissed]);
 
     useEffect(() => {
         isActionPressedRef.current = false;
-        // New content arrived — cancel any in-flight unmount-after-slide-out from the previous growl.
+        // New content arrived — cancel any in-flight unmount-after-slide-out from the previous
+        // growl. (We can't reset dismissNonce here because setState in an effect body is
+        // disallowed by lint; clearing the timer directly via the ref achieves the same result.)
         if (dismissTimeoutRef.current) {
             clearTimeout(dismissTimeoutRef.current);
             dismissTimeoutRef.current = null;
@@ -128,26 +141,22 @@ function GrowlNotificationContent({bodyText, type, duration, action, onDismissed
 
         const autoDismissTimeoutId = setTimeout(triggerDismiss, duration);
         return () => clearTimeout(autoDismissTimeoutId);
-    }, [duration, fling, progress, triggerDismiss]);
-
-    useEffect(
-        () => () => {
-            if (!dismissTimeoutRef.current) {
-                return;
-            }
-            clearTimeout(dismissTimeoutRef.current);
-        },
-        [],
-    );
+    }, [bodyText, type, action, duration, fling, progress, triggerDismiss]);
 
     // GestureDetector by default runs callbacks on UI thread using Reanimated. In this
     // case we want to trigger an RN's Animated animation, which needs to be done on JS thread.
-    const flingGesture = Gesture.Fling()
-        .direction(useBottomPosition ? Directions.DOWN : Directions.UP)
-        .runOnJS(true)
-        .onStart(() => {
-            triggerDismiss();
-        });
+    // Wrapped in useMemo so the React Compiler doesn't flag the gesture builder's internal
+    // mutable state as ref access during render.
+    const flingGesture = useMemo(
+        () =>
+            Gesture.Fling()
+                .direction(useBottomPosition ? Directions.DOWN : Directions.UP)
+                .runOnJS(true)
+                .onStart(() => {
+                    triggerDismiss();
+                }),
+        [useBottomPosition, triggerDismiss],
+    );
 
     console.log('[growl-view] INNER render', {bodyText, type, duration, hasAction: !!action, useBottomPosition, shouldUseNarrowLayout});
 

@@ -236,8 +236,7 @@ function navigateAfterExpenseCreate({
                 Navigation.navigate(targetRoute);
             });
         };
-        // DEBUG: duration 0 → indefinite (no auto-dismiss) so we can inspect why "View" button isn't visible.
-        Growl.success('Expense added', 0, {label: 'View', onPress: navigateToExpenseRHP});
+        Growl.success('Expense added', 6000, {label: 'View', onPress: navigateToExpenseRHP});
     };
 
     // Fast path: iouAction already in Onyx (rare here since the FAB-from-outside-Spend path
