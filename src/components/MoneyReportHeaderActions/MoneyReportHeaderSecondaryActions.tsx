@@ -274,6 +274,7 @@ function MoneyReportHeaderSecondaryActionsContent({reportID, primaryAction, isRe
         }
     }
 
+    // Domain hooks
     const lifecycleActions = useLifecycleActions({
         reportID,
         startApprovedAnimation,
