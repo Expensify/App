@@ -799,8 +799,8 @@ function MoneyRequestReportUnifiedList({
         }
     };
 
-    const linkedActionIndex = linkedReportActionID ? data.findIndex((item) => item.type === 'report-action' && item.action.reportActionID === linkedReportActionID) : -1;
-    const initialScrollIndex = linkedActionIndex >= 0 ? linkedActionIndex : undefined;
+    const linkedActionLocalIndex = linkedReportActionID ? visibleReportActions.findIndex((action) => action.reportActionID === linkedReportActionID) : -1;
+    const initialScrollIndex = linkedActionLocalIndex >= 0 ? linkedActionLocalIndex + reportActionIndexOffset : undefined;
 
     return (
         <MoneyRequestReportHorizontalScrollWrapper
