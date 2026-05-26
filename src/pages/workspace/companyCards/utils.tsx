@@ -165,10 +165,9 @@ function getExportMenuItem(
                 case CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL: {
                     const vendors = policy?.connections?.netsuite?.options.data.vendors;
                     defaultAccount = config?.defaultVendor;
-                    isDefaultTitle = !!(
-                        defaultAccount &&
-                        (!companyCard?.nameValuePairs?.netsuite_export_vendor || companyCard?.nameValuePairs?.netsuite_export_vendor === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE)
-                    );
+                    isDefaultTitle =
+                        companyCard?.nameValuePairs?.netsuite_export_vendor === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE ||
+                        !companyCard?.nameValuePairs?.netsuite_export_vendor;
                     const selectedVendor = vendors?.find(({id}) => id === (companyCard?.nameValuePairs?.netsuite_export_vendor ?? defaultAccount));
                     title = isDefaultTitle ? defaultCard : selectedVendor?.name;
                     const resultData = (vendors ?? []).length > 0 ? [defaultMenuItem, ...(vendors ?? [])] : vendors;
@@ -186,11 +185,9 @@ function getExportMenuItem(
                 case CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY: {
                     const payableAccounts = policy?.connections?.netsuite?.options.data.payableList;
                     defaultAccount = config?.payableAcct;
-                    isDefaultTitle = !!(
-                        defaultAccount &&
-                        (!companyCard?.nameValuePairs?.netsuite_export_payable_account ||
-                            companyCard?.nameValuePairs?.netsuite_export_payable_account === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE)
-                    );
+                    isDefaultTitle =
+                        companyCard?.nameValuePairs?.netsuite_export_payable_account === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE ||
+                        !companyCard?.nameValuePairs?.netsuite_export_payable_account;
                     const selectedPayableAccount = payableAccounts?.find(({id}) => id === (companyCard?.nameValuePairs?.netsuite_export_payable_account ?? defaultAccount));
                     title = isDefaultTitle ? defaultCard : selectedPayableAccount?.name;
                     const resultData = (payableAccounts ?? []).length > 0 ? [defaultMenuItem, ...(payableAccounts ?? [])] : payableAccounts;
