@@ -329,5 +329,98 @@ describe('SearchAutocompleteList', () => {
             // "Search results" section should not be visible
             expect(screen.queryByText('Search results')).toBeNull();
         });
+
+        it('should preserve frozen local result order when server results arrive', async () => {
+            const recentSearches: Record<string, {query: string; timestamp: string}> = {};
+            recentSearches['2024-01-01T00:00:00'] = {query: 'type:expense', timestamp: '2024-01-01T00:00:00'};
+
+            await waitForBatchedUpdates();
+            await Onyx.multiSet({
+                ...mockedReports,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                [ONYXKEYS.BETAS]: mockedBetas,
+                [ONYXKEYS.RECENT_SEARCHES]: recentSearches,
+            });
+
+            render(<SearchRouterWrapper />);
+            await flushAllUpdates();
+
+            // Verify initial state shows "Recent chats" section with Alice, Bob, Charlie
+            await waitFor(() => {
+                expect(screen.getByText('Recent chats')).toBeTruthy();
+            });
+
+            // Type a search query to freeze the local rank (Alice=0, Bob=1, Charlie=2)
+            const textInput = screen.getByTestId('search-autocomplete-text-input');
+            fireEvent.changeText(textInput, 'test');
+            await flushAllUpdates();
+
+            // "Recent chats" header should not be visible (local section has no title)
+            await waitFor(() => {
+                expect(screen.queryByText('Recent chats')).toBeNull();
+            });
+
+            // Now simulate server results arriving by updating the mock to return results
+            // in a DIFFERENT order, plus a new server-only result.
+            getSearchOptionsSpy.mockReturnValue({
+                recentReports: [
+                    {reportID: '103', keyForList: '103', text: 'Charlie Report', alternateText: 'charlie alt', lastMessageText: 'hey'},
+                    {reportID: '101', keyForList: '101', text: 'Alice Report', alternateText: 'alice alt', lastMessageText: 'hello'},
+                    {reportID: '102', keyForList: '102', text: 'Bob Report', alternateText: 'bob alt', lastMessageText: 'hi'},
+                    {reportID: '201', keyForList: '201', text: 'NewServer Report', alternateText: 'server alt', lastMessageText: 'new'},
+                ],
+                personalDetails: [],
+                currentUserOption: null,
+                userToInvite: null,
+                categoryOptions: [],
+            });
+
+            // Trigger a re-render by returning a new options reference from useFilteredOptions
+            // (simulates server data arriving and updating Onyx-backed options).
+            mockUseFilteredOptions.mockReturnValue({
+                options: {...mockedOptions},
+                isLoading: false,
+                loadMore: jest.fn(),
+                hasMore: false,
+                isLoadingMore: false,
+            });
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS, false);
+            });
+            await flushAllUpdates();
+
+            // Verify "Search results" section appears (the server result goes there)
+            await waitFor(() => {
+                expect(screen.getByText('Search results')).toBeTruthy();
+            });
+
+            // Verify the new server-only result appears
+            expect(screen.getByText('NewServer Report')).toBeTruthy();
+
+            // Verify that local results maintain their FROZEN order (Alice < Bob < Charlie)
+            // even though the mock now returns them as Charlie, Alice, Bob.
+            const aliceEl = screen.getByText('Alice Report');
+            const bobEl = screen.getByText('Bob Report');
+            const charlieEl = screen.getByText('Charlie Report');
+
+            // Get the parent list item nodes and compare their order via the component tree.
+            // We use the UNSTABLE_getAllByType approach; however the simplest portable check
+            // is to look at the order these elements appear among all rendered text nodes.
+            const allTexts = screen.queryAllByText(/Report$/);
+            const names = allTexts.map((el) => {
+                // React Native Testing Library text elements expose their content via children
+                const textContent = typeof el.props.children === 'string' ? el.props.children : '';
+                return textContent;
+            });
+
+            // Filter to only the names we care about
+            const relevantOrder = names.filter((n: string) => ['Alice Report', 'Bob Report', 'Charlie Report', 'NewServer Report'].includes(n));
+
+            // Alice, Bob, Charlie should appear in that order (frozen rank), with NewServer after them
+            expect(relevantOrder.indexOf('Alice Report')).toBeLessThan(relevantOrder.indexOf('Bob Report'));
+            expect(relevantOrder.indexOf('Bob Report')).toBeLessThan(relevantOrder.indexOf('Charlie Report'));
+            // NewServer should appear after the local results (in the server section)
+            expect(relevantOrder.indexOf('Charlie Report')).toBeLessThan(relevantOrder.indexOf('NewServer Report'));
+        });
     });
 });

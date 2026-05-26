@@ -487,7 +487,7 @@ function SearchAutocompleteList({
         );
 
         if (autocompleteQueryValue.trim() === '') {
-            // Empty query: single "Recent chats" section (unchanged behaviour).
+            // Empty query: single "Recent chats" section
             if (!isLoadingOptions) {
                 pushSection({title: translate('search.recentChats'), data: nextStyledRecentReports, sectionIndex: sectionIndex++});
             } else {
