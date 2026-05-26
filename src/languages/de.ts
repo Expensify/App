@@ -1683,6 +1683,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `Sie können bis zu ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} Ausgaben gleichzeitig duplizieren. Bitte wählen Sie weniger Ausgaben aus und versuchen Sie es erneut.`,
         deleted: 'Gelöscht',
+        submitReportTo: {
+            subtitle: 'Wählen Sie ein Workspace-Mitglied aus oder geben Sie die E-Mail-Adresse der Person ein, die diese Einreichung erhalten soll.',
+            emailLabel: 'E-Mail-Adresse',
+            workspaceMembers: 'Workspace-Mitglieder',
+            sendExpense: 'Senden Sie Ihre Ausgabe an beliebige Empfänger',
+            sendExpenseSubtitle: 'Laden Sie beliebige Personen zu Expensify ein, indem Sie deren E-Mail-Adresse oder Telefonnummer verwenden.',
+        },
     },
     transactionMerge: {
         listPage: {

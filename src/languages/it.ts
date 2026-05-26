@@ -1681,6 +1681,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `Puoi duplicare fino a ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} spese alla volta. Seleziona meno spese e riprova.`,
         deleted: 'Eliminato',
+        submitReportTo: {
+            subtitle: 'Scegli un membro dello spazio di lavoro oppure inserisci l’indirizzo email di chi deve ricevere questa richiesta.',
+            emailLabel: 'Indirizzo email',
+            workspaceMembers: 'Membri dello spazio di lavoro',
+            sendExpense: 'Invia la tua spesa a chiunque',
+            sendExpenseSubtitle: 'Invita chiunque su Expensify usando il suo indirizzo email o numero di telefono.',
+        },
     },
     transactionMerge: {
         listPage: {

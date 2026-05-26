@@ -1661,6 +1661,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `一度に複製できる経費は最大で ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} 件です。経費の数を減らして、もう一度お試しください。`,
         deleted: '削除済み',
+        submitReportTo: {
+            subtitle: 'この申請を受け取るメンバーをワークスペースから選択するか、メールアドレスを入力してください。',
+            emailLabel: 'メールアドレス',
+            workspaceMembers: 'ワークスペースメンバー',
+            sendExpense: '経費を誰にでも送信できます',
+            sendExpenseSubtitle: 'メールアドレスまたは電話番号を使って、誰でも Expensify に招待できます。',
+        },
     },
     transactionMerge: {
         listPage: {

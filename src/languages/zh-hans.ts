@@ -1622,6 +1622,13 @@ const translations: TranslationDeepObject<typeof en> = {
         taxDisabledAlert: {title: '税费已禁用', prompt: '请在工作区中启用税费跟踪，以便编辑此报销的详细信息或从该报销中删除税费。', confirmText: '删除税费'},
         bulkDuplicateLimit: `您一次最多可以复制 ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} 笔报销。请减少选择的报销数量后重试。`,
         deleted: '已删除',
+        submitReportTo: {
+            subtitle: '选择一个工作区成员，或输入应接收此提交的电子邮箱地址。',
+            emailLabel: '邮箱地址',
+            workspaceMembers: '工作区成员',
+            sendExpense: '将你的报销发送给任何人',
+            sendExpenseSubtitle: '通过电子邮箱地址或电话号码邀请任何人加入 Expensify。',
+        },
     },
     transactionMerge: {
         listPage: {

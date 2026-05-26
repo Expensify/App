@@ -1689,6 +1689,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `Vous pouvez dupliquer jusqu’à ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} dépenses à la fois. Veuillez sélectionner moins de dépenses et réessayer.`,
         deleted: 'Supprimé',
+        submitReportTo: {
+            subtitle: 'Choisissez un membre de l’espace de travail ou saisissez l’adresse e-mail de la personne qui doit recevoir cette soumission.',
+            emailLabel: 'Adresse e-mail',
+            workspaceMembers: 'Membres de l’espace de travail',
+            sendExpense: 'Envoyez votre dépense à n’importe qui',
+            sendExpenseSubtitle: 'Invitez n’importe qui sur Expensify en utilisant son adresse e-mail ou son numéro de téléphone.',
+        },
     },
     transactionMerge: {
         listPage: {
