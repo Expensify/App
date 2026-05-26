@@ -4,7 +4,6 @@ import React, {useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
-import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
 import useOnyx from '@hooks/useOnyx';
 import usePopoverPosition from '@hooks/usePopoverPosition';
@@ -35,10 +34,8 @@ type FilterPopupButtonProps = {
     /** Wrapper style for the outer view */
     wrapperStyle?: StyleProp<ViewStyle>;
 
-    outerModalStyle?: ViewStyle;
     popoverWidth?: number;
     popoverAnchorAlignment?: AnchorAlignment;
-    smallScreenModalType?: PopoverWithMeasuredContentProps['smallScreenModalType'];
 
     /** The component to render in the popover */
     PopoverComponent: (props: PopoverComponentProps) => ReactNode;
@@ -56,8 +53,6 @@ function FilterPopupButton({
     viewportOffsetTop,
     popoverWidth,
     wrapperStyle,
-    outerModalStyle,
-    smallScreenModalType,
     popoverAnchorAlignment: popoverAnchorAlignmentProp,
     PopoverComponent,
     renderButton,
@@ -122,7 +117,6 @@ function FilterPopupButton({
 
             {/* Dropdown overlay */}
             <PopoverWithMeasuredContent
-                smallScreenModalType={smallScreenModalType}
                 anchorRef={triggerRef}
                 avoidKeyboard
                 isVisible={isOverlayVisible}
@@ -132,7 +126,7 @@ function FilterPopupButton({
                 restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
                 shouldEnableNewFocusManagement
                 shouldMeasureAnchorPositionFromTop={false}
-                outerStyle={{...(outerModalStyle ?? StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop)), ...containerStyles}}
+                outerStyle={{...StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop), ...containerStyles}}
                 // This must be false because we dont want the modal to close if we open the RHP for selections
                 // such as date years
                 shouldCloseWhenBrowserNavigationChanged={false}
