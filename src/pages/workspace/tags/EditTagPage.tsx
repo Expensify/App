@@ -20,15 +20,15 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {renamePolicyTag} from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
 
-type DynamicEditTagPageProps =
-    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_EDIT>
+type EditTagPageProps =
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_EDIT>
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_EDIT>;
 
-function DynamicEditTagPage({route}: DynamicEditTagPageProps) {
+function EditTagPage({route}: EditTagPageProps) {
     const {policyID} = route.params;
     const orderWeight = Number(route.params.orderWeight);
     const policyData = usePolicyData(policyID);
@@ -36,12 +36,9 @@ function DynamicEditTagPage({route}: DynamicEditTagPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
-    const routeTagName = route.params.tagName;
-    const currentTagName = getCleanedTagName(routeTagName);
-    const isSettingsDynamicFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_EDIT;
-    const settingsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_TAG_EDIT.path);
-    const workspaceBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_TAG_EDIT.path);
-    const backPath = isSettingsDynamicFlow ? settingsBackPath : workspaceBackPath;
+    const currentTagName = getCleanedTagName(route.params.tagName);
+    const isDynamicFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_EDIT;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_TAG_EDIT.path);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
@@ -67,15 +64,15 @@ function DynamicEditTagPage({route}: DynamicEditTagPageProps) {
 
     const editTag = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
-            const updatedTagName = values.tagName.trim();
+            const tagName = values.tagName.trim();
             // Do not call the API if the edited tag name is the same as the current tag name
-            if (currentTagName !== updatedTagName) {
-                renamePolicyTag(policyData, {oldName: routeTagName, newName: updatedTagName}, orderWeight);
+            if (currentTagName !== tagName) {
+                renamePolicyTag(policyData, {oldName: route.params.tagName, newName: values.tagName.trim()}, orderWeight);
             }
             Keyboard.dismiss();
-            Navigation.goBack(backPath);
+            Navigation.goBack(isDynamicFlow ? backPath : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, orderWeight, route.params.tagName));
         },
-        [policyData, currentTagName, routeTagName, orderWeight, backPath],
+        [policyData, currentTagName, policyID, route.params.tagName, orderWeight, isDynamicFlow, backPath],
     );
 
     return (
@@ -87,12 +84,12 @@ function DynamicEditTagPage({route}: DynamicEditTagPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID="DynamicEditTagPage"
+                testID="EditTagPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
                     title={translate('workspace.tags.editTag')}
-                    onBackButtonPress={() => Navigation.goBack(backPath)}
+                    onBackButtonPress={() => Navigation.goBack(isDynamicFlow ? backPath : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(route?.params?.policyID, orderWeight, route.params.tagName))}
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_TAG_FORM}
@@ -120,4 +117,4 @@ function DynamicEditTagPage({route}: DynamicEditTagPageProps) {
     );
 }
 
-export default DynamicEditTagPage;
+export default EditTagPage;

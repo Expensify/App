@@ -37,7 +37,6 @@ import Log from '@libs/Log';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
-import {getManagerMcTestParticipant} from '@libs/OptionsListUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getAllReportActions, getIOUActionForReportID, getOriginalMessage, isActionableTrackExpense, isActionOfType, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction, createDraftTransactionAndNavigateToParticipantSelector, getReportOrDraftReport} from '@libs/ReportUtils';
@@ -6266,55 +6265,6 @@ describe('actions/IOU', () => {
                     expect(split2CommentActions.length).toBeGreaterThanOrEqual(1);
                 }
             });
-        });
-    });
-
-    describe('getManagerMcTestParticipant', () => {
-        it('should return manager mctest participant when personalDetails contains manager_mctest', () => {
-            // Given personalDetails that include manager_mctest
-            const managerMcTestAccountID = CONST.ACCOUNT_ID.MANAGER_MCTEST;
-            const personalDetailsList: PersonalDetailsList = {
-                [managerMcTestAccountID]: {
-                    accountID: managerMcTestAccountID,
-                    login: CONST.EMAIL.MANAGER_MCTEST,
-                    displayName: 'Manager McTest',
-                },
-            };
-
-            // When calling getManagerMcTestParticipant with personalDetails
-            const result = getManagerMcTestParticipant(RORY_ACCOUNT_ID, personalDetailsList);
-
-            // Then it should return a participant with the manager mctest account ID
-            expect(result).toBeDefined();
-            expect(result?.accountID).toBe(managerMcTestAccountID);
-        });
-
-        it('should return undefined when personalDetails does not contain manager_mctest', () => {
-            // Given personalDetails without manager_mctest
-            const personalDetailsList: PersonalDetailsList = {
-                [RORY_ACCOUNT_ID]: {
-                    accountID: RORY_ACCOUNT_ID,
-                    login: RORY_EMAIL,
-                    displayName: 'Rory',
-                },
-            };
-
-            // When calling getManagerMcTestParticipant with personalDetails
-            const result = getManagerMcTestParticipant(RORY_ACCOUNT_ID, personalDetailsList);
-
-            // Then it should return undefined since manager_mctest is not in the provided personalDetails
-            expect(result).toBeUndefined();
-        });
-
-        it('should return undefined when personalDetails is empty', () => {
-            // Given empty personalDetails
-            const personalDetailsList: PersonalDetailsList = {};
-
-            // When calling getManagerMcTestParticipant with empty personalDetails
-            const result = getManagerMcTestParticipant(RORY_ACCOUNT_ID, personalDetailsList);
-
-            // Then it should return undefined
-            expect(result).toBeUndefined();
         });
     });
 

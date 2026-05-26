@@ -47,6 +47,7 @@ import {
     isCurrentUserSubmitter,
     isDM,
     isExpenseReport,
+    isOpenReport,
     isSelfDM,
     navigateToDetailsPage,
     rejectMoneyRequestReason,
@@ -73,7 +74,7 @@ import HoldOrRejectEducationalModal from './HoldOrRejectEducationalModal';
 import HoldSubmitterEducationalModal from './HoldSubmitterEducationalModal';
 import {ModalActions} from './Modal/Global/ModalContext';
 import {usePersonalDetails} from './OnyxListItemProvider';
-import {useSearchActionsContext, useSearchStateContext} from './Search/SearchContext';
+import {useSearchQueryContext, useSearchSelectionActions} from './Search/SearchContext';
 import {useWideRHPState} from './WideRHPContextProvider';
 
 type MoneyRequestHeaderSecondaryActionsProps = {
@@ -161,8 +162,8 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const {showConfirmModal} = useConfirmModal();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const {currentSearchHash} = useSearchStateContext();
-    const {removeTransaction} = useSearchActionsContext();
+    const {currentSearchHash} = useSearchQueryContext();
+    const {removeTransaction} = useSearchSelectionActions();
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transaction?.transactionID ? [transaction.transactionID] : []);
     const isReportInSearch = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT;
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -192,7 +193,8 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const shouldDuplicateCloseModalOnSelect = isDistanceExpenseUnsupportedForDuplicating || hasCustomUnitOutOfPolicyViolation || isPerDiemRequestOnNonDefaultWorkspace;
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
     const hasMultipleSplits = useHasMultipleSplitChildren(transaction?.comment?.originalTransactionID);
-    const shouldShowSplitIndicator = isExpenseSplit && hasMultipleSplits;
+    const isReportOpen = isOpenReport(parentReport);
+    const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
     const shouldShowEditSplitOnDeleteAction = !!transaction?.transactionID && shouldOpenSplitExpenseEditFlowOnDelete([transaction.transactionID]);
     const isReportSubmitter = isCurrentUserSubmitter(chatIOUReport);
     const targetPolicyTags = defaultPolicyTags ?? {};

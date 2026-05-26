@@ -11,7 +11,6 @@ import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {translateLocal} from '@libs/Localize';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
-import {getManagerMcTestParticipant} from '@libs/OptionsListUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {hasDependentTags, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {getOriginalMessage, isReportPreviewAction} from '@libs/ReportActionsUtils';
@@ -27,7 +26,9 @@ import {
     generateReportID,
     getChatByParticipants,
     getOutstandingChildRequest,
+    getReimbursableTotal,
     getReportTransactions,
+    getUnheldReimbursableTotal,
     hasViolations as hasViolationsReportUtils,
     isDeprecatedGroupDM,
     isExpenseReport,
@@ -35,9 +36,7 @@ import {
     isInvoiceReport as isInvoiceReportReportUtils,
     isOneTransactionReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
-    isSelectedManagerMcTest,
     isSelfDM,
-    isTestTransactionReport,
     populateOptimisticReportFormula,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     updateReportPreview,
@@ -66,7 +65,7 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getAllPersonalDetails, getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllReports, getCurrentUserPersonalDetails} from './index';
+import {getAllPersonalDetails, getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllReports} from './index';
 import type {ReplaceReceipt} from './Receipt';
 import {getSearchOnyxUpdate} from './SearchUpdate';
 import type {StartSplitBilActionParams} from './Split';
@@ -391,7 +390,6 @@ function getTransactionWithPreservedLocalReceiptSource(transaction: OnyxTypes.Tr
 
 function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyRequestParams): OnyxData<BuildOnyxDataForMoneyRequestKeys> {
     const allReports = getAllReports();
-    const deprecatedCurrentUserPersonalDetails = getCurrentUserPersonalDetails();
     const {
         isNewChatReport,
         shouldCreateNewMoneyRequestReport,
@@ -408,7 +406,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         transactionViolations = {},
         hasViolations,
         quickAction,
-        personalDetails,
     } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {
@@ -427,7 +424,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     const isTimeRequest = isTimeRequestTransactionUtils(transaction);
     const outstandingChildRequest = getOutstandingChildRequest(iou.report);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
-    const isMoneyRequestToManagerMcTest = isTestTransactionReport(iou.report);
     const onyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys> = {
         optimisticData: [],
         successData: [],
@@ -624,63 +620,8 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         onyxData.failureData?.push(...testDriveFailureData);
     }
 
-    let iouAction = iou.action;
-    let iouReport = iou.report;
-    if (isMoneyRequestToManagerMcTest) {
-        const isTestReceipt = transaction.receipt?.isTestReceipt ?? false;
-        const managerMcTestParticipant = getManagerMcTestParticipant(currentUserAccountIDParam, personalDetails) ?? {};
-        const optimisticIOUReportAction = buildOptimisticIOUReportAction({
-            type: isScanRequest && !isTestReceipt ? CONST.IOU.REPORT_ACTION_TYPE.CREATE : CONST.IOU.REPORT_ACTION_TYPE.PAY,
-            amount: iou.report?.total ?? 0,
-            currency: iou.report?.currency ?? '',
-            comment: '',
-            participants: [managerMcTestParticipant],
-            paymentType: isScanRequest && !isTestReceipt ? undefined : CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-            iouReportID: iou.report.reportID,
-            transactionID: transaction.transactionID,
-            reportActionID: iou.action.reportActionID,
-        });
-        iouAction = optimisticIOUReportAction;
-        iouReport = {
-            ...iouReport,
-            ...(!isScanRequest || isTestReceipt
-                ? {lastActionType: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED}
-                : undefined),
-            hasOutstandingChildRequest: false,
-            lastActorAccountID: deprecatedCurrentUserPersonalDetails?.accountID,
-        };
-
-        onyxData.optimisticData?.push(
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
-                value: {
-                    ...iou.report,
-                    ...(!isScanRequest || isTestReceipt
-                        ? {lastActionType: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED}
-                        : undefined),
-                    hasOutstandingChildRequest: false,
-                    lastActorAccountID: deprecatedCurrentUserPersonalDetails?.accountID,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iou.report.reportID}`,
-                value: {
-                    [iou.action.reportActionID]: {
-                        ...(optimisticIOUReportAction as OnyxTypes.ReportAction),
-                    },
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-                value: {
-                    ...transaction,
-                },
-            },
-        );
-    }
+    const iouAction = iou.action;
+    const iouReport = iou.report;
 
     const redundantParticipants: Record<number, null> = {};
     if (!isEmptyObject(personalDetailListAction)) {
@@ -1266,6 +1207,10 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
               })
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency, undefined, undefined, optimisticReportID);
     } else if (isPolicyExpenseChat) {
+        // Capture previous fresh reimbursable totals before mutating, so the diff applies whether or
+        // not the iouReport already had reimbursableTotal/unheldReimbursableTotal populated locally.
+        const previousReimbursableTotal = getReimbursableTotal(iouReport);
+        const previousUnheldReimbursableTotal = getUnheldReimbursableTotal(iouReport);
         iouReport = {...iouReport};
         // Because of the Expense reports are stored as negative values, we subtract the total from the amount
         if (iouReport?.currency === currency) {
@@ -1283,6 +1228,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                     } else {
                         iouReport.nonReimbursableTotal = (iouReport.nonReimbursableTotal ?? 0) - amount;
                     }
+                } else {
+                    // Reimbursable transaction: reflect the change in the freshly tracked reimbursableTotal too.
+                    iouReport.reimbursableTotal = previousReimbursableTotal - amount;
                 }
 
                 iouReport = maybeUpdateReportNameForFormulaTitle(iouReport, policy);
@@ -1293,6 +1241,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                     iouReport.unheldTotal = newReportTotal;
                 } else {
                     iouReport.unheldTotal -= amount;
+                }
+                if (reimbursable) {
+                    iouReport.unheldReimbursableTotal = previousUnheldReimbursableTotal - amount;
                 }
             }
         }
@@ -1338,7 +1289,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             odometerStart,
             odometerEnd,
         },
-        isDemoTransactionParam: isSelectedManagerMcTest(participant.login) || transactionParams.receipt?.isTestDriveReceipt,
+        isDemoTransactionParam: transactionParams.receipt?.isTestDriveReceipt,
     });
 
     iouReport.transactionCount = (iouReport.transactionCount ?? 0) + 1;
@@ -1402,7 +1353,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             payeeEmail,
             participants: [participant],
             transactionID: optimisticTransaction.transactionID,
-            paymentType: isSelectedManagerMcTest(participant.login) || transactionParams.receipt?.isTestDriveReceipt ? CONST.IOU.PAYMENT_TYPE.ELSEWHERE : undefined,
+            paymentType: transactionParams.receipt?.isTestDriveReceipt ? CONST.IOU.PAYMENT_TYPE.ELSEWHERE : undefined,
             existingTransactionThreadReportID: linkedTrackedExpenseReportAction?.childReportID,
             optimisticCreatedReportActionID,
             linkedTrackedExpenseReportAction,
@@ -1584,6 +1535,13 @@ function getUpdatedMoneyRequestReportData(
         if (updatedTransaction && transaction?.reimbursable !== updatedTransaction?.reimbursable && typeof updatedMoneyRequestReport.nonReimbursableTotal === 'number') {
             updatedMoneyRequestReport.nonReimbursableTotal += updatedTransaction.reimbursable ? -updatedTransaction.amount : updatedTransaction.amount;
         }
+        // Mirror the diff on the freshly tracked reimbursable totals so we don't drift between optimistic and confirmed state.
+        if (transaction?.reimbursable && typeof updatedMoneyRequestReport.reimbursableTotal === 'number') {
+            updatedMoneyRequestReport.reimbursableTotal -= diff;
+        }
+        if (updatedTransaction && transaction?.reimbursable !== updatedTransaction?.reimbursable && typeof updatedMoneyRequestReport.reimbursableTotal === 'number') {
+            updatedMoneyRequestReport.reimbursableTotal += updatedTransaction.reimbursable ? updatedTransaction.amount : -updatedTransaction.amount;
+        }
         if (!isTransactionOnHold) {
             if (typeof updatedMoneyRequestReport.unheldTotal === 'number') {
                 updatedMoneyRequestReport.unheldTotal -= diff;
@@ -1593,6 +1551,12 @@ function getUpdatedMoneyRequestReportData(
             }
             if (updatedTransaction && transaction?.reimbursable !== updatedTransaction?.reimbursable && typeof updatedMoneyRequestReport.unheldNonReimbursableTotal === 'number') {
                 updatedMoneyRequestReport.unheldNonReimbursableTotal += updatedTransaction.reimbursable ? -updatedTransaction.amount : updatedTransaction.amount;
+            }
+            if (transaction?.reimbursable && typeof updatedMoneyRequestReport.unheldReimbursableTotal === 'number') {
+                updatedMoneyRequestReport.unheldReimbursableTotal -= diff;
+            }
+            if (updatedTransaction && transaction?.reimbursable !== updatedTransaction?.reimbursable && typeof updatedMoneyRequestReport.unheldReimbursableTotal === 'number') {
+                updatedMoneyRequestReport.unheldReimbursableTotal += updatedTransaction.reimbursable ? updatedTransaction.amount : -updatedTransaction.amount;
             }
         }
         if (transactionChanges && 'reimbursable' in transactionChanges) {

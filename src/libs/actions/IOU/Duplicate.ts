@@ -22,6 +22,7 @@ import {
     buildTransactionThread,
     canAddTransaction,
     generateReportID,
+    getReimbursableTotal,
     getTransactionDetails,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -213,11 +214,13 @@ function mergeDuplicates({
     }, 0);
 
     const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`];
+    const previousReimbursableTotal = getReimbursableTotal(expenseReport);
     const expenseReportOptimisticData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`,
         value: {
             total: (expenseReport?.total ?? 0) - duplicateTransactionTotals,
+            reimbursableTotal: previousReimbursableTotal - duplicateTransactionTotals,
         },
     };
     const expenseReportFailureData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> = {
@@ -225,6 +228,7 @@ function mergeDuplicates({
         key: `${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`,
         value: {
             total: expenseReport?.total,
+            reimbursableTotal: previousReimbursableTotal,
         },
     };
 

@@ -126,6 +126,7 @@ const translations = {
             approve: 'Approve',
             pay: 'Pay',
             fix: 'Fix',
+            task: 'Task',
         },
         // @context Used in confirmation or result messages indicating that an action completed successfully, not the abstract noun “success.”
         success: 'Success',
@@ -1027,6 +1028,7 @@ const translations = {
             repaidLast30Days: 'Repaid in the last 30 days',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Recent transactions • ${lastFour}`,
         },
+        seeMore: ({count}: {count: number}) => `See ${count} more`,
         announcements: 'Announcements',
         discoverSection: {
             title: 'Discover',
@@ -1375,6 +1377,10 @@ const translations = {
         settlePayment: (formattedAmount: string) => `Pay ${formattedAmount}`,
         settleBusiness: (formattedAmount?: string) => (formattedAmount ? `Pay ${formattedAmount} as a business` : `Pay with business account`),
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `Mark ${formattedAmount} as paid` : `Mark as paid`),
+        confirmPaymentReceivedModalTitle: 'Confirm payment received',
+        receivedPayment: 'Received payment',
+        receivedPaymentConfirmation: "Please proceed only if you've already received payment outside of Expensify.",
+        confirmReceivedPayment: "Yes, I've received payment",
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `paid ${amount} with personal account ${last4Digits}` : `Paid with personal account`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `paid ${amount} with business account ${last4Digits}` : `Paid with business account`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Pay ${formattedAmount} via ${policyName}` : `Pay via ${policyName}`),
@@ -2291,7 +2297,7 @@ const translations = {
     deviceManagementPage: {
         title: 'Device management',
         description:
-            'Manage all the devices that you have logged into with your Expensify Account. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Learn more</a>',
+            'Manage all the devices that you have logged into with your Expensify Account. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Learn more</a>.',
         revoke: 'Revoke',
         unknownDevice: 'Unknown Device',
     },
@@ -2303,14 +2309,16 @@ const translations = {
         explainProcessToRemove: 'To disable two-factor authentication (2FA), please enter a valid code from your authentication app.',
         explainProcessToRemoveWithRecovery: 'To disable two-factor authentication (2FA), please enter a valid recovery code.',
         disabled: 'Two-factor authentication is now disabled',
+        downloadCodes: 'Download codes',
         noAuthenticatorApp: 'You’ll no longer require an authenticator app to log into Expensify.',
         stepCodes: 'Recovery codes',
-        keepCodesSafe: 'Keep these recovery codes safe!',
+        keepCodesSafe: 'Keep these codes safe!',
         codesLoseAccess: dedent(`
             If you lose access to your authenticator app and don't have these codes, you'll lose access to your account.
 
-            Note: Setting up two-factor authentication will log you out of all other active sessions.
+            <strong>Note</strong>: Setting up two-factor authentication will log you out of all other active sessions.
         `),
+        screenshotTip: 'Tip: Screenshot this to save it to your photo library',
         errorStepCodes: 'Please copy or download codes before continuing',
         stepVerify: 'Verify',
         scanCode: 'Scan the QR code using your',
@@ -2322,6 +2330,7 @@ const translations = {
         enabled: 'Two-factor authentication enabled',
         congrats: 'Congrats! Now you’ve got that extra security.',
         copy: 'Copy',
+        copyCodes: 'Copy codes',
         disable: 'Disable',
         enableTwoFactorAuth: 'Enable two-factor authentication',
         pleaseEnableTwoFactorAuth: 'Please enable two-factor authentication.',
@@ -2748,6 +2757,7 @@ const translations = {
     reportFraudConfirmationPage: {
         title: 'Card fraud reported',
         description: 'We’ve permanently deactivated your existing card. When you go back to view your card details, you’ll have a new virtual card available.',
+        descriptionCardNotReplaced: 'Your card was permanently deactivated. Please contact an admin to issue a new card.',
         buttonText: 'Got it, thanks!',
     },
     activateCardPage: {
@@ -3029,7 +3039,7 @@ const translations = {
         peopleYouMayKnow: 'People you may know are already here! Verify your email to join them.',
         workspaceYouMayJoin: (domain: string, email: string) => `Someone from ${domain} has already created a workspace. Please enter the magic code sent to ${email}.`,
         joinAWorkspace: 'Join a workspace',
-        listOfWorkspaces: "Here's the list of workspaces you can join. Don't worry, you can always join them later if you prefer.",
+        listOfWorkspaces: "Here's the list of workspaces you can join.",
         skipForNow: 'Skip for now',
         workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} member${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         whereYouWork: 'Where do you work?',
@@ -5384,6 +5394,10 @@ const translations = {
                     confirmText: 'Report issue',
                     cancelText: 'Skip',
                 },
+                duplicateFeedModal: {
+                    title: 'Card feed already connected',
+                    prompt: "You can't add the same card feed to the same workspace twice.",
+                },
                 csvColumns: {
                     cardNumber: 'Card number',
                     postedDate: 'Date',
@@ -6296,6 +6310,7 @@ const translations = {
                     CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'this accounting integration'
                 }? This will remove any existing accounting connections.`,
             enterCredentials: 'Enter your credentials',
+            updateCredentials: 'Update credentials',
             claimOffer: {
                 badgeText: 'Offer available!',
                 xero: {
@@ -6897,7 +6912,7 @@ const translations = {
                 perActiveMember: 'per active member per month.',
                 perMember: 'per member per month.',
             },
-            note: (subscriptionLink: string) => `<muted-text>Upgrade to access this feature, or <a href="${subscriptionLink}">learn more</a> about our plans and pricing.</muted-text>`,
+            note: (subscriptionLink: string) => `<muted-text><a href="${subscriptionLink}">Learn more</a> about our plans and pricing.</muted-text>`,
             upgradeToUnlock: 'Unlock this feature',
             completed: {
                 headline: `You've upgraded your workspace!`,
