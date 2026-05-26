@@ -127,7 +127,7 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
 
     useEffect(() => {
         // When the current edit message selection changes, we need to update the selection state
-
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSelectionState(currentEditMessageSelection ?? defaultSelection);
     }, [currentEditMessageSelection, defaultSelection, draft.length, setSelection]);
 
