@@ -9468,6 +9468,13 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             chooseWhereToMove: ({count}: {count: number}) => `Choisissez où déplacer ${count} ${count === 1 ? 'membre' : 'membres'}.`,
             domainGroup: 'Groupe de domaines',
             chooseWhereToMoveName: ({name}: {name: string}) => `Choisissez où déplacer ${name}.`,
+            membersFeatureList: {
+                subtitle: ({domainName}: {domainName: string}) =>
+                    `<muted-text>Vérifiez votre domaine pour mieux contrôler les membres de <strong>${domainName}</strong> dans Expensify.</muted-text>`,
+                controlPolicyCreation: "Restreindre la création d'espaces de travail",
+                enableSamlSso: 'Activer SAML SSO',
+                enforce2FA: 'Imposer la 2FA',
+            },
         },
         common: {
             settings: 'Paramètres',
