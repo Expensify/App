@@ -8,6 +8,6 @@
     This patch adds support to horizontal bars when rendered in <BarGroup />
     ```
   
-- Upstream PR/issue: Not yet. This is unrgent patch with deadline.
+- Upstream PR/issue: Not yet. This is urgent patch with deadline.
 - E/App issue: https://github.com/Expensify/Expensify/issues/636601
 - PR introducing patch: https://github.com/Expensify/App/pull/91659
