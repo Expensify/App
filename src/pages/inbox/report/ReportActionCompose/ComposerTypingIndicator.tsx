@@ -1,8 +1,10 @@
 import React from 'react';
 import useShouldSuppressConciergeIndicators from '@hooks/useShouldSuppressConciergeIndicators';
 import ReportTypingIndicator from '@pages/inbox/report/ReportTypingIndicator';
+import {useComposerState} from './ComposerContext';
 
-function AgentZeroAwareTypingIndicator({reportID}: {reportID: string}) {
+function ComposerTypingIndicator() {
+    const {reportID} = useComposerState();
     const shouldSuppress = useShouldSuppressConciergeIndicators(reportID);
     if (shouldSuppress) {
         return null;
@@ -10,4 +12,4 @@ function AgentZeroAwareTypingIndicator({reportID}: {reportID: string}) {
     return <ReportTypingIndicator reportID={reportID} />;
 }
 
-export default AgentZeroAwareTypingIndicator;
+export default ComposerTypingIndicator;
