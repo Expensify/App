@@ -49,15 +49,12 @@ function ConciergeSessionProvider({children}: PropsWithChildren) {
     const [prevIsConciergeMainDM, setPrevIsConciergeMainDM] = useState(isConciergeMainDM);
     const [pendingClear, setPendingClear] = useState(false);
 
-    // endSession() is called from useLayoutEffect cleanup (component unmount).
-    // On mobile, this happens when navigating back to LHN (screen popped).
-    // On web, the component stays mounted so endSession is never called.
-    // Always clear here — the unmount signal is a reliable indicator that
-    // the user left the Concierge chat.
-    if (pendingClear) {
+    if (pendingClear && currentReportID) {
         setPendingClear(false);
-        setSessionStartTime(null);
-        setShowFullHistory(false);
+        if (currentReportID !== conciergeReportID) {
+            setSessionStartTime(null);
+            setShowFullHistory(false);
+        }
     }
 
     if (prevIsConciergeMainDM !== isConciergeMainDM) {
