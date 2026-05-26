@@ -29,7 +29,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import BulkDuplicateHandler from './BulkDuplicateHandler';
 import BulkDuplicateReportHandler from './BulkDuplicateReportHandler';
-import {useSearchActionsContext, useSearchStateContext} from './SearchContext';
+import {useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import type {BulkPaySelectionData, SearchQueryJSON} from './types';
 
 type SearchBulkActionsButtonProps = {
@@ -37,7 +37,7 @@ type SearchBulkActionsButtonProps = {
 };
 
 function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
-    const {selectedTransactions, selectedReports} = useSearchStateContext();
+    const {selectedTransactions, selectedReports} = useSearchSelectionContext();
     const anchorReportID = useMemo(() => {
         const transactionReportIDs = [
             ...new Set(
@@ -65,8 +65,8 @@ function SearchBulkActionsButtonInner({queryJSON}: SearchBulkActionsButtonProps)
     // We need isSmallScreenWidth (not just shouldUseNarrowLayout) because DecisionModal requires it for correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const {selectedTransactions, selectedReports, areAllMatchingItemsSelected, shouldShowSelectAllMatchingItems} = useSearchStateContext();
-    const {selectAllMatchingItems} = useSearchActionsContext();
+    const {selectedTransactions, selectedReports, areAllMatchingItemsSelected, shouldShowSelectAllMatchingItems} = useSearchSelectionContext();
+    const {selectAllMatchingItems} = useSearchSelectionActions();
     const kycWallRef = useContext(KYCWallContext);
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
