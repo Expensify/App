@@ -98,4 +98,29 @@ describe('updateMoneyRequestVendor', () => {
         const violationsUpdate = onyxData?.optimisticData.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`);
         expect(violationsUpdate).toBeUndefined();
     });
+
+    it('falls back to the Onyx-cached transaction for vendor rollback when caller omits transaction', async () => {
+        const previousVendor = {externalID: 'v-old', isManuallySet: true};
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, {
+            ...baseTransaction,
+            comment: {vendor: previousVendor},
+        });
+        await waitForBatchedUpdates();
+
+        updateMoneyRequestVendor(TRANSACTION_ID, 'v-new');
+
+        const onyxData = getOnyxDataArg();
+        const vendorRollback = onyxData?.failureData.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`);
+        expect(vendorRollback?.value).toEqual({comment: {vendor: previousVendor}});
+    });
+
+    it('omits vendor rollback from failureData when no prior transaction snapshot exists', async () => {
+        // No transaction arg + nothing in Onyx — the prior vendor is unknown, so we must not
+        // write `vendor: null` and silently clear whatever the server actually has.
+        updateMoneyRequestVendor(TRANSACTION_ID, 'v-new');
+
+        const onyxData = getOnyxDataArg();
+        const vendorRollback = onyxData?.failureData.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`);
+        expect(vendorRollback).toBeUndefined();
+    });
 });
