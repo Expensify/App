@@ -25,7 +25,7 @@ type UseSearchFocusSyncParams<TItem extends ListItem, TData = TItem> = {
     scrollToIndex: (index: number, animated?: boolean) => void;
 
     /** Function to set the focused index */
-    setFocusedIndex: (index: number, options?: {shouldScroll?: boolean}) => void;
+    setFocusedIndex: (index: number) => void;
 
     /** The first focusable index in the list (useful when index 0 is a header). Defaults to 0. */
     firstFocusableIndex?: number;
@@ -72,7 +72,7 @@ function useSearchFocusSync<TItem extends ListItem, TData = TItem>({
 
             if (foundSelectedItemIndex !== -1 && !canSelectMultiple) {
                 scrollToIndex(foundSelectedItemIndex, false);
-                setFocusedIndex(foundSelectedItemIndex, {shouldScroll: false});
+                setFocusedIndex(foundSelectedItemIndex);
                 return;
             }
         }
@@ -85,13 +85,13 @@ function useSearchFocusSync<TItem extends ListItem, TData = TItem>({
         const shouldResetFocus = isSearchIdle || (selectedOptionsChanged && prevItemsLength === data.length);
 
         if (shouldResetFocus) {
-            setFocusedIndex(-1, {shouldScroll: false});
+            setFocusedIndex(-1);
             return;
         }
 
         // Scroll to top of list and focus on first focusable item (not header)
         scrollToIndex(0, false);
-        setFocusedIndex(firstFocusableIndex, {shouldScroll: false});
+        setFocusedIndex(firstFocusableIndex);
     }, [
         canSelectMultiple,
         data,

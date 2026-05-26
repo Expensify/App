@@ -217,7 +217,7 @@ function BaseSelectionList<TItem extends ListItem>({
         maxIndex: data.length - 1,
         disabledIndexes: dataDetails.disabledArrowKeyIndexes,
         isActive: isFocused,
-        onFocusedIndexChange: (index, {shouldScroll}) => {
+        onFocusedIndexChange: (index, shouldScroll) => {
             if (!shouldScroll || !shouldScrollToFocusedIndex) {
                 return;
             }
@@ -254,7 +254,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 }
             }
             if (shouldUpdateFocusedIndex && typeof indexToFocus === 'number') {
-                setFocusedIndex(indexToFocus, {shouldScroll: false});
+                setFocusedIndex(indexToFocus);
             }
             onSelectRow(item);
 
@@ -519,7 +519,7 @@ function BaseSelectionList<TItem extends ListItem>({
             if (newFocusedIndex < 0 || newFocusedIndex >= data.length) {
                 return;
             }
-            setFocusedIndex(newFocusedIndex, {shouldScroll: false});
+            setFocusedIndex(newFocusedIndex);
             if (shouldScroll) {
                 scrollToIndex(newFocusedIndex);
             }

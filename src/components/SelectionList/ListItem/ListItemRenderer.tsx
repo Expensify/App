@@ -103,7 +103,7 @@ function ListItemRenderer<TItem extends ListItem>({
                     if (isFocused) {
                         return;
                     }
-                    setFocusedIndex(normalizedIndex ?? index, {shouldScroll: false});
+                    setFocusedIndex(normalizedIndex ?? index);
                 }}
                 shouldSyncFocus={shouldSyncFocus}
                 wrapperStyle={wrapperStyle}

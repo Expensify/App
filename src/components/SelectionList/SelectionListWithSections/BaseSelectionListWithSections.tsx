@@ -149,7 +149,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         maxIndex: flattenedData.length - 1,
         disabledIndexes,
         isActive: isScreenFocused && itemsCount > 0,
-        onFocusedIndexChange: (index, {shouldScroll}) => {
+        onFocusedIndexChange: (index, shouldScroll) => {
             if (!shouldScroll) {
                 return;
             }
@@ -192,7 +192,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             }
         }
         if (shouldUpdateFocusedIndex && typeof indexToFocus === 'number') {
-            setFocusedIndex(indexToFocus, {shouldScroll: false});
+            setFocusedIndex(indexToFocus);
         }
         onSelectRow(item);
 
@@ -218,7 +218,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     };
 
     const updateAndScrollToFocusedIndex = (index: number, shouldScroll = true) => {
-        setFocusedIndex(index, {shouldScroll: false});
+        setFocusedIndex(index);
         if (shouldScroll) {
             scrollToIndex(index);
         }

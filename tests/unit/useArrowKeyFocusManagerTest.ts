@@ -26,7 +26,7 @@ describe('useArrowKeyFocusManager', () => {
         }
     });
 
-    it('passes shouldScroll: true when setFocusedIndex is called without options (default contract)', () => {
+    it('defaults shouldScroll to false when the setter is called without the optional flag', () => {
         const onFocusedIndexChange = jest.fn();
         const {result} = renderHook(() =>
             useArrowKeyFocusManager({
@@ -41,10 +41,10 @@ describe('useArrowKeyFocusManager', () => {
         });
 
         expect(onFocusedIndexChange).toHaveBeenCalledTimes(1);
-        expect(onFocusedIndexChange).toHaveBeenCalledWith(2, {shouldScroll: true});
+        expect(onFocusedIndexChange).toHaveBeenCalledWith(2, false);
     });
 
-    it('plumbs shouldScroll: false through to onFocusedIndexChange', () => {
+    it('forwards shouldScroll: true through to onFocusedIndexChange', () => {
         const onFocusedIndexChange = jest.fn();
         const {result} = renderHook(() =>
             useArrowKeyFocusManager({
@@ -55,14 +55,32 @@ describe('useArrowKeyFocusManager', () => {
         );
 
         act(() => {
-            result.current[1](2, {shouldScroll: false});
+            result.current[1](2, true);
         });
 
         expect(onFocusedIndexChange).toHaveBeenCalledTimes(1);
-        expect(onFocusedIndexChange).toHaveBeenCalledWith(2, {shouldScroll: false});
+        expect(onFocusedIndexChange).toHaveBeenCalledWith(2, true);
     });
 
-    it('arrow key navigation passes shouldScroll: true', () => {
+    it('forwards shouldScroll: false through to onFocusedIndexChange', () => {
+        const onFocusedIndexChange = jest.fn();
+        const {result} = renderHook(() =>
+            useArrowKeyFocusManager({
+                maxIndex: 5,
+                initialFocusedIndex: 0,
+                onFocusedIndexChange,
+            }),
+        );
+
+        act(() => {
+            result.current[1](2, false);
+        });
+
+        expect(onFocusedIndexChange).toHaveBeenCalledTimes(1);
+        expect(onFocusedIndexChange).toHaveBeenCalledWith(2, false);
+    });
+
+    it('arrow key navigation forwards shouldScroll: true', () => {
         const onFocusedIndexChange = jest.fn();
         renderHook(() =>
             useArrowKeyFocusManager({
@@ -76,7 +94,7 @@ describe('useArrowKeyFocusManager', () => {
         pressArrowDown();
 
         expect(onFocusedIndexChange).toHaveBeenCalledTimes(1);
-        expect(onFocusedIndexChange).toHaveBeenCalledWith(1, {shouldScroll: true});
+        expect(onFocusedIndexChange).toHaveBeenCalledWith(1, true);
     });
 
     it('arrow keys override a previous shouldScroll: false from setFocusedIndex', () => {
@@ -92,17 +110,17 @@ describe('useArrowKeyFocusManager', () => {
 
         // Public setter parks the ref at false (e.g., focus-driven update).
         act(() => {
-            result.current[1](2, {shouldScroll: false});
+            result.current[1](2, false);
         });
-        expect(onFocusedIndexChange).toHaveBeenLastCalledWith(2, {shouldScroll: false});
+        expect(onFocusedIndexChange).toHaveBeenLastCalledWith(2, false);
 
         // Arrow key must reassert shouldScroll: true; otherwise a focus event
         // before an arrow press would silently suppress the next scroll.
         pressArrowDown();
-        expect(onFocusedIndexChange).toHaveBeenLastCalledWith(3, {shouldScroll: true});
+        expect(onFocusedIndexChange).toHaveBeenLastCalledWith(3, true);
     });
 
-    it('emits independent shouldScroll values on successive calls', () => {
+    it('forwards independent shouldScroll values on successive calls', () => {
         const onFocusedIndexChange = jest.fn();
         const {result} = renderHook(() =>
             useArrowKeyFocusManager({
@@ -113,19 +131,19 @@ describe('useArrowKeyFocusManager', () => {
         );
 
         act(() => {
-            result.current[1](2, {shouldScroll: false});
+            result.current[1](2, false);
         });
-        expect(onFocusedIndexChange).toHaveBeenLastCalledWith(2, {shouldScroll: false});
+        expect(onFocusedIndexChange).toHaveBeenLastCalledWith(2, false);
 
         act(() => {
-            result.current[1](3);
+            result.current[1](3, true);
         });
-        expect(onFocusedIndexChange).toHaveBeenLastCalledWith(3, {shouldScroll: true});
+        expect(onFocusedIndexChange).toHaveBeenLastCalledWith(3, true);
 
         act(() => {
-            result.current[1](4, {shouldScroll: false});
+            result.current[1](4, false);
         });
-        expect(onFocusedIndexChange).toHaveBeenLastCalledWith(4, {shouldScroll: false});
+        expect(onFocusedIndexChange).toHaveBeenLastCalledWith(4, false);
 
         expect(onFocusedIndexChange).toHaveBeenCalledTimes(3);
     });
