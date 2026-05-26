@@ -240,3 +240,25 @@ index 3065639..e291087 100644
    type CartesianChartRef,
  } from "./cartesian/CartesianChart";
  
+diff --git a/node_modules/victory-native/tsconfig.json b/node_modules/victory-native/tsconfig.json
+new file mode 100644
+index 0000000..0fff5ee
+--- /dev/null
++++ b/node_modules/victory-native/tsconfig.json
+@@ -0,0 +1,16 @@
++{
++  "compilerOptions": {
++    "baseUrl": ".",
++    "paths": {
++      "react-native": [
++        "../../server/victory-chart-renderer/stubs/react-native.ts"
++      ],
++      "react-native-reanimated": [
++        "../../server/victory-chart-renderer/stubs/react-native-reanimated.js"
++      ],
++      "react-native-gesture-handler": [
++        "../../server/victory-chart-renderer/stubs/react-native-gesture-handler.ts"
++      ]
++    }
++  }
++}
