@@ -130,9 +130,11 @@ function addSelectedGroupsFilter(queryJSON: SearchQueryJSON, selectedTransaction
     }
 
     const groupKeys = new Set<string>();
-    for (const key of Object.keys(selectedTransactions)) {
+    for (const [key, value] of Object.entries(selectedTransactions)) {
         if (key.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
             groupKeys.add(key);
+        } else if (value.groupKey) {
+            groupKeys.add(value.groupKey);
         }
     }
 
@@ -520,13 +522,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     policyID,
                 });
             } else {
-                const filteredQuery = queryJSON?.groupBy ? serializeQueryJSONForBackend(addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data)) : '{}';
+                const isGroupExport = !!queryJSON?.groupBy;
                 queueExportSearchWithTemplate({
                     templateName,
                     templateType,
-                    jsonQuery: filteredQuery,
-                    reportIDList: selectedTransactionReportIDs,
-                    transactionIDList: selectedTransactionsKeys.filter((key) => !key.startsWith(CONST.SEARCH.GROUP_PREFIX)),
+                    jsonQuery: isGroupExport ? serializeQueryJSONForBackend(addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data)) : '{}',
+                    reportIDList: isGroupExport ? [] : selectedTransactionReportIDs,
+                    transactionIDList: isGroupExport ? [] : selectedTransactionsKeys,
                     policyID,
                 });
             }
@@ -605,16 +607,16 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return;
         }
 
-        const transactionIDList = selectedTransactionsKeys.filter((key) => !key.startsWith(CONST.SEARCH.GROUP_PREFIX));
-        const reportIDList = selectedReports.length > 0 ? selectedReportIDs : selectedTransactionReportIDs;
-        const exportQuery = queryJSON?.groupBy ? addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data) : queryJSON;
+        const isGroupExport = !!queryJSON?.groupBy;
         let didFail = false;
         await exportSearchItemsToCSV(
             {
                 query: status,
-                jsonQuery: exportQuery ? serializeQueryJSONForBackend(exportQuery) : JSON.stringify(exportQuery),
-                reportIDList,
-                transactionIDList,
+                jsonQuery: isGroupExport
+                    ? serializeQueryJSONForBackend(addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data))
+                    : queryJSON ? serializeQueryJSONForBackend(queryJSON) : JSON.stringify(queryJSON),
+                reportIDList: isGroupExport ? [] : (selectedReports.length > 0 ? selectedReportIDs : selectedTransactionReportIDs),
+                transactionIDList: isGroupExport ? [] : selectedTransactionsKeys,
             },
             () => {
                 didFail = true;
