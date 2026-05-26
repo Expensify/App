@@ -11525,25 +11525,19 @@ function isReportOutstanding(
  * Get outstanding expense reports for a given policy ID
  * @param policyID - The policy ID to filter reports by
  * @param reportOwnerAccountID - The accountID of the report owner
+ * @param archivedReportsIDSet - Set of archived report IDs
  * @param reports - Collection of reports to filter
+ * @param allowSubmitted - Whether submitted reports are allowed
  * @returns Array of outstanding expense reports
  */
 function getOutstandingReportsForUser(
     policyID: string | undefined,
     reportOwnerAccountID: number | undefined,
-    // Temporarily supports the old reports argument while archived report checks are migrated in smaller PRs. Remove this fallback as part of https://github.com/Expensify/App/issues/66422.
-    archivedReportsIDSetOrReports?: ArchivedReportsIDSet | OnyxCollection<Report>,
-    reportsOrReportNameValuePairs?: OnyxCollection<Report> | OnyxCollection<ReportNameValuePairs> | boolean,
+    archivedReportsIDSet?: ArchivedReportsIDSet,
+    reports: OnyxCollection<Report> = deprecatedAllReports,
     allowSubmitted = true,
 ): Array<OnyxEntry<Report>> {
-    const isUsingArchivedReportsIDSet = archivedReportsIDSetOrReports instanceof Set;
-    const reportNameValuePairs =
-        typeof reportsOrReportNameValuePairs === 'boolean' ? allReportNameValuePair : ((reportsOrReportNameValuePairs as OnyxCollection<ReportNameValuePairs>) ?? allReportNameValuePair);
-    const archivedReportsIDSet = isUsingArchivedReportsIDSet ? archivedReportsIDSetOrReports : buildArchivedReportsIDSet(reportNameValuePairs);
-    const reports = isUsingArchivedReportsIDSet
-        ? (((typeof reportsOrReportNameValuePairs === 'boolean' ? undefined : reportsOrReportNameValuePairs) as OnyxCollection<Report>) ?? deprecatedAllReports)
-        : ((archivedReportsIDSetOrReports as OnyxCollection<Report>) ?? deprecatedAllReports);
-    const shouldAllowSubmitted = typeof reportsOrReportNameValuePairs === 'boolean' ? reportsOrReportNameValuePairs : allowSubmitted;
+    const archivedReportIDs = archivedReportsIDSet ?? buildArchivedReportsIDSet(allReportNameValuePair);
 
     if (!reports) {
         return [];
@@ -11551,7 +11545,7 @@ function getOutstandingReportsForUser(
     return Object.values(reports).filter(
         (report) =>
             report?.pendingFields?.preview !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-            isReportOutstanding(report, policyID, archivedReportsIDSet, shouldAllowSubmitted) &&
+            isReportOutstanding(report, policyID, archivedReportIDs, allowSubmitted) &&
             report?.ownerAccountID === reportOwnerAccountID,
     );
 }
