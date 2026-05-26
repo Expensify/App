@@ -18,7 +18,7 @@ function parseVictorySeriesNode(tnode: TNode, typeface: SkTypeface | null, rootP
     for (const point of points) {
         if (isHorizontal) {
             // Even though the X-Axis is going to hold the y values on horizontal mode, it's not the independent axis
-            // thus we cannot use `point.y` as the key since a two points can have the same y value.
+            // thus we cannot use `point.y` as the key since two points can have the same y value.
             data[`${point.y}-${point.x}`] = {
                 [X_KEY]: point.y,
                 [yKey]: typeof point.x === 'number' ? point.x : categories?.indexOf(point.x),
