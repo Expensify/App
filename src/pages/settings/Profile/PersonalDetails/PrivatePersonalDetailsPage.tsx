@@ -148,8 +148,8 @@ function PrivatePersonalDetailsPage() {
             errors[INPUT_IDS.CITY] = translate('common.error.fieldRequired');
         }
 
-        const stateValue = values[INPUT_IDS.STATE] || selectedState || '';
-        const effectiveCountry = (values[INPUT_IDS.COUNTRY] || selectedCountry) ?? '';
+        const stateValue = values[INPUT_IDS.STATE] ?? '';
+        const effectiveCountry = values[INPUT_IDS.COUNTRY] ?? '';
         if (!stateValue.trim()) {
             errors[INPUT_IDS.STATE] = translate('common.error.fieldRequired');
         }
