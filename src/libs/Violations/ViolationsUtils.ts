@@ -448,26 +448,33 @@ const ViolationsUtils = {
         // needs to see what was previously set so they can re-pick. Gated behind the
         // `vendorMatching` beta so Web-Expensify can ship the auto-match write path
         // independently — no production workspace sees the violation until the beta is enabled.
-        const isVendorMatchingBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.VENDOR_MATCHING, allBetas);
-        const hasInactiveVendorViolation = newTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.INACTIVE_VENDOR);
-        const isVendorFeatureActive = hasVendorFeature(policy, isVendorMatchingBetaEnabled);
-        const transactionVendorID = updatedTransaction.comment?.vendor?.externalID;
-        if (!isVendorFeatureActive) {
-            // Feature off (e.g. admin switched export type away from credit/debit card) — clear any
-            // stale inactive-vendor violation.
-            if (hasInactiveVendorViolation) {
+        //
+        // Skip the reconcile entirely while `allBetas` is still loading (the module-level Onyx
+        // subscription populates it asynchronously). Treating undefined as "no betas" would surface
+        // as "feature off" here and silently strip a valid server-set `inactiveVendor` violation
+        // during the startup window. The next recompute settles the state once betas land.
+        if (allBetas !== undefined) {
+            const isVendorMatchingBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.VENDOR_MATCHING, allBetas);
+            const hasInactiveVendorViolation = newTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.INACTIVE_VENDOR);
+            const isVendorFeatureActive = hasVendorFeature(policy, isVendorMatchingBetaEnabled);
+            const transactionVendorID = updatedTransaction.comment?.vendor?.externalID;
+            if (!isVendorFeatureActive) {
+                // Feature off (e.g. admin switched export type away from credit/debit card) — clear any
+                // stale inactive-vendor violation.
+                if (hasInactiveVendorViolation) {
+                    newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
+                }
+            } else if (transactionVendorID) {
+                const matchedVendor = getQBOVendorByID(policy, transactionVendorID);
+                if (!matchedVendor && !hasInactiveVendorViolation) {
+                    newTransactionViolations.push({name: CONST.VIOLATIONS.INACTIVE_VENDOR, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
+                } else if (matchedVendor && hasInactiveVendorViolation) {
+                    newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
+                }
+            } else if (hasInactiveVendorViolation) {
+                // Vendor was cleared while the feature is still active — drop the now-stale violation.
                 newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
             }
-        } else if (transactionVendorID) {
-            const matchedVendor = getQBOVendorByID(policy, transactionVendorID);
-            if (!matchedVendor && !hasInactiveVendorViolation) {
-                newTransactionViolations.push({name: CONST.VIOLATIONS.INACTIVE_VENDOR, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
-            } else if (matchedVendor && hasInactiveVendorViolation) {
-                newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
-            }
-        } else if (hasInactiveVendorViolation) {
-            // Vendor was cleared while the feature is still active — drop the now-stale violation.
-            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
         }
 
         const customUnitRateID = updatedTransaction?.comment?.customUnit?.customUnitRateID;
