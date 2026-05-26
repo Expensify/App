@@ -22,6 +22,14 @@ The patch lives in both `src/` (consumed by Metro via the package's `react-nativ
 field) and `dist/` (consumed by Bun, which falls through to the `import` condition and
 loads compiled JS / `.d.ts`).
 
+A small `tsconfig.json` is also dropped into the installed package. Bun's
+resolver walks up to the closest `tsconfig.json` when resolving bare specifiers
+in `node_modules/victory-native/...`, so this file remaps the chart's React
+Native dependencies (`react-native`, `react-native-reanimated`,
+`react-native-gesture-handler`) to the stubs in
+`server/victory-chart-renderer/stubs/`. Metro doesn't honor `tsconfig.json`
+paths, so the in-app build is unaffected.
+
 ## Remove when
 
 Upstream PR is merged and we upgrade `victory-native` to a release containing it.

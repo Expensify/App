@@ -2,7 +2,27 @@
     "extends": "../../tsconfig.json",
     "compilerOptions": {
         "types": ["@types/bun"],
-        "rootDir": "./src"
+        "rootDir": "./src",
+        "baseUrl": ".",
+        "paths": {
+            "react-native": ["./stubs/react-native.ts"],
+            "react-native-reanimated": ["./stubs/react-native-reanimated.js"],
+            "react-native-gesture-handler": ["./stubs/react-native-gesture-handler.ts"],
+            "@assets/*": ["../../assets/*"],
+            "@components/*": ["../../src/components/*"],
+            "@github/*": ["../../.github/*"],
+            "@hooks/*": ["../../src/hooks/*"],
+            "@libs/*": ["../../src/libs/*"],
+            "@navigation/*": ["../../src/libs/Navigation/*"],
+            "@pages/*": ["../../src/pages/*"],
+            "@prompts/*": ["../../prompts/*"],
+            "@scripts/*": ["../../scripts/*", "../../.github/scripts/*"],
+            "@styles/*": ["../../src/styles/*"],
+            "@src/*": ["../../src/*"],
+            "@userActions/*": ["../../src/libs/actions/*"],
+            "@selectors/*": ["../../src/selectors/*"],
+            "tests/*": ["../../tests/*"]
+        }
     },
-    "include": ["src", "__tests__"]
+    "include": ["src", "__tests__", "stubs"]
 }

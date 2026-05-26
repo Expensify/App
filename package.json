@@ -72,9 +72,9 @@
     "web:dist": "concurrently \"npm:web-proxy\" \"http-server ./dist --cors --port 8080 -P http://localhost:9000\"",
     "octokit": "cd scripts && npx ts-node -i -e \"$(cat ./octokit.ts)\"",
     "compress-svg": "npx ts-node scripts/compressSvg.ts --dir assets/images && npx ts-node scripts/compressSvg.ts --dir docs/assets/images",
-    "server:vcr:dev": "bun run server/victory-chart-renderer/src/cli.ts",
-    "server:vcr:build:linux": "bun build --compile --target=bun-linux-x64 server/victory-chart-renderer/src/cli.ts --outfile server/victory-chart-renderer/dist/victory-chart-renderer-linux-x64",
-    "server:vcr:build:macos": "bun build --compile --target=bun-darwin-arm64 server/victory-chart-renderer/src/cli.ts --outfile server/victory-chart-renderer/dist/victory-chart-renderer-darwin-arm64"
+    "server:vcr:dev": "bun --conditions=react-native run server/victory-chart-renderer/src/cli.ts",
+    "server:vcr:build:linux": "bun build --conditions=react-native --compile --target=bun-linux-x64 server/victory-chart-renderer/src/cli.ts --outfile server/victory-chart-renderer/dist/victory-chart-renderer-linux-x64",
+    "server:vcr:build:macos": "bun build --conditions=react-native --compile --target=bun-darwin-arm64 server/victory-chart-renderer/src/cli.ts --outfile server/victory-chart-renderer/dist/victory-chart-renderer-darwin-arm64"
   },
   "dependencies": {
     "@babel/runtime": "^7.25.0",
