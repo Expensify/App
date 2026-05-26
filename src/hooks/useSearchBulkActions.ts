@@ -614,8 +614,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 query: status,
                 jsonQuery: isGroupExport
                     ? serializeQueryJSONForBackend(addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data))
-                    : queryJSON ? serializeQueryJSONForBackend(queryJSON) : JSON.stringify(queryJSON),
-                reportIDList: isGroupExport ? [] : (selectedReports.length > 0 ? selectedReportIDs : selectedTransactionReportIDs),
+                    : queryJSON
+                      ? serializeQueryJSONForBackend(queryJSON)
+                      : JSON.stringify(queryJSON),
+                reportIDList: isGroupExport ? [] : selectedReports.length > 0 ? selectedReportIDs : selectedTransactionReportIDs,
                 transactionIDList: isGroupExport ? [] : selectedTransactionsKeys,
             },
             () => {
