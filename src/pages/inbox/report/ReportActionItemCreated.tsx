@@ -83,7 +83,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
                 >
                     <OfflineWithFeedback pendingAction={report?.pendingFields?.avatar}>
                         <PressableWithoutFeedback
-                            onPress={() => navigateToDetailsPage(report, Navigation.getReportRHPActiveRoute(), true)}
+                            onPress={() => navigateToDetailsPage(report, Navigation.getReportRHPActiveRoute())}
                             style={[styles.mh5, styles.mb3, styles.alignSelfStart, shouldDisableDetailPage && styles.cursorDefault]}
                             accessibilityLabel={translate('common.details')}
                             role={CONST.ROLE.BUTTON}

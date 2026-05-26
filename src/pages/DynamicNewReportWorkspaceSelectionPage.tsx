@@ -14,6 +14,7 @@ import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirm
 import useCreateNewReport from '@hooks/useCreateNewReport';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -28,7 +29,6 @@ import type {NewReportWorkspaceSelectionNavigatorParamList} from '@libs/Navigati
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {canSubmitPerDiemExpenseFromWorkspace, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest} from '@libs/TransactionUtils';
 import isRHPOnSearchMoneyRequestReportPage from '@navigation/helpers/isRHPOnSearchMoneyRequestReportPage';
@@ -37,7 +37,7 @@ import {changeTransactionsReport} from '@userActions/Transaction';
 import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -47,10 +47,11 @@ type WorkspaceListItem = {
     isPolicyAdmin?: boolean;
 } & ListItem;
 
-type NewReportWorkspaceSelectionPageProps = PlatformStackScreenProps<NewReportWorkspaceSelectionNavigatorParamList, typeof SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT>;
+type NewReportWorkspaceSelectionPageProps = PlatformStackScreenProps<NewReportWorkspaceSelectionNavigatorParamList, typeof SCREENS.NEW_REPORT_WORKSPACE_SELECTION.DYNAMIC_ROOT>;
 
-function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPageProps) {
-    const {isMovingExpenses, backTo} = route.params ?? {};
+function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPageProps) {
+    const {isMovingExpenses} = route.params ?? {};
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.path);
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar']);
     const {selectedTransactions, selectedTransactionIDs} = useSearchSelectionContext();
@@ -137,7 +138,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             });
 
             Navigation.dismissModal();
-            Navigation.goBack(backTo ?? ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
+            Navigation.goBack(backPath);
             return;
         }
         navigateToNewReport(optimisticReport.reportID);
@@ -251,7 +252,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
 
     return (
         <ScreenWrapper
-            testID="NewReportWorkspaceSelectionPage"
+            testID="DynamicNewReportWorkspaceSelectionPage"
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
@@ -259,13 +260,13 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                 <>
                     <HeaderWithBackButton
                         title={translate('report.newReport.createReport')}
-                        onBackButtonPress={Navigation.goBack}
+                        onBackButtonPress={() => Navigation.goBack(backPath)}
                     />
                     {shouldShowLoadingIndicator ? (
                         <View style={[styles.flex1, styles.fullScreenLoading]}>
                             <ActivityIndicator
                                 size="large"
-                                reasonAttributes={{context: 'NewReportWorkspaceSelectionPage', isLoadingApp: !!isLoadingApp}}
+                                reasonAttributes={{context: 'DynamicNewReportWorkspaceSelectionPage', isLoadingApp: !!isLoadingApp}}
                             />
                         </View>
                     ) : (
@@ -286,4 +287,4 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     );
 }
 
-export default NewReportWorkspaceSelectionPage;
+export default DynamicNewReportWorkspaceSelectionPage;
