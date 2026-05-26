@@ -108,7 +108,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: 'Seleção múltipla',
         saveChanges: 'Salvar alterações',
         submit: 'Enviar',
+        markAsDone: 'Marcar como concluído',
         submitted: 'Enviado',
+        markedAsDoneStatus: 'Marcado como concluído',
         rotate: 'Girar',
         zoom: 'Zoom',
         password: 'Senha',
@@ -124,6 +126,7 @@ const translations: TranslationDeepObject<typeof en> = {
             approve: 'Aprovar',
             pay: 'Pagar',
             fix: 'Corrigir',
+            task: 'Tarefa',
         },
         success: 'Concluído',
         group: 'Grupo',
@@ -844,6 +847,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistory: (users: string) => `Este chat é com ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName: string, submitterDisplayName: string) =>
             `É aqui que <strong>${submitterDisplayName}</strong> enviará despesas para <strong>${workspaceName}</strong>. Basta usar o botão +.`,
+        beginningOfChatHistoryPolicyExpenseChatTrack: 'É aqui que você vai acompanhar as despesas',
         beginningOfChatHistorySelfDM: 'Este é o seu espaço pessoal. Use-o para anotações, tarefas, rascunhos e lembretes.',
         beginningOfChatHistorySystemDM: 'Bem-vindo(a)! Vamos fazer a sua configuração.',
         chatWithAccountManager: 'Converse com seu gerente de conta aqui',
@@ -1338,6 +1342,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sendInvoice: (amount: string) => `Enviar fatura de ${amount}`,
         expenseAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? `para ${comment}` : ''}`,
         submitted: (memo?: string) => `enviado${memo ? `, dizendo ${memo}` : ''}`,
+        markedAsDone: (memo) => `marcado como concluído${memo ? `, dizendo ${memo}` : ''}`,
         automaticallySubmitted: `enviado via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">atrasar envios</a>`,
         queuedToSubmitViaDEW: 'na fila para enviar via fluxo de aprovação personalizado',
         queuedToApproveViaDEW: 'na fila para aprovar via fluxo de aprovação personalizado',
@@ -1773,6 +1778,21 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Aguardando <strong>${actor}</strong> enviar as despesas.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `Aguardando um administrador enviar as despesas.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Aguardando <strong>você</strong> marcar como concluído.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Aguardando <strong>${actor}</strong> marcar como concluído.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Aguardando um administrador marcar como concluído.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (
@@ -6163,8 +6183,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
         accounting: {
             settings: 'configurações',
             title: 'Conexões',
-            subtitle:
-                'Conecte-se ao seu sistema contábil para classificar transações com seu plano de contas, fazer a correspondência automática de pagamentos e manter suas finanças sincronizadas.',
+            subtitle: 'Conecte seu software de contabilidade para uma sincronização automática.',
             qbo: 'QuickBooks Online',
             qbd: 'QuickBooks Desktop',
             xero: 'Xero',
@@ -7808,7 +7827,6 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
     search: {
         resultsAreLimited: 'Os resultados da pesquisa são limitados.',
         viewResults: 'Ver resultados',
-        applyFilters: 'Aplicar filtros',
         appliedFilters: 'Filtros aplicados',
         resetFilters: 'Redefinir filtros',
         searchResults: {
@@ -7919,12 +7937,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             amount: {
                 lessThan: (amount?: string) => `Menos de ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Maior que ${amount ?? ''}`,
-                between: (greaterThan?: string, lessThan?: string) => {
-                    if (greaterThan && lessThan) {
-                        return `Entre ${greaterThan} e ${lessThan}`;
-                    }
-                    return 'Entre';
-                },
+                between: (greaterThan: string, lessThan: string) => `Entre ${greaterThan} e ${lessThan}`,
                 equalTo: (amount?: string) => `Igual a ${amount ?? ''}`,
             },
             card: {
@@ -9034,7 +9047,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         copilotDelegatedAccess: 'Copilot: Acesso delegado',
         copilotDelegatedAccessDescription: 'Permitir que outros membros acessem sua conta.',
         learnMoreAboutDelegatedAccess: 'Saiba mais sobre acesso delegado',
-        addCopilot: 'Adicionar copiloto',
+        addCopilot: 'Adicionar um copiloto',
         membersCanAccessYourAccount: 'Esses membros podem acessar sua conta:',
         youCanAccessTheseAccounts: 'Você pode acessar essas contas:',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {

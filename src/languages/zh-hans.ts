@@ -108,7 +108,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: '多选',
         saveChanges: '保存更改',
         submit: '提交',
+        markAsDone: '标记为完成',
         submitted: '已提交',
+        markedAsDoneStatus: '已标记为完成',
         rotate: '旋转',
         zoom: '缩放',
         password: '密码',
@@ -124,6 +126,7 @@ const translations: TranslationDeepObject<typeof en> = {
             approve: '批准',
             pay: '支付',
             fix: '修复',
+            task: '任务',
         },
         success: '成功',
         group: '群组',
@@ -820,6 +823,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistory: (users: string) => `此聊天对象为 ${users}。`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName: string, submitterDisplayName: string) =>
             `这是 <strong>${submitterDisplayName}</strong> 向 <strong>${workspaceName}</strong> 提交报销的地方。只需使用“+”按钮即可。`,
+        beginningOfChatHistoryPolicyExpenseChatTrack: '在这里跟踪你的报销费用',
         beginningOfChatHistorySelfDM: '这是你的个人空间。可在此记录笔记、任务、草稿和提醒事项。',
         beginningOfChatHistorySystemDM: '欢迎！让我们帮你完成设置。',
         chatWithAccountManager: '在这里与您的客户经理聊天',
@@ -1294,6 +1298,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sendInvoice: (amount: string) => `发送 ${amount} 发票`,
         expenseAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? `用于 ${comment}` : ''}`,
         submitted: (memo?: string) => `已提交${memo ? `，备注为 ${memo}` : ''}`,
+        markedAsDone: (memo) => `标记为已完成${memo ? `，说明：${memo}` : ''}`,
         automaticallySubmitted: `通过<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">延迟提交</a>提交`,
         queuedToSubmitViaDEW: '已排队，待通过自定义审批流程提交',
         queuedToApproveViaDEW: '已排队，等待通过自定义审批流程批准',
@@ -1721,6 +1726,21 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `正在等待<strong>${actor}</strong>提交报销。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `正在等待管理员提交报销。`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `正在等待<strong>你</strong>标记为完成。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `正在等待<strong>${actor}</strong>标记为完成。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `正在等待管理员标记为完成。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (
@@ -6004,7 +6024,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
         accounting: {
             settings: '设置',
             title: '连接',
-            subtitle: '连接到您的会计系统，以使用科目表为交易编码、自动匹配付款，并保持财务数据同步。',
+            subtitle: '连接您的会计软件以自动同步。',
             qbo: 'QuickBooks Online',
             qbd: 'QuickBooks Desktop',
             xero: 'Xero',
@@ -7609,7 +7629,6 @@ ${reportName}
     search: {
         resultsAreLimited: '搜索结果已受限制。',
         viewResults: '查看结果',
-        applyFilters: '应用筛选条件',
         appliedFilters: '已应用的筛选条件',
         resetFilters: '重置筛选条件',
         searchResults: {
@@ -7719,12 +7738,7 @@ ${reportName}
             amount: {
                 lessThan: (amount?: string) => `少于 ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `大于 ${amount ?? ''}`,
-                between: (greaterThan?: string, lessThan?: string) => {
-                    if (greaterThan && lessThan) {
-                        return `介于 ${greaterThan} 和 ${lessThan} 之间`;
-                    }
-                    return '之间';
-                },
+                between: (greaterThan: string, lessThan: string) => `介于 ${greaterThan} 和 ${lessThan} 之间`,
                 equalTo: (amount?: string) => `等于 ${amount ?? ''}`,
             },
             card: {
@@ -8806,7 +8820,7 @@ ${reportName}
         copilotDelegatedAccess: 'Copilot：委托访问',
         copilotDelegatedAccessDescription: '允许其他成员访问你的账户。',
         learnMoreAboutDelegatedAccess: '了解更多关于委托访问的信息',
-        addCopilot: '添加副驾',
+        addCopilot: '添加副驾驶',
         membersCanAccessYourAccount: '这些成员可以访问你的账户：',
         youCanAccessTheseAccounts: '您可以访问这些账户：',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
