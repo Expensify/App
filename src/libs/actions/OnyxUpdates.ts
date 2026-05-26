@@ -62,7 +62,27 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, res
                     requestData: request.data,
                 });
 
-                return updateHandler(request.failureData);
+                let finalFailureData = request.failureData;
+                if (response.message) {
+                    // Replace generic fallback errors with the specific server message
+                    finalFailureData = finalFailureData.map((update) => {
+                        if (!update.value || typeof update.value !== 'object') {
+                            return update;
+                        }
+                        const newValue = {...(update.value as Record<string, unknown>)};
+                        for (const [id, val] of Object.entries(newValue)) {
+                            if (val && typeof val === 'object' && 'errors' in val) {
+                                newValue[id] = {
+                                    ...val,
+                                    errors: {[Date.now() * 1000]: response.message},
+                                };
+                            }
+                        }
+                        return {...update, value: newValue};
+                    }) as Array<OnyxUpdate<TKey>>;
+                }
+
+                return updateHandler(finalFailureData);
             }
             return Promise.resolve();
         })
