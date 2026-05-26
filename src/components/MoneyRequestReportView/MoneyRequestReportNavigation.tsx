@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import PrevNextButtons from '@components/PrevNextButtons';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchResultsContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 import useFilterPendingDeleteReports from '@hooks/useFilterPendingDeleteReports';
 import useOnyx from '@hooks/useOnyx';
@@ -147,6 +147,8 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
         });
         Navigation.setParams({
             reportID: reportId,
+            reportActionID: undefined,
+            referrer: undefined,
         });
     };
 
@@ -222,7 +224,7 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
     const [snapshotGuard = EMPTY_GUARD] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {selector: snapshotGuardSelector});
 
     // Fast-path hooks (always called to satisfy rules of hooks)
-    const {sortedReportIDs} = useSearchStateContext();
+    const {sortedReportIDs} = useSearchResultsContext();
     const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
     const searchLoadingSelector = (data: OnyxEntry<SearchResults>) => !!data?.search?.isLoading;
     const [isSearchLoading = false] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`, {
