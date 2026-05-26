@@ -60,12 +60,14 @@ function AnimatedBadge({text, isExpanded}: AnimatedBadgeProps) {
 
     return (
         <Animated.View style={[badgeAnimatedStyle]}>
-            <Badge
-                text={text}
-                badgeStyles={styles.searchSectionBadge}
-                success
-                isCondensed
-            />
+            <View style={styles.popoverMenuIcon}>
+                <Badge
+                    text={text}
+                    badgeStyles={[styles.searchSectionBadge, styles.ml0]}
+                    success
+                    isCondensed
+                />
+            </View>
         </Animated.View>
     );
 }
@@ -92,7 +94,7 @@ function SearchTypeMenuAccordion({title, isExpanded, badgeText, children, onSect
         <View>
             <PressableWithoutFeedback
                 onPress={onSectionHeaderPress}
-                style={[styles.flexRow, styles.pl2, styles.pr3, styles.pv2, styles.gap2, styles.alignItemsCenter, styles.br2]}
+                style={[styles.flexRow, {paddingLeft: 8, paddingRight: 12, paddingVertical: 8}, styles.gap2, styles.alignItemsCenter, styles.br2]}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={title}
                 sentryLabel={CONST.SENTRY_LABEL.ACCORDION_SECTION.TOGGLE}
@@ -110,14 +112,16 @@ function SearchTypeMenuAccordion({title, isExpanded, badgeText, children, onSect
                         isExpanded={isAccordionExpanded}
                     />
                 )}
-                <Animated.View style={[arrowAnimatedStyle]}>
-                    <Icon
-                        fill={theme.icon}
-                        src={icons.UpArrow}
-                        width={variables.iconSizeSmall}
-                        height={variables.iconSizeSmall}
-                    />
-                </Animated.View>
+                <View style={styles.popoverMenuIcon}>
+                    <Animated.View style={[arrowAnimatedStyle]}>
+                        <Icon
+                            fill={theme.icon}
+                            src={icons.UpArrow}
+                            width={variables.iconSizeSmall}
+                            height={variables.iconSizeSmall}
+                        />
+                    </Animated.View>
+                </View>
             </PressableWithoutFeedback>
             <Accordion
                 isExpanded={isAccordionExpanded}

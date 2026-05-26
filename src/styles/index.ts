@@ -1917,7 +1917,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         popoverMenuIcon: {
-            width: variables.componentSizeNormal,
+            width: 28,
             justifyContent: 'center',
             alignItems: 'center',
         },
@@ -5744,6 +5744,7 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
             justifyContent: 'center',
             width: 28,
+            paddingHorizontal: 4,
         },
 
         searchSectionBadge: {
@@ -5751,6 +5752,7 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
             height: 16,
             width: 28,
+            paddingHorizontal: 4,
         },
 
         stickToBottom: {
@@ -6528,7 +6530,8 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         sectionMenuItem: (shouldUseNarrowLayout: boolean) => ({
             borderRadius: 8,
-            paddingHorizontal: 16,
+            paddingLeft: 16,
+            paddingRight: 12,
             paddingVertical: shouldUseNarrowLayout ? 8 : 4,
             height: shouldUseNarrowLayout ? variables.sectionMenuItemHeight : variables.sectionMenuItemHeightCompact,
             alignItems: 'center',
