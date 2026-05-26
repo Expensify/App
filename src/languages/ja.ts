@@ -2402,6 +2402,7 @@ const translations: TranslationDeepObject<typeof en> = {
         cardInactive: '非アクティブ',
         assignedCards: 'カード',
         assignedCardsDescription: '割り当てられたカードの取引は自動的に同期されます。',
+        addVirtualCardPersonalDetails: {subtitle: 'カードのご利用を開始するには、個人情報を入力してください', cta: '詳細を追加'},
         expensifyCard: 'Expensify カード',
         walletActivationPending: 'お客様の情報を確認しています。数分後にもう一度ご確認ください。',
         walletActivationFailed: '申し訳ありませんが、現在はウォレットを有効にできません。詳しいサポートについてはConciergeにチャットでお問い合わせください。',

@@ -252,8 +252,6 @@ function PaymentMethodList({
                         brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                     } else if (card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL) {
                         brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-                    } else if (isExpensifyCard(card) && card?.nameValuePairs?.isVirtual && arePersonalDetailsMissing(privatePersonalDetails)) {
-                        brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                     } else if (isExpensifyCard(card) && isExpensifyCardPendingAction(card, privatePersonalDetails)) {
                         brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
                     }
@@ -383,6 +381,7 @@ function PaymentMethodList({
                     iconHeight: variables.cardIconHeight,
                     isInactive: isCardInactive(card),
                     isCardFrozen: isCardFrozen(card),
+                    shouldShowMissingPersonalDetailsAction: isExpensifyCard(card) && !!card?.nameValuePairs?.isVirtual && arePersonalDetailsMissing(privatePersonalDetails),
                 });
             }
 

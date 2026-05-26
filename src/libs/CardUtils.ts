@@ -1440,6 +1440,14 @@ function hasPendingExpensifyCardAction(cards: CardList | undefined, privatePerso
     const {cardList, ...assignedCards} = cards ?? {};
     return Object.values(assignedCards).some((card) => isExpensifyCardPendingAction(card, privatePersonalDetails));
 }
+
+function hasVirtualExpensifyCardMissingPersonalDetails(cards: CardList | undefined, privatePersonalDetails?: PrivatePersonalDetails) {
+    if (!arePersonalDetailsMissing(privatePersonalDetails)) {
+        return false;
+    }
+    const {cardList, ...assignedCards} = cards ?? {};
+    return Object.values(assignedCards).some((card) => isExpensifyCard(card) && !!card?.nameValuePairs?.isVirtual);
+}
 const isCurrencySupportedForECards = (currency?: string) => {
     if (!currency) {
         return false;
@@ -1882,6 +1890,7 @@ export {
     isCardPendingActivate,
     isCardWithCustomZeroLimit,
     hasPendingExpensifyCardAction,
+    hasVirtualExpensifyCardMissingPersonalDetails,
     isExpensifyCardPendingAction,
     getFundIdFromSettingsKey,
     getCardsByCardholderName,

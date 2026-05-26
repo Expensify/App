@@ -978,7 +978,7 @@ const translations = {
                 cta: 'Add address',
             },
             addVirtualCardPersonalDetails: {
-                title: 'Add your personal details',
+                title: 'We need your personal details',
                 subtitle: 'Add your details to view and start using your Expensify Card.',
                 cta: 'Add details',
             },
@@ -2502,6 +2502,10 @@ const translations = {
         cardInactive: 'Inactive',
         assignedCards: 'Cards',
         assignedCardsDescription: 'Transactions from assigned cards sync automatically.',
+        addVirtualCardPersonalDetails: {
+            subtitle: 'Please enter your personal details to start using your card',
+            cta: 'Add details',
+        },
         expensifyCard: 'Expensify Card',
         walletActivationPending: "We're reviewing your information. Please check back in a few minutes!",
         walletActivationFailed: "Unfortunately, your wallet can't be enabled at this time. Please chat with Concierge for further assistance.",

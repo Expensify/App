@@ -2355,6 +2355,7 @@ const translations: TranslationDeepObject<typeof en> = {
         cardInactive: '未激活',
         assignedCards: '卡片',
         assignedCardsDescription: '已分配卡片的交易会自动同步。',
+        addVirtualCardPersonalDetails: {subtitle: '请输入您的个人信息以开始使用您的卡', cta: '添加详细信息'},
         expensifyCard: 'Expensify 卡',
         walletActivationPending: '我们正在审核您的信息。请几分钟后再回来查看！',
         walletActivationFailed: '很遗憾，您的钱包目前无法启用。请与 Concierge 聊天以获取进一步帮助。',

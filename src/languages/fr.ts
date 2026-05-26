@@ -2437,6 +2437,10 @@ const translations: TranslationDeepObject<typeof en> = {
         cardInactive: 'Inactif',
         assignedCards: 'Cartes',
         assignedCardsDescription: 'Les transactions des cartes assignées se synchronisent automatiquement.',
+        addVirtualCardPersonalDetails: {
+            subtitle: 'Veuillez saisir vos coordonnées pour commencer à utiliser votre carte',
+            cta: 'Ajouter des détails',
+        },
         expensifyCard: 'Carte Expensify',
         walletActivationPending: 'Nous examinons vos informations. Veuillez revenir vérifier dans quelques minutes !',
         walletActivationFailed: 'Malheureusement, votre portefeuille ne peut pas être activé pour le moment. Veuillez discuter avec Concierge pour obtenir une assistance supplémentaire.',

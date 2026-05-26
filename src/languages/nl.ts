@@ -2424,6 +2424,10 @@ const translations: TranslationDeepObject<typeof en> = {
         cardInactive: 'Inactief',
         assignedCards: 'Kaarten',
         assignedCardsDescription: 'Transacties van toegewezen kaarten worden automatisch gesynchroniseerd.',
+        addVirtualCardPersonalDetails: {
+            subtitle: 'Voer uw persoonlijke gegevens in om uw kaart te gebruiken',
+            cta: 'Details toevoegen',
+        },
         expensifyCard: 'Expensify Kaart',
         walletActivationPending: 'We controleren je gegevens. Kom over een paar minuten terug!',
         walletActivationFailed: 'Helaas kan je wallet op dit moment niet worden ingeschakeld. Chat met Concierge voor verdere hulp.',

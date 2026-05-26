@@ -2313,6 +2313,10 @@ const translations: TranslationDeepObject<typeof en> = {
         cardInactive: 'Inactiva',
         assignedCards: 'Tarjetas',
         assignedCardsDescription: 'Las transacciones de las tarjetas asignadas se sincronizan automáticamente.',
+        addVirtualCardPersonalDetails: {
+            subtitle: 'Por favor, introduce tus datos personales para empezar a usar tu tarjeta',
+            cta: 'Añadir detalles',
+        },
         expensifyCard: 'Tarjeta Expensify',
         walletActivationPending: 'Estamos revisando tu información. Por favor, vuelve en unos minutos.',
         walletActivationFailed: 'Lamentablemente, no podemos activar tu billetera en este momento. Chatea con Concierge para obtener más ayuda.',

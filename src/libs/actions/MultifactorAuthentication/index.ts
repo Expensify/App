@@ -294,12 +294,34 @@ async function changePINForCard({cardID, pin, signedChallenge, authenticationMet
     }
 }
 
-async function revealCardDetailsWithSCA({cardID, signedChallenge, authenticationMethod}: MultifactorAuthenticationScenarioParameters['REVEAL-CARD-DETAILS']) {
+async function revealCardDetailsWithSCA(params: MultifactorAuthenticationScenarioParameters['REVEAL-CARD-DETAILS']) {
     try {
         const response = await makeRequestWithSideEffects(
             SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_EXPENSIFY_CARD_DETAILS_WITH_SCA,
-            {cardID, signedChallenge: JSON.stringify(signedChallenge), authenticationMethod},
-            {},
+            {
+                ...params, 
+                signedChallenge: JSON.stringify(params.signedChallenge)
+            },
+            {
+                optimisticData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                        value: {
+                            isLoading: true,
+                        },
+                    },
+                ],
+                finallyData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                        value: {
+                            isLoading: false,
+                        },
+                    },
+                ],
+            },
         );
 
         const {jsonCode, message, pan, expiration, cvv} = response ?? {};

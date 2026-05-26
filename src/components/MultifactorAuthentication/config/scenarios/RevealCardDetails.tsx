@@ -14,9 +14,20 @@ import ROUTES from '@src/ROUTES';
 
 /**
  * Payload type for the REVEAL_CARD_DETAILS scenario.
- * Contains the cardID for the virtual card whose details are being revealed.
+ * Contains personal details and cardID for the virtual card whose details are being revealed.
  */
 type Payload = {
+    legalFirstName: string;
+    legalLastName: string;
+    phoneNumber: string;
+    addressCity: string;
+    addressStreet: string;
+    addressStreet2: string;
+    addressZip: string;
+    addressCountry: string;
+    addressProvince: string;
+    dob: string;
+    pin: string;
     cardID: string;
 };
 
