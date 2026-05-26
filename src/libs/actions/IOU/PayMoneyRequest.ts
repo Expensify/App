@@ -15,7 +15,9 @@ import {getAllReportActions, getReportActionHtml, getReportActionText, isCreated
 import {
     buildOptimisticCancelPaymentReportAction,
     buildOptimisticIOUReportAction,
+    getReimbursableTotal,
     getReportTransactions,
+    getUnheldReimbursableTotal,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasOutstandingChildRequest,
     isExpenseReport,
@@ -213,9 +215,9 @@ function getPayMoneyRequestParams({
     }
 
     const reportTransactions = getReportTransactions(iouReport?.reportID);
-    let total = (iouReport?.total ?? 0) - (iouReport?.nonReimbursableTotal ?? 0);
+    let total = getReimbursableTotal(iouReport);
     if (hasHeldExpensesReportUtils(reportTransactions) && !full && !!iouReport?.unheldTotal) {
-        total = iouReport.unheldTotal - (iouReport?.unheldNonReimbursableTotal ?? 0);
+        total = getUnheldReimbursableTotal(iouReport);
     }
 
     const optimisticIOUReportAction = buildOptimisticIOUReportAction({
@@ -491,9 +493,10 @@ function cancelPayment(
         return;
     }
 
+    // Prefer the freshly computed reimbursableTotal over deriving from the (sometimes stale) stored total.
     const optimisticReportAction = buildOptimisticCancelPaymentReportAction(
         expenseReport.reportID,
-        -((expenseReport.total ?? 0) - (expenseReport?.nonReimbursableTotal ?? 0)),
+        -getReimbursableTotal(expenseReport),
         expenseReport.currency ?? '',
         currentUserAccountIDParam,
     );
