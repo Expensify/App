@@ -23,7 +23,7 @@ type BankAccountItem = {
     leftElement: React.JSX.Element;
 };
 
-function BankAccountSelector({value = [], onChange, footer, autoFocus}: BankAccountSelectorProps) {
+function BankAccountSelector({value = [], onChange, footer, autoFocus, selectionListTextInputStyle}: BankAccountSelectorProps) {
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -65,6 +65,7 @@ function BankAccountSelector({value = [], onChange, footer, autoFocus}: BankAcco
             onChange={(bankAccounts) => onChange(bankAccounts.map((item) => item.value))}
             footer={footer}
             autoFocus={autoFocus}
+            selectionListTextInputStyle={selectionListTextInputStyle}
         />
     );
 }
