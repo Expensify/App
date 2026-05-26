@@ -1008,6 +1008,7 @@ const translations: TranslationDeepObject<typeof en> = {
             }),
             today: 'Hoy',
         },
+        seeMore: ({count}: {count: number}) => `Ver ${count} más`,
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
@@ -1281,6 +1282,10 @@ const translations: TranslationDeepObject<typeof en> = {
         settlePayment: (formattedAmount) => `Pagar ${formattedAmount}`,
         settleBusiness: (formattedAmount) => (formattedAmount ? `Pagar ${formattedAmount} como negocio` : `Pago con cuenta empresarial`),
         payElsewhere: (formattedAmount) => (formattedAmount ? `Marcar ${formattedAmount} como pagado` : `Marcar como pagado`),
+        confirmPaymentReceivedModalTitle: 'Confirmar el pago recibido',
+        receivedPayment: 'Pago recibido',
+        receivedPaymentConfirmation: 'Por favor, continúa solo si ya has recibido el pago fuera de Expensify.',
+        confirmReceivedPayment: 'Sí, he recibido el pago.',
         settleInvoicePersonal: (amount, last4Digits) => (amount ? `pagado ${amount} con cuenta personal ${last4Digits}` : `Pagado con cuenta personal`),
         settleInvoiceBusiness: (amount, last4Digits) => (amount ? `pagado ${amount} con cuenta de empresa ${last4Digits}` : `Pagado con cuenta de empresa`),
         payWithPolicy: (policyName, formattedAmount) => (formattedAmount ? `Pay ${formattedAmount} via ${policyName}` : `Pay via ${policyName}`),
@@ -2106,7 +2111,7 @@ const translations: TranslationDeepObject<typeof en> = {
     deviceManagementPage: {
         title: 'Gestión de dispositivos',
         description:
-            'Gestiona todos los dispositivos en los que has iniciado sesión con tu cuenta de Expensify. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Más información</a>',
+            'Gestiona todos los dispositivos en los que has iniciado sesión con tu cuenta de Expensify. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Más información</a>.',
         revoke: 'Revocar',
         unknownDevice: 'Dispositivo Desconocido',
     },
@@ -2121,9 +2126,12 @@ const translations: TranslationDeepObject<typeof en> = {
         disabled: 'La autenticación de dos factores está ahora deshabilitada',
         noAuthenticatorApp: 'Ya no necesitarás una aplicación de autenticación para iniciar sesión en Expensify.',
         stepCodes: 'Códigos de recuperación',
-        keepCodesSafe: '¡Guarda los códigos de recuperación en un lugar seguro!',
-        codesLoseAccess:
-            'Si pierdes el acceso a tu aplicación de autenticación y no tienes estos códigos, perderás el acceso a tu cuenta. \n\nNota: Configurar la autenticación de dos factores cerrará la sesión de todas las demás sesiones activas.',
+        keepCodesSafe: '¡Guarda estos códigos en un lugar seguro!',
+        codesLoseAccess: dedent(`
+            Si pierdes el acceso a tu aplicación de autenticación y no tienes estos códigos, perderás el acceso a tu cuenta.
+
+            <strong>Nota</strong>: Configurar la autenticación de dos factores cerrará la sesión en todas las demás sesiones activas.
+        `),
         errorStepCodes: 'Copia o descarga los códigos antes de continuar',
         stepVerify: 'Verificar',
         scanCode: 'Escanea el código QR usando tu',
@@ -2151,6 +2159,9 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyOldDeviceDescription: 'Introduce el código de seis dígitos de tu aplicación de autenticación actual para confirmar que tienes acceso a ella.',
         verifyNewDeviceTitle: 'Configurar nuevo dispositivo',
         verifyNewDeviceDescription: 'Escanea el código QR con tu nuevo dispositivo y luego introduce el código para completar la configuración.',
+        downloadCodes: 'Descargar códigos',
+        screenshotTip: 'Consejo: haz una captura de pantalla para guardarla en tu galería de fotos',
+        copyCodes: 'Copiar códigos',
     },
     recoveryCodeForm: {
         error: {
@@ -2562,6 +2573,7 @@ ${amount} para ${merchant} - ${date}`,
     reportFraudConfirmationPage: {
         title: 'Fraude con tarjeta reportado',
         description: 'Hemos desactivado permanentemente tu tarjeta existente. Cuando vuelvas a ver los detalles de tu tarjeta, tendrás una nueva tarjeta virtual disponible.',
+        descriptionCardNotReplaced: 'Tu tarjeta fue desactivada permanentemente. Por favor, contacta a un administrador para emitir una nueva tarjeta.',
         buttonText: 'Entendido, ¡gracias!',
     },
     activateCardPage: {
@@ -2837,7 +2849,7 @@ ${amount} para ${merchant} - ${date}`,
         workspaceMemberList: (employeeCount, policyOwner) => `${employeeCount} miembro${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         workspaceYouMayJoin: (domain, email) => `Alguien de ${domain} ya ha creado un espacio de trabajo. Por favor, introduce el código mágico enviado a ${email}.`,
         joinAWorkspace: 'Unirse a un espacio de trabajo',
-        listOfWorkspaces: 'Aquí está la lista de espacios de trabajo a los que puedes unirte. No te preocupes, siempre puedes unirte a ellos más tarde si lo prefieres.',
+        listOfWorkspaces: 'Aquí tienes la lista de espacios de trabajo a los que puedes unirte.',
         skipForNow: 'Omitir por ahora',
         whereYouWork: '¿Dónde trabajas?',
         errorSelection: 'Selecciona una opción para continuar',
@@ -3203,7 +3215,6 @@ ${amount} para ${merchant} - ${date}`,
         enterPhoneNumber: '¿Cuál es tu número de teléfono?',
         personalDetails: 'Datos personales',
         privateDataMessage: 'Estos detalles se utilizan para viajes y pagos. Nunca se mostrarán en tu perfil público.',
-        basicDetails: 'Datos básicos',
         legalName: 'Nombre completo',
         legalFirstName: 'Nombre legal',
         legalLastName: 'Apellidos legales',
@@ -3401,7 +3412,7 @@ ${amount} para ${merchant} - ${date}`,
             noBankAccountSelected: 'Por favor, elige una cuenta bancaria',
             taxID: 'Por favor, introduce un número de identificación fiscal válido',
             website: 'Por favor, introduce un sitio web válido',
-            zipCode: `Formato de código postal incorrecto. Formato aceptable: ${COMMON_CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}.`,
+            zipCode: `Formato de código postal incorrecto. Formato aceptable: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}.`,
             phoneNumber: 'Por favor, introduce un teléfono válido',
             email: 'Por favor, introduce una dirección de correo electrónico válida',
             companyName: 'Por favor, introduce un nombre comercial legal válido',
@@ -5214,6 +5225,7 @@ ${amount} para ${merchant} - ${date}`,
                     requiredColumns: (missingColumns: string) => `Por favor, asigna una columna a cada uno de los atributos: ${missingColumns}.`,
                     duplicateColumns: (duplicateColumn: string) => `¡Ups! Has asignado un solo campo ("${duplicateColumn}") a múltiples columnas. Por favor, revisa y vuelve a intentarlo.`,
                 },
+                duplicateFeedModal: {title: 'Feed de tarjeta ya conectado', prompt: 'No puedes añadir el mismo flujo de tarjeta al mismo espacio de trabajo dos veces.'},
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Último día del mes',
@@ -6053,6 +6065,7 @@ ${amount} para ${merchant} - ${date}`,
             connectPrompt: ({connectionName}) =>
                 `¿Estás seguro de que quieres conectar a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'esta integración contable'}? Esto eliminará cualquier conexión contable existente.`,
             enterCredentials: 'Ingresa tus credenciales',
+            updateCredentials: 'Actualizar credenciales',
             claimOffer: {
                 badgeText: '¡Oferta disponible!',
                 xero: {
@@ -6733,7 +6746,7 @@ ${amount} para ${merchant} - ${date}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>La facturación está disponible en los planes Recopilar y Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
-            note: (subscriptionLink) => `<muted-text>Mejore para acceder a esta función, o <a href="${subscriptionLink}">más información</a> sobre nuestros planes y precios.</muted-text>`,
+            note: (subscriptionLink: string) => `<muted-text><a href="${subscriptionLink}">Obtén más información</a> sobre nuestros planes y precios.</muted-text>`,
             pricing: {
                 perActiveMember: 'por miembro activo al mes.',
                 perMember: 'por miembro al mes.',
@@ -7657,6 +7670,7 @@ ${amount} para ${merchant} - ${date}`,
         },
         resultsAreLimited: 'Los resultados de búsqueda están limitados.',
         viewResults: 'Ver resultados',
+        applyFilters: 'Aplicar filtros',
         appliedFilters: 'Filtros aplicados',
         resetFilters: 'Restablecer filtros',
         searchResults: {
@@ -7783,7 +7797,12 @@ ${amount} para ${merchant} - ${date}`,
             amount: {
                 lessThan: (amount) => `Menos de ${amount ?? ''}`,
                 greaterThan: (amount) => `Más que ${amount ?? ''}`,
-                between: (greaterThan, lessThan) => `Entre ${greaterThan} y ${lessThan}`,
+                between: (greaterThan, lessThan) => {
+                    if (greaterThan && lessThan) {
+                        return `Entre ${greaterThan} y ${lessThan}`;
+                    }
+                    return 'Entre';
+                },
                 equalTo: (amount) => `Igual a ${amount ?? ''}`,
             },
             current: 'Actual',

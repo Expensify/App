@@ -1047,6 +1047,7 @@ const translations: TranslationDeepObject<typeof en> = {
             repaidLast30Days: 'Remboursé au cours des 30 derniers jours',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Transactions récentes • ${lastFour}`,
         },
+        seeMore: ({count}: {count: number}) => `Voir ${count} de plus`,
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -1326,6 +1327,10 @@ const translations: TranslationDeepObject<typeof en> = {
         settlePayment: (formattedAmount: string) => `Payer ${formattedAmount}`,
         settleBusiness: (formattedAmount?: string) => (formattedAmount ? `Payer ${formattedAmount} en tant qu’entreprise` : `Payer avec le compte professionnel`),
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `Marquer ${formattedAmount} comme payé` : `Marquer comme payé`),
+        confirmPaymentReceivedModalTitle: 'Confirmer la réception du paiement',
+        receivedPayment: 'Paiement reçu',
+        receivedPaymentConfirmation: 'Veuillez continuer uniquement si vous avez déjà reçu le paiement en dehors d’Expensify.',
+        confirmReceivedPayment: 'Oui, j’ai reçu le paiement.',
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `a payé ${amount} avec le compte personnel ${last4Digits}` : `Payé avec un compte personnel`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `a payé ${amount} avec le compte professionnel ${last4Digits}` : `Payé avec le compte professionnel`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Payer ${formattedAmount} via ${policyName}` : `Payer via ${policyName}`),
@@ -2226,7 +2231,7 @@ const translations: TranslationDeepObject<typeof en> = {
     deviceManagementPage: {
         title: 'Gestion des appareils',
         description:
-            'Gérez tous les appareils sur lesquels vous vous êtes connecté avec votre compte Expensify. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">En savoir plus</a>',
+            'Gérez tous les appareils sur lesquels vous vous êtes connecté avec votre compte Expensify. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">En savoir plus</a>.',
         revoke: 'Révoquer',
         unknownDevice: 'Appareil Inconnu',
     },
@@ -2241,11 +2246,11 @@ const translations: TranslationDeepObject<typeof en> = {
         disabled: 'L’authentification à deux facteurs est maintenant désactivée',
         noAuthenticatorApp: 'Vous n’aurez plus besoin d’une application d’authentification pour vous connecter à Expensify.',
         stepCodes: 'Codes de récupération',
-        keepCodesSafe: 'Conservez ces codes de récupération en lieu sûr !',
+        keepCodesSafe: 'Conservez ces codes en lieu sûr !',
         codesLoseAccess: dedent(`
             Si vous perdez l’accès à votre application d’authentification et que vous n’avez pas ces codes, vous perdrez l’accès à votre compte.
 
-            Remarque : la configuration de l’authentification à deux facteurs vous déconnectera de toutes les autres sessions actives.
+            <strong>Remarque</strong> : La configuration de l’authentification à deux facteurs vous déconnectera de toutes les autres sessions actives.
         `),
         errorStepCodes: 'Veuillez copier ou télécharger les codes avant de continuer',
         stepVerify: 'Vérifier',
@@ -2274,6 +2279,9 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyOldDeviceDescription: 'Saisissez le code à six chiffres de votre application d’authentification actuelle pour confirmer que vous y avez accès.',
         verifyNewDeviceTitle: 'Configurer un nouvel appareil',
         verifyNewDeviceDescription: 'Scannez le code QR avec votre nouvel appareil, puis saisissez le code pour terminer la configuration.',
+        downloadCodes: 'Télécharger les codes',
+        screenshotTip: 'Astuce : faites une capture d’écran pour l’enregistrer dans votre photothèque',
+        copyCodes: 'Copier les codes',
     },
     recoveryCodeForm: {
         error: {
@@ -2701,6 +2709,7 @@ ${amount} pour ${merchant} - ${date}`,
     reportFraudConfirmationPage: {
         title: 'Fraude à la carte signalée',
         description: 'Nous avons définitivement désactivé votre carte actuelle. Lorsque vous retournerez consulter les détails de votre carte, une nouvelle carte virtuelle sera disponible.',
+        descriptionCardNotReplaced: 'Votre carte a été désactivée définitivement. Veuillez contacter un administrateur pour émettre une nouvelle carte.',
         buttonText: 'Compris, merci !',
     },
     activateCardPage: {
@@ -2973,7 +2982,7 @@ ${amount} pour ${merchant} - ${date}`,
         peopleYouMayKnow: 'Des personnes que vous connaissez probablement sont déjà ici ! Vérifiez votre adresse e-mail pour les rejoindre.',
         workspaceYouMayJoin: (domain: string, email: string) => `Quelqu’un de ${domain} a déjà créé un espace de travail. Veuillez saisir le code magique envoyé à ${email}.`,
         joinAWorkspace: 'Rejoindre un espace de travail',
-        listOfWorkspaces: 'Voici la liste des espaces de travail que vous pouvez rejoindre. Ne vous inquiétez pas, vous pourrez toujours les rejoindre plus tard si vous préférez.',
+        listOfWorkspaces: 'Voici la liste des espaces de travail auxquels vous pouvez rejoindre.',
         skipForNow: 'Passer pour le moment',
         workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} membre${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         whereYouWork: 'Où travaillez-vous ?',
@@ -3334,7 +3343,6 @@ ${amount} pour ${merchant} - ${date}`,
         enterPhoneNumber: 'Quel est votre numéro de téléphone ?',
         personalDetails: 'Informations personnelles',
         privateDataMessage: 'Ces informations sont utilisées pour les déplacements et les paiements. Elles ne s’affichent jamais sur votre profil public.',
-        basicDetails: 'Détails de base',
         legalName: 'Nom légal',
         legalFirstName: 'Prénom légal',
         legalLastName: 'Nom de famille légal',
@@ -3532,7 +3540,7 @@ ${amount} pour ${merchant} - ${date}`,
             noBankAccountSelected: 'Veuillez choisir un compte',
             taxID: 'Veuillez saisir un numéro d’identification fiscale valide',
             website: 'Veuillez saisir un site web valide',
-            zipCode: `Veuillez saisir un code postal valide au format : ${COMMON_CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
+            zipCode: `Veuillez saisir un code postal valide au format : ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
             phoneNumber: 'Veuillez saisir un numéro de téléphone valide',
             email: 'Veuillez saisir une adresse e-mail valide',
             companyName: 'Veuillez saisir un nom d’entreprise valide',
@@ -5400,6 +5408,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     duplicateColumns: (duplicateColumn: string) => `Oups ! Vous avez associé un seul champ (« ${duplicateColumn} ») à plusieurs colonnes. Veuillez vérifier et réessayer.`,
                 },
                 fileImportDescription: 'Une option manuelle si votre banque ne peut pas envoyer de flux.',
+                duplicateFeedModal: {title: 'Flux de carte déjà connecté', prompt: 'Vous ne pouvez pas ajouter deux fois le même flux de carte au même espace de travail.'},
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Dernier jour du mois',
@@ -6294,6 +6303,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `Voulez-vous vraiment connecter ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'cette intégration comptable'} ? Cette action supprimera toutes les connexions comptables existantes.`,
             enterCredentials: 'Saisissez vos identifiants',
+            updateCredentials: 'Mettre à jour les identifiants',
             claimOffer: {
                 badgeText: 'Offre disponible !',
                 xero: {
@@ -6786,8 +6796,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 perActiveMember: 'par membre actif et par mois.',
                 perMember: 'par membre et par mois.',
             },
-            note: (subscriptionLink: string) =>
-                `<muted-text>Mettez à niveau pour accéder à cette fonctionnalité, ou <a href="${subscriptionLink}">en savoir plus</a> sur nos offres et nos tarifs.</muted-text>`,
+            note: (subscriptionLink: string) => `<muted-text><a href="${subscriptionLink}">En savoir plus</a> sur nos offres et nos tarifs.</muted-text>`,
             upgradeToUnlock: 'Débloquer cette fonctionnalité',
             completed: {
                 headline: `Vous avez mis à niveau votre espace de travail !`,
@@ -7878,6 +7887,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     search: {
         resultsAreLimited: 'Les résultats de recherche sont limités.',
         viewResults: 'Afficher les résultats',
+        applyFilters: 'Appliquer des filtres',
         appliedFilters: 'Filtres appliqués',
         resetFilters: 'Réinitialiser les filtres',
         searchResults: {
@@ -7987,7 +7997,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             amount: {
                 lessThan: (amount?: string) => `Inférieur à ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Supérieur à ${amount ?? ''}`,
-                between: (greaterThan: string, lessThan: string) => `Entre ${greaterThan} et ${lessThan}`,
+                between: (greaterThan?: string, lessThan?: string) => {
+                    if (greaterThan && lessThan) {
+                        return `Entre ${greaterThan} et ${lessThan}`;
+                    }
+                    return 'Entre';
+                },
                 equalTo: (amount?: string) => `Égal à ${amount ?? ''}`,
             },
             card: {

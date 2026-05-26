@@ -506,14 +506,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_ADDRESS,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS]: {
-                            path: ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: {
-                            path: ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE,
-                            exact: true,
-                        },
                         [SCREENS.SETTINGS.PROFILE.DYNAMIC_ADDRESS_COUNTRY]: DYNAMIC_ROUTES.ADDRESS_COUNTRY.path,
                         [SCREENS.SETTINGS.PROFILE.ADDRESS_STATE]: {
                             path: ROUTES.SETTINGS_ADDRESS_STATE.route,
@@ -1101,7 +1093,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.TAGS_SETTINGS]: {
                             path: ROUTES.WORKSPACE_TAGS_SETTINGS.route,
                         },
-                        [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAGS_EDIT]: DYNAMIC_ROUTES.WORKSPACE_TAGS_EDIT.path,
+                        [SCREENS.WORKSPACE.TAGS_EDIT]: {
+                            path: ROUTES.WORKSPACE_EDIT_TAGS.route,
+                            parse: {
+                                orderWeight: Number,
+                            },
+                        },
                         [SCREENS.WORKSPACE.TAGS_IMPORT]: {
                             path: ROUTES.WORKSPACE_TAGS_IMPORT.route,
                         },
@@ -1117,12 +1114,39 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.TAGS_IMPORTED_MULTI_LEVEL]: {
                             path: ROUTES.WORKSPACE_TAGS_IMPORTED_MULTI_LEVEL.route,
                         },
-                        [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_CREATE]: DYNAMIC_ROUTES.WORKSPACE_TAG_CREATE.path,
-                        [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_EDIT]: DYNAMIC_ROUTES.WORKSPACE_TAG_EDIT.path,
-                        [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_APPROVER]: DYNAMIC_ROUTES.WORKSPACE_TAG_APPROVER.path,
-                        [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_GL_CODE]: DYNAMIC_ROUTES.WORKSPACE_TAG_GL_CODE.path,
-                        [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_SETTINGS]: DYNAMIC_ROUTES.WORKSPACE_TAG_SETTINGS.path,
-                        [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_LIST_VIEW]: DYNAMIC_ROUTES.WORKSPACE_TAG_LIST_VIEW.path,
+                        [SCREENS.WORKSPACE.TAG_CREATE]: {
+                            path: ROUTES.WORKSPACE_TAG_CREATE.route,
+                        },
+                        [SCREENS.WORKSPACE.TAG_EDIT]: {
+                            path: ROUTES.WORKSPACE_TAG_EDIT.route,
+                            parse: {
+                                orderWeight: Number,
+                            },
+                        },
+                        [SCREENS.WORKSPACE.TAG_APPROVER]: {
+                            path: ROUTES.WORKSPACE_TAG_APPROVER.route,
+                            parse: {
+                                orderWeight: Number,
+                            },
+                        },
+                        [SCREENS.WORKSPACE.TAG_GL_CODE]: {
+                            path: ROUTES.WORKSPACE_TAG_GL_CODE.route,
+                            parse: {
+                                orderWeight: Number,
+                            },
+                        },
+                        [SCREENS.WORKSPACE.TAG_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_TAG_SETTINGS.route,
+                            parse: {
+                                orderWeight: Number,
+                            },
+                        },
+                        [SCREENS.WORKSPACE.TAG_LIST_VIEW]: {
+                            path: ROUTES.WORKSPACE_TAG_LIST_VIEW.route,
+                            parse: {
+                                orderWeight: Number,
+                            },
+                        },
                         [SCREENS.WORKSPACE.TAXES_SETTINGS]: {
                             path: ROUTES.WORKSPACE_TAXES_SETTINGS.route,
                         },
