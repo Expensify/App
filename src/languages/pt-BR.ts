@@ -108,7 +108,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: 'Seleção múltipla',
         saveChanges: 'Salvar alterações',
         submit: 'Enviar',
+        markAsDone: 'Marcar como concluído',
         submitted: 'Enviado',
+        markedAsDoneStatus: 'Marcado como concluído',
         rotate: 'Girar',
         zoom: 'Zoom',
         password: 'Senha',
@@ -124,6 +126,7 @@ const translations: TranslationDeepObject<typeof en> = {
             approve: 'Aprovar',
             pay: 'Pagar',
             fix: 'Corrigir',
+            task: 'Tarefa',
         },
         success: 'Concluído',
         group: 'Grupo',
@@ -844,6 +847,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistory: (users: string) => `Este chat é com ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName: string, submitterDisplayName: string) =>
             `É aqui que <strong>${submitterDisplayName}</strong> enviará despesas para <strong>${workspaceName}</strong>. Basta usar o botão +.`,
+        beginningOfChatHistoryPolicyExpenseChatTrack: 'É aqui que você vai acompanhar as despesas',
         beginningOfChatHistorySelfDM: 'Este é o seu espaço pessoal. Use-o para anotações, tarefas, rascunhos e lembretes.',
         beginningOfChatHistorySystemDM: 'Bem-vindo(a)! Vamos fazer a sua configuração.',
         chatWithAccountManager: 'Converse com seu gerente de conta aqui',
@@ -1338,6 +1342,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sendInvoice: (amount: string) => `Enviar fatura de ${amount}`,
         expenseAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? `para ${comment}` : ''}`,
         submitted: (memo?: string) => `enviado${memo ? `, dizendo ${memo}` : ''}`,
+        markedAsDone: (memo) => `marcado como concluído${memo ? `, dizendo ${memo}` : ''}`,
         automaticallySubmitted: `enviado via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">atrasar envios</a>`,
         queuedToSubmitViaDEW: 'na fila para enviar via fluxo de aprovação personalizado',
         queuedToApproveViaDEW: 'na fila para aprovar via fluxo de aprovação personalizado',
@@ -1774,6 +1779,21 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Aguardando <strong>${actor}</strong> enviar as despesas.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `Aguardando um administrador enviar as despesas.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Aguardando <strong>você</strong> marcar como concluído.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Aguardando <strong>${actor}</strong> marcar como concluído.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Aguardando um administrador marcar como concluído.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (
@@ -2565,6 +2585,8 @@ ${amount} para ${merchant} - ${date}`,
         addApprovalTip: 'Este fluxo de trabalho padrão se aplica a todos os membros, a menos que exista um fluxo de trabalho mais específico.',
         approver: 'Aprovador',
         addApprovalsDescription: 'Exigir aprovação adicional antes de autorizar um pagamento.',
+        automateApprovalsWithAgentsTitle: 'Automatize aprovações com agentes',
+        automateApprovalsWithAgentsSubtitle: 'Adicione o agente abaixo ao fluxo de trabalho para automatizar as aprovações.',
         makeOrTrackPaymentsTitle: 'Pagamentos',
         makeOrTrackPaymentsDescription: 'Adicione um pagador autorizado para pagamentos feitos no Expensify ou acompanhe pagamentos feitos em outros lugares.',
         customApprovalWorkflowEnabled:
@@ -6025,6 +6047,11 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             selectWorkspaces: 'Selecionar espaços de trabalho',
             description: 'Escolha os espaços de trabalho para os quais você quer copiar as configurações e, em seguida, selecione quais configurações deseja copiar.',
             searchPlaceholder: 'Buscar espaços de trabalho',
+            selectFeatures: 'Selecione os recursos para copiar',
+            whichFeatures: 'Selecione as configurações que deseja sobrescrever nos seus espaços de trabalho existentes.',
+            workflowsWithoutMembersConfirm: 'Continuar sem membros',
+            workflowsWithoutMembersPrompt: 'Copiar fluxos de trabalho sem membros não copiará os fluxos de aprovação. As configurações de envio e pagamento ainda serão copiadas.',
+            accountingMismatch: ({part}: {part: string}) => `Você só pode copiar ${part} se todos os espaços de trabalho usarem o mesmo sistema contábil e a mesma conexão da empresa.`,
         },
         emptyWorkspace: {
             title: 'Você não tem nenhum workspace',
@@ -6164,8 +6191,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
         accounting: {
             settings: 'configurações',
             title: 'Conexões',
-            subtitle:
-                'Conecte-se ao seu sistema contábil para classificar transações com seu plano de contas, fazer a correspondência automática de pagamentos e manter suas finanças sincronizadas.',
+            subtitle: 'Conecte seu software de contabilidade para uma sincronização automática.',
             qbo: 'QuickBooks Online',
             qbd: 'QuickBooks Desktop',
             xero: 'Xero',
@@ -6249,7 +6275,6 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `Tem certeza de que deseja conectar ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'esta integração contábil'}? Isso removerá quaisquer conexões contábeis existentes.`,
             enterCredentials: 'Insira suas credenciais',
-            updateCredentials: 'Atualizar credenciais',
             claimOffer: {
                 badgeText: 'Oferta disponível!',
                 xero: {
@@ -6950,6 +6975,11 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Vá para [mais recursos](${moreFeaturesLink}) e ative ${featureName} para desbloquear este recurso.`,
             },
+            agentsPromoBanner: {
+                title: 'Não encontrou a regra que precisa? Adicione um agente',
+                subtitle: 'Adicione regras complexas e reduza aprovações manuais com agentes personalizados.',
+                cta: 'Experimente',
+            },
             merchantRules: {
                 title: 'Estabelecimento',
                 subtitle: 'Defina as regras de estabelecimento para que as despesas cheguem corretamente classificadas e exijam menos retrabalho.',
@@ -7159,6 +7189,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         hr: {
             title: 'RH',
             connections: 'Conexões',
+            connectionsSubtitle:
+                'Conecte-se ao seu sistema de RH para sincronizar os dados de funcionários, associar automaticamente os reembolsos às pessoas corretas e manter as despesas da sua equipe precisas, sem trabalho manual.',
             subtitle: 'Conecte ferramentas de RH e mantenha as aprovações de funcionários em sincronia.',
             connect: 'Conectar',
             syncNow: 'Sincronizar agora',
@@ -7810,7 +7842,6 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
     search: {
         resultsAreLimited: 'Os resultados da pesquisa são limitados.',
         viewResults: 'Ver resultados',
-        applyFilters: 'Aplicar filtros',
         appliedFilters: 'Filtros aplicados',
         resetFilters: 'Redefinir filtros',
         searchResults: {
@@ -7921,12 +7952,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             amount: {
                 lessThan: (amount?: string) => `Menos de ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Maior que ${amount ?? ''}`,
-                between: (greaterThan?: string, lessThan?: string) => {
-                    if (greaterThan && lessThan) {
-                        return `Entre ${greaterThan} e ${lessThan}`;
-                    }
-                    return 'Entre';
-                },
+                between: (greaterThan: string, lessThan: string) => `Entre ${greaterThan} e ${lessThan}`,
                 equalTo: (amount?: string) => `Igual a ${amount ?? ''}`,
             },
             card: {
@@ -9036,7 +9062,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         copilotDelegatedAccess: 'Copilot: Acesso delegado',
         copilotDelegatedAccessDescription: 'Permitir que outros membros acessem sua conta.',
         learnMoreAboutDelegatedAccess: 'Saiba mais sobre acesso delegado',
-        addCopilot: 'Adicionar copiloto',
+        addCopilot: 'Adicionar um copiloto',
         membersCanAccessYourAccount: 'Esses membros podem acessar sua conta:',
         youCanAccessTheseAccounts: 'Você pode acessar essas contas:',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
