@@ -2,7 +2,6 @@
 
 Standalone Bun CLI that will render Expensify chart XML to PNG using the same chart code as the App.
 
-This directory is introduced in PR 2 of the [Victory Chart Renderer rollout](https://github.com/Expensify/App/issues/91528) as a scaffold only: no Skia, no `victory-native`, and no chart rendering yet.
 
 ## Development
 
