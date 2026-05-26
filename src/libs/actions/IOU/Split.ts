@@ -66,7 +66,7 @@ import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt, ReceiptSource, SplitShares, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {buildParticipantsPolicyTags, getAllPersonalDetails, getAllReports, getAllTransactionDrafts, getAllTransactions, getMoneyRequestPolicyTags, getUserAccountID} from './index';
+import {buildParticipantsPolicyTags, getAllPersonalDetails, getAllReports, getAllTransactionDrafts, getAllTransactions, getMoneyRequestPolicyTags} from './index';
 import {
     buildMinimalTransactionForFormula,
     buildOnyxDataForMoneyRequest,
@@ -999,6 +999,9 @@ function completeSplitBill(
                 // Because of the Expense reports are stored as negative values, we subtract the total from the amount
                 oneOnOneIOUReport.total -= splitAmount;
             }
+            if (typeof oneOnOneIOUReport?.reimbursableTotal === 'number') {
+                oneOnOneIOUReport.reimbursableTotal -= splitAmount;
+            }
         } else {
             oneOnOneIOUReport = updateIOUOwnerAndTotal(oneOnOneIOUReport, sessionAccountID, splitAmount, currency ?? '');
         }
@@ -1187,15 +1190,15 @@ function setSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, amount: n
     Onyx.merge(`${collectionKey}${transaction.transactionID}`, {splitShares});
 }
 
-function resetSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, newAmount?: number, currency?: string, isDraft = true) {
+function resetSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, newAmount: number | undefined, currency: string | undefined, currentUserAccountID: number, isDraft = true) {
     if (!transaction) {
         return;
     }
     const accountIDs = Object.keys(transaction.splitShares ?? {}).map((key) => Number(key));
-    if (!accountIDs) {
+    if (accountIDs.length === 0) {
         return;
     }
-    setSplitShares(transaction, newAmount ?? transaction.amount, currency ?? transaction.currency, accountIDs, getUserAccountID(), isDraft);
+    setSplitShares(transaction, newAmount ?? transaction.amount, currency ?? transaction.currency, accountIDs, currentUserAccountID, isDraft);
 }
 
 function setDraftSplitTransaction(
@@ -1671,8 +1674,16 @@ function createSplitsAndOnyxData({
                     oneOnOneIOUReport.total -= splitAmount;
                 }
 
+                if (typeof oneOnOneIOUReport.reimbursableTotal === 'number') {
+                    oneOnOneIOUReport.reimbursableTotal -= splitAmount;
+                }
+
                 if (typeof oneOnOneIOUReport.unheldTotal === 'number') {
                     oneOnOneIOUReport.unheldTotal -= splitAmount;
+                }
+
+                if (typeof oneOnOneIOUReport.unheldReimbursableTotal === 'number') {
+                    oneOnOneIOUReport.unheldReimbursableTotal -= splitAmount;
                 }
             }
         } else {
