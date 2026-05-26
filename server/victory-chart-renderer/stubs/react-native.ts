@@ -8,20 +8,19 @@
 //
 // Anything that escapes into the render tree (e.g. `<View>`) renders to `null`
 // so it cannot affect the Skia output.
-
 import type {FunctionComponent, PropsWithChildren} from 'react';
 
 const noopComponent: FunctionComponent<PropsWithChildren<unknown>> = () => null;
 
-export type LayoutChangeEvent = {nativeEvent: {layout: {x: number; y: number; width: number; height: number}}};
-export type ViewStyle = Record<string, unknown>;
-export type ImageStyle = Record<string, unknown>;
-export type TextStyle = Record<string, unknown>;
-export type StyleProp<T> = T | T[] | null | undefined | false;
-export type TransformsStyle = Record<string, unknown>;
+type LayoutChangeEvent = {nativeEvent: {layout: {x: number; y: number; width: number; height: number}}};
+type ViewStyle = Record<string, unknown>;
+type ImageStyle = Record<string, unknown>;
+type TextStyle = Record<string, unknown>;
+type StyleProp<T> = T | T[] | null | undefined | false;
+type TransformsStyle = Record<string, unknown>;
 
-export const View = noopComponent;
-export const Image = Object.assign(noopComponent, {
+const View = noopComponent;
+const Image = Object.assign(noopComponent, {
     resolveAssetSource: (source: unknown) => {
         if (source && typeof source === 'object' && 'uri' in (source as Record<string, unknown>)) {
             return source as {uri: string};
@@ -29,37 +28,40 @@ export const Image = Object.assign(noopComponent, {
         return {uri: String(source)};
     },
 });
-export const Text = noopComponent;
+const Text = noopComponent;
 
-export const Platform = {
+const Platform = {
     OS: 'web' as const,
     Version: 0,
-    select: <T,>(specifics: {default?: T; web?: T}) => specifics.web ?? specifics.default,
+    select: <T>(specifics: {default?: T; web?: T}) => specifics.web ?? specifics.default,
 };
 
-export const PixelRatio = {
+const PixelRatio = {
     get: () => 1,
     getFontScale: () => 1,
     getPixelSizeForLayoutSize: (size: number) => size,
     roundToNearestPixel: (size: number) => size,
 };
 
-export const StyleSheet = {
-    create: <T,>(styles: T): T => styles,
-    flatten: <T,>(style: T): T => style,
-    compose: <T,>(a: T, _b: T): T => a,
+const StyleSheet = {
+    create: <T>(styles: T): T => styles,
+    flatten: <T>(style: T): T => style,
+    compose: <T>(a: T): T => a,
     hairlineWidth: 1,
     absoluteFill: {},
     absoluteFillObject: {},
 };
 
-export const findNodeHandle = () => null;
+const findNodeHandle = () => null;
 
 // `@shopify/react-native-skia/lib/module/specs/NativeSkiaModule` does
 // `TurboModuleRegistry.getEnforcing("RNSkiaModule")` at module load. The
 // `Platform.OS === "web"` short-circuit in NativeSetup then ignores the
 // missing module, but we still need the named export to exist.
-export const TurboModuleRegistry = {
-    get: (_name: string): null => null,
-    getEnforcing: (_name: string): null => null,
+const TurboModuleRegistry = {
+    get: (): null => null,
+    getEnforcing: (): null => null,
 };
+
+export type {LayoutChangeEvent, ViewStyle, ImageStyle, TextStyle, StyleProp, TransformsStyle};
+export {View, Image, Text, Platform, PixelRatio, StyleSheet, findNodeHandle, TurboModuleRegistry};

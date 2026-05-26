@@ -13,7 +13,6 @@
 //
 // This file is CommonJS so that Bun returns the proxy directly from
 // `require("react-native-reanimated")`.
-'use strict';
 
 const noopFn = () => undefined;
 
@@ -21,7 +20,7 @@ const noopComponent = () => null;
 
 const sharedValue = (initialValue) => ({value: initialValue});
 
-const exports_ = {
+const namedExports = {
     __esModule: true,
     default: undefined,
     useSharedValue: sharedValue,
@@ -35,7 +34,7 @@ const exports_ = {
     withTiming: (value) => value,
     withSpring: (value) => value,
     withDecay: noopFn,
-    withDelay: (_delay, animation) => animation,
+    withDelay: (delay, animation) => animation,
     withRepeat: (animation) => animation,
     cancelAnimation: noopFn,
     Easing: {
@@ -50,7 +49,7 @@ const exports_ = {
     ScrollView: noopComponent,
 };
 
-const proxy = new Proxy(exports_, {
+const proxy = new Proxy(namedExports, {
     get(target, prop) {
         if (prop in target) {
             return target[prop];
@@ -61,6 +60,6 @@ const proxy = new Proxy(exports_, {
 
 // Match Reanimated's runtime shape: `import Rea from "react-native-reanimated"`
 // returns the same proxy as `import * as Rea`.
-exports_.default = proxy;
+namedExports.default = proxy;
 
 module.exports = proxy;

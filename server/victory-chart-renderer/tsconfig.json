@@ -2,8 +2,6 @@
     "extends": "../../tsconfig.json",
     "compilerOptions": {
         "types": ["@types/bun"],
-        "rootDir": "./src",
-        "baseUrl": ".",
         "paths": {
             "react-native": ["./stubs/react-native.ts"],
             "react-native-reanimated": ["./stubs/react-native-reanimated.js"],
