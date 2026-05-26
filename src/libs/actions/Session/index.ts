@@ -1412,13 +1412,11 @@ function waitForUserSignIn(): Promise<boolean> {
 
 function handleExitToNavigation(exitTo: Route) {
     TransitionTracker.runAfterTransitions({
-        callback: () => {
-            waitForUserSignIn().then(() => {
-                Navigation.waitForProtectedRoutes().then(() => {
-                    Navigation.goBack(ROUTES.HOME);
-                    Navigation.navigate(exitTo);
-                });
-            });
+        callback: async () => {
+            await waitForUserSignIn();
+            await Navigation.waitForProtectedRoutes();
+            Navigation.goBack(ROUTES.HOME);
+            Navigation.navigate(exitTo);
         },
         waitForUpcomingTransition: true,
     });
