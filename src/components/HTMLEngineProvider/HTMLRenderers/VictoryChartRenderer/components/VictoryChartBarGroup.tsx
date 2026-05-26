@@ -9,12 +9,15 @@ import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/Victory
 import parseCornerRadius from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseCornerRadius';
 import parseStyles from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseStyles';
 
-type VictoryCharBarGroupProps = {tnode: TNode};
+type VictoryCharBarGroupProps = {
+    tnode: TNode;
+    isHorizontal?: boolean;
+};
 
 const BAR_BETWEEN_GROUP_PADDING = 2 / 3;
 const BAR_WITHIN_GROUP_PADDING = BAR_INNER_PADDING;
 
-function VictoryCharBarGroup({tnode}: VictoryCharBarGroupProps) {
+function VictoryCharBarGroup({tnode, isHorizontal}: VictoryCharBarGroupProps) {
     const {points, chartBounds} = useVictoryChartRenderArgs();
     const barChildren = tnode.children.filter((child) => child.tagName === 'victorybar');
     return (
@@ -24,6 +27,7 @@ function VictoryCharBarGroup({tnode}: VictoryCharBarGroupProps) {
             withinGroupPadding={BAR_WITHIN_GROUP_PADDING}
             roundedCorners={parseCornerRadius(barChildren.at(0)?.attributes?.cornerradius ?? '')}
             barWidth={parseAttribute(barChildren.at(0)?.attributes?.barwidth ?? '')}
+            isHorizontal={isHorizontal}
         >
             {barChildren.map((child) => {
                 const yKey = getYKey(child);
