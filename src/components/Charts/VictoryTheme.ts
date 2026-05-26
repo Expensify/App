@@ -68,8 +68,6 @@ const VictoryTheme = {
         padding: {top: 5, left: 5, right: 5, bottom: 5},
     },
     tooltip: {
-        /** Fraction of the pie radius at which the tooltip is anchored for each slice. */
-        pieRadiusDistance: 2 / 3,
         /** The height of the chart tooltip pointer */
         pointerHeight: 4,
         /** The width of the chart tooltip pointer */
@@ -78,6 +76,10 @@ const VictoryTheme = {
     pie: {
         /** Starting angle for pie chart (0 = 3 o'clock, -90 = 12 o'clock) */
         startAngle: -90,
+        /** Ratio of the inner radius to the outer radius, creating the donut hole (0 = full pie, 1 = no fill) */
+        innerRadiusRatio: 0.8,
+        /** Gap between pie slices in degrees */
+        padAngle: 0.5,
     },
 } as const;
 

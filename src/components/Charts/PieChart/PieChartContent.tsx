@@ -49,7 +49,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
 
     // Calculate pie geometry
     const radius = Math.min(canvasWidth, canvasHeight) / 2;
-    const innerRadius = radius * PIE_CHART_INNER_RADIUS_RATIO;
+    const innerRadius = radius * VictoryTheme.pie.innerRadiusRatio;
     const pieGeometry = {radius, innerRadius, centerX: canvasWidth / 2, centerY: canvasHeight / 2};
 
     // Slices are sorted by absolute value (largest first) for color assignment,
@@ -179,12 +179,12 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
                         >
                             <Pie.Chart
                                 startAngle={VictoryTheme.pie.startAngle}
-                                innerRadius={`${PIE_CHART_INNER_RADIUS_RATIO * 100}%`}
+                                innerRadius={`${VictoryTheme.pie.innerRadiusRatio * 100}%`}
                             >
                                 {({slice}) => (
                                     <PaddedPieSlice
                                         slice={slice}
-                                        padAngle={PIE_CHART_SLICE_GAP_DEGREES}
+                                        padAngle={VictoryTheme.pie.padAngle}
                                     />
                                 )}
                             </Pie.Chart>
