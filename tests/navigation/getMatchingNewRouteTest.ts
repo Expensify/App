@@ -31,6 +31,22 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/r/123/settings/name?backTo=/home')).toBe('/r/123/details/settings/name?backTo=/home');
     });
 
+    it('redirects old task title path', () => {
+        expect(getMatchingNewRoute('/r/123/title')).toBe('/r/123/title');
+    });
+
+    it('redirects old report description path', () => {
+        expect(getMatchingNewRoute('/r/123/description')).toBe('/r/123/description');
+    });
+
+    it('redirects old task assignee path', () => {
+        expect(getMatchingNewRoute('/r/123/assignee')).toBe('/r/123/assignee');
+    });
+
+    it('redirects old private notes edit path to the new dynamic suffix shape', () => {
+        expect(getMatchingNewRoute('/r/123/notes/456/edit')).toBe('/r/123/notes-edit/456');
+    });
+
     it('redirects old workspace overview address path', () => {
         expect(getMatchingNewRoute('/workspaces/abc/overview/address')).toBe('/workspaces/abc/overview/workspace-address');
     });
@@ -98,6 +114,14 @@ describe('getBestMatchingPath', () => {
     it('redirects old travel upgrade path to dynamic route', () => {
         expect(getMatchingNewRoute('/travel/upgrade')).toBe('/travel/travel-upgrade');
         expect(getMatchingNewRoute('/travel/upgrade?backTo=/home')).toBe('/travel/travel-upgrade?backTo=/home');
+    });
+
+    it('redirects legacy profile avatar path to new avatar route', () => {
+        expect(getMatchingNewRoute('/a/123/avatar')).toBe('/avatar/123');
+    });
+
+    it('preserves query params when redirecting legacy profile avatar path', () => {
+        expect(getMatchingNewRoute('/a/123/avatar?backTo=/home')).toBe('/avatar/123?backTo=/home');
     });
 
     it('does not redirect paths that look similar but do not match migrated patterns', () => {
