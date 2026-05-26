@@ -12,7 +12,7 @@ If you're an admin looking to roll out the Expensify Visa® Commercial Card for 
 
 Before you can apply for the Expensify Card, make sure you meet the following prerequisites:
 
-1. **Email Address**: The email associated with your Expensify account must be from a private domain.
+1. **Email Address**: The email associated with your Expensify account must be from a private domain. This must be your default account login. 
 2. **Claim Your Domain**: You must claim your private domain in Expensify.
 3. **US Business Bank Account**: You need to add and verify a US business bank account to your Expensify account.
 
