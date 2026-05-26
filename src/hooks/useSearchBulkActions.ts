@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs -- Refs in this hook are used inside callbacks that capture stable references; the lint rule flags false positives for these patterns */
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
@@ -8,7 +9,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {BulkPaySelectionData, PaymentData, SearchQueryJSON} from '@components/Search/types';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
@@ -56,6 +57,7 @@ import {navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     hasCustomUnitOutOfPolicyViolation,
+    hasOnlyPendingCardTransactions,
     hasTransactionBeenRejected,
     isDeletedTransaction,
     isDistanceRequest,
@@ -63,6 +65,7 @@ import {
     isPerDiemRequest,
     isScanning,
     shouldRedirectDeleteToSplitExpenseEdit,
+    showPendingCardTransactionsBlockModal,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {initBulkEditDraftTransaction} from '@userActions/IOU/BulkEdit';
@@ -121,7 +124,7 @@ function getRestrictedPolicyID(
 
 type ShouldShowBulkDuplicateParams = {
     selectedTransactionsKeys: string[];
-    selectedTransactions: Record<string, {reportID?: string}>;
+    selectedTransactions: Record<string, {reportID?: string; transaction?: Transaction}>;
     allTransactions: OnyxCollection<Transaction> | undefined;
     allReports: OnyxCollection<Report> | undefined;
     allTransactionViolations: OnyxCollection<TransactionViolations> | undefined;
@@ -131,6 +134,38 @@ type ShouldShowBulkDuplicateParams = {
     typeExpenseReport: boolean;
     searchData: Record<string, unknown> | undefined;
 };
+
+function getAllTransactionsForDuplicate({
+    selectedTransactionsKeys,
+    selectedTransactions,
+    allTransactions,
+}: Pick<ShouldShowBulkDuplicateParams, 'selectedTransactionsKeys' | 'selectedTransactions' | 'allTransactions'>): NonNullable<OnyxCollection<Transaction>> {
+    let missingSelectedTransactions: NonNullable<OnyxCollection<Transaction>> | undefined;
+
+    for (const id of selectedTransactionsKeys) {
+        const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${id}`;
+        if (allTransactions?.[transactionKey]) {
+            continue;
+        }
+
+        const transaction = selectedTransactions[id]?.transaction;
+        if (!transaction) {
+            continue;
+        }
+
+        missingSelectedTransactions = missingSelectedTransactions ?? {};
+        missingSelectedTransactions[transactionKey] = transaction;
+    }
+
+    if (!missingSelectedTransactions) {
+        return allTransactions ?? {};
+    }
+
+    return {
+        ...(allTransactions ?? {}),
+        ...missingSelectedTransactions,
+    };
+}
 
 /**
  * Determines whether the bulk duplicate option should be shown for the selected transactions.
@@ -159,8 +194,10 @@ function shouldShowBulkDuplicateOption({
               .filter((report): report is Report => report != null && 'reportID' in report)
         : [];
 
+    const allTransactionsForDuplicate = getAllTransactionsForDuplicate({selectedTransactionsKeys, selectedTransactions, allTransactions});
+
     return selectedTransactionsKeys.every((id) => {
-        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
+        const transaction = allTransactionsForDuplicate[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
         if (!transaction || isManagedCardTransaction(transaction) || isScanning(transaction)) {
             return false;
         }
@@ -216,8 +253,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {isOffline} = useNetwork();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const {selectedTransactions, selectedReports, areAllMatchingItemsSelected, currentSearchResults, currentSearchKey} = useSearchStateContext();
-    const {clearSelectedTransactions, selectAllMatchingItems} = useSearchActionsContext();
+    const {selectedTransactions, selectedReports, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {currentSearchResults} = useSearchResultsContext();
+    const {currentSearchKey} = useSearchQueryContext();
+    const {clearSelectedTransactions, selectAllMatchingItems} = useSearchSelectionActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {accountID} = currentUserPersonalDetails;
     const allTransactions = useAllTransactions();
@@ -886,12 +925,22 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         [currentUserPersonalDetails.accountID, defaultExpensePolicy?.id],
     );
 
+    const allTransactionsForDuplicate = useMemo(
+        () =>
+            getAllTransactionsForDuplicate({
+                selectedTransactionsKeys,
+                selectedTransactions,
+                allTransactions,
+            }),
+        [selectedTransactionsKeys, selectedTransactions, allTransactions],
+    );
+
     const isDuplicateOptionVisible = useMemo(
         () =>
             shouldShowBulkDuplicateOption({
                 selectedTransactionsKeys,
                 selectedTransactions,
-                allTransactions,
+                allTransactions: allTransactionsForDuplicate,
                 allReports,
                 allTransactionViolations,
                 allReportNameValuePairs,
@@ -903,7 +952,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         [
             selectedTransactionsKeys,
             selectedTransactions,
-            allTransactions,
+            allTransactionsForDuplicate,
             allReports,
             allTransactionViolations,
             allReportNameValuePairs,
@@ -1133,7 +1182,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     icon: expensifyIcons.ExpenseCopy,
                     value: CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE,
                     shouldCloseModalOnSelect: true,
-                    onSelected: invokeDuplicateHandler,
+                    onSelected: () => {
+                        if (defaultExpensePolicy && shouldRestrictUserBillableActions(defaultExpensePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+                            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(defaultExpensePolicy.id));
+                            return;
+                        }
+                        invokeDuplicateHandler();
+                    },
                 });
             }
 
@@ -1265,6 +1320,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     const restrictedPolicyID = getRestrictedPolicyID(itemList, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies, accountID);
                     if (restrictedPolicyID) {
                         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
+                        return;
+                    }
+
+                    const allSelectedTransactionsList = selectedReports.length
+                        ? Object.values(allTransactions ?? {}).filter((t): t is NonNullable<typeof t> => !!t && selectedReports.some((report) => report.reportID === t.reportID))
+                        : selectedTransactionsKeys
+                              .map((id) => selectedTransactions[id]?.transaction ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`])
+                              .filter((t): t is NonNullable<typeof t> => !!t);
+
+                    if (hasOnlyPendingCardTransactions(allSelectedTransactionsList)) {
+                        showPendingCardTransactionsBlockModal(showConfirmModal, translate);
                         return;
                     }
 
@@ -1477,6 +1543,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
+                    if (defaultExpensePolicy && shouldRestrictUserBillableActions(defaultExpensePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(defaultExpensePolicy.id));
+                        return;
+                    }
                     if (exceedsBulkDuplicateLimit) {
                         showConfirmModal({
                             title: translate('common.duplicateExpense'),
@@ -1598,6 +1668,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         allTransactions,
         transactions,
         isBetaEnabled,
+        defaultExpensePolicy,
     ]);
 
     const handleOfflineModalClose = useCallback(() => {
@@ -1658,7 +1729,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         setDuplicateHandler,
         isDuplicateReportOptionVisible,
         setDuplicateReportHandler,
-        allTransactions,
+        allTransactions: allTransactionsForDuplicate,
         allReports,
         searchData: currentSearchResults?.data,
     };

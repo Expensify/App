@@ -466,6 +466,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'unheldTotal':
         case 'nonReimbursableTotal':
         case 'unheldNonReimbursableTotal':
+        case 'reimbursableTotal':
+        case 'unheldReimbursableTotal':
         case 'transactionCount':
             return validateNumber(value);
         case 'chatType':
@@ -615,6 +617,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 total: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 unheldTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 unheldNonReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                reimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                unheldReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isWaitingOnBankAccount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isCancelledIOU: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasReportBeenRetracted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1416,6 +1420,8 @@ function getReasonForShowingRowInLHN({
     isInFocusMode = false,
     betas = undefined,
     draftComment,
+    currentUserLogin,
+    currentUserAccountID,
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
@@ -1425,6 +1431,8 @@ function getReasonForShowingRowInLHN({
     isInFocusMode?: boolean;
     betas?: OnyxEntry<Beta[]>;
     draftComment: string | undefined;
+    currentUserLogin?: string;
+    currentUserAccountID?: number;
 }): TranslationPaths | null {
     if (!report) {
         return null;
@@ -1442,6 +1450,8 @@ function getReasonForShowingRowInLHN({
         includeSelfDM: true,
         isReportArchived,
         draftComment,
+        currentUserLogin,
+        currentUserAccountID,
     });
 
     if (!([CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS, CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS] as Array<typeof reason>).includes(reason) && hasRBR) {
