@@ -439,6 +439,7 @@ export type {default as SetPersonalCardReimbursableParams} from './SetPersonalCa
 export type {default as SetCompanyCardExportAccountParams} from './SetCompanyCardExportAccountParams';
 export type {default as SetPersonalDetailsAndShipExpensifyCardsParams} from './SetPersonalDetailsAndShipExpensifyCardsParams';
 export type {default as SetPersonalDetailsAndRevealExpensifyCardParams} from './SetPersonalDetailsAndRevealExpensifyCardParams';
+export type {default as SetPersonalDetailsAndRevealExpensifyCardWithSCAParams} from './SetPersonalDetailsAndRevealExpensifyCardWithSCAParams';
 export type {default as SetPersonalDetailsAndShipExpensifyCardsWithPINParams} from './SetPersonalDetailsAndShipExpensifyCardsWithPINParams';
 export type {default as RequestFeedSetupParams} from './RequestFeedSetupParams';
 export type {default as SetInvoicingTransferBankAccountParams} from './SetInvoicingTransferBankAccountParams';

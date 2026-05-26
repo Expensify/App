@@ -299,8 +299,36 @@ async function revealCardDetailsWithSCA(params: MultifactorAuthenticationScenari
         const response = await makeRequestWithSideEffects(
             SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_EXPENSIFY_CARD_DETAILS_WITH_SCA,
             {
-                ...params, 
-                signedChallenge: JSON.stringify(params.signedChallenge)
+                ...params,
+                signedChallenge: JSON.stringify(params.signedChallenge),
+            },
+            {},
+        );
+
+        const {jsonCode, message, pan, expiration, cvv} = response ?? {};
+        const parsed = parseHttpResponse(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVEAL_CARD_DETAILS_WITH_SCA, message);
+
+        return {
+            ...parsed,
+            body: {
+                pan: typeof pan === 'string' ? pan : '',
+                expiration: typeof expiration === 'string' ? expiration : '',
+                cvv: typeof cvv === 'string' ? cvv : '',
+            },
+        };
+    } catch (error) {
+        Log.hmmm('[MultifactorAuthentication] Failed to reveal card details for card', {error});
+        return parseHttpResponse(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVEAL_CARD_DETAILS_WITH_SCA, undefined);
+    }
+}
+
+async function setPersonalDetailsAndRevealExpensifyCardWithSCA(params: MultifactorAuthenticationScenarioParameters['SET-PERSONAL-DETAILS-AND-REVEAL-CARD-DETAILS']) {
+    try {
+        const response = await makeRequestWithSideEffects(
+            SIDE_EFFECT_REQUEST_COMMANDS.SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD_WITH_SCA,
+            {
+                ...params,
+                signedChallenge: JSON.stringify(params.signedChallenge),
             },
             {
                 optimisticData: [
@@ -325,7 +353,7 @@ async function revealCardDetailsWithSCA(params: MultifactorAuthenticationScenari
         );
 
         const {jsonCode, message, pan, expiration, cvv} = response ?? {};
-        const parsed = parseHttpResponse(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVEAL_CARD_DETAILS_WITH_SCA, message);
+        const parsed = parseHttpResponse(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD_WITH_SCA, message);
 
         return {
             ...parsed,
@@ -336,8 +364,8 @@ async function revealCardDetailsWithSCA(params: MultifactorAuthenticationScenari
             },
         };
     } catch (error) {
-        Log.hmmm('[MultifactorAuthentication] Failed to reveal card details for card', {error});
-        return parseHttpResponse(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVEAL_CARD_DETAILS_WITH_SCA, undefined);
+        Log.hmmm('[MultifactorAuthentication] Failed to set personal details and reveal card details for card', {error});
+        return parseHttpResponse(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD_WITH_SCA, undefined);
     }
 }
 
@@ -449,6 +477,7 @@ export {
     revealPINForCard,
     changePINForCard,
     revealCardDetailsWithSCA,
+    setPersonalDetailsAndRevealExpensifyCardWithSCA,
     isTransactionStillPending3DSReview,
     denyTransaction,
     authorizeTransaction,

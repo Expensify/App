@@ -109,7 +109,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
                 return;
             }
             const personalDetailsParams = buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode);
-            executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVEAL_CARD_DETAILS, {
+            executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PERSONAL_DETAILS_AND_REVEAL_CARD_DETAILS, {
                 ...personalDetailsParams,
                 cardID,
             });
