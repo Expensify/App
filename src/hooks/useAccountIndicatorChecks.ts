@@ -1,5 +1,5 @@
 import {hasPaymentMethodError} from '@libs/actions/PaymentMethods';
-import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
+import {hasBankAccountRequiringUserAttention, hasPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {hasPendingExpensifyCardAction} from '@libs/CardUtils';
 import {hasSubscriptionGreenDotInfo, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
 import {hasDeviceManagementError, hasLoginListError, hasLoginListInfo} from '@libs/UserUtils';
@@ -76,7 +76,8 @@ function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
             amountOwed,
             ownerBillingGracePeriodEnd,
         ),
-        [CONST.INDICATOR_STATUS.HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO]: hasPartiallySetupBankAccount(bankAccountList) || hasPersonalBankAccountMissingInfo(bankAccountList),
+        // Verifying accounts are intentionally excluded — they keep RHP access but no longer light the indicator.
+        [CONST.INDICATOR_STATUS.HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO]: hasBankAccountRequiringUserAttention(bankAccountList) || hasPersonalBankAccountMissingInfo(bankAccountList),
     };
 
     const [accountStatus] = Object.entries(accountChecks).find(([, value]) => value) ?? [];
