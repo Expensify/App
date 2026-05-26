@@ -33,12 +33,9 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
  * Coding parts whose IDs are tied to the target's existing accounting connection.
  * When any of these are copied without "accounting", source and every target must already share the same connection (or all be unconnected).
  */
-const CODING_PARTS_TIED_TO_CONNECTION = ['categories', 'tags', 'reports', 'taxes'] as const satisfies readonly Part[];
+const CODING_PARTS_TIED_TO_CONNECTION: Part[] = ['categories', 'tags', 'reports', 'taxes'];
 
-/**
- * Selecting accounting also copies coding settings; these parts are auto-selected with accounting.
- */
-const ACCOUNTING_FORCE_ENABLED_PARTS = CODING_PARTS_TIED_TO_CONNECTION;
+const isCodingPart = (part: Part): boolean => CODING_PARTS_TIED_TO_CONNECTION.includes(part);
 
 function CopyPolicySettingsSelectFeaturesPage() {
     const route = useRoute<PlatformStackRouteProp<PolicyCopySettingsNavigatorParamList, typeof SCREENS.POLICY_COPY_SETTINGS.SELECT_FEATURES>>();
@@ -98,25 +95,22 @@ function CopyPolicySettingsSelectFeaturesPage() {
     };
 
     const isPartIncompatible = (part: Part): boolean => {
-        if (part === 'accounting') {
+        if (part === CONST.POLICY.POLICY_FEATURE.ACCOUNTING) {
             return !isAccountingPartCompatible;
         }
-        if ((CODING_PARTS_TIED_TO_CONNECTION as readonly Part[]).includes(part)) {
+        if (isCodingPart(part)) {
             return !isCodingCompatible;
         }
         return false;
     };
 
     const isPartVisible = (part: Part): boolean => {
-        if (!isPartIncompatible(part)) {
-            return isCopyPolicySettingsPartEnabledOnSource(part, sourceFeatureContext);
-        }
-        if ((CODING_PARTS_TIED_TO_CONNECTION as readonly Part[]).includes(part)) {
-            return isCopyPolicySettingsPartEnabledOnSource(part, sourceFeatureContext);
-        }
         // Incompatible non-coding parts (e.g. accounting) stay visible so users
         // understand why coding rows are disabled, even when the source has no data.
-        return true;
+        if (isPartIncompatible(part) && !isCodingPart(part)) {
+            return true;
+        }
+        return isCopyPolicySettingsPartEnabledOnSource(part, sourceFeatureContext);
     };
 
     const availableFeatureRows = FEATURE_ROWS.filter((row) => isPartVisible(row.part));
@@ -124,28 +118,25 @@ function CopyPolicySettingsSelectFeaturesPage() {
 
     const [selectedFeatures, setSelectedFeatures] = useState<readonly Part[]>([]);
     const selectedAvailableFeatures = selectedFeatures.filter((part) => availablePartSet.has(part));
-    const isAccountingSelected = selectedAvailableFeatures.includes('accounting');
+    const isAccountingSelected = selectedAvailableFeatures.includes(CONST.POLICY.POLICY_FEATURE.ACCOUNTING);
 
     const isAccountingMismatch = (part: Part): boolean => {
-        if (part === 'accounting') {
+        if (part === CONST.POLICY.POLICY_FEATURE.ACCOUNTING) {
             return !isAccountingPartCompatible;
         }
         // When accounting is selected, the connection mismatch will be resolved by the copy
         if (isAccountingSelected) {
             return false;
         }
-        return !isCodingCompatible && (CODING_PARTS_TIED_TO_CONNECTION as readonly Part[]).includes(part);
+        return !isCodingCompatible && isCodingPart(part);
     };
 
     const effectiveSelectedFeatures = isAccountingSelected
-        ? Array.from(new Set<Part>([...selectedAvailableFeatures, ...ACCOUNTING_FORCE_ENABLED_PARTS.filter((part) => availablePartSet.has(part))]))
+        ? Array.from(new Set<Part>([...selectedAvailableFeatures, ...CODING_PARTS_TIED_TO_CONNECTION.filter((part) => availablePartSet.has(part))]))
         : selectedAvailableFeatures;
 
     const isFeatureDisabled = (part: Part): boolean => {
-        if (isPartIncompatible(part)) {
-            return true;
-        }
-        if (isAccountingSelected && (ACCOUNTING_FORCE_ENABLED_PARTS as readonly Part[]).includes(part)) {
+        if (isPartIncompatible(part) || (isAccountingSelected && isCodingPart(part))) {
             return true;
         }
         return false;
@@ -153,25 +144,25 @@ function CopyPolicySettingsSelectFeaturesPage() {
 
     const getSourceDescription = (part: Part): string | undefined => {
         switch (part) {
-            case 'overview': {
+            case CONST.POLICY.POLICY_FEATURE.OVERVIEW: {
                 const currencyText = sourcePolicy?.outputCurrency ? `${sourcePolicy.outputCurrency} ${translate('common.currency')}` : '';
                 return [currencyText, formattedAddress].filter(Boolean).join(', ') || undefined;
             }
-            case 'members':
+            case CONST.POLICY.POLICY_FEATURE.MEMBERS:
                 return memberCount > 1 ? `${memberCount} ${translate('workspace.common.members').toLowerCase()}` : undefined;
             case 'reports':
                 return reportFieldsCount > 0 ? `${reportFieldsCount} ${translate('workspace.common.reportFields').toLowerCase()}` : undefined;
-            case 'accounting':
+            case CONST.POLICY.POLICY_FEATURE.ACCOUNTING:
                 return connectedIntegration?.length ? connectedIntegration.map((name) => CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[name]).join(', ') : undefined;
-            case 'categories':
+            case CONST.POLICY.POLICY_FEATURE.CATEGORIES:
                 return categoriesCount > 0 ? `${categoriesCount} ${translate('workspace.common.categories').toLowerCase()}` : undefined;
-            case 'tags':
+            case CONST.POLICY.POLICY_FEATURE.TAGS:
                 return totalTags > 0 ? `${totalTags} ${translate('workspace.common.tags').toLowerCase()}` : undefined;
-            case 'taxes':
+            case CONST.POLICY.POLICY_FEATURE.TAXES:
                 return taxesCount > 0 ? `${taxesCount} ${translate('workspace.common.taxes').toLowerCase()}` : undefined;
-            case 'workflows':
+            case CONST.POLICY.POLICY_FEATURE.WORKFLOWS:
                 return workflows?.join(', ');
-            case 'rules':
+            case CONST.POLICY.POLICY_FEATURE.RULES:
                 return rules?.length
                     ? `${rules.length} ${translate('workspace.common.workspace').toLowerCase()} ${translate('workspace.common.rules').toLowerCase()}: ${rules.join(', ')}`
                     : undefined;
