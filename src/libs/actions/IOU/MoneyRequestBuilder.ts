@@ -11,7 +11,6 @@ import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {translateLocal} from '@libs/Localize';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
-import {getManagerMcTestParticipant} from '@libs/OptionsListUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {hasDependentTags, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {getOriginalMessage, isReportPreviewAction} from '@libs/ReportActionsUtils';
@@ -27,6 +26,7 @@ import {
     generateReportID,
     getChatByParticipants,
     getOutstandingChildRequest,
+    getReportTransactions,
     hasViolations as hasViolationsReportUtils,
     isDeprecatedGroupDM,
     isExpenseReport,
@@ -34,9 +34,7 @@ import {
     isInvoiceReport as isInvoiceReportReportUtils,
     isOneTransactionReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
-    isSelectedManagerMcTest,
     isSelfDM,
-    isTestTransactionReport,
     populateOptimisticReportFormula,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     updateReportPreview,
@@ -45,6 +43,7 @@ import {
     buildOptimisticTransaction,
     getAmount,
     getCurrency,
+    hasSubmissionBlockingViolationInReport,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
@@ -64,9 +63,10 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getAllPersonalDetails, getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllReports, getCurrentUserPersonalDetails, getUserAccountID} from './index';
-import type {ReplaceReceipt, StartSplitBilActionParams} from './index';
+import {getAllPersonalDetails, getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllReports} from './index';
+import type {ReplaceReceipt} from './Receipt';
 import {getSearchOnyxUpdate} from './SearchUpdate';
+import type {StartSplitBilActionParams} from './Split';
 import type BasePolicyParams from './types/BasePolicyParams';
 import type BaseTransactionParams from './types/BaseTransactionParams';
 import type {CreateTrackExpenseParams} from './types/CreateTrackExpenseParams';
@@ -166,6 +166,7 @@ type RequestMoneyInformation = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     existingTransactionDraft: OnyxEntry<OnyxTypes.Transaction>;
+    existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     draftTransactionIDs: string[] | undefined;
     isSelfTourViewed: boolean;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
@@ -246,6 +247,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     isASAPSubmitBetaEnabled: boolean;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
+    transactionViolations?: OnyxCollection<OnyxTypes.TransactionViolations>;
     hasViolations: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
@@ -256,6 +258,7 @@ type BuildOnyxDataForTestDriveIOUParams = {
     iouOptimisticParams: MoneyRequestOptimisticParams['iou'];
     chatOptimisticParams: MoneyRequestOptimisticParams['chat'];
     testDriveCommentReportActionID?: string;
+    currentUserAccountIDParam: number;
 };
 
 function buildMinimalTransactionForFormula(
@@ -318,8 +321,6 @@ function getReceiptError(
 function buildOnyxDataForTestDriveIOU(
     testDriveIOUParams: BuildOnyxDataForTestDriveIOUParams,
 ): OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT> {
-    const deprecatedUserAccountID = getUserAccountID();
-    const deprecatedCurrentUserPersonalDetails = getCurrentUserPersonalDetails();
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT>> = [];
@@ -335,11 +336,11 @@ function buildOnyxDataForTestDriveIOU(
         transactionID: testDriveIOUParams.transaction.transactionID,
         reportActionID: testDriveIOUParams.iouOptimisticParams.action.reportActionID,
     });
-    const text = translateLocal('testDrive.employeeInviteMessage', getAllPersonalDetails()?.[deprecatedUserAccountID]?.firstName ?? '');
+    const text = translateLocal('testDrive.employeeInviteMessage', getAllPersonalDetails()?.[testDriveIOUParams.currentUserAccountIDParam]?.firstName ?? '');
     // delegateAccountIDParam: will be threaded in PR 15; buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
     const textComment = buildOptimisticAddCommentReportAction({
         text,
-        actorAccountID: deprecatedUserAccountID,
+        actorAccountID: testDriveIOUParams.currentUserAccountIDParam,
         reportActionID: testDriveIOUParams.testDriveCommentReportActionID,
         delegateAccountIDParam: undefined,
     });
@@ -359,7 +360,7 @@ function buildOnyxDataForTestDriveIOU(
             value: {
                 ...{lastActionType: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED},
                 hasOutstandingChildRequest: false,
-                lastActorAccountID: deprecatedCurrentUserPersonalDetails?.accountID,
+                lastActorAccountID: testDriveIOUParams.currentUserAccountIDParam,
             },
         },
         {
@@ -387,7 +388,6 @@ function getTransactionWithPreservedLocalReceiptSource(transaction: OnyxTypes.Tr
 
 function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyRequestParams): OnyxData<BuildOnyxDataForMoneyRequestKeys> {
     const allReports = getAllReports();
-    const deprecatedCurrentUserPersonalDetails = getCurrentUserPersonalDetails();
     const {
         isNewChatReport,
         shouldCreateNewMoneyRequestReport,
@@ -401,9 +401,9 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         isASAPSubmitBetaEnabled,
         currentUserAccountIDParam,
         currentUserEmailParam,
+        transactionViolations = {},
         hasViolations,
         quickAction,
-        personalDetails,
     } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {
@@ -422,7 +422,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     const isTimeRequest = isTimeRequestTransactionUtils(transaction);
     const outstandingChildRequest = getOutstandingChildRequest(iou.report);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
-    const isMoneyRequestToManagerMcTest = isTestTransactionReport(iou.report);
     const onyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys> = {
         optimisticData: [],
         successData: [],
@@ -612,69 +611,15 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             iouOptimisticParams: iou,
             chatOptimisticParams: chat,
             testDriveCommentReportActionID,
+            currentUserAccountIDParam,
         });
         onyxData.optimisticData?.push(...testDriveOptimisticData);
         onyxData.successData?.push(...testDriveSuccessData);
         onyxData.failureData?.push(...testDriveFailureData);
     }
 
-    let iouAction = iou.action;
-    let iouReport = iou.report;
-    if (isMoneyRequestToManagerMcTest) {
-        const isTestReceipt = transaction.receipt?.isTestReceipt ?? false;
-        const managerMcTestParticipant = getManagerMcTestParticipant(currentUserAccountIDParam, personalDetails) ?? {};
-        const optimisticIOUReportAction = buildOptimisticIOUReportAction({
-            type: isScanRequest && !isTestReceipt ? CONST.IOU.REPORT_ACTION_TYPE.CREATE : CONST.IOU.REPORT_ACTION_TYPE.PAY,
-            amount: iou.report?.total ?? 0,
-            currency: iou.report?.currency ?? '',
-            comment: '',
-            participants: [managerMcTestParticipant],
-            paymentType: isScanRequest && !isTestReceipt ? undefined : CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-            iouReportID: iou.report.reportID,
-            transactionID: transaction.transactionID,
-            reportActionID: iou.action.reportActionID,
-        });
-        iouAction = optimisticIOUReportAction;
-        iouReport = {
-            ...iouReport,
-            ...(!isScanRequest || isTestReceipt
-                ? {lastActionType: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED}
-                : undefined),
-            hasOutstandingChildRequest: false,
-            lastActorAccountID: deprecatedCurrentUserPersonalDetails?.accountID,
-        };
-
-        onyxData.optimisticData?.push(
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
-                value: {
-                    ...iou.report,
-                    ...(!isScanRequest || isTestReceipt
-                        ? {lastActionType: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED}
-                        : undefined),
-                    hasOutstandingChildRequest: false,
-                    lastActorAccountID: deprecatedCurrentUserPersonalDetails?.accountID,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iou.report.reportID}`,
-                value: {
-                    [iou.action.reportActionID]: {
-                        ...(optimisticIOUReportAction as OnyxTypes.ReportAction),
-                    },
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-                value: {
-                    ...transaction,
-                },
-            },
-        );
-    }
+    const iouAction = iou.action;
+    const iouReport = iou.report;
 
     const redundantParticipants: Record<number, null> = {};
     if (!isEmptyObject(personalDetailListAction)) {
@@ -1001,7 +946,13 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     );
 
     if (violationsOnyxData) {
-        const shouldFixViolations = Array.isArray(violationsOnyxData.value) && violationsOnyxData.value.length > 0;
+        const reportTransactions = [...getReportTransactions(iou.report.reportID).filter((reportTransaction) => reportTransaction.transactionID !== transaction.transactionID), transaction];
+        const shouldFixViolations = hasSubmissionBlockingViolationInReport(
+            reportTransactions,
+            transactionViolations,
+            transaction.transactionID,
+            Array.isArray(violationsOnyxData.value) ? violationsOnyxData.value : null,
+        );
         const optimisticNextStep = buildOptimisticNextStep({
             report: iou.report,
             predictedNextStatus: iou.report.statusNum ?? CONST.REPORT.STATE_NUM.OPEN,
@@ -1325,7 +1276,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             odometerStart,
             odometerEnd,
         },
-        isDemoTransactionParam: isSelectedManagerMcTest(participant.login) || transactionParams.receipt?.isTestDriveReceipt,
+        isDemoTransactionParam: transactionParams.receipt?.isTestDriveReceipt,
     });
 
     iouReport.transactionCount = (iouReport.transactionCount ?? 0) + 1;
@@ -1389,7 +1340,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             payeeEmail,
             participants: [participant],
             transactionID: optimisticTransaction.transactionID,
-            paymentType: isSelectedManagerMcTest(participant.login) || transactionParams.receipt?.isTestDriveReceipt ? CONST.IOU.PAYMENT_TYPE.ELSEWHERE : undefined,
+            paymentType: transactionParams.receipt?.isTestDriveReceipt ? CONST.IOU.PAYMENT_TYPE.ELSEWHERE : undefined,
             existingTransactionThreadReportID: linkedTrackedExpenseReportAction?.childReportID,
             optimisticCreatedReportActionID,
             linkedTrackedExpenseReportAction,
@@ -1492,6 +1443,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         isASAPSubmitBetaEnabled,
         currentUserAccountIDParam,
         currentUserEmailParam,
+        transactionViolations,
         hasViolations,
         quickAction,
         personalDetails,

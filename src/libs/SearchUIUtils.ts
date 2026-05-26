@@ -592,6 +592,7 @@ type GetSectionsParams = {
     isActionLoadingSet?: ReadonlySet<string>;
     isOffline?: boolean;
     cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>;
+    cardList?: OnyxEntry<OnyxTypes.CardList>;
     customCardNames?: Record<number, string>;
     allTransactionViolations?: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     visibleReportActionsData?: OnyxTypes.VisibleReportActionsDerivedValue;
@@ -2135,7 +2136,7 @@ function getTransactionsSections({
                       }
                     : {}),
                 keyForList: transactionItem.transactionID,
-                action: getAction(allActions),
+                action: getAction(allActions, getSubmitExclusion(report?.ownerAccountID, currentAccountID)),
                 allActions,
                 report,
                 policy,
@@ -2373,14 +2374,13 @@ function getActions(
     const shouldOnlyShowElsewhere = !canBePaid && canOnlyBePaidElsewhere;
 
     // We're not supporting pay partial amount on search page now.
-    if ((canBePaid || shouldOnlyShowElsewhere) && !hasHeldExpenses(report.reportID, allReportTransactions)) {
+    if ((canBePaid || shouldOnlyShowElsewhere) && !hasHeldExpenses(allReportTransactions)) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.PAY);
     }
 
     if (isExportAvailable) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING);
     }
-
     if (isClosedReport(report) && !(canBePaid || shouldOnlyShowElsewhere)) {
         return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.DONE];
     }
@@ -2413,6 +2413,14 @@ function getActions(
     }
 
     return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.VIEW];
+}
+
+/**
+ * @private
+ * Returns SUBMIT as an exclusion when the current user is not the report owner.
+ */
+function getSubmitExclusion(ownerAccountID: number | undefined, currentAccountID: number): SearchTransactionAction[] {
+    return ownerAccountID !== currentAccountID ? [CONST.SEARCH.ACTION_TYPES.SUBMIT] : [];
 }
 
 /**
@@ -2490,18 +2498,55 @@ function getTaskSections(
     return [tasks, tasks.length];
 }
 
+type CreateAndOpenSearchTransactionThreadParams = {
+    /** The transaction list item being opened */
+    item: TransactionListItemType;
+
+    /** The intro selected by the user */
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+
+    /** The route to go back to after navigation */
+    backTo: string;
+
+    /** The current user's login */
+    currentUserLogin: string;
+
+    /** The current user's account ID */
+    currentUserAccountID: number;
+
+    /** Beta features list */
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+
+    /** Whether the user has seen the self tour */
+    isSelfTourViewed: boolean | undefined;
+
+    /** Whether the user has completed the guided setup flow */
+    hasCompletedGuidedSetupFlow: boolean | undefined;
+
+    /** Existing transaction thread report ID (childReportID), if any */
+    IOUTransactionID?: string;
+
+    /** Preview data used to set optimistic data for the transaction thread preview */
+    transactionPreviewData?: TransactionPreviewData;
+
+    /** Whether to navigate to the transaction thread after creating it */
+    shouldNavigate?: boolean;
+};
+
 /** Creates transaction thread report and navigates to it from the search page */
-function createAndOpenSearchTransactionThread(
-    item: TransactionListItemType,
-    introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
-    backTo: string,
-    currentUserLogin: string,
-    currentUserAccountID: number,
-    betas: OnyxEntry<OnyxTypes.Beta[]>,
-    IOUTransactionID?: string,
-    transactionPreviewData?: TransactionPreviewData,
+function createAndOpenSearchTransactionThread({
+    item,
+    introSelected,
+    backTo,
+    currentUserLogin,
+    currentUserAccountID,
+    betas,
+    isSelfTourViewed,
+    hasCompletedGuidedSetupFlow,
+    IOUTransactionID,
+    transactionPreviewData,
     shouldNavigate = true,
-) {
+}: CreateAndOpenSearchTransactionThreadParams): string | undefined {
     const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isDeleted = isDeletedTransaction(item);
     const iouReportAction = getIOUActionForReportID(isFromSelfDM ? findSelfDMReportID() : item.reportID, item.transactionID);
@@ -2537,23 +2582,25 @@ function createAndOpenSearchTransactionThread(
             iouReportAction: reportActionToPass,
             transaction,
             transactionViolations,
+            isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
         });
     }
 
-    if (shouldNavigate) {
-        // Navigate to transaction thread if there are multiple transactions in the report, or to the parent report if it's the only transaction
-        const isFromOneTransactionReport = isOneTransactionReport(item.report);
-        const shouldNavigateToTransactionThread = (!isFromOneTransactionReport || isFromSelfDM || isDeleted) && transactionThreadReport?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
-        // When we have an actual transaction thread (childReportID from Onyx) but the report isn't in Onyx yet
-        // (e.g. Search didn't return the IOU action for deleted items), use childReportID directly so we don't navigate with undefined
-        const targetReportID = shouldNavigateToTransactionThread
-            ? (transactionThreadReport?.reportID ?? (hasActualTransactionThread ? iouReportAction.childReportID : undefined))
-            : item.reportID;
+    // Navigate to transaction thread if there are multiple transactions in the report, or to the parent report if it's the only transaction
+    const isFromOneTransactionReport = isOneTransactionReport(item.report);
+    const shouldNavigateToTransactionThread = (!isFromOneTransactionReport || isFromSelfDM || isDeleted) && transactionThreadReport?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
+    // When we have an actual transaction thread (childReportID from Onyx) but the report isn't in Onyx yet
+    // (e.g. Search didn't return the IOU action for deleted items), use childReportID directly so we don't navigate with undefined
+    const targetReportID = shouldNavigateToTransactionThread
+        ? (transactionThreadReport?.reportID ?? (hasActualTransactionThread ? iouReportAction.childReportID : undefined))
+        : item.reportID;
 
-        if (targetReportID) {
-            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo})));
-        }
+    if (shouldNavigate && targetReportID) {
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo})));
     }
+
+    return targetReportID;
 }
 
 /**
@@ -2746,7 +2793,10 @@ function getReportSections({
                     reportItem.ownerAccountID === currentAccountID &&
                     reportItem.nextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT;
                 const shouldHidePayAsPrimaryAction = hasOnlyNonReimbursableTransactions(reportItem.reportID, allReportTransactions);
-                const primaryActionExclusions: SearchTransactionAction[] = shouldHidePayAsPrimaryAction ? [CONST.SEARCH.ACTION_TYPES.PAY] : [];
+                const primaryActionExclusions: SearchTransactionAction[] = [
+                    ...(shouldHidePayAsPrimaryAction ? [CONST.SEARCH.ACTION_TYPES.PAY] : []),
+                    ...getSubmitExclusion(reportItem.ownerAccountID, currentAccountID),
+                ];
 
                 reportIDToTransactions[reportKey] = {
                     ...reportItem,
@@ -2810,7 +2860,7 @@ function getReportSections({
             const transaction = {
                 ...transactionItem,
                 ...(transactionPendingAction ? {pendingAction: transactionPendingAction} : {}),
-                action: getAction(allActions),
+                action: getAction(allActions, getSubmitExclusion(report?.ownerAccountID, currentAccountID)),
                 allActions,
                 report,
                 reportAction,
@@ -3036,6 +3086,7 @@ function getCardSections(
     translate: LocalizedTranslate,
     cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>,
     customCardNames?: Record<number, string>,
+    cardList?: OnyxEntry<OnyxTypes.CardList>,
 ): [TransactionCardGroupListItemType[], number, boolean] {
     const cardSections: Record<string, TransactionCardGroupListItemType> = {};
     const cardDescriptionByCardID = new Map<number, string>();
@@ -3079,7 +3130,18 @@ function getCardSections(
                 ...personalDetails,
                 ...cardGroup,
                 formattedCardName,
-                formattedFeedName: getFeedNameForDisplay(translate, cardGroup.bank as OnyxTypes.CompanyCardFeed, cardFeeds, undefined, true, cardGroup?.feedCountry),
+                formattedFeedName: getFeedNameForDisplay(
+                    translate,
+                    cardGroup.bank as OnyxTypes.CompanyCardFeed,
+                    cardFeeds,
+                    cardList?.[cardGroup.cardID]?.fundID
+                        ? cardFeeds?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${cardList[cardGroup.cardID].fundID}`]?.settings?.companyCardNicknames?.[
+                              cardGroup.bank as OnyxTypes.CompanyCardFeed
+                          ]
+                        : undefined,
+                    true,
+                    cardGroup?.feedCountry,
+                ),
                 keyForList: key,
             };
         }
@@ -3423,6 +3485,7 @@ function getSections({
     isActionLoadingSet,
     isOffline,
     cardFeeds,
+    cardList,
     customCardNames,
     allTransactionViolations,
     visibleReportActionsData,
@@ -3469,7 +3532,7 @@ function getSections({
             case CONST.SEARCH.GROUP_BY.FROM:
                 return getMemberSections(data, queryJSON, formatPhoneNumber);
             case CONST.SEARCH.GROUP_BY.CARD:
-                return getCardSections(data, queryJSON, translate, cardFeeds, customCardNames);
+                return getCardSections(data, queryJSON, translate, cardFeeds, customCardNames, cardList);
             case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
                 return getWithdrawalIDSections(data, queryJSON);
             case CONST.SEARCH.GROUP_BY.CATEGORY:

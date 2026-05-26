@@ -1,7 +1,7 @@
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import {deleteMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
 import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
 import {getIOURequestPolicyID} from '@libs/actions/IOU/MoneyRequest';
@@ -60,7 +60,8 @@ function redistributeRemainingPerDiemSplitExpenses(splitExpenses: SplitExpense[]
  * All data must be provided through function parameters
  */
 function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransactionsParams) {
-    const {currentSearchResults, currentSearchQueryJSON} = useSearchStateContext();
+    const {currentSearchResults} = useSearchResultsContext();
+    const {currentSearchQueryJSON} = useSearchQueryContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`);
@@ -263,11 +264,13 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 const iouReportID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUReportID : undefined;
                 const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
                 const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
+                const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${action?.childReportID}`];
                 const chatIOUReportID = chatReport?.reportID;
                 const isChatIOUReportArchived = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatIOUReportID}`);
                 deleteMoneyRequest({
                     transactionID,
                     reportAction: action,
+                    transactionThreadReport,
                     transactions: duplicateTransactions,
                     violations: duplicateTransactionViolations,
                     iouReport,

@@ -9,6 +9,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -90,6 +91,7 @@ function IOURequestStepAmount({
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
     const textInput = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -205,6 +207,9 @@ function IOURequestStepAmount({
     };
 
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
+    // Use the stored transaction instead of the draft to preserve existing values, especially for distance requests while create a new request.
+    const [storedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(existingTransactionID)}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const navigateToNextPage = ({amount, paymentMethod}: AmountParams) => {
@@ -294,7 +299,6 @@ function IOURequestStepAmount({
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.REQUEST) {
-                    const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
                     const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
 
                     const requestMoneyParams = {
@@ -322,6 +326,7 @@ function IOURequestStepAmount({
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         existingTransactionDraft,
+                        existingTransaction: storedTransaction,
                         draftTransactionIDs,
                         isSelfTourViewed,
                         personalDetails,
@@ -362,8 +367,7 @@ function IOURequestStepAmount({
                             reimbursable: defaultReimbursable,
                         },
                         isASAPSubmitBetaEnabled,
-                        currentUserAccountIDParam,
-                        currentUserEmailParam,
+                        currentUser: {accountID: currentUserAccountIDParam, email: currentUserEmailParam},
                         introSelected,
                         quickAction,
                         recentWaypoints,
@@ -393,7 +397,7 @@ function IOURequestStepAmount({
             }
             if (isSplitBill && !report.isOwnPolicyExpenseChat && report.participants) {
                 const participantAccountIDs = Object.keys(report.participants).map((accountID) => Number(accountID));
-                setSplitShares(transaction, amountInSmallestCurrencyUnits, selectedCurrency || CONST.CURRENCY.USD, participantAccountIDs);
+                setSplitShares(transaction, amountInSmallestCurrencyUnits, selectedCurrency || CONST.CURRENCY.USD, participantAccountIDs, currentUserAccountIDParam);
             }
             setMoneyRequestParticipantsFromReport(transactionID, report, currentUserPersonalDetails.accountID).then(() => {
                 navigateToConfirmationPage(iouType, transactionID, reportID, backToReport);
@@ -453,7 +457,7 @@ function IOURequestStepAmount({
         if (!isEditing) {
             // Edits to the amount from the splits page should reset the split shares.
             if (transaction?.splitShares) {
-                resetSplitShares(transaction, newAmount, selectedCurrency, true);
+                resetSplitShares(transaction, newAmount, selectedCurrency, currentUserAccountIDParam, true);
             }
             navigateToNextPage({amount, paymentMethod});
             return;
@@ -481,7 +485,7 @@ function IOURequestStepAmount({
 
         // Reset split shares for non-split-bill edits (split-bill share recalculation is handled by the confirmation list).
         if (transaction?.splitShares) {
-            resetSplitShares(transaction, newAmount, selectedCurrency, false);
+            resetSplitShares(transaction, newAmount, selectedCurrency, currentUserAccountIDParam, false);
         }
 
         updateMoneyRequestAmountAndCurrency({
@@ -502,6 +506,7 @@ function IOURequestStepAmount({
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+            delegateAccountID,
         });
         navigateBack();
     };
@@ -565,8 +570,8 @@ function IOURequestStepAmount({
 /**
  * Check if the participant is a P2P chat
  */
-function isParticipantP2P(participant: {accountID?: number; isPolicyExpenseChat?: boolean} | undefined): boolean {
-    return !!(participant?.accountID && !participant.isPolicyExpenseChat);
+function isParticipantP2P(participant: {accountID?: number; isPolicyExpenseChat?: boolean; isSelfDM?: boolean} | undefined): boolean {
+    return !!(participant?.accountID && !participant.isPolicyExpenseChat && !participant.isSelfDM);
 }
 
 const IOURequestStepAmountWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepAmount, true);

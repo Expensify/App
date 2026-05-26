@@ -7,6 +7,7 @@ import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -19,6 +20,7 @@ import {
     shouldExcludeAncestorReportAction,
 } from '@libs/ReportUtils';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
@@ -60,15 +62,6 @@ type ReportActionItemParentActionProps = {
 
     /** Personal details list */
     personalDetails: OnyxEntry<PersonalDetailsList>;
-
-    /** User billing fund ID */
-    userBillingFundID: number | undefined;
-
-    /** Did the user dismiss trying out NewDot? If true, it means they prefer using OldDot */
-    isTryNewDotNVPDismissed: boolean | undefined;
-
-    /** Whether the report is archived */
-    isReportArchived: boolean;
 };
 
 function ReportActionItemParentAction({
@@ -82,9 +75,6 @@ function ReportActionItemParentAction({
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
     personalDetails,
-    userBillingFundID,
-    isTryNewDotNVPDismissed = false,
-    isReportArchived = false,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const ancestors = useAncestors(report, shouldExcludeAncestorReportAction);
@@ -92,7 +82,11 @@ function ReportActionItemParentAction({
     const {isInNarrowPaneModal} = useResponsiveLayout();
     const transactionID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID;
     const [allBetas] = useOnyx(ONYXKEYS.BETAS);
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const isReportArchived = useReportIsArchived(report?.reportID);
+
+    const currentUserPersonalDetail = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID} = currentUserPersonalDetail;
+    const conciergePersonalDetail = personalDetails ? Object.values(personalDetails).find((detail) => detail?.login === CONST.EMAIL.CONCIERGE) : undefined;
 
     const getLinkedTransactionRouteError = useCallback((transaction: OnyxEntry<Transaction>) => {
         return transaction?.errorFields?.route;
@@ -136,7 +130,21 @@ function ReportActionItemParentAction({
                     report?.errorFields?.createChatThread ?? (report?.errorFields?.createChat ? getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage') : null)
                 }
                 errorRowStyles={[styles.ml10, styles.mr2]}
-                onClose={() => navigateToConciergeChatAndDeleteReport(report?.reportID, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, allBetas, undefined, true)}
+                onClose={() =>
+                    navigateToConciergeChatAndDeleteReport(
+                        report?.reportID,
+                        conciergeReportID,
+                        currentUserAccountID,
+                        introSelected,
+                        isSelfTourViewed,
+                        allBetas,
+                        report?.ownerAccountID ? (personalDetails?.[report.ownerAccountID] ?? undefined) : undefined,
+                        currentUserPersonalDetail,
+                        conciergePersonalDetail ?? undefined,
+                        undefined,
+                        true,
+                    )
+                }
             >
                 {ancestors.map((ancestor) => {
                     const {report: ancestorReport, reportAction: ancestorReportAction} = ancestor;
@@ -152,7 +160,19 @@ function ReportActionItemParentAction({
                             errors={ancestorReport?.errorFields?.addWorkspaceRoom ?? ancestorReport?.errorFields?.createChat}
                             errorRowStyles={[styles.ml10, styles.mr2]}
                             onClose={() =>
-                                navigateToConciergeChatAndDeleteReport(ancestorReport.reportID, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, allBetas)
+                                navigateToConciergeChatAndDeleteReport(
+                                    ancestorReport.reportID,
+                                    conciergeReportID,
+                                    currentUserAccountID,
+                                    introSelected,
+                                    isSelfTourViewed,
+                                    allBetas,
+                                    ancestorReport.ownerAccountID ? (personalDetails?.[ancestorReport.ownerAccountID] ?? undefined) : undefined,
+                                    currentUserPersonalDetail,
+                                    conciergePersonalDetail ?? undefined,
+                                    undefined,
+                                    undefined,
+                                )
                             }
                         >
                             {shouldDisplayThreadDivider && (
@@ -179,8 +199,6 @@ function ReportActionItemParentAction({
                                 isThreadReportParentAction
                                 personalDetails={personalDetails}
                                 linkedTransactionRouteError={linkedTransactionRouteError}
-                                userBillingFundID={userBillingFundID}
-                                isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                             />
                         </OfflineWithFeedback>
                     );

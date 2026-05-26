@@ -102,7 +102,6 @@ describe('CountrySelectionList', () => {
         expect(selectionListProps?.initiallyFocusedItemKey).toBe(initialCountry);
         expect(selectionListProps?.searchValueForFocusSync).toBe('');
         expect(selectionListProps?.shouldUpdateFocusedIndex).toBe(true);
-        expect(selectionListProps?.shouldScrollToFocusedIndex).toBe(false);
         expect(selectionListProps?.shouldScrollToFocusedIndexOnMount).toBe(false);
         expect(mockMountCount).toBe(1);
         expect(mockUnmountCount).toBe(0);
