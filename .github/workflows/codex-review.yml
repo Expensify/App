@@ -35,33 +35,21 @@ jobs:
     permissions:
       pull-requests: read
       issues: write
+    env:
+      PR_NUMBER: ${{ case(github.event_name == 'pull_request_target', github.event.pull_request.number, github.event.issue.number) }}
+      PR_AUTHOR: ${{ case(github.event_name == 'pull_request_target', github.event.pull_request.user.login, github.event.comment.user.login) }}
+      AUTHOR_ASSOCIATION: ${{ case(github.event_name == 'pull_request_target', github.event.pull_request.author_association, github.event.comment.author_association) }}
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
-
-      - name: Resolve PR context
-        id: context
-        run: |
-          set -euo pipefail
-
-          if [ "${{ github.event_name }}" = "pull_request_target" ]; then
-            echo "pr_number=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
-            echo "subject_login=${{ github.event.pull_request.user.login }}" >> "$GITHUB_OUTPUT"
-            echo "subject_association=${{ github.event.pull_request.author_association }}" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          echo "pr_number=${{ github.event.issue.number }}" >> "$GITHUB_OUTPUT"
-          echo "subject_login=${{ github.event.comment.user.login }}" >> "$GITHUB_OUTPUT"
-          echo "subject_association=${{ github.event.comment.author_association }}" >> "$GITHUB_OUTPUT"
 
       - name: Check contributor authorization
         id: gate
         uses: ./.github/actions/javascript/isAuthorizedContributor
         with:
-          PR_NUMBER: ${{ steps.context.outputs.pr_number }}
-          PR_AUTHOR: ${{ steps.context.outputs.subject_login }}
-          AUTHOR_ASSOCIATION: ${{ steps.context.outputs.subject_association }}
+          PR_NUMBER: ${{ env.PR_NUMBER }}
+          PR_AUTHOR: ${{ env.PR_AUTHOR }}
+          AUTHOR_ASSOCIATION: ${{ env.AUTHOR_ASSOCIATION }}
           GITHUB_TOKEN: ${{ github.token }}
           OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
@@ -70,7 +58,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          PR_NUMBER: ${{ steps.context.outputs.pr_number }}
+          PR_NUMBER: ${{ env.PR_NUMBER }}
         run: |
           set -euo pipefail
           PR_TITLE="$(gh pr view "$PR_NUMBER" --repo "$GH_REPO" --json title --jq .title)"
@@ -111,7 +99,7 @@ jobs:
         if: steps.gate.outputs.IS_AUTHORIZED == 'true' && steps.codex.outputs.final-message != ''
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v7
         env:
-          PR_NUMBER: ${{ steps.context.outputs.pr_number }}
+          PR_NUMBER: ${{ env.PR_NUMBER }}
           CODEX_FINAL_MESSAGE: ${{ steps.codex.outputs.final-message }}
           WORKFLOW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
