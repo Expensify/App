@@ -338,7 +338,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                                 illustrationBackgroundColor={colors.ice800}
                                 illustration={illustrations.LaptopWithMembers}
                                 illustrationStyle={styles.emptyStateSamlIllustration}
-                                illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter, styles.pv5]}
+                                illustrationContainerStyle={[styles.cardSectionIllustrationContainer, styles.justifyContentCenter, styles.pv5]}
                                 titleStyles={styles.textHeadlineH1}
                             />
                         </View>
