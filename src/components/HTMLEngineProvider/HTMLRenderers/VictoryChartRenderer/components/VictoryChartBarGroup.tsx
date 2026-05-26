@@ -25,8 +25,8 @@ function VictoryChartBarGroup({tnode, isHorizontal}: VictoryChartBarGroupProps) 
     }
 
     const roundedCorners = parseCornerRadius(firstBarChild?.attributes?.cornerradius ?? '');
-    const barWidth = Number(parseAttribute(firstBarChild.attributes?.barwidth ?? ''));
-    const betweenGroupPadding = parseOffset(tnode.attributes.offset, chartBounds, barChildren.length, barWidth, points[getYKey(firstBarChild)].length, isHorizontal ?? false);
+    const barWidth = firstBarChild.attributes?.barwidth ? Number(parseAttribute(firstBarChild.attributes.barwidth)) : undefined;
+    const betweenGroupPadding = parseOffset(tnode.attributes.offset, chartBounds, barChildren.length, barWidth ?? 0, points[getYKey(firstBarChild)].length, isHorizontal ?? false);
 
     return (
         <BarGroup
