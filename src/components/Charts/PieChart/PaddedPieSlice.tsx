@@ -11,6 +11,12 @@ type PaddedPieSliceProps = {
 };
 
 /**
+ * Minimum visible arc sweep in degrees.
+ * Prevents tiny slices from being omitted when padAngle exceeds the slice's sweep.
+ */
+const MIN_VISIBLE_SWEEP_ANGLE = 0.1;
+
+/**
  * A pie slice whose angular path is shrunk by padAngle/2 on each side,
  * creating equal visual gaps between all adjacent slices.
  */
@@ -26,7 +32,9 @@ function PaddedPieSlice({slice, padAngle}: PaddedPieSliceProps) {
             p.setFillType(FillType.EvenOdd);
         }
     } else {
-        const halfPad = padAngle / 2;
+        const sweepAngle = slice.endAngle - slice.startAngle;
+        // Clamp halfPad so the rendered arc always has at least MIN_VISIBLE_SWEEP_ANGLE.
+        const halfPad = Math.min(padAngle / 2, Math.max(0, (sweepAngle - MIN_VISIBLE_SWEEP_ANGLE) / 2));
         const startAngle = slice.startAngle + halfPad;
         const endAngle = slice.endAngle - halfPad;
 
