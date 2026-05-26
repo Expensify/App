@@ -361,6 +361,7 @@ function SearchAutocompleteList({
         translate,
         feedKeysWithCards,
         reportAttributes,
+        bankAccountList,
         expensifyIcons.History,
     ]);
 
