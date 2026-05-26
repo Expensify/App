@@ -14,7 +14,7 @@ All PIN actions require identity verification via biometrics (on mobile) or pass
 
 When you order a physical GBP/EUR Expensify Card, you'll set a 4-digit PIN as part of the ordering process.
 
-1. Go to **Account > Wallet > Expensify Card** and begin ordering your physical card.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Account > Wallet > Expensify Card** and begin ordering your physical card.
 2. On the **Set the PIN for your card** step, enter a 4-digit PIN.
 3. Confirm your PIN on the next page.
 4. Review the confirmation page — your PIN will be shown as a masked row. Tap it to go back and change it if needed.
