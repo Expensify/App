@@ -172,3 +172,6 @@ agent-device-output/
 
 # cspell cache
 .cspellcache
+
+# Server CLI build artifacts
+server/*/dist/
