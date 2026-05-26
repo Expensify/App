@@ -253,7 +253,6 @@ function PaymentMethodList({
                     } else if (card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL) {
                         brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                     } else if (isExpensifyCard(card) && card?.nameValuePairs?.isVirtual && arePersonalDetailsMissing(privatePersonalDetails)) {
-                        // Virtual Expensify Card with missing personal details — surface a red dot prompting the user to add them.
                         brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                     } else if (isExpensifyCard(card) && isExpensifyCardPendingAction(card, privatePersonalDetails)) {
                         brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;

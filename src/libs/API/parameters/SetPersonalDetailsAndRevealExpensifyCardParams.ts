@@ -1,5 +1,6 @@
 type SetPersonalDetailsAndRevealExpensifyCardParams = {
     cardID: number;
+    validateCode: string;
     legalFirstName: string;
     legalLastName: string;
     phoneNumber: string;

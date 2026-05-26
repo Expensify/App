@@ -1,11 +1,12 @@
 import {areAllExpensifyCardsShipped} from '@selectors/Card';
 import React, {useCallback, useEffect, useMemo} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import {clearDraftValues} from '@libs/actions/FormActions';
-import {clearPersonalDetailsErrors, updatePersonalDetailsAndShipExpensifyCards} from '@libs/actions/PersonalDetails';
+import {clearPersonalDetailsErrors, setPersonalDetailsAndRevealExpensifyCard, updatePersonalDetailsAndShipExpensifyCards} from '@libs/actions/PersonalDetails';
 import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import {getLatestError} from '@libs/ErrorUtils';
@@ -18,6 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsForm} from '@src/types/form';
+import type {CardList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getSubPageValues} from './utils';
 
@@ -34,6 +36,9 @@ function MissingPersonalDetailsMagicCodePage({
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
 
     const [areAllCardsShipped] = useOnyx(ONYXKEYS.CARD_LIST, {selector: areAllExpensifyCardsShipped});
+    const targetCardSelector = useCallback((cardList: OnyxEntry<CardList>) => (cardID ? cardList?.[cardID] : undefined), [cardID]);
+    const [targetCard] = useOnyx(ONYXKEYS.CARD_LIST, {selector: targetCardSelector});
+    const isVirtualCard = !!targetCard?.nameValuePairs?.isVirtual;
     const primaryLogin = usePrimaryContactMethod();
 
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
@@ -62,9 +67,13 @@ function MissingPersonalDetailsMagicCodePage({
 
     const handleSubmitForm = useCallback(
         (validateCode: string) => {
+            if (isVirtualCard) {
+                setPersonalDetailsAndRevealExpensifyCard(values, countryCode, Number(cardID), validateCode);
+                return;
+            }
             updatePersonalDetailsAndShipExpensifyCards(values, validateCode, countryCode);
         },
-        [countryCode, values],
+        [countryCode, values, isVirtualCard, cardID],
     );
 
     return (

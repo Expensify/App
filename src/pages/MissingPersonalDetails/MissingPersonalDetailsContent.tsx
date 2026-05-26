@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -12,7 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDraftValues} from '@libs/actions/FormActions';
-import {buildSetPersonalDetailsAndShipExpensifyCardsParams, setPersonalDetailsAndRevealExpensifyCard} from '@libs/actions/PersonalDetails';
+import {buildSetPersonalDetailsAndShipExpensifyCardsParams} from '@libs/actions/PersonalDetails';
 import {isUkEuExpensifyCard} from '@libs/CardUtils';
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -21,7 +21,6 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {isExpensifyCardUkEuSupportedSelector} from '@src/selectors/Card';
 import type {PersonalDetailsForm} from '@src/types/form';
 import type {CardList, PrivatePersonalDetails} from '@src/types/onyx';
 import {usePINActions, usePINState} from './PINContext';
@@ -63,17 +62,10 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
     const {isOffline} = useNetwork();
     const {executeScenario} = useMultifactorAuthentication();
     const {translate} = useLocalize();
-    const shouldCollectPINSelector = (cardList: OnyxEntry<CardList>) =>
-        !!cardID &&
-        isExpensifyCardUkEuSupportedSelector(cardList, cardID) &&
-        Object.values(cardList ?? {}).some((card) => card?.cardID === Number(cardID) && !card?.nameValuePairs?.isVirtual);
-    const [shouldCollectPIN] = useOnyx(ONYXKEYS.CARD_LIST, {selector: shouldCollectPINSelector});
-    // Look up the target card so we can branch when the flow was started from a
-    // virtual-card reveal — in that case we update personal details (no PIN, no ship)
-    // and then trigger the reveal flow that matches the card's program.
-    const targetCardSelector = (cardList: OnyxEntry<CardList>) => (cardID ? cardList?.[cardID] : undefined);
+    const targetCardSelector = useCallback((cardList: OnyxEntry<CardList>) => (cardID ? cardList?.[cardID] : undefined), [cardID]);
     const [targetCard] = useOnyx(ONYXKEYS.CARD_LIST, {selector: targetCardSelector});
     const isVirtualCard = !!targetCard?.nameValuePairs?.isVirtual;
+    const shouldCollectPIN = !!cardID && isUkEuExpensifyCard(targetCard) && !isVirtualCard;
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const {PIN, isConfirmStep} = usePINState();
     const {setIsConfirmStep} = usePINActions();
@@ -91,9 +83,6 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
     const values = useMemo(() => normalizeCountryCode(getSubPageValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm, [privatePersonalDetails, draftValues]);
 
     const startFrom = useMemo(() => {
-        if (shouldCollectPIN === undefined) {
-            return -1;
-        }
         const initialPage = getInitialSubPage(values, shouldCollectPIN, PIN);
         return findPageIndex<CustomSubPageProps>(formPages, initialPage);
     }, [formPages, values, shouldCollectPIN, PIN]);
@@ -115,17 +104,15 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
                 pin: PIN,
                 cardID,
             });
-        } else if (isVirtualCard && targetCard) {
-            // Virtual card reveal flow: submit personal details (without shipping a card),
-            // then route into the card-detail reveal step appropriate for the card program.
-            setPersonalDetailsAndRevealExpensifyCard(values, countryCode, Number(cardID));
-            clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
-            if (isUkEuExpensifyCard(targetCard)) {
-                Navigation.closeRHPFlow();
-                executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVEAL_CARD_DETAILS, {cardID});
-            } else {
-                Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_MAGIC_CODE.getRoute(cardID));
+        } else if (isVirtualCard && isUkEuExpensifyCard(targetCard)) {
+            if (isOffline || !cardID) {
+                return;
             }
+            const personalDetailsParams = buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode);
+            executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVEAL_CARD_DETAILS, {
+                ...personalDetailsParams,
+                cardID,
+            });
         } else {
             onComplete();
         }

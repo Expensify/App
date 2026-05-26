@@ -515,17 +515,11 @@ function clearPersonalDetailsErrors() {
     });
 }
 
-/**
- * Submits the full set of private personal details (legal name, DOB, address, phone)
- * collected via the MissingPersonalDetails flow for a specific virtual Expensify Card,
- * *without* shipping a new physical card. The backend persists the details and prepares
- * the card to be revealed next. Mirrors {@link updatePersonalDetailsAndShipExpensifyCards}
- * for the virtual-card reveal scenario.
- */
-function setPersonalDetailsAndRevealExpensifyCard(values: PersonalDetailsFormValues, countryCode: number, cardID: number) {
+function setPersonalDetailsAndRevealExpensifyCard(values: PersonalDetailsFormValues, countryCode: number, cardID: number, validateCode: string) {
     const parameters: SetPersonalDetailsAndRevealExpensifyCardParams = {
         ...buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode),
         cardID,
+        validateCode,
     };
 
     API.write(WRITE_COMMANDS.SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD, parameters, {
