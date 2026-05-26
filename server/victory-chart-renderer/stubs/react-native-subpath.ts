@@ -4,9 +4,11 @@
 // the Bun headless renderer, but their import statements still run, so this
 // stub provides a no-op default plus a few of the most common named exports.
 
-const noopFunction = (..._args: unknown[]) => null;
+const noopFunction = () => null;
 
+const codegenNativeComponent = noopFunction;
+const registerAsset = (asset: unknown) => asset;
+const getAssetByID = () => null;
+
+export {codegenNativeComponent, registerAsset, getAssetByID};
 export default noopFunction;
-export const codegenNativeComponent = noopFunction;
-export const registerAsset = (asset: unknown) => asset;
-export const getAssetByID = () => null;
