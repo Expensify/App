@@ -4,33 +4,24 @@ import {getAllTaxRates} from '@libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 
-function taxRatesPoliciesSelector(policies: OnyxCollection<Policy>): OnyxCollection<Policy> {
-    if (!policies) {
-        return policies;
-    }
-    const result: OnyxCollection<Policy> = {};
-    for (const [key, policy] of Object.entries(policies)) {
-        if (!policy) {
-            continue;
+function taxRatesPoliciesSelector(value: string[]) {
+    return (policies: OnyxCollection<Policy>) => {
+        const taxRates = getAllTaxRates(policies);
+        const result: string[] = [];
+        for (const [taxRateName, taxRateKeys] of Object.entries(taxRates)) {
+            if (!taxRateKeys.some((taxRateKey) => value.includes(taxRateKey)) || result.includes(taxRateName)) {
+                continue;
+            }
+            result.push(taxRateName);
         }
-        result[key] = {taxRates: policy.taxRates} as Policy;
+
+        return result.join(', ');
     }
-    return result;
 }
 
 function useFilterTaxRateValue(value: string[]): string {
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: taxRatesPoliciesSelector});
-
-    const taxRates = getAllTaxRates(policies);
-    const result: string[] = [];
-    for (const [taxRateName, taxRateKeys] of Object.entries(taxRates)) {
-        if (!taxRateKeys.some((taxRateKey) => value.includes(taxRateKey)) || result.includes(taxRateName)) {
-            continue;
-        }
-        result.push(taxRateName);
-    }
-
-    return result.join(', ');
+    const [taxRateValue = ''] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: taxRatesPoliciesSelector(value)});
+    return taxRateValue;
 }
 
 export default useFilterTaxRateValue;
