@@ -15,6 +15,7 @@ import MultiSelect from './MultiSelect';
 type BankAccountSelectorProps = SearchFilterSelectionListProps & {
     value: string[] | undefined;
     onChange: (bankAccounts: string[]) => void;
+    searchPlaceholder?: string;
 };
 
 type BankAccountItem = {
@@ -23,7 +24,7 @@ type BankAccountItem = {
     leftElement: React.JSX.Element;
 };
 
-function BankAccountSelector({value = [], onChange, footer, autoFocus, selectionListTextInputStyle, selectionListStyle}: BankAccountSelectorProps) {
+function BankAccountSelector({value = [], onChange, footer, autoFocus, selectionListTextInputStyle, selectionListStyle, searchPlaceholder}: BankAccountSelectorProps) {
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -67,6 +68,7 @@ function BankAccountSelector({value = [], onChange, footer, autoFocus, selection
             autoFocus={autoFocus}
             selectionListTextInputStyle={selectionListTextInputStyle}
             selectionListStyle={selectionListStyle}
+            searchPlaceholder={searchPlaceholder}
         />
     );
 }
