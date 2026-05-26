@@ -276,7 +276,7 @@ function AmountField({
                     <NumberWithSymbolForm
                         ref={amountInputRef}
                         displayAsTextInput
-                        autoFocus={autoFocus}
+                        autoFocus={false}
                         value={transactionAmount}
                         decimals={decimals}
                         currency={effectiveCurrency}

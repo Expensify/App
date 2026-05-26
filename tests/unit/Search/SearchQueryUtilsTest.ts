@@ -18,6 +18,7 @@ import {
     getDateRangeDisplayValueFromFormValue,
     getDisplayQueryFiltersForKey,
     getFilterDisplayValue,
+    getKeywordQueryWithCurrentSearchContext,
     getQueryWithUpdatedValues,
     getRangeBoundariesFromFormValue,
     serializeQueryJSONForBackend,
@@ -2948,6 +2949,54 @@ describe('SearchQueryUtils', () => {
             const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'food'}];
             const serialized = JSON.parse(serializeQueryJSONForBackend({filters: undefined, rawFilterList})) as {rawFilterList: typeof rawFilterList};
             expect(serialized.rawFilterList.at(0)?.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+        });
+    });
+
+    describe('getKeywordQueryWithCurrentSearchContext', () => {
+        it('should prepend current search context to keyword-only input', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:trip status:outstanding') as SearchQueryJSON;
+
+            const result = getKeywordQueryWithCurrentSearchContext('hello', currentQueryJSON);
+            expect(result).toContain('hello');
+            expect(result).toContain('type:trip');
+            expect(result).toContain('status:outstanding');
+        });
+
+        it('should return query unchanged when it contains explicit filters', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all') as SearchQueryJSON;
+
+            const result = getKeywordQueryWithCurrentSearchContext('type:expense hello', currentQueryJSON);
+            expect(result).toBe('type:expense hello');
+        });
+
+        it('should return query unchanged when it contains only explicit filters without keywords', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all') as SearchQueryJSON;
+
+            const result = getKeywordQueryWithCurrentSearchContext('type:expense status:open', currentQueryJSON);
+            expect(result).toBe('type:expense status:open');
+        });
+
+        it('should return empty query unchanged', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all') as SearchQueryJSON;
+
+            const result = getKeywordQueryWithCurrentSearchContext('', currentQueryJSON);
+            expect(result).toBe('');
+        });
+
+        it('should strip existing keyword filters from current context before prepending', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense status:all existing') as SearchQueryJSON;
+
+            const result = getKeywordQueryWithCurrentSearchContext('new-keyword', currentQueryJSON);
+            expect(result).toContain('new-keyword');
+            expect(result).not.toContain('existing');
+        });
+
+        it('should handle multi-word keyword input', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all') as SearchQueryJSON;
+
+            const result = getKeywordQueryWithCurrentSearchContext('hello world', currentQueryJSON);
+            expect(result).toContain('hello world');
+            expect(result).toContain('type:trip');
         });
     });
 
