@@ -329,8 +329,15 @@ function getParticipantsOption(participant: OptionData | Participant, personalDe
     const detail = participant.accountID ? getPersonalDetailsForAccountIDs([participant.accountID], personalDetails)[participant.accountID] : undefined;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const login = detail?.login || participant.login || '';
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const displayName = participant?.displayName || formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(detail, login || participant.text));
+    // When detail has a login the participant is a real Expensify user — use their profile name.
+    // When detail has no login (getPersonalDetailsForAccountIDs returns {accountID} as a stub
+    // for unknown IDs), the participant is a phone contact not yet on Expensify, so prefer
+    // participant.text (the device contact name) before falling back to the formatted phone number.
+    const displayName =
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        participant?.displayName ||
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        (detail?.login ? formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(detail, login)) : participant?.text || formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(undefined, login)));
 
     return {
         keyForList: String(detail?.accountID ?? login),
