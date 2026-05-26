@@ -1,4 +1,4 @@
-import type {ChartBounds, PointsArray} from 'victory-native';
+import type {ChartBounds} from 'victory-native';
 import parseAttribute from './parseAttribute';
 
 /**
