@@ -1080,7 +1080,6 @@ function changeTransactionsReport({
             reportID,
             originalMessage: {
                 ...originalMessage,
-                IOUReportID: reportID,
                 IOUTransactionID: originalMessage?.IOUTransactionID ?? transaction.transactionID,
                 type: actionType,
             },

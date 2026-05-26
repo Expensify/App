@@ -35,9 +35,6 @@ type OriginalMessageIOU = {
     /** The ID of the `IOU` transaction */
     IOUTransactionID?: string;
 
-    /** ID of the `IOU` report */
-    IOUReportID?: string;
-
     /** ID of the expense report */
     expenseReportID?: string;
 

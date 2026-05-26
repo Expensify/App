@@ -1,4 +1,4 @@
-import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import useOnyx from './useOnyx';
@@ -9,7 +9,7 @@ function useGetIOUReportFromReportAction(reportAction: OnyxTypes.ReportAction | 
     chatReport: OnyxTypes.Report | undefined;
     isChatIOUReportArchived: boolean;
 } {
-    const iouReportID = isMoneyRequestAction(reportAction) ? (getOriginalMessage(reportAction)?.IOUReportID ?? reportAction?.reportID) : undefined;
+    const iouReportID = isMoneyRequestAction(reportAction) ? reportAction?.reportID : undefined;
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`) ?? null;
     const isChatIOUReportArchived = useReportIsArchived(iouReportID);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`);

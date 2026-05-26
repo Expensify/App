@@ -500,6 +500,7 @@ function startSplitBill({
         participants,
         transactionID: splitTransaction.transactionID,
         isOwnPolicyExpenseChat,
+        iouReportID: splitChatReport.reportID,
     });
 
     splitChatReport.lastReadTime = DateUtils.getDBTime();
@@ -1412,6 +1413,7 @@ function createSplitsAndOnyxData({
         participants,
         transactionID: splitTransaction.transactionID,
         isOwnPolicyExpenseChat,
+        iouReportID: splitChatReport.reportID,
     });
 
     splitChatReport.lastReadTime = DateUtils.getDBTime();

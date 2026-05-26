@@ -27,8 +27,8 @@ describe('useShowNotFoundPageInIOUStep', () => {
         const moneyRequestAction: ReportAction = {
             ...createRandomReportAction(3),
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            reportID: iouReport.reportID,
             originalMessage: {
-                IOUReportID: iouReport.reportID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             },
         };

@@ -2816,11 +2816,11 @@ describe('PureReportActionItem', () => {
 
                 const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
                     type: subtype,
-                    IOUReportID: TEST_REPORT_ID,
                     IOUTransactionID: TEST_TRANSACTION_ID,
                     amount: 4200,
                     currency: 'USD',
                 });
+                action.reportID = TEST_REPORT_ID;
                 renderItemWithAction(action);
                 await waitForBatchedUpdatesWithAct();
 
@@ -2834,11 +2834,11 @@ describe('PureReportActionItem', () => {
         it('renders flagged content text instead of IOU display when isHidden is true', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
                 type: CONST.IOU.REPORT_ACTION_TYPE.REJECT,
-                IOUReportID: TEST_REPORT_ID,
                 IOUTransactionID: TEST_TRANSACTION_ID,
                 amount: 4200,
                 currency: 'USD',
             });
+            action.reportID = TEST_REPORT_ID;
 
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>

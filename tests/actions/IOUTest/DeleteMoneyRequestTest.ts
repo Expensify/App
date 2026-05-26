@@ -245,7 +245,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 isMoneyRequestAction(reportAction),
             );
             expect(createIOUAction).toBeTruthy();
-            expect(createIOUAction && getOriginalMessage(createIOUAction)?.IOUReportID).toBe(iouReport?.reportID);
+            expect(createIOUAction?.reportID).toBe(iouReport?.reportID);
             thread = (await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${createIOUAction?.childReportID}`)) as OptimisticChatReport;
 
             // When fetching all transactions from Onyx
@@ -1561,9 +1561,9 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             const moneyRequestAction1: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: expenseReport.reportID,
                 childReportID: '1',
                 originalMessage: {
-                    IOUReportID: expenseReport.reportID,
                     amount: transaction1.amount,
                     currency: transaction1.currency,
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -1575,9 +1575,9 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             const moneyRequestAction2: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 ...createRandomReportAction(2),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: expenseReport.reportID,
                 childReportID: '2',
                 originalMessage: {
-                    IOUReportID: expenseReport.reportID,
                     amount: transaction2.amount,
                     currency: transaction2.currency,
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -1662,9 +1662,9 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             const moneyRequestAction1: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 ...createRandomReportAction(20),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: expenseReport.reportID,
                 childReportID: '20',
                 originalMessage: {
-                    IOUReportID: expenseReport.reportID,
                     amount: transaction1.amount,
                     currency: transaction1.currency,
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -1736,9 +1736,9 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             const moneyRequestAction1: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 ...createRandomReportAction(21),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: expenseReport.reportID,
                 childReportID: '21',
                 originalMessage: {
-                    IOUReportID: expenseReport.reportID,
                     amount: transaction1.amount,
                     currency: transaction1.currency,
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,

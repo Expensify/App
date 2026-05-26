@@ -6324,10 +6324,9 @@ function deleteAppReport({
         // 2. Move the report action to self DM
         const updatedReportAction = {
             ...reportAction,
-            reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            reportID: selfDMReportID,
             originalMessage: {
                 ...reportAction.originalMessage,
-                IOUReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                 type: CONST.IOU.TYPE.TRACK,
             },
             reportActionID: newReportActionID,
