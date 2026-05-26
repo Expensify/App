@@ -42,7 +42,6 @@
 "../../src/components/AvatarButtonWithIcon.tsx"	"react-hooks/static-components"	1
 "../../src/components/AvatarSelector.tsx"	"no-restricted-syntax"	2
 "../../src/components/AvatarWithImagePicker.tsx"	"react-hooks/set-state-in-effect"	2
-"../../src/components/BookTravelButton.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	2
 "../../src/components/ButtonWithDropdownMenu/index.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/components/ButtonWithDropdownMenu/index.tsx"	"react-hooks/refs"	3
 "../../src/components/ButtonWithDropdownMenu/index.tsx"	"react-hooks/set-state-in-effect"	1
@@ -102,7 +101,6 @@
 "../../src/components/LocaleContextProvider.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/LocationPermissionModal/index.android.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/components/LocationPermissionModal/index.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
-"../../src/components/LockedAccountModalProvider/index.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/components/Lottie/index.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/components/Lottie/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/MagicCodeInput.tsx"	"react-hooks/refs"	1
@@ -148,7 +146,6 @@
 "../../src/components/Pressable/GenericPressable/implementation/BaseGenericPressable.tsx"	"react-hooks/refs"	1
 "../../src/components/PressableWithSecondaryInteraction/index.native.tsx"	"no-restricted-syntax"	1
 "../../src/components/PressableWithSecondaryInteraction/index.tsx"	"no-restricted-syntax"	1
-"../../src/components/PriorityModeController.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/RadioButtonWithLabel.tsx"	"no-restricted-syntax"	1
 "../../src/components/Reactions/AddReactionBubble.tsx"	"react-hooks/refs"	1
 "../../src/components/Reactions/MiniQuickEmojiReactions.tsx"	"react-hooks/refs"	1
