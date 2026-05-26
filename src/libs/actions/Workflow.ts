@@ -396,6 +396,7 @@ function queueDeferredAgentWorkflowSave(
     approvalWorkflow: ApprovalWorkflowOnyx,
     initialApprovalWorkflow: ApprovalWorkflow,
     pendingAgentAccountID: number,
+    pendingAgentPrompt: string,
 ) {
     const key = buildDeferredAgentWorkflowSaveKey(policyID, firstApproverEmail);
     Onyx.merge(ONYXKEYS.DEFERRED_AGENT_WORKFLOW_SAVES, {
@@ -405,6 +406,7 @@ function queueDeferredAgentWorkflowSave(
             approvalWorkflow,
             initialApprovalWorkflow,
             pendingAgentAccountID,
+            pendingAgentPrompt,
         },
     });
 }

@@ -32,6 +32,15 @@ type DeferredAgentWorkflowSave = {
      * the policy), the watcher swaps that login into the workflow and fires the real save.
      */
     pendingAgentAccountID: number;
+
+    /**
+     * Prompt of the pending agent, captured at save time from the optimistic
+     * `SHARED_NVP_AGENT_PROMPT` entry. The reconciliation watcher uses this as a stable
+     * identifier to find the resolved agent (a new collection entry with the same prompt at
+     * a different, server-assigned accountID) instead of falling back to a displayName match,
+     * which can collide in workspaces with duplicate names.
+     */
+    pendingAgentPrompt: string;
 };
 
 export default DeferredAgentWorkflowSave;

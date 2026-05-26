@@ -152,6 +152,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {accountID: currentUserAccountID, email: currentUserEmail = ''} = useCurrentUserPersonalDetails();
     const isUserReimburser = policy?.achAccount?.reimburser !== undefined && account?.primaryLogin !== undefined && policy?.achAccount?.reimburser === account?.primaryLogin;
     const [deferredAgentWorkflowSaves] = useOnyx(ONYXKEYS.DEFERRED_AGENT_WORKFLOW_SAVES);
+    const [agentPrompts] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT);
     const {
         approvalWorkflows: rawApprovalWorkflows,
         availableMembers,
@@ -169,22 +170,26 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     // stashed approver chain here so the new agent shows up faded in the workflow card while
     // CREATE_AGENT is in flight. We match by the original workflow's primary approver email
     // — the same key the Edit Approvers page uses to identify a workflow.
-    const approvalWorkflows = useMemo(() => {
+    // `routingFirstApproverEmail` tags each workflow with the original (pre-overlay) first
+    // approver email so the edit route / list key keep using a routable identity even when
+    // the overlaid `approvers[0]` is a pending agent with an empty `email` placeholder.
+    const approvalWorkflows = useMemo<Array<ApprovalWorkflow & {routingFirstApproverEmail: string}>>(() => {
         if (!deferredAgentWorkflowSaves || isEmptyObject(deferredAgentWorkflowSaves)) {
-            return rawApprovalWorkflows;
+            return rawApprovalWorkflows.map((workflow) => ({...workflow, routingFirstApproverEmail: workflow.approvers.at(0)?.email ?? ''}));
         }
         return rawApprovalWorkflows.map((workflow) => {
-            const firstApproverEmail = workflow.approvers.at(0)?.email;
+            const firstApproverEmail = workflow.approvers.at(0)?.email ?? '';
             if (!firstApproverEmail) {
-                return workflow;
+                return {...workflow, routingFirstApproverEmail: firstApproverEmail};
             }
             const deferredEntry = deferredAgentWorkflowSaves[buildDeferredAgentWorkflowSaveKey(route.params.policyID, firstApproverEmail)];
             if (!deferredEntry) {
-                return workflow;
+                return {...workflow, routingFirstApproverEmail: firstApproverEmail};
             }
             return {
                 ...workflow,
                 approvers: deferredEntry.approvalWorkflow.approvers.filter((approver): approver is NonNullable<typeof approver> => !!approver),
+                routingFirstApproverEmail: firstApproverEmail,
             };
         });
     }, [rawApprovalWorkflows, deferredAgentWorkflowSaves, route.params.policyID]);
@@ -235,27 +240,36 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             }
             // Prefer the live personal detail at the optimistic accountID — when CREATE_AGENT
             // resolves, the optimistic detail is replaced by a real one keyed on the new
-            // accountID, so we fall back to finding it via policy.employeeList by display name.
+            // accountID, so we fall back to finding the resolved agent via the
+            // `SHARED_NVP_AGENT_PROMPT` collection: the optimistic entry is wiped by successData
+            // and a new entry keyed on the real accountID appears with the same prompt text
+            // captured at save time in `deferredEntry.pendingAgentPrompt`. Matching on prompt
+            // gives a stable identifier across the rename — displayName can collide between
+            // workspace members and would bind the workflow to the wrong member.
             let resolvedEmail = personalDetails[deferredEntry.pendingAgentAccountID]?.login;
             let resolvedAccountID: number | undefined = deferredEntry.pendingAgentAccountID;
-            if (!resolvedEmail && policy.employeeList) {
+            if (!resolvedEmail && deferredEntry.pendingAgentPrompt && agentPrompts && policy.employeeList) {
+                const optimisticPromptKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${deferredEntry.pendingAgentAccountID}`;
                 const knownEmails = new Set(
                     deferredEntry.approvalWorkflow.approvers
                         .filter((approver) => approver?.email && approver.accountID !== deferredEntry.pendingAgentAccountID)
                         .map((approver) => approver?.email),
                 );
-                const candidate = Object.entries(policy.employeeList).find(([email]) => {
-                    if (!email || knownEmails.has(email)) {
-                        return false;
+                for (const [promptKey, promptValue] of Object.entries(agentPrompts)) {
+                    if (promptKey === optimisticPromptKey || !promptValue || promptValue.prompt !== deferredEntry.pendingAgentPrompt) {
+                        continue;
                     }
-                    const personalDetail = Object.values(personalDetails).find((detail) => detail?.login === email);
-                    return !!personalDetail && personalDetail.displayName === pendingApprover.displayName;
-                });
-                if (candidate) {
-                    const [candidateEmail] = candidate;
-                    resolvedEmail = candidateEmail;
-                    const candidateDetail = Object.values(personalDetails).find((detail) => detail?.login === candidateEmail);
-                    resolvedAccountID = candidateDetail?.accountID;
+                    const candidateAccountID = Number(promptKey.slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length));
+                    if (!Number.isFinite(candidateAccountID) || candidateAccountID <= 0) {
+                        continue;
+                    }
+                    const candidateDetail = personalDetails[candidateAccountID];
+                    if (!candidateDetail?.login || !policy.employeeList?.[candidateDetail.login] || knownEmails.has(candidateDetail.login)) {
+                        continue;
+                    }
+                    resolvedEmail = candidateDetail.login;
+                    resolvedAccountID = candidateDetail.accountID ?? candidateAccountID;
+                    break;
                 }
             }
             if (!resolvedEmail) {
@@ -310,7 +324,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             updateApprovalWorkflow(upgradedWorkflow, membersToRemove, approversToRemove, policy);
             clearDeferredAgentWorkflowSave(deferredEntry.policyID, deferredEntry.firstApproverEmail);
         }
-    }, [deferredAgentWorkflowSaves, policy, personalDetails, route.params.policyID]);
+    }, [deferredAgentWorkflowSaves, policy, personalDetails, route.params.policyID, agentPrompts]);
     const canAccessSubmit2026Features = canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled);
     const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true).length > 0;
 
@@ -625,7 +639,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         />
                         {searchFilteredWorkflows.map((workflow) => (
                             <OfflineWithFeedback
-                                key={workflow.approvers.at(0)?.email}
+                                key={workflow.routingFirstApproverEmail}
                                 pendingAction={workflow.pendingAction}
                             >
                                 <ApprovalWorkflowSection
@@ -633,7 +647,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                     onPress={
                                         shouldBlockApprovalWorkflowEditing
                                             ? undefined
-                                            : () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, workflow.approvers.at(0)?.email ?? ''))
+                                            : () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, workflow.routingFirstApproverEmail))
                                     }
                                     onAddAgentPress={() => handleAddAgentPress(workflow)}
                                     canAddAgent={!shouldBlockApprovalWorkflowEditing && isPolicyAdmin}
