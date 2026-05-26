@@ -22,9 +22,7 @@ function setCodesAreCopied() {
 }
 
 function quitAndNavigateBack(backTo?: Route) {
-    Navigation.goBack(backTo, {
-        afterTransition: clearTwoFactorAuthData,
-    });
+    Navigation.goBack(backTo, {afterTransition: clearTwoFactorAuthData});
 }
 
 export {clearTwoFactorAuthData, quitAndNavigateBack, setCodesAreCopied};

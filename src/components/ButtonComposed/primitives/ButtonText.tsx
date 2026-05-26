@@ -22,16 +22,15 @@ type ButtonTextProps = {
 };
 
 function ButtonText({children, numberOfLines = 1, style, hoverStyle}: ButtonTextProps) {
-    const {isLoading, variant, size, isHovered} = useButtonContext();
+    const {variant, size, isHovered} = useButtonContext();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
     const sizeTextStyles = {
-        [CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL]: styles.buttonExtraSmallText,
-        [CONST.DROPDOWN_BUTTON_SIZE.SMALL]: styles.buttonSmallText,
-        [CONST.DROPDOWN_BUTTON_SIZE.MEDIUM]: styles.buttonMediumText,
-        [CONST.DROPDOWN_BUTTON_SIZE.LARGE]: styles.buttonLargeText,
+        [CONST.BUTTON_SIZE.SMALL]: styles.buttonSmallText,
+        [CONST.BUTTON_SIZE.MEDIUM]: styles.buttonMediumText,
+        [CONST.BUTTON_SIZE.LARGE]: styles.buttonLargeText,
     };
 
     const variantTextStyles = {
@@ -45,13 +44,13 @@ function ButtonText({children, numberOfLines = 1, style, hoverStyle}: ButtonText
             numberOfLines={numberOfLines}
             style={[
                 numberOfLines !== 1 && styles.breakAll,
-                isLoading && styles.opacity0,
                 styles.pointerEventsNone,
                 styles.buttonText,
                 styles.flexShrink1,
-                size ? sizeTextStyles[size] : undefined,
+                sizeTextStyles[size],
                 variant ? variantTextStyles[variant] : undefined,
                 isHovered && hoverStyle,
+                styles.ph1,
                 style,
                 variant === 'link' && [styles.link, isHovered && StyleUtils.getColorStyle(theme.linkHover)],
             ]}
