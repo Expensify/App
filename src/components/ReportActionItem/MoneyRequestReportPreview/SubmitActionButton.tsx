@@ -1,6 +1,8 @@
 import {delegateEmailSelector} from '@selectors/Account';
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useConfirmPendingRTERAndProceed from '@hooks/useConfirmPendingRTERAndProceed';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -8,8 +10,8 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
-import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
-import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils} from '@libs/TransactionUtils';
+import {hasViolations as hasViolationsReportUtils, shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
@@ -25,6 +27,7 @@ type SubmitActionButtonProps = {
 
 function SubmitActionButton({iouReportID, isSubmittingAnimationRunning, stopAnimation, startSubmittingAnimation}: SubmitActionButtonProps) {
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserDetails.accountID;
     const currentUserEmail = currentUserDetails.email ?? '';
@@ -38,6 +41,7 @@ function SubmitActionButton({iouReportID, isSubmittingAnimationRunning, stopAnim
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const {isOffline} = useNetwork();
     const reportTransactionsCollection = useReportTransactionsCollection(iouReportID);
@@ -54,12 +58,21 @@ function SubmitActionButton({iouReportID, isSubmittingAnimationRunning, stopAnim
     };
 
     const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
-
+    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+        isTrackIntentUser,
+        report: iouReport,
+        policy,
+    });
     return (
         <AnimatedSubmitButton
             success
-            text={translate('common.submit')}
+            text={shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit')}
+            isMarkAsDone={shouldUseMarkAsDoneCopy}
             onPress={() => {
+                if (hasOnlyPendingCardTransactions(transactions)) {
+                    showPendingCardTransactionsBlockModal(showConfirmModal, translate);
+                    return;
+                }
                 confirmPendingRTERAndProceed(() => {
                     submitReport({
                         expenseReport: iouReport,

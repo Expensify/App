@@ -2,11 +2,13 @@ import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ConfirmButtonOptions, ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,10 +35,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
  */
 const CODING_PARTS_TIED_TO_CONNECTION = ['categories', 'tags', 'reports', 'taxes'] as const satisfies readonly Part[];
 
-/**
- * Selecting accounting also copies coding settings; these parts are auto-selected with accounting.
- */
-const ACCOUNTING_FORCE_ENABLED_PARTS = CODING_PARTS_TIED_TO_CONNECTION;
+const isCodingPart = (part: Part): boolean => (CODING_PARTS_TIED_TO_CONNECTION as readonly Part[]).includes(part);
 
 function CopyPolicySettingsSelectFeaturesPage() {
     const route = useRoute<PlatformStackRouteProp<PolicyCopySettingsNavigatorParamList, typeof SCREENS.POLICY_COPY_SETTINGS.SELECT_FEATURES>>();
@@ -44,6 +43,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [copyPolicySettings] = useOnyx(ONYXKEYS.COPY_POLICY_SETTINGS);
@@ -95,10 +95,10 @@ function CopyPolicySettingsSelectFeaturesPage() {
     };
 
     const isPartIncompatible = (part: Part): boolean => {
-        if (part === 'accounting') {
+        if (part === CONST.POLICY.POLICY_FEATURE.ACCOUNTING) {
             return !isAccountingPartCompatible;
         }
-        if ((CODING_PARTS_TIED_TO_CONNECTION as readonly Part[]).includes(part)) {
+        if (isCodingPart(part)) {
             return !isCodingCompatible;
         }
         return false;
@@ -118,43 +118,35 @@ function CopyPolicySettingsSelectFeaturesPage() {
     }, [copyPolicySettings?.parts]);
 
     const selectedAvailableFeatures = selectedFeatures.filter((part) => availablePartSet.has(part) && !isPartIncompatible(part));
-    const isAccountingSelected = selectedAvailableFeatures.includes('accounting');
+    const isAccountingSelected = selectedAvailableFeatures.includes(CONST.POLICY.POLICY_FEATURE.ACCOUNTING);
 
     const effectiveSelectedFeatures = isAccountingSelected
-        ? Array.from(new Set<Part>([...selectedAvailableFeatures, ...ACCOUNTING_FORCE_ENABLED_PARTS.filter((part) => availablePartSet.has(part))]))
+        ? Array.from(new Set<Part>([...selectedAvailableFeatures, ...CODING_PARTS_TIED_TO_CONNECTION.filter((part) => availablePartSet.has(part))]))
         : selectedAvailableFeatures;
 
-    const isFeatureDisabled = (part: Part): boolean => {
-        if (isPartIncompatible(part)) {
-            return true;
-        }
-        if (isAccountingSelected && (ACCOUNTING_FORCE_ENABLED_PARTS as readonly Part[]).includes(part)) {
-            return true;
-        }
-        return false;
-    };
+    const isFeatureDisabled = (part: Part): boolean => isPartIncompatible(part) || (isAccountingSelected && isCodingPart(part));
 
     const getSourceDescription = (part: Part): string | undefined => {
         switch (part) {
-            case 'overview': {
+            case CONST.POLICY.POLICY_FEATURE.OVERVIEW: {
                 const currencyText = sourcePolicy?.outputCurrency ? `${sourcePolicy.outputCurrency} ${translate('common.currency')}` : '';
                 return [currencyText, formattedAddress].filter(Boolean).join(', ') || undefined;
             }
-            case 'members':
+            case CONST.POLICY.POLICY_FEATURE.MEMBERS:
                 return memberCount > 1 ? `${memberCount} ${translate('workspace.common.members').toLowerCase()}` : undefined;
             case 'reports':
                 return reportFieldsCount > 0 ? `${reportFieldsCount} ${translate('workspace.common.reportFields').toLowerCase()}` : undefined;
-            case 'accounting':
+            case CONST.POLICY.POLICY_FEATURE.ACCOUNTING:
                 return connectedIntegration?.length ? connectedIntegration.map((name) => CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[name]).join(', ') : undefined;
-            case 'categories':
+            case CONST.POLICY.POLICY_FEATURE.CATEGORIES:
                 return categoriesCount > 0 ? `${categoriesCount} ${translate('workspace.common.categories').toLowerCase()}` : undefined;
-            case 'tags':
+            case CONST.POLICY.POLICY_FEATURE.TAGS:
                 return totalTags > 0 ? `${totalTags} ${translate('workspace.common.tags').toLowerCase()}` : undefined;
-            case 'taxes':
+            case CONST.POLICY.POLICY_FEATURE.TAXES:
                 return taxesCount > 0 ? `${taxesCount} ${translate('workspace.common.taxes').toLowerCase()}` : undefined;
-            case 'workflows':
+            case CONST.POLICY.POLICY_FEATURE.WORKFLOWS:
                 return workflows?.join(', ');
-            case 'rules':
+            case CONST.POLICY.POLICY_FEATURE.RULES:
                 return rules?.length
                     ? `${rules.length} ${translate('workspace.common.workspace').toLowerCase()} ${translate('workspace.common.rules').toLowerCase()}: ${rules.join(', ')}`
                     : undefined;
@@ -230,10 +222,32 @@ function CopyPolicySettingsSelectFeaturesPage() {
         Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_CONFIRM.getRoute(sourcePolicyID));
     };
 
+    const onConfirm = () => {
+        const isWorkflowsSelected = effectiveSelectedFeatures.includes(CONST.POLICY.POLICY_FEATURE.WORKFLOWS);
+        const isMembersSelected = effectiveSelectedFeatures.includes(CONST.POLICY.POLICY_FEATURE.MEMBERS);
+        const isMembersPartAvailable = availablePartSet.has(CONST.POLICY.POLICY_FEATURE.MEMBERS);
+
+        if (!isWorkflowsSelected || isMembersSelected || !isMembersPartAvailable) {
+            saveAndNavigate();
+            return;
+        }
+        showConfirmModal({
+            title: translate('common.headsUp'),
+            prompt: translate('workspace.copyPolicySettings.confirmWorkflows.description'),
+            confirmText: translate('workspace.copyPolicySettings.confirmWorkflows.continue'),
+            cancelText: translate('common.cancel'),
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            saveAndNavigate();
+        });
+    };
+
     const confirmButtonOptions: ConfirmButtonOptions<ListItem> = {
         showButton: true,
         text: translate('common.next'),
-        onConfirm: saveAndNavigate,
+        onConfirm,
         isDisabled: effectiveSelectedFeatures.length === 0,
     };
 
