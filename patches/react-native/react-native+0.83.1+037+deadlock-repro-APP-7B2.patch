@@ -299,19 +299,20 @@ index 9d9bad3..21a72ee 100644
    friend class ComponentDescriptorRegistry;
  
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/componentregistry/ComponentDescriptorRegistry.cpp b/node_modules/react-native/ReactCommon/react/renderer/componentregistry/ComponentDescriptorRegistry.cpp
-index 4838b3b..567cb64 100644
+index 4838b3b..11b5157 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/componentregistry/ComponentDescriptorRegistry.cpp
 +++ b/node_modules/react-native/ReactCommon/react/renderer/componentregistry/ComponentDescriptorRegistry.cpp
-@@ -17,6 +17,8 @@
+@@ -17,6 +17,9 @@
  #include <react/renderer/core/PropsParserContext.h>
  #include <react/renderer/core/ShadowNodeFragment.h>
  #include <utility>
 +#include <cstdio>
 +#include <atomic>
++#include <unistd.h>
  
  namespace facebook::react {
  
-@@ -30,7 +32,14 @@ ComponentDescriptorRegistry::ComponentDescriptorRegistry(
+@@ -30,7 +33,15 @@ ComponentDescriptorRegistry::ComponentDescriptorRegistry(
  
  void ComponentDescriptorRegistry::add(
      const ComponentDescriptorProvider& componentDescriptorProvider) const {
@@ -320,13 +321,14 @@ index 4838b3b..567cb64 100644
 +    fprintf(stderr, "[DeadlockRepro] -> ComponentDescriptorRegistry::add - acquiring unique_lock(mutex_)\n");
 +  }
    std::unique_lock lock(mutex_);
++  usleep(100000);
 +  if (!logged.load()) { // won't fire again but the pattern is clear
 +    fprintf(stderr, "[DeadlockRepro] -> ComponentDescriptorRegistry::add - unique_lock acquired, calling constructor\n");
 +  }
  
    auto componentDescriptor = componentDescriptorProvider.constructor(
        {.eventDispatcher = parameters_.eventDispatcher,
-@@ -116,6 +125,10 @@ const ComponentDescriptor& ComponentDescriptorRegistry::at(
+@@ -116,6 +127,10 @@ const ComponentDescriptor& ComponentDescriptorRegistry::at(
  const ComponentDescriptor* ComponentDescriptorRegistry::
      findComponentDescriptorByHandle_DO_NOT_USE_THIS_IS_BROKEN(
          ComponentHandle componentHandle) const {
@@ -337,7 +339,7 @@ index 4838b3b..567cb64 100644
    std::shared_lock lock(mutex_);
  
    auto iterator = _registryByHandle.find(componentHandle);
-@@ -141,6 +154,14 @@ bool ComponentDescriptorRegistry::hasComponentDescriptorAt(
+@@ -141,6 +156,14 @@ bool ComponentDescriptorRegistry::hasComponentDescriptorAt(
    return iterator != _registryByHandle.end();
  }
  
@@ -399,4 +401,4 @@ index 18caef1..2ede03f 100644
 +  NSLog(@"[DeadlockRepro] -> LegacyViewManagerInteropComponentDescriptor::ctor - construction complete");
  }
  
- ComponentHandle LegacyViewManagerInteropComponentDescriptor::getComponentHandle() const 
+ ComponentHandle LegacyViewManagerInteropComponentDescriptor::getComponentHandle() const
