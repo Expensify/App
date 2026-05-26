@@ -126,6 +126,7 @@ const translations = {
             approve: 'Approve',
             pay: 'Pay',
             fix: 'Fix',
+            task: 'Task',
         },
         // @context Used in confirmation or result messages indicating that an action completed successfully, not the abstract noun “success.”
         success: 'Success',
@@ -1027,6 +1028,7 @@ const translations = {
             repaidLast30Days: 'Repaid in the last 30 days',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Recent transactions • ${lastFour}`,
         },
+        seeMore: ({count}: {count: number}) => `See ${count} more`,
         announcements: 'Announcements',
         discoverSection: {
             title: 'Discover',
@@ -2295,7 +2297,7 @@ const translations = {
     deviceManagementPage: {
         title: 'Device management',
         description:
-            'Manage all the devices that you have logged into with your Expensify Account. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Learn more</a>',
+            'Manage all the devices that you have logged into with your Expensify Account. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Learn more</a>.',
         revoke: 'Revoke',
         unknownDevice: 'Unknown Device',
     },
@@ -3037,7 +3039,7 @@ const translations = {
         peopleYouMayKnow: 'People you may know are already here! Verify your email to join them.',
         workspaceYouMayJoin: (domain: string, email: string) => `Someone from ${domain} has already created a workspace. Please enter the magic code sent to ${email}.`,
         joinAWorkspace: 'Join a workspace',
-        listOfWorkspaces: "Here's the list of workspaces you can join. Don't worry, you can always join them later if you prefer.",
+        listOfWorkspaces: "Here's the list of workspaces you can join.",
         skipForNow: 'Skip for now',
         workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} member${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         whereYouWork: 'Where do you work?',
@@ -6308,6 +6310,7 @@ const translations = {
                     CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'this accounting integration'
                 }? This will remove any existing accounting connections.`,
             enterCredentials: 'Enter your credentials',
+            updateCredentials: 'Update credentials',
             claimOffer: {
                 badgeText: 'Offer available!',
                 xero: {
@@ -6909,7 +6912,7 @@ const translations = {
                 perActiveMember: 'per active member per month.',
                 perMember: 'per member per month.',
             },
-            note: (subscriptionLink: string) => `<muted-text>Upgrade to access this feature, or <a href="${subscriptionLink}">learn more</a> about our plans and pricing.</muted-text>`,
+            note: (subscriptionLink: string) => `<muted-text><a href="${subscriptionLink}">Learn more</a> about our plans and pricing.</muted-text>`,
             upgradeToUnlock: 'Unlock this feature',
             completed: {
                 headline: `You've upgraded your workspace!`,
@@ -7878,6 +7881,7 @@ const translations = {
         },
         resultsAreLimited: 'Search results are limited.',
         viewResults: 'View results',
+        applyFilters: 'Apply filters',
         appliedFilters: 'Applied filters',
         resetFilters: 'Reset filters',
         searchResults: {
@@ -7990,7 +7994,12 @@ const translations = {
             amount: {
                 lessThan: (amount?: string) => `Less than ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Greater than ${amount ?? ''}`,
-                between: (greaterThan: string, lessThan: string) => `Between ${greaterThan} and ${lessThan}`,
+                between: (greaterThan?: string, lessThan?: string) => {
+                    if (greaterThan && lessThan) {
+                        return `Between ${greaterThan} and ${lessThan}`;
+                    }
+                    return 'Between';
+                },
                 equalTo: (amount?: string) => `Equal to ${amount ?? ''}`,
             },
             card: {
