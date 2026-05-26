@@ -1043,6 +1043,27 @@ function Search({
                     accountID,
                     outstandingReportsByPolicyID,
                 );
+
+                // When all transactions in a group are individually selected, register the group key so export treats it as a grouped selection.
+                if (areItemsGrouped) {
+                    const parentGroup = (filteredData as TransactionGroupListItemType[]).find((g) => g.transactions.some((t) => t.keyForList === item.keyForList));
+                    const groupKey = parentGroup?.keyForList;
+                    if (groupKey) {
+                        const selectableTransactions = parentGroup.transactions.filter((t) => !isTransactionPendingDelete(t));
+                        const allSelected = selectableTransactions.every((t) => updatedTransactions[t.keyForList]?.isSelected);
+                        if (allSelected) {
+                            updatedTransactions[groupKey] = mapEmptyReportToSelectedEntry(parentGroup)[1];
+                            selectableTransactions.forEach((t) => {
+                                if (updatedTransactions[t.keyForList]) {
+                                    updatedTransactions[t.keyForList] = {...updatedTransactions[t.keyForList], groupKey};
+                                }
+                            });
+                        } else {
+                            delete updatedTransactions[groupKey];
+                        }
+                    }
+                }
+
                 setSelectedTransactions(updatedTransactions);
                 updateSelectAllMatchingItemsState(updatedTransactions);
                 return;
@@ -1117,7 +1138,7 @@ function Search({
             setSelectedTransactions(updatedTransactions);
             updateSelectAllMatchingItemsState(updatedTransactions);
         },
-        [selectedTransactions, setSelectedTransactions, updateSelectAllMatchingItemsState, transactions, email, accountID, outstandingReportsByPolicyID, searchResults?.data],
+        [selectedTransactions, setSelectedTransactions, updateSelectAllMatchingItemsState, transactions, email, accountID, outstandingReportsByPolicyID, searchResults?.data, areItemsGrouped, filteredData],
     );
 
     const onSelectRowInMobileSelectionMode = (item: SearchListItem) => {

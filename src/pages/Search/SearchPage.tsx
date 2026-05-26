@@ -127,9 +127,17 @@ function SearchPage({route}: SearchPageProps) {
         const shouldUseClientTotal = selectedTransactionsKeys.length > 0 || !metadata?.count;
         const selectedTransactionItems = Object.values(selectedTransactions);
         const currency = metadata?.currency ?? selectedTransactionItems.at(0)?.groupCurrency ?? selectedTransactionItems.at(0)?.currency;
+        const expandedGroupKeys = new Set(
+            Object.values(selectedTransactions)
+                .map((t) => t.groupKey)
+                .filter(Boolean),
+        );
         const numberOfExpense = shouldUseClientTotal
             ? selectedTransactionsKeys.reduce((count, key) => {
                   if (key.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
+                      if (expandedGroupKeys.has(key)) {
+                          return count;
+                      }
                       const group = currentSearchResults?.data?.[key as keyof typeof currentSearchResults.data] as {count?: number} | undefined;
                       return count + (group?.count ?? 0);
                   }
