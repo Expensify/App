@@ -1967,6 +1967,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Zachęta',
             editPrompt: 'Edytuj podpowiedź',
             promptCannotBeEmpty: 'Pole nie może być puste',
+            saved: 'Zapisano',
         },
     },
     securityPage: {

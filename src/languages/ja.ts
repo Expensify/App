@@ -1951,6 +1951,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'プロンプト',
             editPrompt: 'プロンプトを編集',
             promptCannotBeEmpty: 'プロンプトを入力してください',
+            saved: '保存しました',
         },
     },
     securityPage: {

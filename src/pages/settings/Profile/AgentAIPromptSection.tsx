@@ -9,6 +9,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,6 +21,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const MAX_VISIBLE_PROMPT_LINES = 15;
+const SAVED_CONFIRMATION_DURATION_MS = 2000;
 
 type AgentAIPromptSectionProps = {
     accountID: number;
@@ -46,12 +48,17 @@ function scrollInputIntoView(parentScrollViewRef: RefObject<RNScrollView | null>
 function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSectionProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [draftPrompt, setDraftPrompt] = useState('');
     const [showEmptyError, setShowEmptyError] = useState(false);
+    const [showSavedConfirmation, setShowSavedConfirmation] = useState(false);
     const inputRef = useRef<BaseTextInputRef>(null);
+    const wasSavingRef = useRef(false);
+    const savedConfirmationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const isSaving = agentPrompt?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+    const hasPromptErrors = !!agentPrompt?.promptErrors;
 
     // Mirrors FormProvider's HTML-tag validation so inputs like `<script>...</script>` are blocked
     // here the same way they are in EditPromptPage (which uses FormProvider).
@@ -63,6 +70,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
         errorText = translate('common.error.invalidCharacter');
     }
     const storedPrompt = Str.htmlDecode(agentPrompt?.prompt ?? '');
+    const isDirty = draftPrompt !== storedPrompt;
 
     // Delegate.connect seeds IS_LOADING_APP=true via clearOnyxForDelegateTransition and OpenApp's optimisticData,
     // then flips it back to false in OpenApp's finallyData. By that point NetworkStore.authToken is the delegate.
@@ -87,6 +95,29 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
         setDraftPrompt(storedPrompt);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [agentPrompt?.promptErrors]);
+
+    useEffect(() => {
+        if (wasSavingRef.current && !isSaving && !hasPromptErrors) {
+            setShowSavedConfirmation(true);
+            if (savedConfirmationTimerRef.current) {
+                clearTimeout(savedConfirmationTimerRef.current);
+            }
+            savedConfirmationTimerRef.current = setTimeout(() => {
+                setShowSavedConfirmation(false);
+                savedConfirmationTimerRef.current = null;
+            }, SAVED_CONFIRMATION_DURATION_MS);
+        }
+        wasSavingRef.current = isSaving;
+    }, [isSaving, hasPromptErrors]);
+
+    useEffect(() => {
+        return () => {
+            if (!savedConfirmationTimerRef.current) {
+                return;
+            }
+            clearTimeout(savedConfirmationTimerRef.current);
+        };
+    }, []);
 
     const dismissInput = useCallback(() => {
         inputRef.current?.blur();
@@ -165,10 +196,11 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
             </OfflineWithFeedback>
             <Button
                 success
-                text={translate('common.save')}
+                text={showSavedConfirmation ? translate('profilePage.aiPromptSection.saved') : translate('common.save')}
+                icon={showSavedConfirmation ? icons.Checkmark : undefined}
                 onPress={handleSave}
                 isLoading={isSaving}
-                isDisabled={hasHtmlTag || isSaving}
+                isDisabled={!isDirty || hasHtmlTag || isSaving}
                 style={[styles.alignSelfStart]}
                 testID="save-prompt-button"
             />

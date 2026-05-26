@@ -1966,6 +1966,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Prompt',
             editPrompt: 'Prompt bewerken',
             promptCannotBeEmpty: 'Prompt mag niet leeg zijn',
+            saved: 'Opgeslagen',
         },
     },
     securityPage: {

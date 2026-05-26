@@ -1979,6 +1979,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Invite',
             editPrompt: "Modifier l'invite",
             promptCannotBeEmpty: "L'invite ne peut pas être vide",
+            saved: 'Enregistré',
         },
     },
     securityPage: {

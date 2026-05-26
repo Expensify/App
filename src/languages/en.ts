@@ -2044,6 +2044,7 @@ const translations = {
             prompt: 'Prompt',
             editPrompt: 'Edit prompt',
             promptCannotBeEmpty: 'Prompt cannot be empty',
+            saved: 'Saved',
         },
     },
     securityPage: {

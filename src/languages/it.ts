@@ -1971,6 +1971,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Prompt',
             editPrompt: 'Modifica prompt',
             promptCannotBeEmpty: 'Il prompt non può essere vuoto',
+            saved: 'Salvato',
         },
     },
     securityPage: {
