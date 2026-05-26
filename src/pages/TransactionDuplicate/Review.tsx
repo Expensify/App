@@ -242,7 +242,7 @@ function TransactionDuplicateReview() {
                 <View style={styles.flex1}>
                     <ScrollView
                         style={styles.flex1}
-                        contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pt3, styles.pb5]}
+                        contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb5]}
                     >
                         {!!hasSettledOrApprovedTransaction && <Text style={[styles.textNormal, styles.colorMuted, styles.mb5]}>{translate('iou.someDuplicatesArePaid')}</Text>}
                         <DuplicateTransactionsList
