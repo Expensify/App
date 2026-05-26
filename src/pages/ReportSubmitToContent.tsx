@@ -125,7 +125,7 @@ function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, 
                 containerStyle: styles.pv3,
             },
         }),
-        [searchTerm, setSearchTerm, translate, noMatchingMembers],
+        [searchTerm, setSearchTerm, translate, noMatchingMembers, styles.pv3],
     );
 
     const handleSubmit = useCallback(() => {

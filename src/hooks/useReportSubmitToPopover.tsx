@@ -64,7 +64,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess}: UseReportSubmitTo
                 return;
             }
             oneShotOnSubmitSuccessRef.current = options?.onSubmitSuccess;
-            void calculatePopoverPosition(anchorRef, ANCHOR_ALIGNMENT).then((pos) => {
+            calculatePopoverPosition(anchorRef, ANCHOR_ALIGNMENT).then((pos) => {
                 setAnchorPosition({
                     horizontal: pos.horizontal,
                     vertical: pos.vertical,
@@ -104,7 +104,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess}: UseReportSubmitTo
                 </View>
             </PopoverWithMeasuredContent>
         ),
-        [StyleUtils, styles.flexColumn, isVisible, closeReportSubmitToPopover, anchorPosition, report, policy, isLoadingReportData, handleCombinedSubmitSuccess],
+        [StyleUtils, styles.flex1, styles.flexColumn, isVisible, closeReportSubmitToPopover, anchorPosition, report, policy, isLoadingReportData, handleCombinedSubmitSuccess],
     );
 
     return {
