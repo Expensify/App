@@ -2,6 +2,7 @@ import React, {createContext, useCallback, useContext, useMemo, useState} from '
 import type {PropsWithChildren} from 'react';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import DateUtils from '@libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -41,6 +42,7 @@ const ConciergeSessionActionsContext = createContext<ConciergeSessionActionsCont
 function ConciergeSessionProvider({children}: PropsWithChildren) {
     const {currentReportID} = useCurrentReportIDState();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const isConciergeMainDM = !!currentReportID && currentReportID === conciergeReportID;
 
@@ -59,9 +61,16 @@ function ConciergeSessionProvider({children}: PropsWithChildren) {
 
     if (prevIsConciergeMainDM !== isConciergeMainDM) {
         setPrevIsConciergeMainDM(isConciergeMainDM);
-        if (!isConciergeMainDM && !!currentReportID && currentReportID !== conciergeReportID) {
-            setSessionStartTime(null);
-            setShowFullHistory(false);
+        if (!isConciergeMainDM) {
+            // On small screens the LHN is a separate screen, so leaving Concierge
+            // always means the user navigated away — clear unconditionally.
+            // On wider screens the LHN sits beside the chat, so only clear when
+            // the user actually opens a different report.
+            const shouldClear = shouldUseNarrowLayout || (!!currentReportID && currentReportID !== conciergeReportID);
+            if (shouldClear) {
+                setSessionStartTime(null);
+                setShowFullHistory(false);
+            }
         } else if (isConciergeMainDM && !sessionStartTime) {
             setSessionStartTime(DateUtils.getDBTime());
         }
