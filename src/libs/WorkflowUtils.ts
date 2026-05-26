@@ -13,7 +13,8 @@ import type Policy from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
-import {getDefaultApprover, getMergeHRFinalApprover, isExpensifyTeam, shouldFilterExpensifyTeam} from './PolicyUtils';
+import {getMergeHRFinalApprover, isMergeHRManagerMode} from './HRUtils';
+import {getDefaultApprover, isExpensifyTeam, shouldFilterExpensifyTeam} from './PolicyUtils';
 
 const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
     members: [],
@@ -161,7 +162,8 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
         personalDetailsByEmail[value?.login ?? key] = value;
     }
     const availableMembers: Member[] = [];
-    const isMergeHRManagerMode = policy?.connections?.merge_hris?.config?.approvalMode === CONST.MERGE_HR.APPROVAL_MODE.MANAGER;
+    const mergeConfig = policy?.connections?.merge_hris?.config;
+    const mergeFinalApproverEmail = isMergeHRManagerMode(policy) ? mergeConfig?.finalApprover : undefined;
 
     for (const employee of Object.values(employees)) {
         const {email, submitsTo, pendingAction} = employee;
@@ -180,11 +182,7 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
             availableMembers.push(member);
         }
 
-        if (!submitsTo) {
-            continue;
-        }
-
-        if (!employees[submitsTo] && !isMergeHRManagerMode) {
+        if (!submitsTo || (!employees[submitsTo] && !mergeFinalApproverEmail)) {
             continue;
         }
 
@@ -206,6 +204,19 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
             }
             if (shouldFilterOutExpensifyTeam) {
                 approvers = approvers.filter((approver) => !isExpensifyTeam(approver.email));
+            }
+            if (mergeFinalApproverEmail) {
+                const lastApprover = approvers.at(-1);
+                if (lastApprover && lastApprover.email !== mergeFinalApproverEmail) {
+                    approvers.push({
+                        email: mergeFinalApproverEmail,
+                        forwardsTo: undefined,
+                        avatar: personalDetailsByEmail[mergeFinalApproverEmail]?.avatar,
+                        displayName: personalDetailsByEmail[mergeFinalApproverEmail]?.displayName ?? mergeFinalApproverEmail,
+                        isCircularReference: false,
+                    });
+                    usedApproverEmails.add(mergeFinalApproverEmail);
+                }
             }
             if (effectiveSubmitsTo !== firstApprover) {
                 for (const approver of approvers) {
@@ -234,25 +245,6 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
         // should not affect the workflow's display state (e.g., strikethrough styling)
         if (pendingAction && pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             approvalWorkflows[effectiveSubmitsTo].pendingAction = pendingAction;
-        }
-    }
-
-    // In Merge HR manager mode, append the finalApprover to each chain if not already present
-    const mergeConfig = policy?.connections?.merge_hris?.config;
-    if (isMergeHRManagerMode && mergeConfig?.finalApprover) {
-        const finalApproverEmail = mergeConfig.finalApprover;
-        for (const workflow of Object.values(approvalWorkflows)) {
-            const lastApprover = workflow.approvers.at(-1);
-            if (lastApprover && lastApprover.email !== finalApproverEmail) {
-                workflow.approvers.push({
-                    email: finalApproverEmail,
-                    forwardsTo: undefined,
-                    avatar: personalDetailsByEmail[finalApproverEmail]?.avatar,
-                    displayName: personalDetailsByEmail[finalApproverEmail]?.displayName ?? finalApproverEmail,
-                    isCircularReference: false,
-                });
-                usedApproverEmails.add(finalApproverEmail);
-            }
         }
     }
 

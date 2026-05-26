@@ -4,6 +4,14 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import DateUtils from '@libs/DateUtils';
+import {
+    getConnectedHRProvider,
+    getHRApprovalMode,
+    getMergeHRFinalApprover,
+    isAnyHRConnected,
+    isAnyHRReadOnlyWorkflowMode,
+    isMergeHRConnected,
+} from '@libs/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     canAccessSubmitWorkspaceFeatures,
@@ -15,15 +23,11 @@ import {
     getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
     getAllTaxRates,
     getAllTaxRatesNamesAndValues,
-    getConnectedHRProvider,
     getConnectedIntegrationNamesForPolicies,
     getCustomUnitsForDuplication,
     getDefaultTimeTrackingRate,
     getEligibleBankAccountShareRecipients,
-    getHRApprovalMode,
     getManagerAccountID,
-    getMergeHRBasicModeFinalApprover,
-    getMergeHRFinalApprover,
     getPolicyEmployeeAccountIDs,
     getRateDisplayValue,
     getSubmitToAccountID,
@@ -39,9 +43,6 @@ import {
     hasOnlyPersonalPolicies,
     hasOtherControlWorkspaces,
     hasPolicyWithXeroConnection,
-    isAnyHRConnected,
-    isAnyHRReadOnlyWorkflowMode,
-    isMergeHRConnected,
     isPolicyMemberWithoutPendingDelete,
     shouldShowPolicy,
     sortPoliciesByName,
@@ -2966,46 +2967,6 @@ describe('PolicyUtils', () => {
                     connections: {},
                 } as Policy;
                 expect(getHRApprovalMode(policy, CONST.POLICY.CONNECTIONS.NAME.GUSTO)).toBeNull();
-            });
-        });
-
-        describe('getMergeHRBasicModeFinalApprover', () => {
-            it('returns finalApprover when Merge HR is in basic mode', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {approvalMode: CONST.MERGE_HR.APPROVAL_MODE.BASIC, finalApprover: 'boss@company.com', integration: 'workday'}},
-                    },
-                } as Policy;
-                expect(getMergeHRBasicModeFinalApprover(policy)).toBe('boss@company.com');
-            });
-
-            it('returns null when Merge HR is in manager mode', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {approvalMode: CONST.MERGE_HR.APPROVAL_MODE.MANAGER, finalApprover: 'boss@company.com', integration: 'workday'}},
-                    },
-                } as Policy;
-                expect(getMergeHRBasicModeFinalApprover(policy)).toBeNull();
-            });
-
-            it('returns null when finalApprover is not set', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {approvalMode: CONST.MERGE_HR.APPROVAL_MODE.BASIC, finalApprover: null, integration: 'workday'}},
-                    },
-                } as Policy;
-                expect(getMergeHRBasicModeFinalApprover(policy)).toBeNull();
-            });
-
-            it('returns null when no Merge HR connection exists', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    connections: {},
-                } as Policy;
-                expect(getMergeHRBasicModeFinalApprover(policy)).toBeNull();
             });
         });
 

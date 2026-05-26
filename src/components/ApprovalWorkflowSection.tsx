@@ -46,17 +46,16 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
     const {convertToDisplayString} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const fromProviderSuffix = hrProviderName ? ` (${translate('workflowsPage.approverFromProvider', {provider: hrProviderName})})` : '';
-
     const approverTitle = (index: number) => {
         if (isHRManagerMode) {
             if (approvalWorkflow.approvers.length <= 1) {
                 return translate('workflowsPage.approver');
             }
             const isLastApprover = index === approvalWorkflow.approvers.length - 1;
-            if (isLastApprover && approvalWorkflow.approvers.length > 1) {
+            if (isLastApprover) {
                 return translate('workflowsPage.finalApprover');
             }
+            const fromProviderSuffix = hrProviderName ? ` (${translate('workflowsPage.approverFromProvider', {provider: hrProviderName})})` : '';
             return `${translate('workflowsPage.manager')}${fromProviderSuffix}`;
         }
         return approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : translate('workflowsPage.approver');
