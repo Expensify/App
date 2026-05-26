@@ -12,6 +12,15 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
     const StyleUtils = useStyleUtils();
     const [previousStatusBarColor, setPreviousStatusBarColor] = useState<string>();
 
+    const isCentered =
+        type === CONST.MODAL.MODAL_TYPE.CONFIRM ||
+        type === CONST.MODAL.MODAL_TYPE.CENTERED ||
+        type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE ||
+        type === CONST.MODAL.MODAL_TYPE.CENTERED_SMALL ||
+        type === CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT;
+    const animationInTiming = rest.animationInTiming ?? (isCentered ? CONST.MODAL.ANIMATION_TIMING.CENTERED_DURATION_IN_WEB : undefined);
+    const animationOutTiming = rest.animationOutTiming ?? (isCentered ? CONST.MODAL.ANIMATION_TIMING.CENTERED_DURATION_OUT_WEB : undefined);
+
     const setStatusBarColor = (color = theme.appBG) => {
         if (!fullscreen) {
             return;
@@ -106,6 +115,8 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
     return (
         <BaseModal
             {...rest}
+            animationInTiming={animationInTiming}
+            animationOutTiming={animationOutTiming}
             onModalHide={hideModal}
             onModalShow={showModal}
             onModalWillShow={onModalWillShow}

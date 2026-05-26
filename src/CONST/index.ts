@@ -1937,6 +1937,8 @@ const CONST = {
             FAB_OUT: ANIMATION_TIMING_FAB_OUT,
             RHP_DURATION_IN_WEB: 150,
             RHP_DURATION_OUT_WEB: 100,
+            CENTERED_DURATION_IN_WEB: 120,
+            CENTERED_DURATION_OUT_WEB: 80,
         },
         RHP_ENTER_OFFSET_PX_WEB: 60,
     },
