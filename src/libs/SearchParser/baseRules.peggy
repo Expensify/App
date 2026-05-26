@@ -39,7 +39,8 @@ cardID
   = "cardID"
   / "card"i { return "cardID"; }
 bankAccount
-  = "bankAccount"i { return "bankAccount"; }
+  = "bankAccount"
+  / "bank-account"i { return "bankAccount"; }
 from = "from"i { return "from"; }
 attendee = "attendee"i {return "attendee"}
 expenseType
