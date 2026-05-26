@@ -15,7 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {getDefaultExpensifyCardLimitType} from '@libs/CardUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
-import {getApprovalWorkflow} from '@libs/PolicyUtils';
+import {getApprovalWorkflow, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -50,16 +50,17 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
     const [typeSelected, setTypeSelected] = useState(issueNewCard?.data?.limitType ?? defaultType);
 
     const isEditing = issueNewCard?.isEditing;
+    const isSpendRuleAvailable = !isProduction && isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED);
+
     const nextStep = useMemo(() => {
         if (isEditing) {
             return CONST.EXPENSIFY_CARD.STEP.CONFIRMATION;
         }
-        if (!isProduction || issueNewCard?.data.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL) {
+        if (isSpendRuleAvailable || issueNewCard?.data.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL) {
             return CONST.EXPENSIFY_CARD.STEP.SPEND_RULES;
         }
-
         return CONST.EXPENSIFY_CARD.STEP.CARD_NAME;
-    }, [isEditing, isProduction, issueNewCard?.data.cardType]);
+    }, [isSpendRuleAvailable, isEditing, issueNewCard?.data.cardType]);
 
     const onInputFocus = useCallback(() => {
         formRef.current?.scrollToEnd();
