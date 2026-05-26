@@ -3865,7 +3865,6 @@ describe('OptionsListUtils', () => {
                     },
                 ],
                 originalMessage: {
-                    IOUReportID: '456',
                     IOUTransactionID: '123456',
                     amount: 3400,
                     comment: '',
@@ -3874,6 +3873,7 @@ describe('OptionsListUtils', () => {
                 },
                 actionName: 'IOU',
                 reportActionID: '789',
+                reportID: '456',
             } as unknown as ReportAction;
 
             const transaction = {

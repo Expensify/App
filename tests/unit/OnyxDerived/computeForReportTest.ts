@@ -90,9 +90,9 @@ describe('computeForReport', () => {
         const iouAction = createAction('100', '2024-01-01 10:00:00.000', {
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             childReportID: transactionThreadReportID,
+            reportID,
             originalMessage: {
                 IOUTransactionID: 'txn1',
-                IOUReportID: reportID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: 100,
                 currency: 'USD',

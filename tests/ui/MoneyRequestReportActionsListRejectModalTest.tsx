@@ -178,13 +178,13 @@ const mockTransaction: Transaction = {
 
 const mockReportAction: ReportAction = {
     reportActionID: 'ACTION_001',
+    reportID: FAKE_REPORT_ID,
     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
     created: '2025-01-01 00:00:00',
     actorAccountID: FAKE_ACCOUNT_ID,
     message: [{type: 'COMMENT', html: 'expense', text: 'expense'}],
     originalMessage: {
         IOUTransactionID: FAKE_TRANSACTION_ID,
-        IOUReportID: FAKE_REPORT_ID,
         type: CONST.IOU.TYPE.CREATE,
         amount: 10000,
         currency: CONST.CURRENCY.USD,
