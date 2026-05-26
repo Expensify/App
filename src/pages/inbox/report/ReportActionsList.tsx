@@ -669,8 +669,11 @@ function ReportActionsList({
         if (lastIOUActionWithError?.reportActionID === prevLastIOUActionWithError?.reportActionID) {
             return;
         }
-        InteractionManager.runAfterInteractions(() => {
-            reportScrollManager.scrollToBottom();
+        TransitionTracker.runAfterTransitions({
+            callback: () => {
+                reportScrollManager.scrollToBottom();
+            },
+            waitForUpcomingTransition: true,
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastAction]);
