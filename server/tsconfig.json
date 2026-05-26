@@ -3,5 +3,5 @@
     "compilerOptions": {
         "types": ["@types/bun"]
     },
-    "include": ["victory-chart-renderer/src", "victory-chart-renderer/__tests__"]
+    "include": ["victory-chart-renderer/src", "victory-chart-renderer/tests"]
 }

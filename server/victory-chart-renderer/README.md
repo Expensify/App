@@ -2,6 +2,11 @@
 
 Standalone Bun CLI that will render Expensify chart XML to PNG using the same chart code as the App.
 
+## Project layout
+
+- `src/` — CLI source
+- `tests/` — Bun integration tests (`bun:test`)
+- `dist/` — compiled binaries (gitignored)
 
 ## Development
 
@@ -13,8 +18,16 @@ npm run server:vcr:dev /tmp/out.txt
 
 ## Tests
 
+From the App repository root:
+
 ```bash
-cd server/victory-chart-renderer && bun test
+npm run server:vcr:test
+```
+
+Or from this directory:
+
+```bash
+bun test
 ```
 
 ## Compiled binaries
