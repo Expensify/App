@@ -7,6 +7,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {OptionsListActionsContext, OptionsListStateContext} from '@components/OptionListContextProvider';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
+import type * as OptionsListUtilsModule from '@libs/OptionsListUtils';
 import {createOptionList} from '@libs/OptionsListUtils';
 import ComposeProviders from '@src/components/ComposeProviders';
 import CONST from '@src/CONST';
@@ -73,6 +74,7 @@ jest.mock('@hooks/useExportedToFilterOptions', () => ({
 const mockUseFilteredOptions = jest.fn();
 jest.mock('@hooks/useFilteredOptions', () => ({
     __esModule: true,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     default: (...args: unknown[]) => mockUseFilteredOptions(...args),
 }));
 
@@ -222,14 +224,12 @@ describe('SearchAutocompleteList', () => {
         let getSearchOptionsSpy: jest.SpyInstance;
 
         beforeEach(() => {
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
-            const OptionsListUtils = require<typeof import('@libs/OptionsListUtils')>('@libs/OptionsListUtils');
+            const OptionsListUtils = jest.requireActual<typeof OptionsListUtilsModule>('@libs/OptionsListUtils');
             getSearchOptionsSpy = jest.spyOn(OptionsListUtils, 'getSearchOptions').mockReturnValue({
                 recentReports: fakeRecentReports,
                 personalDetails: [],
                 currentUserOption: null,
                 userToInvite: null,
-                categoryOptions: [],
             });
         });
 
@@ -372,7 +372,6 @@ describe('SearchAutocompleteList', () => {
                 personalDetails: [],
                 currentUserOption: null,
                 userToInvite: null,
-                categoryOptions: [],
             });
 
             // Trigger a re-render by returning a new options reference from useFilteredOptions
@@ -399,13 +398,7 @@ describe('SearchAutocompleteList', () => {
 
             // Verify that local results maintain their FROZEN order (Alice < Bob < Charlie)
             // even though the mock now returns them as Charlie, Alice, Bob.
-            const aliceEl = screen.getByText('Alice Report');
-            const bobEl = screen.getByText('Bob Report');
-            const charlieEl = screen.getByText('Charlie Report');
-
-            // Get the parent list item nodes and compare their order via the component tree.
-            // We use the UNSTABLE_getAllByType approach; however the simplest portable check
-            // is to look at the order these elements appear among all rendered text nodes.
+            // Check ordering by examining the sequence of rendered text nodes.
             const allTexts = screen.queryAllByText(/Report$/);
             const names = allTexts.map((el) => {
                 // React Native Testing Library text elements expose their content via children
