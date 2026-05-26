@@ -1,21 +1,17 @@
 import React from 'react';
-import ComposerActionMenu from './ComposerActionMenu';
+import ComposerActionButton from './ComposerActionButton';
 import ComposerBox from './ComposerBox';
-import {useComposerEditState} from './ComposerContext';
 import ComposerDropZone from './ComposerDropZone';
-import ComposerEditingButtons from './ComposerEditingButtons';
 import ComposerEmojiPicker from './ComposerEmojiPicker';
 import ComposerInput from './ComposerInput';
 import ComposerSendButton from './ComposerSendButton';
-import type {ReportActionComposeProps} from './ReportActionComposeTypes';
+import type {ReportActionComposeProps} from './types';
 
-function ReportActionComposeInputArea({reportID}: ReportActionComposeProps) {
-    const {isEditingInComposer} = useComposerEditState();
-
+function ComposerInputArea({reportID}: ReportActionComposeProps) {
     return (
         <ComposerDropZone reportID={reportID}>
             <ComposerBox reportID={reportID}>
-                {isEditingInComposer ? <ComposerEditingButtons reportID={reportID} /> : <ComposerActionMenu reportID={reportID} />}
+                <ComposerActionButton reportID={reportID} />
                 <ComposerInput reportID={reportID} />
                 <ComposerEmojiPicker reportID={reportID} />
                 <ComposerSendButton reportID={reportID} />
@@ -24,4 +20,4 @@ function ReportActionComposeInputArea({reportID}: ReportActionComposeProps) {
     );
 }
 
-export default ReportActionComposeInputArea;
+export default ComposerInputArea;

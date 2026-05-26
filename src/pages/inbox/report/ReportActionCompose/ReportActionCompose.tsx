@@ -2,7 +2,9 @@ import React from 'react';
 import AgentZeroAwareTypingIndicator from './AgentZeroAwareTypingIndicator';
 import ComposerActionMenu from './ComposerActionMenu';
 import ComposerBox from './ComposerBox';
+import ComposerContainer from './ComposerContainer';
 import type {SuggestionsRef} from './ComposerContext';
+import ComposerDefaultFooter from './ComposerDefaultFooter';
 import ComposerDropZone from './ComposerDropZone';
 import ComposerEditingButtons from './ComposerEditingButtons';
 import ComposerEmojiPicker from './ComposerEmojiPicker';
@@ -10,27 +12,27 @@ import ComposerExceededLength from './ComposerExceededLength';
 import ComposerFooter from './ComposerFooter';
 import ComposerImportedState from './ComposerImportedState';
 import ComposerInput from './ComposerInput';
+import ComposerInputArea from './ComposerInputArea';
+import ComposerLayout from './ComposerLayout';
 import ComposerLocalTime from './ComposerLocalTime';
+import ComposerProvider from './ComposerProvider';
 import ComposerSendButton from './ComposerSendButton';
-import EditOnlyReportActionComposer from './EditOnlyReportActionComposer';
-import ReportActionComposeDefaultFooter from './ReportActionComposeDefaultFooter';
-import ReportActionComposeInputArea from './ReportActionComposeInputArea';
-import ReportActionComposeLayout from './ReportActionComposeLayout';
-import ReportActionComposerContainer from './ReportActionComposerContainer';
-import type {ReportActionComposeProps} from './ReportActionComposeTypes';
-import ReportActionComposeWithProvider from './ReportActionComposeWithProvider';
+import EditOnlyReportActionCompose from './EditOnlyReportActionCompose';
+import type {ReportActionComposeProps} from './types';
 
 function ReportActionCompose({reportID}: ReportActionComposeProps) {
     return (
-        <ReportActionComposeWithProvider reportID={reportID}>
-            <ReportActionComposeInputArea reportID={reportID} />
-            <ReportActionComposeDefaultFooter reportID={reportID} />
-        </ReportActionComposeWithProvider>
+        <ComposerProvider reportID={reportID}>
+            <ComposerLayout reportID={reportID}>
+                <ComposerInputArea reportID={reportID} />
+            </ComposerLayout>
+            <ComposerDefaultFooter reportID={reportID} />
+        </ComposerProvider>
     );
 }
 
 ReportActionCompose.LocalTime = ComposerLocalTime;
-ReportActionCompose.Container = ReportActionComposerContainer;
+ReportActionCompose.Container = ComposerContainer;
 ReportActionCompose.ImportedState = ComposerImportedState;
 ReportActionCompose.DropZone = ComposerDropZone;
 ReportActionCompose.Box = ComposerBox;
@@ -42,14 +44,10 @@ ReportActionCompose.EditingButtons = ComposerEditingButtons;
 ReportActionCompose.Footer = ComposerFooter;
 ReportActionCompose.TypingIndicator = AgentZeroAwareTypingIndicator;
 ReportActionCompose.ExceededLength = ComposerExceededLength;
-ReportActionCompose.Layout = ReportActionComposeLayout;
-ReportActionCompose.InputArea = ReportActionComposeInputArea;
-ReportActionCompose.DefaultFooter = ReportActionComposeDefaultFooter;
-ReportActionCompose.WithProvider = ReportActionComposeWithProvider;
-ReportActionCompose.EditOnly = EditOnlyReportActionComposer;
-
-const ReportActionComposer = ReportActionCompose;
+ReportActionCompose.Layout = ComposerLayout;
+ReportActionCompose.InputArea = ComposerInputArea;
+ReportActionCompose.DefaultFooter = ComposerDefaultFooter;
+ReportActionCompose.EditOnly = EditOnlyReportActionCompose;
 
 export default ReportActionCompose;
-export {EditOnlyReportActionComposer, ReportActionComposer};
 export type {SuggestionsRef, ReportActionComposeProps};

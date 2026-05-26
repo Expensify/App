@@ -4,12 +4,12 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ComposerContainer from './ComposerContainer';
 import ComposerImportedState from './ComposerImportedState';
 import ComposerLocalTime from './ComposerLocalTime';
-import ReportActionComposerContainer from './ReportActionComposerContainer';
-import type {ReportActionComposeWithChildrenProps} from './ReportActionComposeTypes';
+import type {ReportActionComposeWithChildrenProps} from './types';
 
-function ReportActionComposeLayout({reportID, children}: ReportActionComposeWithChildrenProps) {
+function ComposerLayout({reportID, children}: ReportActionComposeWithChildrenProps) {
     const styles = useThemeStyles();
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
 
@@ -20,11 +20,11 @@ function ReportActionComposeLayout({reportID, children}: ReportActionComposeWith
         >
             <ComposerLocalTime reportID={reportID} />
             <View style={isComposerFullSize ? styles.flex1 : {}}>
-                <ReportActionComposerContainer reportID={reportID}>{children}</ReportActionComposerContainer>
+                <ComposerContainer reportID={reportID}>{children}</ComposerContainer>
                 <ComposerImportedState />
             </View>
         </View>
     );
 }
 
-export default ReportActionComposeLayout;
+export default ComposerLayout;
