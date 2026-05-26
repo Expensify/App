@@ -17,176 +17,83 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  validate:
+  authorize:
     if: |
-      github.event_name == 'pull_request_target'
-      && github.event.pull_request.draft != true
-      && !contains(github.event.pull_request.title, 'Revert')
-      && !contains(fromJSON('["OSBotify","imgbot[bot]","melvin-bot[bot]","codecov[bot]","github-actions[bot]","chatgpt-codex-connector"]'), github.actor)
-    runs-on: blacksmith-2vcpu-ubuntu-2404
-    permissions:
-      pull-requests: read
-    outputs:
-      pr_number: ${{ steps.auth.outputs.pr_number }}
-      pr_author: ${{ steps.auth.outputs.pr_author }}
-      author_association: ${{ steps.auth.outputs.author_association }}
-      is_authorized: ${{ steps.auth.outputs.is_authorized }}
-      needs_gate: ${{ steps.auth.outputs.needs_gate }}
-    steps:
-      - name: Authorize PR author
-        id: auth
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v7
-        env:
-          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-        with:
-          script: |
-            const pr = context.payload.pull_request;
-            const username = pr.user.login;
-            const authorAssoc = pr.author_association ?? 'NONE';
-            const hasWriteAccess = ['OWNER', 'MEMBER', 'COLLABORATOR'].includes(authorAssoc);
-
-            const {getOctokit} = require('@actions/github');
-            const cplusOctokit = getOctokit(process.env.OS_BOTIFY_TOKEN);
-            let isCPlus = false;
-            try {
-              await cplusOctokit.rest.teams.getMembershipForUserInOrg({
-                org: 'Expensify',
-                team_slug: 'contributor-plus',
-                username,
-              });
-              isCPlus = true;
-            } catch (error) {
-              if (error.status !== 404) {
-                throw error;
-              }
-            }
-
-            const directAuth = hasWriteAccess || isCPlus;
-
-            console.log(`author=${username}, writeAccess=${hasWriteAccess}, isCPlus=${isCPlus}, needsGate=${!directAuth}`);
-
-            core.setOutput('pr_number', String(pr.number));
-            core.setOutput('pr_author', username);
-            core.setOutput('author_association', authorAssoc);
-            core.setOutput('is_authorized', directAuth ? 'true' : 'false');
-            core.setOutput('needs_gate', directAuth ? 'false' : 'true');
-
-  validate_comment:
-    if: |
-      github.event_name == 'issue_comment'
-      && github.event.issue.pull_request
-      && contains(github.event.comment.body, '@Codex review')
-      && !contains(fromJSON('["OSBotify","imgbot[bot]","melvin-bot[bot]","codecov[bot]","github-actions[bot]","chatgpt-codex-connector"]'), github.actor)
-    runs-on: blacksmith-2vcpu-ubuntu-2404
-    permissions:
-      pull-requests: read
-    outputs:
-      pr_number: ${{ steps.auth.outputs.pr_number }}
-      pr_author: ${{ steps.auth.outputs.pr_author }}
-      author_association: ${{ steps.auth.outputs.author_association }}
-      is_authorized: ${{ steps.auth.outputs.is_authorized }}
-      needs_gate: ${{ steps.auth.outputs.needs_gate }}
-    steps:
-      - name: Authorize commenter
-        id: auth
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v7
-        env:
-          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-        with:
-          script: |
-            const prNumber = context.payload.issue.number;
-            const {owner, repo} = context.repo;
-            const {data: pr} = await github.rest.pulls.get({owner, repo, pull_number: prNumber});
-
-            const commenter = context.payload.comment.user.login;
-            const commenterAssoc = context.payload.comment.author_association ?? 'NONE';
-            const hasWriteAccess = ['OWNER', 'MEMBER', 'COLLABORATOR'].includes(commenterAssoc);
-
-            const {getOctokit} = require('@actions/github');
-            const cplusOctokit = getOctokit(process.env.OS_BOTIFY_TOKEN);
-            let isCPlus = false;
-            try {
-              await cplusOctokit.rest.teams.getMembershipForUserInOrg({
-                org: 'Expensify',
-                team_slug: 'contributor-plus',
-                username: commenter,
-              });
-              isCPlus = true;
-            } catch (error) {
-              if (error.status !== 404) {
-                throw error;
-              }
-            }
-
-            const directAuth = hasWriteAccess || isCPlus;
-            const needsGate = !directAuth && commenter === pr.user.login;
-
-            console.log(`commenter=${commenter}, writeAccess=${hasWriteAccess}, isCPlus=${isCPlus}, needsGate=${needsGate}`);
-
-            core.setOutput('pr_number', String(prNumber));
-            core.setOutput('pr_author', pr.user.login);
-            core.setOutput('author_association', pr.author_association ?? 'NONE');
-            core.setOutput('is_authorized', directAuth ? 'true' : 'false');
-            core.setOutput('needs_gate', needsGate ? 'true' : 'false');
-
-  contributor_gate:
-    needs: validate
-    if: needs.validate.outputs.needs_gate == 'true'
-    uses: ./.github/workflows/contributorValidationGate.yml
-    with:
-      PR_NUMBER: ${{ fromJSON(needs.validate.outputs.pr_number) }}
-      PR_AUTHOR: ${{ needs.validate.outputs.pr_author }}
-      AUTHOR_ASSOCIATION: ${{ needs.validate.outputs.author_association }}
-
-  comment_contributor_gate:
-    needs: validate_comment
-    if: needs.validate_comment.outputs.needs_gate == 'true'
-    uses: ./.github/workflows/contributorValidationGate.yml
-    with:
-      PR_NUMBER: ${{ fromJSON(needs.validate_comment.outputs.pr_number) }}
-      PR_AUTHOR: ${{ needs.validate_comment.outputs.pr_author }}
-      AUTHOR_ASSOCIATION: ${{ needs.validate_comment.outputs.author_association }}
-
-  codex_review:
-    needs: [validate, contributor_gate, validate_comment, comment_contributor_gate]
-    if: |
-      !cancelled()
+      !contains(fromJSON('["OSBotify","imgbot[bot]","melvin-bot[bot]","codecov[bot]","github-actions[bot]","chatgpt-codex-connector"]'), github.actor)
       && (
         (
           github.event_name == 'pull_request_target'
-          && (
-            needs.validate.outputs.is_authorized == 'true'
-            || needs.contributor_gate.outputs.IS_AUTHORIZED == 'true'
-          )
+          && github.event.pull_request.draft != true
+          && !contains(github.event.pull_request.title, 'Revert')
         )
         || (
           github.event_name == 'issue_comment'
-          && (
-            needs.validate_comment.outputs.is_authorized == 'true'
-            || needs.comment_contributor_gate.outputs.IS_AUTHORIZED == 'true'
-          )
+          && github.event.issue.pull_request
+          && contains(github.event.comment.body, '@Codex review')
         )
       )
     runs-on: blacksmith-2vcpu-ubuntu-2404
     permissions:
       pull-requests: read
     outputs:
-      pr_number: ${{ steps.resolve.outputs.pr_number }}
+      pr_number: ${{ steps.context.outputs.pr_number }}
+      is_authorized: ${{ github.event_name == 'pull_request_target' && steps.gate.outputs.IS_AUTHORIZED || steps.commenter_gate.outputs.IS_AUTHORIZED }}
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+
+      - name: Resolve PR context
+        id: context
+        run: |
+          set -euo pipefail
+
+          if [ "${{ github.event_name }}" = "pull_request_target" ]; then
+            echo "pr_number=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
+            echo "pr_author=${{ github.event.pull_request.user.login }}" >> "$GITHUB_OUTPUT"
+            echo "author_association=${{ github.event.pull_request.author_association }}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "pr_number=${{ github.event.issue.number }}" >> "$GITHUB_OUTPUT"
+          echo "commenter=${{ github.event.comment.user.login }}" >> "$GITHUB_OUTPUT"
+
+      - name: Check PR author authorization
+        id: gate
+        if: github.event_name == 'pull_request_target'
+        uses: ./.github/actions/javascript/isAuthorizedContributor
+        with:
+          PR_NUMBER: ${{ steps.context.outputs.pr_number }}
+          PR_AUTHOR: ${{ steps.context.outputs.pr_author }}
+          AUTHOR_ASSOCIATION: ${{ steps.context.outputs.author_association }}
+          GITHUB_TOKEN: ${{ github.token }}
+          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Check commenter authorization
+        id: commenter_gate
+        if: github.event_name == 'issue_comment'
+        uses: ./.github/actions/javascript/isAuthorizedContributor
+        with:
+          PR_NUMBER: ${{ steps.context.outputs.pr_number }}
+          PR_AUTHOR: ${{ steps.context.outputs.commenter }}
+          AUTHOR_ASSOCIATION: ${{ github.event.comment.author_association }}
+          GITHUB_TOKEN: ${{ github.token }}
+          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+  codex_review:
+    needs: authorize
+    if: needs.authorize.outputs.is_authorized == 'true'
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    permissions:
+      pull-requests: read
+    outputs:
+      pr_number: ${{ needs.authorize.outputs.pr_number }}
       final_message: ${{ steps.codex.outputs.final-message }}
     steps:
-      - name: Resolve PR number
-        id: resolve
-        env:
-          PR_NUMBER_FROM_PRT: ${{ needs.validate.outputs.pr_number }}
-          PR_NUMBER_FROM_COMMENT: ${{ needs.validate_comment.outputs.pr_number }}
-        run: |
-          echo "pr_number=${PR_NUMBER_FROM_PRT:-$PR_NUMBER_FROM_COMMENT}" >> "$GITHUB_OUTPUT"
-
       - name: Build Codex prompt from PR diff
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          PR_NUMBER: ${{ steps.resolve.outputs.pr_number }}
+          PR_NUMBER: ${{ needs.authorize.outputs.pr_number }}
         run: |
           set -euo pipefail
           PR_TITLE="$(gh pr view "$PR_NUMBER" --repo "$GH_REPO" --json title --jq .title)"
