@@ -673,7 +673,6 @@ function ReportActionsList({
             callback: () => {
                 reportScrollManager.scrollToBottom();
             },
-            waitForUpcomingTransition: true,
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastAction]);
