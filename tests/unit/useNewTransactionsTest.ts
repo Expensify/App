@@ -379,7 +379,7 @@ describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', 
     });
 
     it('highlights the duplicate when the table view mounts post-optimistic add and pendingNewTransactionIDs arrives a few renders later', () => {
-        const originalTx = transactionsAlreadyInReport[0];
+        const [originalTx] = transactionsAlreadyInReport;
         const duplicateTx = {...newTransaction, pendingAction: 'add' as const};
 
         // 1. Table view mounts with both txs already in Onyx cache; metadata hasn't propagated yet

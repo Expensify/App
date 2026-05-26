@@ -5,9 +5,19 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import {expandedRHPProgress, useWideRHPActions} from '..';
 import type {RHPWidth} from '..';
 
+function getWidthOrder(width: RHPWidth): number {
+    if (width === 'super-wide') {
+        return 2;
+    }
+    if (width === 'wide') {
+        return 1;
+    }
+    return 0;
+}
+
 /**
- * Manages a screen's RHP width. On 'narrow', falls back to any optimistic hint set on the report
- * so the screen still pre-renders at the right width before data settles.
+ * Manages a screen's RHP width. Optimistic hints on the reportID win until the caller settles on a width that meets or exceeds the hint —
+ * so Search can pre-mark a multi-tx report as super-wide and the screen won't flash at the loading-state width first.
  */
 function useRHPWidth(width: RHPWidth) {
     const route = useRoute();
@@ -28,14 +38,13 @@ function useRHPWidth(width: RHPWidth) {
     useEffect(() => () => onClose(), [onClose]);
 
     /**
-     * Effect that registers the route's width. A 'narrow' caller falls back to the optimistic hint
-     * (if any); once the caller passes a real width, the hint is cleared to avoid staleness on the
-     * next visit.
+     * Effect that registers the route's width. The optimistic hint overrides the caller's width when the hint is at a higher priority,
+     * and is only cleared once the caller confirms or exceeds it.
      */
     useEffect(() => {
         const hint = reportID ? getReportRHPWidthHint(reportID) : undefined;
-        const effectiveWidth = width === 'narrow' && hint ? hint : width;
-        if (reportID && hint && width !== 'narrow') {
+        const effectiveWidth: RHPWidth = hint && getWidthOrder(hint) > getWidthOrder(width) ? hint : width;
+        if (reportID && hint && getWidthOrder(width) >= getWidthOrder(hint)) {
             unmarkReportRHPWidth(reportID, hint);
         }
         setRHPWidth(route, effectiveWidth);
