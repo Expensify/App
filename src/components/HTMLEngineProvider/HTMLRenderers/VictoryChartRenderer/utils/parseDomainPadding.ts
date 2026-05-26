@@ -13,7 +13,6 @@ function parseDomainPadding(attribute: string, isHorizontal: boolean): DomainPad
         return domainPadding;
     }
     if (Array.isArray(domainPadding)) {
-        // s77rt check
         return isHorizontal ? {bottom: Number(domainPadding.at(0)), top: Number(domainPadding.at(1))} : {left: Number(domainPadding.at(0)), right: Number(domainPadding.at(1))};
     }
     if (lodashIsObject(domainPadding)) {
@@ -35,8 +34,7 @@ function parseDomainPadding(attribute: string, isHorizontal: boolean): DomainPad
             top = Number(domainPadding.y.at(1));
             bottom = Number(domainPadding.y.at(0));
         }
-        // s77rt check
-        return isHorizontal ? {left: bottom, right: top, top: left, bottom: right} : {left, right, top, bottom};
+        return isHorizontal ? {left: bottom, right: top, top: right, bottom: left} : {left, right, top, bottom};
     }
     return undefined;
 }
