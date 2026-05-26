@@ -288,7 +288,7 @@ describe('processDataIntoSlices', () => {
 
     it('uses the provided startAngle for the first slice', () => {
         const data: ChartDataPoint[] = [{label: 'Only', total: 100}];
-        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0}, 45);
+        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0}, 45);
 
         expect(slices.at(0)?.startAngle).toBe(45);
         expect(slices.at(0)?.endAngle).toBe(405);
@@ -296,7 +296,7 @@ describe('processDataIntoSlices', () => {
 
     it('defaults to VictoryTheme.pie.startAngle when no startAngle is provided', () => {
         const data: ChartDataPoint[] = [{label: 'Only', total: 100}];
-        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0});
+        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
 
         expect(slices.at(0)?.startAngle).toBe(VictoryTheme.pie.startAngle);
     });
@@ -385,7 +385,7 @@ describe('processDataIntoSlices', () => {
             {label: 'Right', total: 50},
             {label: 'Left', total: 50},
         ];
-        const slices = processDataIntoSlices(data, -90, {centerX: 200, centerY: 150, radius: 100, innerRadius: 60});
+        const slices = processDataIntoSlices(data, {centerX: 200, centerY: 150, radius: 100, innerRadius: 60}, -90);
 
         expect(slices.at(0)?.tooltipPosition.x).toBeCloseTo(280, 5);
         expect(slices.at(0)?.tooltipPosition.y).toBeCloseTo(150, 5);
