@@ -14,6 +14,7 @@ let isInitialized = false;
 // Used to distinguish stale own-write callbacks (ignore) from new requests enqueued
 // by other browser tabs (merge into memory).
 const knownRequestIDs = new Set<number>();
+const knownOngoingRequestIDs = new Set<number>();
 let crossTabRequestsCallback: (() => void) | undefined;
 // Tracks the number of unresolved Onyx.set()/Onyx.multiSet() promises initiated
 // by this tab. While any own writes are pending, the Onyx callback must NOT
@@ -168,6 +169,13 @@ Onyx.connectWithoutView({
 Onyx.connectWithoutView({
     key: ONYXKEYS.PERSISTED_ONGOING_REQUESTS,
     callback: (val) => {
+        if (!!val?.requestID && knownOngoingRequestIDs.has(val.requestID)) {
+            Log.info('[PersistedRequests] Ignoring ongoingRequest that is an own-write', false, {
+                ongoingCommand: val.command,
+            });
+            return;
+        }
+
         const previousOngoingRequest = ongoingRequest;
         ongoingRequest = val ?? null;
 
@@ -203,6 +211,7 @@ function clear() {
     persistedRequests = [];
     pendingSaveOperations = [];
     knownRequestIDs.clear();
+    knownOngoingRequestIDs.clear();
     pendingOwnOngoingRequestWrites = 0;
     Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, null);
     return trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, []));
@@ -362,6 +371,9 @@ function updateOngoingRequest<TKey extends OnyxKey>(newRequest: Request<TKey>) {
     Log.info('[PersistedRequests] Updating the ongoing request', false, {ongoingRequest, newRequest});
     ongoingRequest = newRequest as AnyRequest;
 
+    if (newRequest.requestID) {
+        knownOngoingRequestIDs.add(newRequest.requestID);
+    }
     pendingOwnOngoingRequestWrites++;
     if (shouldPersistOngoingRequest(ongoingRequest)) {
         trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, newRequest as AnyRequest)).finally(() => {
@@ -397,6 +409,9 @@ function processNextRequest(): AnyRequest | null {
 
     const nextRequest = persistedRequests.at(0) ?? null;
     ongoingRequest = nextRequest;
+    if (nextRequest?.requestID) {
+        knownOngoingRequestIDs.add(nextRequest.requestID);
+    }
 
     Log.info('[PersistedRequests] Setting new ongoingRequest', false, {
         command: ongoingRequest?.command ?? 'null',
