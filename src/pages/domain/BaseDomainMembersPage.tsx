@@ -9,7 +9,7 @@ import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -20,6 +20,7 @@ import {getLatestError} from '@libs/ErrorUtils';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
@@ -131,7 +132,6 @@ function BaseDomainMembersPage({
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
@@ -155,7 +155,7 @@ function BaseDomainMembersPage({
                 alternateText: formatPhoneNumber(login),
                 icons: [
                     {
-                        source: details?.avatar ?? icons.FallbackAvatar,
+                        source: details?.avatar ?? getDefaultAvatarURL({accountID, accountEmail: login}),
                         name: formatPhoneNumber(login),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,

@@ -26,6 +26,7 @@ import {getCommandURL} from '@libs/ApiUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
+import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -877,6 +878,7 @@ function addMemberToDomain(domainAccountID: number, email: string, defaultSecuri
                 [optimisticAccountID]: {
                     accountID: optimisticAccountID,
                     login: email,
+                    avatar: getDefaultAvatarURL({accountID: optimisticAccountID, accountEmail: email}),
                     isOptimisticPersonalDetail: true,
                 },
             },
