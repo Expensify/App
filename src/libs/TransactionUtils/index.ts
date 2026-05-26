@@ -1465,6 +1465,17 @@ function isPending(transaction: OnyxEntry<Transaction>): boolean {
 }
 
 /**
+ * Returns the appropriate delete dialog title for an expense.
+ * Shows "Delete pending expense" when deleting a single pending transaction.
+ */
+function getDeleteExpenseTitle(translate: LocaleContextProps['translate'], transaction: OnyxEntry<Transaction> | undefined, count = 1): string {
+    if (count === 1 && isPending(transaction)) {
+        return translate('iou.deletePendingExpense');
+    }
+    return translate('iou.deleteExpense', {count});
+}
+
+/**
  * Returns the appropriate delete confirmation prompt for an expense.
  * Shows a BYOC-specific warning when deleting a single pending transaction,
  * since it may be re-imported once it posts.
@@ -3053,6 +3064,7 @@ export {
     removeSettledAndApprovedTransactions,
     removeTransactionFromDuplicateTransactionViolation,
     getCardName,
+    getDeleteExpenseTitle,
     getDeleteConfirmationPrompt,
     hasReceiptSource,
     hasOdometerImageSource,
