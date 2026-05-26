@@ -1322,10 +1322,18 @@ describe('getViolationsOnyxData', () => {
                 },
             }) as unknown as Policy;
 
-        beforeEach(() => {
+        beforeEach(async () => {
             // Default to beta-enabled so the four branches of the violation logic are reachable.
             // The "beta disabled" test overrides this below.
             isBetaEnabledSpy = jest.spyOn(Permissions, 'isBetaEnabled').mockImplementation((beta) => beta === CONST.BETAS.VENDOR_MATCHING);
+            // Seed ONYXKEYS.BETAS so the module-level `allBetas` in ViolationsUtils transitions
+            // from undefined (startup) to defined. The production code skips the reconcile block
+            // entirely when `allBetas === undefined` to avoid stripping valid server-set violations
+            // during the startup window; without seeding here the tests would never reach the
+            // branches they're trying to exercise. The actual contents don't matter — the spy on
+            // `Permissions.isBetaEnabled` decides the beta result — we just need `allBetas` defined.
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.VENDOR_MATCHING]);
+            await waitForBatchedUpdates();
         });
 
         afterEach(() => {
