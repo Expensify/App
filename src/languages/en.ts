@@ -2318,7 +2318,6 @@ const translations = {
 
             <strong>Note</strong>: Setting up two-factor authentication will log you out of all other active sessions.
         `),
-        screenshotTip: 'Tip: Screenshot this to save it to your photo library',
         errorStepCodes: 'Please copy or download codes before continuing',
         stepVerify: 'Verify',
         scanCode: 'Scan the QR code using your',
