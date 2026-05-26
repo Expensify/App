@@ -5743,12 +5743,14 @@ const staticStyles = (theme: ThemeColors) =>
         todoBadge: {
             alignItems: 'center',
             justifyContent: 'center',
+            width: 28,
         },
 
         searchSectionBadge: {
             alignItems: 'center',
             justifyContent: 'center',
             height: 16,
+            width: 28,
         },
 
         stickToBottom: {
