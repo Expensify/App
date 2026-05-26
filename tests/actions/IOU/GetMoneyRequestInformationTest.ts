@@ -225,17 +225,6 @@ describe('getMoneyRequestInformation', () => {
             expect(optimisticEntry).toBeDefined();
         });
 
-        it('clears the flag in successData so it does not linger when no UI observer mounts to run the in-memory cleanup', () => {
-            const result = getMoneyRequestInformation(baseParams);
-            const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${result.iouReport.reportID}`;
-            const newTxID = result.transaction.transactionID;
-
-            const successEntry = result.onyxData.successData?.find(
-                (entry) => entry.key === expectedKey && (entry.value as PendingNewTransactionIDsMetadata)?.pendingNewTransactionIDs?.[newTxID] === null,
-            );
-            expect(successEntry).toBeDefined();
-        });
-
         it('clears the flag in failureData when the optimistic write rolls back', () => {
             const result = getMoneyRequestInformation(baseParams);
             const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${result.iouReport.reportID}`;
