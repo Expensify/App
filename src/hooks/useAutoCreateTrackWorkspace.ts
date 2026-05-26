@@ -101,7 +101,6 @@ function useAutoCreateTrackWorkspace() {
                     personalTrackGoal: onboardingPersonalTrackGoal ?? undefined,
                     introSelected,
                     isSelfTourViewed,
-                    betas,
                 });
 
                 if (isSidePanelReportSupported) {

@@ -66,7 +66,7 @@ import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt, ReceiptSource, SplitShares, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {buildParticipantsPolicyTags, getAllPersonalDetails, getAllReports, getAllTransactionDrafts, getAllTransactions, getMoneyRequestPolicyTags, getUserAccountID} from './index';
+import {buildParticipantsPolicyTags, getAllPersonalDetails, getAllReports, getAllTransactionDrafts, getAllTransactions, getMoneyRequestPolicyTags} from './index';
 import {
     buildMinimalTransactionForFormula,
     buildOnyxDataForMoneyRequest,
@@ -999,6 +999,9 @@ function completeSplitBill(
                 // Because of the Expense reports are stored as negative values, we subtract the total from the amount
                 oneOnOneIOUReport.total -= splitAmount;
             }
+            if (typeof oneOnOneIOUReport?.reimbursableTotal === 'number') {
+                oneOnOneIOUReport.reimbursableTotal -= splitAmount;
+            }
         } else {
             oneOnOneIOUReport = updateIOUOwnerAndTotal(oneOnOneIOUReport, sessionAccountID, splitAmount, currency ?? '');
         }
@@ -1143,7 +1146,7 @@ function completeSplitBill(
 /**
  * Sets the `splitShares` map that holds individual shares of a split bill
  */
-function setSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, amount: number, currency: string, newAccountIDs: number[], isDraft = true) {
+function setSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, amount: number, currency: string, newAccountIDs: number[], currentUserAccountID: number, isDraft = true) {
     if (!transaction) {
         return;
     }
@@ -1162,20 +1165,20 @@ function setSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, amount: n
     // Create an array containing unique IDs of the current transaction participants and the new ones
     // The current userAccountID might not be included in newAccountIDs if this is called from the participants step using Global Create
     // If this is called from an existing group chat, it'll be included. So we manually add them to account for both cases.
-    const accountIDs = [...new Set<number>([getUserAccountID(), ...newAccountIDs, ...oldAccountIDs])];
+    const accountIDs = [...new Set<number>([currentUserAccountID, ...newAccountIDs, ...oldAccountIDs])];
 
     const splitShares: SplitShares = accountIDs.reduce((acc: SplitShares, accountID): SplitShares => {
         // We want to replace the contents of splitShares to contain only `newAccountIDs` entries
         // In the case of going back to the participants page and removing a participant
         // a simple merge will have the previous participant still present in the splitShares object
         // So we manually set their entry to null
-        if (!newAccountIDs.includes(accountID) && accountID !== getUserAccountID()) {
+        if (!newAccountIDs.includes(accountID) && accountID !== currentUserAccountID) {
             acc[accountID] = null;
             return acc;
         }
 
-        const isPayer = accountID === getUserAccountID();
-        const participantsLength = newAccountIDs.includes(getUserAccountID()) ? newAccountIDs.length - 1 : newAccountIDs.length;
+        const isPayer = accountID === currentUserAccountID;
+        const participantsLength = newAccountIDs.includes(currentUserAccountID) ? newAccountIDs.length - 1 : newAccountIDs.length;
         const splitAmount = calculateIOUAmount(participantsLength, amount, currency, isPayer);
         acc[accountID] = {
             amount: splitAmount,
@@ -1187,15 +1190,15 @@ function setSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, amount: n
     Onyx.merge(`${collectionKey}${transaction.transactionID}`, {splitShares});
 }
 
-function resetSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, newAmount?: number, currency?: string, isDraft = true) {
+function resetSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, newAmount: number | undefined, currency: string | undefined, currentUserAccountID: number, isDraft = true) {
     if (!transaction) {
         return;
     }
     const accountIDs = Object.keys(transaction.splitShares ?? {}).map((key) => Number(key));
-    if (!accountIDs) {
+    if (accountIDs.length === 0) {
         return;
     }
-    setSplitShares(transaction, newAmount ?? transaction.amount, currency ?? transaction.currency, accountIDs, isDraft);
+    setSplitShares(transaction, newAmount ?? transaction.amount, currency ?? transaction.currency, accountIDs, currentUserAccountID, isDraft);
 }
 
 function setDraftSplitTransaction(
@@ -1671,8 +1674,16 @@ function createSplitsAndOnyxData({
                     oneOnOneIOUReport.total -= splitAmount;
                 }
 
+                if (typeof oneOnOneIOUReport.reimbursableTotal === 'number') {
+                    oneOnOneIOUReport.reimbursableTotal -= splitAmount;
+                }
+
                 if (typeof oneOnOneIOUReport.unheldTotal === 'number') {
                     oneOnOneIOUReport.unheldTotal -= splitAmount;
+                }
+
+                if (typeof oneOnOneIOUReport.unheldReimbursableTotal === 'number') {
+                    oneOnOneIOUReport.unheldReimbursableTotal -= splitAmount;
                 }
             }
         } else {
@@ -2154,8 +2165,14 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;
 
     if (shouldHandleNavigation) {
+        const navigationActiveReportID = backToReport ?? activeReportID;
         highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, parameters.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
-        handleNavigateAfterExpenseCreate({activeReportID: backToReport ?? activeReportID, isFromGlobalCreate, transactionID: parameters.transactionID});
+        handleNavigateAfterExpenseCreate({
+            activeReportID: navigationActiveReportID,
+            isFromGlobalCreate,
+            transactionID: parameters.transactionID,
+            shouldAddPendingNewTransactionIDs: navigationActiveReportID === parameters.chatReportID,
+        });
     }
 
     if (!isMoneyRequestReport) {
