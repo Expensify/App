@@ -374,6 +374,7 @@ const CONST = {
 
     AUTH_METHOD: {
         SAML: 'saml',
+        SHORT_LIVED_AUTH_TOKEN: 'shortLivedAuthToken',
     },
 
     AVATAR_MAX_ATTACHMENT_SIZE: 6291456,
