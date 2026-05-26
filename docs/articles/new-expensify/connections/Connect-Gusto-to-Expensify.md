@@ -75,6 +75,8 @@ After connecting Gusto, choose an approval mode that determines how expense repo
 
 - **Basic Approval** — All employees submit reports to a single final approver.
 - **Manager Approval** — Reports first go to the employee's direct manager (synced from Gusto), then to a final approver.
+- **Custom Approval** — Employees are synced from Gusto, but approval workflows are managed manually in Expensify.
+
 
 To change the approval mode or final approver on your workspace:
 
@@ -84,6 +86,8 @@ To change the approval mode or final approver on your workspace:
 4. Click **Save**.
 
 When **Manager Approval** is selected, approval workflows are automatically built from the manager relationships in Gusto. These approval workflows appear on the **Workflows** tab with a Gusto indicator. The **Approvals** toggle on the **Workflows** tab is locked on and cannot be turned off while Gusto is connected.
+
+When **Custom Approval** is selected, the **Workflows** tab remains fully editable. Workspace members are synced from Gusto, but approval workflows are configured manually by a Workspace Admin.
 
 To change approval settings, use the **HR** tab rather than the **Workflows** tab.
 
@@ -124,7 +128,7 @@ Employees may be skipped if they do not have a work email address in Gusto, or i
 
 ## Will my employees receive a notification when synced?
 
-Yes. Each synced employee receives a welcome email at their work email address with account setup instructions.
+Yes. Each synced employee that is newly invited to a workdpace receives a welcome email at their work email address with account setup instructions.
 
 ## Can I change the approval mode after connecting?
 
