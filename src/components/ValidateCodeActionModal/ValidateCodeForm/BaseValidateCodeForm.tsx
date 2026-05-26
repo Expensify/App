@@ -179,11 +179,7 @@ function BaseValidateCodeForm({
                 return;
             }
 
-            // Android only opens the soft keyboard once the app window has focus, so we
-            // chain: wait for the screen transition to finish, then for the window-focus
-            // signal (a no-op on iOS and web), then focus the input. isCancelled guards
-            // against a late isWindowReadyToFocus resolution stealing focus after the
-            // screen has unfocused (e.g. window was blurred when transitionEnd fired).
+            // Android only opens the soft keyboard once the app window has focus.
             let didFocus = false;
             let isCancelled = false;
             const focusOnce = () => {
@@ -192,6 +188,7 @@ function BaseValidateCodeForm({
                 }
                 didFocus = true;
                 isWindowReadyToFocus().then(() => {
+                    // Skip if the screen lost focus while the window-ready promise was pending, to avoid stealing focus.
                     if (isCancelled) {
                         return;
                     }
@@ -199,15 +196,14 @@ function BaseValidateCodeForm({
                 });
             };
 
-            const unsubscribeTransitionEnd = navigation.addListener?.('transitionEnd', (event) => {
+            const unsubscribeTransitionEnd = navigation?.addListener?.('transitionEnd', (event) => {
                 if (event?.data?.closing) {
                     return;
                 }
                 focusOnce();
             });
 
-            // Fallback in case `transitionEnd` does not fire (e.g. when the screen is
-            // already focused while this effect runs).
+            // Fallback in case `transitionEnd` does not fire.
             focusTimeoutRef.current = setTimeout(focusOnce, CONST.SCREEN_TRANSITION_END_TIMEOUT);
 
             return () => {
