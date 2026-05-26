@@ -3,7 +3,7 @@ import FilterComponents from '@components/Search/FilterComponents';
 import type {FilterComponentsProps} from '@components/Search/FilterComponents';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
 import BasePopup from './BasePopup';
-import type {PopoverComponentProps} from './FilterPopupButton';
+import type {PopoverComponentProps} from './DropdownButton';
 
 type CommonPopupProps = {
     filterKey: FilterComponentsProps['filterKey'];
