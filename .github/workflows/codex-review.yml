@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  authorize:
+  codex_review:
     if: |
       !contains(fromJSON('["OSBotify","imgbot[bot]","melvin-bot[bot]","codecov[bot]","github-actions[bot]","chatgpt-codex-connector"]'), github.actor)
       && (
@@ -35,9 +35,7 @@ jobs:
     runs-on: blacksmith-2vcpu-ubuntu-2404
     permissions:
       pull-requests: read
-    outputs:
-      pr_number: ${{ steps.context.outputs.pr_number }}
-      is_authorized: ${{ steps.gate.outputs.IS_AUTHORIZED }}
+      issues: write
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
@@ -68,19 +66,12 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-  codex_review:
-    needs: authorize
-    if: needs.authorize.outputs.is_authorized == 'true'
-    runs-on: blacksmith-2vcpu-ubuntu-2404
-    permissions:
-      pull-requests: read
-      issues: write
-    steps:
       - name: Build Codex prompt from PR diff
+        if: steps.gate.outputs.IS_AUTHORIZED == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          PR_NUMBER: ${{ needs.authorize.outputs.pr_number }}
+          PR_NUMBER: ${{ steps.context.outputs.pr_number }}
         run: |
           set -euo pipefail
           PR_TITLE="$(gh pr view "$PR_NUMBER" --repo "$GH_REPO" --json title --jq .title)"
@@ -108,6 +99,7 @@ jobs:
           } > prompt.txt
 
       - name: Run Codex review
+        if: steps.gate.outputs.IS_AUTHORIZED == 'true'
         id: codex
         uses: openai/codex-action@e0fdf01220eb9a88167c4898839d273e3f2609d1 # v1
         with:
@@ -117,10 +109,10 @@ jobs:
           prompt-file: prompt.txt
 
       - name: Post Codex feedback
-        if: steps.codex.outputs.final-message != ''
+        if: steps.gate.outputs.IS_AUTHORIZED == 'true' && steps.codex.outputs.final-message != ''
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v7
         env:
-          PR_NUMBER: ${{ needs.authorize.outputs.pr_number }}
+          PR_NUMBER: ${{ steps.context.outputs.pr_number }}
           CODEX_FINAL_MESSAGE: ${{ steps.codex.outputs.final-message }}
           WORKFLOW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
