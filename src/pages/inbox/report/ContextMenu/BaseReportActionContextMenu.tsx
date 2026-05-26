@@ -1,4 +1,4 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {deepEqual} from 'fast-equals';
 import type {RefObject} from 'react';
 import React, {memo, useMemo, useRef, useState} from 'react';
@@ -12,7 +12,7 @@ import CompactMenuContext from '@components/CompactMenuContext';
 import ContextMenuItem from '@components/ContextMenuItem';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
-import {useSession} from '@components/OnyxListItemProvider';
+import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -184,10 +184,8 @@ function BaseReportActionContextMenu({
     const lhnOneTransactionThreadReportID = getOneTransactionThreadReportID(report, reportChatReport, reportActions);
     const [lhnOneTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(lhnOneTransactionThreadReportID)}`);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`);
-    const [harvestReport] = useOnyx(
-        `${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(getHarvestOriginalReportID(reportNameValuePairs?.origin, reportNameValuePairs?.originalID))}`,
-        {},
-    );
+    const harvestReportOriginalID = getNonEmptyStringOnyxID(getHarvestOriginalReportID(reportNameValuePairs?.origin, reportNameValuePairs?.originalID));
+    const [harvestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${harvestReportOriginalID}`, {});
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const policyID = report?.policyID;
@@ -242,9 +240,11 @@ function BaseReportActionContextMenu({
     const {transactions} = useTransactionsAndViolationsForReport(childReport?.reportID);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const personalDetails = usePersonalDetails();
     const reportAttributes = useReportAttributes();
     const delegateAccountID = useDelegateAccountID();
 
@@ -395,11 +395,13 @@ function BaseReportActionContextMenu({
                                 interceptAnonymousUser,
                                 openOverflowMenu,
                                 setIsEmojiPickerActive,
+                                personalDetails,
                                 isHarvestReport,
                                 moneyRequestAction,
                                 card,
                                 originalReport,
                                 isTryNewDotNVPDismissed,
+                                isTrackIntentUser,
                                 childReport,
                                 movedFromReport,
                                 movedToReport,
@@ -408,6 +410,7 @@ function BaseReportActionContextMenu({
                                 policyTags,
                                 translate,
                                 harvestReport,
+                                harvestReportOriginalID,
                                 introSelected,
                                 isSelfTourViewed,
                                 betas,

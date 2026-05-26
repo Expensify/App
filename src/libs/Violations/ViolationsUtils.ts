@@ -716,6 +716,7 @@ const ViolationsUtils = {
             cardID,
             message = '',
             errorIndexes = [],
+            missingFields = [],
         } = violation.data ?? {};
 
         switch (violation.name) {
@@ -801,7 +802,7 @@ const ViolationsUtils = {
                 );
             }
             case 'smartscanFailed':
-                return translate('violations.smartscanFailed', {canEdit});
+                return translate('violations.smartscanFailed', {canEdit, missingFields});
             case 'someTagLevelsRequired':
                 return getTagViolationMessagesForMultiLevelTags(tagName, errorIndexes, tags ?? {}, translate);
             case 'tagOutOfPolicy':

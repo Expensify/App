@@ -14,7 +14,7 @@ import ROUTES from '@src/ROUTES';
 import type {BillingGraceEndPeriod, Policy, Report, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
-import {initSplitExpenseItemData, updateSplitExpenseDistanceFromAmount} from './IOU/SplitExpenseItems';
+import {initDraftSplitExpenseDataForEdit, initSplitExpenseItemData, updateSplitExpenseDistanceFromAmount} from './IOU/SplitExpenseItems';
 
 // We use connectWithoutView because `initSplitExpense` doesn't affect the UI rendering and
 // this avoids unnecessary re-rendering for components when any transaction changes. This data should ONLY
@@ -67,7 +67,7 @@ Onyx.connectWithoutView({
 /**
  * Create a draft transaction to set up split expense details for the split expense flow
  */
-function initSplitExpense(transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>): void {
+function initSplitExpense(transaction: OnyxEntry<Transaction>, policy?: OnyxEntry<Policy>, {navigateToEditSplitExpense = false}: {navigateToEditSplitExpense?: boolean} = {}): void {
     if (!transaction) {
         return;
     }
@@ -109,6 +109,14 @@ function initSplitExpense(transaction: OnyxEntry<Transaction>, policy: OnyxEntry
         });
 
         Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, draftTransaction);
+        if (navigateToEditSplitExpense) {
+            const splitExpenseOverviewRoute = isSearchTopmostFullScreenRoute()
+                ? ROUTES.SPLIT_EXPENSE_SEARCH.getRoute(reportID, originalTransactionID, undefined, Navigation.getActiveRoute())
+                : ROUTES.SPLIT_EXPENSE.getRoute(reportID, originalTransactionID, undefined, Navigation.getActiveRoute());
+            initDraftSplitExpenseDataForEdit(draftTransaction, transaction.transactionID, reportID);
+            Navigation.navigate(ROUTES.SPLIT_EXPENSE_EDIT.getRoute(reportID, originalTransactionID, transaction.transactionID, splitExpenseOverviewRoute));
+            return;
+        }
         if (isSearchTopmostFullScreenRoute()) {
             Navigation.navigate(ROUTES.SPLIT_EXPENSE_SEARCH.getRoute(reportID, originalTransactionID, transaction.transactionID, Navigation.getActiveRoute()));
         } else {
@@ -170,6 +178,7 @@ function initSplitExpense(transaction: OnyxEntry<Transaction>, policy: OnyxEntry
 
     const draftTransaction = buildOptimisticTransaction({
         originalTransactionID: transaction.transactionID,
+        existingTransaction: transaction,
         transactionParams: {
             splitExpenses,
             splitExpensesTotal: splitExpenses.reduce((total, item) => total + item.amount, 0),
@@ -180,6 +189,9 @@ function initSplitExpense(transaction: OnyxEntry<Transaction>, policy: OnyxEntry
             attendees: transactionDetails?.attendees as Attendee[],
             reportID,
             reimbursable: transactionDetails?.reimbursable,
+            customUnit: transaction?.comment?.customUnit,
+            odometerStart: transaction?.comment?.odometerStart,
+            odometerEnd: transaction?.comment?.odometerEnd,
         },
     });
 
