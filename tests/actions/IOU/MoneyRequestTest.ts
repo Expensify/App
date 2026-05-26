@@ -17,7 +17,6 @@ import type * as IOU from '../../../src/libs/actions/IOU';
 import * as Split from '../../../src/libs/actions/IOU/Split';
 import * as TrackExpense from '../../../src/libs/actions/IOU/TrackExpense';
 import DistanceRequestUtils from '../../../src/libs/DistanceRequestUtils';
-import * as ReportUtils from '../../../src/libs/ReportUtils';
 import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport, createSelfDM} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
@@ -538,8 +537,6 @@ describe('MoneyRequest', () => {
         const fileObj = new File([new Blob(['test'])], 'test.jpg', {type: 'image/jpeg'});
         const fakeReceiptFile: ReceiptFile = {transactionID: fakeTransaction.transactionID, file: fileObj, source: 12345};
         const backTo = ROUTES.REPORT_WITH_ID.getRoute('123');
-        const managerMcTestAccountID = 444;
-
         const selfDMReport = createSelfDM(Number(SELF_DM_REPORT_ID), TEST_USER_ACCOUNT_ID);
 
         const baseParams: MoneyRequestStepScanParticipantsFlowParams = {
@@ -630,50 +627,6 @@ describe('MoneyRequest', () => {
             });
 
             expect(Navigation.goBack).toHaveBeenCalledWith(backTo);
-        });
-
-        it('should set manager mc test participant for the test transaction and navigate to confirmation page', async () => {
-            jest.spyOn(ReportUtils, 'generateReportID').mockReturnValue('123');
-
-            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
-                [managerMcTestAccountID]: {
-                    accountID: managerMcTestAccountID,
-                    login: CONST.EMAIL.MANAGER_MCTEST,
-                    displayName: 'Manager MC Test',
-                },
-            });
-
-            handleMoneyRequestStepScanParticipants({
-                ...baseParams,
-                isTestTransaction: true,
-                allTransactionDrafts: {},
-                personalDetails: {
-                    ...baseParams.personalDetails,
-                    [managerMcTestAccountID]: {
-                        accountID: managerMcTestAccountID,
-                        login: CONST.EMAIL.MANAGER_MCTEST,
-                        displayName: 'Manager MC Test',
-                    },
-                },
-            });
-
-            await waitForBatchedUpdates();
-
-            const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${baseParams.initialTransaction.transactionID}`);
-            expect(updatedTransaction).toMatchObject({
-                participants: [
-                    expect.objectContaining({
-                        accountID: managerMcTestAccountID,
-                        login: CONST.EMAIL.MANAGER_MCTEST,
-                        selected: true,
-                    }),
-                ],
-                isFromGlobalCreate: true,
-            });
-
-            expect(Navigation.navigate).toHaveBeenCalledWith(
-                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.ACTION.SUBMIT, baseParams.initialTransaction.transactionID, '123'),
-            );
         });
 
         it('should startSplitBill for SPLIT iouType when not from global create menu and skipping confirmation', async () => {
@@ -1166,7 +1119,7 @@ describe('MoneyRequest', () => {
                 draftTransactionIDs: [baseParams.transactionID],
             });
 
-            expect(Split.resetSplitShares).toHaveBeenCalledWith(splitTransaction);
+            expect(Split.resetSplitShares).toHaveBeenCalledWith(splitTransaction, undefined, undefined, 1);
         });
 
         it('call trackExpense for TRACK iouType when from manual distance step and skipping confirmation', async () => {

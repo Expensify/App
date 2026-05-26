@@ -323,6 +323,8 @@ function Camera({onCapture, shouldAcceptMultipleFiles = false, onLayout, onCamer
                                         cameraTabIndex={1}
                                         forceInactive={isAttachmentPickerActive || didCapturePhoto}
                                         onInitialized={handleCameraInitialized}
+                                        // Use TextureView on Android to fix partially blank images for takeSnapshot()
+                                        androidPreviewViewType="texture-view"
                                     />
                                     <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
                                     <Animated.View
