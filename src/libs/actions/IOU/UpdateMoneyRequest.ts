@@ -424,7 +424,10 @@ function updateMoneyRequestAttendees({
  * Passing `vendorID=''` clears the vendor from the transaction.
  */
 function updateMoneyRequestVendor(transactionID: string, vendorID: string, transaction?: OnyxEntry<OnyxTypes.Transaction>) {
-    const previousVendor = transaction?.comment?.vendor;
+    // Fall back to the cached Onyx transaction when the caller doesn't pass one so failureData can
+    // restore the actual previous vendor on API failure instead of clearing it.
+    const resolvedTransaction = transaction ?? getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const previousVendor = resolvedTransaction?.comment?.vendor;
     const optimisticReportActionID = rand64();
     const isClearing = !vendorID;
 
