@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
+import type {SearchFilterSelectionListProps} from '@components/Search/types';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -11,7 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import MultiSelect from './MultiSelect';
 
-type BankAccountSelectorProps = {
+type BankAccountSelectorProps = SearchFilterSelectionListProps & {
     value: string[] | undefined;
     onChange: (bankAccounts: string[]) => void;
 };
