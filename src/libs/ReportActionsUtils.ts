@@ -4569,8 +4569,6 @@ function hasReasoning(action: OnyxInputOrEntry<ReportAction>): boolean {
     return !!originalMessage && typeof originalMessage === 'object' && 'reasoning' in originalMessage && !!originalMessage.reasoning;
 }
 
-export {getAddExpensifyCardRuleMessage, getRemoveExpensifyCardRuleMessage, getUpdateExpensifyCardRuleMessage} from './SpendRuleChangeLogUtils';
-
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,

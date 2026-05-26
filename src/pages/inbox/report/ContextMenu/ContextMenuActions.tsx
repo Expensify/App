@@ -33,7 +33,6 @@ import {
     getAddedBudgetMessage,
     getAddedCardFeedMessage,
     getAddedConnectionMessage,
-    getAddExpensifyCardRuleMessage,
     getAssignedCompanyCardMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
@@ -79,7 +78,6 @@ import {
     getReimburserUpdateMessage,
     getRemovedCardFeedMessage,
     getRemovedConnectionMessage,
-    getRemoveExpensifyCardRuleMessage,
     getRenamedAction,
     getRenamedCardFeedMessage,
     getReportAction,
@@ -110,7 +108,6 @@ import {
     getUpdatedSharedBudgetNotificationMessage,
     getUpdatedTimeEnabledMessage,
     getUpdatedTimeRateMessage,
-    getUpdateExpensifyCardRuleMessage,
     getUpdateRoomDescriptionMessage,
     getWorkspaceAttendeeTrackingUpdateMessage,
     getWorkspaceCategoriesUpdatedMessage,
@@ -187,6 +184,7 @@ import {
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesReportUtils,
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
+import {getAddExpensifyCardRuleMessage, getRemoveExpensifyCardRuleMessage, getUpdateExpensifyCardRuleMessage} from '@libs/SpendRuleChangeLogUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
 import {setDownload} from '@userActions/Download';
 import {toggleEmojiReaction} from '@userActions/EmojiReactions';

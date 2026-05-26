@@ -3,24 +3,10 @@ import type {ValueOf} from 'type-fest';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type ReportAction from '@src/types/onyx/ReportAction';
-import type {OriginalMessage} from '@src/types/onyx/ReportAction';
-import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {convertAmountToDisplayString} from './CurrencyUtils';
 import Parser from './Parser';
 import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowupListFromHtml';
-
-function isActionOfType<T extends ReportActionName>(action: OnyxEntry<ReportAction>, actionName: T): action is ReportAction<T> {
-    return action?.actionName === actionName;
-}
-
-function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxEntry<ReportAction<T>>): OriginalMessage<T> | undefined {
-    const candidate = !Array.isArray(reportAction?.message) ? (reportAction?.message ?? reportAction?.originalMessage) : reportAction?.originalMessage;
-
-    if (candidate === null || typeof candidate !== 'object') {
-        return undefined;
-    }
-    return candidate as OriginalMessage<T>;
-}
+import {getOriginalMessage, isActionOfType} from './ReportActionsUtils';
 
 function getSpendRuleFallbackReportActionText(reportAction: OnyxEntry<ReportAction>): string {
     const message = Array.isArray(reportAction?.message) ? reportAction?.message.at(0) : reportAction?.message;

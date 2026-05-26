@@ -42,7 +42,6 @@ import {
     getAddedBudgetMessage,
     getAddedCardFeedMessage,
     getAddedConnectionMessage,
-    getAddExpensifyCardRuleMessage,
     getAssignedCompanyCardMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
@@ -79,7 +78,6 @@ import {
     getReimburserUpdateMessage,
     getRemovedCardFeedMessage,
     getRemovedConnectionMessage,
-    getRemoveExpensifyCardRuleMessage,
     getRenamedAction,
     getRenamedCardFeedMessage,
     getReportAction,
@@ -111,7 +109,6 @@ import {
     getUpdatedSharedBudgetNotificationMessage,
     getUpdatedTimeEnabledMessage,
     getUpdatedTimeRateMessage,
-    getUpdateExpensifyCardRuleMessage,
     getUpdateRoomDescriptionMessage,
     getWorkspaceAttendeeTrackingUpdateMessage,
     getWorkspaceCategoriesUpdatedMessage,
@@ -198,6 +195,7 @@ import {
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
 } from './ReportUtils';
+import {getAddExpensifyCardRuleMessage, getRemoveExpensifyCardRuleMessage, getUpdateExpensifyCardRuleMessage} from './SpendRuleChangeLogUtils';
 import StringUtils from './StringUtils';
 import {getTaskReportActionMessage} from './TaskUtils';
 

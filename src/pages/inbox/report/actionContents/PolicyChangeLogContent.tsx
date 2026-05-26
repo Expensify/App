@@ -10,7 +10,6 @@ import {
     getAddedBudgetMessage,
     getAddedCardFeedMessage,
     getAddedConnectionMessage,
-    getAddExpensifyCardRuleMessage,
     getAssignedCompanyCardMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
@@ -37,7 +36,6 @@ import {
     getReimburserUpdateMessage,
     getRemovedCardFeedMessage,
     getRemovedConnectionMessage,
-    getRemoveExpensifyCardRuleMessage,
     getRenamedCardFeedMessage,
     getRequireCompanyCardsEnabledMessage,
     getSetAutoJoinMessage,
@@ -62,7 +60,6 @@ import {
     getUpdatedSharedBudgetNotificationMessage,
     getUpdatedTimeEnabledMessage,
     getUpdatedTimeRateMessage,
-    getUpdateExpensifyCardRuleMessage,
     getWorkspaceAttendeeTrackingUpdateMessage,
     getWorkspaceCategoriesUpdatedMessage,
     getWorkspaceCategoryUpdateMessage,
@@ -85,6 +82,7 @@ import {
     getWorkspaceUpdateFieldMessage,
 } from '@libs/ReportActionsUtils';
 import {getWorkspaceNameUpdatedMessage} from '@libs/ReportUtils';
+import {getAddExpensifyCardRuleMessage, getRemoveExpensifyCardRuleMessage, getUpdateExpensifyCardRuleMessage} from '@libs/SpendRuleChangeLogUtils';
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
