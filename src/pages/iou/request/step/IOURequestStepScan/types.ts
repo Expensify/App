@@ -67,7 +67,7 @@ type UseMobileReceiptScanParams = {
     receiptFiles: ReceiptFile[];
 
     /** Callback to navigate to the confirmation step */
-    navigateToConfirmationStep: (files: ReceiptFile[], locationPermissionGranted?: boolean, isTestTransaction?: boolean) => void;
+    navigateToConfirmationStep: (files: ReceiptFile[], locationPermissionGranted?: boolean) => void;
 
     /** Whether the confirmation step should be skipped */
     shouldSkipConfirmation: boolean;
