@@ -565,6 +565,7 @@ function getCardFeedsForDisplayPerPolicy(
     allCardFeeds: OnyxCollection<CardFeeds>,
     translate: LocalizedTranslate,
     feedKeysWithCards?: FeedKeysWithAssignedCards,
+    policies?: OnyxCollection<Policy>,
 ): Record<string, CardFeedForDisplay[]> {
     const cardFeedsForDisplayPerPolicy = {} as Record<string, CardFeedForDisplay[]>;
 
@@ -581,15 +582,40 @@ function getCardFeedsForDisplayPerPolicy(
             const linkedPolicyIDs = feedData && 'linkedPolicyIDs' in feedData ? feedData.linkedPolicyIDs : undefined;
             const feed = key as CardFeedWithNumber;
             const id = `${fundID}_${feed}`;
-
-            (cardFeedsForDisplayPerPolicy[preferredPolicy] ||= []).push({
+            const feedEntry: CardFeedForDisplay = {
                 id,
                 feed,
                 country,
                 fundID,
                 linkedPolicyIDs,
                 name: getCustomOrFormattedFeedName(translate, feed, cardFeeds?.settings?.companyCardNicknames?.[feed], false) ?? feed,
-            });
+            };
+
+            const validLinkedPolicyIDs = linkedPolicyIDs?.filter(Boolean);
+            if (validLinkedPolicyIDs?.length) {
+                // Index the feed under each linked policy so it appears for all of them
+                for (const linkedPolicyID of validLinkedPolicyIDs) {
+                    (cardFeedsForDisplayPerPolicy[linkedPolicyID] ||= []).push(feedEntry);
+                }
+            } else if (preferredPolicy) {
+                (cardFeedsForDisplayPerPolicy[preferredPolicy] ||= []).push(feedEntry);
+            } else {
+                // Orphan feed: no linkedPolicyIDs and no preferredPolicy.
+                // Find policies whose workspaceAccountID matches the fundID so the feed
+                // still appears under the correct workspace.
+                const numericFundID = Number(fundID);
+                const matchingPolicies = Object.values(policies ?? {}).filter((policy) => policy?.workspaceAccountID === numericFundID);
+                if (matchingPolicies.length) {
+                    for (const policy of matchingPolicies) {
+                        if (policy?.id) {
+                            (cardFeedsForDisplayPerPolicy[policy.id] ||= []).push(feedEntry);
+                        }
+                    }
+                } else {
+                    // Still store under empty key so the feed is not silently lost
+                    (cardFeedsForDisplayPerPolicy[''] ||= []).push(feedEntry);
+                }
+            }
         }
     }
 

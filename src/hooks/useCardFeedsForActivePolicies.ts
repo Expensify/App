@@ -24,13 +24,14 @@ function useEligiblePoliciesSelector() {
 const useCardFeedsForActivePolicies = () => {
     const {translate} = useLocalize();
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const eligiblePoliciesSelector = useEligiblePoliciesSelector();
     const [eligiblePoliciesIDsArray] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: eligiblePoliciesSelector,
     });
 
-    const allCardFeedsByPolicy = getCardFeedsForDisplayPerPolicy(allFeeds, translate, feedKeysWithCards);
+    const allCardFeedsByPolicy = getCardFeedsForDisplayPerPolicy(allFeeds, translate, feedKeysWithCards, allPolicies);
     const eligiblePolicyIdsSet = new Set(eligiblePoliciesIDsArray ?? []);
     const cardFeedsByPolicy = Object.fromEntries(Object.entries(allCardFeedsByPolicy).filter(([policyID]) => eligiblePolicyIdsSet.has(policyID)));
 

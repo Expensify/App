@@ -199,9 +199,12 @@ describe('Card Feed Utils', () => {
             },
         };
         const result = getCardFeedsForDisplayPerPolicy(cardFeedsWithLinkedPolicies, translateLocal);
-        expect(result.POL2).toHaveLength(1);
-        expect(result.POL2?.at(0)?.linkedPolicyIDs).toEqual(linkedPolicyIDs);
-        expect(result.POL2?.at(0)?.id).toBe('1234_stripe');
+        expect(result.POLICY_A).toHaveLength(1);
+        expect(result.POLICY_A?.at(0)?.linkedPolicyIDs).toEqual(linkedPolicyIDs);
+        expect(result.POLICY_A?.at(0)?.id).toBe('1234_stripe');
+        expect(result.POLICY_B).toHaveLength(1);
+        expect(result.POLICY_B?.at(0)?.linkedPolicyIDs).toEqual(linkedPolicyIDs);
+        expect(result.POLICY_B?.at(0)?.id).toBe('1234_stripe');
     });
 });
 

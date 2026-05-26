@@ -22,6 +22,19 @@ function hasLoadedExpensifyCardSettings(settings: ExpensifyCardSettings | undefi
     return !!settings && Object.keys(settings).length > 1;
 }
 
+/**
+ * Determines whether an Expensify card feed should be visible to the current user.
+ *
+ * The function uses a fallback chain to decide visibility:
+ *  1. If the feed has `linkedPolicyIDs`, show it when the user is an admin of at least one
+ *     linked policy that is not pending deletion.
+ *  2. Otherwise, if the feed has a `preferredPolicy`, show it when the user is an admin of
+ *     that policy and the policy is not pending deletion.
+ *  3. Otherwise (orphan feed with neither linkedPolicyIDs nor preferredPolicy):
+ *     a. Show it if the user is a domain admin for the domain whose ID matches the fundID.
+ *     b. Show it if any non-deleted policy the user administers has a `workspaceAccountID`
+ *        equal to the fundID (i.e. the fund backs that workspace).
+ */
 function isExpensifyCardFeedVisibleToAdmin(
     settings: ExpensifyCardSettings,
     policies: OnyxCollection<Policy> | undefined,
