@@ -33,9 +33,9 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
  * Coding parts whose IDs are tied to the target's existing accounting connection.
  * When any of these are copied without "accounting", source and every target must already share the same connection (or all be unconnected).
  */
-const CODING_PARTS_TIED_TO_CONNECTION: Part[] = ['categories', 'tags', 'reports', 'taxes'];
+const CODING_PARTS_TIED_TO_CONNECTION = ['categories', 'tags', 'reports', 'taxes'] as const satisfies readonly Part[];
 
-const isCodingPart = (part: Part): boolean => CODING_PARTS_TIED_TO_CONNECTION.includes(part);
+const isCodingPart = (part: Part): boolean => (CODING_PARTS_TIED_TO_CONNECTION as readonly Part[]).includes(part);
 
 function CopyPolicySettingsSelectFeaturesPage() {
     const route = useRoute<PlatformStackRouteProp<PolicyCopySettingsNavigatorParamList, typeof SCREENS.POLICY_COPY_SETTINGS.SELECT_FEATURES>>();
@@ -135,12 +135,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
         ? Array.from(new Set<Part>([...selectedAvailableFeatures, ...CODING_PARTS_TIED_TO_CONNECTION.filter((part) => availablePartSet.has(part))]))
         : selectedAvailableFeatures;
 
-    const isFeatureDisabled = (part: Part): boolean => {
-        if (isPartIncompatible(part) || (isAccountingSelected && isCodingPart(part))) {
-            return true;
-        }
-        return false;
-    };
+    const isFeatureDisabled = (part: Part): boolean => isPartIncompatible(part) || (isAccountingSelected && isCodingPart(part));
 
     const getSourceDescription = (part: Part): string | undefined => {
         switch (part) {
