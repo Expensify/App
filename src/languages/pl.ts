@@ -960,10 +960,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'Portfel',
             },
-            enterSignerInfo: {
-                title: 'Enter signer info',
-                subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Account ${bankAccountLastFour}`,
-            },
+            enterSignerInfo: {title: 'Wpisz dane podpisującego', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Konto ${bankAccountLastFour}`},
         },
         announcements: 'Ogłoszenia',
         discoverSection: {
