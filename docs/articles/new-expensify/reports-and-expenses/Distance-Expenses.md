@@ -193,3 +193,7 @@ Yes. Enter your start reading before the trip, then select **Save for later**. A
 
 Only one in-progress odometer expense can be saved to your device at a time.
 
+## Can I split a Distance expense?
+
+Yes. All distance expense types — including map-based, manual, GPS, and odometer — can be split. Open the expense and tap **More > Split** to divide it across multiple categories, tags, or dates. To learn more, see [Split Expenses](/articles/new-expensify/reports-and-expenses/Split-Expenses).
+

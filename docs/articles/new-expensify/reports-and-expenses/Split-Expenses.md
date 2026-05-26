@@ -1,7 +1,7 @@
 ---
 title: Split Expenses 
 description: Learn how to create and submit expenses to a workspace or individual using SmartScan, manual entry, or distance tracking in Expensify.
-keywords: [New Expensify, split expenses, split by percentage, split by day, split evenly, edit split, revert split, expense allocation, SmartScan, mileage, distance expense, validation rules, remove split, modify split]
+keywords: [New Expensify, split expenses, split by percentage, split by day, split evenly, edit split, revert split, expense allocation, SmartScan, mileage, distance expense, odometer, odometer split, validation rules, remove split, modify split]
 internalScope: Audience is submitters, approvers and admins. Covers how to split, edit, and revert expenses in New Expensify using the Split feature. Does not cover Classic behavior.
 ---
 
@@ -115,7 +115,7 @@ Yes. Each split is treated as a regular expense and follows all workspace requir
 
 ## Can I split a distance or mileage expense?
 
-Yes. You can split distance expenses just like any other expense. However, total distance must not exceed the original value, and rows cannot be split by percentage or date.
+Yes. You can split all distance expense types — including map-based, manual, GPS, and odometer — just like any other expense. However, total distance must not exceed the original value, and rows cannot be split by percentage or date.
 
 ## Can I assign different tags or categories to each split?
 
