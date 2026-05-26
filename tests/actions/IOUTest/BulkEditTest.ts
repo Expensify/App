@@ -1,10 +1,10 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxKey} from 'react-native-onyx';
+import type {OnyxCollection, OnyxKey} from 'react-native-onyx';
 import {clearBulkEditDraftTransaction, initBulkEditDraftTransaction, updateBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU/BulkEdit';
 import CONST from '@src/CONST';
 import * as API from '@src/libs/API';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Policy, Report, ReportActions} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../../utils/collections/policies';
 import {createRandomReport} from '../../utils/collections/reports';
@@ -1554,25 +1554,21 @@ describe('actions/IOU/BulkEdit', () => {
             });
 
             expect(writeSpy).toHaveBeenCalled();
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
             const onyxData = writeSpy.mock.calls.at(0)?.[2] as any;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const optimisticData = onyxData?.optimisticData as any[];
 
             // An optimistic thread report should be created via SET
             const optimisticReportSet = optimisticData.find(
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 (entry: any) => String(entry.key).startsWith(ONYXKEYS.COLLECTION.REPORT) && entry.onyxMethod === 'set' && entry.key !== `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
             );
             expect(optimisticReportSet).toBeDefined();
             const optimisticThreadReportID = String(optimisticReportSet.key).replace(ONYXKEYS.COLLECTION.REPORT, '');
 
             // The transaction optimistic data should link back to the new thread via transactionThreadReportID
-            const transactionMerge = optimisticData.find(
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (entry: any) => entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            );
+            const transactionMerge = optimisticData.find((entry: any) => entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
             expect(transactionMerge?.value?.transactionThreadReportID).toBe(optimisticThreadReportID);
+            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 
             writeSpy.mockRestore();
             canEditFieldSpy.mockRestore();
@@ -1635,9 +1631,10 @@ describe('actions/IOU/BulkEdit', () => {
                             IOUTransactionID: transactionID,
                         },
                         childReportID,
+                        created: '2026-01-01 00:00:00',
                     },
                 },
-            };
+            } as OnyxCollection<ReportActions>;
 
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
@@ -1658,31 +1655,24 @@ describe('actions/IOU/BulkEdit', () => {
             });
 
             expect(writeSpy).toHaveBeenCalled();
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
             const onyxData = writeSpy.mock.calls.at(0)?.[2] as any;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const optimisticData = onyxData?.optimisticData as any[];
 
             // No optimistic thread report should be created — the existing thread from childReportID should be used
             const optimisticReportSet = optimisticData.find(
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 (entry: any) => String(entry.key).startsWith(ONYXKEYS.COLLECTION.REPORT) && entry.onyxMethod === 'set' && entry.key !== `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
             );
             expect(optimisticReportSet).toBeUndefined();
 
             // The MODIFIED_EXPENSE report action should be written to the childReportID thread, not the transactionThreadReportID thread
-            const reportActionMerge = optimisticData.find(
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (entry: any) => entry.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
-            );
+            const reportActionMerge = optimisticData.find((entry: any) => entry.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`);
             expect(reportActionMerge).toBeDefined();
 
             // No report action should be written to the transactionThreadReportID thread
-            const wrongThreadReportAction = optimisticData.find(
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (entry: any) => entry.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`,
-            );
+            const wrongThreadReportAction = optimisticData.find((entry: any) => entry.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`);
             expect(wrongThreadReportAction).toBeUndefined();
+            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 
             writeSpy.mockRestore();
             canEditFieldSpy.mockRestore();
