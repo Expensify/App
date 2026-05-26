@@ -1,5 +1,3 @@
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import useContactImport from '@hooks/useContactImportNew';
 import type {ContactState, UseSearchSelectorConfig, UseSearchSelectorReturn} from './base';
@@ -20,11 +18,6 @@ function usePersonalDetailSearchSelector(config: UseSearchSelectorConfig): UseSe
     const {contacts, contactPermissionState, importAndSaveContacts, setContactPermissionState} = useContactImport();
     const showImportContacts = enablePhoneContacts && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
 
-    const initiateContactImportAndSetState = () => {
-        setContactPermissionState(RESULTS.GRANTED);
-        InteractionManager.runAfterInteractions(importAndSaveContacts);
-    };
-
     // Use base hook with contact options
     const baseResult = usePersonalDetailSearchSelectorBase({
         ...config,
@@ -37,7 +30,6 @@ function usePersonalDetailSearchSelector(config: UseSearchSelectorConfig): UseSe
               permissionStatus: contactPermissionState,
               showImportUI: showImportContacts,
               importContacts: importAndSaveContacts,
-              initiateContactImportAndSetState,
               setContactPermissionState,
           }
         : undefined;

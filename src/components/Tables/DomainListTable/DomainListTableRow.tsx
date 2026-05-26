@@ -59,6 +59,7 @@ export default function DomainListTableRow({item, rowIndex, shouldUseNarrowTable
     );
 
     const domainDetailsContainerStyles = [
+        styles.flex1,
         !shouldUseNarrowTableLayout && styles.alignItemsCenter,
         !shouldUseNarrowTableLayout && styles.flexRow,
         shouldUseNarrowTableLayout ? styles.gap1 : styles.gap2,
@@ -99,6 +100,7 @@ export default function DomainListTableRow({item, rowIndex, shouldUseNarrowTable
                                 shouldOverlay
                                 shouldSelfPosition
                                 menuItems={threeDotMenuItems}
+                                iconStyles={styles.h7}
                             />
                         )}
 

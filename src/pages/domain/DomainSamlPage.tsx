@@ -159,7 +159,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                                 illustrationBackgroundColor={colors.blue700}
                                 illustration={illustrations.LaptopOnDeskWithCoffeeAndKey}
                                 illustrationStyle={styles.emptyStateSamlIllustration}
-                                illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter]}
+                                illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter, styles.cardSectionIllustrationContainer]}
                                 titleStyles={styles.textHeadlineH1}
                             />
                         )}

@@ -34,7 +34,7 @@ type TableHeaderProps = ViewProps;
  * Clicking a column header toggles sorting: ascending -> descending -> reset.
  * The currently sorted column displays an arrow icon indicating sort direction.
  *
- * @template T - The type of items in the table's data array.
+ * @template DataType - The type of items in the table's data array.
  * @template ColumnKey - A string literal type representing the valid column keys.
  *
  * @example
@@ -73,13 +73,15 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         gridTemplateColumns.unshift(`${variables.tableCheckboxColumnWidth}px`);
     }
 
-    let isEveryRowSelected = true;
     let isSelectionIndeterminate = false;
+    let isEverySelectableRowSelected = true;
 
+    // We exclude disabled rows from the 'select all' behavior, so if a disabled row is not selected, we still
+    // consider all active rows to be selected
     if (isSelectionCheckboxVisible) {
         for (const row of processedData) {
             isSelectionIndeterminate ||= row.selected;
-            isEveryRowSelected &&= row.selected;
+            isEverySelectableRowSelected &&= !!(row.selected || row.disabled);
         }
     }
 
@@ -108,8 +110,8 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.tableHeaderContentHeight, styles.gap3]}>
                     {!!isSelectionCheckboxVisible && (
                         <Checkbox
-                            isChecked={isEveryRowSelected}
-                            isIndeterminate={isSelectionIndeterminate && !isEveryRowSelected}
+                            isChecked={isEverySelectableRowSelected}
+                            isIndeterminate={isSelectionIndeterminate && !isEverySelectableRowSelected}
                             onPress={tableMethods.handleSelectAll}
                             accessibilityLabel={translate('workspace.common.selectAll')}
                             style={styles.pl1}
@@ -129,14 +131,12 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
             {!shouldUseNarrowTableLayout && (
                 <>
                     {!!selectionEnabled && (
-                        <View style={styles.flex1}>
-                            <Checkbox
-                                isChecked={isEveryRowSelected}
-                                isIndeterminate={isSelectionIndeterminate && !isEveryRowSelected}
-                                onPress={tableMethods.handleSelectAll}
-                                accessibilityLabel={translate('workspace.common.selectAll')}
-                            />
-                        </View>
+                        <Checkbox
+                            isChecked={isEverySelectableRowSelected}
+                            isIndeterminate={isSelectionIndeterminate && !isEverySelectableRowSelected}
+                            onPress={tableMethods.handleSelectAll}
+                            accessibilityLabel={translate('workspace.common.selectAll')}
+                        />
                     )}
 
                     {columns.map((column) => {

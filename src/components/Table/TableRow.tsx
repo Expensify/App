@@ -10,6 +10,7 @@ import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWi
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -65,6 +66,7 @@ export default function TableRow({
 
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isMobileSelectionEnabled = useMobileSelectionMode();
     const {processedData, columns, shouldUseNarrowTableLayout, tableMethods, selectionEnabled} = useTableContext();
@@ -153,7 +155,7 @@ export default function TableRow({
             return;
         }
 
-        if (shouldUseNarrowLayout && selectionEnabled && isMobileSelectionEnabled) {
+        if (shouldUseNarrowLayout && isMobileSelectionEnabled) {
             handleCheckboxPress(event);
             return;
         }
@@ -162,7 +164,7 @@ export default function TableRow({
     };
 
     const handleRowLongPress = () => {
-        if (!isInteractive) {
+        if (!isInteractive || !selectionEnabled || isMobileSelectionEnabled) {
             return;
         }
 
@@ -204,10 +206,11 @@ export default function TableRow({
                             <View style={tableRowContentStyles}>
                                 {!!isSelectionCheckboxVisible && (
                                     <Checkbox
-                                        isChecked={!!item.selected}
-                                        accessibilityLabel="TEST"
-                                        onPress={(event) => handleCheckboxPress(event as unknown as MouseEvent)}
                                         style={styles.flex1}
+                                        disabled={item.disabled}
+                                        isChecked={!!item.selected}
+                                        accessibilityLabel={translate('common.select')}
+                                        onPress={(event) => handleCheckboxPress(event as unknown as MouseEvent)}
                                     />
                                 )}
                                 {renderChildren(state)}

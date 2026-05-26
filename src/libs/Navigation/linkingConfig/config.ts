@@ -25,12 +25,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [SCREENS.SAML_SIGN_IN]: ROUTES.SAML_SIGN_IN,
         [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS.route,
         [SCREENS.REPORT_ADD_ATTACHMENT]: ROUTES.REPORT_ADD_ATTACHMENT.route,
-        [SCREENS.PROFILE_AVATAR]: {
-            path: ROUTES.PROFILE_AVATAR.route,
-            parse: {
-                accountID: Number,
-            },
-        },
+        [SCREENS.DYNAMIC_PROFILE_AVATAR]: DYNAMIC_ROUTES.PROFILE_AVATAR.path,
         [SCREENS.WORKSPACE_AVATAR]: ROUTES.WORKSPACE_AVATAR.route,
         [SCREENS.WORKSPACE_DOCUMENT]: ROUTES.WORKSPACE_DOCUMENT.route,
         [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
@@ -1093,7 +1088,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.TAGS_SETTINGS]: {
                             path: ROUTES.WORKSPACE_TAGS_SETTINGS.route,
                         },
-                        [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAGS_EDIT]: DYNAMIC_ROUTES.WORKSPACE_TAGS_EDIT.path,
+                        [SCREENS.WORKSPACE.TAGS_EDIT]: {
+                            path: ROUTES.WORKSPACE_EDIT_TAGS.route,
+                            parse: {
+                                orderWeight: Number,
+                            },
+                        },
                         [SCREENS.WORKSPACE.TAGS_IMPORT]: {
                             path: ROUTES.WORKSPACE_TAGS_IMPORT.route,
                         },
@@ -1109,12 +1109,39 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.TAGS_IMPORTED_MULTI_LEVEL]: {
                             path: ROUTES.WORKSPACE_TAGS_IMPORTED_MULTI_LEVEL.route,
                         },
-                        [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_CREATE]: DYNAMIC_ROUTES.WORKSPACE_TAG_CREATE.path,
-                        [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_EDIT]: DYNAMIC_ROUTES.WORKSPACE_TAG_EDIT.path,
-                        [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_APPROVER]: DYNAMIC_ROUTES.WORKSPACE_TAG_APPROVER.path,
-                        [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_GL_CODE]: DYNAMIC_ROUTES.WORKSPACE_TAG_GL_CODE.path,
-                        [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_SETTINGS]: DYNAMIC_ROUTES.WORKSPACE_TAG_SETTINGS.path,
-                        [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_LIST_VIEW]: DYNAMIC_ROUTES.WORKSPACE_TAG_LIST_VIEW.path,
+                        [SCREENS.WORKSPACE.TAG_CREATE]: {
+                            path: ROUTES.WORKSPACE_TAG_CREATE.route,
+                        },
+                        [SCREENS.WORKSPACE.TAG_EDIT]: {
+                            path: ROUTES.WORKSPACE_TAG_EDIT.route,
+                            parse: {
+                                orderWeight: Number,
+                            },
+                        },
+                        [SCREENS.WORKSPACE.TAG_APPROVER]: {
+                            path: ROUTES.WORKSPACE_TAG_APPROVER.route,
+                            parse: {
+                                orderWeight: Number,
+                            },
+                        },
+                        [SCREENS.WORKSPACE.TAG_GL_CODE]: {
+                            path: ROUTES.WORKSPACE_TAG_GL_CODE.route,
+                            parse: {
+                                orderWeight: Number,
+                            },
+                        },
+                        [SCREENS.WORKSPACE.TAG_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_TAG_SETTINGS.route,
+                            parse: {
+                                orderWeight: Number,
+                            },
+                        },
+                        [SCREENS.WORKSPACE.TAG_LIST_VIEW]: {
+                            path: ROUTES.WORKSPACE_TAG_LIST_VIEW.route,
+                            parse: {
+                                orderWeight: Number,
+                            },
+                        },
                         [SCREENS.WORKSPACE.TAXES_SETTINGS]: {
                             path: ROUTES.WORKSPACE_TAXES_SETTINGS.route,
                         },
@@ -1440,7 +1467,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.NEW_REPORT_WORKSPACE_SELECTION]: {
                     screens: {
-                        [SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT]: ROUTES.NEW_REPORT_WORKSPACE_SELECTION.route,
+                        [SCREENS.NEW_REPORT_WORKSPACE_SELECTION.DYNAMIC_ROOT]: DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.REPORT_DETAILS]: {
@@ -1623,7 +1650,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.PROFILE]: {
                     screens: {
-                        [SCREENS.PROFILE_ROOT]: ROUTES.PROFILE.route,
+                        [SCREENS.DYNAMIC_PROFILE]: DYNAMIC_ROUTES.PROFILE.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.PARTICIPANTS]: {
@@ -1859,9 +1886,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.EDIT_REQUEST]: {
                     screens: {
-                        [SCREENS.EDIT_REQUEST.REPORT_FIELD]: {
-                            path: ROUTES.EDIT_REPORT_FIELD_REQUEST.route,
-                        },
+                        [SCREENS.EDIT_REQUEST.DYNAMIC_REPORT_FIELD]: DYNAMIC_ROUTES.EDIT_REPORT_FIELD.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SIGN_IN]: {

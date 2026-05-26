@@ -31,6 +31,7 @@ export default function WorkspaceListLayout({children, headerButton}: WorkspaceL
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
     const isWorkspacesListPage = activeRoute === SCREENS.WORKSPACES_LIST;
+    const testID = isWorkspacesListPage ? 'WorkspacesListPage' : 'DomainsListPage';
     const activeNarrowLayoutTabKey = isWorkspacesListPage ? 'workspaces' : 'domains';
     const activeTabLabel = isWorkspacesListPage ? translate('common.workspaces') : translate('common.domains');
 
@@ -63,7 +64,7 @@ export default function WorkspaceListLayout({children, headerButton}: WorkspaceL
 
     return (
         <ScreenWrapper
-            testID="WorkspacesPage"
+            testID={testID}
             shouldEnableMaxHeight
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}

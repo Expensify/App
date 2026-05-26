@@ -36,8 +36,8 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
 
     return (
         <Table.Row
-            interactive
             rowIndex={rowIndex}
+            interactive={!item.disabled}
             skeletonReasonAttributes={{context: 'categoriesTableRow'}}
             onPress={item.action}
             offlineWithFeedback={{
@@ -75,11 +75,14 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
                         </View>
                     )}
 
-                    <Switch
-                        isOn={item.enabled}
-                        accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${item.name}`}
-                        onToggle={item.onToggleEnabled}
-                    />
+                    <View style={[styles.justifyContentCenter]}>
+                        <Switch
+                            isOn={item.enabled}
+                            disabled={item.disabled}
+                            accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${item.name}`}
+                            onToggle={item.onToggleEnabled}
+                        />
+                    </View>
 
                     <Icon
                         src={icons.ArrowRight}

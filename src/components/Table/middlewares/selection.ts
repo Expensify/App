@@ -1,3 +1,4 @@
+import type {Dispatch, SetStateAction} from 'react';
 import {useRef, useState} from 'react';
 import type {TableData, TableRow} from '@components/Table/types';
 import type {MiddlewareHookResult} from './types';
@@ -27,21 +28,21 @@ type SelectionMethods = {
 type UseSelectionResult<DataType extends TableData> = MiddlewareHookResult<DataType, SelectionMethods, TableRow<DataType>>;
 
 export default function useSelection<DataType extends TableData>({data, onRowSelectionChange}: UseSelectionProps<DataType>): UseSelectionResult<DataType> {
-    const keyForLists = data.map((item) => item.keyForList);
-
     const lastSelectedRowKeyRef = useRef<string | null>(null);
     const lastSelectedRowIsSelectedRef = useRef<boolean>(false);
     const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
 
-    let areAllRowsSelected = true;
-    const modifiedData: Array<TableRow<DataType>> = [];
+    const selectableKeys = data.filter((item) => !item.disabled).map((item) => item.keyForList);
+
+    let areAllSelectableRowsSelected = true;
+    const tableRowData: Array<TableRow<DataType>> = [];
 
     for (const item of data) {
         const isSelected = selectedKeys.includes(item.keyForList);
-        modifiedData.push({...item, selected: isSelected});
+        tableRowData.push({...item, selected: isSelected});
 
-        if (!isSelected) {
-            areAllRowsSelected = false;
+        if (!isSelected && !item.disabled) {
+            areAllSelectableRowsSelected = false;
         }
     }
 
@@ -49,16 +50,16 @@ export default function useSelection<DataType extends TableData>({data, onRowSel
      * Helper method to ensure that the row selection callback is called every time that the selected
      * keys are updated
      */
-    const updateSelectedKeys = (action: (previousSelectedKeys: string[]) => string[]) => {
-        setSelectedKeys((previousSelectedKeys) => {
-            const updatedValue = action(previousSelectedKeys);
+    const updateSelectedKeys: Dispatch<SetStateAction<string[]>> = (action) => {
+        setSelectedKeys((prevSelectedKeys) => {
+            const updatedSelectedKeys = typeof action === 'function' ? action(prevSelectedKeys) : action;
 
             if (onRowSelectionChange) {
-                const visibleSelectedRows = modifiedData.filter((row) => updatedValue.includes(row.keyForList));
-                onRowSelectionChange(visibleSelectedRows);
+                const selectedRows = tableRowData.filter((row) => updatedSelectedKeys.includes(row.keyForList));
+                onRowSelectionChange(selectedRows);
             }
 
-            return updatedValue;
+            return updatedSelectedKeys;
         });
     };
 
@@ -66,7 +67,7 @@ export default function useSelection<DataType extends TableData>({data, onRowSel
      * Clear all of the currently selected keys
      */
     const clearSelection = () => {
-        updateSelectedKeys(() => []);
+        updateSelectedKeys([]);
     };
 
     /**
@@ -74,23 +75,27 @@ export default function useSelection<DataType extends TableData>({data, onRowSel
      * rows in the table
      */
     const handleSelectAll = () => {
-        if (areAllRowsSelected) {
-            updateSelectedKeys(() => []);
+        if (areAllSelectableRowsSelected) {
+            updateSelectedKeys([]);
         } else {
-            updateSelectedKeys(() => keyForLists);
+            updateSelectedKeys(selectableKeys);
         }
     };
 
     /**
-     * When a single row is selected in the table, update the selection state
+     * When a single row is selected in the table, update the selection state to toggle the selection either
+     * on or off
      */
     const handleSingleRowSelection = (keyForList: string) => {
-        lastSelectedRowKeyRef.current = keyForList;
-        lastSelectedRowIsSelectedRef.current = !selectedKeys.includes(keyForList);
-
         updateSelectedKeys((prevSelectedKeys) => {
-            if (prevSelectedKeys.includes(keyForList)) {
-                return prevSelectedKeys.filter((key) => key !== keyForList);
+            const keyIndex = prevSelectedKeys.indexOf(keyForList);
+            const isCurrentlySelected = keyIndex !== -1;
+
+            lastSelectedRowKeyRef.current = keyForList;
+            lastSelectedRowIsSelectedRef.current = !isCurrentlySelected;
+
+            if (isCurrentlySelected) {
+                return [...prevSelectedKeys.slice(0, keyIndex), ...prevSelectedKeys.slice(keyIndex + 1)];
             }
 
             return [...prevSelectedKeys, keyForList];
@@ -102,7 +107,7 @@ export default function useSelection<DataType extends TableData>({data, onRowSel
      * the last selected row and the current row
      */
     const handleMultipleRowSelection = (keyForList: string) => {
-        const keyForListExists = keyForLists.includes(keyForList);
+        const keyForListExists = selectableKeys.includes(keyForList);
 
         if (!keyForListExists) {
             return;
@@ -116,22 +121,22 @@ export default function useSelection<DataType extends TableData>({data, onRowSel
             return;
         }
 
-        const currentSelectedRowIndex = keyForLists.indexOf(keyForList);
-        const lastSelectedRowIndex = keyForLists.indexOf(lastSelectedRowKey);
+        const currentSelectedRowIndex = selectableKeys.indexOf(keyForList);
+        const lastSelectedRowIndex = selectableKeys.indexOf(lastSelectedRowKey);
 
         if (currentSelectedRowIndex === -1 || lastSelectedRowIndex === -1) {
             handleSingleRowSelection(keyForList);
             return;
         }
 
-        const startIndex = Math.min(currentSelectedRowIndex, lastSelectedRowIndex);
         const endIndex = Math.max(currentSelectedRowIndex, lastSelectedRowIndex);
+        const startIndex = Math.min(currentSelectedRowIndex, lastSelectedRowIndex);
 
         updateSelectedKeys((prevSelectedKeys) => {
             const newSelectedKeys = [...prevSelectedKeys];
 
             for (let i = startIndex; i <= endIndex; i++) {
-                const key = keyForLists.at(i);
+                const key = selectableKeys.at(i);
 
                 if (!key) {
                     continue;
@@ -154,7 +159,7 @@ export default function useSelection<DataType extends TableData>({data, onRowSel
     };
 
     const middleware = () => {
-        return modifiedData;
+        return tableRowData;
     };
 
     return {
