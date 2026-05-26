@@ -312,6 +312,9 @@ jest.mock('react-native-nitro-sqlite', () => ({
 jest.mock('react-native-nitro-fetch', () => ({
     __esModule: true,
     fetch: (...args: Parameters<typeof fetch>) => globalThis.fetch(...args),
+    prefetchOnAppStart: jest.fn(() => Promise.resolve()),
+    registerTokenRefresh: jest.fn(),
+    clearTokenRefresh: jest.fn(),
 }));
 
 jest.mock('@shopify/react-native-skia', () => ({

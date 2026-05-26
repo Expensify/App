@@ -14,6 +14,8 @@ import {getCommandURL} from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
 import Log from './Log';
 import {setLoadTestParameters} from './Network/LoadTestState';
+import {getCredentials} from './Network/NetworkStore';
+import {registerPrefetchTokenRefresh} from './NitroFetchTokenRefresh';
 import {PREFETCH_HEADER_KEY} from './PrefetchQueries';
 import prepareRequestPayload from './prepareRequestPayload';
 import markAppStartupNetworkRequestEnd from './telemetry/markAppStartupNetworkRequestEnd';
@@ -69,6 +71,7 @@ function processHTTPRequest<TKey extends OnyxKey>(
     abortSignal: AbortSignal | undefined = undefined,
 ): Promise<Response<TKey>> {
     const startTime = new Date().valueOf();
+    const shouldPrefetchOnAppStart = !!headers[PREFETCH_HEADER_KEY];
 
     const fetchParams: Parameters<typeof fetch>[1] = {
         // We hook requests to the same Controller signal, so we can cancel them all at once
@@ -87,12 +90,14 @@ function processHTTPRequest<TKey extends OnyxKey>(
 
     // Prefetch the request on next app start if the prefetch key is present in the headers
     // This allows to fetch the request natively before the JS bundle is loaded. Once the request with this prefetch key is made, it will already be cached and served from the cache.
-    if (headers[PREFETCH_HEADER_KEY]) {
-        try {
-            prefetchOnAppStart(url, fetchParams);
-        } catch (error) {
-            Log.warn(`[HttpUtils] prefetchOnAppStart failed for ${command})`, {error, fetchParams, url});
-        }
+    if (shouldPrefetchOnAppStart) {
+        const credentials = getCredentials();
+        registerPrefetchTokenRefresh(credentials);
+        prefetchOnAppStart(url, fetchParams)
+            .then(() => {})
+            .catch((error) => {
+                Log.warn(`[HttpUtils] prefetchOnAppStart failed for ${command})`, {error, fetchParams, url});
+            });
     }
 
     return fetch(url, fetchParams)
