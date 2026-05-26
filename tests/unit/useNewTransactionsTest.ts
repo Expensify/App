@@ -358,6 +358,52 @@ describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', 
         });
         expect(result.current).toEqual([]);
     });
+
+    it('highlights the duplicate when the table view mounts post-optimistic add and pendingNewTransactionIDs arrives a few renders later', () => {
+        const originalTx = transactionsAlreadyInReport[0];
+        const duplicateTx = {...newTransaction, pendingAction: 'add' as const};
+
+        // 1. Table view mounts with both txs already in Onyx cache; metadata hasn't propagated yet
+        const {rerender, result} = renderHook<
+            Transaction[],
+            {transactions: Transaction[]; hasOnceLoadedReportActions: boolean; pendingNewTransactionIDs: Record<string, true | null> | undefined; isFocused?: boolean}
+        >((props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions, props.pendingNewTransactionIDs, 'report1', props.isFocused), {
+            initialProps: {
+                hasOnceLoadedReportActions: true,
+                transactions: [originalTx, duplicateTx],
+                pendingNewTransactionIDs: undefined,
+                isFocused: true,
+            },
+        });
+        expect(result.current).toEqual([]);
+
+        // 2. Still no metadata, diff sees same tx set
+        rerender({
+            hasOnceLoadedReportActions: true,
+            transactions: [originalTx, duplicateTx],
+            pendingNewTransactionIDs: undefined,
+            isFocused: true,
+        });
+        expect(result.current).toEqual([]);
+
+        // 3. pendingNewTransactionIDs propagates from Onyx → highlight fires
+        rerender({
+            hasOnceLoadedReportActions: true,
+            transactions: [originalTx, duplicateTx],
+            pendingNewTransactionIDs: {[duplicateTx.transactionID]: true},
+            isFocused: true,
+        });
+        expect(result.current).toEqual([duplicateTx]);
+
+        // 4. Deletion timeout clears the metadata; diff branch returns empty again
+        rerender({
+            hasOnceLoadedReportActions: true,
+            transactions: [originalTx, duplicateTx],
+            pendingNewTransactionIDs: undefined,
+            isFocused: true,
+        });
+        expect(result.current).toEqual([]);
+    });
 });
 
 afterAll(() => {
