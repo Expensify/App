@@ -97,6 +97,9 @@ type ParticipantSearchResultsProps = {
 
     /** Whether to find the participant matching initiallySelectedReportID and move it to the top of the list */
     shouldMoveSelectedToTop?: boolean;
+
+    /** Callback to handle restricted participant selection */
+    onRestrictedParticipantSelected?: () => void;
 };
 
 function ParticipantSearchResults({
@@ -115,6 +118,7 @@ function ParticipantSearchResults({
     onFinish,
     initiallySelectedReportID,
     shouldMoveSelectedToTop = false,
+    onRestrictedParticipantSelected,
 }: ParticipantSearchResultsProps) {
     const getParticipantOptionKey = (option: Partial<Participant>) => option.reportID ?? option.accountID?.toString() ?? option.login ?? option.phoneNumber ?? '';
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
@@ -432,6 +436,7 @@ function ParticipantSearchResults({
             optionPolicy &&
             shouldRestrictUserBillableActions(optionPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)
         ) {
+            onRestrictedParticipantSelected?.();
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(option.policyID));
             return;
         }

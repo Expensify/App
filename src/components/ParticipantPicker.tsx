@@ -62,6 +62,7 @@ function ParticipantPicker({
             action={action}
             isPerDiemRequest={isPerDiemRequest}
             isTimeRequest={isTimeRequest}
+            onRestrictedParticipantSelected={onClose}
             initiallySelectedReportID={selectedParticipant?.reportID}
             shouldMoveSelectedToTop
         />
