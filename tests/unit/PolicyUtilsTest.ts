@@ -4,14 +4,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import DateUtils from '@libs/DateUtils';
-import {
-    getConnectedHRProvider,
-    getHRApprovalMode,
-    getMergeHRFinalApprover,
-    isAnyHRConnected,
-    isAnyHRReadOnlyWorkflowMode,
-    isMergeHRConnected,
-} from '@libs/HRUtils';
+import {getConnectedHRProvider, getHRApprovalMode, getMergeHRFinalApprover, isAnyHRConnected, isAnyHRReadOnlyWorkflowMode, isMergeHRConnected} from '@libs/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     canAccessSubmitWorkspaceFeatures,
