@@ -51,11 +51,10 @@ type MobileWebCameraViewProps = {
     isEditing: boolean;
     validateFiles: (files: FileObject[], items?: DataTransferItem[]) => void;
     setReceiptFiles: React.Dispatch<React.SetStateAction<ReceiptFile[]>>;
-    navigateToConfirmationStep: (files: ReceiptFile[], locationPermissionGranted?: boolean, isTestTransaction?: boolean) => void;
+    navigateToConfirmationStep: (files: ReceiptFile[], locationPermissionGranted?: boolean) => void;
     shouldSkipConfirmation: boolean;
     setStartLocationPermissionFlow: (value: boolean) => void;
     onBackButtonPress: () => void;
-    onLayout?: () => void;
     shouldShowWrapper: boolean;
 };
 
@@ -79,7 +78,6 @@ function MobileWebCameraView({
     shouldSkipConfirmation,
     setStartLocationPermissionFlow,
     onBackButtonPress,
-    onLayout,
     shouldShowWrapper,
 }: MobileWebCameraViewProps) {
     const {blinkStyle, canUseMultiScan, shouldShowMultiScanEducationalPopup, showBlink, toggleMultiScan, dismissMultiScanEducationalPopup, submitReceipts, submitMultiScanReceipts} =
@@ -213,10 +211,7 @@ function MobileWebCameraView({
             shouldShowWrapper={shouldShowWrapper}
             testID="IOURequestStepScan"
         >
-            <View
-                onLayout={onLayout}
-                style={[styles.flex1]}
-            >
+            <View style={[styles.flex1]}>
                 <View style={[styles.flex1, styles.justifyContentCenter]}>
                     <View style={[styles.cameraView]}>
                         {PDFValidationComponent}
@@ -412,4 +407,3 @@ function MobileWebCameraView({
 }
 
 export default MobileWebCameraView;
-export type {MobileWebCameraViewProps};

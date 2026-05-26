@@ -116,6 +116,7 @@ describe('split distance system message', () => {
 
         const {params} = getUpdateMoneyRequestParams({
             transactionID: TRANSACTION_ID,
+            delegateAccountID: undefined,
             transactionThreadReport,
             iouReport,
             transactionChanges: {
@@ -128,6 +129,7 @@ describe('split distance system message', () => {
             },
             policy: undefined,
             policyTagList: undefined,
+            reportPolicyTags: undefined,
             policyCategories: undefined,
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
@@ -146,6 +148,7 @@ describe('split distance system message', () => {
 
         const {params, onyxData} = getUpdateMoneyRequestParams({
             transactionID: TRANSACTION_ID,
+            delegateAccountID: undefined,
             transactionThreadReport,
             iouReport,
             transactionChanges: {
@@ -158,6 +161,7 @@ describe('split distance system message', () => {
             },
             policy: undefined,
             policyTagList: undefined,
+            reportPolicyTags: undefined,
             policyCategories: undefined,
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
@@ -182,6 +186,7 @@ describe('split distance system message', () => {
 
         const {params} = getUpdateMoneyRequestParams({
             transactionID: TRANSACTION_ID,
+            delegateAccountID: undefined,
             transactionThreadReport,
             iouReport,
             transactionChanges: {
@@ -193,6 +198,7 @@ describe('split distance system message', () => {
             },
             policy: undefined,
             policyTagList: undefined,
+            reportPolicyTags: undefined,
             policyCategories: undefined,
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
@@ -211,6 +217,7 @@ describe('split distance system message', () => {
 
         const {params} = getUpdateMoneyRequestParams({
             transactionID: TRANSACTION_ID,
+            delegateAccountID: undefined,
             transactionThreadReport,
             iouReport,
             transactionChanges: {
@@ -222,6 +229,7 @@ describe('split distance system message', () => {
             },
             policy: undefined,
             policyTagList: undefined,
+            reportPolicyTags: undefined,
             policyCategories: undefined,
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,

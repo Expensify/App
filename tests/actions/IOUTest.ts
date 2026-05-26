@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {renderHook, waitFor} from '@testing-library/react-native';
 import {format} from 'date-fns';
@@ -8,9 +7,8 @@ import type {OnyxCollection, OnyxEntry, OnyxMergeCollectionInput} from 'react-na
 import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
 import useOnyx from '@hooks/useOnyx';
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ClearReportActionErrors';
+import {putOnHold} from '@libs/actions/IOU/Hold';
 import {
-    calculateDiffAmount,
-    handleNavigateAfterExpenseCreate,
     initMoneyRequest,
     resetDraftTransactionsCustomUnit,
     setMoneyRequestAmount,
@@ -18,14 +16,15 @@ import {
     setMoneyRequestCategory,
     setMoneyRequestCreated,
     setMoneyRequestDateAttribute,
-    setMoneyRequestDescription,
     setMoneyRequestDistanceRate,
     setMoneyRequestMerchant,
     setMoneyRequestTag,
-    shouldOptimisticallyUpdateSearch,
-} from '@libs/actions/IOU';
-import {putOnHold} from '@libs/actions/IOU/Hold';
-import {completeSplitBill, splitBill, startSplitBill, updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/Split';
+} from '@libs/actions/IOU/MoneyRequest';
+import {calculateDiffAmount} from '@libs/actions/IOU/MoneyRequestBuilder';
+import {handleNavigateAfterExpenseCreate} from '@libs/actions/IOU/NavigationHelpers';
+import {shouldOptimisticallyUpdateSearch} from '@libs/actions/IOU/SearchUpdate';
+import {completeSplitBill, createSplitsAndOnyxData, splitBill, startSplitBill} from '@libs/actions/IOU/Split';
+import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/SplitTransactionUpdate';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import {removeMoneyRequestOdometerImage, setMoneyRequestOdometerImage} from '@libs/actions/OdometerTransactionUtils';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
@@ -38,8 +37,6 @@ import Log from '@libs/Log';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
-import {getManagerMcTestParticipant} from '@libs/OptionsListUtils';
-// eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getAllReportActions, getIOUActionForReportID, getOriginalMessage, isActionableTrackExpense, isActionOfType, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction, createDraftTransactionAndNavigateToParticipantSelector, getReportOrDraftReport} from '@libs/ReportUtils';
@@ -59,6 +56,7 @@ import type {Participant} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
+import type {SplitShares} from '@src/types/onyx/Transaction';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import SafeString from '@src/utils/SafeString';
@@ -102,7 +100,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 jest.mock('@react-navigation/native');
 
 jest.mock('@src/libs/actions/Report', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const originalModule = jest.requireActual('@src/libs/actions/Report');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -130,7 +127,6 @@ jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed
 const unapprovedCashHash = 71801560;
 const unapprovedCashSimilarSearchHash = 1832274510;
 jest.mock('@src/libs/SearchQueryUtils', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actual = jest.requireActual('@src/libs/SearchQueryUtils');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -296,12 +292,12 @@ describe('actions/IOU', () => {
             const iouReport: Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
 
             // When the report is in draft status it should return true
-            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, transaction)).toBeTruthy();
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
 
             // If the report is not in draft state it should return false
             iouReport.stateNum = CONST.REPORT.STATE_NUM.SUBMITTED;
             iouReport.statusNum = CONST.REPORT.STATUS_NUM.SUBMITTED;
-            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, transaction)).toBeFalsy();
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
         });
 
         it('when the current hash is approve action query it should only return true if the iou report is in outstanding state', () => {
@@ -355,12 +351,12 @@ describe('actions/IOU', () => {
             const iouReport: Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
 
             // When the report is in draft status it should return false
-            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, transaction)).toBeFalsy();
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
 
             // If the report is in outstanding state it should return true
             iouReport.stateNum = CONST.REPORT.STATE_NUM.SUBMITTED;
             iouReport.statusNum = CONST.REPORT.STATUS_NUM.SUBMITTED;
-            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, transaction)).toBeTruthy();
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
         });
 
         it('when the current hash is unapproved cash action query it should only return true if the iou report is in either draft or outstanding state', () => {
@@ -399,12 +395,12 @@ describe('actions/IOU', () => {
             const iouReport: Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
 
             // When the report is in draft status it should return true
-            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, transaction)).toBeTruthy();
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
 
             // If the report is in approved state it should return false
             iouReport.stateNum = CONST.REPORT.STATE_NUM.APPROVED;
             iouReport.statusNum = CONST.REPORT.STATUS_NUM.APPROVED;
-            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, transaction)).toBeFalsy();
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
         });
 
         it('when the current hash includes a policyID filter it should only return true if the iou report matches the policyID filter', () => {
@@ -442,7 +438,7 @@ describe('actions/IOU', () => {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
-            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, matchingIOUReport, false, transaction)).toBeTruthy();
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, matchingIOUReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
 
             // When the IOU report has a different policyID, it should return false
             const nonMatchingIOUReport: Report = {
@@ -452,7 +448,7 @@ describe('actions/IOU', () => {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
-            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, nonMatchingIOUReport, false, transaction)).toBeFalsy();
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, nonMatchingIOUReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
         });
     });
 
@@ -488,6 +484,7 @@ describe('actions/IOU', () => {
                 transaction: transactionToCategorize,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserEmail: RORY_EMAIL,
+                currentUserLocalCurrency: '',
             });
             await waitForBatchedUpdates();
 
@@ -538,6 +535,7 @@ describe('actions/IOU', () => {
                 transaction: originalTransaction,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserEmail: RORY_EMAIL,
+                currentUserLocalCurrency: '',
             });
             await waitForBatchedUpdates();
 
@@ -577,6 +575,7 @@ describe('actions/IOU', () => {
                 transaction: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserEmail: RORY_EMAIL,
+                currentUserLocalCurrency: '',
             });
             await waitForBatchedUpdates();
 
@@ -611,6 +610,7 @@ describe('actions/IOU', () => {
                 amountOwed: 0,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserEmail: RORY_EMAIL,
+                currentUserLocalCurrency: '',
             });
             await waitForBatchedUpdates();
 
@@ -710,11 +710,16 @@ describe('actions/IOU', () => {
                                 key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReportID}`,
                                 callback: (iouReportMetadata) => {
                                     Onyx.disconnect(connection);
-
                                     expect(iouReportMetadata?.isOptimisticReport).toBe(true);
-                                    expect(iouReportMetadata?.hasOnceLoadedReportActions).toBe(true);
 
-                                    resolve();
+                                    const loadingStateConnection = Onyx.connect({
+                                        key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${iouReportID}`,
+                                        callback: (iouReportLoadingState) => {
+                                            Onyx.disconnect(loadingStateConnection);
+                                            expect(iouReportLoadingState?.hasOnceLoadedReportActions).toBe(true);
+                                            resolve();
+                                        },
+                                    });
                                 },
                             });
                         }),
@@ -1727,10 +1732,8 @@ describe('actions/IOU', () => {
                     billable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                currentUserEmailParam: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -1796,10 +1799,8 @@ describe('actions/IOU', () => {
                     accountant,
                 },
                 isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                currentUserEmailParam: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -2295,7 +2296,7 @@ describe('actions/IOU', () => {
 
             // Given a test user is signed in with Onyx setup and some initial data
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, undefined);
+            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, undefined);
             await waitForBatchedUpdates();
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
@@ -2321,10 +2322,8 @@ describe('actions/IOU', () => {
                     billable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                currentUserEmailParam: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -2423,6 +2422,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 isSelfTourViewed: false,
                 existingTransactionDraft: transaction,
+                existingTransaction: transaction,
                 draftTransactionIDs: [],
                 personalDetails: {},
                 betas: [CONST.BETAS.ALL],
@@ -4707,7 +4707,6 @@ describe('actions/IOU', () => {
         const isValid = (value: unknown) => !value || typeof value !== 'object' || value instanceof Blob;
 
         beforeEach(() => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
         });
 
@@ -4761,7 +4760,7 @@ describe('actions/IOU', () => {
 
             // Then the correct API request should be made
             expect(writeSpy).toHaveBeenCalledTimes(1);
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
             const [command, params] = writeSpy.mock.calls.at(0);
             expect(command).toBe(expectedCommand);
 
@@ -4894,10 +4893,8 @@ describe('actions/IOU', () => {
                 },
                 accountantParams: action === CONST.IOU.ACTION.SHARE ? {accountant: {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL}} : undefined,
                 isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                currentUserEmailParam: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -4909,7 +4906,7 @@ describe('actions/IOU', () => {
 
             // Then the correct API request should be made
             expect(writeSpy).toHaveBeenCalledTimes(1);
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
             const [command, params] = writeSpy.mock.calls.at(0);
             expect(command).toBe(expectedCommand);
 
@@ -5368,10 +5365,8 @@ describe('actions/IOU', () => {
                     reimbursable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                currentUserEmailParam: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -5498,9 +5493,11 @@ describe('actions/IOU', () => {
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                     currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                     currentUserEmailParam: CARLOS_EMAIL,
+                    currency: undefined,
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
+                    activePolicy: undefined,
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -5675,9 +5672,11 @@ describe('actions/IOU', () => {
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                     currentUserAccountIDParam: RORY_ACCOUNT_ID,
                     currentUserEmailParam: RORY_EMAIL,
+                    currency: undefined,
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
+                    activePolicy: undefined,
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -5856,9 +5855,11 @@ describe('actions/IOU', () => {
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                     currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                     currentUserEmailParam: CARLOS_EMAIL,
+                    currency: undefined,
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
+                    activePolicy: undefined,
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -6046,9 +6047,11 @@ describe('actions/IOU', () => {
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                     currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                     currentUserEmailParam: CARLOS_EMAIL,
+                    currency: undefined,
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
+                    activePolicy: undefined,
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -6120,7 +6123,7 @@ describe('actions/IOU', () => {
 
                 // Put the expense on hold
                 if (originalTransactionID && transactionThreadReportID) {
-                    putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false);
+                    putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID);
                 }
                 await waitForBatchedUpdates();
 
@@ -6294,55 +6297,6 @@ describe('actions/IOU', () => {
                     expect(split2CommentActions.length).toBeGreaterThanOrEqual(1);
                 }
             });
-        });
-    });
-
-    describe('getManagerMcTestParticipant', () => {
-        it('should return manager mctest participant when personalDetails contains manager_mctest', () => {
-            // Given personalDetails that include manager_mctest
-            const managerMcTestAccountID = CONST.ACCOUNT_ID.MANAGER_MCTEST;
-            const personalDetailsList: PersonalDetailsList = {
-                [managerMcTestAccountID]: {
-                    accountID: managerMcTestAccountID,
-                    login: CONST.EMAIL.MANAGER_MCTEST,
-                    displayName: 'Manager McTest',
-                },
-            };
-
-            // When calling getManagerMcTestParticipant with personalDetails
-            const result = getManagerMcTestParticipant(RORY_ACCOUNT_ID, personalDetailsList);
-
-            // Then it should return a participant with the manager mctest account ID
-            expect(result).toBeDefined();
-            expect(result?.accountID).toBe(managerMcTestAccountID);
-        });
-
-        it('should return undefined when personalDetails does not contain manager_mctest', () => {
-            // Given personalDetails without manager_mctest
-            const personalDetailsList: PersonalDetailsList = {
-                [RORY_ACCOUNT_ID]: {
-                    accountID: RORY_ACCOUNT_ID,
-                    login: RORY_EMAIL,
-                    displayName: 'Rory',
-                },
-            };
-
-            // When calling getManagerMcTestParticipant with personalDetails
-            const result = getManagerMcTestParticipant(RORY_ACCOUNT_ID, personalDetailsList);
-
-            // Then it should return undefined since manager_mctest is not in the provided personalDetails
-            expect(result).toBeUndefined();
-        });
-
-        it('should return undefined when personalDetails is empty', () => {
-            // Given empty personalDetails
-            const personalDetailsList: PersonalDetailsList = {};
-
-            // When calling getManagerMcTestParticipant with empty personalDetails
-            const result = getManagerMcTestParticipant(RORY_ACCOUNT_ID, personalDetailsList);
-
-            // Then it should return undefined
-            expect(result).toBeUndefined();
         });
     });
 
@@ -6729,13 +6683,6 @@ describe('actions/IOU', () => {
             expect(draft?.comment?.customUnit?.attributes?.dates?.end).toBe('2024-01-31');
         });
 
-        it('setMoneyRequestDescription should set comment on transaction draft', async () => {
-            setMoneyRequestDescription(transactionID, '  Lunch with team  ', true);
-            await waitForBatchedUpdates();
-            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
-            expect(draft?.comment?.comment).toBe('Lunch with team');
-        });
-
         it('setMoneyRequestMerchant should set merchant on transaction draft', async () => {
             setMoneyRequestMerchant(transactionID, 'Coffee Shop', true);
             await waitForBatchedUpdates();
@@ -6760,7 +6707,6 @@ describe('actions/IOU', () => {
     describe('setMoneyRequestOdometerImage and removeMoneyRequestOdometerImage', () => {
         beforeEach(() => {
             jest.mock('@libs/OdometerImageUtils', () => ({
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 __esModule: true,
                 default: jest.fn(),
             }));
@@ -6835,6 +6781,282 @@ describe('actions/IOU', () => {
 
             const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
             expect(updatedTransaction?.comment?.odometerEndImage).toBeUndefined();
+        });
+    });
+
+    describe('createSplitsAndOnyxData', () => {
+        const mockPersonalDetails: PersonalDetailsList = {
+            [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL, displayName: 'Rory'},
+            [CARLOS_ACCOUNT_ID]: {accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL, displayName: 'Carlos'},
+            [JULES_ACCOUNT_ID]: {accountID: JULES_ACCOUNT_ID, login: JULES_EMAIL, displayName: 'Jules'},
+            [VIT_ACCOUNT_ID]: {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL, displayName: 'Vit'},
+        };
+
+        const baseTransactionParams = {
+            amount: 400,
+            currency: CONST.CURRENCY.USD,
+            created: '2024-01-01',
+            merchant: 'Test Merchant',
+            comment: 'Test split',
+            tag: '',
+            category: '',
+            taxCode: '',
+            taxAmount: 0,
+            splitShares: {} as SplitShares,
+        };
+
+        const buildParams = (
+            overrides: {
+                participants?: IOUParticipant[];
+                existingSplitChatReportID?: string;
+                transactionParamOverrides?: Partial<typeof baseTransactionParams>;
+                participantsPolicyTags?: Record<string, PolicyTagLists>;
+            } = {},
+        ) => ({
+            participants: overrides.participants ?? [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
+            currentUserLogin: RORY_EMAIL,
+            currentUserAccountID: RORY_ACCOUNT_ID,
+            existingSplitChatReportID: overrides.existingSplitChatReportID,
+            transactionParams: {
+                ...baseTransactionParams,
+                ...overrides.transactionParamOverrides,
+            },
+            policyRecentlyUsedCategories: undefined,
+            policyRecentlyUsedTags: undefined,
+            isASAPSubmitBetaEnabled: false,
+            transactionViolations: {},
+            quickAction: undefined,
+            policyRecentlyUsedCurrencies: [],
+            betas: [CONST.BETAS.ALL],
+            personalDetails: mockPersonalDetails,
+            participantsPolicyTags: overrides.participantsPolicyTags ?? {},
+        });
+
+        it('returns valid splitData with chatReportID, transactionID, and reportActionID', () => {
+            // Given a basic 1:1 split between the current user and one participant
+
+            // When creating splits and Onyx data
+            const result = createSplitsAndOnyxData(buildParams());
+
+            // Then splitData should contain all required identifiers
+            expect(result.splitData.chatReportID).toBeTruthy();
+            expect(result.splitData.transactionID).toBeTruthy();
+            expect(result.splitData.reportActionID).toBeTruthy();
+        });
+
+        it('includes createdReportActionID in splitData for a new chat', () => {
+            // Given no existing split chat report
+
+            // When creating splits and Onyx data
+            const result = createSplitsAndOnyxData(buildParams());
+
+            // Then splitData should include a createdReportActionID for the new chat
+            expect(result.splitData.createdReportActionID).toBeTruthy();
+        });
+
+        it('omits createdReportActionID from splitData when using an existing chat', async () => {
+            // Given an existing chat report already in Onyx
+            const existingReportID = rand64();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${existingReportID}`, {
+                reportID: existingReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT},
+            });
+            await waitForBatchedUpdates();
+
+            // When creating splits referencing that existing chat
+            const result = createSplitsAndOnyxData(buildParams({existingSplitChatReportID: existingReportID}));
+
+            // Then splitData should not include a createdReportActionID
+            expect(result.splitData.createdReportActionID).toBeUndefined();
+        });
+
+        it('splits amount equally among all participants when no splitShares are provided', () => {
+            // Given a $400 expense split between the current user and 3 other participants
+            const amount = 400;
+
+            // When creating splits without custom splitShares
+            const result = createSplitsAndOnyxData(
+                buildParams({
+                    participants: [
+                        {accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL},
+                        {accountID: JULES_ACCOUNT_ID, login: JULES_EMAIL},
+                        {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL},
+                    ],
+                    transactionParamOverrides: {amount},
+                }),
+            );
+
+            // Then each of the 4 splits (current user + 3 others) should be $100
+            expect(result.splits).toHaveLength(4);
+            for (const split of result.splits) {
+                expect(split.amount).toBe(amount / 4);
+            }
+        });
+
+        it('respects custom splitShares amounts when provided', () => {
+            // Given a $200 expense with custom split: current user pays $150, Carlos pays $50
+            const splitShares: SplitShares = {
+                [RORY_ACCOUNT_ID]: {amount: 150},
+                [CARLOS_ACCOUNT_ID]: {amount: 50},
+            };
+
+            // When creating splits with those custom splitShares
+            const result = createSplitsAndOnyxData(
+                buildParams({
+                    transactionParamOverrides: {amount: 200, splitShares},
+                }),
+            );
+
+            // Then each participant's split should reflect the custom amounts
+            const currentUserSplit = result.splits.find((s) => s.accountID === RORY_ACCOUNT_ID);
+            const carlosSplit = result.splits.find((s) => s.accountID === CARLOS_ACCOUNT_ID);
+
+            expect(currentUserSplit?.amount).toBe(150);
+            expect(carlosSplit?.amount).toBe(50);
+        });
+
+        it('uses SET method for the split chat report in optimisticData when creating a new chat', () => {
+            // Given no existing split chat report
+
+            // When creating splits and Onyx data
+            const result = createSplitsAndOnyxData(buildParams());
+
+            // Then the chat report update should use SET to write the new report atomically
+            const splitChatReportUpdate = result.onyxData.optimisticData?.find(
+                (update) =>
+                    update.key.startsWith(ONYXKEYS.COLLECTION.REPORT) &&
+                    !update.key.includes(ONYXKEYS.COLLECTION.REPORT_ACTIONS) &&
+                    !update.key.includes(ONYXKEYS.COLLECTION.REPORT_METADATA),
+            );
+
+            expect(splitChatReportUpdate?.onyxMethod).toBe(Onyx.METHOD.SET);
+        });
+
+        it('uses MERGE method for the split chat report in optimisticData when reusing an existing chat', async () => {
+            // Given an existing chat report already in Onyx
+            const existingReportID = rand64();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${existingReportID}`, {
+                reportID: existingReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT},
+            });
+            await waitForBatchedUpdates();
+
+            // When creating splits referencing that existing chat
+            const result = createSplitsAndOnyxData(buildParams({existingSplitChatReportID: existingReportID}));
+
+            // Then the chat report update should use MERGE to preserve existing fields
+            const splitChatReportUpdate = result.onyxData.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${existingReportID}`);
+
+            expect(splitChatReportUpdate?.onyxMethod).toBe(Onyx.METHOD.MERGE);
+        });
+
+        it('adds isOptimisticReport:true to REPORT_METADATA in optimisticData for a new chat', () => {
+            // Given no existing split chat report
+
+            // When creating splits and Onyx data
+            const result = createSplitsAndOnyxData(buildParams());
+
+            // Then optimisticData should flag the new report as optimistic
+            const reportMetaUpdate = result.onyxData.optimisticData?.find((update) => update.key.startsWith(ONYXKEYS.COLLECTION.REPORT_METADATA));
+
+            expect(reportMetaUpdate?.value).toMatchObject({isOptimisticReport: true});
+        });
+
+        it('does not include REPORT_METADATA isOptimisticReport in optimisticData for an existing chat', async () => {
+            // Given an existing chat report already in Onyx
+            const existingReportID = rand64();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${existingReportID}`, {
+                reportID: existingReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT},
+            });
+            await waitForBatchedUpdates();
+
+            // When creating splits referencing that existing chat
+            const result = createSplitsAndOnyxData(buildParams({existingSplitChatReportID: existingReportID}));
+
+            // Then no REPORT_METADATA entry should be written for the existing report
+            const reportMetaUpdate = result.onyxData.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT_METADATA}${existingReportID}`);
+
+            expect(reportMetaUpdate).toBeUndefined();
+        });
+
+        it('clears pendingAction and pendingFields on the split transaction in successData', () => {
+            // Given a basic split
+
+            // When creating splits and Onyx data
+            const result = createSplitsAndOnyxData(buildParams());
+            const {transactionID} = result.splitData;
+
+            // Then successData should clear pending state on the split transaction
+            const txSuccessUpdate = result.onyxData.successData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+
+            expect(txSuccessUpdate?.value).toMatchObject({pendingAction: null, pendingFields: null});
+        });
+
+        it('includes errors on the split transaction in failureData', () => {
+            // Given a basic split
+
+            // When creating splits and Onyx data
+            const result = createSplitsAndOnyxData(buildParams());
+            const {transactionID} = result.splitData;
+
+            // Then failureData should include an errors entry on the split transaction for user-visible feedback
+            const txFailureUpdate = result.onyxData.failureData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+
+            expect(txFailureUpdate?.value).toHaveProperty('errors');
+        });
+
+        it('sets policy recently used tags in optimisticData for a policy expense chat participant with a tag', async () => {
+            // Given a workspace expense chat with a known tag list
+            const policyID = 'test_policy_999';
+            const tagListName = 'Department';
+            const tagName = 'Engineering';
+
+            const existingExpenseChatID = rand64();
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, {
+                [`${ONYXKEYS.COLLECTION.REPORT}${existingExpenseChatID}`]: {
+                    reportID: existingExpenseChatID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    policyID,
+                    isOwnPolicyExpenseChat: true,
+                    participants: {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT},
+                },
+            } as OnyxMergeCollectionInput<typeof ONYXKEYS.COLLECTION.REPORT>);
+            await waitForBatchedUpdates();
+
+            const policyTagsList = {
+                [tagListName]: {
+                    name: tagListName,
+                    tags: {[tagName]: {name: tagName, enabled: true}},
+                },
+            };
+
+            // When splitting an expense with a tag inside that workspace chat
+            const result = createSplitsAndOnyxData(
+                buildParams({
+                    existingSplitChatReportID: existingExpenseChatID,
+                    participants: [
+                        {
+                            accountID: CARLOS_ACCOUNT_ID,
+                            login: CARLOS_EMAIL,
+                            isPolicyExpenseChat: true,
+                            isOwnPolicyExpenseChat: true,
+                            policyID,
+                        },
+                    ],
+                    transactionParamOverrides: {tag: tagName},
+                    participantsPolicyTags: {[policyID]: policyTagsList} as unknown as Record<string, PolicyTagLists>,
+                }),
+            );
+
+            // Then optimisticData should update POLICY_RECENTLY_USED_TAGS with the used tag
+            const recentlyUsedTagsUpdate = result.onyxData.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
+
+            expect(recentlyUsedTagsUpdate?.value).toMatchObject({[tagListName]: [tagName]});
         });
     });
 });

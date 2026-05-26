@@ -54,7 +54,7 @@ function IncorporationCode({onNext, isEditing}: SubStepProps) {
                 InputComponent={IndustryCodeSelector}
                 inputID={COMPANY_INCORPORATION_CODE_KEY}
                 shouldSaveDraft={!isEditing}
-                defaultValue={reimbursementAccount?.achData?.industryCode}
+                defaultValue={isEditing ? reimbursementAccount?.achData?.industryCode : ''}
             />
         </FormProvider>
     );

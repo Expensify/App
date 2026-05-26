@@ -94,7 +94,7 @@ function appendSetupCategoriesOnboardingData(
         currentUserAccountID,
         hasOutstandingChildTask,
         parentReportAction,
-        // Will be refactored in next PR; buildOptimisticTaskReportAction falls back to module-level Onyx.connect value; tracked in https://github.com/Expensify/App/issues/66417
+        // delegateEmail: will be threaded in PR 16; buildOptimisticTaskReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
         undefined,
     );
     onyxData.optimisticData?.push(...(finishOnboardingTaskData.optimisticData ?? []));
@@ -106,6 +106,9 @@ function appendSetupCategoriesOnboardingData(
 function buildOptimisticPolicyWithExistingCategories(policyID: string, categories: PolicyCategories) {
     const categoriesValues = Object.values(categories);
     const optimisticCategoryMap = categoriesValues.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
+        if (category.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return acc;
+        }
         acc[category.name] = {
             ...category,
             errors: null,
@@ -933,7 +936,12 @@ function importPolicyCategories(policyID: string, categories: PolicyCategory[], 
             const existing = policyCategories[name];
             if (!existing) {
                 acc.added++;
-            } else if (existing.enabled !== category.enabled || (existing['GL Code'] ?? '') !== (category['GL Code'] ?? '')) {
+            } else if (
+                existing.enabled !== category.enabled ||
+                (existing['GL Code'] ?? '') !== (category['GL Code'] ?? '') ||
+                ('maxAmountNoReceipt' in category && existing.maxAmountNoReceipt !== category.maxAmountNoReceipt) ||
+                ('maxAmountNoItemizedReceipt' in category && existing.maxAmountNoItemizedReceipt !== category.maxAmountNoItemizedReceipt)
+            ) {
                 acc.updated++;
             }
 
@@ -952,6 +960,8 @@ function importPolicyCategories(policyID: string, categories: PolicyCategory[], 
                 enabled: category.enabled,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 'GL Code': String(category['GL Code']),
+                ...('maxAmountNoReceipt' in category && {maxAmountNoReceipt: category.maxAmountNoReceipt}),
+                ...('maxAmountNoItemizedReceipt' in category && {maxAmountNoItemizedReceipt: category.maxAmountNoItemizedReceipt}),
             })),
         ),
     };

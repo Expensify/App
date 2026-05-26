@@ -35,6 +35,7 @@ function resolveSuggestedFollowup(
     timezoneParam: Timezone,
     currentUserAccountID: number,
     currentUserEmail: string | undefined,
+    delegateAccountID: number | undefined,
     ancestors: Ancestor[] = [],
 ) {
     const reportID = report?.reportID;
@@ -54,6 +55,7 @@ function resolveSuggestedFollowup(
         event: 'followup_clicked',
         reportID,
         reportActionID,
+        questionText: selectedFollowup.text,
         hasPregeneratedResponse: !!selectedFollowup.response,
     });
 
@@ -63,7 +65,7 @@ function resolveSuggestedFollowup(
     });
 
     if (!selectedFollowup.response) {
-        addComment({report, notifyReportID: notifyReportID ?? reportID, ancestors, text: selectedFollowup.text, timezoneParam, currentUserAccountID});
+        addComment({report, notifyReportID: notifyReportID ?? reportID, ancestors, text: selectedFollowup.text, timezoneParam, currentUserAccountID, delegateAccountID});
         return;
     }
 
@@ -84,6 +86,7 @@ function resolveSuggestedFollowup(
             optimisticConciergeReportActionID,
             pregeneratedResponse: selectedFollowup.response,
         },
+        delegateAccountID,
     });
 
     // Use the full delay as createdOffset so the Concierge response timestamp is
@@ -98,6 +101,7 @@ function resolveSuggestedFollowup(
         isHTML: true,
         currentUserEmail,
         currentUserAccountID,
+        delegateAccountIDParam: delegateAccountID,
     });
 
     addOptimisticConciergeActionWithDelay(reportID, optimisticConciergeAction);

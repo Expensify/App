@@ -11,6 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ConnectionName, Connections, PolicyConnectionName, PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {syncMergeHR} from './MergeHR';
 
 type ConnectionNameExceptNetSuite = Exclude<ConnectionName, typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE>;
 
@@ -24,6 +25,9 @@ function removePolicyConnection(policy: Policy, connectionName: PolicyConnection
             | typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS
             | typeof ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION
             | typeof ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION
+            | typeof ONYXKEYS.COLLECTION.TRAVEL_INVOICING_CONTINUOUS_RECONCILIATION_CONNECTION
+            | typeof ONYXKEYS.COLLECTION.TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION
+            | typeof ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN
         >
     > = [
         {
@@ -50,7 +54,25 @@ function removePolicyConnection(policy: Policy, connectionName: PolicyConnection
             key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`,
             value: null,
         },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`,
+            value: null,
+        },
     ];
+
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN}${policyID}`,
+            value: null,
+        });
+    }
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
@@ -98,10 +120,7 @@ function removePolicyConnection(policy: Policy, connectionName: PolicyConnection
 }
 
 /**
- * This method returns read command and stage in progress for a given accounting integration.
- *
- * @param policyID - ID of the policy for which the sync is needed
- * @param connectionName - Name of the connection, QBO/Xero
+ * This method returns read command and stage in progress for a given policy connection.
  */
 function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
     switch (connectionName) {
@@ -120,16 +139,25 @@ function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.QBD: {
             return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_QUICKBOOKS_DESKTOP, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.STARTING_IMPORT_QBD};
         }
+        case CONST.POLICY.CONNECTIONS.NAME.GUSTO: {
+            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_GUSTO, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.GUSTO_SYNC_TITLE};
+        }
+        case CONST.POLICY.CONNECTIONS.NAME.ZENEFITS: {
+            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_ZENEFITS, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.ZENEFITS_SYNC_TITLE};
+        }
+        case CONST.POLICY.CONNECTIONS.NAME.CERTINIA: {
+            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_FINANCIAL_FORCE, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.FINANCIAL_FORCE_SYNC_CONNECTION};
+        }
         default:
             return undefined;
     }
 }
 
 /**
- * This method helps in syncing policy to the connected accounting integration.
+ * This method helps in syncing policy to the connected integration.
  *
  * @param policy - Policy for which the sync is needed
- * @param connectionName - Name of the connection, QBO/Xero
+ * @param connectionName - Name of the connection
  * @param forceDataRefresh - If true, it will trigger a full data refresh
  */
 function syncConnection(policy: Policy | undefined, connectionName: PolicyConnectionName | undefined, forceDataRefresh = false) {
@@ -137,6 +165,12 @@ function syncConnection(policy: Policy | undefined, connectionName: PolicyConnec
         return;
     }
     const policyID = policy.id;
+
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR) {
+        syncMergeHR(policy);
+        return;
+    }
+
     const syncConnectionData = getSyncConnectionParameters(connectionName);
 
     if (!syncConnectionData) {
@@ -270,6 +304,11 @@ function isConnectionUnverified(policy: OnyxEntry<Policy>, connectionName: Polic
     // i.e. this is a property that is explicitly set to false, not just missing
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
         return !(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]?.verified ?? true);
+    }
+
+    // Certinia is considered verified once the Salesforce instance is linked (same signal we persist client-side post-OAuth)
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.CERTINIA) {
+        return !policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.config?.credentials?.enterpriseUrl;
     }
 
     // If the connection has no lastSync property, we'll consider it unverified

@@ -1,8 +1,10 @@
 import {format, setYear} from 'date-fns';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -40,13 +42,15 @@ function DatePicker({
     const {translate} = useLocalize();
 
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const announcementMessage = label ? `${label}, ${translate('common.calendarOpened')}` : translate('common.calendarOpened');
+    useAccessibilityAnnouncement(announcementMessage, isModalVisible, {shouldAnnounceOnNative: true, shouldAnnounceOnWeb: true});
     const [selectedDate, setSelectedDate] = useState(() => value ?? defaultValue ?? '');
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
     const textInputRef = useRef<BaseTextInputRef | null>(null);
     const anchorRef = useRef<View>(null);
     const [isInverted, setIsInverted] = useState(false);
 
-    const {inputCallbackRef: autoFocusCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef: autoFocusCallbackRef, cancelAutoFocus} = useAutoFocusInput();
     const autoFocusCallbackRefRef = useRef(autoFocusCallbackRef);
     autoFocusCallbackRefRef.current = autoFocusCallbackRef;
 
@@ -77,11 +81,12 @@ function DatePicker({
     }, [windowHeight]);
 
     const showDatePickerModal = useCallback(() => {
+        cancelAutoFocus();
         // Blur the input before showing the modal, so the focus won't be returned after the modal is closed
         textInputRef.current?.blur();
         calculatePopoverPosition();
         setIsModalVisible(true);
-    }, [calculatePopoverPosition]);
+    }, [calculatePopoverPosition, cancelAutoFocus]);
 
     const closeDatePicker = useCallback(() => {
         setIsModalVisible(false);
@@ -101,7 +106,6 @@ function DatePicker({
     };
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             calculatePopoverPosition();
         });
@@ -118,7 +122,7 @@ function DatePicker({
             }
         },
         // autoFocusCallbackRefRef is a stable ref — its identity never changes, so it's not a dep
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
         [autoFocus],
     );
 

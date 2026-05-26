@@ -1,10 +1,9 @@
 /* eslint-disable rulesdir/prefer-early-return */
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import {isUserValidatedSelector} from '@selectors/Account';
-import {tierNameSelector} from '@selectors/UserWallet';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, ListRenderItemInfo, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import FlatListWithScrollKey from '@components/FlatList/FlatListWithScrollKey';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -44,7 +43,7 @@ import {
     isReportActionVisible,
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction, chatIncludesChronosWithID, getOriginalReportID, getReportLastVisibleActionCreated, isHarvestCreatedExpenseReport, isUnread} from '@libs/ReportUtils';
+import {canUserPerformWriteAction, chatIncludesChronosWithID, getReportLastVisibleActionCreated, isHarvestCreatedExpenseReport, isUnread} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Visibility from '@libs/Visibility';
@@ -100,7 +99,8 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     // report is guaranteed to exist — callers only render this component when report is loaded
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`) as unknown as [OnyxTypes.Report];
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
-    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
+    const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
+    const [reportPaginationState] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportIDFromRoute}`);
     const reportID = report?.reportID;
 
     const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, route?.params?.reportActionID);
@@ -116,8 +116,8 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         () => Object.values(allReportTransactions ?? {}).some((transaction) => transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
         [allReportTransactions],
     );
-    const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, reportTransactions);
-    const showReportActionsLoadingState = reportMetadata?.isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions;
+    const newTransactions = useNewTransactions(reportLoadingState?.hasOnceLoadedReportActions, reportTransactions);
+    const showReportActionsLoadingState = reportLoadingState?.isLoadingInitialReportActions && !reportLoadingState?.hasOnceLoadedReportActions;
     const reportTransactionIDs = useMemo(() => transactions.map((transaction) => transaction.transactionID), [transactions]);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
@@ -125,27 +125,10 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
     const parentReportAction = useParentReportAction(report);
 
-    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {
-        selector: tierNameSelector,
-    });
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
-        selector: isUserValidatedSelector,
-    });
-    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const personalDetails = usePersonalDetails();
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
-    const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    // reportActions is passed as an array because it's sorted chronologically for FlatList rendering and pagination.
-    // However, getOriginalReportID expects the Onyx object format (keyed by reportActionID) for efficient lookups.
-    const reportActionsObject = useMemo(() => {
-        const obj: OnyxTypes.ReportActions = {};
-        for (const action of reportActions) {
-            obj[action.reportActionID] = action;
-        }
-        return obj;
-    }, [reportActions]);
+
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], false, reportTransactionIDs);
     const firstVisibleReportActionID = useMemo(() => getFirstVisibleReportActionID(reportActions, isOffline), [reportActions, isOffline]);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
@@ -222,26 +205,34 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         reportID,
         reportActions,
         allReportActionIDs: reportActionIDs,
-        transactionThreadReport,
+        transactionThreadReportID,
         hasOlderActions,
         hasNewerActions,
-        newestFetchedReportActionID: reportMetadata?.newestFetchedReportActionID,
+        newestFetchedReportActionID: reportPaginationState?.newestFetchedReportActionID,
     });
 
-    const hasFinishedInitialLoad = reportMetadata?.isLoadingInitialReportActions === false;
+    const hasFinishedInitialLoad = reportLoadingState?.isLoadingInitialReportActions === false;
     const prevNewestFetchedIDRef = useRef<string | undefined>(undefined);
     useEffect(() => {
-        if (hasFinishedInitialLoad && hasNewerActions && reportActions.length > 0 && !isOffline && !reportMetadata?.isLoadingNewerReportActions) {
+        if (hasFinishedInitialLoad && hasNewerActions && reportActions.length > 0 && !isOffline && !reportLoadingState?.isLoadingNewerReportActions) {
             // Safety guard: if the cursor hasn't advanced since the last call, the server
             // isn't returning new data. Stop to prevent an infinite request loop.
-            const currentCursor = reportMetadata?.newestFetchedReportActionID;
+            const currentCursor = reportPaginationState?.newestFetchedReportActionID;
             if (prevNewestFetchedIDRef.current !== undefined && prevNewestFetchedIDRef.current === currentCursor) {
                 return;
             }
             prevNewestFetchedIDRef.current = currentCursor;
             loadNewerChats(false);
         }
-    }, [hasFinishedInitialLoad, reportActions.length, hasNewerActions, isOffline, reportMetadata?.isLoadingNewerReportActions, reportMetadata?.newestFetchedReportActionID, loadNewerChats]);
+    }, [
+        hasFinishedInitialLoad,
+        reportActions.length,
+        hasNewerActions,
+        isOffline,
+        reportLoadingState?.isLoadingNewerReportActions,
+        reportPaginationState?.newestFetchedReportActionID,
+        loadNewerChats,
+    ]);
 
     // Backfill loop: the backend prioritizes IOU actions in OpenReport/GetNewerActions for money
     // request reports, which can leave non-IOU chat messages in a gap between the IOU-biased cursor
@@ -257,18 +248,18 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         isBackfillingRef.current = false;
     }
     useEffect(() => {
-        if (!hasFinishedInitialLoad || isOffline || hasNewerActions || reportMetadata?.isLoadingNewerReportActions || reportMetadata?.isLoadingOlderReportActions) {
+        if (!hasFinishedInitialLoad || isOffline || hasNewerActions || reportLoadingState?.isLoadingNewerReportActions || reportLoadingState?.isLoadingOlderReportActions) {
             return;
         }
 
         if (!isBackfillingRef.current) {
             const hasIOUActions = reportActions.some((action) => isMoneyRequestAction(action));
-            if (!hasIOUActions || reportActions.length < BACKFILL_MIN_ACTIONS_THRESHOLD || !reportMetadata?.newestFetchedReportActionID) {
+            if (!hasIOUActions || reportActions.length < BACKFILL_MIN_ACTIONS_THRESHOLD || !reportPaginationState?.newestFetchedReportActionID) {
                 return;
             }
         }
 
-        const cursor = isBackfillingRef.current ? reportMetadata?.oldestFetchedReportActionID : reportMetadata?.newestFetchedReportActionID;
+        const cursor = isBackfillingRef.current ? reportPaginationState?.oldestFetchedReportActionID : reportPaginationState?.newestFetchedReportActionID;
         if (!cursor) {
             return;
         }
@@ -279,7 +270,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
         isBackfillingRef.current = true;
         prevBackfillCursorRef.current = cursor;
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const handle = InteractionManager.runAfterInteractions(() => getOlderActions(reportID, cursor));
 
         return () => handle.cancel();
@@ -287,10 +277,10 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         hasFinishedInitialLoad,
         isOffline,
         hasNewerActions,
-        reportMetadata?.isLoadingNewerReportActions,
-        reportMetadata?.isLoadingOlderReportActions,
-        reportMetadata?.newestFetchedReportActionID,
-        reportMetadata?.oldestFetchedReportActionID,
+        reportLoadingState?.isLoadingNewerReportActions,
+        reportLoadingState?.isLoadingOlderReportActions,
+        reportPaginationState?.newestFetchedReportActionID,
+        reportPaginationState?.oldestFetchedReportActionID,
         reportActions,
         reportID,
     ]);
@@ -301,7 +291,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadOlderChats(false)));
     }, [loadOlderChats]);
 
@@ -357,7 +346,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
             const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
             if ((isVisible || isFromNotification) && scrollingVerticalBottomOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD) {
-                readNewestAction(report?.reportID, !!reportMetadata?.hasOnceLoadedReportActions);
+                readNewestAction(report?.reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
                 if (isFromNotification) {
                     Navigation.setParams({referrer: undefined});
                 }
@@ -366,7 +355,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [report?.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report?.reportID, isVisible, reportMetadata?.hasOnceLoadedReportActions]);
+    }, [report?.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report?.reportID, isVisible, reportLoadingState?.hasOnceLoadedReportActions]);
 
     useEffect(() => {
         if (!isVisible || !isFocused) {
@@ -390,7 +379,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             return;
         }
 
-        readNewestAction(report?.reportID, !!reportMetadata?.hasOnceLoadedReportActions);
+        readNewestAction(report?.reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
         userActiveSince.current = DateUtils.getDBTime();
 
         // This effect logic to `mark as read` will only run when the report focused has new messages and the App visibility
@@ -398,7 +387,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         // We will mark the report as read in the above case which marks the LHN report item as read while showing the new message
         // marker for the chat messages received while the user wasn't focused on the report or on another browser tab for web.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isFocused, isVisible, reportMetadata?.hasOnceLoadedReportActions]);
+    }, [isFocused, isVisible, reportLoadingState?.hasOnceLoadedReportActions]);
 
     /**
      * The index of the earliest message that was received while offline
@@ -434,6 +423,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         readActionSkippedRef: readActionSkipped,
         unreadMarkerReportActionIndex,
         isInverted: false,
+        hasNewerActions,
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             const {layoutMeasurement, contentSize, contentOffset} = event.nativeEvent;
             const fullContentHeight = contentSize.height;
@@ -448,7 +438,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             // We additionally track the top offset to be able to scroll to the new transaction when it's added
             scrollingVerticalTopOffset.current = contentOffset.y;
         },
-        hasOnceLoadedReportActions: !!reportMetadata?.hasOnceLoadedReportActions,
+        hasOnceLoadedReportActions: !!reportLoadingState?.hasOnceLoadedReportActions,
     });
 
     useScrollToEndOnNewMessageReceived({
@@ -460,6 +450,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         hasNewestReportAction,
         setIsFloatingMessageCounterVisible,
         scrollToEnd: reportScrollManager.scrollToEnd,
+        resetKey: report.reportID,
     });
 
     /**
@@ -501,7 +492,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
     const scrollToBottomForCurrentUserAction = useCallback(
         (isFromCurrentUser: boolean, reportAction?: OnyxTypes.ReportAction) => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 setIsFloatingMessageCounterVisible(false);
                 // If a new comment is added from the current user, scroll to the bottom, otherwise leave the user position unchanged
@@ -560,8 +550,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                 !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
                 hasNextActionMadeBySameActor(visibleReportActions, index, isOffline);
 
-            const originalReportID = getOriginalReportID(report?.reportID, reportAction, reportActionsObject);
-
             return (
                 <ReportActionsListItemRenderer
                     reportAction={reportAction}
@@ -576,21 +564,13 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                     isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                     shouldHideThreadDividerLine
                     linkedReportActionID={linkedReportActionID}
-                    userWalletTierName={userWalletTierName}
-                    isUserValidated={isUserValidated}
                     personalDetails={personalDetails}
-                    userBillingFundID={userBillingFundID}
-                    originalReportID={originalReportID}
-                    isReportArchived={isReportArchived}
-                    isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
-                    reportNameValuePairsOrigin={reportNameValuePairs?.origin}
-                    reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
+                    isHarvestCreatedExpenseReport={shouldShowHarvestCreatedAction}
                 />
             );
         },
         [
             visibleReportActions,
-            reportActionsObject,
             parentReportAction,
             report,
             isOffline,
@@ -598,14 +578,8 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             unreadMarkerReportActionID,
             firstVisibleReportActionID,
             linkedReportActionID,
-            userWalletTierName,
-            isUserValidated,
             personalDetails,
-            userBillingFundID,
-            isTryNewDotNVPDismissed,
-            isReportArchived,
-            reportNameValuePairs?.origin,
-            reportNameValuePairs?.originalID,
+            shouldShowHarvestCreatedAction,
         ],
     );
 
@@ -613,15 +587,15 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         setIsFloatingMessageCounterVisible(false);
 
         if (!hasNewestReportAction) {
-            openReport({reportID: report?.reportID, introSelected, betas});
+            openReport({reportID, introSelected, betas});
             reportScrollManager.scrollToEnd();
             return;
         }
 
         reportScrollManager.scrollToEnd();
         readActionSkipped.current = false;
-        readNewestAction(report?.reportID, !!reportMetadata?.hasOnceLoadedReportActions);
-    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report?.reportID, reportMetadata?.hasOnceLoadedReportActions, introSelected, betas]);
+        readNewestAction(reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
+    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, reportID, reportLoadingState?.hasOnceLoadedReportActions, introSelected, betas]);
 
     const scrollToNewTransaction = useCallback(
         (pageY: number) => {
@@ -660,12 +634,19 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const initialNumToRender = useMemo((): number | undefined => {
         const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
         const availableHeight = windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
-        const numToRender = Math.ceil(availableHeight / minimumReportActionHeight);
+        // windowHeight can be smaller than the header+footer during transient mount/transition states
+        // (e.g. Wide RHP overlay animating in), which would make numToRender negative and crash
+        // VirtualizedList with "Invalid cells around viewport". Clamping to 0 lets the `|| undefined`
+        // fallback below kick in so FlatList uses its default.
+        const numToRender = Math.max(0, Math.ceil(availableHeight / minimumReportActionHeight));
         if (linkedReportActionID) {
             return getInitialNumToRender(numToRender);
         }
         return numToRender || undefined;
     }, [styles.chatItem.paddingBottom, styles.chatItem.paddingTop, windowHeight, linkedReportActionID]);
+
+    const isReportEmpty = isEmpty(visibleReportActions) && isEmpty(transactions) && !showReportActionsLoadingState;
+    const showEmptyState = isReportEmpty;
 
     if (!report) {
         return null;
@@ -687,7 +668,10 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                     isActive={isFloatingMessageCounterVisible}
                     onClick={scrollToBottomAndMarkReportAsRead}
                 />
-                {isEmpty(visibleReportActions) && isEmpty(transactions) && !showReportActionsLoadingState ? (
+                {/* Exactly one of these two branches is active at a time:
+                    1. showEmptyState — genuinely empty report
+                    2. !isReportEmpty — report has data, render the FlatList */}
+                {showEmptyState && (
                     <ScrollView contentContainerStyle={styles.flexGrow1}>
                         <MoneyRequestViewReportFields
                             report={report}
@@ -699,7 +683,8 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                             policy={policy}
                         />
                     </ScrollView>
-                ) : (
+                )}
+                {!isReportEmpty && (
                     <FlatListWithScrollKey
                         initialNumToRender={initialNumToRender}
                         accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}

@@ -1,6 +1,4 @@
 import {useFocusEffect, useRoute} from '@react-navigation/native';
-import {isUserValidatedSelector} from '@selectors/Account';
-import {tierNameSelector} from '@selectors/UserWallet';
 import type {FlashListProps, FlashListRef, ViewToken} from '@shopify/flash-list';
 import React, {useCallback, useContext, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
@@ -11,13 +9,13 @@ import Animated, {Easing, FadeOutUp, LinearTransition} from 'react-native-reanim
 import Checkbox from '@components/Checkbox';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 import Text from '@components/Text';
+import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -31,13 +29,14 @@ import useUndeleteTransactions from '@hooks/useUndeleteTransactions';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import DateUtils from '@libs/DateUtils';
+import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {applySelectionToItem, getTableMinWidth} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import type {TransactionPreviewData} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardList, Policy, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {CardList, Transaction} from '@src/types/onyx';
 import BaseSearchList from './BaseSearchList';
 import type ChatListItem from './ListItem/ChatListItem';
 import type ExpenseReportListItem from './ListItem/ExpenseReportListItem';
@@ -79,7 +78,7 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     SearchTableHeader?: React.JSX.Element;
 
     /** Callback to fire when a row is pressed */
-    onSelectRow: (item: SearchListItem, transactionPreviewData?: TransactionPreviewData) => void;
+    onSelectRow: (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
 
     /** Whether this is a multi-select list */
     canSelectMultiple: boolean;
@@ -92,9 +91,6 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
     /** Styles to apply to SelectionList container */
     containerStyle?: StyleProp<ViewStyle>;
-
-    /** Whether to prevent default focusing of options and focus the text input when selecting an option */
-    shouldPreventDefaultFocusOnSelectRow?: boolean;
 
     /** Whether to prevent long press of options */
     shouldPreventLongPressRow?: boolean;
@@ -122,9 +118,6 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
     newTransactions?: Transaction[];
 
-    /** Violations indexed by transaction ID */
-    violations?: Record<string, TransactionViolations | undefined> | undefined;
-
     /** Selected transactions for determining isSelected state */
     selectedTransactions: SelectedTransactions;
 
@@ -134,7 +127,9 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Whether all transactions have been loaded from snapshots in group-by views */
     hasLoadedAllTransactions?: boolean;
 
-    policyForMovingExpenses?: Policy;
+    /** Precomputed boolean: shouldShowAttendees applied to the user's policy-for-moving-expenses.
+     * Drilled instead of the policy object to avoid ref churn on unrelated policy updates. */
+    isAttendeesEnabledForMovingPolicy?: boolean;
 
     /** Whether the action column should use its wider variant (e.g. when there is at least one deleted transaction) */
     isActionColumnWide?: boolean;
@@ -210,7 +205,6 @@ function SearchList({
     onEndReached,
     containerStyle,
     ListFooterComponent,
-    shouldPreventDefaultFocusOnSelectRow,
     shouldPreventLongPressRow,
     queryJSON,
     columns,
@@ -219,18 +213,17 @@ function SearchList({
     shouldAnimate,
     isMobileSelectionModeEnabled,
     newTransactions = [],
-    violations,
     nonPersonalAndWorkspaceCards,
     selectedTransactions,
     hasLoadedAllTransactions,
-    policyForMovingExpenses,
+    isAttendeesEnabledForMovingPolicy,
     isActionColumnWide,
     ref,
 }: SearchListProps) {
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
 
-    const {hash, groupBy, type} = queryJSON;
+    const {groupBy, type} = queryJSON;
     const flattenedItems = useMemo(() => {
         if (groupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
             if (!isTransactionGroupListItemArray(data)) {
@@ -300,14 +293,9 @@ function SearchList({
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [longPressedItem, setLongPressedItem] = useState<SearchListItem>();
 
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-
     const hasItemsBeingRemoved = prevDataLength && prevDataLength > data.length;
-    const personalDetails = usePersonalDetails();
+    const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
 
-    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector});
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
-    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -321,12 +309,11 @@ function SearchList({
 
     const [longPressedItemTransactions, setLongPressedItemTransactions] = useState<TransactionListItemType[]>();
 
-    const newTransactionIDByItemKey = useMemo(() => {
+    const newTransactionIDByItemKey = (() => {
         if (newTransactions.length === 0) {
             return CONST.EMPTY_MAP;
         }
 
-        // Precompute the per-row highlight lookup once so renderItem can stay O(1) during list renders.
         const mappedTransactionIDs = new Map<string, string>();
         for (const item of data) {
             const matchedTransactionID = newTransactions.find((transaction) => isTransactionMatchWithGroupItem(transaction, item, groupBy))?.transactionID;
@@ -336,7 +323,7 @@ function SearchList({
         }
 
         return mappedTransactionIDs;
-    }, [data, groupBy, newTransactions]);
+    })();
 
     const {windowWidth} = useWindowDimensions();
     const minTableWidth = getTableMinWidth(columns, queryJSON.type, isActionColumnWide);
@@ -356,6 +343,19 @@ function SearchList({
         horizontalScrollViewRef.current?.scrollTo({x: savedHorizontalScrollOffset, animated: false});
     }, [data, shouldScrollHorizontally]);
 
+    const handleLongPressRowInMobileSelectionMode = (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => {
+        const currentRoute = navigationRef.current?.getCurrentRoute();
+        if (currentRoute && route.key !== currentRoute.key) {
+            return;
+        }
+
+        if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return;
+        }
+
+        onCheckboxPress(item, itemTransactions);
+    };
+
     const handleLongPressRow = useCallback(
         (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => {
             const currentRoute = navigationRef.current?.getCurrentRoute();
@@ -363,20 +363,15 @@ function SearchList({
                 return;
             }
 
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 return;
             }
 
-            if (isMobileSelectionModeEnabled) {
-                onCheckboxPress(item, itemTransactions);
-                return;
-            }
             setLongPressedItem(item);
             setLongPressedItemTransactions(itemTransactions);
             setIsModalVisible(true);
         },
-        [route.key, shouldPreventLongPressRow, isSmallScreenWidth, isMobileSelectionModeEnabled, onCheckboxPress],
+        [route.key, shouldPreventLongPressRow, isSmallScreenWidth],
     );
 
     const turnOnSelectionMode = useCallback(() => {
@@ -402,9 +397,16 @@ function SearchList({
                 return;
             }
 
+            // Don't scroll while a cell is being edited
+            // as it can cause unwanted scrolling when the edit is dismissed
+            // See: https://github.com/Expensify/App/pull/83127#issuecomment-4064533155
+            if (isEditingCell || wasRecentlyEditingCell) {
+                return;
+            }
+
             listRef.current.scrollToIndex({index, animated, viewOffset: -variables.contentHeaderHeight});
         },
-        [data],
+        [data, isEditingCell, wasRecentlyEditingCell],
     );
 
     useFocusEffect(
@@ -421,6 +423,10 @@ function SearchList({
     );
 
     useImperativeHandle(ref, () => ({scrollToIndex}), [scrollToIndex]);
+
+    const isItemVisible = useCallback((item: SearchListItem) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline, [isOffline]);
+    const firstVisibleIndex = useMemo(() => data.findIndex(isItemVisible), [data, isItemVisible]);
+    const lastVisibleIndex = useMemo(() => data.findLastIndex(isItemVisible), [data, isItemVisible]);
 
     const renderItem = useCallback(
         (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
@@ -442,15 +448,12 @@ function SearchList({
                         showTooltip
                         isFocused={isItemFocused}
                         onSelectRow={onSelectRow}
-                        onLongPressRow={handleLongPressRow}
-                        onCheckboxPress={onCheckboxPress}
+                        onLongPressRow={isMobileSelectionModeEnabled ? handleLongPressRowInMobileSelectionMode : handleLongPressRow}
+                        onSelectionButtonPress={onCheckboxPress}
                         canSelectMultiple={canSelectMultiple}
                         item={itemWithSelection}
-                        shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
-                        queryJSONHash={hash}
                         columns={columns}
-                        policies={policies}
-                        policyForMovingExpenses={policyForMovingExpenses}
+                        isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                         isDisabled={isDisabled}
                         groupBy={groupBy}
                         searchType={type}
@@ -458,19 +461,13 @@ function SearchList({
                         personalPolicyID={personalPolicyID}
                         userBillingGracePeriodEnds={userBillingGracePeriodEnds}
                         ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
-                        userWalletTierName={userWalletTierName}
-                        isUserValidated={isUserValidated}
-                        personalDetails={personalDetails}
-                        userBillingFundID={userBillingFundID}
-                        isOffline={isOffline}
-                        violations={violations}
                         nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                         onFocus={onFocus}
                         newTransactionID={newTransactionID}
                         onUndelete={handleUndelete}
                         keyForList={item.keyForList}
-                        isFirstItem={index === 0}
-                        isLastItem={index === data.length - 1 && !ListFooterComponent}
+                        isFirstItem={index === firstVisibleIndex}
+                        isLastItem={index === lastVisibleIndex && !ListFooterComponent}
                     />
                 </Animated.View>
             );
@@ -486,18 +483,11 @@ function SearchList({
             ListItem,
             onSelectRow,
             handleLongPressRow,
+            handleLongPressRowInMobileSelectionMode,
+            isMobileSelectionModeEnabled,
             onCheckboxPress,
             canSelectMultiple,
-            shouldPreventDefaultFocusOnSelectRow,
-            hash,
             columns,
-            policies,
-            userWalletTierName,
-            isUserValidated,
-            personalDetails,
-            userBillingFundID,
-            isOffline,
-            violations,
             lastPaymentMethod,
             personalPolicyID,
             userBillingGracePeriodEnds,
@@ -505,8 +495,10 @@ function SearchList({
             nonPersonalAndWorkspaceCards,
             selectedTransactions,
             ListFooterComponent,
-            policyForMovingExpenses,
+            isAttendeesEnabledForMovingPolicy,
             handleUndelete,
+            firstVisibleIndex,
+            lastVisibleIndex,
         ],
     );
 
@@ -573,7 +565,7 @@ function SearchList({
                 contentContainerStyle={contentContainerStyle}
                 newTransactions={newTransactions}
                 selectedTransactions={selectedTransactions}
-                policyForMovingExpenses={policyForMovingExpenses}
+                isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                 nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
             />
             <Modal

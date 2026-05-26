@@ -23,7 +23,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
-import {buildUserReadableQueryString, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {buildUserReadableQueryString, getKeywordQueryWithCurrentSearchContext, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -118,8 +118,9 @@ function useSearchPageInput({queryJSON, onSearch, onSubmit}: UseSearchPageInputP
     }
 
     function submitSearch(queryString: SearchQueryString, shouldSkipAmountConversion = false) {
-        const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
-        const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions, shouldSkipAmountConversion);
+        const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions, currentUserAccountID);
+        const queryWithContext = getKeywordQueryWithCurrentSearchContext(queryWithSubstitutions, queryJSON);
+        const updatedQuery = getQueryWithUpdatedValues(queryWithContext, shouldSkipAmountConversion);
 
         if (!updatedQuery) {
             return;
@@ -129,7 +130,7 @@ function useSearchPageInput({queryJSON, onSearch, onSubmit}: UseSearchPageInputP
         Navigation.navigate(
             ROUTES.SEARCH_ROOT.getRoute({
                 query: updatedQuery,
-                rawQuery: queryWithSubstitutions,
+                rawQuery: shouldSkipAmountConversion ? undefined : queryWithSubstitutions,
             }),
         );
         onSubmit();
@@ -186,22 +187,29 @@ function useSearchPageInput({queryJSON, onSearch, onSubmit}: UseSearchPageInputP
             } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH) {
                 submitSearch(item.searchQuery, item.keyForList !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM);
             }
-        } else if (item?.reportID) {
+            return;
+        }
+        // Call onSubmit to ensure the SearchRouter closes when navigating to a report from search results.
+        // This prevents `isBlockingViewVisible` from remaining `true` after navigating from the SearchRouter.
+        Navigation.setNavigationActionToMicrotaskQueue(() => onSubmit());
+        if (item?.reportID) {
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
         } else if ('login' in item) {
             navigateToAndOpenReport(item.login ? [item.login] : [], personalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas, false);
         }
     }
 
-    const searchQueryItem = textInputValue
-        ? {
-              text: textInputValue,
-              singleIcon: expensifyIcons.MagnifyingGlass,
-              searchQuery: textInputValue,
-              itemStyle: styles.activeComponentBG,
-              keyForList: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM,
-              searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
-          }
+    const searchQueryItems = textInputValue?.trim()
+        ? [
+              {
+                  text: textInputValue,
+                  singleIcon: expensifyIcons.MagnifyingGlass,
+                  searchQuery: textInputValue,
+                  itemStyle: styles.activeComponentBG,
+                  keyForList: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM,
+                  searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
+              },
+          ]
         : undefined;
 
     return {
@@ -211,7 +219,7 @@ function useSearchPageInput({queryJSON, onSearch, onSubmit}: UseSearchPageInputP
         personalAndWorkspaceCards,
         personalDetails,
         reports,
-        searchQueryItem,
+        searchQueryItems,
         selection,
         textInputRef,
         textInputValue,

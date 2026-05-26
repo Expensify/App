@@ -4,13 +4,14 @@ import type {ReactNode} from 'react';
 import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
+import useIsWorkspacesTabFocused from '@hooks/useIsWorkspacesTabFocused';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -19,7 +20,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {openWorkspaceView} from '@libs/actions/BankAccounts';
 import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
 import Navigation from '@libs/Navigation/Navigation';
-import {isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
+import {canEditWorkspaceSettings, canMemberRead, isPendingDeletePolicy, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
+import type {PolicyFeature} from '@libs/PolicyUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -57,6 +59,9 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
 
         /** Whether to show this page to non admin policy members */
         shouldShowNonAdmin?: boolean;
+
+        /** Policy feature permission needed to show this page */
+        policyFeature?: PolicyFeature;
 
         /** Whether to show the not found page */
         shouldShowNotFoundPage?: boolean;
@@ -122,6 +127,7 @@ function WorkspacePageWithSections({
     shouldShowLoading = true,
     shouldShowOfflineIndicatorInWideScreen = false,
     shouldShowNonAdmin = false,
+    policyFeature,
     shouldEnableMaxHeight = true,
     headerContent,
     testID,
@@ -151,6 +157,7 @@ function WorkspacePageWithSections({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const firstRender = useRef(showLoadingAsFirstRender);
     const isFocused = useIsFocused();
+    const isWorkspacesTabFocused = useIsWorkspacesTabFocused();
     const prevPolicy = usePrevious(policy);
 
     useEffect(() => {
@@ -163,18 +170,32 @@ function WorkspacePageWithSections({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     const shouldShowPolicy = useMemo(() => shouldShowPolicyUtil(policy, false, currentUserLogin), [policy, currentUserLogin]);
+    let hasAccessToPolicyFeature: boolean | undefined;
+    if (policyFeature) {
+        hasAccessToPolicyFeature = currentUserLogin ? canMemberRead(policy, currentUserLogin, policyFeature) : false;
+    }
     const isPendingDelete = isPendingDeletePolicy(policy);
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
+
     const shouldShow = useMemo(() => {
+        // Suppress the not-found view when the user has moved away from the workspace flow (e.g. switched
+        // to another tab and the workspace was deleted from another device) so the view doesn't bleed
+        // through over the active tab. Stays true when an RHP is open on top of a workspace screen.
+        if (!isWorkspacesTabFocused) {
+            return false;
+        }
+
         // If the policy object doesn't exist or contains only error data, we shouldn't display it.
         if (((isEmptyObject(policy) || (Object.keys(policy).length === 1 && !isEmptyObject(policy.errors))) && isEmptyObject(policyDraft)) || shouldShowNotFoundPage) {
             return true;
         }
 
         // We check isPendingDelete and prevIsPendingDelete to prevent the NotFound view from showing right after we delete the workspace
-        return (!isEmptyObject(policy) && !isPolicyAdmin(policy) && !shouldShowNonAdmin) || (!shouldShowPolicy && !(isPendingDelete && !prevIsPendingDelete));
+        const canShowPage = hasAccessToPolicyFeature ?? (canEditWorkspaceSettings(policy, currentUserLogin) || shouldShowNonAdmin);
+
+        return (!isEmptyObject(policy) && !canShowPage) || (!shouldShowPolicy && !(isPendingDelete && !prevIsPendingDelete));
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [policy, shouldShowNonAdmin, shouldShowPolicy]);
+    }, [currentUserLogin, hasAccessToPolicyFeature, isWorkspacesTabFocused, policy, shouldShowNonAdmin, shouldShowPolicy]);
 
     const handleOnBackButtonPress = () => {
         if (shouldShow) {
@@ -228,16 +249,18 @@ function WorkspacePageWithSections({
                     {headerContent}
                 </HeaderWithBackButton>
                 {!isOffline && (isLoading || firstRender.current) && shouldShowLoading && isFocused ? (
-                    <FullScreenLoadingIndicator
-                        style={[styles.flex1, styles.pRelative]}
-                        reasonAttributes={
-                            {
-                                context: 'WorkspacePageWithSections',
-                                isLoading,
-                                isFirstRender: firstRender.current,
-                            } satisfies SkeletonSpanReasonAttributes
-                        }
-                    />
+                    <View style={[styles.flex1, styles.fullScreenLoading]}>
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            reasonAttributes={
+                                {
+                                    context: 'WorkspacePageWithSections',
+                                    isLoading,
+                                    isFirstRender: firstRender.current,
+                                } satisfies SkeletonSpanReasonAttributes
+                            }
+                        />
+                    </View>
                 ) : (
                     <>
                         {shouldUseScrollView ? (

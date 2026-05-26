@@ -5,6 +5,7 @@ import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import SettlementButton from '@components/SettlementButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -12,7 +13,7 @@ import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransact
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canIOUBePaid} from '@libs/actions/IOU/ReportWorkflow';
 import {getPayMoneyOnSearchInvoiceParams, payMoneyRequestOnSearch} from '@libs/actions/Search';
-import {isInvoiceReport} from '@libs/ReportUtils';
+import {getReimbursableTotal, isInvoiceReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -39,8 +40,11 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`);
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
-    const canBePaid = canIOUBePaid(iouReport, chatReport, policy, bankAccountList, transactions, false, undefined, invoiceReceiverPolicy);
-    const shouldOnlyShowElsewhere = !canBePaid && canIOUBePaid(iouReport, chatReport, policy, bankAccountList, transactions, true, undefined, invoiceReceiverPolicy);
+    const {login: currentUserLogin, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+
+    const canBePaid = canIOUBePaid(iouReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', currentUserAccountID, transactions, false, undefined, invoiceReceiverPolicy);
+    const shouldOnlyShowElsewhere =
+        !canBePaid && canIOUBePaid(iouReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', currentUserAccountID, transactions, true, undefined, invoiceReceiverPolicy);
 
     const {currency} = iouReport ?? {};
 
@@ -72,8 +76,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
                 shouldUseShortForm
                 buttonSize={extraSmall ? CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL : CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                 currency={currency}
-                formattedAmount={convertToDisplayString(Math.abs(iouReport?.total ?? 0), currency)}
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                formattedAmount={convertToDisplayString(Math.abs(getReimbursableTotal(iouReport)), currency)}
                 policyID={policyID || iouReport?.policyID}
                 iouReport={iouReport}
                 chatReportID={iouReport?.chatReportID}
@@ -92,5 +95,4 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
     );
 }
 
-export type {PayActionCellProps};
 export default PayActionCell;

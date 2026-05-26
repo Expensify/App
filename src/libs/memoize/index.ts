@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import type NonPartial from '@src/types/utils/NonPartial';
 import type TakeFirst from '@src/types/utils/TupleOperations';
 import ArrayCache from './cache/ArrayCache';

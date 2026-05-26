@@ -1,7 +1,7 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useEffect, useRef, useState} from 'react';
-import {FlatList, InteractionManager, View} from 'react-native';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {FlatList, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -37,6 +37,7 @@ import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
+import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
@@ -48,8 +49,11 @@ import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
 import {hasDomainErrors} from '@libs/DomainUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import openInternalRouteInNewTab from '@libs/Navigation/helpers/openInternalRouteInNewTab';
+import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import {
     getConnectionExporters,
@@ -91,7 +95,7 @@ type WorkspaceItem = {listItemType: 'workspace'} & ListItem &
     Pick<OfflineWithFeedbackProps, 'errors' | 'pendingAction'> &
     Pick<PolicyType, 'role' | 'type' | 'ownerAccountID' | 'employeeList'> & {
         icon: AvatarSource;
-        action: () => void;
+        action: (event?: ModifiedMouseEvent) => void;
         dismissError: () => void;
         iconType?: ValueOf<typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_ICON>;
         policyID?: string;
@@ -131,7 +135,7 @@ function isUserReimburserForPolicy(policies: Record<string, PolicyType | undefin
 }
 
 function WorkspacesListPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'FallbackWorkspaceAvatar']);
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Plus', 'Star', 'Trashcan', 'Transfer', 'FallbackWorkspaceAvatar']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'Plus', 'FallbackWorkspaceAvatar']);
@@ -187,6 +191,8 @@ function WorkspacesListPage() {
     // We need this to update translation for deleting a workspace when it has third party card feeds or expensify card assigned.
     const workspaceAccountID = policyToDelete?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [cardFeeds, , defaultCardFeeds] = useCardFeeds(policyIDToDelete);
+    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyIDToDelete}`);
+    const [lastSelectedExpensifyCardFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyIDToDelete}`);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
         selector: filterInactiveCards,
     });
@@ -235,6 +241,8 @@ function WorkspacesListPage() {
             policyName: policyNameToDelete,
             lastAccessedWorkspacePolicyID,
             policyCardFeeds: defaultCardFeeds,
+            lastSelectedFeed,
+            lastSelectedExpensifyCardFeed,
             reportsToArchive,
             transactionViolations,
             reimbursementAccountError,
@@ -347,6 +355,24 @@ function WorkspacesListPage() {
         );
     };
 
+    const copySettingsEligibleTargets = useMemo(() => {
+        const adminNonPersonal: string[] = [];
+        const corporateOnly: string[] = [];
+        if (!policies) {
+            return {adminNonPersonal, corporateOnly};
+        }
+        for (const policy of Object.values(policies)) {
+            if (!policy || policy.type === CONST.POLICY.TYPE.PERSONAL || !isPolicyAdmin(policy, session?.email) || isPendingDeletePolicy(policy)) {
+                continue;
+            }
+            adminNonPersonal.push(policy.id);
+            if (policy.type === CONST.POLICY.TYPE.CORPORATE) {
+                corporateOnly.push(policy.id);
+            }
+        }
+        return {adminNonPersonal, corporateOnly};
+    }, [policies, session?.email]);
+
     /**
      * Gets the menu item for each workspace
      */
@@ -387,10 +413,21 @@ function WorkspacesListPage() {
 
         if (isAdmin) {
             threeDotsMenuItems.push({
-                icon: icons.Copy,
+                icon: icons.Plus,
                 text: translate('workspace.common.duplicateWorkspace'),
                 onSelected: () => (item.policyID ? Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE.getRoute(item.policyID)) : undefined),
             });
+            const isSourceCorporate = item.type === CONST.POLICY.TYPE.CORPORATE;
+            const candidates = isSourceCorporate ? copySettingsEligibleTargets.corporateOnly : copySettingsEligibleTargets.adminNonPersonal;
+            const hasEligibleCopyTarget = candidates.length > 1 || (candidates.length === 1 && candidates.at(0) !== item.policyID);
+
+            if (hasEligibleCopyTarget) {
+                threeDotsMenuItems.push({
+                    icon: icons.Copy,
+                    text: translate('workspace.copyPolicySettings.title'),
+                    onSelected: () => (item.policyID ? Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS.getRoute(item.policyID)) : undefined),
+                });
+            }
         }
 
         if (!isDefault && !item?.isJoinRequestPending && !isRestrictedToPreferredPolicy) {
@@ -502,12 +539,12 @@ function WorkspacesListPage() {
         );
     };
 
-    const navigateToWorkspace = (policyID: string) => {
-        if (shouldUseNarrowLayout) {
-            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+    const navigateToWorkspace = (policyID: string, event?: ModifiedMouseEvent) => {
+        const workspaceRoute = shouldUseNarrowLayout ? ROUTES.WORKSPACE_INITIAL.getRoute(policyID) : ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID);
+        if (openInternalRouteInNewTab(workspaceRoute, event)) {
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID));
+        Navigation.navigate(workspaceRoute);
     };
 
     const navigateToDomain = ({domainAccountID, isAdmin}: {domainAccountID: number; isAdmin: boolean}) => {
@@ -577,7 +614,7 @@ function WorkspacesListPage() {
                     listItemType: 'workspace',
                     title: policy.name,
                     icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
-                    action: () => navigateToWorkspace(policy.id),
+                    action: (event) => navigateToWorkspace(policy.id, event),
                     brickRoadIndicator,
                     pendingAction: policy.pendingAction,
                     errors: policy.errors,
@@ -630,19 +667,21 @@ function WorkspacesListPage() {
             return;
         }
         const duplicateWorkspaceIndex = filteredWorkspaces.findIndex((workspace) => workspace.policyID === duplicatedWSPolicyID);
-        if (duplicateWorkspaceIndex >= 0) {
-            flatlistRef.current?.scrollToIndex({index: duplicateWorkspaceIndex, animated: false});
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                clearDuplicateWorkspace();
-            });
+        if (duplicateWorkspaceIndex < 0) {
+            return;
         }
+        flatlistRef.current?.scrollToIndex({index: duplicateWorkspaceIndex, animated: false});
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => clearDuplicateWorkspace(),
+        });
+
+        return () => handle.cancel();
     }, [duplicateWorkspace?.policyID, isFocused, filteredWorkspaces]);
 
     const listHeaderComponent = (
         <>
             {isLessThanMediumScreen && <View style={styles.mt3} />}
-            {workspaces.length > CONST.SEARCH_ITEM_LIMIT && (
+            {workspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT && (
                 <SearchBar
                     label={translate('workspace.common.findWorkspace')}
                     inputValue={inputValue}
@@ -704,7 +743,6 @@ function WorkspacesListPage() {
         shouldShowDomainsSection && !domains.length ? [{listItemType: 'domains-empty-state' as const}] : [],
     ].flat();
 
-    // eslint-disable-next-line react/no-unused-prop-types
     const renderItem = ({item, index}: {item: WorkspaceOrDomainListItem; index: number}) => {
         switch (item.listItemType) {
             case 'workspace': {
@@ -736,6 +774,8 @@ function WorkspacesListPage() {
         }
     };
 
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
+
     return (
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
@@ -751,9 +791,9 @@ function WorkspacesListPage() {
                     breadcrumbLabel={translate('common.workspaces')}
                     shouldDisplayHelpButton
                 >
-                    {!shouldUseNarrowLayout && <View style={styles.pr2}>{headerButton}</View>}
+                    {!shouldDisplayButtonsInSeparateLine && <View style={styles.pr2}>{headerButton}</View>}
                 </TopBarWithLoadingBar>
-                {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pt2]}>{headerButton}</View>}
+                {shouldDisplayButtonsInSeparateLine && <View style={[styles.ph5, styles.pt2]}>{headerButton}</View>}
                 {shouldShowLoadingIndicator ? (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>
                         <ActivityIndicator

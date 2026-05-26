@@ -1,4 +1,5 @@
 import React from 'react';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
@@ -11,6 +12,9 @@ import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ChatListItemProps, ReportActionListItemType} from './types';
 
+/**
+ * A chat message (report action) row in search results.
+ */
 function ChatListItem<TItem extends ListItem>({
     item,
     isFocused,
@@ -22,13 +26,10 @@ function ChatListItem<TItem extends ListItem>({
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
-    userWalletTierName,
-    isUserValidated,
-    personalDetails,
-    userBillingFundID,
 }: ChatListItemProps<TItem>) {
     const reportActionItem = item as unknown as ReportActionListItemType;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID}`);
+    const personalDetails = usePersonalDetails();
     const styles = useThemeStyles();
     const theme = useTheme();
     const animatedHighlightStyle = useAnimatedHighlightStyle({
@@ -82,12 +83,8 @@ function ChatListItem<TItem extends ListItem>({
                 index={item.index ?? 0}
                 isFirstVisibleReportAction={false}
                 shouldDisplayContextMenu={false}
-                shouldShowDraftMessage={false}
                 shouldShowBorder
-                userWalletTierName={userWalletTierName}
-                isUserValidated={isUserValidated}
                 personalDetails={personalDetails}
-                userBillingFundID={userBillingFundID}
             />
         </BaseListItem>
     );
