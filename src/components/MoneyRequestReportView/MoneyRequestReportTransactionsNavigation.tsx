@@ -39,7 +39,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const {markReportIDAsExpense} = useWideRHPActions();
+    const {markReportRHPWidth} = useWideRHPActions();
 
     const {prevTransactionID, nextTransactionID} = useMemo(() => {
         if (!transactionIDsList || transactionIDsList.length < 2) {
@@ -128,7 +128,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         const navigationParams = {reportID: nextThreadReportID, reportActionID: undefined, backTo};
 
         if (nextThreadReportID) {
-            markReportIDAsExpense(nextThreadReportID);
+            markReportRHPWidth(nextThreadReportID, 'wide');
         }
         // We know that the next thread report exists, it just wasn't fetched to Onyx yet, so we set it optimistically.
         if (!nextThreadReport && nextThreadReportID) {
@@ -164,7 +164,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         const navigationParams = {reportID: prevThreadReportID, reportActionID: undefined, backTo};
 
         if (prevThreadReportID) {
-            markReportIDAsExpense(prevThreadReportID);
+            markReportRHPWidth(prevThreadReportID, 'wide');
         }
         // We know that the previous thread report exists, it just wasn't fetched to Onyx yet, so we set it optimistically.
         if (!prevThreadReport && prevThreadReportID) {

@@ -152,7 +152,7 @@ function MoneyRequestReportTransactionList({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
-    const {markReportIDAsExpense} = useWideRHPActions();
+    const {markReportRHPWidth} = useWideRHPActions();
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedTransactionID, setSelectedTransactionID] = useState<string>('');
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
@@ -487,12 +487,12 @@ function MoneyRequestReportTransactionList({
             // to display prev/next arrows in RHP for navigation - use visual order from grouped transactions
             setActiveTransactionIDs(visualOrderTransactionIDs).then(() => {
                 if (reportIDToNavigate) {
-                    markReportIDAsExpense(reportIDToNavigate);
+                    markReportRHPWidth(reportIDToNavigate, 'wide');
                 }
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(routeParams));
             });
         },
-        [reportActions, visualOrderTransactionIDs, sortedTransactions, report, markReportIDAsExpense, introSelected, betas, currentUserDetails.email, currentUserDetails.accountID],
+        [reportActions, visualOrderTransactionIDs, sortedTransactions, report, markReportRHPWidth, introSelected, betas, currentUserDetails.email, currentUserDetails.accountID],
     );
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {

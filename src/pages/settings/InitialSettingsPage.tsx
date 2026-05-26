@@ -193,7 +193,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         walletBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
 
-    const hasAccountBeenSwitched = currentUserPersonalDetails.accountID !== previousUserPersonalDetails.accountID;
+    const hasAccountBeenSwitched = !!previousUserPersonalDetails && currentUserPersonalDetails.accountID !== previousUserPersonalDetails.accountID;
 
     useEffect(() => {
         if (!hasAccountBeenSwitched) {

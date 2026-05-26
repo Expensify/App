@@ -2,7 +2,6 @@ import {useRoute} from '@react-navigation/native';
 import React from 'react';
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
-import useLatchedTransactionIDs from '@hooks/useLatchedTransactionIDs';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
@@ -10,7 +9,6 @@ import useReportTransactionsCollection from '@hooks/useReportTransactionsCollect
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
 import {isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ReportActionsView from './report/ReportActionsView';
 import type ReportScreenNavigationProps from './types';
@@ -41,14 +39,10 @@ function ReportActionsList() {
 
     const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
     const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
-    const visibleTransactions = reportTransactions.filter((t) => isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-
-    const latchedIDs = useLatchedTransactionIDs(visibleTransactions, reportIDFromRoute);
-    const transactionsForViewDecision = latchedIDs ? visibleTransactions.filter((t) => latchedIDs.has(t.transactionID)) : visibleTransactions;
 
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
     const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, reportTransactions, reportLoadingState, isOffline);
-    const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, transactionsForViewDecision);
+    const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, reportTransactions);
 
     if (!report || shouldWaitForTransactions) {
         return <ReportActionsSkeletonView />;

@@ -125,14 +125,14 @@ function MapViewImpl({
         }
 
         // Avoid animating the navigation to the same location
-        const shouldAnimate = prevUserPosition.longitude !== currentPosition.longitude || prevUserPosition.latitude !== currentPosition.latitude;
+        const shouldAnimate = !!prevUserPosition && (prevUserPosition.longitude !== currentPosition.longitude || prevUserPosition.latitude !== currentPosition.latitude);
 
         mapRef.flyTo({
             center: [currentPosition.longitude, currentPosition.latitude],
             zoom: CONST.MAPBOX.DEFAULT_ZOOM,
             animate: shouldAnimate,
         });
-    }, [currentPosition, mapRef, prevUserPosition.longitude, prevUserPosition.latitude, shouldPanMapToCurrentPosition]);
+    }, [currentPosition, mapRef, prevUserPosition?.longitude, prevUserPosition?.latitude, shouldPanMapToCurrentPosition]);
 
     const resetBoundaries = useCallback(() => {
         if (!waypoints || waypoints.length === 0) {

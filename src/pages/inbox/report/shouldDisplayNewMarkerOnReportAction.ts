@@ -19,7 +19,7 @@ type ShouldDisplayNewMarkerOnReportActionParams = {
     currentUserAccountID: number;
 
     /** Map of reportActions saved via usePrev */
-    prevSortedVisibleReportActionsObjects: Record<string, OnyxTypes.ReportAction>;
+    prevSortedVisibleReportActionsObjects: Record<string, OnyxTypes.ReportAction> | undefined;
 
     /** Current value for vertical offset */
     scrollingVerticalOffset: number;
@@ -65,21 +65,21 @@ const shouldDisplayNewMarkerOnReportAction = ({
         return false;
     }
 
-    const isPendingAdd = (action: OnyxTypes.ReportAction) => {
+    const isPendingAdd = (action: OnyxTypes.ReportAction | undefined) => {
         return action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
     };
 
     // If no unread marker exists, don't set an unread marker for newly added messages from the current user.
     const isFromCurrentUser = currentUserAccountID === (isReportPreviewAction(message) ? message.childLastActorAccountID : message.actorAccountID);
-    const isNewMessage = !prevSortedVisibleReportActionsObjects[message.reportActionID];
+    const isNewMessage = !prevSortedVisibleReportActionsObjects?.[message.reportActionID];
 
     // The unread marker will show if the action's `created` time is later than `unreadMarkerTime`.
     // The `unreadMarkerTime` has already been updated to match the optimistic action created time,
     // but once the new action is saved on the backend, the actual created time will be later than the optimistic one.
     // Therefore, we also need to prevent the unread marker from appearing for previously optimistic actions.
     const isPreviouslyOptimistic =
-        (isPendingAdd(prevSortedVisibleReportActionsObjects[message.reportActionID]) && !isPendingAdd(message)) ||
-        (!!prevSortedVisibleReportActionsObjects[message.reportActionID]?.isOptimisticAction && !message.isOptimisticAction);
+        (isPendingAdd(prevSortedVisibleReportActionsObjects?.[message.reportActionID]) && !isPendingAdd(message)) ||
+        (!!prevSortedVisibleReportActionsObjects?.[message.reportActionID]?.isOptimisticAction && !message.isOptimisticAction);
     const shouldIgnoreUnreadForCurrentUserMessage = !prevUnreadMarkerReportActionID && isFromCurrentUser && (isNewMessage || isPreviouslyOptimistic);
 
     if (isFromCurrentUser) {
@@ -102,7 +102,7 @@ type GetUnreadMarkerReportActionParams = {
     currentUserAccountID: number;
 
     /** Map of reportActions saved via usePrev */
-    prevSortedVisibleReportActionsObjects: OnyxTypes.ReportActions;
+    prevSortedVisibleReportActionsObjects: OnyxTypes.ReportActions | undefined;
 
     /** Time for unreadMarker */
     unreadMarkerTime: string | undefined;

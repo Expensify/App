@@ -18,7 +18,7 @@ import type {Report} from '@src/types/onyx';
 import {defaultWideRHPActionsContextValue, defaultWideRHPStateContextValue} from './default';
 import getIsRHPDisplayedBelow from './getIsRHPDisplayedBelow';
 import getVisibleRHPKeys from './getVisibleRHPRouteKeys';
-import type {WideRHPActionsContextType, WideRHPStateContextType} from './types';
+import type {RHPWidth, RHPWidthHint, WideRHPActionsContextType, WideRHPStateContextType} from './types';
 import useShouldRenderOverlay from './useShouldRenderOverlay';
 
 // 0 is folded/hidden, 1 is expanded/shown
@@ -74,7 +74,7 @@ function showWideRHPRoute(route: NavigationRoute, setAllRHPRouteKeys: React.Disp
 // Function to remove a Wide/Super Wide RHP route key to the array including wide/super wide RHP route keys
 function removeWideRHPRoute(route: NavigationRoute, setAllRHPRouteKeys: React.Dispatch<React.SetStateAction<string[]>>) {
     if (!route.key) {
-        console.error(`The route passed to removeWideRHPRouteKey should have the "key" property defined.`);
+        console.error(`The route passed to removeWideRHPRoute should have the "key" property defined.`);
         return;
     }
 
@@ -186,68 +186,53 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     const shouldRenderTertiaryOverlay = useShouldRenderOverlay(isRHPFocused && isWideRHPBelow && isSuperWideRHPBelow, thirdOverlayProgress);
 
     /**
-     * Removes a route from the super wide RHP route keys list, disabling wide RHP display for that route.
+     * Removes the route from both wide and super-wide sets. Used on screen unmount.
      */
-    const removeSuperWideRHPRouteKey = (route: NavigationRoute) => removeWideRHPRoute(route, setAllSuperWideRHPRouteKeys);
-
-    /**
-     * Removes a route from the wide RHP route keys list, disabling wide RHP display for that route.
-     */
-    const removeWideRHPRouteKey = (route: NavigationRoute) => removeWideRHPRoute(route, setAllWideRHPRouteKeys);
-
-    /**
-     * Adds a route to the wide RHP route keys list, enabling wide RHP display for that route.
-     */
-    const showWideRHPVersion = (route: NavigationRoute) => {
-        removeSuperWideRHPRouteKey(route);
-        showWideRHPRoute(route, setAllWideRHPRouteKeys);
+    const removeRHPRouteKey = (route: NavigationRoute) => {
+        removeWideRHPRoute(route, setAllSuperWideRHPRouteKeys);
+        removeWideRHPRoute(route, setAllWideRHPRouteKeys);
     };
 
     /**
-     * Adds a route to the super wide RHP route keys list, enabling super wide RHP display for that route.
+     * Single entry point for setting a route's RHP width. Registrations are mutually exclusive — the
+     * route lives in at most one of {wide, super-wide} sets at any time (or neither, for 'narrow').
      */
-    const showSuperWideRHPVersion = (route: NavigationRoute) => {
-        removeWideRHPRouteKey(route);
-        showWideRHPRoute(route, setAllSuperWideRHPRouteKeys);
+    const setRHPWidth = (route: NavigationRoute, width: RHPWidth) => {
+        if (width === 'super-wide') {
+            removeWideRHPRoute(route, setAllWideRHPRouteKeys);
+            showWideRHPRoute(route, setAllSuperWideRHPRouteKeys);
+            return;
+        }
+        if (width === 'wide') {
+            removeWideRHPRoute(route, setAllSuperWideRHPRouteKeys);
+            showWideRHPRoute(route, setAllWideRHPRouteKeys);
+            return;
+        }
+        removeWideRHPRoute(route, setAllSuperWideRHPRouteKeys);
+        removeWideRHPRoute(route, setAllWideRHPRouteKeys);
     };
 
     /**
-     * Marks a report ID as an expense report, adding it to the expense reports set.
-     * This enables optimistic wide RHP display for expense reports.
-     * It helps us open expense as wide, before it fully loads.
+     * Sets an optimistic width hint for a reportID before its screen renders, so the right width is
+     * registered on first paint. Invoices and tasks are excluded from the 'wide' hint.
+     * It helps us open expense as wide / super wide, before it fully loads.
      */
-    const markReportIDAsExpense = (reportID?: string) => {
+    const markReportRHPWidth = (reportID: string | undefined, width: RHPWidthHint) => {
         if (!reportID) {
             return;
         }
-        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-        const isInvoice = report?.type === CONST.REPORT.TYPE.INVOICE;
-        const isTask = report?.type === CONST.REPORT.TYPE.TASK;
-        if (isInvoice || isTask) {
+        if (width === 'wide') {
+            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            if (report?.type === CONST.REPORT.TYPE.INVOICE || report?.type === CONST.REPORT.TYPE.TASK) {
+                return;
+            }
+            setExpenseReportIDs((prev) => {
+                const newSet = new Set(prev);
+                newSet.add(reportID);
+                return newSet;
+            });
             return;
         }
-        setExpenseReportIDs((prev) => {
-            const newSet = new Set(prev);
-            newSet.add(reportID);
-            return newSet;
-        });
-    };
-
-    /**
-     * Checks if a report ID is marked as an expense report.
-     * Used to determine if wide RHP should be displayed optimistically.
-     * It helps us open expense as wide, before it fully loads.
-     */
-    const isReportIDMarkedAsExpense = (reportID: string) => {
-        return expenseReportIDs.has(reportID);
-    };
-
-    /**
-     * Marks a report ID as a multi-transaction expense report, adding it to the expense reports set.
-     * This enables optimistic super wide RHP display for expense reports.
-     * It helps us open expense as super wide, before it fully loads.
-     */
-    const markReportIDAsMultiTransactionExpense = (reportID: string) => {
         setMultiTransactionExpenseReportIDs((prev) => {
             const newSet = new Set(prev);
             newSet.add(reportID);
@@ -256,25 +241,43 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     };
 
     /**
-     * Removes a report ID from the multi-transaction expense reports set.
-     * This disables optimistic super wide RHP display for that specific report
-     * (e.g., when transactions are deleted or report no longer qualifies as multi-transaction)
+     * Clears optimistic width hints for a reportID. Pass `width` to clear only that hint; omit to clear both.
+     * Used (e.g.) when a report no longer qualifies for a previously-applied hint.
      */
-    const unmarkReportIDAsMultiTransactionExpense = (reportID: string) => {
-        setMultiTransactionExpenseReportIDs((prev) => {
-            const newSet = new Set(prev);
-            newSet.delete(reportID);
-            return newSet;
-        });
+    const unmarkReportRHPWidth = (reportID: string, width?: RHPWidthHint) => {
+        if (width === undefined || width === 'wide') {
+            setExpenseReportIDs((prev) => {
+                if (!prev.has(reportID)) {
+                    return prev;
+                }
+                const newSet = new Set(prev);
+                newSet.delete(reportID);
+                return newSet;
+            });
+        }
+        if (width === undefined || width === 'super-wide') {
+            setMultiTransactionExpenseReportIDs((prev) => {
+                if (!prev.has(reportID)) {
+                    return prev;
+                }
+                const newSet = new Set(prev);
+                newSet.delete(reportID);
+                return newSet;
+            });
+        }
     };
 
     /**
-     * Checks if a report ID is marked as a multi-transaction expense report.
-     * Used to determine if super wide RHP should be displayed optimistically.
-     * It helps us open expense as super wide, before it fully loads.
+     * Reads the optimistic width hint for a reportID. super-wide takes precedence when both hints are set.
      */
-    const isReportIDMarkedAsMultiTransactionExpense = (reportID: string) => {
-        return multiTransactionExpenseReportIDs.has(reportID);
+    const getReportRHPWidthHint = (reportID: string): RHPWidthHint | undefined => {
+        if (multiTransactionExpenseReportIDs.has(reportID)) {
+            return 'super-wide';
+        }
+        if (expenseReportIDs.has(reportID)) {
+            return 'wide';
+        }
+        return undefined;
     };
 
     /**
@@ -319,16 +322,12 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
 
     // Because of the React Compiler we don't need to memoize it manually
     // eslint-disable-next-line react/jsx-no-constructed-context-values
-    const actionsValue = {
-        showWideRHPVersion,
-        showSuperWideRHPVersion,
-        removeWideRHPRouteKey,
-        removeSuperWideRHPRouteKey,
-        markReportIDAsExpense,
-        markReportIDAsMultiTransactionExpense,
-        unmarkReportIDAsMultiTransactionExpense,
-        isReportIDMarkedAsExpense,
-        isReportIDMarkedAsMultiTransactionExpense,
+    const actionsValue: WideRHPActionsContextType = {
+        setRHPWidth,
+        removeRHPRouteKey,
+        markReportRHPWidth,
+        unmarkReportRHPWidth,
+        getReportRHPWidthHint,
         syncRHPKeys,
         clearWideRHPKeys,
         setIsWideRHPClosing,
@@ -366,3 +365,4 @@ export {
     useWideRHPState,
     useWideRHPActions,
 };
+export type {RHPWidth, RHPWidthHint} from './types';

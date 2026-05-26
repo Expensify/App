@@ -81,6 +81,9 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, sty
         // Minus 100px is needed to make sure that when the internet connection is
         // disabled in android chrome and a small 'No internet connection' text box appears,
         // we do not take it as a sign to open the keyboard
+        if (prevWindowHeight === undefined) {
+            return;
+        }
         if (!isKeyboardOpen && windowHeight < prevWindowHeight - 100) {
             toggleKeyboardOnSmallScreens(true);
         } else if (isKeyboardOpen && windowHeight > prevWindowHeight) {

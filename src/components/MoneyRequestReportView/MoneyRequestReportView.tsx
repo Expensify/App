@@ -13,7 +13,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestReceiptView';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
-import useLatchedTransactionIDs from '@hooks/useLatchedTransactionIDs';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
@@ -141,12 +140,7 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
         return transactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     }, [transactions, isOffline]);
     const reportTransactionIDs = visibleTransactions.map((transaction) => transaction.transactionID);
-
-    const latchedTransactionIDs = useLatchedTransactionIDs(visibleTransactions, reportID);
-    const reportTransactionIDsLatched = latchedTransactionIDs ? reportTransactionIDs.filter((id) => latchedTransactionIDs.has(id)) : reportTransactionIDs;
-    const visibleTransactionsLatched = latchedTransactionIDs ? visibleTransactions.filter((t) => latchedTransactionIDs.has(t.transactionID)) : visibleTransactions;
-
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDsLatched);
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
 
     const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
     const dismissReportCreationError = useCallback(() => {
@@ -165,10 +159,10 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
     const shouldShowOpenReportLoadingSkeleton = !!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || shouldWaitForTransactions;
 
     const isEmptyTransactionReport = visibleTransactions?.length === 0 && transactionThreadReportID === undefined;
-    const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || shouldDisplayReportTableView(report, visibleTransactionsLatched);
+    const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || shouldDisplayReportTableView(report, visibleTransactions ?? []);
 
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
-    const shouldShowWideRHPReceipt = visibleTransactionsLatched.length === 1 && !isSmallScreenWidth && !!transactionThreadReport;
+    const shouldShowWideRHPReceipt = visibleTransactions.length === 1 && !isSmallScreenWidth && !!transactionThreadReport;
 
     const reportHeaderView = useMemo(
         () =>

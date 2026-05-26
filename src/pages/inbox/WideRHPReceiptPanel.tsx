@@ -4,8 +4,8 @@ import React from 'react';
 import {Animated} from 'react-native';
 import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestReceiptView';
 import ScrollView from '@components/ScrollView';
-import useShowWideRHPVersion from '@components/WideRHPContextProvider/useShowWideRHPVersion';
-import useLatchedTransactionIDs from '@hooks/useLatchedTransactionIDs';
+import type {RHPWidth} from '@components/WideRHPContextProvider';
+import useRHPWidth from '@components/WideRHPContextProvider/useRHPWidth';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
@@ -54,16 +54,12 @@ function WideRHPReceiptPanelGate() {
     const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
     const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
     const visibleTransactions = reportTransactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-
-    const latchedIDs = useLatchedTransactionIDs(visibleTransactions, reportIDFromRoute);
-    const transactionsForViewDecision = latchedIDs ? visibleTransactions.filter((t) => latchedIDs.has(t.transactionID)) : visibleTransactions;
-
-    const reportTransactionIDs = transactionsForViewDecision.map((transaction) => transaction.transactionID);
+    const reportTransactionIDs = visibleTransactions?.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
 
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
-    const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, transactionsForViewDecision);
+    const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, visibleTransactions ?? []);
 
     const shouldShowWideRHP =
         !shouldDisplayMoneyRequestActionsList &&
@@ -73,7 +69,13 @@ function WideRHPReceiptPanelGate() {
             report?.type === CONST.REPORT.TYPE.EXPENSE ||
             report?.type === CONST.REPORT.TYPE.IOU);
 
-    useShowWideRHPVersion(shouldShowWideRHP);
+    let rhpWidth: RHPWidth = 'narrow';
+    if (shouldDisplayMoneyRequestActionsList) {
+        rhpWidth = 'super-wide';
+    } else if (shouldShowWideRHP) {
+        rhpWidth = 'wide';
+    }
+    useRHPWidth(rhpWidth);
 
     if (!shouldShowWideRHP) {
         return null;

@@ -23,7 +23,6 @@ import useExpenseActions from '@hooks/useExpenseActions';
 import useExportActions from '@hooks/useExportActions';
 import useHoldRejectActions from '@hooks/useHoldRejectActions';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
-import useLatchedTransactionIDs from '@hooks/useLatchedTransactionIDs';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLifecycleActions from '@hooks/useLifecycleActions';
 import useLocalize from '@hooks/useLocalize';
@@ -121,11 +120,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
-    const nonPendingDeleteTransactionsLive = Object.values(reportTransactions).filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    const latchedTransactionIDs = useLatchedTransactionIDs(nonPendingDeleteTransactionsLive, moneyRequestReport?.reportID);
-    const nonPendingDeleteTransactions = latchedTransactionIDs
-        ? nonPendingDeleteTransactionsLive.filter((t) => latchedTransactionIDs.has(t.transactionID))
-        : nonPendingDeleteTransactionsLive;
+    const nonPendingDeleteTransactions = Object.values(reportTransactions).filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const allTransactions = Object.values(reportTransactions);
     const singleTransaction = nonPendingDeleteTransactions.length === 1 ? nonPendingDeleteTransactions.at(0) : undefined;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(singleTransaction?.comment?.originalTransactionID)}`);

@@ -12,7 +12,6 @@ import Text from '@components/Text';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useLatchedTransactionIDs from '@hooks/useLatchedTransactionIDs';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -104,7 +103,6 @@ function MoneyReportView({
 
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
     const transactions = useReportTransactions(report?.reportID);
-    const latchedTransactionIDs = useLatchedTransactionIDs(transactions, report?.reportID);
     const {billableTotal, taxTotal} = getBillableAndTaxTotal(report, transactions);
 
     const isTaxEnabled = isPolicyTaxEnabled(policy);
@@ -116,9 +114,7 @@ function MoneyReportView({
     // The reimbursable/non-reimbursable rows duplicate the Total for a single non-reimbursable expense, so suppress only those rows.
     // Billable and tax rows convey distinct information and must still show.
     const shouldShowReimbursabilityBreakdown = !isSingleNonReimbursableExpense && !!nonReimbursableSpend;
-    // Hide while latch hides txs; the report total would mismatch the visible per-tx detail.
-    const isLatchedTransientMismatch = latchedTransactionIDs !== undefined && latchedTransactionIDs.size < transactions.length;
-    const shouldShowBreakdown = !isLatchedTransientMismatch && (shouldShowReimbursabilityBreakdown || !!billableTotal || (!!taxTotal && isTaxEnabled));
+    const shouldShowBreakdown = shouldShowReimbursabilityBreakdown || !!billableTotal || (!!taxTotal && isTaxEnabled);
     const formattedTotalAmount = convertToDisplayString(totalDisplaySpend, report?.currency);
     const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);

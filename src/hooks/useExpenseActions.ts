@@ -55,7 +55,6 @@ import useDefaultExpensePolicy from './useDefaultExpensePolicy';
 import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
 import useGetIOUReportFromReportAction from './useGetIOUReportFromReportAction';
-import useLatchedTransactionIDs from './useLatchedTransactionIDs';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
@@ -103,17 +102,13 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
 
     const transactions: OnyxTypes.Transaction[] = [];
-    const nonPendingDeleteTransactionsLive: OnyxTypes.Transaction[] = [];
+    const nonPendingDeleteTransactions: OnyxTypes.Transaction[] = [];
     for (const transaction of Object.values(reportTransactions)) {
         transactions.push(transaction);
         if (!isTransactionPendingDelete(transaction)) {
-            nonPendingDeleteTransactionsLive.push(transaction);
+            nonPendingDeleteTransactions.push(transaction);
         }
     }
-    const latchedTransactionIDs = useLatchedTransactionIDs(nonPendingDeleteTransactionsLive, moneyRequestReport?.reportID);
-    const nonPendingDeleteTransactions = latchedTransactionIDs
-        ? nonPendingDeleteTransactionsLive.filter((t) => latchedTransactionIDs.has(t.transactionID))
-        : nonPendingDeleteTransactionsLive;
 
     const currentTransaction = transactions.at(0);
     const requestParentReportAction =
@@ -213,7 +208,11 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
         isDistanceRequest(transaction) &&
         (isArchivedReport || isChatReportArchived || (activePolicyExpenseChat && (isDM(chatReport) || isSelfDM(chatReport))))
     );
-    const shouldDuplicateCloseModalOnSelect = isDistanceExpenseUnsupportedForDuplicating || isPerDiemRequestOnNonDefaultWorkspace || hasCustomUnitOutOfPolicyViolation;
+    const shouldDuplicateCloseModalOnSelect =
+        isDistanceExpenseUnsupportedForDuplicating ||
+        isPerDiemRequestOnNonDefaultWorkspace ||
+        hasCustomUnitOutOfPolicyViolation ||
+        activePolicyExpenseChat?.iouReportID === moneyRequestReport?.reportID;
 
     const handleDuplicateReset = () => {
         if (shouldDuplicateCloseModalOnSelect) {

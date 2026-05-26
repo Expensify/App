@@ -32,11 +32,11 @@ function useSearchResults<TValue>(
     const result = sortData(filtered);
 
     useEffect(() => {
-        if (prevData.length < CONST.STANDARD_LIST_ITEM_LIMIT || data.length >= CONST.STANDARD_LIST_ITEM_LIMIT) {
+        if (!prevData || prevData.length < CONST.STANDARD_LIST_ITEM_LIMIT || data.length >= CONST.STANDARD_LIST_ITEM_LIMIT) {
             return;
         }
         setInputValue('');
-    }, [data.length, prevData.length, setInputValue]);
+    }, [data.length, prevData, setInputValue]);
 
     return [inputValue, setInputValue, result] as const;
 }
