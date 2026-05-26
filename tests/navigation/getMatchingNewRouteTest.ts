@@ -125,6 +125,14 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/travel/upgrade?backTo=/home')).toBe('/travel/travel-upgrade?backTo=/home');
     });
 
+    it('redirects legacy profile avatar path to new avatar route', () => {
+        expect(getMatchingNewRoute('/a/123/avatar')).toBe('/avatar/123');
+    });
+
+    it('preserves query params when redirecting legacy profile avatar path', () => {
+        expect(getMatchingNewRoute('/a/123/avatar?backTo=/home')).toBe('/avatar/123?backTo=/home');
+    });
+
     it('does not redirect paths that look similar but do not match migrated patterns', () => {
         expect(getMatchingNewRoute('/r/123/settings/visibility')).toBe(undefined);
         expect(getMatchingNewRoute('/workspaces/abc/overview/plan')).toBe(undefined);

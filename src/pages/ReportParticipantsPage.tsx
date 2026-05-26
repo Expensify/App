@@ -225,7 +225,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_DETAILS.getRoute(report.reportID, item.accountID, backTo));
             return;
         }
-        Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID, Navigation.getActiveRoute()));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(item.accountID)));
     };
 
     // Build participants list

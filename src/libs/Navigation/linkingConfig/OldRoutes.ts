@@ -42,6 +42,7 @@ const oldRoutes: Record<string, string> = {
     '/r/*/details/shareCode': '/r/$1/share-code',
     '/e/*/details/shareCode': '/e/$1/share-code',
     '/referral/*': '/home/referral/$1',
+    '/a/*/avatar': '/avatar/$1',
     '/settings/profile/contact-methods/verify': '/settings/profile/contact-methods/verify-account',
     '/home-page': '/home',
     /* eslint-enable @typescript-eslint/naming-convention */

@@ -854,17 +854,13 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     shouldCheckActionAllowedOnPress={false}
                     description={translate('task.title')}
                     onPress={
-                        shouldShowEditableTitleField
+                        shouldShowEditableTitleField && report.policyID
                             ? () => {
-                                  let policyID = report.policyID;
-
-                                  if (!policyID) {
-                                      policyID = '';
+                                  if (!report?.policyID) {
+                                      return;
                                   }
 
-                                  Navigation.navigate(
-                                      ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, policyID, CONST.REPORT_FIELD_TITLE_FIELD_ID, navigateBackFromReportDetailsPath),
-                                  );
+                                  Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EDIT_REPORT_FIELD.getRoute(report.policyID, CONST.REPORT_FIELD_TITLE_FIELD_ID)));
                               }
                             : undefined
                     }
