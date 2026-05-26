@@ -1,6 +1,8 @@
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {UnitPosition, UnitWithFallback} from '@components/Charts';
 import type {PaymentMethod} from '@components/KYCWall/types';
+import type {SelectionListStyle} from '@components/SelectionList/types';
 import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
 import type {Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
@@ -166,40 +168,57 @@ type SearchCustomColumnIds =
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.YEAR>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.QUARTER>;
 
-type SearchContextData = {
+type SearchQueryContextValue = {
     currentSearchHash: number;
     currentSimilarSearchHash: number;
     currentSearchKey: SearchKey | undefined;
     currentSearchQueryJSON: Readonly<SearchQueryJSON> | undefined;
+    suggestedSearches: Record<SearchKey, SearchTypeMenuItem>;
+    shouldResetSearchQuery: boolean;
+};
+
+type SearchQueryActionsValue = {
+    setShouldResetSearchQuery: (shouldReset: boolean) => void;
+};
+
+type SearchResultsContextValue = {
     currentSearchResults: SearchResults | undefined;
+    /** Whether we're on a main to-do search and should use live Onyx data instead of snapshots */
+    shouldUseLiveData: boolean;
+    sortedReportIDs: ReadonlyArray<string | undefined>;
+    shouldShowFiltersBarLoading: boolean;
+    lastSearchType: string | undefined;
+};
+
+type SearchResultsActionsValue = {
+    setSortedReportIDs: (ids: ReadonlyArray<string | undefined>) => void;
+    setShouldShowFiltersBarLoading: (shouldShow: boolean) => void;
+    setLastSearchType: (type: string | undefined) => void;
+};
+
+type SearchSelectionContextValue = {
     currentSelectedTransactionReportID: string | undefined;
     selectedTransactions: SelectedTransactions;
     selectedTransactionIDs: string[];
     selectedReports: SelectedReports[];
-    suggestedSearches: Record<SearchKey, SearchTypeMenuItem>;
-    isOnSearch: boolean;
     shouldTurnOffSelectionMode: boolean;
-    shouldResetSearchQuery: boolean;
     /** True when at least one transaction is selected. */
     hasSelectedTransactions: boolean;
-};
-
-type SearchStateContextValue = SearchContextData & {
-    currentSearchResults: SearchResults | undefined;
-    /** Whether we're on a main to-do search and should use live Onyx data instead of snapshots */
-    shouldUseLiveData: boolean;
-    shouldShowFiltersBarLoading: boolean;
-    lastSearchType: string | undefined;
     shouldShowSelectAllMatchingItems: boolean;
     areAllMatchingItemsSelected: boolean;
 };
 
-type SearchActionsContextValue = {
-    /** If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise */
+type SearchSelectionActionsValue = {
+    /**
+     * If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise.
+     * The optional `data` argument lets callers atomically update `selectedReports` in the same commit
+     * to avoid a transient render where the two pieces of state are out of sync.
+     */
     setSelectedTransactions: {
         (selectedTransactionIDs: string[], unused?: undefined): void;
-        (selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[]): void;
+        (selectedTransactions: SelectedTransactions, data?: TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[]): void;
     };
+    setSelectedReports: (reports: SelectedReports[]) => void;
     setCurrentSelectedTransactionReportID: (reportID: string | undefined) => void;
     /** If you want to clear `selectedTransactionIDs`, pass `true` as the first argument */
     clearSelectedTransactions: {
@@ -207,12 +226,15 @@ type SearchActionsContextValue = {
         (clearIDs: true, unused?: undefined): void;
     };
     removeTransaction: (transactionID: string | undefined) => void;
-    setShouldShowFiltersBarLoading: (shouldShow: boolean) => void;
-    setLastSearchType: (type: string | undefined) => void;
     setShouldShowSelectAllMatchingItems: (shouldShow: boolean) => void;
     selectAllMatchingItems: (on: boolean) => void;
-    setShouldResetSearchQuery: (shouldReset: boolean) => void;
 };
+
+/** Composed value of all three Search state contexts. Kept as a union for callers that need the full bag shape (e.g. test fixtures, action `searchContext` payloads). */
+type SearchStateContextValue = SearchQueryContextValue & SearchResultsContextValue & SearchSelectionContextValue;
+
+/** Composed value of all three Search actions contexts. See `SearchStateContextValue`. */
+type SearchActionsContextValue = SearchQueryActionsValue & SearchResultsActionsValue & SearchSelectionActionsValue;
 
 type ASTNode = {
     operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
@@ -258,6 +280,7 @@ type SearchDateFilterKeys =
 type SearchDateKey = `${SearchDateFilterKeys}${ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>}` | ReportFieldDateKey;
 
 type SearchAmountFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT;
+type SearchAmountValues = Record<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>, string | undefined>;
 
 type SearchCurrencyFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY
@@ -383,6 +406,13 @@ type SearchChartProps = {
     unitPosition?: UnitPosition;
 };
 
+type SearchFilterSelectionListProps = {
+    selectionListTextInputStyle?: StyleProp<ViewStyle>;
+    selectionListStyle?: SelectionListStyle;
+    autoFocus?: boolean;
+    footer?: React.ReactNode;
+};
+
 export type {
     SelectedTransactionInfo,
     SelectedTransactions,
@@ -391,6 +421,7 @@ export type {
     SearchDateFilterKeys,
     SearchDateKey,
     SearchAmountFilterKeys,
+    SearchAmountValues,
     SearchStatus,
     SearchQueryJSON,
     SearchQueryString,
@@ -401,7 +432,12 @@ export type {
     SortOrder,
     SearchStateContextValue,
     SearchActionsContextValue,
-    SearchContextData,
+    SearchQueryContextValue,
+    SearchQueryActionsValue,
+    SearchResultsContextValue,
+    SearchResultsActionsValue,
+    SearchSelectionContextValue,
+    SearchSelectionActionsValue,
     ASTNode,
     QueryFilter,
     QueryFilters,
@@ -430,4 +466,5 @@ export type {
     SearchCustomColumnIds,
     GroupedItem,
     SearchChartProps,
+    SearchFilterSelectionListProps,
 };

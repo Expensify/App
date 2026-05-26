@@ -8,7 +8,7 @@ import type {ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {SecondaryActionEntry} from '@components/MoneyReportHeaderActions/types';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import {duplicateReport as duplicateReportAction, duplicateExpenseTransaction as duplicateTransactionAction} from '@libs/actions/IOU/Duplicate';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {deleteAppReport} from '@libs/actions/Report';
@@ -89,8 +89,8 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const {getCurrencyDecimals} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {login: currentUserLogin, accountID, email} = currentUserPersonalDetails;
-    const {currentSearchHash} = useSearchStateContext();
-    const {removeTransaction} = useSearchActionsContext();
+    const {currentSearchHash} = useSearchQueryContext();
+    const {removeTransaction} = useSearchSelectionActions();
 
     // Report data
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -256,8 +256,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 recentWaypoints,
                 targetPolicyTags,
                 conciergeReportID,
-                currentUserAccountID: currentUserPersonalDetails?.accountID,
-                currentUserLogin: currentUserPersonalDetails?.email ?? '',
+                currentUser: {accountID: currentUserPersonalDetails?.accountID, email: currentUserPersonalDetails?.email ?? ''},
             });
         }
     };
@@ -322,6 +321,12 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
             iconFill: isDuplicateActive ? undefined : theme.icon,
             value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE,
             onSelected: () => {
+                if (defaultExpensePolicy && shouldRestrictUserBillableActions(defaultExpensePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+                    onDuplicateReset?.();
+                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(defaultExpensePolicy.id));
+                    return;
+                }
+
                 if (hasCustomUnitOutOfPolicyViolation) {
                     showConfirmModal({
                         title: translate('common.duplicateExpense'),
@@ -374,11 +379,18 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     return;
                 }
 
+                const isSourcePolicyValid = !!policy && isPolicyAccessible(policy, currentUserLogin ?? '');
+                const targetPolicyForDuplicate = isSourcePolicyValid ? policy : defaultExpensePolicy;
+
+                if (targetPolicyForDuplicate && shouldRestrictUserBillableActions(targetPolicyForDuplicate, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+                    onDuplicateReset?.();
+                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(targetPolicyForDuplicate.id));
+                    return;
+                }
+
                 temporarilyDisableDuplicateReportAction();
                 wasDuplicateReportTriggeredRef.current = true;
 
-                const isSourcePolicyValid = !!policy && isPolicyAccessible(policy, currentUserLogin ?? '');
-                const targetPolicyForDuplicate = isSourcePolicyValid ? policy : defaultExpensePolicy;
                 const targetChatForDuplicate = isSourcePolicyValid ? chatReport : activePolicyExpenseChat;
                 const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyForDuplicate?.id}`] ?? {};
 
