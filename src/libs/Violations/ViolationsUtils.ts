@@ -867,11 +867,13 @@ const ViolationsUtils = {
                 return translate('violations.receiptGeneratedWithAI');
             case CONST.VIOLATIONS.NO_ROUTE:
                 return translate('violations.noRoute');
-            default:
+            default: {
                 // The interpreter should never get here because the switch cases should be exhaustive.
-                // If typescript is showing an error below it means the switch statement is out of
-                // sync with the `ViolationNames` type, and one or the other needs to be updated.
-                return violation.name;
+                // If typescript is showing an error below, the switch is out of sync with the
+                // `ViolationNames` type — add the missing case (or remove the obsolete one).
+                const exhaustiveCheck: never = violation.name;
+                return exhaustiveCheck;
+            }
         }
     },
 
