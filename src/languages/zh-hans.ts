@@ -7473,7 +7473,7 @@ ${reportName}
                 `),
                 subtitle: '发送发票或试用 Expensify，了解更多信息。',
                 subtitleWithOnlyCreateButton: '使用下方的绿色按钮发送发票。',
-                subtitleCannotSend: '您需要一个启用了发票功能的工作区才能发送发票。',
+                subtitleCannotSend: '您需要一个启用了Invoices的工作区才能发送发票。',
             },
             emptyTripResults: {
                 title: '没有行程可显示',

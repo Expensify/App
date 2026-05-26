@@ -7608,7 +7608,7 @@ ${reportName}
                 `),
                 subtitle: '請求書を送信するか、Expensify を試用してさらに詳しく知りましょう。',
                 subtitleWithOnlyCreateButton: '下の緑色のボタンを使って請求書を送信してください。',
-                subtitleCannotSend: '請求書を送信するには、請求書機能が有効なワークスペースが必要です。',
+                subtitleCannotSend: '請求書を送信するには、Invoicesが有効なワークスペースが必要です。',
             },
             emptyTripResults: {
                 title: '表示する出張はありません',

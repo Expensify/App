@@ -7711,7 +7711,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 `),
                 subtitle: 'Sende eine Rechnung oder mache eine Probefahrt mit Expensify, um mehr zu erfahren.',
                 subtitleWithOnlyCreateButton: 'Verwende die grüne Schaltfläche unten, um eine Rechnung zu senden.',
-                subtitleCannotSend: 'Du benötigst einen Arbeitsbereich mit aktivierter Rechnungsstellung, um Rechnungen zu senden.',
+                subtitleCannotSend: 'Du benötigst einen Arbeitsbereich mit aktiviertem Invoices, um Rechnungen zu senden.',
             },
             emptyTripResults: {
                 title: 'Keine Reisen zum Anzeigen',

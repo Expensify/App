@@ -7702,7 +7702,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 `),
                 subtitle: 'Invia una fattura o fai un giro di prova con Expensify per saperne di più.',
                 subtitleWithOnlyCreateButton: 'Usa il pulsante verde qui sotto per inviare una fattura.',
-                subtitleCannotSend: 'Hai bisogno di uno spazio di lavoro con la fatturazione abilitata per inviare fatture.',
+                subtitleCannotSend: 'Hai bisogno di uno spazio di lavoro con Invoices abilitato per inviare fatture.',
             },
             emptyTripResults: {
                 title: 'Nessun viaggio da visualizzare',

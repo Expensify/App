@@ -7739,7 +7739,7 @@ const translations = {
                 `),
                 subtitle: 'Send an invoice or take a test drive of Expensify to learn more.',
                 subtitleWithOnlyCreateButton: 'Use the green button below to send an invoice.',
-                subtitleCannotSend: 'You need a workspace with invoicing enabled to send invoices.',
+                subtitleCannotSend: 'You need a workspace with Invoices enabled to send invoices.',
             },
             emptyTripResults: {
                 title: 'No trips to display',
