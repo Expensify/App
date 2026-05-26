@@ -13,11 +13,31 @@
     <meta property="og:title" content="New Expensify">
     <meta property="og:description" content="Corporate cards, reimbursements, receipt scanning, invoicing, and bill pay.">
     <meta property="og:image" content="https://new.expensify.com/og-preview-image.png">
+    <style>
+        @font-face {
+            font-family: Expensify Neue;
+            font-weight: 400;
+            font-style: normal;
+            src: url('/fonts/ExpensifyNeue-Regular.woff2') format('woff2'), url('/fonts/ExpensifyNeue-Regular.woff') format('woff');
+        }
+        @font-face {
+            font-family: Expensify Neue;
+            font-weight: 700;
+            font-style: normal;
+            src: url('/fonts/ExpensifyNeue-Bold.woff2') format('woff2'), url('/fonts/ExpensifyNeue-Bold.woff') format('woff');
+        }
+    </style>
     <link rel="stylesheet" type="text/css" href="/css/fonts.css" />
     <link rel="stylesheet" type="text/css" href="/css/pdf.css" />
     <!-- Do not index the staging site -->
     <% if (htmlWebpackPlugin.options.isStaging) { %>
         <meta name="robots" content="noindex, nofollow">
+    <% } %>
+
+    <% if (htmlWebpackPlugin.options.useThirdPartyScripts && htmlWebpackPlugin.options.isWeb) { %>
+        <!-- Ketch cookie consent -->
+            <script>!function(){window.semaphore=window.semaphore||[],window.ketch=function(){window.semaphore.push(arguments)};var e=document.createElement("script");e.type="text/javascript",e.src="https://global.ketchcdn.com/web/v3/config/expensify/website_smart_tag/boot.js",e.defer=e.async=!0,document.getElementsByTagName("head")[0].appendChild(e)}();</script>
+        <!-- End Ketch cookie consent -->
     <% } %>
 
     <% if (htmlWebpackPlugin.options.isWeb) { %>

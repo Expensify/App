@@ -116,7 +116,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
 
     // Stable debounced function that delegates to the latest callback via ref,
     // preventing re-renders from recreating the debounce timer.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     const filterEmojis = useMemo(() => lodashDebounce((text: string) => filterCallbackRef.current?.(text), 300), []);
 
     const scrollToHeader = useCallback(

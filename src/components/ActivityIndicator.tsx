@@ -40,7 +40,6 @@ function ActivityIndicator({timeout = CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT, e
     return (
         <RNActivityIndicator
             color={theme.spinner}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         />
     );

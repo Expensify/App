@@ -46,7 +46,6 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
         [prefilledLayoutType, workspaceCardFeeds?.settings?.companyCards],
     );
     const layoutType = prefilledLayoutType ?? generatedLayoutType;
-    const [existingCardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${layoutType}`);
 
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
 
@@ -135,7 +134,6 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
             layoutType,
             columnMappings,
             csvData: rows,
-            existingCardsList,
             lastSelectedFeed: lastSelectedFeed ?? undefined,
             workspaceCardFeeds,
             existingInstanceID: addNewCard?.data?.existingInstanceID,

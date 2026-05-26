@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
-import {getAll, getLength, getOngoingRequest} from '@userActions/PersistedRequests';
+import {getAll, getLength, getOngoingRequest, updateOngoingRequest} from '@userActions/PersistedRequests';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
 import type Request from '../../src/types/onyx/Request';
@@ -20,7 +20,9 @@ beforeAll(() => {
 });
 beforeEach(() => {
     global.fetch = TestHelper.getGlobalFetchMock();
-    return Onyx.clear().then(waitForBatchedUpdates);
+    return Onyx.clear()
+        .then(() => SequentialQueue.clearQueueFlushedData())
+        .then(waitForBatchedUpdates);
 });
 describe('SequentialQueue', () => {
     it('should push one request and persist one', () => {
@@ -261,6 +263,21 @@ describe('SequentialQueue', () => {
 
         expect(persistedRequest).toEqual(getOngoingRequest());
         expect(getAll().length).toBe(1);
+    });
+
+    it('should not flush queueFlushedData while an ongoing request still exists', async () => {
+        const persistedRequest = {...request, persistWhenOngoing: true, initiatedOffline: false};
+        const flushedUpdate: OnyxUpdate<typeof ONYXKEYS.USER_METADATA> = {key: 'userMetadata', onyxMethod: 'set', value: {accountID: 1234}};
+
+        updateOngoingRequest(persistedRequest as AnyRequest);
+        await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+        await SequentialQueue.saveQueueFlushedData(flushedUpdate);
+        await waitForBatchedUpdates();
+
+        SequentialQueue.flush();
+        await Promise.resolve();
+        await waitForBatchedUpdates();
+        expect(SequentialQueue.getQueueFlushedData()).toEqual([flushedUpdate]);
     });
 });
 

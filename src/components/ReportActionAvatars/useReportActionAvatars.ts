@@ -6,13 +6,13 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
     getDelegateAccountIDFromReportAction,
     getHumanAgentAccountIDFromReportAction,
     getHumanAgentFirstName,
     getOriginalMessage,
-    getReportAction,
     getReportActionActorAccountID,
     isMoneyRequestAction,
 } from '@libs/ReportActionsUtils';
@@ -31,6 +31,7 @@ import {
 import {getDefaultAvatar} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {getReportActionByIDSelector} from '@src/selectors/ReportAction';
 import type {InvitedEmailsToAccountIDs, OnyxInputOrEntry, Policy, Report, ReportAction} from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import useReportPreviewSenderID from './useReportPreviewSenderID';
@@ -77,15 +78,13 @@ function useReportActionAvatars({
     const chatReport = isReportAChatReport ? report : reportChatReport;
     const iouReport = isReportAChatReport ? undefined : report;
 
-    let action;
+    const derivedActionReportID = iouReport?.parentReportActionID ? (chatReport?.reportID ?? iouReport?.chatReportID) : reportChatReport?.reportID;
+    const derivedActionID = iouReport?.parentReportActionID ?? (!iouReport ? chatReport?.parentReportActionID : undefined);
+    const [derivedAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(!passedAction ? derivedActionReportID : undefined)}`, {
+        selector: (actions) => getReportActionByIDSelector(actions, derivedActionID),
+    });
 
-    if (passedAction) {
-        action = passedAction;
-    } else if (iouReport?.parentReportActionID) {
-        action = getReportAction(chatReport?.reportID ?? iouReport?.chatReportID, iouReport?.parentReportActionID);
-    } else if (!!reportChatReport && !!chatReport?.parentReportActionID && !iouReport) {
-        action = getReportAction(reportChatReport?.reportID, chatReport.parentReportActionID);
-    }
+    const action = passedAction ?? derivedAction;
 
     const [actionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${action?.childReportID}`);
 
@@ -116,7 +115,6 @@ function useReportActionAvatars({
 
     const {chatReportIDAdmins, chatReportIDAnnounce, policyAccountID} = policy ?? {};
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [policyChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${Number(chatReportIDAnnounce) ? chatReportIDAnnounce : chatReportIDAdmins}`);
 
     const delegateAccountID = getDelegateAccountIDFromReportAction(action);
@@ -160,7 +158,7 @@ function useReportActionAvatars({
                 ...(personalDetails?.[policyAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
                 shouldDisplayAllActors: false,
                 isWorkspaceActor: false,
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
                 actorHint: String(policyID).replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
                 accountID: policyAccountID,
                 delegateAccountID: undefined,
@@ -198,7 +196,6 @@ function useReportActionAvatars({
             !shouldShowConvertedSubscriptAvatar) ||
         shouldUseCardFeed;
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldUseMultipleAvatars = shouldUseAccountIDs || shouldShowAllActors || shouldShowConvertedSubscriptAvatar;
 
     let avatarType: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE> = CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE;
@@ -300,7 +297,6 @@ function useReportActionAvatars({
         const iouReportIcons = getIconsWithDefaults(iouReport);
         secondaryAvatar = iouReportIcons.at(iouReportIcons.at(1)?.id === primaryAvatar.id ? 0 : 1);
     } else if (!isWorkspaceActor) {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         secondaryAvatar = reportIcons.at(chatReport?.isOwnPolicyExpenseChat || isAWorkspaceChat ? 0 : 1);
     } else if (isAInvoiceReport) {
         secondaryAvatar = reportIcons.at(1);
@@ -320,7 +316,7 @@ function useReportActionAvatars({
         avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT && avatars.at(0)?.type === CONST.ICON_TYPE_AVATAR && avatars.at(1)?.type === CONST.ICON_TYPE_WORKSPACE;
     const isWorkspaceWithUserAvatar =
         avatars.at(0)?.type === CONST.ICON_TYPE_WORKSPACE && avatars.at(1)?.type === CONST.ICON_TYPE_AVATAR && avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE;
-    // eslint-disable-next-line rulesdir/no-negated-variables
+
     const wasReportPreviewMovedToDifferentPolicy = shouldUseChangedPolicyID && isAReportPreviewAction;
 
     if (shouldUseInvoiceExpenseIcons) {

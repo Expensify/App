@@ -1,4 +1,3 @@
-/* eslint-disable rulesdir/no-negated-variables */
 import {useIsFocused} from '@react-navigation/native';
 import type {ComponentType} from 'react';
 import React, {useEffect} from 'react';
@@ -48,8 +47,8 @@ type WithReportOrNotFoundOnyxProps = {
 };
 
 type ScreenProps =
-    | PlatformStackScreenProps<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.EDIT>
-    | PlatformStackScreenProps<ReportDescriptionNavigatorParamList, typeof SCREENS.REPORT_DESCRIPTION_ROOT>
+    | PlatformStackScreenProps<PrivateNotesNavigatorParamList, typeof SCREENS.DYNAMIC_PRIVATE_NOTES_EDIT>
+    | PlatformStackScreenProps<ReportDescriptionNavigatorParamList, typeof SCREENS.DYNAMIC_REPORT_DESCRIPTION>
     | PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROOT>
     | PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DETAILS>
     | PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROLE>
@@ -115,7 +114,12 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                         isLoadingReportData: isLoadingReportData !== false,
                         shouldFetchReport,
                     };
-                    return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+                    return (
+                        <FullscreenLoadingIndicator
+                            shouldUseGoBackButton
+                            reasonAttributes={reasonAttributes}
+                        />
+                    );
                 }
 
                 if (shouldShowNotFoundPage) {
@@ -129,7 +133,6 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
 
             return (
                 <WrappedComponent
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                     report={report}
                     betas={betas}

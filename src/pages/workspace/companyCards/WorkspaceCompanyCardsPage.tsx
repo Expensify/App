@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import DecisionModal from '@components/DecisionModal';
+import WorkspaceCompanyCardsTable from '@components/Tables/WorkspaceCompanyCardsTable';
 import useAssignCard from '@hooks/useAssignCard';
 import useCompanyCards from '@hooks/useCompanyCards';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -18,7 +19,6 @@ import {openPolicyCompanyCardsFeed, openPolicyCompanyCardsPage} from '@userActio
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import WorkspaceCompanyCardsTable from './WorkspaceCompanyCardsTable';
 
 type WorkspaceCompanyCardsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
 

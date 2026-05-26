@@ -16,7 +16,7 @@ import {
     setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestTag,
-} from '@userActions/IOU';
+} from '@userActions/IOU/MoneyRequest';
 import {setSplitShares} from '@userActions/IOU/Split';
 import {createDraftWorkspace, generateDefaultWorkspaceName} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
@@ -98,7 +98,7 @@ function useParticipantSubmission({
         iouType === CONST.IOU.TYPE.CREATE &&
         isPaidGroupPolicy(activePolicy) &&
         activePolicy?.isPolicyExpenseChatEnabled &&
-        !shouldRestrictUserBillableActions(activePolicy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed);
+        !shouldRestrictUserBillableActions(activePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed);
 
     const dataRef = useRef({
         allPolicies,
@@ -292,7 +292,7 @@ function useParticipantSubmission({
         const isPolicyExpenseChat = effectiveParticipants?.some((participant) => participant.isPolicyExpenseChat);
         if (iouType === CONST.IOU.TYPE.SPLIT && !isPolicyExpenseChat && splitTransaction?.amount && splitTransaction?.currency) {
             const participantAccountIDs = effectiveParticipants?.map((participant) => participant.accountID) as number[];
-            setSplitShares(splitTransaction, splitTransaction.amount, splitTransaction.currency, participantAccountIDs);
+            setSplitShares(splitTransaction, splitTransaction.amount, splitTransaction.currency, participantAccountIDs, userDetails.accountID);
         }
 
         const newReportID = selectedReportID.current;
@@ -320,12 +320,13 @@ function useParticipantSubmission({
         if ((isCategorizing || isShareAction) && numberOfParticipants.current === 0) {
             const email = userDetails.email ?? '';
             const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, email);
-            const {expenseChatReportID, policyID, policyName} = createDraftWorkspace(
-                intro,
-                generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
-                userDetails.accountID,
-                email,
-            );
+            const {expenseChatReportID, policyID, policyName} = createDraftWorkspace({
+                introSelected: intro,
+                workspaceName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+                currentUserAccountID: userDetails.accountID,
+                currentUserEmail: email,
+                currency: userDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
+            });
             for (const transaction of drafts) {
                 setMoneyRequestParticipants(transaction.transactionID, [
                     {

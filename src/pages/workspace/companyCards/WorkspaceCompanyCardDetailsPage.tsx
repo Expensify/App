@@ -1,8 +1,6 @@
 import {format, parseISO} from 'date-fns';
-import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
@@ -12,6 +10,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
@@ -21,19 +20,20 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isUsingStagingApi} from '@libs/ApiUtils';
+import navigateToCardTransactions from '@libs/CardNavigationUtils';
 import {getCardFeedIcon, getCompanyCardFeed, getCompanyFeeds, getDefaultCardName, getDomainOrWorkspaceAccountID, getPlaidInstitutionIconUrl, maskCardNumber} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import CardDetailsActionButtons, {CardDetailsActionButton} from '@pages/settings/Wallet/CardDetailsActionButtons';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import {clearCompanyCardErrorField, unassignWorkspaceCompanyCard, updateWorkspaceCompanyCard} from '@userActions/CompanyCards';
@@ -58,11 +58,11 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const {translate, getLocalDateFromDatetime} = useLocalize();
+    const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Hourglass', 'MoneySearch', 'RemoveMembers', 'Sync', 'Trashcan']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'RemoveMembers', 'Sync', 'Trashcan']);
     const {isOffline} = useNetwork();
     const {showConfirmModal} = useConfirmModal();
 
@@ -120,6 +120,8 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
         updateWorkspaceCompanyCard(domainOrWorkspaceAccountID, cardID, bank, card?.lastScrapeResult, true);
     };
 
+    const navigateToTransactions = () => navigateToCardTransactions(cardID);
+
     // Don't show NotFoundPage if the card is being unassigned or data is still loading.
     if ((!card && !isUnassigning && !isLoadingOnyxValue(allBankCardsMetadata) && !isLoadingOnyxValue(cardListMetadata)) || (isCardBeingUnassigned && !isUnassigning)) {
         return <NotFoundPage />;
@@ -154,35 +156,42 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                 width={variables.cardPreviewWidth}
                             />
                         )}
+                        <Text
+                            style={styles.walletCardHolder}
+                            numberOfLines={1}
+                            ellipsizeMode="tail"
+                        >
+                            {displayName}
+                        </Text>
                     </View>
-                    {!cardholder?.validated && (
-                        <MenuItem
-                            icon={expensifyIcons.Hourglass}
-                            iconStyles={styles.mln2}
-                            descriptionTextStyle={StyleUtils.combineStyles([styles.textLabelSupporting, styles.ml0, StyleUtils.getLineHeightStyle(variables.fontSizeNormal)])}
-                            description={translate('workspace.expensifyCard.cardPending', {name: displayName})}
-                            numberOfLinesDescription={0}
-                            interactive={false}
-                        />
-                    )}
-
-                    <MenuItem
-                        label={translate('workspace.moreFeatures.companyCards.cardholder')}
-                        title={displayName}
-                        titleStyle={styles.mt1}
-                        iconStyles={styles.mt1}
-                        icon={cardholder?.avatar ?? expensifyIcons.FallbackAvatar}
-                        iconType={CONST.ICON_TYPE_AVATAR}
-                        description={Str.removeSMSDomain(cardholder?.login ?? '')}
-                        interactive={false}
-                    />
-                    <MenuItemWithTopDescription
-                        numberOfLinesTitle={3}
-                        description={translate('workspace.moreFeatures.companyCards.cardNumber')}
-                        title={maskCardNumber(card?.cardName ?? '', bank, true)}
-                        interactive={false}
-                        titleStyle={styles.walletCardNumber}
-                    />
+                    <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.ph5, styles.mb3]}>
+                        {`${translate('workspace.moreFeatures.companyCards.lastUpdated')}: ${card?.isLoadingLastUpdated ? translate('workspace.moreFeatures.companyCards.updating') : lastScrape}`}
+                    </Text>
+                    <OfflineWithFeedback
+                        pendingAction={card?.pendingFields?.lastScrape}
+                        errorRowStyles={errorRowStyles}
+                        errors={getLatestErrorField(card ?? {}, 'lastScrape')}
+                        onClose={() => clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, bank, 'lastScrape', true)}
+                    >
+                        <CardDetailsActionButtons>
+                            <CardDetailsActionButton
+                                text={translate('workspace.moreFeatures.companyCards.updateCard')}
+                                icon={expensifyIcons.Sync}
+                                iconFill={theme.icon}
+                                onPress={updateCard}
+                                isDisabled={isOffline || card?.isLoadingLastUpdated}
+                                isLoading={card?.isLoadingLastUpdated}
+                                style={styles.flexShrink0}
+                            />
+                            <CardDetailsActionButton
+                                text={translate('workspace.common.viewTransactions')}
+                                icon={expensifyIcons.MoneySearch}
+                                iconFill={theme.icon}
+                                onPress={navigateToTransactions}
+                                style={styles.flexShrink0}
+                            />
+                        </CardDetailsActionButtons>
+                    </OfflineWithFeedback>
                     <OfflineWithFeedback
                         pendingAction={card?.nameValuePairs?.pendingFields?.cardTitle}
                         errorRowStyles={errorRowStyles}
@@ -198,6 +207,13 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.CARD_NAME}
                         />
                     </OfflineWithFeedback>
+                    <MenuItemWithTopDescription
+                        numberOfLinesTitle={3}
+                        description={translate('workspace.moreFeatures.companyCards.cardNumber')}
+                        title={maskCardNumber(card?.cardName ?? '', bank, true)}
+                        interactive={false}
+                        titleStyle={styles.walletCardNumber}
+                    />
                     {exportMenuItem?.shouldShowMenuItem ? (
                         <OfflineWithFeedback
                             pendingAction={exportMenuItem?.exportType ? card?.nameValuePairs?.pendingFields?.[exportMenuItem.exportType] : undefined}
@@ -219,21 +235,6 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             />
                         </OfflineWithFeedback>
                     ) : null}
-                    <MenuItemWithTopDescription
-                        shouldShowRightComponent={card?.isLoadingLastUpdated}
-                        rightComponent={
-                            <ActivityIndicator
-                                style={[styles.popoverMenuIcon]}
-                                reasonAttributes={{
-                                    context: 'WorkspaceCompanyCardDetailsPage',
-                                    isLoadingLastUpdated: card?.isLoadingLastUpdated,
-                                }}
-                            />
-                        }
-                        description={translate('workspace.moreFeatures.companyCards.lastUpdated')}
-                        title={card?.isLoadingLastUpdated ? translate('workspace.moreFeatures.companyCards.updating') : lastScrape}
-                        interactive={false}
-                    />
                     <OfflineWithFeedback
                         pendingAction={card?.pendingFields?.scrapeMinDate}
                         errorRowStyles={errorRowStyles}
@@ -247,34 +248,6 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             brickRoadIndicator={card?.errorFields?.scrapeMinDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EDIT_TRANSACTION_START_DATE.getRoute(policyID, cardID, feedName))}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.TRANSACTION_START_DATE}
-                        />
-                    </OfflineWithFeedback>
-                    <MenuItem
-                        icon={expensifyIcons.MoneySearch}
-                        title={translate('workspace.common.viewTransactions')}
-                        style={styles.mt3}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.VIEW_TRANSACTIONS}
-                        onPress={() => {
-                            Navigation.navigate(
-                                ROUTES.SEARCH_ROOT.getRoute({
-                                    query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE, status: CONST.SEARCH.STATUS.EXPENSE.ALL, cardID}),
-                                }),
-                            );
-                        }}
-                    />
-                    <OfflineWithFeedback
-                        pendingAction={card?.pendingFields?.lastScrape}
-                        errorRowStyles={errorRowStyles}
-                        errors={getLatestErrorField(card ?? {}, 'lastScrape')}
-                        onClose={() => clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, bank, 'lastScrape', true)}
-                    >
-                        <MenuItem
-                            icon={expensifyIcons.Sync}
-                            disabled={isOffline || card?.isLoadingLastUpdated}
-                            title={translate('workspace.moreFeatures.companyCards.updateCard')}
-                            brickRoadIndicator={card?.errorFields?.lastScrape ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            onPress={updateCard}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.UPDATE_CARD}
                         />
                     </OfflineWithFeedback>
                     {shouldShowBreakConnection && (

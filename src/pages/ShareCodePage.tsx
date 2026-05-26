@@ -40,7 +40,7 @@ import addTrailingForwardSlash from '@libs/UrlUtils';
 import {getAvatarURL} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 
 type ShareCodePageOnyxProps = {
@@ -109,7 +109,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     const urlWithTrailingSlash = addTrailingForwardSlash(environmentURL);
     const url = isReport
         ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}`
-        : `${urlWithTrailingSlash}${ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID)}`;
+        : `${urlWithTrailingSlash}${DYNAMIC_ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID)}`;
 
     const logo = isReport
         ? getLogoForWorkspace(report, policy)
@@ -169,7 +169,6 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                             isAnonymousAction
                             title={translate('common.download')}
                             icon={icons.Download}
-                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
                             onPress={() => qrCodeRef.current?.download?.()}
                         />
                     )}

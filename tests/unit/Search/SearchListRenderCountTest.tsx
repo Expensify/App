@@ -33,7 +33,6 @@ jest.mock('@hooks/useNetwork', () =>
 );
 
 jest.mock('@hooks/useKeyboardState', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => ({
         isKeyboardShown: false,
@@ -42,7 +41,6 @@ jest.mock('@hooks/useKeyboardState', () => ({
 }));
 
 jest.mock('@hooks/useResponsiveLayout', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => ({
         isSmallScreenWidth: false,
@@ -52,7 +50,6 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
 }));
 
 jest.mock('@hooks/useSafeAreaPaddings', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => ({
         safeAreaPaddingBottomStyle: {},
@@ -60,7 +57,6 @@ jest.mock('@hooks/useSafeAreaPaddings', () => ({
 }));
 
 jest.mock('@hooks/useWindowDimensions', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => ({
         windowWidth: 1200,

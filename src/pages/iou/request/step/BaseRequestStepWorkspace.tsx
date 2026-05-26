@@ -82,7 +82,7 @@ function BaseRequestStepWorkspace({transaction, getPolicies, onSelectWorkspace}:
     const selectWorkspace = (item: WorkspaceListItem) => {
         const policyID = item.policyID;
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-        if (shouldRestrictUserBillableActions(policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
+        if (shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
             return;
         }
@@ -91,7 +91,7 @@ function BaseRequestStepWorkspace({transaction, getPolicies, onSelectWorkspace}:
 
     return (
         <>
-            {workspaceOptions.length > CONST.SEARCH_ITEM_LIMIT ? (
+            {workspaceOptions.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? (
                 <SearchBar
                     label={translate('workspace.common.findWorkspace')}
                     inputValue={inputValue}

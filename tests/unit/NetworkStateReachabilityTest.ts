@@ -2,6 +2,7 @@ import type {NetInfoState} from '@react-native-community/netinfo';
 import type * as NetworkState from '@src/libs/NetworkState';
 
 let netInfoListener: ((state: NetInfoState) => void) | null = null;
+const mockOnyxCallbacks = new Map<string, (value: unknown) => void>();
 
 jest.mock('@react-native-community/netinfo', () => ({
     addEventListener: jest.fn((cb: (state: NetInfoState) => void) => {
@@ -17,7 +18,9 @@ jest.mock('@react-native-community/netinfo', () => ({
 
 jest.mock('@src/libs/Log');
 jest.mock('react-native-onyx', () => ({
-    connectWithoutView: jest.fn(),
+    connectWithoutView: jest.fn(({key, callback}: {key: string; callback: (value: unknown) => void}) => {
+        mockOnyxCallbacks.set(key, callback);
+    }),
 }));
 
 function fireNetInfoState(overrides: Partial<NetInfoState>) {
@@ -33,12 +36,21 @@ function fireNetInfoState(overrides: Partial<NetInfoState>) {
     } as NetInfoState);
 }
 
+function fireSessionChange(accountID: number) {
+    const cb = mockOnyxCallbacks.get('session');
+    if (!cb) {
+        throw new Error('SESSION callback not registered');
+    }
+    cb({accountID});
+}
+
 describe('NetworkState — internetUnreachable hard stop via NetInfo', () => {
     let getIsOffline: typeof NetworkState.getIsOffline;
 
     beforeEach(() => {
         jest.resetModules();
         netInfoListener = null;
+        mockOnyxCallbacks.clear();
 
         const mod = require<typeof NetworkState>('@src/libs/NetworkState');
         getIsOffline = mod.getIsOffline;
@@ -81,6 +93,7 @@ describe('NetworkState — reachability recovery triggers reconnect', () => {
     beforeEach(() => {
         jest.resetModules();
         netInfoListener = null;
+        mockOnyxCallbacks.clear();
 
         // Fresh import each test so prevIsInternetReachable resets
         const mod = require<typeof NetworkState>('@src/libs/NetworkState');
@@ -141,6 +154,69 @@ describe('NetworkState — reachability recovery triggers reconnect', () => {
         fireNetInfoState({isInternetReachable: true});
 
         expect(reconnectListener).not.toHaveBeenCalled();
+    });
+
+    test('SESSION accountID change does NOT fire reconnect listener via the post-reconfigure synthetic transition', () => {
+        // Repro for the doubled-OpenApp bug on delegate switch: the SESSION accountID change
+        // re-runs configureAndSubscribe(), which tears down and re-subscribes to NetInfo. The
+        // new subscription emits null then true, which would look like a recovery. The fix
+        // resets prev to undefined on reconfigure so the new subscription's first transitions
+        // are treated like boot, not recovery.
+        const reconnectListener = jest.fn();
+        onReachabilityConfirmed(reconnectListener);
+
+        // Establish a baseline reachable state (boot)
+        fireNetInfoState({isInternetReachable: true});
+        expect(reconnectListener).not.toHaveBeenCalled();
+
+        // Delegate switch: SESSION accountID changes → reconfigure → new NetInfo subscription
+        fireSessionChange(42);
+
+        // New subscription's initial events: null while the first Ping is in flight, then true
+        fireNetInfoState({isInternetReachable: null});
+        fireNetInfoState({isInternetReachable: true});
+
+        expect(reconnectListener).not.toHaveBeenCalled();
+    });
+
+    test('genuine offline→online after a SESSION reconfigure still fires reconnect listener', () => {
+        // Make sure the reconfigure suppression doesn't swallow real recoveries that happen
+        // afterwards — only the synthetic post-reconfigure transition should be ignored.
+        const reconnectListener = jest.fn();
+        onReachabilityConfirmed(reconnectListener);
+
+        fireNetInfoState({isInternetReachable: true});
+        fireSessionChange(42);
+
+        // Settle on the reconfigured subscription
+        fireNetInfoState({isInternetReachable: true});
+        expect(reconnectListener).not.toHaveBeenCalled();
+
+        // Now a real outage and recovery
+        fireNetInfoState({isInternetReachable: false});
+        fireNetInfoState({isInternetReachable: true});
+
+        expect(reconnectListener).toHaveBeenCalledTimes(1);
+    });
+
+    test('genuine offline before reconfigure still recovers on the next true', () => {
+        // Boot offline scenario: NetInfo confirms unreachable BEFORE SESSION hydrates and triggers
+        // a reconfigure. The post-reconfigure true must NOT be suppressed — otherwise the app would
+        // remain stuck with internetUnreachable=true until a brand new outage cycle.
+        const reconnectListener = jest.fn();
+        onReachabilityConfirmed(reconnectListener);
+
+        // Cold boot: null then false → app is genuinely offline, prev=false
+        fireNetInfoState({isInternetReachable: null});
+        fireNetInfoState({isInternetReachable: false});
+
+        // SESSION hydrates → reconfigure happens while we are still offline
+        fireSessionChange(42);
+
+        // New subscription's first definitive event recovers
+        fireNetInfoState({isInternetReachable: true});
+
+        expect(reconnectListener).toHaveBeenCalledTimes(1);
     });
 
     test('turning off force-offline resets prevIsInternetReachable so next refresh triggers reconnect', () => {

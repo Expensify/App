@@ -35,6 +35,15 @@ type MoneyRequestParticipantsSelectorProps = {
     /** Whether this is a corporate card transaction */
     isCorporateCardTransaction?: boolean;
 
+    /** Report ID of a pre-selected participant whose selection state can't be derived from the participants array (e.g. self DM with accountID 0) */
+    initiallySelectedReportID?: string;
+
+    /** Whether to find the participant matching initiallySelectedReportID and move it to the top of the list */
+    shouldMoveSelectedToTop?: boolean;
+
+    /** Callback to handle restricted participant selection */
+    onRestrictedParticipantSelected?: () => void;
+
     /** Reference to the outer element */
     ref?: Ref<InputFocusRef>;
 };
@@ -54,6 +63,9 @@ function MoneyRequestParticipantsSelector({
     isTimeRequest = false,
     isWorkspacesOnly = false,
     isCorporateCardTransaction = false,
+    initiallySelectedReportID,
+    shouldMoveSelectedToTop = false,
+    onRestrictedParticipantSelected,
     ref,
 }: MoneyRequestParticipantsSelectorProps) {
     const platform = getPlatform();
@@ -85,6 +97,9 @@ function MoneyRequestParticipantsSelector({
             setTextInputAutoFocus={setTextInputAutoFocus}
             onParticipantsAdded={onParticipantsAdded}
             onFinish={onFinish}
+            initiallySelectedReportID={initiallySelectedReportID}
+            shouldMoveSelectedToTop={shouldMoveSelectedToTop}
+            onRestrictedParticipantSelected={onRestrictedParticipantSelected}
         />
     );
 }

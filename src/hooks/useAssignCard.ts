@@ -1,5 +1,4 @@
 import {useRef} from 'react';
-import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {importPlaidAccounts} from '@libs/actions/Plaid';
 import {
     getCompanyCardFeed,
@@ -66,12 +65,7 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
     const isSelectedFeedConnectionBroken = !!feedErrors?.isFeedConnectionBroken || !!feedErrors?.hasFeedErrors;
 
     const isAllowedToIssueCompanyCard = useIsAllowedToIssueCompanyCard({policyID});
-
-    const {isActingAsDelegate} = useDelegateNoAccessState();
-    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-
     const isAssigningCardDisabled = !currentFeedData || !!currentFeedData?.pending || isSelectedFeedConnectionBroken || !isAllowedToIssueCompanyCard;
-
     const getInitialAssignCardStep = useInitialAssignCardStep({policyID, selectedFeed: feedName});
 
     /**
@@ -83,12 +77,6 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
         if (isAssigningCardDisabled) {
             return;
         }
-
-        if (isActingAsDelegate) {
-            showDelegateNoAccessModal();
-            return;
-        }
-
         if (!feedName || !cardID) {
             return;
         }
@@ -175,7 +163,7 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
         // Refetch plaid card list
         if (!isFeedExpired && plaidAccessToken && !hasImportedPlaidAccounts.current) {
             const country = feedData?.country ?? '';
-            importPlaidAccounts('', selectedFeed, '', country, getDomainNameForPolicy(policyID), '', undefined, undefined, plaidAccessToken);
+            importPlaidAccounts('', selectedFeed, '', country, getDomainNameForPolicy(policyID), '', plaidAccessToken);
             hasImportedPlaidAccounts.current = true;
         }
 

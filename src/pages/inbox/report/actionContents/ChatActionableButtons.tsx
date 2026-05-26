@@ -1,6 +1,5 @@
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 import useActivePolicy from '@hooks/useActivePolicy';
@@ -27,6 +26,7 @@ import {
 import type {CreateDraftTransactionParams} from '@libs/ReportUtils';
 import {createDraftTransactionAndNavigateToParticipantSelector} from '@libs/ReportUtils';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
+import {doesUserHavePaymentCardAdded} from '@libs/SubscriptionUtils';
 import {dismissTrackExpenseActionableWhisper, resolveConciergeCategoryOptions, resolveConciergeDescriptionOptions} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,21 +35,23 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 type ChatActionableButtonsProps = {
     action: OnyxTypes.ReportAction;
-    report: OnyxEntry<OnyxTypes.Report>;
-    originalReport: OnyxEntry<OnyxTypes.Report>;
+    originalReportID: string | undefined;
     reportID: string | undefined;
-    originalReportID: string;
-    userBillingFundID: number | undefined;
 };
 
-function ChatActionableButtons({action, report, originalReport, reportID, originalReportID, userBillingFundID}: ChatActionableButtonsProps) {
+function ChatActionableButtons({action, originalReportID, reportID}: ChatActionableButtonsProps) {
     const styles = useThemeStyles();
+    const actionOwnerReportID = originalReportID ?? reportID;
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(originalReportID)}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
+    const actionOwnerReport = originalReport ?? report;
     const personalDetail = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const activePolicy = useActivePolicy();
 
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -58,7 +60,7 @@ function ChatActionableButtons({action, report, originalReport, reportID, origin
     const delegateAccountID = useDelegateAccountID();
 
     const actionableItemButtons = ((): ActionableItem[] => {
-        if (isActionableAddPaymentCard(action) && userBillingFundID === undefined && shouldRenderAddPaymentCard()) {
+        if (isActionableAddPaymentCard(action) && !doesUserHavePaymentCardAdded(userBillingFundID) && shouldRenderAddPaymentCard()) {
             return [
                 {
                     text: 'subscription.cardSection.addCardButton',
@@ -71,7 +73,6 @@ function ChatActionableButtons({action, report, originalReport, reportID, origin
             ];
         }
 
-        const reportActionReport = originalReport ?? report;
         if (isConciergeCategoryOptions(action)) {
             const options = getOriginalMessage(action)?.options;
             if (!options) {
@@ -82,7 +83,7 @@ function ChatActionableButtons({action, report, originalReport, reportID, origin
                 return [];
             }
 
-            if (!reportActionReport) {
+            if (!actionOwnerReport) {
                 return [];
             }
 
@@ -91,7 +92,7 @@ function ChatActionableButtons({action, report, originalReport, reportID, origin
                 key: `${action.reportActionID}-conciergeCategoryOptions-${option}`,
                 onPress: () => {
                     resolveConciergeCategoryOptions(
-                        reportActionReport,
+                        actionOwnerReport,
                         reportID,
                         action.reportActionID,
                         option,
@@ -113,7 +114,7 @@ function ChatActionableButtons({action, report, originalReport, reportID, origin
                 return [];
             }
 
-            if (!reportActionReport) {
+            if (!actionOwnerReport) {
                 return [];
             }
 
@@ -122,7 +123,7 @@ function ChatActionableButtons({action, report, originalReport, reportID, origin
                 key: `${action.reportActionID}-conciergeDescriptionOptions-${option}`,
                 onPress: () => {
                     resolveConciergeDescriptionOptions(
-                        reportActionReport,
+                        actionOwnerReport,
                         reportID,
                         action.reportActionID,
                         option,
@@ -134,7 +135,7 @@ function ChatActionableButtons({action, report, originalReport, reportID, origin
             }));
         }
         const messageHtml = getReportActionMessage(action)?.html;
-        if (messageHtml && reportActionReport) {
+        if (messageHtml && actionOwnerReport) {
             const followups = parseFollowupsFromHtml(messageHtml);
             if (followups && followups.length > 0) {
                 return followups.map((followup) => ({
@@ -143,7 +144,7 @@ function ChatActionableButtons({action, report, originalReport, reportID, origin
                     key: `${action.reportActionID}-followup-${followup.text}`,
                     onPress: () => {
                         resolveSuggestedFollowup(
-                            reportActionReport,
+                            actionOwnerReport,
                             reportID,
                             action,
                             followup,
@@ -158,9 +159,8 @@ function ChatActionableButtons({action, report, originalReport, reportID, origin
         }
 
         if (isActionableTrackExpense(action)) {
-            const reportActionReportID = originalReportID ?? reportID;
             const baseDraftTransactionParams = {
-                reportID: reportActionReportID,
+                reportID: actionOwnerReportID,
                 reportActionID: action.reportActionID,
                 introSelected,
                 draftTransactionIDs,
@@ -171,6 +171,7 @@ function ChatActionableButtons({action, report, originalReport, reportID, origin
                 transaction: trackExpenseTransaction,
                 currentUserAccountID: personalDetail.accountID,
                 currentUserEmail: personalDetail.email ?? '',
+                currentUserLocalCurrency: personalDetail.localCurrencyCode ?? CONST.CURRENCY.USD,
             };
             const TRACK_EXPENSE_ACTIONS = {
                 submit: CONST.IOU.ACTION.SUBMIT,
@@ -197,7 +198,7 @@ function ChatActionableButtons({action, report, originalReport, reportID, origin
                 text: 'actionableMentionTrackExpense.nothing',
                 key: `${action.reportActionID}-actionableMentionTrackExpense-nothing`,
                 onPress: () => {
-                    dismissTrackExpenseActionableWhisper(reportActionReportID, action);
+                    dismissTrackExpenseActionableWhisper(actionOwnerReportID, action);
                 },
             });
             return options;
@@ -228,7 +229,5 @@ function ChatActionableButtons({action, report, originalReport, reportID, origin
         />
     );
 }
-
-ChatActionableButtons.displayName = 'ChatActionableButtons';
 
 export default ChatActionableButtons;
