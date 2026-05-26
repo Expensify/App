@@ -34,7 +34,12 @@ const COMPLETED_BODY_MARKDOWN = 'Hello world';
 const FINAL_RENDERED_HTML = '<comment>Server final response</comment>';
 
 type MockPusherSubscribe = jest.MockedFunction<
-    (channelName: string, eventName?: string, eventCallback?: (event: ConciergeDraftEvent | ConciergeDraftEventsEvent) => void, onResubscribe?: () => void) => ReturnType<typeof Pusher.subscribe>
+    (
+        channelName: string,
+        eventName?: string,
+        eventCallback?: (event: ConciergeDraftEvent | ConciergeDraftEventsEvent) => void,
+        onResubscribe?: () => void,
+    ) => ReturnType<typeof Pusher.subscribe>
 >;
 
 function getMockPusherSubscribe(): MockPusherSubscribe {
@@ -241,10 +246,7 @@ describe('ConciergeDraftContext', () => {
 
         act(() => {
             emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_EVENTS, {
-                events: [
-                    createDraftEvent('H', {sequence: 1, status: 'started'}),
-                    createDraftEvent(TARGET_BODY_MARKDOWN, {sequence: 2, status: 'updated'}),
-                ],
+                events: [createDraftEvent('H', {sequence: 1, status: 'started'}), createDraftEvent(TARGET_BODY_MARKDOWN, {sequence: 2, status: 'updated'})],
             });
         });
 
