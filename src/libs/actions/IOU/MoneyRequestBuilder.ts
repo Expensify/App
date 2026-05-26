@@ -418,7 +418,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         transactionViolations = {},
         hasViolations,
         quickAction,
-        personalDetails,
         isSelfDMSplit,
         isReverseSplitOperation,
         selfDMReportID,
