@@ -326,11 +326,10 @@ describe('ProfilePage - agent account', () => {
 
     it('shows loading state on save button while prompt update is pending', async () => {
         const accountID = 123;
-        const agentPromptKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`;
         await setupUser('agent_123@expensify.ai');
 
         await act(async () => {
-            await Onyx.merge(agentPromptKey, {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
                 prompt: 'Reject gambling expenses.',
                 pendingAction: 'update',
             });
@@ -340,7 +339,8 @@ describe('ProfilePage - agent account', () => {
         renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByTestId('save-prompt-button').props.accessibilityState?.disabled).toBe(true);
+        const saveButtonProps = screen.getByTestId('save-prompt-button').props as {accessibilityState?: {disabled?: boolean}};
+        expect(saveButtonProps.accessibilityState?.disabled).toBe(true);
     });
 
     it('does not call updateAgentPrompt when saving blank prompt', async () => {
