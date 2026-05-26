@@ -9048,7 +9048,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         copilotDelegatedAccess: 'Copilot: Acesso delegado',
         copilotDelegatedAccessDescription: 'Permitir que outros membros acessem sua conta.',
         learnMoreAboutDelegatedAccess: 'Saiba mais sobre acesso delegado',
-        addCopilot: 'Adicionar copiloto',
+        addCopilot: 'Adicionar um copiloto',
         membersCanAccessYourAccount: 'Esses membros podem acessar sua conta:',
         youCanAccessTheseAccounts: 'Você pode acessar essas contas:',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {

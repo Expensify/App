@@ -8820,7 +8820,7 @@ ${reportName}
         copilotDelegatedAccess: 'Copilot：委托访问',
         copilotDelegatedAccessDescription: '允许其他成员访问你的账户。',
         learnMoreAboutDelegatedAccess: '了解更多关于委托访问的信息',
-        addCopilot: '添加副驾',
+        addCopilot: '添加副驾驶',
         membersCanAccessYourAccount: '这些成员可以访问你的账户：',
         youCanAccessTheseAccounts: '您可以访问这些账户：',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
