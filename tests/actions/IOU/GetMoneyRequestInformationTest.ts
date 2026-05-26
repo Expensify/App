@@ -235,5 +235,16 @@ describe('getMoneyRequestInformation', () => {
             );
             expect(failureEntry).toBeDefined();
         });
+
+        it('clears the flag in successData so it cannot persist across sessions', () => {
+            const result = getMoneyRequestInformation(baseParams);
+            const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${result.iouReport.reportID}`;
+            const newTxID = result.transaction.transactionID;
+
+            const successEntry = result.onyxData.successData?.find(
+                (entry) => entry.key === expectedKey && (entry.value as PendingNewTransactionIDsMetadata)?.pendingNewTransactionIDs?.[newTxID] === null,
+            );
+            expect(successEntry).toBeDefined();
+        });
     });
 });

@@ -562,13 +562,21 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     }
 
     // Flag the new tx for useNewTransactions — the render-to-render diff misses txs added before the view mounts.
-    // Cleanup is owned by useNewTransactions (in-memory timer after the highlight) and by failureData on rollback.
+    // Both successData and failureData clear the flag; REPORT_METADATA is persisted, so without success-path cleanup
+    // the flag would survive across sessions and spuriously highlight an old tx on the next open.
     if (iou.report?.reportID && transaction.transactionID) {
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report.reportID}`,
             value: {
                 pendingNewTransactionIDs: {[transaction.transactionID]: true},
+            },
+        });
+        onyxData.successData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report.reportID}`,
+            value: {
+                pendingNewTransactionIDs: {[transaction.transactionID]: null},
             },
         });
         onyxData.failureData?.push({
