@@ -23,11 +23,8 @@ const linkedTransactionRouteErrorSelector = (transaction: OnyxEntry<Transaction>
 function DuplicateTransactionItem({transaction, index, onPreviewPressed}: DuplicateTransactionItemProps) {
     const styles = useThemeStyles();
 
-    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`);
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
-    const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
 
     const action = Object.values(reportActions ?? {})?.find((reportAction) => {
         const IOUTransactionID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : CONST.DEFAULT_NUMBER_ID;
@@ -70,8 +67,6 @@ function DuplicateTransactionItem({transaction, index, onPreviewPressed}: Duplic
                         shouldDisplayContextMenu={false}
                         draftMessage={matchingDraftMessage}
                         linkedTransactionRouteError={linkedTransactionRouteError}
-                        userBillingFundID={userBillingFundID}
-                        isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                     />
                 </ReportActionItemActionsContext.Provider>
             </ReportActionItemStateContext.Provider>

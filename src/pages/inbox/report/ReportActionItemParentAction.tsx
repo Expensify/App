@@ -7,6 +7,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -49,15 +50,6 @@ type ReportActionItemParentActionProps = {
 
     /** If the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
-
-    /** User billing fund ID */
-    userBillingFundID: number | undefined;
-
-    /** Did the user dismiss trying out NewDot? If true, it means they prefer using OldDot */
-    isTryNewDotNVPDismissed: boolean | undefined;
-
-    /** Whether the report is archived */
-    isReportArchived: boolean;
 };
 
 function ReportActionItemParentAction({
@@ -70,14 +62,13 @@ function ReportActionItemParentAction({
     shouldDisplayReplyDivider,
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
-    userBillingFundID,
-    isTryNewDotNVPDismissed = false,
-    isReportArchived = false,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const ancestors = useAncestors(report, shouldExcludeAncestorReportAction);
     const transactionID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID;
     const [allBetas] = useOnyx(ONYXKEYS.BETAS);
+    const isReportArchived = useReportIsArchived(report?.reportID);
+
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
     const {accountID: currentUserAccountID} = currentUserPersonalDetail;
     const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: conciergePersonalDetailSelector});
@@ -163,8 +154,6 @@ function ReportActionItemParentAction({
                         isFirstVisibleReportAction={isFirstVisibleReportAction}
                         shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                         linkedTransactionRouteError={linkedTransactionRouteError}
-                        userBillingFundID={userBillingFundID}
-                        isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                     />
                 ))}
             </OfflineWithFeedback>

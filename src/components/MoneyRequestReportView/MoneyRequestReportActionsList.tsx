@@ -124,9 +124,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
     const parentReportAction = useParentReportAction(report);
 
-    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
-    const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
 
@@ -451,7 +448,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         hasNewestReportAction,
         setIsFloatingMessageCounterVisible,
         scrollToEnd: reportScrollManager.scrollToEnd,
-        resetKey: report.reportID,
+        resetKey: report?.reportID ?? reportIDFromRoute ?? '',
     });
 
     /**
@@ -565,11 +562,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                     isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                     shouldHideThreadDividerLine
                     linkedReportActionID={linkedReportActionID}
-                    userBillingFundID={userBillingFundID}
-                    isReportArchived={isReportArchived}
-                    isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
-                    reportNameValuePairsOrigin={reportNameValuePairs?.origin}
-                    reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
+                    isHarvestCreatedExpenseReport={shouldShowHarvestCreatedAction}
                 />
             );
         },
@@ -582,11 +575,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             unreadMarkerReportActionID,
             firstVisibleReportActionID,
             linkedReportActionID,
-            userBillingFundID,
-            isTryNewDotNVPDismissed,
-            isReportArchived,
-            reportNameValuePairs?.origin,
-            reportNameValuePairs?.originalID,
+            shouldShowHarvestCreatedAction,
         ],
     );
 
@@ -641,7 +630,11 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const initialNumToRender = useMemo((): number | undefined => {
         const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
         const availableHeight = windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
-        const numToRender = Math.ceil(availableHeight / minimumReportActionHeight);
+        // windowHeight can be smaller than the header+footer during transient mount/transition states
+        // (e.g. Wide RHP overlay animating in), which would make numToRender negative and crash
+        // VirtualizedList with "Invalid cells around viewport". Clamping to 0 lets the `|| undefined`
+        // fallback below kick in so FlatList uses its default.
+        const numToRender = Math.max(0, Math.ceil(availableHeight / minimumReportActionHeight));
         if (linkedReportActionID) {
             return getInitialNumToRender(numToRender);
         }

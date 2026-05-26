@@ -30,12 +30,10 @@ type AncestorReportActionItemProps = {
     isFirstVisibleReportAction: boolean;
     isReportArchived: boolean;
     isSelfTourViewed: boolean | undefined;
-    isTryNewDotNVPDismissed: boolean | undefined;
     linkedTransactionRouteError: Errors | undefined;
     parentReportAction: OnyxEntry<ReportAction>;
     shouldUseThreadDividerLine: boolean;
     transactionThreadReport: OnyxEntry<Report>;
-    userBillingFundID: number | undefined;
 };
 
 function AncestorReportActionItem({
@@ -52,12 +50,10 @@ function AncestorReportActionItem({
     isFirstVisibleReportAction,
     isReportArchived,
     isSelfTourViewed,
-    isTryNewDotNVPDismissed,
     linkedTransactionRouteError,
     parentReportAction,
     shouldUseThreadDividerLine,
     transactionThreadReport,
-    userBillingFundID,
 }: AncestorReportActionItemProps) {
     const styles = useThemeStyles();
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
@@ -132,8 +128,6 @@ function AncestorReportActionItem({
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                 isThreadReportParentAction
                 linkedTransactionRouteError={linkedTransactionRouteError}
-                userBillingFundID={userBillingFundID}
-                isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
             />
         </OfflineWithFeedback>
     );

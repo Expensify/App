@@ -28,7 +28,6 @@ function ChatListItem<TItem extends ListItem>({
 }: ChatListItemProps<TItem>) {
     const reportActionItem = item as unknown as ReportActionListItemType;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID}`);
-    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const styles = useThemeStyles();
     const theme = useTheme();
     const animatedHighlightStyle = useAnimatedHighlightStyle({
@@ -83,7 +82,6 @@ function ChatListItem<TItem extends ListItem>({
                 isFirstVisibleReportAction={false}
                 shouldDisplayContextMenu={false}
                 shouldShowBorder
-                userBillingFundID={userBillingFundID}
             />
         </BaseListItem>
     );
