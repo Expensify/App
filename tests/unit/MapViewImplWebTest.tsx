@@ -33,7 +33,7 @@ jest.mock('mapbox-gl', () => ({}));
 jest.mock('mapbox-gl/dist/mapbox-gl.css', () => ({}));
 jest.mock('@components/MapView/mapbox.css', () => ({}));
 
-// The component reads the user's position from a navigation focus effect; neutralise both so the
+// The component reads the user's position from a navigation focus effect; stub both out so the
 // test doesn't depend on a NavigationContainer or the geolocation API.
 jest.mock('@react-navigation/native', () => {
     const actualNavigation: typeof ReactNavigation = jest.requireActual('@react-navigation/native');
