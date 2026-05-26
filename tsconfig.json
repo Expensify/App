@@ -46,7 +46,6 @@
         ".storybook/**/*",
         ".claude/**/*",
         "scripts",
-        "server",
         "modules",
         "**/*.nitro/*.ts",
         "**/*.nitro/*.tsx"
