@@ -139,13 +139,17 @@ jest.mock('@components/KYCWall/KYCWallContext', () => ({
 
 jest.mock('@components/Search/SearchContext', () => ({
     __esModule: true,
-    useSearchStateContext: jest.fn(() => ({
+    useSearchQueryContext: jest.fn(() => ({
         currentSearchQueryJSON: null,
         currentSearchKey: '',
+    })),
+    useSearchResultsContext: jest.fn(() => ({
         currentSearchResults: null,
+    })),
+    useSearchSelectionContext: jest.fn(() => ({
         selectedTransactionIDs: [],
     })),
-    useSearchActionsContext: jest.fn(() => ({
+    useSearchSelectionActions: jest.fn(() => ({
         clearSelectedTransactions: mockClearSelectedTransactions,
         setSelectedTransactions: jest.fn(),
     })),

@@ -425,7 +425,9 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         created = '',
         merchant = '',
         receipt,
-        category = '',
+        // Prevent RBR flip and transaction jump: initialize category to 'Uncategorized' instead of
+        // empty string so optimistic missing category violation isn't added then removed during backend sync
+        category = CONST.SEARCH.CATEGORY_DEFAULT_VALUE,
         tag = '',
         taxCode = '',
         taxAmount = 0,

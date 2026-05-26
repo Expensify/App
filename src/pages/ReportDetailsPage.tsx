@@ -22,7 +22,7 @@ import ReportActionAvatars from '@components/ReportActionAvatars';
 import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import {useSearchActionsContext} from '@components/Search/SearchContext';
+import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import {SUPER_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider/WIDE_RIGHT_MODALS';
 import useActivePolicy from '@hooks/useActivePolicy';
 import useAncestors from '@hooks/useAncestors';
@@ -197,7 +197,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
     const {reportActions} = usePaginatedReportActions(report.reportID);
     const [reportActionsForOriginalReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`);
 
-    const {removeTransaction} = useSearchActionsContext();
+    const {removeTransaction} = useSearchSelectionActions();
 
     const transactionThreadReportID = useMemo(() => getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline), [reportActions, isOffline, report, chatReport]);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -853,15 +853,13 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
                     shouldCheckActionAllowedOnPress={false}
                     description={translate('task.title')}
                     onPress={
-                        shouldShowEditableTitleField
+                        shouldShowEditableTitleField && report.policyID
                             ? () => {
-                                  let policyID = report.policyID;
-
-                                  if (!policyID) {
-                                      policyID = '';
+                                  if (!report?.policyID) {
+                                      return;
                                   }
 
-                                  Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, policyID, CONST.REPORT_FIELD_TITLE_FIELD_ID, backTo));
+                                  Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EDIT_REPORT_FIELD.getRoute(report.policyID, CONST.REPORT_FIELD_TITLE_FIELD_ID)));
                               }
                             : undefined
                     }
