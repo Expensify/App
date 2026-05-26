@@ -35,6 +35,14 @@ type DeferredChannel = {
      */
     optimisticWatchKey?: OnyxKey;
 
+    /**
+     * Report ID of the destination report the deferred write targets, when applicable.
+     * Used by consumer components (loading skeletons, empty-state suppression) to scope
+     * their "is a write in flight?" check to the report the user is actually viewing,
+     * instead of treating the channel as a global flag.
+     */
+    destinationReportID?: string;
+
     /** True when the channel was created by reserveDeferredWriteChannel. */
     isReserved?: boolean;
 
@@ -72,9 +80,15 @@ type DeferredWriteOptions = {
 function registerDeferredWrite(key: string, callback: () => void, options: DeferredWriteOptions = {}) {
     const {safetyTimeoutMs = DEFAULT_SAFETY_TIMEOUT_MS, optimisticWatchKey} = options;
 
+    // Preserve the destination report ID across the reservation -> registration handoff
+    // so scoped consumers (`hasDeferredWriteForReport`) keep matching after the real
+    // callback replaces the reserved channel.
+    let destinationReportID: string | undefined;
+
     const existing = channels.get(key);
     if (existing) {
         if (existing.isReserved) {
+            destinationReportID = existing.destinationReportID;
             clearChannelTimeout(existing);
             const shouldFlushImmediately = existing.flushRequested;
             channels.delete(key);
@@ -97,7 +111,7 @@ function registerDeferredWrite(key: string, callback: () => void, options: Defer
         flushDeferredWrite(key);
     }, safetyTimeoutMs);
 
-    channels.set(key, {write: callback, safetyTimeoutId, optimisticWatchKey});
+    channels.set(key, {write: callback, safetyTimeoutId, optimisticWatchKey, destinationReportID});
 }
 
 /**
@@ -143,8 +157,12 @@ function cancelDeferredWrite(key: string) {
  * The real callback will be registered later via registerDeferredWrite, which
  * silently replaces the reservation. A safety timeout is still set in case
  * the real registration never arrives.
+ *
+ * Pass `destinationReportID` to pair the reservation with the report the
+ * deferred write will land in, so consumers can scope their "is a write in
+ * flight for THIS report?" check via `hasDeferredWriteForReport`.
  */
-function reserveDeferredWriteChannel(key: string) {
+function reserveDeferredWriteChannel(key: string, options: {destinationReportID?: string} = {}) {
     if (channels.has(key)) {
         return;
     }
@@ -156,11 +174,26 @@ function reserveDeferredWriteChannel(key: string) {
         channels.delete(key);
     }, DEFAULT_SAFETY_TIMEOUT_MS);
 
-    channels.set(key, {write: () => {}, safetyTimeoutId, isReserved: true});
+    channels.set(key, {write: () => {}, safetyTimeoutId, isReserved: true, destinationReportID: options.destinationReportID});
 }
 
 function hasDeferredWrite(key: string): boolean {
     return channels.has(key);
+}
+
+/**
+ * Scoped variant of `hasDeferredWrite`. Returns true when an active channel exists for `key`
+ * (either reserved via `reserveDeferredWriteChannel` or fully registered via
+ * `registerDeferredWrite`) AND its `destinationReportID` matches `reportID`. Channels stored
+ * without a destination (e.g. SEARCH-flow writes, or DISMISS_MODAL reservations made before
+ * the destination is known) never match - callers should fall back to `hasDeferredWrite` if
+ * they need the global flag.
+ */
+function hasDeferredWriteForReport(key: string, reportID: string | undefined): boolean {
+    if (!reportID) {
+        return false;
+    }
+    return channels.get(key)?.destinationReportID === reportID;
 }
 
 /**
@@ -247,4 +280,14 @@ function resetForTesting() {
     flushedWatchKeys.clear();
 }
 
-export {registerDeferredWrite, reserveDeferredWriteChannel, flushDeferredWrite, cancelDeferredWrite, hasDeferredWrite, getOptimisticWatchKey, deferOrExecuteWrite, resetForTesting};
+export {
+    registerDeferredWrite,
+    reserveDeferredWriteChannel,
+    flushDeferredWrite,
+    cancelDeferredWrite,
+    hasDeferredWrite,
+    hasDeferredWriteForReport,
+    getOptimisticWatchKey,
+    deferOrExecuteWrite,
+    resetForTesting,
+};

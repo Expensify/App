@@ -2,10 +2,12 @@ import React, {useRef} from 'react';
 import {FlatList} from 'react-native';
 import type {SearchQueryJSON} from '@components/Search/types';
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
+import useThemeStyles from '@hooks/useThemeStyles';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import SearchFilterBar from './SearchFilterBar';
+import SearchFiltersClearButton from './SearchFiltersClearButton';
 import useSearchFiltersBar from './useSearchFiltersBar';
 import type {FilterItem} from './useSearchFiltersBar';
 
@@ -14,8 +16,9 @@ type SearchFiltersBarNarrowProps = {
 };
 
 function SearchFiltersBarNarrow({queryJSON}: SearchFiltersBarNarrowProps) {
+    const styles = useThemeStyles();
     const scrollRef = useRef<FlatList<SearchFilter & FilterItem>>(null);
-    const {filters, hasErrors, shouldShowFiltersBarLoading, styles} = useSearchFiltersBar(queryJSON);
+    const {filters, hasErrors, shouldShowFiltersBarLoading, clearFilters} = useSearchFiltersBar(queryJSON);
 
     const adjustScroll = (info: {distanceFromEnd: number}) => {
         // Workaround for a known React Native bug on Android (https://github.com/facebook/react-native/issues/27504):
@@ -53,7 +56,7 @@ function SearchFiltersBarNarrow({queryJSON}: SearchFiltersBarNarrowProps) {
             horizontal
             keyboardShouldPersistTaps="always"
             style={[styles.flexRow, styles.overflowScroll, styles.flexGrow0, !!filters.length && styles.mb4]}
-            contentContainerStyle={[styles.flexRow, styles.flexGrow0, styles.gap2, styles.ph5]}
+            contentContainerStyle={[styles.flexRow, styles.flexGrow0, styles.gap2, styles.ph5, styles.alignItemsCenter]}
             ref={scrollRef}
             showsHorizontalScrollIndicator={false}
             data={filters}
@@ -61,6 +64,7 @@ function SearchFiltersBarNarrow({queryJSON}: SearchFiltersBarNarrowProps) {
             renderItem={renderFilterItem}
             onEndReached={adjustScroll}
             onEndReachedThreshold={0.75}
+            ListFooterComponent={filters.length > 0 ? <SearchFiltersClearButton onPress={clearFilters} /> : undefined}
         />
     );
 }

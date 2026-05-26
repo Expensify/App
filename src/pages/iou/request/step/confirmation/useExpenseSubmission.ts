@@ -3,6 +3,7 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useEffect, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useActivePolicy from '@hooks/useActivePolicy';
+import useAllPolicyExpenseChatReportActions from '@hooks/useAllPolicyExpenseChatReportActions';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
@@ -12,6 +13,7 @@ import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
 import useReportTransactions from '@hooks/useReportTransactions';
+import useTransactionsByID from '@hooks/useTransactionsByID';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
@@ -21,11 +23,12 @@ import {getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
 import {getExistingTransactionID, resolveOptimisticChatReportID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
-import {findSelfDMReportID, generateReportID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils, isMoneyRequestReport, isSelectedManagerMcTest} from '@libs/ReportUtils';
+import {findSelfDMReportID, generateReportID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils, isMoneyRequestReport} from '@libs/ReportUtils';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
 import {
@@ -33,15 +36,16 @@ import {
     getRateID,
     getTaxValue,
     getValidWaypoints,
+    isDistanceRequest as isDistanceRequestTransactionUtils,
     isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
 } from '@libs/TransactionUtils';
-import type {GpsPoint} from '@userActions/IOU';
 import {submitPerDiemExpenseForSelfDM, submitPerDiemExpense as submitPerDiemExpenseIOUActions} from '@userActions/IOU/PerDiem';
 import {getReceiverType, sendInvoice} from '@userActions/IOU/SendInvoice';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
 import {createDistanceRequest as createDistanceRequestIOUActions, splitBill, splitBillAndOpenReport, startSplitBill} from '@userActions/IOU/Split';
 import {requestMoney as requestMoneyIOUActions, trackExpense as trackExpenseIOUActions} from '@userActions/IOU/TrackExpense';
+import type {GPSPoint as GpsPoint} from '@userActions/IOU/types/TrackExpenseTransactionParams';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, PolicyCategories, RecentlyUsedCategories, Report} from '@src/types/onyx';
@@ -122,6 +126,24 @@ type UseExpenseSubmissionParams = {
     backToReport?: string;
 };
 
+type SendMoneyReportIDs = {
+    /** Optimistic report ID generated before the server round-trip. */
+    optimisticChatReportID: string | undefined;
+    /** Resolved chat report ID (may match an existing report). */
+    chatReportID: string | undefined;
+};
+
+type SendMoneyOptions = {
+    /** Whether the send-money action should handle its own post-submit navigation. */
+    shouldHandleNavigation?: boolean;
+    /** Pre-resolved report IDs to avoid redundant resolution when the caller already resolved them. */
+    resolvedReportIDs?: SendMoneyReportIDs;
+    /** Whether to start telemetry tracking; false when the orchestrator starts tracking externally. */
+    shouldStartTracking?: boolean;
+    /** Whether to defer the API write for the Search skeleton optimization. */
+    shouldDeferForSearch?: boolean;
+};
+
 function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const {
         transaction,
@@ -182,6 +204,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`);
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const activePolicy = useActivePolicy();
+    const policyExpenseChatReportActions = useAllPolicyExpenseChatReportActions();
 
     // Reports
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
@@ -230,6 +253,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const transactionTaxValue = transaction?.taxValue ?? getTaxValue(policy, transaction, transactionTaxCode) ?? '';
 
+    const transactionIDs = transactions?.map((tx) => tx.transactionID);
+    const [storedTransactions] = useTransactionsByID(transactionIDs);
+
     function requestMoney(selectedParticipantsArg: Participant[], shouldHandleNav: boolean, gpsPoint?: GpsPoint) {
         if (!transactions.length) {
             return;
@@ -270,6 +296,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
             const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
             const existingTransactionDraft = transactions.find((tx) => tx.transactionID === existingTransactionID);
+            const existingTransaction = existingTransactionID ? storedTransactions?.find((tx) => tx?.transactionID === existingTransactionID) : undefined;
             let merchantToUse = isTestReceipt ? CONST.TEST_RECEIPT.MERCHANT : item.merchant;
             if (!isTestReceipt && isManualDistanceRequestTransactionUtils(item)) {
                 const distance = item.comment?.customUnit?.quantity;
@@ -313,7 +340,16 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 action,
                 transactionParams: {
                     amount: itemAmount,
-                    distance: isManualDistanceRequest && typeof item.comment?.customUnit?.quantity === 'number' ? roundToTwoDecimalPlaces(item.comment.customUnit.quantity) : undefined,
+                    // Pass the stored quantity for any distance request so that a manually-edited distance
+                    // on a map-based expense survives `convertTrackedExpenseToRequest`. Without this, BE
+                    // would recompute the distance from waypoints and drop the user's edit. Check the
+                    // per-item transaction (not the page-level `isDistanceRequest` prop) because in
+                    // submit-from-self-DM flows the page-level transaction can be a draft optimistic one
+                    // that hasn't yet inherited the distance custom unit.
+                    distance:
+                        isDistanceRequestTransactionUtils(item) && typeof item.comment?.customUnit?.quantity === 'number'
+                            ? roundToTwoDecimalPlaces(item.comment.customUnit.quantity)
+                            : undefined,
                     attendees: item.comment?.attendees,
                     currency: itemCurrency,
                     created: item.created,
@@ -348,6 +384,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 transactionViolations: transactionViolationsRef.current,
                 policyRecentlyUsedCurrencies,
                 quickAction,
+                existingTransaction,
                 existingTransactionDraft,
                 draftTransactionIDs,
                 isSelfTourViewed,
@@ -446,15 +483,17 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             if (shouldHandleNav && result && activeReportID) {
                 navigateAfterExpenseCreate({
                     activeReportID,
-                    transactionID: transaction.transactionID,
+                    transactionID: result.transactionID,
                     isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
                     hasMultipleTransactions: reportTransactions.length > 0,
+                    shouldAddPendingNewTransactionIDs: activeReportID === chatReportID,
                 });
             }
         }
     }
 
-    function trackExpense(selectedParticipantsArg: Participant[], shouldHandleNav: boolean, gpsPoint?: GpsPoint) {
+    function trackExpense(selectedParticipantsArg: Participant[], shouldHandleNav: boolean, options?: {gpsPoint?: GpsPoint; shouldDeferForSearch?: boolean}) {
+        const {gpsPoint, shouldDeferForSearch} = options ?? {};
         if (!transactions.length) {
             return;
         }
@@ -514,9 +553,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     accountant: item.accountant,
                 },
                 shouldHandleNavigation: shouldHandleNav && index === transactions.length - 1,
+                shouldDeferForSearch,
                 isASAPSubmitBetaEnabled,
-                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                currentUserEmailParam: email,
+                currentUser: {accountID: currentUserPersonalDetails.accountID, email},
                 introSelected,
                 activePolicy,
                 quickAction,
@@ -526,11 +565,12 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 isSelfTourViewed,
                 defaultWorkspaceName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
                 previousOdometerDraft: odometerDraft,
+                reportActionsList: policyExpenseChatReportActions,
             });
         }
     }
 
-    function createDistanceRequest(selectedParticipantsArg: Participant[], trimmedComment: string, shouldHandleNav = true) {
+    function createDistanceRequest(selectedParticipantsArg: Participant[], trimmedComment: string, shouldHandleNav = true, shouldDeferForSearch = false) {
         if (!transaction) {
             return;
         }
@@ -582,6 +622,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             recentWaypoints,
             betas,
             shouldHandleNavigation: shouldHandleNav,
+            shouldDeferForSearch,
             previousOdometerDraft: odometerDraft,
         });
     }
@@ -613,19 +654,23 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
         formHasBeenSubmitted.current = true;
 
+        const isDeferredSearchSubmit = !shouldHandleNavigation && isSearchTopmostFullScreenRoute();
+
         // Telemetry spans (SPAN_SUBMIT_EXPENSE, SPAN_SUBMIT_TO_DESTINATION_VISIBLE)
         // are started by SubmitExpenseOrchestrator before calling createTransaction.
         if (!isTrackExpense && isDistanceRequest && !isMovingTransactionFromTrackExpense && !isUnreported) {
-            createDistanceRequest(iouType === CONST.IOU.TYPE.SPLIT ? splitParticipants : selectedParticipantsArg, trimmedComment, shouldHandleNavigation);
+            const shouldDeferDistanceForSearch = iouType === CONST.IOU.TYPE.SPLIT && isDeferredSearchSubmit;
+            createDistanceRequest(iouType === CONST.IOU.TYPE.SPLIT ? splitParticipants : selectedParticipantsArg, trimmedComment, shouldHandleNavigation, shouldDeferDistanceForSearch);
             markSubmitExpenseEnd();
             return;
         }
 
         const currentTransactionReceiptFile = transaction?.transactionID ? receiptFiles[transaction.transactionID] : undefined;
+        const shouldDeferSplitForSearch = iouType === CONST.IOU.TYPE.SPLIT && isDeferredSearchSubmit;
+        const shouldDeferTrackForSearch = isTrackExpense && isDeferredSearchSubmit;
 
-        // Split (startSplitBill, splitBill, splitBillAndOpenReport) flows handle their own
-        // navigation internally and don't participate in the dismiss-modal fast path.
-        // shouldHandleNavigation is not threaded through to them.
+        // Split flows usually navigate to the destination report internally, but dismiss-first
+        // handlers can pass shouldHandleNavigation=false after revealing/dismissing first.
         if (iouType === CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).filter((receipt) => !!receipt).length) {
             const currentUserLogin = currentUserPersonalDetails.login;
             if (currentUserLogin) {
@@ -658,6 +703,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                         quickAction,
                         policyRecentlyUsedCurrencies,
                         participantsPolicyTags,
+                        shouldHandleNavigation,
+                        shouldDeferForSearch: shouldDeferSplitForSearch,
                     });
                 }
             }
@@ -696,6 +743,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     policyRecentlyUsedCurrencies,
                     betas,
                     personalDetails,
+                    shouldHandleNavigation,
+                    shouldDeferForSearch: shouldDeferSplitForSearch,
                 });
             }
             markSubmitExpenseEnd();
@@ -731,6 +780,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     policyRecentlyUsedCurrencies,
                     betas,
                     personalDetails,
+                    shouldHandleNavigation,
+                    shouldDeferForSearch: shouldDeferSplitForSearch,
                 });
             }
             markSubmitExpenseEnd();
@@ -767,23 +818,25 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted) {
                     if (userLocation) {
                         trackExpense(selectedParticipantsArg, shouldHandleNavigation, {
-                            lat: userLocation.latitude,
-                            long: userLocation.longitude,
+                            gpsPoint: {lat: userLocation.latitude, long: userLocation.longitude},
+                            shouldDeferForSearch: shouldDeferTrackForSearch,
                         });
                         markSubmitExpenseEnd();
                         return;
                     }
 
-                    getCurrentPositionWithGeolocationSpan((gpsCoords) => trackExpense(selectedParticipantsArg, shouldHandleNavigation, gpsCoords));
+                    getCurrentPositionWithGeolocationSpan((gpsCoords) =>
+                        trackExpense(selectedParticipantsArg, shouldHandleNavigation, {gpsPoint: gpsCoords, shouldDeferForSearch: shouldDeferTrackForSearch}),
+                    );
                     return;
                 }
 
                 // Otherwise, the money is being requested through the "Manual" flow with an attached image and the GPS coordinates are not needed.
-                trackExpense(selectedParticipantsArg, shouldHandleNavigation);
+                trackExpense(selectedParticipantsArg, shouldHandleNavigation, {shouldDeferForSearch: shouldDeferTrackForSearch});
                 markSubmitExpenseEnd();
                 return;
             }
-            trackExpense(selectedParticipantsArg, shouldHandleNavigation);
+            trackExpense(selectedParticipantsArg, shouldHandleNavigation, {shouldDeferForSearch: shouldDeferTrackForSearch});
             markSubmitExpenseEnd();
             return;
         }
@@ -796,13 +849,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
         if (Object.values(receiptFiles).filter((receipt) => !!receipt).length && !!transaction) {
             // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
-            if (
-                transaction.amount === 0 &&
-                !isSharingTrackExpense &&
-                !isCategorizingTrackExpense &&
-                locationPermissionGranted &&
-                !selectedParticipantsArg.some((participant) => isSelectedManagerMcTest(participant.login))
-            ) {
+            if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted) {
                 if (userLocation) {
                     requestMoney(selectedParticipantsArg, shouldHandleNavigation, {
                         lat: userLocation.latitude,
@@ -826,7 +873,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         markSubmitExpenseEnd();
     }
 
-    function sendMoney(paymentMethod: PaymentMethodType | undefined) {
+    function sendMoney(paymentMethod: PaymentMethodType | undefined, options?: SendMoneyOptions) {
+        const {shouldHandleNavigation = true, resolvedReportIDs, shouldStartTracking = true, shouldDeferForSearch = false} = options ?? {};
         const currency = transaction?.currency;
         const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
         const participant = participants?.at(0);
@@ -835,7 +883,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             return;
         }
 
-        const {optimisticChatReportID, chatReportID} = resolveOptimisticChatReportID([participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID], report);
+        const {optimisticChatReportID, chatReportID} =
+            resolvedReportIDs ?? resolveOptimisticChatReportID([participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID], report);
         const sendMoneyParams = {
             report,
             quickAction,
@@ -848,6 +897,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             merchant: transaction.merchant,
             receipt: receiptFiles[transaction.transactionID],
             optimisticChatReportID,
+            shouldStartTracking,
+            shouldDeferForSearch,
         };
 
         if (paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
@@ -859,11 +910,12 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         } else {
             return;
         }
-        dismissModalAndOpenReportInInboxTabHelper(chatReportID, undefined, reportTransactions.length > 0);
+        if (shouldHandleNavigation) {
+            dismissModalAndOpenReportInInboxTabHelper(chatReportID, undefined, reportTransactions.length > 0);
+        }
     }
 
-    return {createTransaction, sendMoney, isConfirmed, formHasBeenSubmitted};
+    return {createTransaction, sendMoney, isConfirmed, setIsConfirmed, formHasBeenSubmitted};
 }
 
 export default useExpenseSubmission;
-export type {UseExpenseSubmissionParams};

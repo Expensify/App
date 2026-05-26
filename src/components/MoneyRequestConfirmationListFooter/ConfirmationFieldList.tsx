@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import type CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -43,7 +44,7 @@ type ConfirmationFieldListProps = {
     /** ID of the originating report action, when editing */
     reportActionID: string | undefined;
 
-    /** Active transaction */
+    /** Active transaction (still passed through for ReportField, which reads it directly) */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
     /** Active policy */
@@ -78,6 +79,9 @@ type ConfirmationFieldListProps = {
 
     /** Whether the amount field should be displayed when smart-scan fields are shown */
     shouldShowAmountField: boolean;
+
+    /** Whether the parent-owned participant picker modal is currently open (new manual expense flow). Drives amount autofocus on picker close. */
+    isParticipantPickerVisible: boolean;
 
     /** Whether the merchant field should be displayed */
     shouldShowMerchant: boolean;
@@ -148,6 +152,12 @@ type ConfirmationFieldListProps = {
     /** Form-level error message */
     formError: string;
 
+    /** Clears specific form errors by key */
+    clearFormErrors: (errors: string[]) => void;
+
+    /** Sets a form error message */
+    setFormError: (error: TranslationPaths | '') => void;
+
     /** ISO currency code for the transaction */
     iouCurrencyCode: string;
 
@@ -189,6 +199,9 @@ type ConfirmationFieldListProps = {
 
     /** Whether the receipt area is using compact mode (drives the show-more split) */
     isCompactMode: boolean;
+
+    /** Triggers submit from inline inputs */
+    onSubmitForm?: () => void;
 };
 
 function ConfirmationFieldList({
@@ -209,6 +222,7 @@ function ConfirmationFieldList({
     isNewManualExpenseFlowEnabled,
     shouldShowSmartScanFields,
     shouldShowAmountField,
+    isParticipantPickerVisible,
     shouldShowMerchant,
     shouldShowCategories,
     shouldShowDate,
@@ -232,6 +246,8 @@ function ConfirmationFieldList({
     isPerDiemRequest,
     shouldDisplayFieldError,
     formError,
+    clearFormErrors,
+    setFormError,
     iouCurrencyCode,
     amount,
     formattedAmount,
@@ -246,6 +262,7 @@ function ConfirmationFieldList({
     onToggleBillable,
     setShowMoreFields,
     isCompactMode,
+    onSubmitForm,
 }: ConfirmationFieldListProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -291,7 +308,6 @@ function ConfirmationFieldList({
                 transactionID={transactionID}
                 reportID={reportID}
                 reportActionID={reportActionID}
-                transaction={transaction}
                 policy={policy}
                 isReadOnly={isReadOnly}
                 didConfirm={didConfirm}
@@ -305,6 +321,8 @@ function ConfirmationFieldList({
                 isDescriptionRequired={isDescriptionRequired}
                 shouldDisplayFieldError={shouldDisplayFieldError}
                 formError={formError}
+                clearFormErrors={clearFormErrors}
+                setFormError={setFormError}
                 shouldNavigateToUpgradePath={shouldNavigateToUpgradePath}
                 shouldSelectPolicy={shouldSelectPolicy}
                 iouCurrencyCode={iouCurrencyCode}
@@ -318,6 +336,8 @@ function ConfirmationFieldList({
                 distanceRateCurrency={distanceRateCurrency}
                 isCompactMode={isCompactMode}
                 fieldVisibility={fieldVisibility}
+                onSubmitForm={onSubmitForm}
+                isParticipantPickerVisible={isParticipantPickerVisible}
             />
 
             <ClassificationFields
@@ -326,7 +346,6 @@ function ConfirmationFieldList({
                 transactionID={transactionID}
                 reportID={reportID}
                 reportActionID={reportActionID}
-                transaction={transaction}
                 policy={policy}
                 policyForMovingExpenses={policyForMovingExpenses}
                 policyTagLists={policyTagLists}
@@ -343,6 +362,7 @@ function ConfirmationFieldList({
                 formError={formError}
                 isCompactMode={isCompactMode}
                 fieldVisibility={fieldVisibility}
+                isEditingSplitBill={isEditingSplitBill}
             />
 
             <SettingsFields
@@ -362,6 +382,7 @@ function ConfirmationFieldList({
                 onToggleBillable={onToggleBillable}
                 isCompactMode={isCompactMode}
                 fieldVisibility={fieldVisibility}
+                isEditingSplitBill={isEditingSplitBill}
             />
 
             {isCompactMode && shouldShowMoreButton && (
