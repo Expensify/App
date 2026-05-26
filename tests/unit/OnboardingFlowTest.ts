@@ -64,7 +64,7 @@ describe('OnboardingFlow', () => {
                 onboardingValues: undefined,
             };
             const path = getOnboardingInitialPath(params);
-            expect(path).toBe('/onboarding/accounting');
+            expect(path).toBe('/onboarding/employees');
         });
 
         it('should return the correct path for SMB and is not from public domain', () => {

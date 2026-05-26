@@ -7,8 +7,8 @@ const O = SCREENS.ONBOARDING;
 const {ONBOARDING_CHOICES, ONBOARDING_SIGNUP_QUALIFIERS} = CONST;
 
 describe('getOnboardingFlow', () => {
-    it('returns [ACCOUNTING, INTERESTED_FEATURES] for VSB without domain context', () => {
-        expect(getOnboardingFlow({signupQualifier: 'vsb'})).toEqual([O.ACCOUNTING, O.INTERESTED_FEATURES]);
+    it('returns [EMPLOYEES, ACCOUNTING, INTERESTED_FEATURES] for VSB without domain context', () => {
+        expect(getOnboardingFlow({signupQualifier: 'vsb'})).toEqual([O.EMPLOYEES, O.ACCOUNTING, O.INTERESTED_FEATURES]);
     });
 
     it('returns [EMPLOYEES, ACCOUNTING, INTERESTED_FEATURES] for SMB without domain context', () => {
@@ -31,8 +31,8 @@ describe('getOnboardingFlow', () => {
         expect(getOnboardingFlow({signupQualifier: 'individual'})).toBeUndefined();
     });
 
-    it('returns [WORK_EMAIL, WORK_EMAIL_VALIDATION, ACCOUNTING, INTERESTED_FEATURES] for public + VSB', () => {
-        expect(getOnboardingFlow({signupQualifier: 'vsb', isFromPublicDomain: true})).toEqual([O.WORK_EMAIL, O.WORK_EMAIL_VALIDATION, O.ACCOUNTING, O.INTERESTED_FEATURES]);
+    it('returns [WORK_EMAIL, WORK_EMAIL_VALIDATION, EMPLOYEES, ACCOUNTING, INTERESTED_FEATURES] for public + VSB', () => {
+        expect(getOnboardingFlow({signupQualifier: 'vsb', isFromPublicDomain: true})).toEqual([O.WORK_EMAIL, O.WORK_EMAIL_VALIDATION, O.EMPLOYEES, O.ACCOUNTING, O.INTERESTED_FEATURES]);
     });
 
     it('returns [WORK_EMAIL, WORK_EMAIL_VALIDATION, EMPLOYEES, ACCOUNTING, INTERESTED_FEATURES] for public + SMB', () => {
@@ -69,11 +69,12 @@ describe('getOnboardingFlow', () => {
         ]);
     });
 
-    it('returns 5-step flow for public + merge + VSB', () => {
+    it('returns 6-step flow for public + merge + VSB', () => {
         expect(getOnboardingFlow({signupQualifier: 'vsb', isFromPublicDomain: true, isMergeAccountStepSkipped: false})).toEqual([
             O.WORK_EMAIL,
             O.WORK_EMAIL_VALIDATION,
             O.WORKSPACES,
+            O.EMPLOYEES,
             O.ACCOUNTING,
             O.INTERESTED_FEATURES,
         ]);
@@ -121,11 +122,12 @@ describe('getOnboardingFlow', () => {
         ]);
     });
 
-    it('returns 5-step flow for private domain + VSB', () => {
+    it('returns 6-step flow for private domain + VSB', () => {
         expect(getOnboardingFlow({signupQualifier: 'vsb', hasAccessibleDomainPolicies: true})).toEqual([
             O.PERSONAL_DETAILS,
             O.PRIVATE_DOMAIN,
             O.WORKSPACES,
+            O.EMPLOYEES,
             O.ACCOUNTING,
             O.INTERESTED_FEATURES,
         ]);
@@ -177,8 +179,9 @@ describe('getOnboardingFlow', () => {
 describe('getOnboardingStepCounter', () => {
     it('returns correct step/total/percentage for each page in VSB flow', () => {
         const ctx: OnboardingFlowContext = {signupQualifier: 'vsb'};
-        expect(getOnboardingStepCounter(O.ACCOUNTING, ctx)).toEqual({stepCounter: {step: 1, total: 2}, progressBarPercentage: 50});
-        expect(getOnboardingStepCounter(O.INTERESTED_FEATURES, ctx)).toEqual({stepCounter: {step: 2, total: 2}, progressBarPercentage: 100});
+        expect(getOnboardingStepCounter(O.EMPLOYEES, ctx)).toEqual({stepCounter: {step: 1, total: 3}, progressBarPercentage: 33});
+        expect(getOnboardingStepCounter(O.ACCOUNTING, ctx)).toEqual({stepCounter: {step: 2, total: 3}, progressBarPercentage: 67});
+        expect(getOnboardingStepCounter(O.INTERESTED_FEATURES, ctx)).toEqual({stepCounter: {step: 3, total: 3}, progressBarPercentage: 100});
     });
 
     it('returns correct step/total/percentage for each page in SMB flow', () => {
