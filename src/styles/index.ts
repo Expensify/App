@@ -11,7 +11,7 @@ import type {SharedValue} from 'react-native-reanimated';
 import {interpolate} from 'react-native-reanimated';
 import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
 import type {ValueOf} from 'type-fest';
-import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/constants';
+import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
 import {animatedReceiptPaneRHPWidth, animatedSuperWideRHPWidth, animatedWideRHPWidth} from '@components/WideRHPContextProvider';
@@ -700,6 +700,13 @@ const staticStyles = (theme: ThemeColors) =>
 
         bottomTabBarSpacer: {
             height: variables.bottomTabHeight,
+        },
+
+        tabNavigatorBarContainer: {
+            zIndex: 1,
+            width: variables.navigationTabBarSize + variables.sideBarWithLHBWidth,
+            marginRight: -variables.sideBarWithLHBWidth,
+            overflow: 'visible',
         },
 
         navigationTabBarContainer: {
@@ -2803,6 +2810,7 @@ const staticStyles = (theme: ThemeColors) =>
         twoFactorAuthSection: {
             backgroundColor: theme.appBG,
             padding: 0,
+            paddingTop: 8,
         },
 
         twoFactorLoadingContainer: {
@@ -2825,16 +2833,12 @@ const staticStyles = (theme: ThemeColors) =>
             textAlign: 'center',
         },
 
-        twoFactorAuthCodesButtonsContainer: {
-            flexDirection: 'row',
-            justifyContent: 'center',
-            gap: 12,
-            marginTop: 20,
-            flexWrap: 'wrap',
+        twoFactorAuthCodesButton: {
+            alignSelf: 'stretch',
         },
 
-        twoFactorAuthCodesButton: {
-            minWidth: 112,
+        twoFactorAuthCodesButtonWrapper: {
+            marginTop: 20,
         },
 
         twoFactorAuthCopyCodeButton: {
