@@ -890,6 +890,7 @@ function IOURequestStepConfirmation({
                             action={action}
                             isPerDiemRequest={isPerDiemRequest}
                             isTimeRequest={isTimeRequest}
+                            isWorkspacesOnly={transaction?.amount !== undefined && transaction?.amount !== null && transaction.amount <= 0}
                             onParticipantsAdded={handleParticipantsAdded}
                             onFinish={closeParticipantPicker}
                             isVisible={isParticipantPickerVisible}
