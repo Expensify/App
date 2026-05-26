@@ -49,10 +49,9 @@ function useNewTransactions(
         }
         return transactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
 
-        // We don't need to recalculate on change of prevTransactions or pendingNewTransactionIDs as it will make the value
-        // disappear quickly which will break the scroll and highlight on slower devices like mobile app.
+        // prevTransactions is intentionally omitted from deps to avoid clearing newTransactions on every render — the result is meant to persist until the next real transactions change.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [transactions, reportID, isFocused]);
+    }, [transactions, reportID, isFocused, pendingNewTransactionIDs]);
 
     useEffect(() => {
         if (!pendingNewTransactionIDs) {

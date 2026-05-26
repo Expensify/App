@@ -359,6 +359,25 @@ describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', 
         expect(result.current).toEqual([]);
     });
 
+    it('recomputes when only pendingNewTransactionIDs changes (stable transactions reference)', () => {
+        const stableTransactions = [...transactionsAlreadyInReport, newTransaction];
+
+        const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]; pendingNewTransactionIDs: Record<string, true | null> | undefined}>(
+            (props) => useNewTransactions(true, props.transactions, props.pendingNewTransactionIDs, 'report1', true),
+            {
+                initialProps: {transactions: stableTransactions, pendingNewTransactionIDs: undefined},
+            },
+        );
+        expect(result.current).toEqual([]);
+
+        rerender({transactions: stableTransactions, pendingNewTransactionIDs: undefined});
+        expect(result.current).toEqual([]);
+
+        // Metadata-only update — same transactions reference, new pendingNewTransactionIDs
+        rerender({transactions: stableTransactions, pendingNewTransactionIDs: {[newTransaction.transactionID]: true}});
+        expect(result.current).toEqual([newTransaction]);
+    });
+
     it('highlights the duplicate when the table view mounts post-optimistic add and pendingNewTransactionIDs arrives a few renders later', () => {
         const originalTx = transactionsAlreadyInReport[0];
         const duplicateTx = {...newTransaction, pendingAction: 'add' as const};
