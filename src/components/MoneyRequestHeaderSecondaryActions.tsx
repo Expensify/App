@@ -436,6 +436,8 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                     }
                     const backToRoute = route.params?.backTo ?? Navigation.getActiveRoute();
                     setDeleteTransactionNavigateBackUrl(backToRoute);
+
+                    let afterDelete: (() => void) | undefined;
                     if (isTrackExpenseAction(parentReportAction)) {
                         deleteTrackExpense({
                             chatReportID: report?.parentReportID,
@@ -458,7 +460,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                             deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, true);
                             return;
                         }
-                        const afterDelete = () => {
+                        afterDelete = () => {
                             const deleteResult = deleteTransactions(
                                 [transaction.transactionID],
                                 duplicateTransactions,
@@ -473,19 +475,13 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
 
                             removeTransaction(transaction.transactionID);
                         };
-                        if (isInNarrowPaneModal) {
-                            Navigation.navigateBackToLastSuperWideRHPScreen({afterTransition: afterDelete});
-                            return;
-                        }
-                        onBackButtonPress(false, {afterTransition: afterDelete});
-                        return;
                     }
                     if (isInNarrowPaneModal) {
-                        Navigation.navigateBackToLastSuperWideRHPScreen();
+                        Navigation.navigateBackToLastSuperWideRHPScreen({afterTransition: afterDelete});
                         return;
                     }
 
-                    onBackButtonPress();
+                    onBackButtonPress(false, {afterTransition: afterDelete});
                 });
             },
         },
