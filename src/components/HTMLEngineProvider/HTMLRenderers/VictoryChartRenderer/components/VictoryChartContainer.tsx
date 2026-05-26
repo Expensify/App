@@ -3,10 +3,12 @@ import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import ScrollView from '@components/ScrollView';
+import useDebouncedValue from '@hooks/useDebouncedValue';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 const MIN_CHART_WIDTH = 500;
+const RESIZE_DEBOUNCE_MS = 200;
 
 type InitialMeasurement = {
     containerWidth: number;
@@ -18,6 +20,7 @@ function VictoryChartContainer({children}: {children: React.ReactNode}) {
     const {chartContentStyles, chartContainerStyles} = useVictoryChartContext();
     const [initialMeasurement, setInitialMeasurement] = useState<InitialMeasurement | null>(null);
     const {windowWidth} = useWindowDimensions();
+    const debouncedWindowWidth = useDebouncedValue(windowWidth, RESIZE_DEBOUNCE_MS) ?? windowWidth;
 
     const designWidth = typeof chartContentStyles.width === 'number' ? chartContentStyles.width : undefined;
     const designHeight = typeof chartContentStyles.height === 'number' ? chartContentStyles.height : undefined;
@@ -26,9 +29,9 @@ function VictoryChartContainer({children}: {children: React.ReactNode}) {
     const handleContainerLayout = useCallback(
         (event: LayoutChangeEvent) => {
             const w = event.nativeEvent.layout.width;
-            setInitialMeasurement({containerWidth: w, windowWidth});
+            setInitialMeasurement({containerWidth: w, windowWidth: debouncedWindowWidth});
         },
-        [windowWidth],
+        [debouncedWindowWidth],
     );
 
     const estimatedContainerWidth = useMemo(() => {
@@ -36,8 +39,8 @@ function VictoryChartContainer({children}: {children: React.ReactNode}) {
             return null;
         }
         const ratio = initialMeasurement.containerWidth / initialMeasurement.windowWidth;
-        return Math.round(windowWidth * ratio);
-    }, [windowWidth, initialMeasurement]);
+        return Math.round(debouncedWindowWidth * ratio);
+    }, [debouncedWindowWidth, initialMeasurement]);
 
     const chartWidth = useMemo(() => {
         if (!hasExplicitDimensions || estimatedContainerWidth === null) {
