@@ -105,9 +105,6 @@ type MoneyRequestReportTransactionListController = {
     /** Render a single transaction-list item. */
     renderTransactionListItem: (item: TransactionListItemData, position: {isFirst: boolean; isLast: boolean}) => React.ReactElement | null;
 
-    /** Key extractor for transaction-list items. */
-    getTransactionListItemKey: (item: TransactionListItemData) => string;
-
     /** Chrome rendered below the transaction items (pending placeholder, Add Expense, breakdown, total). Null when there are no transactions. */
     afterListContent: React.ReactElement | null;
 
@@ -640,13 +637,6 @@ function MoneyRequestReportTransactionList({
         }
     }
 
-    const keyExtractor = (item: TransactionListItemData) => {
-        if (item.type === 'section-header') {
-            return `group-${item.groupKey}`;
-        }
-        return item.transaction.transactionID;
-    };
-
     const renderTransactionListItem = (item: TransactionListItemData, position: {isFirst: boolean; isLast: boolean}) => {
         const narrowSectionWrapperStyle = shouldUseNarrowLayout
             ? [styles.highlightBG, position.isFirst && styles.tableTopRadius, position.isLast && styles.tableBottomRadius, (position.isFirst || position.isLast) && styles.overflowHidden]
@@ -922,7 +912,6 @@ function MoneyRequestReportTransactionList({
                 beforeListContent,
                 transactionListItems: isEmptyTransactions ? [] : listItems,
                 renderTransactionListItem,
-                getTransactionListItemKey: keyExtractor,
                 afterListContent,
                 shouldScrollHorizontally,
                 tableMinWidth: minTableWidth,
