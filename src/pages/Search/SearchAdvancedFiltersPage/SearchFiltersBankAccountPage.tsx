@@ -81,6 +81,7 @@ function SearchFiltersBankAccountPage() {
                         color={theme.spinner}
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.pl3]}
+                        reasonAttributes={{context: 'SearchFiltersBankAccountPage', isLoadingFromOnyx: isLoadingOnyxData}}
                     />
                 </View>
             )}
