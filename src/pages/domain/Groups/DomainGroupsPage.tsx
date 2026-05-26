@@ -18,7 +18,6 @@ import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
@@ -59,7 +58,6 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
     const selectionListRef = useRef<SelectionListHandle<GroupOption>>(null);
 
     const [groups = getEmptyArray<DomainSecurityGroupWithID>()] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: groupsSelector});
-    const prevGroups = usePrevious(groups);
     const [highlightItems] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`);
     const [defaultGroupID] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: defaultSecurityGroupIDSelector});
     const [pendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`);
@@ -136,12 +134,18 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
 
     const highlightGroups = highlightItems?.groups;
     useEffect(() => {
-        if (!isFocused || !highlightGroups?.length || groups === prevGroups) {
+        if (!isFocused || !highlightGroups?.length) {
             return;
         }
+
+        const highlightedGroupID = highlightGroups.at(0);
+        if (!highlightedGroupID || !groups.some((group) => group.id === highlightedGroupID)) {
+            return;
+        }
+
         selectionListRef.current?.scrollAndHighlightItem?.(highlightGroups);
         clearDomainHighlightItems(domainAccountID, 'groups');
-    }, [highlightGroups, isFocused, groups, prevGroups, domainAccountID]);
+    }, [highlightGroups, isFocused, groups, domainAccountID]);
 
     const createGroupHeaderButton = (
         <Button

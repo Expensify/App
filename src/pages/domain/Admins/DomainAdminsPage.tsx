@@ -11,7 +11,6 @@ import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePrevious from '@hooks/usePrevious';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -43,7 +42,6 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: adminAccountIDsSelector,
     });
-    const prevAdminAccountIDs = usePrevious(adminAccountIDs);
     const [highlightItems] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`);
 
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
@@ -83,12 +81,18 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
 
     const highlightAdmins = highlightItems?.admins;
     useEffect(() => {
-        if (!isFocused || !highlightAdmins?.length || adminAccountIDs === prevAdminAccountIDs) {
+        if (!isFocused || !highlightAdmins?.length) {
             return;
         }
+
+        const highlightedAccountID = Number(highlightAdmins.at(0));
+        if (!adminAccountIDs?.includes(highlightedAccountID)) {
+            return;
+        }
+
         selectionListRef.current?.scrollAndHighlightItem?.(highlightAdmins);
         clearDomainHighlightItems(domainAccountID, 'admins');
-    }, [highlightAdmins, isFocused, adminAccountIDs, prevAdminAccountIDs, domainAccountID]);
+    }, [highlightAdmins, isFocused, adminAccountIDs, domainAccountID]);
 
     const hasSettingsErrors = hasDomainAdminsSettingsErrors(domainErrors);
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();

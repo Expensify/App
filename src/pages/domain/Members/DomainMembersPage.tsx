@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import {defaultSecurityGroupIDSelector, domainNameSelector, memberAccountIDsSelector, memberPendingActionSelector, selectSecurityGroupForAccount} from '@selectors/Domain';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -22,7 +22,6 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
@@ -78,20 +77,29 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const [memberIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: memberAccountIDsSelector,
     });
-    const prevMemberIDs = usePrevious(memberIDs);
     const [highlightItems] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`);
 
     const {groupPreFilter, groupOptions, selectedGroup, handleGroupChange, dropdownLabel, groups} = useDomainGroupFilter(domainAccountID);
 
     const highlightMembers = highlightItems?.members;
     useEffect(() => {
-        if (!isFocused || !highlightMembers?.length || memberIDs === prevMemberIDs) {
+        if (!isFocused || !highlightMembers?.length) {
             return;
         }
-        handleGroupChange(groupOptions.at(0));
+
+        if (selectedGroup) {
+            handleGroupChange(groupOptions.at(0));
+            return;
+        }
+
+        const highlightedAccountID = Number(highlightMembers.at(0));
+        if (!memberIDs?.includes(highlightedAccountID)) {
+            return;
+        }
+
         selectionListRef.current?.scrollAndHighlightItem?.(highlightMembers);
         clearDomainHighlightItems(domainAccountID, 'members');
-    }, [highlightMembers, isFocused, memberIDs, prevMemberIDs, domainAccountID, groupOptions, handleGroupChange]);
+    }, [highlightMembers, isFocused, selectedGroup, memberIDs, domainAccountID, groupOptions, handleGroupChange]);
 
     const groupPopoverComponent = ({closeOverlay, isExpanded}: PopoverComponentProps) => (
         <SingleSelectPopup

@@ -1,4 +1,5 @@
-import React, {type RefObject} from 'react';
+import React from 'react';
+import type {RefObject} from 'react';
 import {View} from 'react-native';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
