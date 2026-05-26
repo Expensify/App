@@ -1,5 +1,6 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React from 'react';
+import React, {useEffect, useRef, useState} from 'react';
+import Onyx from 'react-native-onyx';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
@@ -10,12 +11,14 @@ import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {createWorkspaceWithPolicyDraftAndNavigateToIt} from '@libs/actions/App';
-import {generatePolicyID} from '@libs/actions/Policy/Policy';
+import {createDraftInitialWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
+import Navigation from '@libs/Navigation/Navigation';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type {LastPaymentMethodType} from '@src/types/onyx';
 
 function WorkspaceConfirmationPage() {
@@ -34,8 +37,60 @@ function WorkspaceConfirmationPage() {
     const activePolicy = useActivePolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
 
+    // Generated once so the same id can be used for the mount-time draft seed, the pre-insert
+    // route and the submit handler.
+    const [policyID] = useState(() => generatePolicyID());
+    const hasSubmitted = useRef(false);
+
+    // Live form values so the seed effect below uses the same currency the user has selected.
+    // Keeping the seed and the eventual submit-time draft on the same currency means the
+    // distance-rate custom units built by createDraftInitialWorkspace match across both writes —
+    // no icon flicker when the modal dismisses.
+    const [confirmationDraftValues] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM_DRAFT);
+    const seedCurrency = confirmationDraftValues?.currency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
+
+    // Narrow-only seed: keep a draft policy in POLICY_DRAFTS so the pre-inserted WORKSPACE_INITIAL
+    // (mounted under the RHP by the effect below) renders actual content instead of the
+    // FullscreenLoadingIndicator from withPolicyAndFullscreenLoading. POLICY_DRAFTS is excluded
+    // from WorkspacesListPage / sidebar so the seed never leaks to a user-visible list.
+    // Re-runs when seedCurrency changes so the customUnits match the user's final selection.
+    useEffect(() => {
+        if (!isSmallScreenWidth) {
+            return;
+        }
+        createDraftInitialWorkspace(introSelected, '', currentUserPersonalDetails.accountID, currentUserPersonalDetails.email ?? '', policyID, false, seedCurrency);
+    }, [isSmallScreenWidth, policyID, introSelected, currentUserPersonalDetails.accountID, currentUserPersonalDetails.email, seedCurrency]);
+
+    // Pre-insert + cleanup. Stable for the page's lifetime so we don't churn the navigation state
+    // or the seed on form edits — only on mount/unmount.
+    //
+    // Fired immediately (no PRE_INSERT_FULLSCREEN_DELAY): the IOU flow defers pre-insert by ~300ms
+    // because its destination report is heavy to mount and would slow the confirmation page. Our
+    // destination is just WORKSPACE_INITIAL, which is lighter, and the delay leaves a window where
+    // fast submitters fall back to revealRouteBeforeDismissingModal — that path push-animates the
+    // destination from the right (the slide the user sees). Firing on mount means every submit
+    // takes the fast (animation-NONE) path.
+    useEffect(() => {
+        if (!isSmallScreenWidth) {
+            return;
+        }
+        const preInsertRoute: Route = ROUTES.WORKSPACE_INITIAL.getRoute(policyID);
+        Navigation.preInsertFullscreenUnderRHP(preInsertRoute, {collapseTabToLeaf: true});
+
+        return () => {
+            if (hasSubmitted.current) {
+                return;
+            }
+            if (Navigation.getIsFullscreenPreInsertedUnderRHP()) {
+                Navigation.removePreInsertedFullscreenIfNeeded();
+            }
+            // Discard the mount-time seed so it never leaks to other surfaces.
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, null);
+        };
+    }, [isSmallScreenWidth, policyID]);
+
     const onSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
-        const policyID = params.policyID || generatePolicyID();
+        hasSubmitted.current = true;
         const isDifferentOwner = !!params.owner && params.owner !== (currentUserPersonalDetails.email ?? '');
         const shouldShowSuccessPage = isDifferentOwner && !params.makeMeAdmin;
         const workspaceRoute = isSmallScreenWidth ? ROUTES.WORKSPACE_INITIAL.getRoute(policyID) : ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID);
@@ -76,6 +131,7 @@ function WorkspaceConfirmationPage() {
         >
             <WorkspaceConfirmationForm
                 policyOwnerEmail={policyOwnerEmail}
+                policyID={policyID}
                 onSubmit={onSubmit}
             />
         </ScreenWrapper>

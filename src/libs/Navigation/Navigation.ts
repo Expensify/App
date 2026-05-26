@@ -1035,8 +1035,12 @@ let preInsertedFullscreenRouteName: string | undefined;
  * is that the insert happens eagerly (on confirmation screen mount) rather than at
  * submission time, giving React time to mount the destination component tree while
  * the user is still filling in details.
+ *
+ * `collapseTabToLeaf` mirrors the same option on revealRouteBeforeDismissingModal: when set,
+ * the destination tab's nested stack is replaced with the leaf route only, so the dismiss
+ * animation reveals just the destination — no seeded sidebar/list flashing underneath.
  */
-function preInsertFullscreenUnderRHP(route: Route) {
+function preInsertFullscreenUnderRHP(route: Route, options?: {collapseTabToLeaf?: boolean}) {
     if (!getIsNarrowLayout()) {
         return;
     }
@@ -1062,7 +1066,7 @@ function preInsertFullscreenUnderRHP(route: Route) {
 
     navigationRef.current.dispatch({
         type: CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP,
-        payload: {route},
+        payload: {route, collapseTabToLeaf: options?.collapseTabToLeaf},
     });
 
     const stateAfter = navigationRef.current.getRootState();
@@ -1078,6 +1082,13 @@ function preInsertFullscreenUnderRHP(route: Route) {
     preInsertedFullscreenRouteName = targetRouteName;
 
     DeviceEventEmitter.emit(CONST.MODAL_EVENTS.DISABLE_RHP_ANIMATION);
+
+    // Suppress the destination tab's nested enter animation so the deferred slide that iOS
+    // native-stack would otherwise play after the RHP dismiss doesn't briefly reveal the
+    // collapsed-away sidebar/list. Auto-clears after one transitionEnd in the listening navigator.
+    if (options?.collapseTabToLeaf && targetRouteName === NAVIGATORS.WORKSPACE_NAVIGATOR) {
+        DeviceEventEmitter.emit(CONST.MODAL_EVENTS.DISABLE_WORKSPACE_SPLIT_ENTER_ANIMATION);
+    }
 }
 
 function getIsFullscreenPreInsertedUnderRHP() {
