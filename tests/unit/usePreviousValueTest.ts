@@ -21,13 +21,15 @@ describe('usePreviousValue', () => {
         expect(result.current).toBe(3);
     });
 
-    it('preserves the previous value across stable rerenders', () => {
+    it('returns the value before the most-recent change; stable rerenders do not advance it', () => {
         const {result, rerender} = renderHook((value: string) => usePreviousValue(value), {initialProps: 'a'});
         rerender('b');
         expect(result.current).toBe('a');
         rerender('b');
-        expect(result.current).toBe('b');
+        expect(result.current).toBe('a');
         rerender('b');
+        expect(result.current).toBe('a');
+        rerender('c');
         expect(result.current).toBe('b');
     });
 

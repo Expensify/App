@@ -1,14 +1,13 @@
-import {useEffect, useRef} from 'react';
+import {useState} from 'react';
 
 /**
- * Returns the value from the previous render — `undefined` on the first render.
- * Prefer this over `usePrevious` for transition detection that needs to distinguish "first render"
- * from "value changed to X"; `usePrevious` echoes the current value on first render.
+ * Returns the value before the most-recent change — undefined on the first render.
+ * Distinct from `usePrevious`, which echoes the current value on first render.
  */
 export default function usePreviousValue<T>(value: T): T | undefined {
-    const ref = useRef<T | undefined>(undefined);
-    useEffect(() => {
-        ref.current = value;
-    }, [value]);
-    return ref.current;
+    const [state, setState] = useState<{current: T; previous: T | undefined}>({current: value, previous: undefined});
+    if (state.current !== value) {
+        setState({current: value, previous: state.current});
+    }
+    return state.previous;
 }
