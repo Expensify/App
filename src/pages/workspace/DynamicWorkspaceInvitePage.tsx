@@ -35,6 +35,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
@@ -106,7 +107,7 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         setSearchTerm,
         availableOptions,
         selectedOptions,
-        selectedOptionsForDisplay,
+        selectedNonExistingOptions = getEmptyArray<OptionData>(),
         toggleSelection,
         areOptionsInitialized,
         onListEndReached,
@@ -120,6 +121,8 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         includeRecentReports: false,
         shouldInitialize: didScreenTransitionEnd,
         initialSelected: initiallySelectedOptions,
+        shouldKeepSelectedInAvailableOptions: true,
+        shouldSeparateNonExistingSelectedOptions: true,
     });
 
     const sections: Array<Section<OptionData>> = useMemo(() => {
@@ -129,16 +132,16 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             return [];
         }
 
-        // Selected options section
-        if (selectedOptionsForDisplay.length > 0) {
+        // Selected non-existing users section (top)
+        if (selectedNonExistingOptions.length > 0) {
             sectionsArr.push({
                 title: undefined,
-                data: selectedOptionsForDisplay,
+                data: selectedNonExistingOptions,
                 sectionIndex: 0,
             });
         }
 
-        // Contacts section
+        // Contacts section (includes both selected and unselected items)
         if (availableOptions.personalDetails.length > 0) {
             sectionsArr.push({
                 title: translate('common.contacts'),
@@ -147,8 +150,8 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             });
         }
 
-        // User to invite section
-        if (availableOptions.userToInvite) {
+        // User to invite section (hide if already selected and shown in the top section)
+        if (availableOptions.userToInvite && !availableOptions.userToInvite.isSelected) {
             sectionsArr.push({
                 title: undefined,
                 data: [availableOptions.userToInvite],
@@ -157,7 +160,7 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         }
 
         return sectionsArr;
-    }, [areOptionsInitialized, selectedOptionsForDisplay, availableOptions.personalDetails, availableOptions.userToInvite, translate]);
+    }, [areOptionsInitialized, selectedNonExistingOptions, availableOptions.personalDetails, availableOptions.userToInvite, translate]);
 
     const handleToggleSelection = useCallback(
         (option: OptionData) => {
@@ -265,6 +268,8 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                     onSelectRow={handleToggleSelection}
                     shouldShowTextInput
                     textInputOptions={textInputOptions}
+                    shouldUpdateFocusedIndex
+                    shouldPreventAutoScrollOnSelect
                     confirmButtonOptions={{
                         onConfirm: inviteUser,
                         isDisabled: !selectedOptions.length,

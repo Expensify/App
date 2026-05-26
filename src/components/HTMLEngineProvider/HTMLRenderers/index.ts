@@ -22,6 +22,7 @@ import TaskTitleRenderer from './TaskTitleRenderer';
 import TransactionHistoryLinkRenderer from './TransactionHistoryLinkRenderer';
 import ULRenderer from './ULRenderer';
 import UserDetailsRenderer from './UserDetailsRenderer';
+import VictoryChartRenderer from './VictoryChartRenderer';
 import VideoRenderer from './VideoRenderer';
 
 /**
@@ -57,6 +58,8 @@ const HTMLEngineProviderComponentList: CustomTagRendererRecord = {
     'account-manager-link': AccountManagerLinkRenderer,
     'sparkles-icon': SparklesIconRenderer,
     /* eslint-enable @typescript-eslint/naming-convention */
+
+    victorychart: VictoryChartRenderer,
 };
 
 export default HTMLEngineProviderComponentList;
