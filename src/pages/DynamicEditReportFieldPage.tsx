@@ -11,6 +11,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -33,17 +34,19 @@ import {
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
 import EditReportFieldDate from './EditReportFieldDate';
 import EditReportFieldDropdown from './EditReportFieldDropdown';
 import EditReportFieldText from './EditReportFieldText';
 
-type EditReportFieldPageProps = PlatformStackScreenProps<EditRequestNavigatorParamList, typeof SCREENS.EDIT_REQUEST.REPORT_FIELD>;
+type DynamicEditReportFieldPageProps = PlatformStackScreenProps<EditRequestNavigatorParamList, typeof SCREENS.EDIT_REQUEST.DYNAMIC_REPORT_FIELD>;
 
-function EditReportFieldPage({route}: EditReportFieldPageProps) {
-    const {backTo, reportID, policyID} = route.params;
+function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
+    const {reportID, policyID} = route.params;
     const fieldKey = getReportFieldKey(route.params.fieldID);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.EDIT_REPORT_FIELD.path);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const reportAttributesSelector = useCallback((attributes: OnyxEntry<ReportAttributesDerivedValue>) => reportByIDsSelector([reportID])(attributes), [reportID]);
@@ -83,7 +86,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 shouldEnableMaxHeight
-                testID="EditReportFieldPage"
+                testID="DynamicEditReportFieldPage"
             >
                 <FullPageNotFoundView shouldShow />
             </ScreenWrapper>
@@ -91,7 +94,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     }
 
     const goBack = () => {
-        Navigation.goBack(backTo);
+        Navigation.goBack(backPath);
     };
 
     const handleReportFieldDelete = async () => {
@@ -170,7 +173,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID="EditReportFieldPage"
+            testID="DynamicEditReportFieldPage"
         >
             <HeaderWithBackButton
                 title={fieldName}
@@ -224,4 +227,4 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     );
 }
 
-export default EditReportFieldPage;
+export default DynamicEditReportFieldPage;
