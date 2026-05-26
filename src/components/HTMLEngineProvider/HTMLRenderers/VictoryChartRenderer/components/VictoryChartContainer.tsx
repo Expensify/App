@@ -2,7 +2,6 @@ import React, {useCallback, useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
-import {DEFAULT_SCALE, VictoryChartScaleContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartScaleContext';
 import ScrollView from '@components/ScrollView';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -17,23 +16,12 @@ type InitialMeasurement = {
 function VictoryChartContainer({children}: {children: React.ReactNode}) {
     const styles = useThemeStyles();
     const {chartContentStyles, chartContainerStyles} = useVictoryChartContext();
-    const [contentDimensions, setContentDimensions] = useState<{width: number; height: number} | null>(null);
     const [initialMeasurement, setInitialMeasurement] = useState<InitialMeasurement | null>(null);
     const {windowWidth} = useWindowDimensions();
 
     const designWidth = typeof chartContentStyles.width === 'number' ? chartContentStyles.width : undefined;
     const designHeight = typeof chartContentStyles.height === 'number' ? chartContentStyles.height : undefined;
     const hasExplicitDimensions = designWidth !== undefined && designHeight !== undefined;
-
-    const scale = useMemo(() => {
-        if (!hasExplicitDimensions || !contentDimensions || !designWidth || !designHeight) {
-            return DEFAULT_SCALE;
-        }
-        return {
-            x: Math.min(contentDimensions.width / designWidth, 1),
-            y: Math.min(contentDimensions.height / designHeight, 1),
-        };
-    }, [hasExplicitDimensions, contentDimensions, designWidth, designHeight]);
 
     const handleContainerLayout = useCallback(
         (event: LayoutChangeEvent) => {
@@ -58,50 +46,34 @@ function VictoryChartContainer({children}: {children: React.ReactNode}) {
         return Math.max(Math.min(estimatedContainerWidth, designWidth), Math.min(MIN_CHART_WIDTH, designWidth));
     }, [hasExplicitDimensions, estimatedContainerWidth, designWidth]);
 
-    const handleContentLayout = useCallback((event: LayoutChangeEvent) => {
-        const {width, height} = event.nativeEvent.layout;
-        if (width > 0 && height > 0) {
-            setContentDimensions({width, height});
+    const contentStyle = useMemo(() => {
+        if (hasExplicitDimensions && chartWidth) {
+            const scaledHeight = chartWidth * (designHeight / designWidth);
+            return [styles.chartContent, chartContentStyles, {width: chartWidth, height: scaledHeight}];
         }
-    }, []);
-
-    const contentStyle = useMemo(
-        () =>
-            hasExplicitDimensions && chartWidth
-                ? [styles.chartContent, chartContentStyles, {width: chartWidth, aspectRatio: designWidth / designHeight}]
-                : [styles.chartContent, styles.mw100, chartContentStyles],
-        [hasExplicitDimensions, chartWidth, designWidth, designHeight, styles, chartContentStyles],
-    );
+        return [styles.chartContent, styles.mw100, chartContentStyles];
+    }, [hasExplicitDimensions, chartWidth, designWidth, designHeight, styles, chartContentStyles]);
 
     const needsScroll = hasExplicitDimensions && estimatedContainerWidth !== null && chartWidth !== undefined && chartWidth > estimatedContainerWidth;
 
-    const chartContent = (
-        <View
-            style={contentStyle}
-            onLayout={hasExplicitDimensions ? handleContentLayout : undefined}
-        >
-            {children}
-        </View>
-    );
+    const chartContent = <View style={contentStyle}>{children}</View>;
 
     return (
-        <VictoryChartScaleContext.Provider value={scale}>
-            <View
-                style={[styles.chartContainer, styles.w100, chartContainerStyles]}
-                onLayout={handleContainerLayout}
-            >
-                {needsScroll ? (
-                    <ScrollView
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                    >
-                        {chartContent}
-                    </ScrollView>
-                ) : (
-                    chartContent
-                )}
-            </View>
-        </VictoryChartScaleContext.Provider>
+        <View
+            style={[styles.chartContainer, styles.w100, chartContainerStyles]}
+            onLayout={handleContainerLayout}
+        >
+            {needsScroll ? (
+                <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                >
+                    {chartContent}
+                </ScrollView>
+            ) : (
+                chartContent
+            )}
+        </View>
     );
 }
 
