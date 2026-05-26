@@ -253,19 +253,19 @@ function getAddExpensifyCardRuleMessage(translate: LocalizedTranslate, reportAct
     return translate('workspaceActions.expensifyCardRule.addRule', {verb, filters, cards: cardsSummary});
 }
 
-function pushDiffPhrases(
-    phrases: SpendRulePhrase[],
+function getDiffPhrases(
     diff: SpendRuleStringDiff,
     adjective: SpendRulePhraseAdjective,
     adjectiveWord: string,
     getDisplayName: (value: string) => string,
     formatBody: (params: {adjective: string; value: string}) => string,
     formatBodyChange: (params: {adjective: string; oldValue: string; newValue: string}) => string,
-): void {
+): SpendRulePhrase[] {
+    const diffPhrases: SpendRulePhrase[] = [];
     if (diff.added.length === 1 && diff.removed.length === 1) {
         const oldValue = getDisplayName(diff.removed.at(0) ?? '');
         const newValue = getDisplayName(diff.added.at(0) ?? '');
-        phrases.push({
+        diffPhrases.push({
             verb: 'changed',
             adjective,
             bodyWithAdjective: formatBodyChange({adjective: adjectiveWord, oldValue, newValue}),
@@ -274,7 +274,7 @@ function pushDiffPhrases(
     } else {
         for (const value of diff.added) {
             const display = getDisplayName(value);
-            phrases.push({
+            diffPhrases.push({
                 verb: 'added',
                 adjective,
                 bodyWithAdjective: formatBody({adjective: adjectiveWord, value: display}),
@@ -283,7 +283,7 @@ function pushDiffPhrases(
         }
         for (const value of diff.removed) {
             const display = getDisplayName(value);
-            phrases.push({
+            diffPhrases.push({
                 verb: 'removed',
                 adjective,
                 bodyWithAdjective: formatBody({adjective: adjectiveWord, value: display}),
@@ -291,6 +291,7 @@ function pushDiffPhrases(
             });
         }
     }
+    return diffPhrases;
 }
 
 function getUpdateExpensifyCardRuleMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
@@ -344,26 +345,24 @@ function getUpdateExpensifyCardRuleMessage(translate: LocalizedTranslate, report
 
     const adjective: SpendRulePhraseAdjective = newAction === CONST.SPEND_RULES.ACTION.BLOCK || newAction === CONST.SPEND_RULES.ACTION.ALLOW ? newAction : '';
     const adjectiveWord = getSpendRuleActionVerb(translate, adjective);
-    const phrases: SpendRulePhrase[] = [];
-
-    pushDiffPhrases(
-        phrases,
-        merchantDiff,
-        adjective,
-        adjectiveWord,
-        (value) => value,
-        (params) => translate('workspaceActions.expensifyCardRule.update.bodyMerchant', params),
-        (params) => translate('workspaceActions.expensifyCardRule.update.bodyMerchantChange', params),
-    );
-    pushDiffPhrases(
-        phrases,
-        categoryDiff,
-        adjective,
-        adjectiveWord,
-        (category) => getSpendRuleCategoryDisplayName(translate, category),
-        (params) => translate('workspaceActions.expensifyCardRule.update.bodySpendCategory', params),
-        (params) => translate('workspaceActions.expensifyCardRule.update.bodySpendCategoryChange', params),
-    );
+    const phrases: SpendRulePhrase[] = [
+        ...getDiffPhrases(
+            merchantDiff,
+            adjective,
+            adjectiveWord,
+            (value) => value,
+            (params) => translate('workspaceActions.expensifyCardRule.update.bodyMerchant', params),
+            (params) => translate('workspaceActions.expensifyCardRule.update.bodyMerchantChange', params),
+        ),
+        ...getDiffPhrases(
+            categoryDiff,
+            adjective,
+            adjectiveWord,
+            (category) => getSpendRuleCategoryDisplayName(translate, category),
+            (params) => translate('workspaceActions.expensifyCardRule.update.bodySpendCategory', params),
+            (params) => translate('workspaceActions.expensifyCardRule.update.bodySpendCategoryChange', params),
+        ),
+    ];
 
     if (amountDiff.added.length === 1 && amountDiff.removed.length === 1) {
         const oldValue = formatSpendRuleAmount(amountDiff.removed.at(0) ?? {value: []}, currency);
