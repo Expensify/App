@@ -17,7 +17,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {
     getChangedApproverActionMessage,
     getCompanyCardConnectionBrokenMessage,
-    getIntegrationSyncFailedMessage,
     getIOUReportIDFromReportActionPreview,
     getOriginalMessage,
     getPlaidBalanceFailureMessage,
@@ -52,11 +51,13 @@ import ChatMessageContent from './ChatMessageContent';
 import ChatTransactionPreview from './ChatTransactionPreview';
 import ConfirmWhisperContent from './ConfirmWhisperContent';
 import FraudAlertContent from './FraudAlertContent';
+import IntegrationSyncFailedMessage from './IntegrationSyncFailedMessage';
 import JoinRequestContent from './JoinRequestContent';
 import MentionWhisperContent from './MentionWhisperContent';
 import ModifiedExpenseContent from './ModifiedExpenseContent';
 import PaymentContent from './PaymentContent';
 import PolicyChangeLogContent, {isHandledPolicyChangeLogAction} from './PolicyChangeLogContent';
+import ReceiptScanFailedContent from './ReceiptScanFailedContent';
 import ReimbursedContent from './ReimbursedContent';
 import ReimbursementDeQueuedContent from './ReimbursementDeQueuedContent';
 import ReimbursementQueuedContent from './ReimbursementQueuedContent';
@@ -100,32 +101,20 @@ type ActionContentRouterProps = {
     /** Toggle the hidden state of the message */
     updateHiddenState: (isHiddenValue: boolean) => void;
 
-    /** Whether the room is archived */
-    isArchivedRoom?: boolean;
-
     /** Whether the provided report is a closed expense report with no expenses */
     isClosedExpenseReportWithNoExpenses?: boolean;
 
     /** Whether the report action is the "Created" action of a harvest-created expense report */
     isHarvestCreatedExpenseReport: boolean;
 
-    /** The originalID component of report name value pairs (used by the Created action of harvest reports) */
-    reportNameValuePairsOriginalID?: string;
-
     /** Personal details list */
     personalDetails?: OnyxTypes.PersonalDetailsList;
-
-    /** Did the user dismiss trying out NewDot? */
-    isTryNewDotNVPDismissed?: boolean;
 
     /** Whether to show border for MoneyRequestReportPreviewContent */
     shouldShowBorder?: boolean;
 
     /** Whether the search-page UI is active */
     isOnSearch: boolean;
-
-    /** User payment card ID */
-    userBillingFundID?: number;
 
     /** Toggle whether the payment method popover is active */
     setIsPaymentMethodPopoverActive: (value: boolean) => void;
@@ -144,19 +133,22 @@ function ActionContentRouter({
     hovered,
     isHidden,
     updateHiddenState,
-    isArchivedRoom,
     isClosedExpenseReportWithNoExpenses,
     isHarvestCreatedExpenseReport,
-    reportNameValuePairsOriginalID,
     personalDetails,
-    isTryNewDotNVPDismissed,
     shouldShowBorder,
     isOnSearch,
-    userBillingFundID,
     setIsPaymentMethodPopoverActive,
 }: ActionContentRouterProps): React.JSX.Element | null {
     const {translate, formatTravelDate} = useLocalize();
     const styles = useThemeStyles();
+
+    // Report that owns this action for mutations (thread / merged-list cases use originalReport). This is a stable projection (heartbeat fields stripped).
+    const actionOwnerReportStable = originalReport ?? report;
+
+    const actionOwnerReportID = originalReportID ?? reportID;
+    const policyID = report?.policyID;
+    const reportOwnerAccountID = report?.ownerAccountID;
 
     if (isIOURequestReportAction(action)) {
         const moneyRequestOriginalMessage = isMoneyRequestAction(action) ? getOriginalMessage(action) : undefined;
@@ -212,7 +204,7 @@ function ActionContentRouter({
         return (
             <MoneyRequestReportPreview
                 iouReportID={getIOUReportIDFromReportActionPreview(action)}
-                policyID={report?.policyID}
+                policyID={policyID}
                 chatReportID={reportID}
                 action={action}
                 isHovered={hovered}
@@ -233,7 +225,7 @@ function ActionContentRouter({
                 chatReportID={reportID}
                 action={action}
                 isHovered={hovered}
-                policyID={report?.policyID}
+                policyID={policyID}
             />
         );
     }
@@ -251,7 +243,7 @@ function ActionContentRouter({
         return (
             <ReimbursementDeQueuedContent
                 action={action}
-                report={report}
+                reportOwnerAccountID={reportOwnerAccountID}
             />
         );
     }
@@ -259,7 +251,7 @@ function ActionContentRouter({
         return (
             <ModifiedExpenseContent
                 action={action}
-                report={report}
+                policyID={policyID}
                 originalReport={originalReport}
             />
         );
@@ -268,7 +260,7 @@ function ActionContentRouter({
         return (
             <ApprovalFlowContent
                 action={action}
-                policyID={report?.policyID}
+                policyID={policyID}
                 reportID={reportID}
                 originalReport={originalReport}
             />
@@ -278,7 +270,7 @@ function ActionContentRouter({
         return (
             <PaymentContent
                 action={action}
-                policyID={report?.policyID}
+                policyID={policyID}
             />
         );
     }
@@ -286,17 +278,23 @@ function ActionContentRouter({
         return (
             <ReimbursedContent
                 action={action}
-                report={report}
+                reportOwnerAccountID={reportOwnerAccountID}
+            />
+        );
+    }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED)) {
+        return (
+            <ReceiptScanFailedContent
+                reportID={reportID}
+                reportType={report?.type}
+                parentReportID={report?.parentReportID}
+                parentReportActionID={report?.parentReportActionID}
+                actionReportID={action.reportID}
             />
         );
     }
     if (isSimpleMessageAction(action)) {
-        return (
-            <SimpleMessageContent
-                action={action}
-                report={report}
-            />
-        );
+        return <SimpleMessageContent action={action} />;
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
         const wasAutoForwarded = getOriginalMessage(action)?.automaticAction ?? false;
@@ -313,7 +311,7 @@ function ActionContentRouter({
         return (
             <PolicyChangeLogContent
                 action={action}
-                policyID={report?.policyID}
+                policyID={policyID}
             />
         );
     }
@@ -347,7 +345,11 @@ function ActionContentRouter({
             />
         );
     }
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN || action.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_UNFROZEN) {
+    if (
+        action.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN ||
+        action.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_UNFROZEN ||
+        action.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_DEACTIVATED
+    ) {
         return (
             <ReportActionItemBasicMessage message="">
                 <RenderHTML html={`<comment><muted-text>${getReportActionHtml(action)}</muted-text></comment>`} />
@@ -366,9 +368,8 @@ function ActionContentRouter({
         return (
             <JoinRequestContent
                 action={action}
-                reportID={reportID}
-                originalReportID={originalReportID}
-                policyID={report?.policyID}
+                actionOwnerReportID={actionOwnerReportID}
+                policyID={policyID}
             />
         );
     }
@@ -387,8 +388,7 @@ function ActionContentRouter({
             <ReportMentionWhisperContent
                 action={action}
                 reportID={reportID}
-                report={report}
-                originalReport={originalReport}
+                actionOwnerReportStable={actionOwnerReportStable}
             />
         );
     }
@@ -397,8 +397,7 @@ function ActionContentRouter({
             <ConfirmWhisperContent
                 action={action}
                 reportID={reportID}
-                report={report}
-                originalReport={originalReport}
+                actionOwnerReportStable={actionOwnerReportStable}
                 originalReportID={originalReportID}
             />
         );
@@ -410,7 +409,7 @@ function ActionContentRouter({
         return (
             <IssueCardMessage
                 action={action}
-                policyID={report?.policyID}
+                policyID={policyID}
             />
         );
     }
@@ -430,9 +429,10 @@ function ActionContentRouter({
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
         return (
-            <ReportActionItemBasicMessage message="">
-                <RenderHTML html={`<comment><muted-text>${getIntegrationSyncFailedMessage(translate, action, report?.policyID, isTryNewDotNVPDismissed)}</muted-text></comment>`} />
-            </ReportActionItemBasicMessage>
+            <IntegrationSyncFailedMessage
+                action={action}
+                policyID={policyID}
+            />
         );
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN)) {
@@ -450,7 +450,7 @@ function ActionContentRouter({
         );
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CREATED) && isHarvestCreatedExpenseReport) {
-        return <CreateHarvestReportAction reportNameValuePairsOriginalID={reportNameValuePairsOriginalID} />;
+        return <CreateHarvestReportAction reportID={reportID} />;
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS)) {
         return <CreatedReportForUnapprovedTransactionsAction action={action} />;
@@ -477,17 +477,14 @@ function ActionContentRouter({
     return (
         <ChatMessageContent
             action={action}
-            report={report}
-            originalReport={originalReport}
+            policyID={policyID}
             reportID={reportID}
             originalReportID={originalReportID}
             displayAsGroup={displayAsGroup}
             draftMessage={draftMessage}
             isHidden={isHidden}
             updateHiddenState={updateHiddenState}
-            isArchivedRoom={isArchivedRoom}
             isOnSearch={isOnSearch}
-            userBillingFundID={userBillingFundID}
         />
     );
 }

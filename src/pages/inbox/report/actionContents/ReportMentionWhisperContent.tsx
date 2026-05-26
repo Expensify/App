@@ -16,19 +16,17 @@ import type {Report, ReportAction} from '@src/types/onyx';
 type ReportMentionWhisperContentProps = {
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER>;
     reportID: string | undefined;
-    report: OnyxEntry<Report>;
-    originalReport: OnyxEntry<Report>;
+    actionOwnerReportStable: OnyxEntry<Report>;
 };
 
-function ReportMentionWhisperContent({action, reportID, report, originalReport}: ReportMentionWhisperContentProps) {
+function ReportMentionWhisperContent({action, reportID, actionOwnerReportStable}: ReportMentionWhisperContentProps) {
     const isReportArchived = useReportIsArchived(reportID);
-    const reportActionReportStable = originalReport ?? report;
+    const resolution = getOriginalMessage(action)?.resolution;
 
     // Subscribe to the full report here — the resolve action needs heartbeat fields for its failure-revert payload.
-    const [actionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionReportStable?.reportID}`);
+    const [actionOwnerReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${actionOwnerReportStable?.reportID}`);
 
-    const resolution = getOriginalMessage(action)?.resolution;
-    const mentionReportContextValue = {currentReportID: report?.reportID, exactlyMatch: true};
+    const mentionReportContextValue = {currentReportID: reportID, exactlyMatch: true};
 
     const buttons: ActionableItem[] = resolution
         ? []
@@ -36,13 +34,13 @@ function ReportMentionWhisperContent({action, reportID, report, originalReport}:
               {
                   text: 'common.yes',
                   key: `${action.reportActionID}-actionableReportMentionWhisper-${CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.CREATE}`,
-                  onPress: () => resolveActionableReportMentionWhisper(actionReport, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.CREATE, isReportArchived),
+                  onPress: () => resolveActionableReportMentionWhisper(actionOwnerReport, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.CREATE, isReportArchived),
                   isPrimary: true,
               },
               {
                   text: 'common.no',
                   key: `${action.reportActionID}-actionableReportMentionWhisper-${CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NOTHING}`,
-                  onPress: () => resolveActionableReportMentionWhisper(actionReport, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NOTHING, isReportArchived),
+                  onPress: () => resolveActionableReportMentionWhisper(actionOwnerReport, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NOTHING, isReportArchived),
               },
           ];
 
@@ -65,7 +63,5 @@ function ReportMentionWhisperContent({action, reportID, report, originalReport}:
         </MentionReportContext.Provider>
     );
 }
-
-ReportMentionWhisperContent.displayName = 'ReportMentionWhisperContent';
 
 export default ReportMentionWhisperContent;

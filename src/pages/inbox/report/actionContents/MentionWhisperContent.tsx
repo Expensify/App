@@ -28,13 +28,13 @@ function MentionWhisperContent({action, report, originalReport, originalReportID
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
-    const reportActionReportStable = originalReport ?? report;
+    const actionOwnerReportStable = originalReport ?? report;
     const reportPolicyID = report?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${reportPolicyID}`);
 
     // `actionReportStable` is a stable projection (heartbeat fields stripped). The resolve action reads
     // those fields for its failure-revert payload, so subscribe to the full report here.
-    const [actionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionReportStable?.reportID}`);
+    const [actionOwnerReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${actionOwnerReportStable?.reportID}`);
 
     const isReportInPolicy = !!reportPolicyID && reportPolicyID !== CONST.POLICY.ID_FAKE && personalPolicyID !== reportPolicyID;
     const hasMentionedPolicyMembers = getOriginalMessage(action)?.inviteeEmails?.every((login) => isPolicyMember(policy, login));
@@ -46,7 +46,7 @@ function MentionWhisperContent({action, report, originalReport, originalReportID
             key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE}`,
             onPress: () =>
                 resolveActionableMentionWhisper(
-                    actionReport,
+                    actionOwnerReport,
                     action,
                     CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE,
                     isOriginalReportArchived,
@@ -60,7 +60,7 @@ function MentionWhisperContent({action, report, originalReport, originalReportID
             key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE}`,
             onPress: () =>
                 resolveActionableMentionWhisper(
-                    actionReport,
+                    actionOwnerReport,
                     action,
                     CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE,
                     isOriginalReportArchived,
@@ -72,7 +72,7 @@ function MentionWhisperContent({action, report, originalReport, originalReportID
             key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING}`,
             onPress: () =>
                 resolveActionableMentionWhisper(
-                    actionReport,
+                    actionOwnerReport,
                     action,
                     CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING,
                     isOriginalReportArchived,
@@ -94,7 +94,5 @@ function MentionWhisperContent({action, report, originalReport, originalReportID
         </ReportActionItemBasicMessage>
     );
 }
-
-MentionWhisperContent.displayName = 'MentionWhisperContent';
 
 export default MentionWhisperContent;

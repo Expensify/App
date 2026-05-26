@@ -31,7 +31,6 @@ function ChatListItem<TItem extends ListItem>({
     const reportActionItem = item as unknown as ReportActionListItemType;
     const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID}`, {selector: getStableReportSelector});
     const personalDetails = usePersonalDetails();
-    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const styles = useThemeStyles();
     const theme = useTheme();
     const animatedHighlightStyle = useAnimatedHighlightStyle({
@@ -88,7 +87,6 @@ function ChatListItem<TItem extends ListItem>({
                 shouldDisplayContextMenu={false}
                 shouldShowBorder
                 personalDetails={personalDetails}
-                userBillingFundID={userBillingFundID}
             />
         </BaseListItem>
     );

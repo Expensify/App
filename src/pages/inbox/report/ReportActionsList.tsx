@@ -51,6 +51,7 @@ import {
     isArchivedNonExpenseReport,
     isCanceledTaskReport,
     isExpenseReport,
+    isHarvestCreatedExpenseReport,
     isInvoiceReport,
     isIOUReport,
     isMoneyRequestReport,
@@ -204,15 +205,13 @@ function ReportActionsList({
 
     const isAnonymousUser = useIsAnonymousUser();
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
-    const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [actionIdToHighlight, setActionIdToHighlight] = useState('');
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report.reportID}`);
     const prevIsLoadingInitialReportActions = usePrevious(reportLoadingState?.isLoadingInitialReportActions);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
+    const isHarvestCreatedExpenseReportAction = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
 
     const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {selector: getStableReportSelector});
 
@@ -761,11 +760,7 @@ function ReportActionsList({
                         isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                         shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                         personalDetails={personalDetailsList}
-                        isReportArchived={isReportArchived}
-                        userBillingFundID={userBillingFundID}
-                        isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
-                        reportNameValuePairsOrigin={reportNameValuePairs?.origin}
-                        reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
+                        isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReportAction}
                     />
                     {!!reportStable?.reportID && (
                         <ShowPreviousMessagesButton
@@ -784,23 +779,19 @@ function ReportActionsList({
             firstVisibleReportActionID,
             hasPreviousMessages,
             isOffline,
-            isReportArchived,
-            isTryNewDotNVPDismissed,
             linkedReportActionID,
             onShowPreviousMessages,
             parentReportAction,
             parentReportActionForTransactionThread,
             personalDetailsList,
+            isHarvestCreatedExpenseReportAction,
             renderedVisibleReportActions,
             reportStable,
-            reportNameValuePairs?.origin,
-            reportNameValuePairs?.originalID,
             shouldHideThreadDividerLine,
             shouldUseThreadDividerLine,
             showHiddenHistory,
             transactionThreadReport,
             unreadMarkerReportActionID,
-            userBillingFundID,
         ],
     );
 

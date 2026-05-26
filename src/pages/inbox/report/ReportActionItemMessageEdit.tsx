@@ -10,11 +10,13 @@ import Composer from '@components/Composer';
 import type {ComposerRef, TextSelection} from '@components/Composer/types';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
+import {useBlockedFromConcierge} from '@components/OnyxListItemProvider';
 import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollBlocker from '@hooks/useScrollBlocker';
@@ -29,9 +31,12 @@ import DomUtils from '@libs/DomUtils';
 import {extractEmojis, getTextVSCursorOffset, insertTextVSBetweenDigitAndEmoji, replaceAndExtractEmojis} from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import type {Selection} from '@libs/focusComposerWithDelay/types';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import reportActionItemEventHandler from '@libs/ReportActionItemEventHandler';
 import {isDeletedAction} from '@libs/ReportActionsUtils';
+import {chatIncludesConcierge, isArchivedNonExpenseReport} from '@libs/ReportUtils';
+import {isBlockedFromConcierge} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -65,12 +70,6 @@ type ReportActionItemMessageEditProps = {
     /** PolicyID of the policy the report belongs to */
     policyID?: string;
 
-    /** Whether or not the emoji picker is disabled */
-    shouldDisableEmojiPicker?: boolean;
-
-    /** Whether report is from group policy */
-    isGroupPolicyReport: boolean;
-
     /** Reference to the outer element */
     ref?: React.Ref<ComposerRef | undefined>;
 };
@@ -82,9 +81,16 @@ const DEFAULT_MODAL_VALUE = {
     isVisible: false,
 };
 
-function ReportActionItemMessageEdit({action, reportID, originalReportID, policyID, isGroupPolicyReport, shouldDisableEmojiPicker = false, ref}: ReportActionItemMessageEditProps) {
+function ReportActionItemMessageEdit({action, reportID, originalReportID, policyID, ref}: ReportActionItemMessageEditProps) {
     const index = useContext(ReportActionIndexContext);
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
+    const isOriginalReportArchived = useReportIsArchived(originalReportID);
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(originalReportID)}`);
+    const blockedFromConcierge = useBlockedFromConcierge();
+    const isGroupPolicyReport = !!policyID && policyID !== CONST.POLICY.ID_FAKE;
+    const isArchivedRoom = isArchivedNonExpenseReport(originalReport, isOriginalReportArchived);
+    const shouldDisableEmojiPicker = (chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) || isArchivedNonExpenseReport(report, isArchivedRoom);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const containerRef = useRef<View>(null);
@@ -121,7 +127,7 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
 
     useEffect(() => {
         // When the current edit message selection changes, we need to update the selection state
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+
         setSelectionState(currentEditMessageSelection ?? defaultSelection);
     }, [currentEditMessageSelection, defaultSelection, draft.length, setSelection]);
 

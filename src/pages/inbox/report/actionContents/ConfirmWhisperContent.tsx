@@ -16,24 +16,22 @@ type ConfirmWhisperContentProps = {
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>;
     reportID: string | undefined;
     originalReportID: string | undefined;
-    report: OnyxEntry<Report>;
-    originalReport: OnyxEntry<Report>;
+    actionOwnerReportStable: OnyxEntry<Report>;
 };
 
-function ConfirmWhisperContent({action, reportID, originalReportID, report, originalReport}: ConfirmWhisperContentProps) {
-    const actionReportStable = originalReport ?? report;
+function ConfirmWhisperContent({action, reportID, originalReportID, actionOwnerReportStable}: ConfirmWhisperContentProps) {
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
-    const mentionReportContextValue = {currentReportID: report?.reportID, exactlyMatch: true};
+    const mentionReportContextValue = {currentReportID: reportID, exactlyMatch: true};
 
     // Subscribe to the full report here — the resolve action needs heartbeat fields for its failure-revert payload.
-    const [actionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${actionReportStable?.reportID}`);
+    const [actionOwnerReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${actionOwnerReportStable?.reportID}`);
 
     const buttons: ActionableItem[] = [
         {
             text: 'common.buttonConfirm',
             key: `${action.reportActionID}-actionableReportMentionConfirmWhisper-${CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE}`,
             onPress: () =>
-                resolveActionableMentionConfirmWhisper(actionReport, action, CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE, isOriginalReportArchived),
+                resolveActionableMentionConfirmWhisper(actionOwnerReport, action, CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE, isOriginalReportArchived),
             isPrimary: true,
         },
     ];
@@ -55,7 +53,5 @@ function ConfirmWhisperContent({action, reportID, originalReportID, report, orig
         </MentionReportContext.Provider>
     );
 }
-
-ConfirmWhisperContent.displayName = 'ConfirmWhisperContent';
 
 export default ConfirmWhisperContent;
