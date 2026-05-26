@@ -210,4 +210,41 @@ describe('getMoneyRequestInformation', () => {
             expect(tagEntry?.value).toEqual({[TAG_LIST]: [TAG_NAME]});
         });
     });
+
+    describe('pendingNewTransactionIDs metadata rail', () => {
+        type PendingNewTransactionIDsMetadata = {pendingNewTransactionIDs?: Record<string, true | null>};
+
+        it('writes the flag in optimisticData under REPORT_METADATA of the new IOU report', () => {
+            const result = getMoneyRequestInformation(baseParams);
+            const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${result.iouReport.reportID}`;
+            const newTxID = result.transaction.transactionID;
+
+            const optimisticEntry = result.onyxData.optimisticData?.find(
+                (entry) => entry.key === expectedKey && (entry.value as PendingNewTransactionIDsMetadata)?.pendingNewTransactionIDs?.[newTxID] === true,
+            );
+            expect(optimisticEntry).toBeDefined();
+        });
+
+        it('clears the flag in successData so it does not linger when no UI observer mounts to run the in-memory cleanup', () => {
+            const result = getMoneyRequestInformation(baseParams);
+            const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${result.iouReport.reportID}`;
+            const newTxID = result.transaction.transactionID;
+
+            const successEntry = result.onyxData.successData?.find(
+                (entry) => entry.key === expectedKey && (entry.value as PendingNewTransactionIDsMetadata)?.pendingNewTransactionIDs?.[newTxID] === null,
+            );
+            expect(successEntry).toBeDefined();
+        });
+
+        it('clears the flag in failureData when the optimistic write rolls back', () => {
+            const result = getMoneyRequestInformation(baseParams);
+            const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${result.iouReport.reportID}`;
+            const newTxID = result.transaction.transactionID;
+
+            const failureEntry = result.onyxData.failureData?.find(
+                (entry) => entry.key === expectedKey && (entry.value as PendingNewTransactionIDsMetadata)?.pendingNewTransactionIDs?.[newTxID] === null,
+            );
+            expect(failureEntry).toBeDefined();
+        });
+    });
 });
