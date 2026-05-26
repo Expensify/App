@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
@@ -20,11 +20,11 @@ function WorkspaceOwnerRestrictedAction() {
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Unlock']);
 
-    const goToSubscription = useCallback(() => {
+    const goToSubscription = () => {
         const activeRoute = Navigation.getActiveRoute();
         Navigation.closeRHPFlow();
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(activeRoute), {waitForTransition: true});
-    }, []);
+    };
 
     return (
         <ScreenWrapper
