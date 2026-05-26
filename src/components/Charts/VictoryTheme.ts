@@ -6,6 +6,12 @@ import colors from '@styles/theme/colors';
 /** Font families used by all chart label components (Paragraph API multi-font fallback). */
 const CHART_FONT_FAMILIES = ['ExpensifyNeue', 'NotoSansSymbols', 'NotoSansSCMonths'];
 
+/** Shade groups in the palette */
+const CHART_PALETTE_SHADES = [400, 600, 300, 500, 700] as const;
+
+/** Hues cycling within each shade group */
+const CHART_PALETTE_HUES = ['yellow', 'tangerine', 'pink', 'green', 'ice', 'blue'] as const;
+
 /**
  * Expensify Chart Color Palette.
  *
@@ -15,14 +21,11 @@ const CHART_FONT_FAMILIES = ['ExpensifyNeue', 'NotoSansSymbols', 'NotoSansSCMont
  * Within each shade, hues cycle: Yellow, Tangerine, Pink, Green, Ice, Blue.
  */
 const CHART_PALETTE: string[] = (() => {
-    const shades = [400, 600, 300, 500, 700] as const;
-    const hues = ['yellow', 'tangerine', 'pink', 'green', 'ice', 'blue'] as const;
-
     const palette: string[] = [];
 
     // Generate the 30 unique combinations (5 shades × 6 hues)
-    for (const shade of shades) {
-        for (const hue of hues) {
+    for (const shade of CHART_PALETTE_SHADES) {
+        for (const hue of CHART_PALETTE_HUES) {
             const colorKey = `${hue}${shade}`;
             if (colors[colorKey]) {
                 palette.push(colors[colorKey]);
@@ -44,14 +47,19 @@ function getChartColor(index: number): string {
     return CHART_PALETTE.at(index % CHART_PALETTE.length) ?? colors.black;
 }
 
-/** Index of the default single-color chart color (blue400). */
-const DEFAULT_CHART_COLOR_INDEX = 5;
+/** Index of the default single-color chart color (green400). */
+const DEFAULT_CHART_COLOR_INDEX = 3;
+
+/** Index of the default dot color (green500) */
+const DEFAULT_CHART_DOT_COLOR_INDEX = DEFAULT_CHART_COLOR_INDEX + CHART_PALETTE_HUES.length * 3;
 
 const VictoryTheme = {
     colors: {
         palette: CHART_PALETTE,
         /** Default color used for single-color charts (e.g., line chart, single-color bar chart) */
         default: getChartColor(DEFAULT_CHART_COLOR_INDEX),
+        /** Default dot color for line chart data points, one shade darker than the line */
+        defaultDot: getChartColor(DEFAULT_CHART_DOT_COLOR_INDEX),
         getColor: getChartColor,
     },
     fontFamilies: CHART_FONT_FAMILIES,

@@ -32,7 +32,7 @@ import variables from '@styles/variables';
 import type {CartesianChartProps, ChartDataPoint} from '..';
 
 /** Inner dot radius for line chart data points */
-const DOT_RADIUS = 6;
+const DOT_RADIUS = 4;
 
 /** Extra hover area beyond the dot radius for easier touch targeting */
 const DOT_HOVER_EXTRA_RADIUS = 2;
@@ -188,7 +188,7 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
                 <ScatterPoints
                     points={args.points.y}
                     radius={DOT_RADIUS}
-                    color={VictoryTheme.colors.default}
+                    color={VictoryTheme.colors.defaultDot}
                 />
                 {xAxisLabelHeight !== undefined && !!fontMgr && (
                     <ChartXAxisLabels
@@ -287,7 +287,7 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
                                 <AreaGradient
                                     points={points.y}
                                     baselineY={yScale(Math.min(...yTicks))}
-                                    color={DEFAULT_CHART_COLOR}
+                                    color={VictoryTheme.colors.default}
                                 />
                                 <Line
                                     points={points.y}
