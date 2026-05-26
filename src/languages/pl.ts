@@ -7790,17 +7790,16 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             removeRule: ({cards}: {cards: string}) => `usunięto regułę wydatków z ${cards}`,
             restrictionVerb: {block: 'zablokuj', allow: 'zezwól tylko'},
             update: {
-                modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) =>
-                    `zmienił(-a) regułę wydatków z ${fromAction} na ${toAction} na ${cards}`,
+                modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) => `zmieniono regułę wydatków z ${fromAction} na ${toAction} na ${cards}`,
                 appliedToAdditionalCards: ({count}: {count: number}) => `zastosowano regułę wydatków do ${count} dodatkowych kart`,
                 phraseVerb: {added: 'dodano', removed: 'usunięto', changed: 'zmieniono', set: 'ustaw', applied: 'zastosowano'},
-                bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} sprzedawca '${value}'` : `sprzedawca „${value}”`),
+                bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} sprzedawca „${value}”` : `sprzedawca „${value}”`),
                 bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `${adjective} sprzedawcę z „${oldValue}” na „${newValue}”` : `sprzedawcę z „${oldValue}” na „${newValue}”`,
                 bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) =>
                     adjective !== '' ? `${adjective} kategoria wydatków „${value}”` : `kategoria wydatków „${value}”`,
                 bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
-                    adjective !== '' ? `${adjective} kategorię wydatków z „${oldValue}” na „${newValue}”` : `kategoria wydatku z „${oldValue}” na „${newValue}”`,
+                    adjective !== '' ? `${adjective} kategoria wydatków z „${oldValue}” na „${newValue}”` : `kategoria wydatków z „${oldValue}” na „${newValue}”`,
                 bodyMaxAmount: 'maksymalna kwota',
                 bodyMaxAmountSet: ({value}: {value: string}) => `maksymalna kwota do ${value}`,
                 bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `maksymalną kwotę z ${oldValue} na ${newValue}`,
