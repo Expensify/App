@@ -1505,6 +1505,188 @@ describe('actions/IOU/BulkEdit', () => {
             writeSpy.mockRestore();
             canEditFieldSpy.mockRestore();
         });
+
+        it('creates an optimistic transaction thread when neither childReportID nor transactionThreadReportID exists', () => {
+            const transactionID = 'transaction-no-thread';
+            const iouReportID = 'iou-no-thread';
+            const policy = createRandomPolicy(20, CONST.POLICY.TYPE.TEAM);
+
+            const iouReport: Report = {
+                ...createRandomReport(20, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            // Transaction has no transactionThreadReportID
+            const transaction: Transaction = {
+                ...createRandomTransaction(20),
+                transactionID,
+                reportID: iouReportID,
+                amount: 500,
+                currency: CONST.CURRENCY.USD,
+            };
+            delete (transaction as Partial<Transaction>).transactionThreadReportID;
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests({
+                transactionIDs: [transactionID],
+                changes: {merchant: 'Coffee Shop'},
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {},
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+            });
+
+            expect(writeSpy).toHaveBeenCalled();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const onyxData = writeSpy.mock.calls.at(0)?.[2] as any;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const optimisticData = onyxData?.optimisticData as any[];
+
+            // An optimistic thread report should be created via SET
+            const optimisticReportSet = optimisticData.find(
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (entry: any) => String(entry.key).startsWith(ONYXKEYS.COLLECTION.REPORT) && entry.onyxMethod === 'set' && entry.key !== `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+            );
+            expect(optimisticReportSet).toBeDefined();
+            const optimisticThreadReportID = String(optimisticReportSet.key).replace(ONYXKEYS.COLLECTION.REPORT, '');
+
+            // The transaction optimistic data should link back to the new thread via transactionThreadReportID
+            const transactionMerge = optimisticData.find(
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (entry: any) => entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            );
+            expect(transactionMerge?.value?.transactionThreadReportID).toBe(optimisticThreadReportID);
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+        });
+
+        it('prioritizes childReportID over transactionThreadReportID when resolving thread', () => {
+            const transactionID = 'transaction-priority';
+            const childReportID = 'thread-from-action';
+            const transactionThreadID = 'thread-from-transaction';
+            const iouReportID = 'iou-priority';
+            const reportActionID = 'action-priority';
+            const policy = createRandomPolicy(21, CONST.POLICY.TYPE.TEAM);
+
+            const childThread: Report = {
+                ...createRandomReport(21, undefined),
+                reportID: childReportID,
+                parentReportID: iouReportID,
+                policyID: policy.id,
+            };
+            const transactionThread: Report = {
+                ...createRandomReport(22, undefined),
+                reportID: transactionThreadID,
+                parentReportID: iouReportID,
+                policyID: policy.id,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(23, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`]: childThread,
+                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`]: transactionThread,
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            // Transaction has transactionThreadReportID pointing to one thread
+            const transaction: Transaction = {
+                ...createRandomTransaction(21),
+                transactionID,
+                reportID: iouReportID,
+                transactionThreadReportID: transactionThreadID,
+                amount: 500,
+                currency: CONST.CURRENCY.USD,
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            // Report action has childReportID pointing to a different thread
+            const reportActions = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`]: {
+                    [reportActionID]: {
+                        reportActionID,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        originalMessage: {
+                            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                            IOUTransactionID: transactionID,
+                        },
+                        childReportID,
+                    },
+                },
+            };
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests({
+                transactionIDs: [transactionID],
+                changes: {merchant: 'Priority Test'},
+                policy,
+                reports,
+                transactions,
+                reportActions,
+                policyCategories: undefined,
+                policyTags: {},
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+            });
+
+            expect(writeSpy).toHaveBeenCalled();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const onyxData = writeSpy.mock.calls.at(0)?.[2] as any;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const optimisticData = onyxData?.optimisticData as any[];
+
+            // No optimistic thread report should be created — the existing thread from childReportID should be used
+            const optimisticReportSet = optimisticData.find(
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (entry: any) => String(entry.key).startsWith(ONYXKEYS.COLLECTION.REPORT) && entry.onyxMethod === 'set' && entry.key !== `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+            );
+            expect(optimisticReportSet).toBeUndefined();
+
+            // The MODIFIED_EXPENSE report action should be written to the childReportID thread, not the transactionThreadReportID thread
+            const reportActionMerge = optimisticData.find(
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (entry: any) => entry.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
+            );
+            expect(reportActionMerge).toBeDefined();
+
+            // No report action should be written to the transactionThreadReportID thread
+            const wrongThreadReportAction = optimisticData.find(
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (entry: any) => entry.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`,
+            );
+            expect(wrongThreadReportAction).toBeUndefined();
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+        });
     });
 
     describe('bulk edit draft transaction', () => {
