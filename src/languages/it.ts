@@ -124,6 +124,7 @@ const translations: TranslationDeepObject<typeof en> = {
             approve: 'Approva',
             pay: 'Paga',
             fix: 'Correggi',
+            task: 'Attività',
         },
         success: 'Operazione riuscita',
         group: 'Gruppo',
@@ -1045,6 +1046,7 @@ const translations: TranslationDeepObject<typeof en> = {
             repaidLast30Days: 'Rimborsato negli ultimi 30 giorni',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Transazioni recenti • ${lastFour}`,
         },
+        seeMore: ({count}: {count: number}) => `Vedi altri ${count}`,
     },
     allSettingsScreen: {
         subscription: 'Abbonamento',
@@ -2221,7 +2223,7 @@ const translations: TranslationDeepObject<typeof en> = {
     deviceManagementPage: {
         title: 'Gestione dei dispositivi',
         description:
-            'Gestisci tutti i dispositivi su cui hai effettuato l\'accesso con il tuo account Expensify. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Scopri di più</a>',
+            'Gestisci tutti i dispositivi su cui hai effettuato l\'accesso con il tuo account Expensify. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Scopri di più</a>.',
         revoke: 'Revoca',
         unknownDevice: 'Dispositivo Sconosciuto',
     },
@@ -2236,11 +2238,11 @@ const translations: TranslationDeepObject<typeof en> = {
         disabled: "L'autenticazione a due fattori è ora disattivata",
         noAuthenticatorApp: 'Non sarà più necessaria un’app di autenticazione per accedere a Expensify.',
         stepCodes: 'Codici di recupero',
-        keepCodesSafe: 'Conserva questi codici di recupero in un luogo sicuro!',
+        keepCodesSafe: 'Conserva questi codici al sicuro!',
         codesLoseAccess: dedent(`
             Se perdi l'accesso alla tua app di autenticazione e non hai questi codici, perderai l'accesso al tuo account.
 
-            Nota: Configurare l'autenticazione a due fattori ti disconnetterà da tutte le altre sessioni attive.
+            <strong>Nota</strong>: configurare l'autenticazione a due fattori ti disconnetterà da tutte le altre sessioni attive.
         `),
         errorStepCodes: 'Copia o scarica i codici prima di continuare',
         stepVerify: 'Verifica',
@@ -2269,6 +2271,9 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyOldDeviceDescription: 'Inserisci il codice a sei cifre dalla tua attuale app di autenticazione per confermare che hai accesso ad essa.',
         verifyNewDeviceTitle: 'Configura nuovo dispositivo',
         verifyNewDeviceDescription: 'Scansiona il codice QR con il tuo nuovo dispositivo, poi inserisci il codice per completare la configurazione.',
+        downloadCodes: 'Scarica codici',
+        screenshotTip: 'Suggerimento: fai uno screenshot per salvarlo nel rullino fotografico',
+        copyCodes: 'Copia codici',
     },
     recoveryCodeForm: {
         error: {
@@ -2692,6 +2697,7 @@ ${amount} per ${merchant} - ${date}`,
     reportFraudConfirmationPage: {
         title: 'Frode della carta segnalata',
         description: 'Abbiamo disattivato definitivamente la tua carta esistente. Quando tornerai a visualizzare i dettagli della carta, avrai a disposizione una nuova carta virtuale.',
+        descriptionCardNotReplaced: 'La tua carta è stata disattivata permanentemente. Contatta un amministratore per emettere una nuova carta.',
         buttonText: 'Ricevuto, grazie!',
     },
     activateCardPage: {
@@ -2962,7 +2968,7 @@ ${amount} per ${merchant} - ${date}`,
         peopleYouMayKnow: 'Alcune persone che potresti conoscere sono già qui! Verifica la tua email per unirti a loro.',
         workspaceYouMayJoin: (domain: string, email: string) => `Qualcuno di ${domain} ha già creato uno spazio di lavoro. Inserisci il codice magico inviato a ${email}.`,
         joinAWorkspace: 'Unisciti a uno spazio di lavoro',
-        listOfWorkspaces: "Ecco l'elenco degli spazi di lavoro a cui puoi unirti. Non preoccuparti, potrai sempre unirti anche in un secondo momento, se preferisci.",
+        listOfWorkspaces: "Ecco l'elenco degli spazi di lavoro a cui puoi unirti.",
         skipForNow: 'Salta per ora',
         workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} membro${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         whereYouWork: 'Dove lavori?',
@@ -3322,7 +3328,6 @@ ${amount} per ${merchant} - ${date}`,
         enterPhoneNumber: 'Qual è il tuo numero di telefono?',
         personalDetails: 'Dati personali',
         privateDataMessage: 'Questi dettagli vengono utilizzati per viaggi e pagamenti. Non vengono mai mostrati sul tuo profilo pubblico.',
-        basicDetails: 'Dettagli di base',
         legalName: 'Nome legale',
         legalFirstName: 'Nome legale di battesimo',
         legalLastName: 'Cognome legale',
@@ -3516,7 +3521,7 @@ ${amount} per ${merchant} - ${date}`,
             noBankAccountSelected: 'Scegli un account per favore',
             taxID: 'Inserisci un numero di codice fiscale valido',
             website: 'Inserisci un sito web valido',
-            zipCode: `Inserisci un CAP valido usando il formato: ${COMMON_CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
+            zipCode: `Inserisci un CAP valido usando il formato: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
             phoneNumber: 'Inserisci un numero di telefono valido',
             email: 'Inserisci un indirizzo email valido',
             companyName: 'Inserisci un nome aziendale valido',
@@ -5375,6 +5380,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     duplicateColumns: (duplicateColumn: string) => `Ops! Hai associato un singolo campo ("${duplicateColumn}") a più colonne. Controlla e riprova.`,
                 },
                 fileImportDescription: "Un'opzione manuale se la tua banca non può inviare un feed.",
+                duplicateFeedModal: {title: 'Feed carta già collegato', prompt: 'Non puoi aggiungere due volte lo stesso feed della carta allo stesso spazio di lavoro.'},
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Ultimo giorno del mese',
@@ -6751,8 +6757,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 perActiveMember: 'per membro attivo al mese.',
                 perMember: 'per utente al mese.',
             },
-            note: (subscriptionLink: string) =>
-                `<muted-text>Effettua l’upgrade per accedere a questa funzione oppure <a href="${subscriptionLink}">scopri di più</a> sui nostri piani e prezzi.</muted-text>`,
+            note: (subscriptionLink: string) => `<muted-text><a href="${subscriptionLink}">Scopri di più</a> sui nostri piani e prezzi.</muted-text>`,
             upgradeToUnlock: 'Sblocca questa funzionalità',
             completed: {
                 headline: `Hai aggiornato il tuo spazio di lavoro!`,
