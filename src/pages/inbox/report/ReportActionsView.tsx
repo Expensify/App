@@ -114,7 +114,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
         hasOlderActions,
         loadOlderChats,
         mainDMSessionStartTime,
-        conciergeShowFullHistory,
+        conciergeShowFullHistory: conciergeShowFullHistory || !!reportActionIDFromRoute,
         setConciergeShowFullHistory,
     });
 
