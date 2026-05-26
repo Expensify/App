@@ -109,6 +109,8 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
                     forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     autoCorrect={InputComponent === TextInput ? false : undefined}
                     spellCheck={InputComponent === TextInput ? false : undefined}
+                    autoComplete={InputComponent === TextInput ? 'off' : undefined}
+                    autoCapitalize={InputComponent === TextInput ? 'none' : undefined}
                 />
             </View>
         );

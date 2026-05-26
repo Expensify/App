@@ -98,6 +98,8 @@ function BankAccountDetails({isEditing, onNext, onMove, formValues, fieldsMap}: 
                                 forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                                 autoCorrect={!isValuePicker ? false : undefined}
                                 spellCheck={!isValuePicker ? false : undefined}
+                                autoComplete={!isValuePicker ? 'off' : undefined}
+                                autoCapitalize={!isValuePicker ? 'none' : undefined}
                             />
                         </View>
                     );
