@@ -9,6 +9,7 @@ import {isAmountFilterKey, isDateFilterKey} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import AmountFilterComponent from './AmountFilterComponent';
 import DateFilterComponent from './DateFilterComponent';
 import ReportFieldFilterComponent from './ReportFieldFilterComponent';
@@ -36,6 +37,8 @@ type TextInputFilterContentProps = {
 type CommonContentProps = {
     filterKey: FilterComponentsProps['filterKey'];
     value: FilterComponentsProps['value'];
+    type: SearchDataTypes | undefined;
+    policyIDs: string[] | undefined;
     policyIDQuery: string[] | undefined;
     onChange: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
@@ -51,6 +54,7 @@ function TextInputFilterContent({filterKey, value: initialValue, onChange}: Text
         <View style={[styles.flex1, styles.justifyContentBetween, !fullscreen && styles.pt5]}>
             <FilterComponents
                 value={value}
+                policyIDs={undefined}
                 filterKey={filterKey}
                 policyIDQuery={undefined}
                 autoFocus={fullscreen}
@@ -68,7 +72,7 @@ function TextInputFilterContent({filterKey, value: initialValue, onChange}: Text
     );
 }
 
-function CommonContent({filterKey, value: initialValue, policyIDQuery, onChange}: CommonContentProps) {
+function CommonContent({filterKey, value: initialValue, type, policyIDs, policyIDQuery, onChange}: CommonContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [value, setValue] = useState<FilterComponentsProps['value']>(initialValue);
@@ -78,6 +82,8 @@ function CommonContent({filterKey, value: initialValue, policyIDQuery, onChange}
     return (
         <FilterComponents
             value={fullscreen ? value : initialValue}
+            type={type}
+            policyIDs={policyIDs}
             filterKey={filterKey}
             policyIDQuery={policyIDQuery}
             selectionListTextInputStyle={!fullscreen && [styles.pb1, styles.pt5]}
@@ -167,6 +173,8 @@ function SelectedFilterContent({filterKey, values, policyIDQuery, onChange}: Sel
             key={filterKey}
             filterKey={filterKey}
             value={values?.[filterKey]}
+            type={values?.type}
+            policyIDs={values?.policyID}
             policyIDQuery={policyIDQuery}
             onChange={onChange}
         />

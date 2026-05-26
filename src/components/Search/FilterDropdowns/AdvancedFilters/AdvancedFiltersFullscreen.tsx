@@ -59,6 +59,8 @@ function AdvancedFiltersFullscreen({queryJSON, closeOverlay}: AdvancedFiltersFul
             <FilterList
                 style={!!selectedFilter && styles.dNone}
                 selectedFilter={selectedFilter}
+                type={values.type}
+                policyID={values.policyID}
                 onFilterSelected={setSelectedFilter}
             />
             {!!selectedFilter && (

@@ -32,6 +32,8 @@ function AdvancedFiltersPopup({queryJSON}: AdvancedFiltersPopupProps) {
             <View style={[styles.flexRow, StyleUtils.getHeight(Math.min(windowHeight, CONST.ADVANCED_FILTERS_POPOVER_HEIGHT))]}>
                 <FilterList
                     selectedFilter={selectedFilter}
+                    type={searchAdvancedFiltersForm?.type}
+                    policyID={searchAdvancedFiltersForm?.policyID}
                     onFilterSelected={setSelectedFilter}
                 />
                 <View

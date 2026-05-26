@@ -6,18 +6,21 @@ import SpacerView from '@components/SpacerView';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SearchFilter} from '@libs/SearchUIUtils';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import FilterItem from './FilterItem';
 import useFullscreenAdvancedFilters from './useFullscreenAdvancedFilters';
 
 type FilterListProps = {
     selectedFilter: SearchFilter['key'] | null;
+    type: SearchDataTypes | undefined;
+    policyID: string[] | undefined;
     style?: StyleProp<ViewStyle>;
     onFilterSelected: (filter: SearchFilter['key']) => void;
 };
 
-function FilterList({selectedFilter, style, onFilterSelected}: FilterListProps) {
+function FilterList({selectedFilter, type, policyID, style, onFilterSelected}: FilterListProps) {
     const styles = useThemeStyles();
-    const typeFiltersKeys = useAdvancedSearchFilters();
+    const typeFiltersKeys = useAdvancedSearchFilters(type, policyID);
     const fullscreen = useFullscreenAdvancedFilters();
 
     return (

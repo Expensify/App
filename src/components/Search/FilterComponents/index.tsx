@@ -1,15 +1,13 @@
 import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterSelectionListProps} from '@components/Search/types';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {FILTER_VIEW_MAP, getMultiSelectFilterOptions, getSingleSelectFilterOptions} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import CardSelector from './CardSelector';
 import CategorySelector from './CategorySelector';
 import CurrencySelector from './CurrencySelector';
@@ -28,6 +26,8 @@ type FilterKeys = Exclude<SearchFilter['key'], SearchDateFilterKeys | SearchAmou
 type FilterComponentsProps = SearchFilterSelectionListProps & {
     filterKey: FilterKeys;
     value: SearchAdvancedFiltersForm[FilterKeys] | undefined;
+    type?: SearchDataTypes;
+    policyIDs: string[] | undefined;
     policyIDQuery: string[] | undefined;
     allowDeselectSingleSelection?: boolean;
     onChange: (value: SearchAdvancedFiltersForm[FilterKeys] | undefined) => void;
@@ -63,6 +63,7 @@ type MultiSelectFilterKeys =
 type MultiSelectFilterComponentsProps = SearchFilterSelectionListProps & {
     filterKey: MultiSelectFilterKeys;
     value: SearchAdvancedFiltersForm[MultiSelectFilterKeys] | undefined;
+    type: SearchDataTypes | undefined;
     onChange: (values: SearchAdvancedFiltersForm[MultiSelectFilterKeys]) => void;
 };
 
@@ -101,14 +102,8 @@ function SingleSelectFilterComponents({filterKey, value, selectionListTextInputS
     );
 }
 
-function MultiSelectFilterComponents({filterKey, value = [], selectionListStyle, footer, onChange}: MultiSelectFilterComponentsProps) {
+function MultiSelectFilterComponents({filterKey, value = [], type = CONST.SEARCH.DATA_TYPES.EXPENSE, selectionListStyle, footer, onChange}: MultiSelectFilterComponentsProps) {
     const {translate} = useLocalize();
-    const typeSelector = (searchAdvancedFiltersForm: OnyxEntry<SearchAdvancedFiltersForm>) => {
-        return searchAdvancedFiltersForm?.type;
-    };
-    const [type = CONST.SEARCH.DATA_TYPES.EXPENSE] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {
-        selector: typeSelector,
-    });
     const items = getMultiSelectFilterOptions(filterKey, type, translate);
     const normalizedValue = Array.isArray(value) ? value : value.split(',');
     const multiSelectValues = items.filter((item) => normalizedValue.includes(item.value));
@@ -133,6 +128,8 @@ function MultiSelectFilterComponents({filterKey, value = [], selectionListStyle,
 function FilterComponents({
     filterKey,
     value,
+    type,
+    policyIDs,
     policyIDQuery,
     selectionListTextInputStyle,
     selectionListStyle,
@@ -161,6 +158,7 @@ function FilterComponents({
             return (
                 <Component
                     value={value as string[] | undefined}
+                    policyIDs={policyIDs}
                     selectionListTextInputStyle={selectionListTextInputStyle}
                     selectionListStyle={selectionListStyle}
                     autoFocus={autoFocus}
@@ -235,6 +233,7 @@ function FilterComponents({
                     key={filterKey}
                     filterKey={filterKey}
                     value={value}
+                    type={type}
                     selectionListTextInputStyle={selectionListTextInputStyle}
                     selectionListStyle={selectionListStyle}
                     footer={footer}
