@@ -151,6 +151,7 @@ function ConfirmationFieldList({
                 isCompactMode={compactState.isCompactMode}
                 fieldVisibility={fieldVisibility}
                 onSubmitForm={onSubmitForm}
+                isParticipantPickerVisible={visibilityFlags.isParticipantPickerVisible}
             />
 
             <ClassificationFields

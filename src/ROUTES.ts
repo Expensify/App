@@ -83,7 +83,32 @@ type DynamicRoutes = Record<string, DynamicRouteConfig>;
 const DYNAMIC_ROUTES = {
     VERIFY_ACCOUNT: {
         path: 'verify-account',
-        entryScreens: [SCREENS.SETTINGS.WALLET.ROOT],
+        entryScreens: [
+            SCREENS.SETTINGS.WALLET.ROOT,
+            SCREENS.SETTINGS.PROFILE.CONTACT_METHODS,
+            SCREENS.HOME,
+            SCREENS.SEARCH.ROOT,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+        ],
+    },
+    TWO_FACTOR_AUTH_VERIFY_ACCOUNT: {
+        path: 'two-factor-auth/verify-account',
+        entryScreens: ['*'],
+    },
+    TWO_FACTOR_AUTH_ROOT: {
+        path: 'two-factor-auth',
+        entryScreens: ['*'],
+    },
+    TWO_FACTOR_AUTH_VERIFY: {
+        path: 'two-factor-auth/verify',
+        entryScreens: ['*'],
+    },
+    TWO_FACTOR_AUTH_SUCCESS: {
+        path: 'two-factor-auth/success',
+        entryScreens: ['*'],
     },
     ADD_BANK_ACCOUNT_VERIFY_ACCOUNT: {
         path: 'add-bank-account/verify-account',
@@ -130,6 +155,28 @@ const DYNAMIC_ROUTES = {
             SCREENS.REPORT_DETAILS.ROOT,
             SCREENS.REPORT_CHANGE_WORKSPACE.ROOT,
         ],
+    },
+    EDIT_REPORT_FIELD: {
+        path: 'edit/policyField/:policyID/:fieldID',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.REPORT_DETAILS.ROOT],
+        getRoute: (policyID: string, fieldID: string) => `edit/policyField/${policyID}/${encodeURIComponent(fieldID)}` as const,
+    },
+    PROFILE: {
+        path: 'a/:accountID',
+        entryScreens: ['*'],
+        getRoute: (accountID?: number, login?: string) => getUrlWithParams(`a/${accountID}`, {login}),
+        queryParams: ['login'],
+    },
+    PROFILE_AVATAR: {
+        path: 'avatar/:accountID',
+        entryScreens: ['*'],
+        getRoute: (accountID: number) => `avatar/${accountID}` as const,
+    },
+    NEW_REPORT_WORKSPACE_SELECTION: {
+        path: 'new-report-workspace-selection',
+        entryScreens: ['*'],
+        getRoute: (isMovingExpenses?: boolean) => `new-report-workspace-selection${isMovingExpenses ? '?isMovingExpenses=true' : ''}` as const,
+        queryParams: ['isMovingExpenses'],
     },
     NETSUITE_AUTO_SYNC: {
         path: 'netsuite-autosync',
@@ -427,7 +474,7 @@ const DYNAMIC_ROUTES = {
     },
     NOTIFICATION_PREFERENCES: {
         path: 'notification-preferences',
-        entryScreens: [SCREENS.REPORT_SETTINGS.ROOT, SCREENS.PROFILE_ROOT],
+        entryScreens: [SCREENS.REPORT_SETTINGS.ROOT, SCREENS.DYNAMIC_PROFILE],
         getRoute: (reportID: string) => getUrlWithParams('notification-preferences', {reportID}),
         queryParams: ['reportID'],
     },
@@ -487,7 +534,7 @@ const DYNAMIC_ROUTES = {
     },
     EXPENSIFY_CARD_DETAILS: {
         path: 'expensify-card-details/:cardID/:policyID',
-        entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD, SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.PROFILE_ROOT],
+        entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD, SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.DYNAMIC_PROFILE],
         getRoute: (cardID: string, policyID: string) => `expensify-card-details/${cardID}/${policyID}` as const,
     },
     EXPENSIFY_CARD_LIMIT_TYPE: {
@@ -559,44 +606,6 @@ const DYNAMIC_ROUTES = {
         path: 'tag-new',
         entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT],
     },
-    WORKSPACE_TAGS_EDIT: {
-        path: 'tags-edit/:orderWeight',
-        entryScreens: [SCREENS.WORKSPACE.TAGS, SCREENS.WORKSPACE.TAGS_SETTINGS, SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_LIST_VIEW],
-        getRoute: (orderWeight: number) => `tags-edit/${orderWeight}`,
-    },
-    WORKSPACE_TAG_SETTINGS: {
-        path: 'tag/:orderWeight/:tagName',
-        entryScreens: [SCREENS.WORKSPACE.TAGS, SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_LIST_VIEW, SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_SETTINGS],
-        getRoute: (orderWeight: number, tagName: string, parentTagsFilter?: string) => {
-            const route = `tag/${orderWeight}/${encodeURIComponent(tagName)}`;
-            if (!parentTagsFilter) {
-                return route;
-            }
-            return `${route}?parentTagsFilter=${encodeURIComponent(parentTagsFilter)}`;
-        },
-        queryParams: ['parentTagsFilter'],
-    },
-    WORKSPACE_TAG_EDIT: {
-        path: 'tag-edit',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_SETTINGS, SCREENS.WORKSPACE.TAGS, SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_LIST_VIEW],
-    },
-    WORKSPACE_TAG_GL_CODE: {
-        path: 'tag-gl-code',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_SETTINGS, SCREENS.WORKSPACE.TAGS, SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_LIST_VIEW],
-    },
-    WORKSPACE_TAG_APPROVER: {
-        path: 'workspace-tag-approver',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_SETTINGS, SCREENS.WORKSPACE.TAGS, SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_LIST_VIEW],
-    },
-    WORKSPACE_TAG_LIST_VIEW: {
-        path: 'workspace-tag-list/:orderWeight',
-        entryScreens: [SCREENS.WORKSPACE.TAGS],
-        getRoute: (orderWeight: number) => `workspace-tag-list/${orderWeight}`,
-    },
-    WORKSPACE_TAG_CREATE: {
-        path: 'tags/new',
-        entryScreens: [SCREENS.WORKSPACE.TAGS],
-    },
     DETAILS_CONSTANT_PICKER: {
         path: 'constant-picker',
         entryScreens: [SCREENS.DEBUG.REPORT, SCREENS.DEBUG.REPORT_ACTION, SCREENS.DEBUG.TRANSACTION, SCREENS.DEBUG.TRANSACTION_VIOLATION],
@@ -663,6 +672,48 @@ const DYNAMIC_ROUTES = {
     REPORT_CHANGE_APPROVER: {
         path: 'change-approver',
         entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+    },
+    TASK_TITLE: {
+        path: 'title',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+    },
+    REPORT_DESCRIPTION: {
+        path: 'description',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.REPORT_DETAILS.ROOT],
+    },
+    TASK_ASSIGNEE: {
+        path: 'assignee',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+    },
+    PRIVATE_NOTES_LIST: {
+        path: 'notes',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.REPORT_DETAILS.ROOT,
+            SCREENS.DYNAMIC_PROFILE,
+        ],
+        getRoute: (reportID?: string) => getUrlWithParams('notes', reportID ? {reportID} : {}),
+        queryParams: ['reportID'],
+    },
+    PRIVATE_NOTES_EDIT: {
+        path: 'notes-edit/:accountID',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.REPORT_DETAILS.ROOT,
+            SCREENS.DYNAMIC_PROFILE,
+            SCREENS.DYNAMIC_PRIVATE_NOTES_LIST,
+        ],
+        getRoute: (accountID: number, reportID?: string) => {
+            const path = `notes-edit/${accountID}`;
+            return reportID ? getUrlWithParams(path, {reportID}) : path;
+        },
+        queryParams: ['reportID'],
     },
     FLAG_COMMENT: {
         path: 'flag/:reportID/:reportActionID',
@@ -801,20 +852,6 @@ const ROUTES = {
     CONCIERGE: 'concierge',
     TRACK_EXPENSE: 'track-expense',
     SUBMIT_EXPENSE: 'submit-expense',
-    PROFILE: {
-        route: 'a/:accountID',
-        getRoute: (accountID?: number, backTo?: string, login?: string) => {
-            const baseRoute = getUrlWithBackToParam(`a/${accountID}`, backTo);
-            const loginParam = login ? `?login=${encodeURIComponent(login)}` : '';
-            return `${baseRoute}${loginParam}` as const;
-        },
-    },
-    PROFILE_AVATAR: {
-        route: 'a/:accountID/avatar',
-
-        getRoute: (accountID: number, backTo?: string) => getUrlWithBackToParam(`a/${accountID}/avatar` as const, backTo),
-    },
-
     // This is a special validation URL that will take the user to /workspace/new after validation. This is used
     // when linking users from e.com in order to share a session in this app.
     ENABLE_PAYMENTS: 'enable-payments',
@@ -1213,30 +1250,8 @@ const ROUTES = {
             return getUrlWithBackToParam(`settings/profile/contact-methods/${encodedMethod}/set-default/confirm`, backTo);
         },
     },
-    SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT: {
-        route: 'settings/profile/contact-methods/verify',
-        getRoute: (backTo?: string, forwardTo?: string) =>
-            getUrlWithBackToParam(forwardTo ? `settings/profile/contact-methods/verify?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/profile/contact-methods/verify', backTo),
-    },
-    SETTINGS_2FA_VERIFY_ACCOUNT: {
-        route: `settings/security/two-factor-auth/${VERIFY_ACCOUNT}`,
-        getRoute: (params: {backTo?: string; forwardTo?: string} = {}) => getUrlWithParams(`settings/security/two-factor-auth/${VERIFY_ACCOUNT}`, params),
-    },
-    SETTINGS_2FA_ROOT: {
-        route: 'settings/security/two-factor-auth',
-        getRoute: (backTo?: string, forwardTo?: string) =>
-            getUrlWithBackToParam(forwardTo ? `settings/security/two-factor-auth?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/security/two-factor-auth', backTo),
-    },
-    SETTINGS_2FA_VERIFY: {
-        route: 'settings/security/two-factor-auth/verify',
-        getRoute: (backTo?: string, forwardTo?: string) =>
-            getUrlWithBackToParam(forwardTo ? `settings/security/two-factor-auth/verify?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/security/two-factor-auth/verify', backTo),
-    },
-    SETTINGS_2FA_SUCCESS: {
-        route: 'settings/security/two-factor-auth/success',
-        getRoute: (backTo?: string, forwardTo?: string) =>
-            getUrlWithBackToParam(forwardTo ? `settings/security/two-factor-auth/success?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/security/two-factor-auth/success', backTo),
-    },
+    SETTINGS_2FA_ENABLED: 'settings/security/two-factor-auth/enabled',
+    SETTINGS_2FA_SUCCESS: 'settings/security/two-factor-auth/replace/success',
     SETTINGS_2FA_DISABLED: 'settings/security/two-factor-auth/disabled',
     SETTINGS_2FA_DISABLE: 'settings/security/two-factor-auth/disable',
     SETTINGS_2FA_REPLACE_VERIFY_OLD: 'settings/security/two-factor-auth/replace/verify-old',
@@ -1260,19 +1275,6 @@ const ROUTES = {
     NEW_CHAT_EDIT_NAME: 'new/chat/confirm/name/edit',
     NEW_ROOM: 'new/room',
 
-    NEW_REPORT_WORKSPACE_SELECTION: {
-        route: 'new-report-workspace-selection',
-        getRoute: (isMovingExpenses?: boolean, backTo?: string) => {
-            const params = new URLSearchParams();
-            if (isMovingExpenses) {
-                params.set('isMovingExpenses', 'true');
-            }
-            const query = params.toString();
-            const baseRoute = `new-report-workspace-selection${query ? `?${query}` : ''}` as const;
-
-            return getUrlWithBackToParam(baseRoute, backTo);
-        },
-    },
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
@@ -1326,19 +1328,6 @@ const ROUTES = {
     EDIT_CURRENCY_REQUEST: {
         route: 'r/:threadReportID/edit/currency',
         getRoute: (threadReportID: string, currency: string, backTo: string) => `r/${threadReportID}/edit/currency?currency=${currency}&backTo=${backTo}` as const,
-    },
-    EDIT_REPORT_FIELD_REQUEST: {
-        route: 'r/:reportID/edit/policyField/:policyID/:fieldID',
-        getRoute: (reportID: string | undefined, policyID: string | undefined, fieldID: string, backTo?: string) => {
-            if (!policyID || !reportID) {
-                Log.warn('Invalid policyID or reportID is used to build the EDIT_REPORT_FIELD_REQUEST route', {
-                    policyID,
-                    reportID,
-                });
-            }
-
-            return getUrlWithBackToParam(`r/${reportID}/edit/policyField/${policyID}/${encodeURIComponent(fieldID)}` as const, backTo);
-        },
     },
     REPORT_WITH_ID_DETAILS_SHARE_CODE: {
         route: 'r/:reportID/details/shareCode',
@@ -1428,46 +1417,6 @@ const ROUTES = {
 
             return getUrlWithBackToParam(`r/${reportID}/split/${reportActionID}` as const, backTo);
         },
-    },
-    TASK_TITLE: {
-        route: 'r/:reportID/title',
-        getRoute: (reportID: string | undefined, backTo?: string) => {
-            if (!reportID) {
-                Log.warn('Invalid reportID is used to build the TASK_TITLE route');
-            }
-
-            return getUrlWithBackToParam(`r/${reportID}/title` as const, backTo);
-        },
-    },
-    REPORT_DESCRIPTION: {
-        route: 'r/:reportID/description',
-        getRoute: (reportID: string | undefined, backTo?: string) => {
-            if (!reportID) {
-                Log.warn('Invalid reportID is used to build the REPORT_DESCRIPTION route');
-            }
-
-            return getUrlWithBackToParam(`r/${reportID}/description` as const, backTo);
-        },
-    },
-    TASK_ASSIGNEE: {
-        route: 'r/:reportID/assignee',
-        getRoute: (reportID: string | undefined, backTo?: string) => {
-            if (!reportID) {
-                Log.warn('Invalid reportID is used to build the TASK_ASSIGNEE route');
-            }
-
-            return getUrlWithBackToParam(`r/${reportID}/assignee` as const, backTo);
-        },
-    },
-    PRIVATE_NOTES_LIST: {
-        route: 'r/:reportID/notes',
-
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/notes` as const, backTo),
-    },
-    PRIVATE_NOTES_EDIT: {
-        route: 'r/:reportID/notes/:accountID/edit',
-
-        getRoute: (reportID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/notes/${accountID}/edit` as const, backTo),
     },
     ROOM_MEMBERS: {
         route: 'r/:reportID/members',
@@ -2518,9 +2467,44 @@ const ROUTES = {
             return `workspaces/${policyID}/tags` as const;
         },
     },
+    WORKSPACE_TAG_CREATE: {
+        route: 'workspaces/:policyID/tags/new',
+        getRoute: (policyID: string) => `workspaces/${policyID}/tags/new` as const,
+    },
     WORKSPACE_TAGS_SETTINGS: {
         route: 'workspaces/:policyID/tags/settings',
         getRoute: (policyID: string) => `workspaces/${policyID}/tags/settings` as const,
+    },
+    WORKSPACE_EDIT_TAGS: {
+        route: 'workspaces/:policyID/tags/:orderWeight/edit',
+
+        getRoute: (policyID: string, orderWeight: number, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/tags/${orderWeight}/edit` as const, backTo),
+    },
+    WORKSPACE_TAG_EDIT: {
+        route: 'workspaces/:policyID/tag/:orderWeight/:tagName/edit',
+        getRoute: (policyID: string, orderWeight: number, tagName: string) => `workspaces/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}/edit` as const,
+    },
+    WORKSPACE_TAG_SETTINGS: {
+        route: 'workspaces/:policyID/tag/:orderWeight/:tagName',
+        getRoute: (policyID: string, orderWeight: number, tagName: string, parentTagsFilter?: string) => {
+            let queryParams = '';
+            if (parentTagsFilter) {
+                queryParams += `?parentTagsFilter=${parentTagsFilter}`;
+            }
+            return `workspaces/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}${queryParams}` as const;
+        },
+    },
+    WORKSPACE_TAG_APPROVER: {
+        route: 'workspaces/:policyID/tag/:orderWeight/:tagName/approver',
+        getRoute: (policyID: string, orderWeight: number, tagName: string) => `workspaces/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}/approver` as const,
+    },
+    WORKSPACE_TAG_LIST_VIEW: {
+        route: 'workspaces/:policyID/tag-list/:orderWeight',
+        getRoute: (policyID: string, orderWeight: number) => `workspaces/${policyID}/tag-list/${orderWeight}` as const,
+    },
+    WORKSPACE_TAG_GL_CODE: {
+        route: 'workspaces/:policyID/tag/:orderWeight/:tagName/gl-code',
+        getRoute: (policyID: string, orderWeight: number, tagName: string) => `workspaces/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}/gl-code` as const,
     },
     WORKSPACE_TAGS_IMPORT: {
         route: 'workspaces/:policyID/tags/import',

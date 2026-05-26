@@ -48,6 +48,9 @@ type TransactionDetailsFieldsProps = {
 
     /** Triggers submit from inline inputs */
     onSubmitForm?: () => void;
+
+    /** Whether the parent-owned participant picker modal is currently open (new manual expense flow). Drives amount autofocus on picker close. */
+    isParticipantPickerVisible: boolean;
 };
 
 function TransactionDetailsFields({
@@ -63,6 +66,7 @@ function TransactionDetailsFields({
     isCompactMode,
     fieldVisibility,
     onSubmitForm,
+    isParticipantPickerVisible,
 }: TransactionDetailsFieldsProps) {
     const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isNewManualExpenseFlowEnabled, isPolicyExpenseChat} = useConfirmationFields();
     const shouldAutoFocusAmountField = !canUseTouchScreen();
@@ -91,6 +95,7 @@ function TransactionDetailsFields({
                     clearFormErrors={errorState.clearFormErrors}
                     setFormError={errorState.setFormError}
                     autoFocus={shouldAutoFocusAmountField}
+                    isParticipantPickerVisible={isParticipantPickerVisible}
                 />
             )}
 

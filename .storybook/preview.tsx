@@ -6,7 +6,7 @@ import type {Parameters} from 'storybook/internal/types';
 import EnvironmentProvider from '@components/EnvironmentContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
-import {SearchContextProvider} from '@components/Search/SearchContext';
+import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import colors from '@styles/theme/colors';
 import ComposeProviders from '@src/components/ComposeProviders';
 import HTMLEngineProvider from '@src/components/HTMLEngineProvider';

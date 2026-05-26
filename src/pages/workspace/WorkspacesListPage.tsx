@@ -362,7 +362,7 @@ function WorkspacesListPage() {
             return {adminNonPersonal, corporateOnly};
         }
         for (const policy of Object.values(policies)) {
-            if (!policy || policy.type === CONST.POLICY.TYPE.PERSONAL || !isPolicyAdmin(policy, session?.email)) {
+            if (!policy || policy.type === CONST.POLICY.TYPE.PERSONAL || !isPolicyAdmin(policy, session?.email) || isPendingDeletePolicy(policy)) {
                 continue;
             }
             adminNonPersonal.push(policy.id);

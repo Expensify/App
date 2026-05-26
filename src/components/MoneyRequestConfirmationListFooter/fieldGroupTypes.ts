@@ -47,6 +47,9 @@ type VisibilityFlags = {
     shouldShowMerchant: boolean;
     shouldShowCategories: boolean;
     shouldShowTax: boolean;
+
+    /** Whether the parent-owned participant picker modal is currently open (new manual expense flow). Drives amount autofocus on picker close. */
+    isParticipantPickerVisible: boolean;
 };
 
 /** Shared error state surfaced into multiple fields */
