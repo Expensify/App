@@ -54,6 +54,7 @@ import {
     doesReportContainRequestsFromMultipleUsers,
     getTransactionDetails,
     hasExportError as hasExportErrorUtils,
+    hasHeldExpensesFromTransactions,
     hasOnlyHeldExpenses,
     hasOnlyNonReimbursableTransactions,
     hasReportBeenReopened as hasReportBeenReopenedUtils,
@@ -88,7 +89,6 @@ import {
     hasSubmissionBlockingViolations,
     isDuplicate,
     isManagedCardTransaction as isManagedCardTransactionTransactionUtils,
-    isOdometerDistanceRequest,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
@@ -122,10 +122,6 @@ function isSplitAction(
 
     const reportTransaction = reportTransactions.at(0);
     const {amount} = getTransactionDetails(reportTransaction) ?? {};
-
-    if (isOdometerDistanceRequest(reportTransaction)) {
-        return false;
-    }
 
     if (isPending(reportTransaction) || !!reportTransaction?.errors) {
         return false;
@@ -233,10 +229,6 @@ function isSubmitAction({
     }
 
     if (primaryAction === CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_RESOLVED) {
-        return false;
-    }
-
-    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
         return false;
     }
 
@@ -441,6 +433,32 @@ function isCancelPaymentAction(
     });
 
     return isPaymentProcessing && !hasDailyNachaCutoffPassed;
+}
+
+function isReceivedPaymentAction(report: Report, reportTransactions: Transaction[] = [], reportActions: ReportAction[] = [], policy?: Policy): boolean {
+    if (!isExpenseReportUtils(report) || !isCurrentUserSubmitter(report)) {
+        return false;
+    }
+
+    if (policy?.role === CONST.POLICY.ROLE.ADMIN || report.isWaitingOnBankAccount || hasHeldExpensesFromTransactions(reportTransactions)) {
+        return false;
+    }
+
+    const isSupportedState = isReportApprovedUtils({report}) || isClosedReportUtils(report) || isSettled(report);
+    if (!isSupportedState) {
+        return false;
+    }
+
+    const allReportActions = reportActions.length > 0 ? reportActions : Object.values(getAllReportActions(report.reportID));
+    const hasBankPaymentAction = allReportActions.some((action) => {
+        if (!isPayAction(action)) {
+            return false;
+        }
+
+        return getOriginalMessage(action)?.paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
+    });
+
+    return !hasBankPaymentAction;
 }
 
 function isExportAction(currentAccountID: number, currentUserLogin: string, report: Report, bankAccountList: OnyxEntry<BankAccountList>, policy?: Policy): boolean {
@@ -961,6 +979,10 @@ function getSecondaryReportActions({
 
     if (isApproveAction(currentUserLogin, currentUserAccountID, report, reportTransactions, violations, reportMetadata, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.APPROVE);
+    }
+
+    if (isReceivedPaymentAction(report, reportTransactions, reportActions, policy)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT);
     }
 
     if (isUnapproveAction(currentUserLogin, currentUserAccountID, report, policy)) {

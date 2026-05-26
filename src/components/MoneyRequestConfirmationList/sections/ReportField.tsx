@@ -60,7 +60,8 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
 
     // Per-key report subscriptions instead of full COLLECTION.REPORT
     const [transactionReportEntry] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
-    const [mainReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const participantReportID = transaction?.participants?.at(0)?.reportID;
+    const [mainReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${participantReportID}`);
     const iouReportIDFromMain = mainReport?.iouReportID;
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportIDFromMain}`);
 

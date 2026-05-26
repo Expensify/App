@@ -89,7 +89,8 @@ import useOptimisticSearchTracking from './hooks/useOptimisticSearchTracking';
 import useStableOptimisticSortedData from './hooks/useStableOptimisticSortedData';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
-import {useSearchActionsContext, useSearchStateContext} from './SearchContext';
+import {useSearchQueryActions, useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
+import {useSyncSelectedReports} from './SearchContextProvider';
 import SearchList from './SearchList';
 import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
 import {SearchScopeProvider} from './SearchScopeProvider';
@@ -247,20 +248,13 @@ function Search({
     const isFocused = useIsFocused();
 
     const {markReportIDAsExpense, markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense} = useWideRHPActions();
-    const {
-        currentSearchHash,
-        currentSearchKey,
-        selectedTransactions,
-        shouldTurnOffSelectionMode,
-        lastSearchType,
-        areAllMatchingItemsSelected,
-        shouldResetSearchQuery,
-        shouldUseLiveData,
-        suggestedSearches,
-    } = useSearchStateContext();
+    const {currentSearchHash, currentSearchKey, shouldResetSearchQuery, suggestedSearches} = useSearchQueryContext();
+    const {lastSearchType, shouldUseLiveData} = useSearchResultsContext();
+    const {selectedTransactions, shouldTurnOffSelectionMode, areAllMatchingItemsSelected} = useSearchSelectionContext();
 
-    const {setSelectedTransactions, clearSelectedTransactions, setShouldShowFiltersBarLoading, setShouldShowSelectAllMatchingItems, selectAllMatchingItems, setShouldResetSearchQuery} =
-        useSearchActionsContext();
+    const {setShouldResetSearchQuery} = useSearchQueryActions();
+    const {setShouldShowFiltersBarLoading} = useSearchResultsActions();
+    const {setSelectedTransactions, clearSelectedTransactions, setShouldShowSelectAllMatchingItems, selectAllMatchingItems} = useSearchSelectionActions();
     const [offset, setOffset] = useState(0);
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -532,6 +526,7 @@ function Search({
             queryJSON,
             isActionLoadingSet,
             cardFeeds,
+            cardList: nonPersonalAndWorkspaceCards,
             isOffline,
             allTransactionViolations: violations,
             customCardNames,
@@ -567,6 +562,7 @@ function Search({
         email,
         isActionLoadingSet,
         cardFeeds,
+        nonPersonalAndWorkspaceCards,
         policies,
         bankAccountList,
         violations,
@@ -900,6 +896,10 @@ function Search({
             return;
         }
 
+        // Pass `filteredData` so `selectedReports` is updated atomically with `selectedTransactions`.
+        // Otherwise a stale `useSyncSelectedReports` derivation in the same commit can briefly clear
+        // `selectedReports` while an Onyx push expands the selection, which can close screens like
+        // SearchChangeApproverPage that auto-dismiss when `selectedReports` is empty.
         setSelectedTransactions(newTransactionList, filteredData);
 
         isRefreshingSelection.current = true;
@@ -953,6 +953,8 @@ function Search({
     useEffect(() => {
         isRefreshingSelection.current = false;
     }, [selectedTransactions]);
+
+    useSyncSelectedReports(filteredData);
 
     const areItemsGrouped = !!validGroupBy || isExpenseReportType;
     const totalSelectableItemsCount = useMemo(() => {
@@ -1020,7 +1022,7 @@ function Search({
                     archivedReportsIdSet,
                     outstandingReportsByPolicyID,
                 );
-                setSelectedTransactions(updatedTransactions, filteredData);
+                setSelectedTransactions(updatedTransactions);
                 updateSelectAllMatchingItemsState(updatedTransactions);
                 return;
             }
@@ -1044,7 +1046,7 @@ function Search({
                         ...selectedTransactions,
                     };
                     delete reducedSelectedTransactions[reportKey];
-                    setSelectedTransactions(reducedSelectedTransactions, filteredData);
+                    setSelectedTransactions(reducedSelectedTransactions);
                     updateSelectAllMatchingItemsState(reducedSelectedTransactions);
                     return;
                 }
@@ -1054,7 +1056,7 @@ function Search({
                     ...selectedTransactions,
                     [reportKey]: emptyReportSelection,
                 };
-                setSelectedTransactions(updatedTransactions, filteredData);
+                setSelectedTransactions(updatedTransactions);
                 updateSelectAllMatchingItemsState(updatedTransactions);
                 return;
             }
@@ -1068,7 +1070,7 @@ function Search({
                     delete reducedSelectedTransactions[transaction.keyForList];
                 }
 
-                setSelectedTransactions(reducedSelectedTransactions, filteredData);
+                setSelectedTransactions(reducedSelectedTransactions);
                 updateSelectAllMatchingItemsState(reducedSelectedTransactions);
                 return;
             }
@@ -1096,13 +1098,12 @@ function Search({
                         }),
                 ),
             };
-            setSelectedTransactions(updatedTransactions, filteredData);
+            setSelectedTransactions(updatedTransactions);
             updateSelectAllMatchingItemsState(updatedTransactions);
         },
         [
             selectedTransactions,
             setSelectedTransactions,
-            filteredData,
             updateSelectAllMatchingItemsState,
             transactions,
             email,
