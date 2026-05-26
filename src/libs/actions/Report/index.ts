@@ -75,6 +75,7 @@ import Log from '@libs/Log';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
 import Navigation from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
@@ -1376,7 +1377,6 @@ function buildParticipantInfoFromLogins(logins: string[], accountIDs?: number[])
  */
 function getGuidedSetupDataForOpenReport(
     introSelected: OnyxEntry<IntroSelected>,
-    betas: OnyxEntry<Beta[]>,
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     isSelfTourViewed?: boolean,
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
@@ -1417,7 +1417,6 @@ function getGuidedSetupDataForOpenReport(
         companySize: introSelected?.companySize as OnboardingCompanySize,
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
-        betas,
     });
 
     if (!onboardingData) {
@@ -1465,7 +1464,6 @@ function openReport(params: OpenReportActionParams) {
         currentUserAccountID,
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
-        betas,
     } = params;
     if (!reportID) {
         return;
@@ -1695,7 +1693,7 @@ function openReport(params: OpenReportActionParams) {
         });
     }
 
-    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected, betas, isSelfTourViewed, hasCompletedGuidedSetupFlow);
+    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow);
     if (guidedSetup) {
         optimisticData.push(...guidedSetup.optimisticData);
         successData.push(...guidedSetup.successData);
@@ -2056,7 +2054,7 @@ function createGroupChat(
     }
 
     // Preserve guided setup data when creating group chats
-    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected, betas, isSelfTourViewed);
+    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected, isSelfTourViewed);
     if (guidedSetup) {
         optimisticData.push(...guidedSetup.optimisticData);
         successData.push(...guidedSetup.successData);
@@ -2443,7 +2441,11 @@ function navigateToAndOpenChildReport(
 ) {
     const report = childReport ?? createChildReport(childReport, parentReportAction, parentReport, currentUserAccountID, introSelected, betas, isSelfTourViewed, personalDetails);
 
-    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, Navigation.getActiveRoute()));
+    if (isSearchTopmostFullScreenRoute()) {
+        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: report.reportID, backTo: Navigation.getActiveRoute()}));
+    } else {
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, Navigation.getActiveRoute()));
+    }
 }
 
 /**
@@ -2536,7 +2538,11 @@ function explain(
     // Check if explanation thread report already exists
     const report = childReport ?? createChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected, betas, isSelfTourViewed);
 
-    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, Navigation.getActiveRoute()));
+    if (isSearchTopmostFullScreenRoute()) {
+        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: report.reportID, backTo: Navigation.getActiveRoute()}));
+    } else {
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, Navigation.getActiveRoute()));
+    }
     // Schedule adding the explanation comment on the next animation frame
     // so it runs immediately after navigation completes.
     requestAnimationFrame(() => {
@@ -5389,7 +5395,6 @@ type CompleteOnboardingProps = {
     shouldWaitForRHPVariantInitialization?: boolean;
     introSelected: OnyxEntry<IntroSelected>;
     isSelfTourViewed: boolean | undefined;
-    betas: OnyxEntry<Beta[]>;
 };
 
 async function completeOnboarding({
@@ -5409,7 +5414,6 @@ async function completeOnboarding({
     shouldWaitForRHPVariantInitialization = false,
     introSelected,
     isSelfTourViewed,
-    betas,
 }: CompleteOnboardingProps) {
     const onboardingData = prepareOnboardingOnyxData({
         introSelected,
@@ -5420,17 +5424,15 @@ async function completeOnboarding({
         userReportedIntegration,
         wasInvited,
         companySize,
-        selectedInterestedFeatures,
         isInvitedAccountant,
         onboardingPurposeSelected,
         isSelfTourViewed,
-        betas,
     });
     if (!onboardingData) {
         return;
     }
 
-    const {optimisticData, successData, failureData, guidedSetupData, actorAccountID, selfDMParameters, bespokeWelcomeMessage, optimisticConciergeReportActionID} = onboardingData;
+    const {optimisticData, successData, failureData, guidedSetupData, actorAccountID, selfDMParameters, optimisticConciergeReportActionID} = onboardingData;
 
     const parameters: CompleteGuidedSetupParams = {
         engagementChoice,
@@ -5444,7 +5446,6 @@ async function completeOnboarding({
         policyID: onboardingPolicyID,
         selfDMReportID: selfDMParameters.reportID,
         selfDMCreatedReportActionID: selfDMParameters.createdReportActionID,
-        bespokeWelcomeMessage,
         optimisticConciergeReportActionID,
         selectedInterestedFeatures: selectedInterestedFeatures && selectedInterestedFeatures.length > 0 ? JSON.stringify(selectedInterestedFeatures) : undefined,
     };
@@ -6659,7 +6660,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     const announceRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID, [submitterAccountID]);
 
     // Create policy expense chat for the submitter
-    const policyExpenseChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, currentUserAccountID, reportActions);
+    const policyExpenseChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, {accountID: currentUserAccountID}, reportActions);
     const optimisticPolicyExpenseChatReportID = policyExpenseChats.reportCreationData[submitterEmail].reportID;
     const optimisticPolicyExpenseChatCreatedReportActionID = policyExpenseChats.reportCreationData[submitterEmail].reportActionID;
 
@@ -7424,6 +7425,8 @@ function buildOptimisticChangePolicyData(
         let newTotal = 0;
         let newNonReimbursableTotal = 0;
         let newUnheldNonReimbursableTotal = 0;
+        let newReimbursableTotal = 0;
+        let newUnheldReimbursableTotal = 0;
 
         for (const transaction of transactions) {
             const transactionCurrency = getCurrency(transaction);
@@ -7434,6 +7437,11 @@ function buildOptimisticChangePolicyData(
                 newTotal -= transactionAmount;
                 if (!transaction.reimbursable) {
                     newNonReimbursableTotal -= transactionAmount;
+                } else {
+                    newReimbursableTotal -= transactionAmount;
+                    if (!isOnHold(transaction)) {
+                        newUnheldReimbursableTotal -= transactionAmount;
+                    }
                 }
                 if (!transaction.reimbursable || isOnHold(transaction)) {
                     newUnheldNonReimbursableTotal -= transactionAmount;
@@ -7449,6 +7457,8 @@ function buildOptimisticChangePolicyData(
                 total: newTotal,
                 nonReimbursableTotal: newNonReimbursableTotal,
                 unheldNonReimbursableTotal: newUnheldNonReimbursableTotal,
+                reimbursableTotal: newReimbursableTotal,
+                unheldReimbursableTotal: newUnheldReimbursableTotal,
                 pendingFields: {
                     ...(report.pendingFields ?? {}),
                     total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -7472,6 +7482,8 @@ function buildOptimisticChangePolicyData(
                 total: report.total,
                 nonReimbursableTotal: report.nonReimbursableTotal,
                 unheldNonReimbursableTotal: report.unheldNonReimbursableTotal,
+                reimbursableTotal: report.reimbursableTotal,
+                unheldReimbursableTotal: report.unheldReimbursableTotal,
                 pendingFields: {
                     ...(report.pendingFields ?? {}),
                     total: null,
@@ -7580,7 +7592,7 @@ function changeReportPolicyAndInviteSubmitter({
         policyMemberAccountIDs,
         CONST.POLICY.ROLE.USER,
         formatPhoneNumber,
-        currentUserAccountID,
+        {accountID: currentUserAccountID},
         undefined,
         CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
         reportActionsList,

@@ -28,13 +28,18 @@ let mockSelectedTransactions: SelectedTransactions = {};
 let mockSelectedReports: SelectedReports[] = [];
 
 jest.mock('@components/Search/SearchContext', () => ({
-    useSearchStateContext: () => ({
+    useSearchSelectionContext: () => ({
         selectedTransactions: mockSelectedTransactions,
         selectedReports: mockSelectedReports,
         areAllMatchingItemsSelected: false,
+    }),
+    useSearchResultsContext: () => ({
         currentSearchResults: undefined,
     }),
-    useSearchActionsContext: () => ({
+    useSearchQueryContext: () => ({
+        currentSearchKey: undefined,
+    }),
+    useSearchSelectionActions: () => ({
         clearSelectedTransactions: mockClearSelectedTransactions,
         selectAllMatchingItems: jest.fn(),
     }),
