@@ -36,6 +36,7 @@ import androidx.core.content.pm.ShortcutManagerCompat;
 import androidx.core.graphics.drawable.IconCompat;
 import androidx.versionedparcelable.ParcelUtils;
 
+import com.expensify.chat.BuildConfig;
 import com.expensify.chat.R;
 import com.expensify.chat.shortcutManagerModule.ShortcutManagerUtils;
 import com.expensify.chat.customairshipextender.PayloadHandler;
@@ -103,7 +104,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
     protected NotificationCompat.Builder onExtendBuilder(@NonNull Context context, @NonNull NotificationCompat.Builder builder, @NonNull NotificationArguments arguments) {
         super.onExtendBuilder(context, builder, arguments);
         PushMessage message = arguments.getMessage();
-        Log.d(TAG, "buildNotification: " + message.toString());
+        if (BuildConfig.DEBUG) Log.d(TAG, "buildNotification: " + message.toString());
 
         // Improve notification delivery by categorizing as a time-critical message
         builder.setCategory(CATEGORY_MESSAGE);
@@ -127,7 +128,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         try {
             String rawPayload = message.getExtra(PAYLOAD_KEY);
             if (rawPayload == null) {
-              Log.d(TAG, "Failed to parse payload - payload is empty. SendID=" + message.getSendId());
+              if (BuildConfig.DEBUG) Log.d(TAG, "Failed to parse payload - payload is empty. SendID=" + message.getSendId());
               return builder;
             }
 
@@ -135,12 +136,12 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             String processedPayload = handler.processPayload(rawPayload);
             JsonMap payload = JsonValue.parseString(processedPayload).optMap();
             if (!payload.containsKey(ONYX_DATA_KEY)) {
-                Log.d(TAG, "Failed to process payload - no onyx data. SendID=" + message.getSendId());
+                if (BuildConfig.DEBUG) Log.d(TAG, "Failed to process payload - no onyx data. SendID=" + message.getSendId());
                 return builder;
             }
 
             Objects.requireNonNull(payload.get(ONYX_DATA_KEY)).isNull();
-            Log.d(TAG, "payload contains onxyData");
+            if (BuildConfig.DEBUG) Log.d(TAG, "payload contains onxyData");
             String alert = message.getExtra(PushMessage.EXTRA_ALERT);
             applyMessageStyle(context, builder, payload, arguments.getNotificationId(), alert);
         } catch (Exception e) {
