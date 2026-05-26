@@ -38,6 +38,7 @@ import {
     buildOptimisticIOUReportAction,
     generateReportID,
     getParsedComment,
+    getReimbursableTotal,
     getReportTransactions,
     hasHeldExpenses,
     isExpenseReport,
@@ -49,6 +50,7 @@ import type {SearchKey} from '@libs/SearchUIUtils';
 import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {hasOnlyPendingCardTransactions} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -115,6 +117,7 @@ type HandleActionButtonPressParams = {
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     amountOwed: OnyxEntry<number>;
     onUndelete?: () => void;
+    onPendingCardTransactionsBlock?: () => void;
     currentUserAccountID?: number;
 };
 
@@ -146,6 +149,7 @@ function handleActionButtonPress({
     onDelegateAccessRestricted,
     personalPolicyID,
     ownerBillingGracePeriodEnd,
+    onPendingCardTransactionsBlock,
     amountOwed,
     onUndelete,
     currentUserAccountID,
@@ -195,6 +199,10 @@ function handleActionButtonPress({
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
             if (snapshotReport.policyID && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
+                return;
+            }
+            if (hasOnlyPendingCardTransactions(allReportTransactions)) {
+                onPendingCardTransactionsBlock?.();
                 return;
             }
             submitMoneyRequestOnSearch(hash, [item as Report], [snapshotPolicy], currentSearchKey);
@@ -293,7 +301,8 @@ function getPayActionCallback(
         return;
     }
 
-    const amount = Math.abs((snapshotReport?.total ?? 0) - (snapshotReport?.nonReimbursableTotal ?? 0));
+    // Prefer the freshly computed reimbursableTotal over deriving from the (sometimes stale) stored total.
+    const amount = Math.abs(getReimbursableTotal(snapshotReport));
 
     if (lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
         payMoneyRequestOnSearch(hash, [{reportID: item.reportID, amount, paymentType: lastPolicyPaymentMethod}], currentSearchKey);
