@@ -106,7 +106,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
      */
     async function setupSelfDMTrackedExpense() {
         const selfDMReport = createSelfDM(1, RORY_ACCOUNT_ID);
-        const originalTransactionID = 'orig-txn-selfDM';
+        const originalTransactionID = 'orig-transaction-selfDM';
 
         const originalTransaction: Transaction = {
             transactionID: originalTransactionID,
@@ -179,14 +179,14 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
                 originalTransactionID: originalTransaction.transactionID,
                 splitExpenses: [
                     {
-                        transactionID: 'split-txn-1',
+                        transactionID: 'split-transaction-1',
                         amount: 1000,
                         reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                         created: DateUtils.getDBTime(),
                         merchant: 'Grocery Store',
                     },
                     {
-                        transactionID: 'split-txn-2',
+                        transactionID: 'split-transaction-2',
                         amount: 1000,
                         reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                         created: DateUtils.getDBTime(),
@@ -266,14 +266,14 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
                 originalTransactionID: originalTransaction.transactionID,
                 splitExpenses: [
                     {
-                        transactionID: 'split-txn-A',
+                        transactionID: 'split-transaction-A',
                         amount: 1000,
                         reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                         created: DateUtils.getDBTime(),
                         merchant: 'Grocery Store',
                     },
                     {
-                        transactionID: 'split-txn-B',
+                        transactionID: 'split-transaction-B',
                         amount: 1000,
                         reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                         created: DateUtils.getDBTime(),
@@ -306,8 +306,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         await waitForNetworkPromises();
         await waitForBatchedUpdates();
 
-        const splitTransaction1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}split-txn-A`);
-        const splitTransaction2 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}split-txn-B`);
+        const splitTransaction1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}split-transaction-A`);
+        const splitTransaction2 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}split-transaction-B`);
 
         // selfDM split transactions should keep UNREPORTED_REPORT_ID (not get assigned to an IOU report)
         expect(splitTransaction1?.reportID).toBe(CONST.REPORT.UNREPORTED_REPORT_ID);
@@ -467,14 +467,14 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
                 originalTransactionID: originalTransaction.transactionID,
                 splitExpenses: [
                     {
-                        transactionID: 'edit-txn-1',
+                        transactionID: 'edit-transaction-1',
                         amount: 1000,
                         reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                         created: DateUtils.getDBTime(),
                         merchant: 'Grocery Store',
                     },
                     {
-                        transactionID: 'edit-txn-2',
+                        transactionID: 'edit-transaction-2',
                         amount: 1000,
                         reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                         created: DateUtils.getDBTime(),
@@ -526,14 +526,14 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
                 originalTransactionID: originalTransaction.transactionID,
                 splitExpenses: [
                     {
-                        transactionID: 'edit-txn-1',
+                        transactionID: 'edit-transaction-1',
                         amount: 1500,
                         reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                         created: DateUtils.getDBTime(),
                         merchant: 'Grocery Store',
                     },
                     {
-                        transactionID: 'edit-txn-2',
+                        transactionID: 'edit-transaction-2',
                         amount: 500,
                         reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                         created: DateUtils.getDBTime(),
@@ -567,8 +567,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         await waitForBatchedUpdates();
 
         // After editing, split transactions should still exist with UNREPORTED_REPORT_ID
-        const childTransaction1AfterEdit = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}edit-txn-1`);
-        const childTransaction2AfterEdit = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}edit-txn-2`);
+        const childTransaction1AfterEdit = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}edit-transaction-1`);
+        const childTransaction2AfterEdit = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}edit-transaction-2`);
 
         expect(childTransaction1AfterEdit?.reportID).toBe(CONST.REPORT.UNREPORTED_REPORT_ID);
         expect(childTransaction2AfterEdit?.reportID).toBe(CONST.REPORT.UNREPORTED_REPORT_ID);

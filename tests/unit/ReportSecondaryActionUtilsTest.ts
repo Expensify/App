@@ -3469,12 +3469,12 @@ describe('getSecondaryTransactionThreadActions', () => {
             merchant: 'Merchant',
             date: '2025-01-01',
             reportID: REPORT_ID,
-            comment: {originalTransactionID: 'ORIGINAL_TXN', source: CONST.IOU.TYPE.SPLIT},
+            comment: {originalTransactionID: 'ORIGINAL_TRANSACTION', source: CONST.IOU.TYPE.SPLIT},
         } as unknown as Transaction;
 
         // And the original ("parent") expense transaction still existing, hidden on the split report
         const originalTransaction = {
-            transactionID: 'ORIGINAL_TXN',
+            transactionID: 'ORIGINAL_TRANSACTION',
             amount: 100,
             merchant: 'Merchant',
             date: '2025-01-01',

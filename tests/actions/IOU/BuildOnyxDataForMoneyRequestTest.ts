@@ -19,7 +19,7 @@ const PAYER_ACCOUNT_ID = 2;
 const SELF_DM_REPORT_ID = '100';
 const CHAT_REPORT_ID = '200';
 const IOU_REPORT_ID = '300';
-const TRANSACTION_ID = 'txn-111';
+const TRANSACTION_ID = 'transaction-111';
 const IOU_ACTION_ID = 'action-222';
 const CREATED_ACTION_ID = 'created-action-333';
 const REPORT_PREVIEW_ACTION_ID = 'preview-action-444';
@@ -188,10 +188,10 @@ describe('buildOnyxDataForMoneyRequest', () => {
 
             it('optimisticData sets transaction via SET', () => {
                 const {optimisticData} = buildOnyxDataForMoneyRequest(buildSelfDMParams());
-                const txnEntry = optimisticData?.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`);
+                const transactionEntry = optimisticData?.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`);
 
-                expect(txnEntry).toBeDefined();
-                expect(txnEntry?.onyxMethod).toBe(Onyx.METHOD.SET);
+                expect(transactionEntry).toBeDefined();
+                expect(transactionEntry?.onyxMethod).toBe(Onyx.METHOD.SET);
             });
 
             it('optimisticData adds IOU action to selfDM report actions with type patched to TRACK', () => {
@@ -251,11 +251,11 @@ describe('buildOnyxDataForMoneyRequest', () => {
 
             it('successData clears transaction pendingAction and pendingFields', () => {
                 const {successData} = buildOnyxDataForMoneyRequest(buildSelfDMParams());
-                const txnEntry = successData?.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`);
+                const transactionEntry = successData?.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`);
 
-                expect(txnEntry).toBeDefined();
-                expect((txnEntry?.value as Partial<Transaction>)?.pendingAction).toBeNull();
-                expect((txnEntry?.value as Partial<Transaction>)?.pendingFields).toBeDefined();
+                expect(transactionEntry).toBeDefined();
+                expect((transactionEntry?.value as Partial<Transaction>)?.pendingAction).toBeNull();
+                expect((transactionEntry?.value as Partial<Transaction>)?.pendingFields).toBeDefined();
             });
 
             it('successData clears IOU action pending state in selfDM report', () => {
@@ -286,10 +286,10 @@ describe('buildOnyxDataForMoneyRequest', () => {
 
             it('failureData sets error on transaction', () => {
                 const {failureData} = buildOnyxDataForMoneyRequest(buildSelfDMParams());
-                const txnEntry = failureData?.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`);
+                const transactionEntry = failureData?.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`);
 
-                expect(txnEntry).toBeDefined();
-                expect((txnEntry?.value as Partial<Transaction>)?.errors).toBeDefined();
+                expect(transactionEntry).toBeDefined();
+                expect((transactionEntry?.value as Partial<Transaction>)?.errors).toBeDefined();
             });
 
             it('failureData sets error on IOU action in selfDM report', () => {
