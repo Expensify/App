@@ -36,7 +36,7 @@ import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getConnectedIntegration} from '@libs/PolicyUtils';
+import {getConnectedIntegration, isSubmitWorkspaceReportMissingApprover} from '@libs/PolicyUtils';
 import {getSecondaryExportReportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
@@ -1296,9 +1296,21 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
         }
 
+        const submitVisibilityReportIDs = selectedReports.length > 0 ? selectedReportIDs : selectedTransactionReportIDs;
+        const hasSubmitWorkspaceReportMissingApproverInSelection = submitVisibilityReportIDs.some((reportID) => {
+            const reportFromSearchResults = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            const reportEntry: OnyxEntry<Report> = reportFromSearchResults ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            if (!reportEntry?.policyID) {
+                return false;
+            }
+            const policyEntry: OnyxEntry<Policy> = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportEntry.policyID}`];
+            return isSubmitWorkspaceReportMissingApprover(policyEntry, reportEntry);
+        });
+
         const shouldShowSubmitOption =
             !isOffline &&
             areSelectedTransactionsIncludedInReports &&
+            !hasSubmitWorkspaceReportMissingApproverInSelection &&
             (selectedReports.length
                 ? selectedReports.every((report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.SUBMIT))
                 : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.SUBMIT));
