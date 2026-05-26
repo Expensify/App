@@ -12,11 +12,10 @@ import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
+import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import {
-    generateReportID,
     getPolicyExpenseChat,
     getReportOrDraftReport,
     isInvoiceRoom,
@@ -135,7 +134,6 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     policyRecentlyUsedCurrencies?: string[];
     introSelected?: IntroSelected;
     files: ReceiptFile[];
-    isTestTransaction?: boolean;
     locationPermissionGranted?: boolean;
     shouldGenerateTransactionThreadReport: boolean;
     selfDMReport: OnyxEntry<Report>;
@@ -358,7 +356,6 @@ function handleMoneyRequestStepScanParticipants({
     policyRecentlyUsedCurrencies,
     introSelected,
     files,
-    isTestTransaction = false,
     locationPermissionGranted = false,
     selfDMReport,
     isSelfTourViewed,
@@ -373,28 +370,6 @@ function handleMoneyRequestStepScanParticipants({
 }: MoneyRequestStepScanParticipantsFlowParams) {
     if (backTo) {
         Navigation.goBack(backTo);
-        return;
-    }
-
-    if (isTestTransaction) {
-        const managerMcTestParticipant = getManagerMcTestParticipant(currentUserAccountID, personalDetails) ?? {};
-        let reportIDParam = managerMcTestParticipant.reportID;
-        if (!managerMcTestParticipant.reportID && report?.reportID) {
-            reportIDParam = generateReportID();
-        }
-        setMoneyRequestParticipants(
-            initialTransaction.transactionID,
-            [
-                {
-                    ...managerMcTestParticipant,
-                    reportID: reportIDParam,
-                    selected: true,
-                },
-            ],
-            true,
-        ).then(() => {
-            navigateToConfirmationPage(iouType, initialTransaction.transactionID, reportID, backToReport, true, reportIDParam);
-        });
         return;
     }
 
@@ -625,7 +600,7 @@ function handleMoneyRequestStepDistanceNavigation({
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
 
     if (transaction?.splitShares && !isManualDistance && !isOdometerDistance) {
-        resetSplitShares(transaction);
+        resetSplitShares(transaction, undefined, undefined, currentUserAccountID);
     }
     if (backTo) {
         Navigation.goBack(backTo);
@@ -1087,12 +1062,9 @@ function startDistanceRequest(
     }
 }
 
-function setMoneyRequestParticipants(transactionID: string, participants: Participant[] = [], isTestTransaction = false) {
-    // We should change the reportID and isFromGlobalCreate of the test transaction since this flow can start inside an existing report
+function setMoneyRequestParticipants(transactionID: string, participants: Participant[] = []) {
     return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
         participants,
-        isFromGlobalCreate: isTestTransaction ? true : undefined,
-        reportID: isTestTransaction ? participants?.at(0)?.reportID : undefined,
     });
 }
 
@@ -1314,6 +1286,17 @@ function setMoneyRequestDistance(transactionID: string, distanceAsFloat: number,
 }
 
 /**
+ * Remember the most recently selected distance rate for a policy so the rate picker
+ * defaults to it on the next distance expense for that workspace.
+ */
+function setLastSelectedDistanceRate(policy: OnyxEntry<Policy>, customUnitRateID: string) {
+    if (!policy) {
+        return;
+    }
+    Onyx.merge(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {[policy.id]: customUnitRateID});
+}
+
+/**
  * Set the distance rate of a transaction.
  * Used when creating a new transaction or moving an existing one from Self DM
  */
@@ -1322,9 +1305,7 @@ function setMoneyRequestDistanceRate(currentTransaction: OnyxEntry<Transaction>,
         Log.warn('setMoneyRequestDistanceRate is called without a valid transaction, skipping setting distance rate.');
         return;
     }
-    if (policy) {
-        Onyx.merge(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {[policy.id]: customUnitRateID});
-    }
+    setLastSelectedDistanceRate(policy, customUnitRateID);
 
     const newDistanceUnit = getDistanceRateCustomUnit(policy)?.attributes?.unit;
     const transactionID = currentTransaction?.transactionID;
@@ -1473,5 +1454,6 @@ export {
     setMoneyRequestBillable,
     setMoneyRequestReimbursable,
     setMoneyRequestReportID,
+    setLastSelectedDistanceRate,
 };
 export type {MoneyRequestStepScanParticipantsFlowParams};
