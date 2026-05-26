@@ -55,6 +55,9 @@ type MoneyRequestConfirmationListFooterProps = {
     /** Active policy (read by sections — may differ from `policyID` in track-expense flows where the user moves the expense to a different workspace) */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
+    /** Policy tag lists (resolved by the caller; passed in to avoid a duplicate Onyx subscription inside `ConfirmationFieldList`) */
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
+
     /** Selected participants (drives ReportField + InvoiceSender presentation) */
     selectedParticipants: Participant[];
 
@@ -113,6 +116,7 @@ function MoneyRequestConfirmationListFooter({
     transaction,
     policyID,
     policy,
+    policyTags,
     selectedParticipants,
     isReadOnly,
     didConfirm,
@@ -192,6 +196,8 @@ function MoneyRequestConfirmationListFooter({
                 />
 
                 <ConfirmationFieldList
+                    policy={policy}
+                    policyTags={policyTags}
                     selectedParticipants={selectedParticipants}
                     expenseMode={expenseMode}
                     distanceFlags={distanceFlags}

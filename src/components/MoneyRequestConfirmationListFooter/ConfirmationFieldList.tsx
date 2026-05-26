@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
@@ -12,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getTagLists} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import ClassificationFields from './fieldGroups/ClassificationFields';
 import computeFieldVisibility, {hasBelowShowMore} from './fieldGroups/fieldVisibility';
@@ -22,6 +24,12 @@ import useFooterDerivedFlags from './hooks/useFooterDerivedFlags';
 import useFooterTagVisibility from './hooks/useFooterTagVisibility';
 
 type ConfirmationFieldListProps = {
+    /** Active policy (resolved by the caller; passed in to avoid a duplicate Onyx subscription) */
+    policy: OnyxEntry<OnyxTypes.Policy>;
+
+    /** Policy tag lists (resolved by the caller; passed in to avoid a duplicate Onyx subscription) */
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
+
     /** Selected participants (drives ReportField presentation) */
     selectedParticipants: Participant[];
 
@@ -57,6 +65,8 @@ type ConfirmationFieldListProps = {
 };
 
 function ConfirmationFieldList({
+    policy,
+    policyTags,
     selectedParticipants,
     expenseMode,
     distanceFlags,
@@ -73,14 +83,12 @@ function ConfirmationFieldList({
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles', 'DownArrow']);
-    const {action, iouType, transactionID, policyID, isReadOnly, isPolicyExpenseChat, isEditingSplitBill} = useConfirmationFields();
+    const {action, iouType, transactionID, isReadOnly, isPolicyExpenseChat, isEditingSplitBill} = useConfirmationFields();
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
     const [existingTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const transaction = isEditingSplitBill ? (splitDraftTransaction ?? existingTransaction) : (draftTransaction ?? existingTransaction);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const policyTagLists = getTagLists(policyTags);
 
     const flags = useFooterDerivedFlags({

@@ -82,6 +82,7 @@ const renderMoneyRequestConfirmationListFooter = async (transaction: Transaction
         transaction,
         policyID: FAKE_POLICY_ID,
         policy: createRandomPolicy(Number(FAKE_POLICY_ID), CONST.POLICY.TYPE.TEAM),
+        policyTags: {},
         selectedParticipants: [
             {
                 policyID: FAKE_POLICY_ID,
@@ -102,6 +103,7 @@ const renderMoneyRequestConfirmationListFooter = async (transaction: Transaction
             shouldShowMerchant: false,
             shouldShowCategories: false,
             shouldShowTax: false,
+            isParticipantPickerVisible: false,
         },
         errorState: {shouldDisplayFieldError: false, formError: '', clearFormErrors: jest.fn(), setFormError: jest.fn()},
         receiptOptions: {

@@ -532,6 +532,7 @@ function MoneyRequestConfirmationList({
                 transaction={transaction}
                 policyID={policyID}
                 policy={policy}
+                policyTags={policyTags}
                 selectedParticipants={selectedParticipantsProp}
                 isReadOnly={isReadOnly}
                 didConfirm={!!didConfirm}
