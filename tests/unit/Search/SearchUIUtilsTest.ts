@@ -23,7 +23,7 @@ import type {
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
 } from '@components/Search/SearchList/ListItem/types';
-import type {SelectedTransactionInfo} from '@components/Search/types';
+import type {SearchQueryJSON, SelectedTransactionInfo} from '@components/Search/types';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@navigation/Navigation';
 import type * as ReportUserActions from '@userActions/Report';
@@ -35,7 +35,7 @@ import IntlStore from '@src/languages/IntlStore';
 import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
 import {getCardDescriptionForSearchTable} from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
-import {getDateRangeForPreset, getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
+import {buildSearchQueryJSON, getDateRangeForPreset, getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -4676,11 +4676,11 @@ describe('SearchUIUtils', () => {
             expect(result.some((item) => item.tag === CONST.SEARCH.TAG_EMPTY_VALUE)).toBe(true);
         });
 
-        it('should handle "(untagged)" value from backend', () => {
+        it('should handle backend untagged value', () => {
             const dataWithUntagged: OnyxTypes.SearchResults['data'] = {
                 personalDetailsList: {},
                 [`${CONST.SEARCH.GROUP_PREFIX}untagged` as const]: {
-                    tag: '(untagged)',
+                    tag: CONST.SEARCH.TAG_UNTAGGED_VALUE,
                     count: 3,
                     currency: 'USD',
                     total: 100,
@@ -4702,7 +4702,42 @@ describe('SearchUIUtils', () => {
             }) as [TransactionTagGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(1);
-            expect(result.at(0)?.tag).toBe('(untagged)');
+            expect(result.at(0)?.tag).toBe(CONST.SEARCH.TAG_UNTAGGED_VALUE);
+        });
+
+        it('should build missing tag query for empty tag group drill-down', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense has:receipt groupBy:tag');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const dataWithEmptyTag: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}empty` as const]: {
+                    tag: '',
+                    count: 2,
+                    currency: 'USD',
+                    total: 50,
+                },
+            };
+
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: dataWithEmptyTag,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                groupBy: CONST.SEARCH.GROUP_BY.TAG,
+                allReportMetadata: {},
+                conciergeReportID: undefined,
+                queryJSON: queryJSON as SearchQueryJSON,
+                convertToDisplayString,
+            }) as [TransactionTagGroupListItemType[], number, boolean];
+
+            expect(result.at(0)?.transactionsQueryJSON?.inputQuery).toBe('type:expense sortBy:groupTag sortOrder:asc has:receipt -has:tag');
         });
 
         it('should return isTransactionTagGroupListItemType true for tag group items', () => {
