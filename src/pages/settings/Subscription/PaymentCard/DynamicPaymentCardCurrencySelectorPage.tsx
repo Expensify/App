@@ -11,6 +11,7 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setDraftValues} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
+import {setPaymentMethodCurrency} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -24,14 +25,14 @@ function DynamicPaymentCardCurrencySelectorPage() {
     const {isBetaEnabled} = usePermissions();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.PAYMENT_CARD_CURRENCY_SELECTOR.path);
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM_DRAFT);
+    const [addCardForm] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
 
-    // Mirrors the `initialCurrency` resolution in ChangeBillingCurrency: the billing card's currency.
     const fallbackCurrency = useMemo(
         () => Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard)?.accountData?.currency ?? CONST.PAYMENT_CARD_CURRENCY.USD,
         [fundList],
     );
-    const currentCurrency = (formDraft?.[INPUT_IDS.CURRENCY] ?? fallbackCurrency) as Currency;
+    const currentCurrency = (formDraft?.[INPUT_IDS.CURRENCY] ?? addCardForm?.currency ?? fallbackCurrency) as Currency;
 
     const currencyOptions = useMemo(() => {
         const canUseEurBilling = isBetaEnabled(CONST.BETAS.EUR_BILLING);
@@ -61,6 +62,7 @@ function DynamicPaymentCardCurrencySelectorPage() {
                 ListItem={SingleSelectListItem}
                 onSelectRow={(option) => {
                     setDraftValues(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM, {[INPUT_IDS.CURRENCY]: option.value});
+                    setPaymentMethodCurrency(option.value);
                     Navigation.goBack(backPath);
                 }}
                 shouldSingleExecuteRowSelect
