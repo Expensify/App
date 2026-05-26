@@ -1139,7 +1139,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         agentPromotionalBannerBadge: {
-            marginLeft: 4,
             // The Badge (a View) is rendered inline inside a <Text> so it flows with the title
             // and wraps after the last word. View-in-Text vertical alignment is platform-specific:
             //  - web: defaults to baseline (badge sits low). `verticalAlign: 'middle'` centers it
@@ -1147,8 +1146,8 @@ const staticStyles = (theme: ThemeColors) =>
             //  - native: the inline-view attachment defaults to aligning the badge's top with the
             //    line top (badge sits high). Translate it down so its center lines up with text.
             ...Platform.select({
-                web: {verticalAlign: 'middle'},
-                default: {transform: [{translateY: 4}]},
+                web: {verticalAlign: 'middle', marginLeft: 4},
+                default: {transform: [{translateY: 4}, {translateX: 4}]},
             }),
         },
 
