@@ -74,6 +74,7 @@
     "compress-svg": "npx ts-node scripts/compressSvg.ts --dir assets/images && npx ts-node scripts/compressSvg.ts --dir docs/assets/images",
     "server:vcr:dev": "bun run server/victory-chart-renderer/src/cli.ts",
     "server:vcr:build:linux": "bun build --compile --target=bun-linux-x64 server/victory-chart-renderer/src/cli.ts --outfile server/victory-chart-renderer/dist/victory-chart-renderer-linux-x64",
+    "server:vcr:build:linux-arm": "bun build --compile --target=bun-linux-arm64 server/victory-chart-renderer/src/cli.ts --outfile server/victory-chart-renderer/dist/victory-chart-renderer-linux-arm64",
     "server:vcr:build:macos": "bun build --compile --target=bun-darwin-arm64 server/victory-chart-renderer/src/cli.ts --outfile server/victory-chart-renderer/dist/victory-chart-renderer-darwin-arm64"
   },
   "dependencies": {
