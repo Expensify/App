@@ -409,7 +409,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             text: translate('iou.viewDetails'),
             icon: expensifyIcons.Info,
             onSelected: () => {
-                navigateToDetailsPage(report, Navigation.getActiveRoute());
+                navigateToDetailsPage(report);
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE]: {

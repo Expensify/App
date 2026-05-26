@@ -228,7 +228,7 @@ function AvatarWithDisplayName({
     }, [parentReportActionActorAccountID, report?.parentReportActionID]);
 
     const goToDetailsPage = () => {
-        navigateToDetailsPage(report, Navigation.getActiveRoute());
+        navigateToDetailsPage(report);
     };
 
     const navigateToEditReportTitle = (event?: GestureResponderEvent | KeyboardEvent) => {

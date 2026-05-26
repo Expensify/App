@@ -345,7 +345,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             icon: expensifyIcons.Info,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.VIEW_DETAILS,
             onSelected: () => {
-                navigateToDetailsPage(moneyRequestReport, Navigation.getReportRHPActiveRoute());
+                navigateToDetailsPage(moneyRequestReport);
             },
         },
         ...exportActionEntries,
