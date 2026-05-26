@@ -287,7 +287,7 @@ describe('SequentialQueue', () => {
         await clearPersistedRequests();
         await waitForBatchedUpdates();
 
-        const processSpy = jest.spyOn(RequestModule, 'processWithMiddleware').mockRejectedValue(new Error(CONST.ERROR.DUPLICATE_RECORD));
+        const processSpy = jest.spyOn(RequestModule, 'processWithMiddleware').mockRejectedValue(new Error(CONST.ERROR.ALREADY_CREATED));
         const onyxUpdateSpy = jest.spyOn(Onyx, 'update');
 
         const successData: Array<OnyxUpdate<typeof ONYXKEYS.USER_METADATA>> = [{key: 'userMetadata', onyxMethod: 'set', value: {accountID: 9999}}];

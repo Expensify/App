@@ -145,6 +145,16 @@ function processHTTPRequest<TKey extends OnyxKey>(
                 });
             }
 
+            // Per-command messages indicating the resource already exists on the server (e.g. retry after a successful first attempt).
+            const alreadyCreatedMessages: string[] = [CONST.ERROR_TITLE.ALREADY_CREATED_TRANSACTION];
+            if (response.message && alreadyCreatedMessages.includes(response.message)) {
+                throw new HttpsError({
+                    message: CONST.ERROR.ALREADY_CREATED,
+                    status: CONST.JSON_CODE.BAD_REQUEST.toString(),
+                    title: response.message,
+                });
+            }
+
             // Auth is down or timed out while making a request
             if (response.jsonCode === CONST.JSON_CODE.EXP_ERROR && response.title === CONST.ERROR_TITLE.SOCKET && response.type === CONST.ERROR_TYPE.SOCKET) {
                 throw new HttpsError({
