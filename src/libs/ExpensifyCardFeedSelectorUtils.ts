@@ -1,7 +1,8 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ExpensifyCardSettings, Policy} from '@src/types/onyx';
+import {isAdminSelector} from '@src/selectors/Domain';
+import type {Domain, ExpensifyCardSettings, Policy} from '@src/types/onyx';
 import {
     getCardSettings,
     getFundIdFromSettingsKey,
@@ -21,7 +22,13 @@ function hasLoadedExpensifyCardSettings(settings: ExpensifyCardSettings | undefi
     return !!settings && Object.keys(settings).length > 1;
 }
 
-function isExpensifyCardFeedVisibleToAdmin(settings: ExpensifyCardSettings, policies: OnyxCollection<Policy> | undefined): boolean {
+function isExpensifyCardFeedVisibleToAdmin(
+    settings: ExpensifyCardSettings,
+    policies: OnyxCollection<Policy> | undefined,
+    fundID: number,
+    domains: OnyxCollection<Domain> | undefined,
+    currentUserAccountID: number | undefined,
+): boolean {
     if (!hasLoadedExpensifyCardSettings(settings)) {
         return false;
     }
@@ -33,11 +40,19 @@ function isExpensifyCardFeedVisibleToAdmin(settings: ExpensifyCardSettings, poli
         });
     }
     const preferredPolicy = getPreferredPolicyFromExpensifyCardSettings(settings);
-    if (!preferredPolicy) {
-        return false;
+    if (preferredPolicy) {
+        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${preferredPolicy.toUpperCase()}`];
+        return isPolicyAdmin(policy) && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     }
-    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${preferredPolicy.toUpperCase()}`];
-    return isPolicyAdmin(policy) && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+    const domain = domains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${fundID}`];
+    if (isAdminSelector(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID)(domain)) {
+        return true;
+    }
+
+    return Object.values(policies ?? {}).some(
+        (policy) => policy?.workspaceAccountID === fundID && isPolicyAdmin(policy) && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+    );
 }
 
 function isFeedLinkedToPolicy(entry: ExpensifyCardFeedEntry, policyID: string): boolean {
@@ -58,13 +73,18 @@ function isFeedPrimaryForPolicy(entry: ExpensifyCardFeedEntry, policyID: string)
     return isFeedForCurrentWorkspace(entry, policyID);
 }
 
-function getAdminExpensifyCardFeedEntries(cardSettingsCollection: OnyxCollection<ExpensifyCardSettings> | undefined, policies: OnyxCollection<Policy> | undefined): ExpensifyCardFeedEntry[] {
+function getAdminExpensifyCardFeedEntries(
+    cardSettingsCollection: OnyxCollection<ExpensifyCardSettings> | undefined,
+    policies: OnyxCollection<Policy> | undefined,
+    domains: OnyxCollection<Domain> | undefined,
+    currentUserAccountID: number | undefined,
+): ExpensifyCardFeedEntry[] {
     return Object.entries(cardSettingsCollection ?? {}).flatMap(([settingsKey, settings]) => {
         if (!settings) {
             return [];
         }
         const fundID = getFundIdFromSettingsKey(settingsKey);
-        if (!isExpensifyCardFeedVisibleToAdmin(settings, policies)) {
+        if (!isExpensifyCardFeedVisibleToAdmin(settings, policies, fundID, domains, currentUserAccountID)) {
             return [];
         }
         return [{settingsKey, fundID, settings}];

@@ -4,6 +4,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const policyID = 'policy_workspace';
+const currentUserAccountID = 1001;
+const orphanDomainFundID = 5555;
 
 const mockUseOnyx = jest.fn();
 
@@ -12,8 +14,21 @@ jest.mock('@hooks/useOnyx', () => ({
     default: (...args: unknown[]): [unknown, {status?: string}] => mockUseOnyx(...args) as [unknown, {status?: string}],
 }));
 
+jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
+    __esModule: true,
+    default: () => ({accountID: currentUserAccountID}),
+}));
+
 function cardSettingsKey(fundID: number) {
     return `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`;
+}
+
+function domainWithAdmin(fundID: number, accountID: number) {
+    return {
+        [`${ONYXKEYS.COLLECTION.DOMAIN}${fundID}`]: {
+            [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}0`]: accountID,
+        },
+    };
 }
 
 describe('useHasAnyAdminExpensifyCardFeed', () => {
@@ -24,6 +39,9 @@ describe('useHasAnyAdminExpensifyCardFeed', () => {
                 return [{}, {status: 'loaded'}];
             }
             if (key === ONYXKEYS.COLLECTION.POLICY) {
+                return [{}, {status: 'loaded'}];
+            }
+            if (key === ONYXKEYS.COLLECTION.DOMAIN) {
                 return [{}, {status: 'loaded'}];
             }
             return [undefined, {}];
@@ -62,7 +80,7 @@ describe('useHasAnyAdminExpensifyCardFeed', () => {
         expect(result.current).toBe(false);
     });
 
-    it('returns false when preferredPolicy is missing', () => {
+    it('returns false when preferredPolicy is missing and user is not domain admin', () => {
         mockUseOnyx.mockImplementation((key: string) => {
             if (key === ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS) {
                 return [
@@ -80,12 +98,42 @@ describe('useHasAnyAdminExpensifyCardFeed', () => {
                     {status: 'loaded'},
                 ];
             }
+            if (key === ONYXKEYS.COLLECTION.DOMAIN) {
+                return [{}, {status: 'loaded'}];
+            }
             return [undefined, {}];
         });
 
         const {result} = renderHook(() => useHasAnyAdminExpensifyCardFeed());
 
         expect(result.current).toBe(false);
+    });
+
+    it('returns true when preferredPolicy is missing but user is domain admin of the feed', () => {
+        mockUseOnyx.mockImplementation((key: string) => {
+            if (key === ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS) {
+                return [
+                    {
+                        [cardSettingsKey(orphanDomainFundID)]: {
+                            domainName: 'example.com',
+                            isEnabled: true,
+                        },
+                    },
+                    {status: 'loaded'},
+                ];
+            }
+            if (key === ONYXKEYS.COLLECTION.POLICY) {
+                return [{}, {status: 'loaded'}];
+            }
+            if (key === ONYXKEYS.COLLECTION.DOMAIN) {
+                return [domainWithAdmin(orphanDomainFundID, currentUserAccountID), {status: 'loaded'}];
+            }
+            return [undefined, {}];
+        });
+
+        const {result} = renderHook(() => useHasAnyAdminExpensifyCardFeed());
+
+        expect(result.current).toBe(true);
     });
 
     it('returns false when user is not policy admin', () => {
