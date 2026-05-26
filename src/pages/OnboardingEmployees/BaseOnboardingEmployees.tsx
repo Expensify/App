@@ -37,12 +37,23 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const companySizeOptions: OnboardingListItem[] = useMemo(() => {
         const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
+        const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
         return Object.values(CONST.ONBOARDING_COMPANY_SIZE)
-            .filter(
-                (size) =>
-                    // Always hide the deprecated 1-10 option. For SMB-qualified users, also hide 1-4 and 5-10 since they already indicated they manage a team.
-                    size !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && (!isSmb || (size !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL && size !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM)),
-            )
+            .filter((size) => {
+                // Always hide the deprecated 1-10 option.
+                if (size === CONST.ONBOARDING_COMPANY_SIZE.MICRO) {
+                    return false;
+                }
+                // For VSB-qualified users (1-9 from landing page), only show 1-4 and 5-10.
+                if (isVsb) {
+                    return size === CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL || size === CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM;
+                }
+                // For SMB-qualified users, hide 1-4 and 5-10 since they already indicated 10+.
+                if (isSmb) {
+                    return size !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL && size !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM;
+                }
+                return true;
+            })
             .map((companySize): OnboardingListItem => {
                 return {
                     text: translate(`onboarding.employees.${companySize}`),
@@ -85,7 +96,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
             <HeaderWithBackButton
-                shouldShowBackButton
+                shouldShowBackButton={onboardingValues?.signupQualifier !== CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB}
                 stepCounter={onboardingStep?.stepCounter}
                 progressBarPercentage={onboardingStep?.progressBarPercentage}
                 onBackButtonPress={() => {
