@@ -1,5 +1,4 @@
-import type {ForwardedRef} from 'react';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {Pressable} from 'react-native';
@@ -11,6 +10,8 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Accessibility from '@libs/Accessibility';
 import HapticFeedback from '@libs/HapticFeedback';
+import mergeRefs from '@libs/mergeRefs';
+import {notifyPressedTrigger} from '@libs/NavigationFocusReturn';
 import CONST from '@src/CONST';
 
 function GenericPressable({
@@ -50,6 +51,8 @@ function GenericPressable({
     const [hitSlop, onLayout] = Accessibility.useAutoHitSlop();
     const [isHovered, setIsHovered] = useState(false);
     const isRoleButton = [rest.accessibilityRole, rest.role].includes(CONST.ROLE.BUTTON);
+    const internalRef = useRef<View | null>(null);
+    const composedRef = useMemo(() => mergeRefs(ref, internalRef), [ref]);
 
     const isDisabled = useMemo(() => {
         let shouldBeDisabledByScreenReader = false;
@@ -123,6 +126,7 @@ function GenericPressable({
                 ref.current?.blur();
                 Accessibility.moveAccessibilityFocus(nextFocusRef);
             }
+            notifyPressedTrigger(internalRef.current);
             return onPress(event);
         },
         [shouldUseHapticsOnPress, onPress, nextFocusRef, ref, isDisabled, interactive],
@@ -176,7 +180,7 @@ function GenericPressable({
         <Pressable
             hitSlop={shouldUseAutoHitSlop ? hitSlop : undefined}
             onLayout={shouldUseAutoHitSlop ? onLayout : undefined}
-            ref={ref as ForwardedRef<View>}
+            ref={composedRef}
             disabled={fullDisabled || undefined}
             onPress={!isDisabled ? singleExecution(onPressHandler) : undefined}
             onLongPress={!isDisabled && onLongPress ? onLongPressHandler : undefined}

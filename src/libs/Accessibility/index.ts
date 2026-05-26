@@ -8,6 +8,13 @@ type HitSlop = {x: number; y: number};
 
 let cachedScreenReaderValue = false;
 
+// Warm the cache at module load so the sync read is meaningful before any hook subscribes.
+isScreenReaderEnabled()
+    .then((enabled) => {
+        cachedScreenReaderValue = enabled;
+    })
+    .catch(() => {});
+
 function subscribeScreenReader(callback: () => void) {
     const subscription = AccessibilityInfo.addEventListener('screenReaderChanged', (enabled) => {
         cachedScreenReaderValue = enabled;
@@ -29,6 +36,10 @@ function getScreenReaderSnapshot() {
 }
 
 const useScreenReaderStatus = (): boolean => useSyncExternalStore(subscribeScreenReader, getScreenReaderSnapshot, () => false);
+
+function isScreenReaderEnabledSync(): boolean {
+    return cachedScreenReaderValue;
+}
 
 let cachedReduceMotionValue = false;
 
@@ -87,4 +98,5 @@ export default {
     useScreenReaderStatus,
     useAutoHitSlop,
     useReducedMotion,
+    isScreenReaderEnabledSync,
 };

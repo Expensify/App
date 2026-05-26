@@ -1,20 +1,17 @@
-import {findFocusedRoute} from '@react-navigation/core';
-import type {NavigationState, PartialState} from '@react-navigation/native';
+import type {NavigationState} from '@react-navigation/native';
 // eslint-disable-next-line no-restricted-imports -- idiomatic defer primitive past navigation transitions.
 import {InteractionManager} from 'react-native';
+import type {View} from 'react-native';
 import compoundParamsKey, {COMPOUND_KEY_DELIMITER} from './compoundParamsKey';
 import FOCUSABLE_SELECTOR from './focusableSelector';
 import hasFocusableAttributes from './focusGuards';
 import getHadTabNavigation from './hadTabNavigation';
 import {consumeLauncher, pickLauncher, resetLauncherStackForTests} from './LauncherStack';
 import navigationRef from './Navigation/navigationRef';
+import {collectRouteKeys, diffNavigationState} from './navigationStateDiff';
 import {isCycleIdle, Priorities, resetCycle, tryClaim} from './ScreenFocusArbiter';
 
 /** focusin tracks the last keyboard-focused element; a nav state listener captures it against the outgoing route and restores it on backward nav. */
-
-type AnyState = NavigationState | PartialState<NavigationState> | undefined;
-
-type DiffAction = {type: 'forward'; captureKey: string} | {type: 'backward'; restoreKey: string} | {type: 'lateral'} | {type: 'noop'};
 
 // Fallback is the surrounding trap's launcher, used when primary can't accept focus at restore.
 type TriggerEntry = {primary: HTMLElement; fallback?: HTMLElement};
@@ -53,49 +50,6 @@ let stateUnsubscribe: (() => void) | null = null;
 
 // Three events for touch/pen/legacy/drag-to-release coverage; handler is idempotent.
 const MOUSE_ACTIVATION_EVENTS = ['pointerdown', 'mousedown', 'click'] as const;
-
-function collectRouteKeys(state: AnyState, out = new Set<string>()): Set<string> {
-    if (!state?.routes) {
-        return out;
-    }
-    for (const route of state.routes) {
-        if (route.key) {
-            out.add(route.key);
-        }
-        if (route.state) {
-            collectRouteKeys(route.state as PartialState<NavigationState>, out);
-        }
-    }
-    return out;
-}
-
-function diffNavigationState(prev: AnyState, next: NavigationState): {action: DiffAction; removedKeys: string[]} {
-    const newFocusedKey = findFocusedRoute(next)?.key;
-    const prevFocusedKey = prev ? findFocusedRoute(prev as NavigationState)?.key : undefined;
-
-    const prevKeys = collectRouteKeys(prev);
-    const newKeys = collectRouteKeys(next);
-    const removedKeys: string[] = [];
-    for (const key of prevKeys) {
-        if (!newKeys.has(key)) {
-            removedKeys.push(key);
-        }
-    }
-
-    let action: DiffAction;
-    if (!prevFocusedKey || !newFocusedKey || prevFocusedKey === newFocusedKey) {
-        action = {type: 'noop'};
-    } else if (prevKeys.has(newFocusedKey) && removedKeys.length > 0) {
-        action = {type: 'backward', restoreKey: newFocusedKey};
-    } else if (!prevKeys.has(newFocusedKey)) {
-        action = {type: 'forward', captureKey: prevFocusedKey};
-    } else {
-        // Key existed, nothing dropped — e.g. top-tab switch with all tabs mounted.
-        action = {type: 'lateral'};
-    }
-
-    return {action, removedKeys};
-}
 
 function captureTriggerForRoute(routeKey: string): void {
     if (typeof document === 'undefined') {
@@ -144,6 +98,10 @@ function notifyPushParamsBackward(routeKey: string, targetParams: unknown): void
 function skipNextFocusRestore(): void {
     skipNextRestore = true;
 }
+
+/** Native-only. Web captures via `focusin`; no-op here so the import resolves cross-platform. */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function notifyPressedTrigger(_node: View | null): void {}
 
 /** True only while restoreTriggerForRoute is in its .focus() call. Lists use it to tell the restore apart from a real keyboard Tab, which also has no sourceCapabilities. */
 function isFocusRestoreInProgress(): boolean {
@@ -523,6 +481,7 @@ export {
     notifyPushParamsBackward,
     cancelPendingFocusRestore,
     skipNextFocusRestore,
+    notifyPressedTrigger,
     isFocusRestoreInProgress,
     compoundParamsKey,
     shouldSkipAutoFocusDueToExistingFocus,
