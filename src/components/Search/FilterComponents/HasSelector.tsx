@@ -24,6 +24,7 @@ function HasSelector({value = [], selectionListStyle, footer, onChange}: HasSele
     const styles = useThemeStyles();
     const [type = CONST.SEARCH.DATA_TYPES.EXPENSE] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: filterTypeSelector});
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.HAS_FILTER_NEGATION);
+    const shouldRenderTooltip = shouldShowProductTrainingTooltip && type === CONST.SEARCH.DATA_TYPES.EXPENSE;
 
     const items = getHasOptions(translate, type);
     const multiSelectValues = items.filter((item) => value.includes(item.value));
@@ -34,7 +35,7 @@ function HasSelector({value = [], selectionListStyle, footer, onChange}: HasSele
             value={multiSelectValues}
             itemWrapper={({children, item}) => (
                 <EducationalTooltip
-                    shouldRender={item.keyForList === CONST.SEARCH.HAS_VALUES.RECEIPT && shouldShowProductTrainingTooltip && type === CONST.SEARCH.DATA_TYPES.EXPENSE}
+                    shouldRender={item.keyForList === CONST.SEARCH.HAS_VALUES.RECEIPT && shouldRenderTooltip}
                     renderTooltipContent={renderProductTrainingTooltip}
                     anchorAlignment={{
                         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -51,7 +52,7 @@ function HasSelector({value = [], selectionListStyle, footer, onChange}: HasSele
             selectionListStyle={selectionListStyle}
             footer={footer}
             onChange={(selectedItems) => {
-                if (shouldShowProductTrainingTooltip) {
+                if (shouldRenderTooltip) {
                     hideProductTrainingTooltip();
                 }
                 onChange(selectedItems.map((item) => item.value));
