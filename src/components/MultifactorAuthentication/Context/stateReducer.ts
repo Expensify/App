@@ -66,7 +66,8 @@ function stateReducer(state: MultifactorAuthenticationState, action: Action): Mu
         case 'SET_AUTHORIZATION_COMPLETE':
             return {...state, isAuthorizationComplete: action.payload};
         case 'SET_FLOW_COMPLETE':
-            return {...state, isFlowComplete: action.payload};
+            // Clear cancel-confirm so it doesn't linger over the outcome screen.
+            return {...state, isFlowComplete: action.payload, isCancelConfirmVisible: action.payload ? false : state.isCancelConfirmVisible};
         case 'SET_AUTHENTICATION_METHOD':
             return {...state, authenticationMethod: action.payload};
         case 'SET_SCENARIO_RESPONSE':
