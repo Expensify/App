@@ -19,8 +19,11 @@ type BankAccountSelectorProps = SearchFilterSelectionListProps & {
 };
 
 type BankAccountItem = {
+    /** Display label, e.g. `Chase xx1234`. */
     text: string;
+    /** Bank account id stringified, used as the filter value. */
     value: string;
+    /** Bank icon wrapper rendered to the left of the row. */
     leftElement: React.JSX.Element;
 };
 
