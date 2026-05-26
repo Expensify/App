@@ -1,5 +1,4 @@
 import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterSelectionListProps} from '@components/Search/types';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
@@ -9,12 +8,14 @@ import {FILTER_VIEW_MAP, getMultiSelectFilterOptions, getSingleSelectFilterOptio
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
+import {filterTypeSelector} from '@src/selectors/Search';
+import type {HasFilterValues, SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
 import CardSelector from './CardSelector';
 import CategorySelector from './CategorySelector';
 import CurrencySelector from './CurrencySelector';
 import ExportedToSelector from './ExportedToSelector';
 import FeedSelector from './FeedSelector';
+import HasSelector from './HasSelector';
 import InSelector from './InSelector';
 import MultiSelect from './MultiSelect';
 import SingleSelect from './SingleSelect';
@@ -55,7 +56,6 @@ type SingleSelectFilterComponentsProps = SearchFilterSelectionListProps & {
 };
 
 type MultiSelectFilterKeys =
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.IS
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS
@@ -103,12 +103,7 @@ function SingleSelectFilterComponents({filterKey, value, selectionListTextInputS
 
 function MultiSelectFilterComponents({filterKey, value = [], selectionListStyle, footer, onChange}: MultiSelectFilterComponentsProps) {
     const {translate} = useLocalize();
-    const typeSelector = (searchAdvancedFiltersForm: OnyxEntry<SearchAdvancedFiltersForm>) => {
-        return searchAdvancedFiltersForm?.type;
-    };
-    const [type = CONST.SEARCH.DATA_TYPES.EXPENSE] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {
-        selector: typeSelector,
-    });
+    const [type = CONST.SEARCH.DATA_TYPES.EXPENSE] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: filterTypeSelector});
     const items = getMultiSelectFilterOptions(filterKey, type, translate);
     const normalizedValue = Array.isArray(value) ? value : value.split(',');
     const multiSelectValues = items.filter((item) => normalizedValue.includes(item.value));
@@ -225,7 +220,17 @@ function FilterComponents({
                 />
             );
         }
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS: {
+            return (
+                <HasSelector
+                    value={value as HasFilterValues | undefined}
+                    selectionListTextInputStyle={selectionListTextInputStyle}
+                    selectionListStyle={selectionListStyle}
+                    footer={footer}
+                    onChange={onChange}
+                />
+            );
+        }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IS:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS:

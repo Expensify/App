@@ -345,7 +345,7 @@ export default {
     accountSwitcherTooltipShiftHorizontal: 4,
     expenseReportsTypeTooltipShiftHorizontal: 10,
     hasFilterNegationTooltipShiftHorizontal: -16,
-    hasFilterNegationTooltipShiftVertical: 40,
+    hasFilterNegationTooltipShiftVertical: -12,
     hasFilterNegationTooltipMaxWidth: 260,
 
     inlineImagePreviewMinSize: 64,

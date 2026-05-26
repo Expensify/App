@@ -3,5 +3,6 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
 const filterGroupCurrencySelector = (searchAdvancedFiltersForm: OnyxEntry<SearchAdvancedFiltersForm>) => searchAdvancedFiltersForm?.groupCurrency;
 const filterPolicyIDSelector = (searchAdvancedFiltersForm: OnyxEntry<SearchAdvancedFiltersForm>) => searchAdvancedFiltersForm?.policyID;
+const filterTypeSelector = (searchAdvancedFiltersForm: OnyxEntry<SearchAdvancedFiltersForm>) => searchAdvancedFiltersForm?.type;
 
-export {filterGroupCurrencySelector, filterPolicyIDSelector};
+export {filterGroupCurrencySelector, filterPolicyIDSelector, filterTypeSelector};

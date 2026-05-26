@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import type {ReactNode} from 'react';
+import type {ComponentType, ReactNode} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import type {SearchFilterSelectionListProps} from '@components/Search/types';
@@ -44,6 +44,9 @@ type MultiSelectProps<T> = SearchFilterSelectionListProps & {
 
     /** Whether the text input should be auto-focused or not. Defaults to true. */
     autoFocus?: boolean;
+
+    /** Optional wrapper component to wrap the MultiSelectListItem */
+    itemWrapper?: ComponentType<{children: ReactNode; item: ListItem}>;
 };
 
 function MultiSelect<T extends string>({
@@ -57,6 +60,7 @@ function MultiSelect<T extends string>({
     autoFocus = true,
     footer,
     onChange,
+    itemWrapper,
 }: MultiSelectProps<T>) {
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -106,6 +110,10 @@ function MultiSelect<T extends string>({
 
     const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'MultiSelectDataLoading'};
 
+    const ListItemComponent = itemWrapper
+        ? (props: any) => React.createElement(itemWrapper, {children: React.createElement(MultiSelectListItem, props), item: props.item})
+        : MultiSelectListItem;
+
     return (
         <ListFilterView
             itemCount={listData.length}
@@ -123,7 +131,7 @@ function MultiSelect<T extends string>({
                 <SelectionList
                     shouldSingleExecuteRowSelect
                     data={listData}
-                    ListItem={MultiSelectListItem}
+                    ListItem={ListItemComponent}
                     onSelectRow={updateSelectedItems}
                     textInputOptions={textInputOptions}
                     style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}

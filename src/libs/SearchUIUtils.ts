@@ -5266,10 +5266,6 @@ function getSingleSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, trans
 }
 
 function getMultiSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, type: SearchDataTypes, translate: LocalizedTranslate) {
-    if (filterKey === FILTER_KEYS.HAS) {
-        return getHasOptions(translate, type);
-    }
-
     if (filterKey === FILTER_KEYS.IS) {
         return Object.values(CONST.SEARCH.IS_VALUES).map((value) => ({text: translate(`common.${value}`), value}));
     }
