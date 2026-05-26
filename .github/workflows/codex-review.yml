@@ -19,11 +19,10 @@ concurrency:
 jobs:
   codex_review:
     if: |
-      !contains(fromJSON('["OSBotify","imgbot[bot]","melvin-bot[bot]","codecov[bot]","github-actions[bot]","chatgpt-codex-connector"]'), github.actor)
+      !endsWith(github.actor, '[bot]')
       && (
         (
           github.event_name == 'pull_request_target'
-          && github.event.pull_request.draft != true
           && !contains(github.event.pull_request.title, 'Revert')
         )
         || (
