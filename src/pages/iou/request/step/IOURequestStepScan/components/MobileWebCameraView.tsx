@@ -51,7 +51,7 @@ type MobileWebCameraViewProps = {
     isEditing: boolean;
     validateFiles: (files: FileObject[], items?: DataTransferItem[]) => void;
     setReceiptFiles: React.Dispatch<React.SetStateAction<ReceiptFile[]>>;
-    navigateToConfirmationStep: (files: ReceiptFile[], locationPermissionGranted?: boolean, isTestTransaction?: boolean) => void;
+    navigateToConfirmationStep: (files: ReceiptFile[], locationPermissionGranted?: boolean) => void;
     shouldSkipConfirmation: boolean;
     setStartLocationPermissionFlow: (value: boolean) => void;
     onBackButtonPress: () => void;

@@ -79,7 +79,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
     };
 
     const handlePostConfirmTagSwitch = () => {
-        cleanPolicyTags(policyID, policy?.requiresTag === true);
+        cleanPolicyTags(policyID);
         Navigation.setNavigationActionToMicrotaskQueue(navigateToTagsImport);
     };
 
