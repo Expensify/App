@@ -562,7 +562,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     }
 
     // Flag the new tx for useNewTransactions — the render-to-render diff misses txs added before the view mounts.
-    // No successData clear: it can race the UI mount and clear the flag before any observer sees it. Cleanup runs via useNewTransactions' in-memory timer.
+    // Cleanup is owned by useNewTransactions (in-memory timer after the highlight) and by failureData on rollback.
     if (iou.report?.reportID && transaction.transactionID) {
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
