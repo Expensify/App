@@ -26,7 +26,7 @@ import type Beta from '@src/types/onyx/Beta';
 import type Policy from '@src/types/onyx/Policy';
 import type {PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
 
-type ApprovalModeValue = ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | ValueOf<typeof CONST.MERGE_HR.APPROVAL_MODE>;
+type ApprovalModeValue = ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | ValueOf<typeof CONST.ZENEFITS.APPROVAL_MODE> | ValueOf<typeof CONST.MERGE_HR.APPROVAL_MODE>;
 
 type HRApprovalModeProviderConfig<T extends ApprovalModeValue = ApprovalModeValue> = {
     testID: string;

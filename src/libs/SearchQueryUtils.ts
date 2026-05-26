@@ -13,6 +13,7 @@ import type {
     ReportFieldNegatedKey,
     ReportFieldTextKey,
     SearchAmountFilterKeys,
+    SearchAutocompleteResult,
     SearchDateFilterKeys,
     SearchDateKey,
     SearchDatePreset,
@@ -49,6 +50,7 @@ import type {SearchFullscreenNavigatorParamList} from './Navigation/types';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getCleanedTagName} from './PolicyUtils';
 import {getReportName} from './ReportNameUtils';
+import {parse as parseForAutocomplete} from './SearchParser/autocompleteParser';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
 import StringUtils from './StringUtils';
 import {hashText} from './UserUtils';
@@ -1861,6 +1863,18 @@ function traverseAndUpdatedQuery(queryJSON: SearchQueryJSON | Readonly<SearchQue
     return standardQuery;
 }
 
+function getKeywordQueryWithCurrentSearchContext(queryString: SearchQueryString, currentQueryJSON: Readonly<SearchQueryJSON>): SearchQueryString {
+    const autocompleteRanges = (parseForAutocomplete(queryString) as SearchAutocompleteResult).ranges;
+    const hasOnlyKeywordSearch = queryString.trim().length > 0 && autocompleteRanges.length === 0;
+    if (!hasOnlyKeywordSearch) {
+        return queryString;
+    }
+
+    const currentFiltersWithoutKeywords = currentQueryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+    const currentQueryString = buildSearchQueryString({...currentQueryJSON, flatFilters: currentFiltersWithoutKeywords});
+    return `${currentQueryString} ${queryString}`;
+}
+
 /**
  * Returns new string query, after parsing it and traversing to update some filter values.
  * If there are any personal emails, it will try to substitute them with accountIDs
@@ -2162,6 +2176,7 @@ export {
     buildCannedSearchQuery,
     sanitizeSearchValue,
     getQueryWithUpdatedValues,
+    getKeywordQueryWithCurrentSearchContext,
     getCurrentSearchQueryJSON,
     getQueryWithoutFilters,
     isDefaultExpensesQuery,

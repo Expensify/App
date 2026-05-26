@@ -124,6 +124,7 @@ const translations: TranslationDeepObject<typeof en> = {
             approve: 'Zatwierdź',
             pay: 'Zapłać',
             fix: 'Napraw',
+            task: 'Zadanie',
         },
         success: 'Sukces',
         group: 'Grupa',
@@ -1045,6 +1046,7 @@ const translations: TranslationDeepObject<typeof en> = {
             repaidLast30Days: 'Spłacono w ciągu ostatnich 30 dni',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Ostatnie transakcje • ${lastFour}`,
         },
+        seeMore: ({count}: {count: number}) => `Zobacz jeszcze ${count}`,
     },
     allSettingsScreen: {
         subscription: 'Subskrypcja',
@@ -1319,6 +1321,10 @@ const translations: TranslationDeepObject<typeof en> = {
         settlePayment: (formattedAmount: string) => `Zapłać ${formattedAmount}`,
         settleBusiness: (formattedAmount?: string) => (formattedAmount ? `Zapłać ${formattedAmount} jako firma` : `Zapłać z konta firmowego`),
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `Oznacz ${formattedAmount} jako zapłaconą` : `Oznacz jako zapłacone`),
+        confirmPaymentReceivedModalTitle: 'Potwierdź otrzymanie płatności',
+        receivedPayment: 'Otrzymana płatność',
+        receivedPaymentConfirmation: 'Kontynuuj tylko, jeśli płatność została już otrzymana poza Expensify.',
+        confirmReceivedPayment: 'Tak, otrzymałem(-am) płatność.',
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `zapłacono ${amount} z konta osobistego ${last4Digits}` : `Zapłacono z konta osobistego`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `zapłacono ${amount} z firmowego konta ${last4Digits}` : `Zapłacono z konta firmowego`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Zapłać ${formattedAmount} przez ${policyName}` : `Zapłać przez ${policyName}`),
@@ -2212,7 +2218,7 @@ const translations: TranslationDeepObject<typeof en> = {
     deviceManagementPage: {
         title: 'Zarządzanie urządzeniami',
         description:
-            'Zarządzaj wszystkimi urządzeniami, na które zalogowałeś(-aś) się za pomocą konta Expensify. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Dowiedz się więcej</a>',
+            'Zarządzaj wszystkimi urządzeniami, na które zalogowałeś(-aś) się za pomocą konta Expensify. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Dowiedz się więcej</a>.',
         revoke: 'Cofnąć',
         unknownDevice: 'Nieznane Urządzenie',
     },
@@ -2227,11 +2233,11 @@ const translations: TranslationDeepObject<typeof en> = {
         disabled: 'Uwierzytelnianie dwuskładnikowe jest teraz wyłączone',
         noAuthenticatorApp: 'Nie będziesz już potrzebować aplikacji uwierzytelniającej, aby logować się do Expensify.',
         stepCodes: 'Kody odzyskiwania',
-        keepCodesSafe: 'Zachowaj te kody odzyskiwania w bezpiecznym miejscu!',
+        keepCodesSafe: 'Zachowaj te kody w bezpiecznym miejscu!',
         codesLoseAccess: dedent(`
-            Jeśli utracisz dostęp do aplikacji uwierzytelniającej i nie będziesz mieć tych kodów, stracisz dostęp do swojego konta.
+            Jeśli stracisz dostęp do swojej aplikacji uwierzytelniającej i nie masz tych kodów, stracisz dostęp do swojego konta.
 
-            Uwaga: Włączenie uwierzytelniania dwuskładnikowego spowoduje wylogowanie Cię ze wszystkich innych aktywnych sesji.
+            <strong>Uwaga</strong>: Włączenie uwierzytelniania dwuskładnikowego wyloguje cię ze wszystkich innych aktywnych sesji.
         `),
         errorStepCodes: 'Skopiuj lub pobierz kody przed kontynuowaniem',
         stepVerify: 'Zweryfikuj',
@@ -2260,6 +2266,9 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyOldDeviceDescription: 'Wpisz sześciocyfrowy kod z bieżącej aplikacji uwierzytelniającej, żeby potwierdzić, że masz do niej dostęp.',
         verifyNewDeviceTitle: 'Skonfiguruj nowe urządzenie',
         verifyNewDeviceDescription: 'Zeskanuj kod QR nowym urządzeniem, a następnie wpisz ten kod, aby zakończyć konfigurację.',
+        downloadCodes: 'Pobierz kody',
+        screenshotTip: 'Wskazówka: Zrób zrzut ekranu, żeby zapisać to w swojej galerii zdjęć',
+        copyCodes: 'Skopiuj kody',
     },
     recoveryCodeForm: {
         error: {
@@ -2679,6 +2688,7 @@ ${amount} dla ${merchant} - ${date}`,
     reportFraudConfirmationPage: {
         title: 'Zgłoszono oszustwo kartowe',
         description: 'Trwale dezaktywowaliśmy Twoją dotychczasową kartę. Gdy wrócisz do szczegółów karty, będzie tam dostępna nowa wirtualna karta.',
+        descriptionCardNotReplaced: 'Twoja karta została trwale dezaktywowana. Skontaktuj się z administratorem, aby wydać nową kartę.',
         buttonText: 'Jasne, dzięki!',
     },
     activateCardPage: {
@@ -2948,7 +2958,7 @@ ${amount} dla ${merchant} - ${date}`,
         peopleYouMayKnow: 'Osoby, które możesz znać, są już tutaj! Zweryfikuj swój e-mail, aby do nich dołączyć.',
         workspaceYouMayJoin: (domain: string, email: string) => `Ktoś z domeny ${domain} utworzył już przestrzeń roboczą. Wprowadź magiczny kod wysłany na adres ${email}.`,
         joinAWorkspace: 'Dołącz do przestrzeni roboczej',
-        listOfWorkspaces: 'Oto lista przestrzeni roboczych, do których możesz dołączyć. Nie martw się, zawsze możesz dołączyć do nich później, jeśli wolisz.',
+        listOfWorkspaces: 'Oto lista przestrzeni roboczych, do których możesz dołączyć.',
         skipForNow: 'Pomiń na razie',
         workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} członek${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         whereYouWork: 'Gdzie pracujesz?',
@@ -5351,6 +5361,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     duplicateColumns: (duplicateColumn: string) => `Ups! Przypisałeś jedno pole („${duplicateColumn}”) do wielu kolumn. Sprawdź i spróbuj ponownie.`,
                 },
                 fileImportDescription: 'Ręczna opcja, jeśli Twój bank nie może wysyłać kanału danych.',
+                duplicateFeedModal: {title: 'Kanał karty jest już połączony', prompt: 'Nie możesz dodać tego samego źródła danych karty do tego samego obszaru roboczego dwa razy.'},
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Ostatni dzień miesiąca',
@@ -6231,6 +6242,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `Czy na pewno chcesz połączyć ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'ta integracja księgowa'}? Spowoduje to usunięcie wszystkich istniejących połączeń księgowych.`,
             enterCredentials: 'Wprowadź swoje dane logowania',
+            updateCredentials: 'Zaktualizuj dane logowania',
             claimOffer: {
                 badgeText: 'Oferta dostępna!',
                 xero: {
@@ -6717,8 +6729,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 perActiveMember: 'na aktywnego członka miesięcznie.',
                 perMember: 'za użytkownika miesięcznie.',
             },
-            note: (subscriptionLink: string) =>
-                `<muted-text>Uaktualnij, aby uzyskać dostęp do tej funkcji, lub <a href="${subscriptionLink}">dowiedz się więcej</a> o naszych planach i cenach.</muted-text>`,
+            note: (subscriptionLink: string) => `<muted-text><a href="${subscriptionLink}">Dowiedz się więcej</a> o naszych planach i cenach.</muted-text>`,
             upgradeToUnlock: 'Odblokuj tę funkcję',
             completed: {
                 headline: `Zaktualizowano Twoją przestrzeń roboczą!`,
