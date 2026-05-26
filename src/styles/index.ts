@@ -3339,10 +3339,18 @@ const staticStyles = (theme: ThemeColors) =>
         growlNotificationText: {
             fontSize: variables.fontSizeNormal,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
-            width: '90%',
             lineHeight: variables.fontSizeNormalHeight,
             color: theme.textReversed,
             ...spacing.ml4,
+        },
+
+        growlNotificationTextWithoutAction: {
+            width: '90%',
+        },
+
+        growlNotificationTextWithAction: {
+            flexShrink: 1,
+            minWidth: 0,
         },
 
         noSelect: {
