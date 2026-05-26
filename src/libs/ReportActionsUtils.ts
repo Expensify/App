@@ -3928,7 +3928,7 @@ function getSpendRuleActionVerb(translate: LocalizedTranslate, action: string): 
     return '';
 }
 
-function spendRuleAmountOperatorWord(translate: LocalizedTranslate, operator: string): string {
+function getSpendRuleAmountOperatorWord(translate: LocalizedTranslate, operator: string): string {
     if (operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO) {
         return translate('workspaceActions.expensifyCardRule.amountOperator.under');
     }
@@ -3939,7 +3939,7 @@ function spendRuleAmountOperatorWord(translate: LocalizedTranslate, operator: st
 }
 
 function getSpendRuleAmountString(translate: LocalizedTranslate, amount: {operator: string; value: string[]}, currency: string): string {
-    const operatorWord = spendRuleAmountOperatorWord(translate, amount.operator);
+    const operatorWord = getSpendRuleAmountOperatorWord(translate, amount.operator);
     if (amount.value.length === 0) {
         return '';
     }
@@ -4027,7 +4027,7 @@ function computeSpendRuleAmountDiff(oldAmounts: SpendRuleAmount[], newAmounts: S
 type SpendRuleCard = {cardID?: number | string; displayName?: string};
 type SpendRuleCardDiff = {added: SpendRuleCard[]; removed: SpendRuleCard[]};
 
-function spendRuleCardID(card: SpendRuleCard): number | undefined {
+function getSpendRuleCardID(card: SpendRuleCard): number | undefined {
     const cardID = card?.cardID;
     if (typeof cardID === 'number' && Number.isFinite(cardID)) {
         return cardID;
@@ -4041,14 +4041,14 @@ function spendRuleCardID(card: SpendRuleCard): number | undefined {
 function computeSpendRuleCardDiff(oldCards: SpendRuleCard[], newCards: SpendRuleCard[]): SpendRuleCardDiff {
     const oldByID = new Map<number, SpendRuleCard>();
     for (const card of oldCards) {
-        const id = spendRuleCardID(card);
+        const id = getSpendRuleCardID(card);
         if (id !== undefined) {
             oldByID.set(id, card);
         }
     }
     const newByID = new Map<number, SpendRuleCard>();
     for (const card of newCards) {
-        const id = spendRuleCardID(card);
+        const id = getSpendRuleCardID(card);
         if (id !== undefined) {
             newByID.set(id, card);
         }
@@ -4078,7 +4078,7 @@ type SpendRulePhrase = {
     bodyWithoutAdjective: string;
 };
 
-function spendRulePhraseVerbWord(translate: LocalizedTranslate, verb: SpendRulePhraseVerb): string {
+function getSpendRulePhraseVerbWord(translate: LocalizedTranslate, verb: SpendRulePhraseVerb): string {
     return translate(`workspaceActions.expensifyCardRule.update.phraseVerb.${verb}`);
 }
 
@@ -4091,14 +4091,14 @@ function joinSpendRulePhrases(translate: LocalizedTranslate, phrases: readonly S
         if (!phrase) {
             return '';
         }
-        return `${spendRulePhraseVerbWord(translate, phrase.verb)} ${phrase.bodyWithAdjective}`;
+        return `${getSpendRulePhraseVerbWord(translate, phrase.verb)} ${phrase.bodyWithAdjective}`;
     }
 
     const firstVerb = phrases.at(0)?.verb;
     const allSameVerb = firstVerb !== undefined && phrases.every((phrase) => phrase.verb === firstVerb);
 
     if (!allSameVerb) {
-        const parts = phrases.map((phrase) => `${spendRulePhraseVerbWord(translate, phrase.verb)} ${phrase.bodyWithAdjective}`);
+        const parts = phrases.map((phrase) => `${getSpendRulePhraseVerbWord(translate, phrase.verb)} ${phrase.bodyWithAdjective}`);
         return getSpendRuleJoinFilters(translate, parts);
     }
 
@@ -4107,7 +4107,7 @@ function joinSpendRulePhrases(translate: LocalizedTranslate, phrases: readonly S
         return '';
     }
     const firstAdjective = firstPhrase.adjective;
-    const parts: string[] = [`${spendRulePhraseVerbWord(translate, firstPhrase.verb)} ${firstPhrase.bodyWithAdjective}`];
+    const parts: string[] = [`${getSpendRulePhraseVerbWord(translate, firstPhrase.verb)} ${firstPhrase.bodyWithAdjective}`];
     for (let i = 1; i < phrases.length; i++) {
         const phrase = phrases.at(i);
         if (!phrase) {
