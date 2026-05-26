@@ -697,7 +697,16 @@ function isNavigationReady(): Promise<void> {
  * independent navigator like the MFA modal).
  */
 function runAfterTransition(callback: () => void) {
-    TransitionTracker.runAfterTransitions({callback});
+    return TransitionTracker.runAfterTransitions({callback});
+}
+
+/**
+ * Like {@link runAfterTransition} but waits for the next transition to start before queuing the
+ * callback (with {@link CONST.MAX_TRANSITION_START_WAIT_MS} safety net). Use after dispatching a
+ * navigation action whose transition has not yet started.
+ */
+function runAfterUpcomingTransition(callback: () => void) {
+    return TransitionTracker.runAfterTransitions({callback, waitForUpcomingTransition: true});
 }
 
 function setIsNavigationReady() {
@@ -1220,6 +1229,7 @@ export default {
     getReportRHPActiveRoute,
     goBack,
     runAfterTransition,
+    runAfterUpcomingTransition,
     isNavigationReady,
     setIsNavigationReady,
     getTopmostReportId,

@@ -16,6 +16,7 @@ import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
 import useThemePreference from '@hooks/useThemePreference';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
@@ -114,18 +115,16 @@ function MultifactorAuthenticationModalNavigator() {
         if (phase !== 'closing') {
             return;
         }
-        // Pop the current screen so the Stack plays its slide-out animation,
-        // and fade the backdrop simultaneously. Both run for ANIMATED_TRANSITION.
         if (mfaNavigationRef.isReady() && mfaNavigationRef.canGoBack()) {
             mfaNavigationRef.goBack();
         }
         backdropProgress.set(withTiming(0, {duration: CONST.ANIMATED_TRANSITION}));
-        const cleanupTimer = setTimeout(() => {
+        const handle = Navigation.runAfterUpcomingTransition(() => {
             resetMfaNavigation();
             setPhase('closed');
             dispatch({type: 'RESET'});
-        }, CONST.ANIMATED_TRANSITION);
-        return () => clearTimeout(cleanupTimer);
+        });
+        return () => handle.cancel();
     }, [phase, backdropProgress, dispatch]);
 
     const backdropAnimatedStyle = useAnimatedStyle(() => ({
