@@ -13,9 +13,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
 
 type ConfirmWhisperContentProps = {
+    /** All the data of the action item */
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>;
+
+    /** Report ID for the current report */
     reportID: string | undefined;
+
+    /** ID of the original report from which the given reportAction is first created */
     originalReportID: string | undefined;
+
+    /** Report that owns this action for mutations (thread / merged-list cases use originalReport). This is a stable projection (heartbeat fields stripped). */
     actionOwnerReportStable: OnyxEntry<Report>;
 };
 

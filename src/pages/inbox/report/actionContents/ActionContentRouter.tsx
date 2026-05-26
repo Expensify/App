@@ -377,9 +377,10 @@ function ActionContentRouter({
         return (
             <MentionWhisperContent
                 action={action}
-                report={report}
-                originalReport={originalReport}
+                actionOwnerReportStable={actionOwnerReportStable}
                 originalReportID={originalReportID}
+                parentReport={originalReport ? report : undefined}
+                policyID={policyID}
             />
         );
     }
