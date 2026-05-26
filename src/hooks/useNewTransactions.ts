@@ -3,7 +3,7 @@ import {deletePendingNewTransactionIDs} from '@libs/actions/IOU/PendingNewTransa
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import usePreviousValue from './usePreviousValue';
+import usePrevious from './usePrevious';
 
 /**
  * This hook returns new transactions that have been added since the last transactions update.
@@ -21,7 +21,7 @@ function useNewTransactions(
     isFocused?: boolean,
 ) {
     // If we haven't loaded report yet we set previous transaction ids to undefined.
-    const prevTransactions = usePreviousValue(hasOnceLoadedReportActions ? transactions : undefined);
+    const prevTransactions = usePrevious(hasOnceLoadedReportActions ? transactions : undefined);
 
     // We need to skip the first transactions change, to avoid highlighting transactions on the first load.
     const skipFirstTransactionsChange = useRef(!hasOnceLoadedReportActions);
@@ -48,7 +48,11 @@ function useNewTransactions(
             return CONST.EMPTY_ARRAY as unknown as Transaction[];
         }
         return transactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
-    }, [transactions, reportID, isFocused, pendingNewTransactionIDs, prevTransactions]);
+
+        // We don't need to recalculate on change of prevTransactions as it will make the value
+        // disappear quickly which will break the scroll and highlight on slower devices like mobile app.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [transactions, reportID, isFocused, pendingNewTransactionIDs]);
 
     useEffect(() => {
         if (!pendingNewTransactionIDs) {
