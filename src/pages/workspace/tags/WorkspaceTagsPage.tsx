@@ -477,7 +477,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     }, [isQuickSettingsFlow, policyID, backTo]);
 
     const navigateToCreateTagPage = () => {
-        Navigation.navigate(createDynamicRoute(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_CREATE.path : DYNAMIC_ROUTES.WORKSPACE_TAG_CREATE.path));
+        Navigation.navigate(isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_CREATE.path) : ROUTES.WORKSPACE_TAG_CREATE.getRoute(policyID));
     };
 
     const navigateToTagSettings = (tag: TagListItem) => {
@@ -486,9 +486,15 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             return;
         }
         if (tag.orderWeight !== undefined) {
-            Navigation.navigate(createDynamicRoute((isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_LIST_VIEW : DYNAMIC_ROUTES.WORKSPACE_TAG_LIST_VIEW).getRoute(tag.orderWeight)));
+            Navigation.navigate(
+                isQuickSettingsFlow
+                    ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_LIST_VIEW.getRoute(tag.orderWeight))
+                    : ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(policyID, tag.orderWeight),
+            );
         } else {
-            Navigation.navigate(createDynamicRoute((isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS : DYNAMIC_ROUTES.WORKSPACE_TAG_SETTINGS).getRoute(0, tag.value)));
+            Navigation.navigate(
+                isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.getRoute(0, tag.value)) : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, 0, tag.value),
+            );
         }
     };
 

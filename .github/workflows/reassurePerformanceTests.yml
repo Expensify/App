@@ -12,8 +12,7 @@ jobs:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout baseline branch
-        # v1
-        uses: useblacksmith/checkout@41cdeedae8edb2e684ba22896a5fd2a3cb85db6b
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
 
       - name: Checkout baseline branch
         shell: bash
@@ -43,8 +42,7 @@ jobs:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout
-        # v1
-        uses: useblacksmith/checkout@41cdeedae8edb2e684ba22896a5fd2a3cb85db6b
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
 
       - name: Setup NodeJS
         uses: ./.github/actions/composite/setupNode
@@ -70,8 +68,7 @@ jobs:
     needs: [baseline-perf-tests, branch-perf-tests]
     steps:
       - name: Checkout
-        # v1
-        uses: useblacksmith/checkout@41cdeedae8edb2e684ba22896a5fd2a3cb85db6b
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
 
       - name: Setup NodeJS
         uses: ./.github/actions/composite/setupNode
