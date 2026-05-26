@@ -25,12 +25,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [SCREENS.SAML_SIGN_IN]: ROUTES.SAML_SIGN_IN,
         [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS.route,
         [SCREENS.REPORT_ADD_ATTACHMENT]: ROUTES.REPORT_ADD_ATTACHMENT.route,
-        [SCREENS.PROFILE_AVATAR]: {
-            path: ROUTES.PROFILE_AVATAR.route,
-            parse: {
-                accountID: Number,
-            },
-        },
+        [SCREENS.DYNAMIC_PROFILE_AVATAR]: DYNAMIC_ROUTES.PROFILE_AVATAR.path,
         [SCREENS.WORKSPACE_AVATAR]: ROUTES.WORKSPACE_AVATAR.route,
         [SCREENS.WORKSPACE_DOCUMENT]: ROUTES.WORKSPACE_DOCUMENT.route,
         [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
@@ -504,14 +499,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.PROFILE.ADDRESS]: {
                             path: ROUTES.SETTINGS_ADDRESS,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS]: {
-                            path: ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: {
-                            path: ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.PROFILE.DYNAMIC_ADDRESS_COUNTRY]: DYNAMIC_ROUTES.ADDRESS_COUNTRY.path,
@@ -1480,7 +1467,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.NEW_REPORT_WORKSPACE_SELECTION]: {
                     screens: {
-                        [SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT]: ROUTES.NEW_REPORT_WORKSPACE_SELECTION.route,
+                        [SCREENS.NEW_REPORT_WORKSPACE_SELECTION.DYNAMIC_ROOT]: DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.REPORT_DETAILS]: {
@@ -1663,7 +1650,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.PROFILE]: {
                     screens: {
-                        [SCREENS.PROFILE_ROOT]: ROUTES.PROFILE.route,
+                        [SCREENS.DYNAMIC_PROFILE]: DYNAMIC_ROUTES.PROFILE.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.PARTICIPANTS]: {
@@ -1899,9 +1886,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.EDIT_REQUEST]: {
                     screens: {
-                        [SCREENS.EDIT_REQUEST.REPORT_FIELD]: {
-                            path: ROUTES.EDIT_REPORT_FIELD_REQUEST.route,
-                        },
+                        [SCREENS.EDIT_REQUEST.DYNAMIC_REPORT_FIELD]: DYNAMIC_ROUTES.EDIT_REPORT_FIELD.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SIGN_IN]: {

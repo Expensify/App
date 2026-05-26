@@ -159,6 +159,7 @@ import {
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
     shouldShowFlagComment,
+    shouldShowMarkAsDone,
     sortIconsByName,
     sortOutstandingReportsBySelected,
     temporary_getMoneyRequestOptions,
@@ -4437,29 +4438,6 @@ describe('ReportUtils', () => {
                 childReportID: reportID,
             } as ReportAction;
             expect(shouldDisableThread(reportAction, true)).toBeTruthy();
-        });
-
-        it('should disable thread for messages sent by MANAGER_MCTEST', () => {
-            // Given a report action from MANAGER_MCTEST
-            const reportAction = {
-                actorAccountID: CONST.ACCOUNT_ID.MANAGER_MCTEST,
-                message: [
-                    {
-                        translationKey: '',
-                        type: 'COMMENT',
-                        html: 'Test message from Manager McTest',
-                        text: 'Test message from Manager McTest',
-                    },
-                ],
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-            } as ReportAction;
-
-            // When it's checked to see if the thread should be disabled
-            const isThreadDisabled = shouldDisableThread(reportAction, false);
-
-            // Then the thread should be disabled
-            // This ensures "Reply in thread" and "Join thread" context menu options won't be shown
-            expect(isThreadDisabled).toBeTruthy();
         });
 
         it('should disable on a DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action', () => {
@@ -17805,5 +17783,139 @@ describe('ReportUtils', () => {
             ] as ReportAction[];
             expect(hasExportError(reportActions, report)).toBe(true);
         });
+    });
+});
+
+describe('shouldShowMarkAsDone', () => {
+    const policyID = '1';
+    const otherAccountID = 42;
+
+    it('should return false when user is not a track-intent user', () => {
+        const report = {
+            reportID: 'report1',
+            ownerAccountID: currentUserAccountID,
+            managerID: currentUserAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as Report;
+        const testPolicy = {
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            type: CONST.POLICY.TYPE.TEAM,
+        } as Policy;
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: false, report, policy: testPolicy})).toBe(false);
+    });
+
+    it('should return false when policy is not submit-and-close', () => {
+        const report = {
+            reportID: 'report1',
+            ownerAccountID: currentUserAccountID,
+            managerID: currentUserAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as Report;
+        const testPolicy = {
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            type: CONST.POLICY.TYPE.TEAM,
+        } as Policy;
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy: testPolicy})).toBe(false);
+    });
+
+    it('should return false when user does not own the report', () => {
+        const report = {
+            reportID: 'report1',
+            ownerAccountID: otherAccountID,
+            managerID: otherAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as Report;
+        const testPolicy = {
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            type: CONST.POLICY.TYPE.TEAM,
+        } as Policy;
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy: testPolicy})).toBe(false);
+    });
+
+    it('should return false when next approver is different from owner', () => {
+        const report = {
+            reportID: 'report1',
+            ownerAccountID: currentUserAccountID,
+            managerID: otherAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as Report;
+        const testPolicy = {
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            type: CONST.POLICY.TYPE.TEAM,
+        } as Policy;
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy: testPolicy})).toBe(false);
+    });
+
+    it('should return false when isTrackIntentUser is undefined', () => {
+        const report = {
+            reportID: 'report1',
+            ownerAccountID: currentUserAccountID,
+            managerID: currentUserAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as Report;
+        const testPolicy = {
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            type: CONST.POLICY.TYPE.TEAM,
+        } as Policy;
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: undefined, report, policy: testPolicy})).toBe(false);
+    });
+
+    it('should return false when report is undefined', () => {
+        const testPolicy = {
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            type: CONST.POLICY.TYPE.TEAM,
+        } as Policy;
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report: undefined, policy: testPolicy})).toBe(false);
+    });
+
+    it('should return false when policy is undefined', () => {
+        const report = {
+            reportID: 'report1',
+            ownerAccountID: currentUserAccountID,
+            managerID: currentUserAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as Report;
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy: undefined})).toBe(false);
+    });
+
+    it('should return true when user is track-intent, policy is submit-and-close, user owns report, and submits to self', async () => {
+        const report = {
+            reportID: 'report1',
+            ownerAccountID: currentUserAccountID,
+            managerID: currentUserAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as Report;
+        const testPolicy = {
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            type: CONST.POLICY.TYPE.TEAM,
+            owner: currentUserEmail,
+        } as Policy;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, testPolicy);
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [currentUserAccountID]: {accountID: currentUserAccountID, login: currentUserEmail},
+        });
+        await waitForBatchedUpdates();
+        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy: testPolicy})).toBe(true);
     });
 });
