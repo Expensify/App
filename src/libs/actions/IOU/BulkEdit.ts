@@ -554,6 +554,9 @@ function updateMultipleMoneyRequests({
                 ...transaction,
                 pendingFields: clearedPendingFields,
                 errorFields,
+                // Clear the optimistically added transactionThreadReportID so it doesn't
+                // persist after a failed request — the server never created this thread.
+                ...(didCreateThreadInThisIteration && transactionThreadReportID ? {transactionThreadReportID: null} : {}),
             },
         });
 
