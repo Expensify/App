@@ -6237,8 +6237,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
         accounting: {
             settings: 'paramètres',
             title: 'Connexions',
-            subtitle:
-                'Connectez votre système comptable pour imputer les opérations à votre plan comptable, faire correspondre automatiquement les paiements et garder vos finances synchronisées.',
+            subtitle: 'Connectez votre logiciel de comptabilité pour une synchronisation automatique.',
             qbo: 'QuickBooks Online',
             qbd: 'QuickBooks Desktop',
             xero: 'Xero',

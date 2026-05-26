@@ -5996,7 +5996,7 @@ ${amount} para ${merchant} - ${date}`,
         accounting: {
             settings: 'configuración',
             title: 'Conexiones',
-            subtitle: 'Conecta a tu sistema de contabilidad para codificar transacciones con tu plan de cuentas, auto-cotejar pagos, y mantener tus finanzas sincronizadas.',
+            subtitle: 'Conecta tu software de contabilidad para una sincronización automática.',
             qbo: 'QuickBooks Online',
             qbd: 'QuickBooks Desktop',
             xero: 'Xero',
