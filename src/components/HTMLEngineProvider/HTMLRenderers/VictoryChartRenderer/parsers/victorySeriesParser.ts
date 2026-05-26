@@ -17,7 +17,9 @@ function parseVictorySeriesNode(tnode: TNode, typeface: SkTypeface | null, rootP
     const data: Record<string, CartesianChartData> = {};
     for (const point of points) {
         if (isHorizontal) {
-            data[point.y] = {
+            // Even though the X-Axis is going to hold the y values on horizontal mode, it's not the independent axis
+            // thus we cannot use `point.y` as the key since a two points can have the same y value.
+            data[`${point.y}-${point.x}`] = {
                 [X_KEY]: point.y,
                 [yKey]: typeof point.x === 'number' ? point.x : categories?.indexOf(point.x),
             } as CartesianChartData;
