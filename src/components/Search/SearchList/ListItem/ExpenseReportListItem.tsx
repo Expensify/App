@@ -5,7 +5,6 @@ import {View} from 'react-native';
 // sync immediately when category settings change
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
@@ -30,16 +29,15 @@ import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {getNonHeldAndFullAmount, isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete} from '@libs/ReportUtils';
-import {getAction, getActions} from '@libs/SearchUIUtils';
 import {isOnHold, isViolationDismissed, shouldShowViolation, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
-import type {Policy, Report, ReportAction} from '@src/types/onyx';
-import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
+import type {Policy, Report} from '@src/types/onyx';
 import ExpenseReportListItemRow from './ExpenseReportListItemRow';
 import type {ExpenseReportListItemProps, ExpenseReportListItemType} from './types';
+import useLiveRowCapabilities from './useLiveRowCapabilities';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
 /**
@@ -102,45 +100,14 @@ function ExpenseReportListItem<TItem extends ListItem>({
         return actionsData ? Object.values(actionsData) : [];
     }, [searchData, reportItem.reportID]);
 
-    const [liveReportActionsCollection] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportItem.reportID)}`);
-    const [liveReportMetadata] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(reportItem.reportID)}`);
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-
-    const liveActionsArray = liveReportActionsCollection ? (Object.values(liveReportActionsCollection) as ReportAction[]) : reportActions;
-    const liveAllActions = searchData
-        ? getActions(
-              searchData,
-              searchData as unknown as OnyxCollection<TransactionViolation[]>,
-              `${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`,
-              currentSearchKey ?? CONST.SEARCH.SEARCH_KEYS.EXPENSES,
-              currentUserDetails.email ?? '',
-              currentUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID,
-              bankAccountList,
-              liveReportMetadata,
-              liveActionsArray,
-          )
-        : (reportItem.allActions ?? []);
-    const liveAction = liveAllActions.length ? getAction(liveAllActions) : reportItem.action;
-    // See TransactionListItem for why these are inlined primitives instead of getRowCapabilities.
-    const liveCanPay = liveAllActions.includes(CONST.SEARCH.ACTION_TYPES.PAY);
-    const liveCanApprove = liveAllActions.includes(CONST.SEARCH.ACTION_TYPES.APPROVE);
-    const liveCanSubmit = liveAllActions.includes(CONST.SEARCH.ACTION_TYPES.SUBMIT);
-    const liveCanChangeApprover = liveAllActions.includes(CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER);
-    const liveReportItem =
-        liveAction === reportItem.action &&
-        liveCanPay === reportItem.canPay &&
-        liveCanApprove === reportItem.canApprove &&
-        liveCanSubmit === reportItem.canSubmit &&
-        liveCanChangeApprover === reportItem.canChangeApprover
-            ? reportItem
-            : ({
-                  ...reportItem,
-                  action: liveAction,
-                  canPay: liveCanPay,
-                  canApprove: liveCanApprove,
-                  canSubmit: liveCanSubmit,
-                  canChangeApprover: liveCanChangeApprover,
-              } as ExpenseReportListItemType);
+    const liveReportItem = useLiveRowCapabilities<ExpenseReportListItemType>({
+        item: reportItem,
+        reportID: reportItem.reportID,
+        itemKey: `${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`,
+        snapshotData: searchData,
+        snapshotActions: reportActions,
+        enabled: !!searchData,
+    });
 
     const isDisabledCheckbox = useMemo(() => {
         return reportItem.isDisabled ?? reportItem.isDisabledCheckbox;

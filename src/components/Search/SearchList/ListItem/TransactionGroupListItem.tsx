@@ -5,12 +5,11 @@ import type {OnyxEntry} from 'react-native-onyx';
 // Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
 import AnimatedCollapsible from '@components/AnimatedCollapsible';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
-import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchResultsContext, useSearchSelectionContext} from '@components/Search/SearchContext';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {SearchGroupBy} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
@@ -30,7 +29,7 @@ import {search} from '@libs/actions/Search';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
-import {getAction, getActions, getSections} from '@libs/SearchUIUtils';
+import {getSections} from '@libs/SearchUIUtils';
 import {mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -61,6 +60,7 @@ import type {
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
 } from './types';
+import useLiveRowCapabilities from './useLiveRowCapabilities';
 import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
 import YearListItemHeader from './YearListItemHeader';
@@ -95,7 +95,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const {selectedTransactions} = useSearchSelectionContext();
-    const {currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -124,53 +123,17 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const reportGroupID = isExpenseReportType ? (groupItem as TransactionReportGroupListItemType).reportID : undefined;
-    const [liveReportActionsCollection] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportGroupID)}`);
-    const [liveReportMetadata] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(reportGroupID)}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
-    const snapshotActionsData = reportGroupID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportGroupID}`] : undefined;
-    const liveActionsArray = liveReportActionsCollection
-        ? (Object.values(liveReportActionsCollection) as ReportAction[])
-        : snapshotActionsData
-          ? (Object.values(snapshotActionsData) as ReportAction[])
-          : [];
-    const reportGroupItem = groupItem as TransactionReportGroupListItemType;
-    const liveAllActions =
-        isExpenseReportType && reportGroupID && currentSearchResults?.data
-            ? getActions(
-                  currentSearchResults.data,
-                  currentSearchResults.data as unknown as OnyxCollection<TransactionViolation[]>,
-                  `${ONYXKEYS.COLLECTION.REPORT}${reportGroupID}`,
-                  currentSearchKey ?? CONST.SEARCH.SEARCH_KEYS.EXPENSES,
-                  currentUserDetails.email ?? '',
-                  currentUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                  bankAccountList,
-                  liveReportMetadata,
-                  liveActionsArray,
-              )
-            : (reportGroupItem.allActions ?? []);
-    const liveAction = liveAllActions.length ? getAction(liveAllActions) : reportGroupItem.action;
-    // See TransactionListItem for why these are inlined primitives instead of getRowCapabilities.
-    const liveCanPay = liveAllActions.includes(CONST.SEARCH.ACTION_TYPES.PAY);
-    const liveCanApprove = liveAllActions.includes(CONST.SEARCH.ACTION_TYPES.APPROVE);
-    const liveCanSubmit = liveAllActions.includes(CONST.SEARCH.ACTION_TYPES.SUBMIT);
-    const liveCanChangeApprover = liveAllActions.includes(CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER);
-    const liveGroupItem: TransactionGroupListItemType =
-        isExpenseReportType &&
-        (liveAction !== reportGroupItem.action ||
-            liveCanPay !== reportGroupItem.canPay ||
-            liveCanApprove !== reportGroupItem.canApprove ||
-            liveCanSubmit !== reportGroupItem.canSubmit ||
-            liveCanChangeApprover !== reportGroupItem.canChangeApprover)
-            ? ({
-                  ...groupItem,
-                  action: liveAction,
-                  canPay: liveCanPay,
-                  canApprove: liveCanApprove,
-                  canSubmit: liveCanSubmit,
-                  canChangeApprover: liveCanChangeApprover,
-              } as TransactionGroupListItemType)
-            : groupItem;
+    const snapshotActions = reportGroupID ? Object.values(currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportGroupID}`] ?? {}) : [];
+    const liveGroupItem = useLiveRowCapabilities<TransactionReportGroupListItemType>({
+        item: groupItem as TransactionReportGroupListItemType,
+        reportID: reportGroupID,
+        itemKey: `${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportGroupID)}`,
+        snapshotData: currentSearchResults?.data,
+        snapshotActions,
+        enabled: isExpenseReportType && !!reportGroupID,
+    }) as TransactionGroupListItemType;
 
     const [transactionsVisibleLimit, setTransactionsVisibleLimit] = useState(CONST.TRANSACTION.RESULTS_PAGE_SIZE as number);
     const [isExpanded, setIsExpanded] = useState(false);
