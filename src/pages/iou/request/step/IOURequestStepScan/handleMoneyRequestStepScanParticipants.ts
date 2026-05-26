@@ -7,8 +7,7 @@ import Log from '@libs/Log';
 import cleanupAfterSkipConfirmSubmit from '@libs/Navigation/helpers/cleanupAfterSkipConfirmSubmit';
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import Navigation from '@libs/Navigation/Navigation';
-import {getManagerMcTestParticipant} from '@libs/OptionsListUtils';
-import {generateReportID, getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
+import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 import {setTransactionReport} from '@userActions/Transaction';
@@ -68,7 +67,6 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     policyRecentlyUsedCurrencies?: string[];
     introSelected?: IntroSelected;
     files: ReceiptFile[];
-    isTestTransaction?: boolean;
     locationPermissionGranted?: boolean;
     shouldGenerateTransactionThreadReport: boolean;
     selfDMReport: OnyxEntry<Report>;
@@ -121,7 +119,6 @@ function handleMoneyRequestStepScanParticipants({
     policyRecentlyUsedCurrencies,
     introSelected,
     files,
-    isTestTransaction = false,
     locationPermissionGranted = false,
     selfDMReport,
     isSelfTourViewed,
@@ -143,28 +140,6 @@ function handleMoneyRequestStepScanParticipants({
 }: MoneyRequestStepScanParticipantsFlowParams): void {
     if (backTo) {
         Navigation.goBack(backTo);
-        return;
-    }
-
-    if (isTestTransaction) {
-        const managerMcTestParticipant = getManagerMcTestParticipant(currentUserAccountID, personalDetails) ?? {};
-        let reportIDParam = managerMcTestParticipant.reportID;
-        if (!managerMcTestParticipant.reportID && report?.reportID) {
-            reportIDParam = generateReportID();
-        }
-        setMoneyRequestParticipants(
-            initialTransaction.transactionID,
-            [
-                {
-                    ...managerMcTestParticipant,
-                    reportID: reportIDParam,
-                    selected: true,
-                },
-            ],
-            true,
-        ).then(() => {
-            navigateToConfirmationPage(iouType, initialTransaction.transactionID, reportID, backToReport, true, reportIDParam);
-        });
         return;
     }
 
