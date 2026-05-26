@@ -35,9 +35,8 @@ import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 const TWO_FACTOR_AUTH_RECOVERY_CODES_FILENAME = 'DO-NOT-DELETE_Expensify-2FA-RecoveryCodes.txt';
 
 function DynamicTwoFactorAuthPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Lightbulb']);
+    const icons = useMemoizedLazyExpensifyIcons(['Copy']);
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use correct style
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -158,17 +157,6 @@ function DynamicTwoFactorAuthPage() {
                             )}
                         </View>
                     </Section>
-                )}
-                {!!isUserValidated && (
-                    <View style={[styles.flexRow, styles.mt2, styles.mh5, styles.alignItemsCenter]}>
-                        <Icon
-                            src={icons.Lightbulb}
-                            fill={theme.icon}
-                            additionalStyles={styles.mr2}
-                            medium
-                        />
-                        <Text style={[styles.textLabelSupportingNormal, styles.flex1]}>{translate('twoFactorAuth.screenshotTip')}</Text>
-                    </View>
                 )}
                 <FixedFooter style={[styles.mtAuto, styles.pt5]}>
                     {!!statusAnnouncement.text && (
