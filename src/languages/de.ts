@@ -2273,7 +2273,6 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceTitle: 'Neues Gerät einrichten',
         verifyNewDeviceDescription: 'Scannen Sie den QR-Code mit Ihrem neuen Gerät und geben Sie dann den Code ein, um die Einrichtung abzuschließen.',
         downloadCodes: 'Codes herunterladen',
-        screenshotTip: 'Tipp: Machen Sie einen Screenshot, um ihn in Ihrer Fotomediathek zu speichern',
         copyCodes: 'Codes kopieren',
     },
     recoveryCodeForm: {

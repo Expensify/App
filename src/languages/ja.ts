@@ -2250,7 +2250,6 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceTitle: '新しいデバイスを設定',
         verifyNewDeviceDescription: '新しいデバイスでQRコードをスキャンし、表示されたコードを入力して設定を完了してください。',
         downloadCodes: 'コードをダウンロード',
-        screenshotTip: 'ヒント：スクリーンショットを撮ってフォトライブラリに保存しましょう',
         copyCodes: 'コードをコピー',
     },
     recoveryCodeForm: {

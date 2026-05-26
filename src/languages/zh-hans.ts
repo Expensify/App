@@ -2207,7 +2207,6 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceTitle: '设置新设备',
         verifyNewDeviceDescription: '使用新设备扫描二维码，然后输入代码完成设置。',
         downloadCodes: '下载代码',
-        screenshotTip: '提示：截屏此页面以将其保存到你的相册',
         copyCodes: '复制代码',
     },
     recoveryCodeForm: {

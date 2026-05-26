@@ -2264,7 +2264,6 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceTitle: 'Configurar novo dispositivo',
         verifyNewDeviceDescription: 'Escaneie o código QR com seu novo dispositivo e depois insira o código para concluir a configuração.',
         downloadCodes: 'Baixar códigos',
-        screenshotTip: 'Dica: faça uma captura de tela para salvar na sua galeria de fotos',
         copyCodes: 'Copiar códigos',
     },
     recoveryCodeForm: {

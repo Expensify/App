@@ -2280,7 +2280,6 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceTitle: 'Configurer un nouvel appareil',
         verifyNewDeviceDescription: 'Scannez le code QR avec votre nouvel appareil, puis saisissez le code pour terminer la configuration.',
         downloadCodes: 'Télécharger les codes',
-        screenshotTip: 'Astuce : faites une capture d’écran pour l’enregistrer dans votre photothèque',
         copyCodes: 'Copier les codes',
     },
     recoveryCodeForm: {
