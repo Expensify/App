@@ -2,16 +2,21 @@ import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {GestureResponderEvent, NativeSyntheticEvent} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Animated from 'react-native-reanimated';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useOnyx from '@hooks/useOnyx';
 import useStableIndexedHandler from '@hooks/useStableIndexedHandler';
 import {isMobileChrome} from '@libs/Browser';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
+import {isFocusRestoreInProgress} from '@libs/NavigationFocusReturn';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Modal} from '@src/types/onyx';
 import type BaseSearchListProps from './types';
 
 const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<SearchListItem>);
@@ -41,6 +46,9 @@ function BaseSearchList({
     const isFocused = useIsFocused();
     const {focusedCellId, isEditingCell} = useEditingCellState();
 
+    const modalVisibilitySelector = (modal: OnyxEntry<Modal>) => modal?.isVisible;
+    const [isModalVisible] = useOnyx(ONYXKEYS.MODAL, {selector: modalVisibilitySelector});
+
     const setHasKeyBeenPressed = useCallback(() => {
         if (hasKeyBeenPressed.current) {
             return;
@@ -53,7 +61,7 @@ function BaseSearchList({
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: -1,
         maxIndex: flattenedItemsLength - 1,
-        isActive: isFocused,
+        isActive: isFocused && !isModalVisible,
         onFocusedIndexChange: (index: number) => {
             scrollToIndex?.(index);
         },
@@ -63,6 +71,10 @@ function BaseSearchList({
     });
 
     const handleFocusByIndex = (index: number, event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
+        // The focus-return restore shouldn't move the keyboard cursor here, or the row gets highlighted and scrolled into view on back nav. The .focus() still restores DOM focus for screen readers.
+        if (isFocusRestoreInProgress()) {
+            return;
+        }
         // Prevent unexpected scrolling on mobile Chrome after the context menu closes by ignoring programmatic focus not triggered by direct user interaction.
         if (isMobileChrome() && event.nativeEvent) {
             if (!event.nativeEvent.sourceCapabilities) {
@@ -113,7 +125,7 @@ function BaseSearchList({
         captureOnInputs: true,
         shouldBubble: false,
         shouldPreventDefault: false,
-        isActive: isFocused && focusedIndex >= 0,
+        isActive: isFocused && focusedIndex >= 0 && !isModalVisible,
         // Propagation is controlled manually in selectFocusedOption based on editing state
         shouldStopPropagation: false,
     });

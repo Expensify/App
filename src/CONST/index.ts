@@ -6,6 +6,16 @@ import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
 import type {SearchFilterKey} from '@components/Search/types';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+import {
+    ANIMATED_TRANSITION as ANIMATION_TIMING_ANIMATED_TRANSITION,
+    DEFAULT_IN as ANIMATION_TIMING_DEFAULT_IN,
+    DEFAULT_OUT as ANIMATION_TIMING_DEFAULT_OUT,
+    DEFAULT_RIGHT_DOCKED_IOS_IN as ANIMATION_TIMING_DEFAULT_RIGHT_DOCKED_IOS_IN,
+    DEFAULT_RIGHT_DOCKED_IOS_OUT as ANIMATION_TIMING_DEFAULT_RIGHT_DOCKED_IOS_OUT,
+    FAB_IN as ANIMATION_TIMING_FAB_IN,
+    FAB_OUT as ANIMATION_TIMING_FAB_OUT,
+    MENU_ANIMATION_DURATION as ANIMATION_TIMING_MENU_ANIMATION_DURATION,
+} from '@libs/Animation/animationTiming';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
 import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/VALUES';
 import addTrailingForwardSlash from '@libs/UrlUtils';
@@ -190,7 +200,6 @@ const EMAIL = {
     EXPENSIFY_EMAIL_DOMAIN: '@expensify.com',
     EXPENSIFY_TEAM_EMAIL_DOMAIN: '@team.expensify.com',
     TEAM: 'team@expensify.com',
-    MANAGER_MCTEST: 'manager_mctest@expensify.com',
     QA_GUIDE: 'qa.guide@team.expensify.com',
 };
 
@@ -226,7 +235,8 @@ const CONST = {
     ANIMATED_HIGHLIGHT_WORKSPACE_FEATURE_ITEM_END_DURATION: 3000,
     ANIMATED_HIGHLIGHT_END_DELAY: 800,
     ANIMATED_HIGHLIGHT_END_DURATION: 2000,
-    ANIMATED_TRANSITION: 300,
+    ANIMATED_TRANSITION: ANIMATION_TIMING_ANIMATED_TRANSITION,
+    MENU_ANIMATION_DURATION: ANIMATION_TIMING_MENU_ANIMATION_DURATION,
     KEYBOARD_RESTORATION_FLAG_RESET_DELAY: 100,
     SIDE_PANEL_ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
@@ -261,10 +271,14 @@ const CONST = {
     POPOVER_DROPDOWN_MAX_HEIGHT: 416,
     POPOVER_MENU_MAX_HEIGHT: 496,
     POPOVER_MENU_MAX_HEIGHT_MOBILE: 432,
+    MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD: 8,
     POPOVER_DATE_WIDTH: 338,
     POPOVER_DATE_RANGE_WIDTH: 672,
     POPOVER_DATE_MAX_HEIGHT: 366,
     POPOVER_DATE_MIN_HEIGHT: 322,
+    ADVANCED_FILTERS_POPOVER_HEIGHT: 520,
+    ADVANCED_FILTERS_POPOVER_WIDTH: 582,
+    ADVANCED_FILTERS_CONTENT_WIDTH: 331,
     TOOLTIP_ANIMATION_DURATION: 500,
     DROPDOWN_SCROLL_THRESHOLD: 5,
     // Multiplier for gyroscope animation in order to make it a bit more subtle
@@ -280,6 +294,8 @@ const CONST = {
     ANIMATION_PAID_BUTTON_HIDE_DELAY: 300,
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     SCREEN_TRANSITION_END_TIMEOUT: 1000,
+    PENDING_TRANSACTION_DELETION_DELAY: 4000,
+    PENDING_TRANSACTION_SCROLL_DELAY: 1000,
 
     // Delay before pre-inserting the Search fullscreen route under the RHP on the confirmation screen.
     // Chosen to be long enough for the RHP entrance animation to complete (~250ms) and avoid jank
@@ -311,6 +327,10 @@ const CONST = {
         PHOTO_WIDTH: 4032,
         PHOTO_HEIGHT: 3024,
         PHOTO_ASPECT_RATIO: 4 / 3,
+        // Limit how long the shutter handler waits for thumbnail pre-generation before navigating
+        // to the confirmation screen. Past this, we navigate and let the confirm-side hook
+        // generate the thumbnail lazily (brief source swap is acceptable).
+        THUMBNAIL_NAV_TIMEOUT_MS: 150,
     },
 
     API_ATTACHMENT_VALIDATIONS: {
@@ -450,6 +470,14 @@ const CONST = {
 
     REQUEST_PREVIEW: {
         MAX_LENGTH: 83,
+    },
+
+    EXPORT_DOWNLOAD: {
+        STATE: {
+            PREPARING: 'preparing',
+            READY: 'ready',
+            FAILED: 'failed',
+        },
     },
 
     EXPORT_LABELS: {
@@ -880,14 +908,12 @@ const CONST = {
     BETAS: {
         ALL: 'all',
         ASAP_SUBMIT: 'asapSubmit',
-        CSV_CARD_IMPORT: 'csvCardImport',
         CUSTOM_AGENT: 'customAgent',
         DEFAULT_ROOMS: 'defaultRooms',
         PREVENT_SPOTNANA_TRAVEL: 'preventSpotnanaTravel',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
         PER_DIEM: 'newDotPerDiem',
-        NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         TRAVEL_INVOICING: 'travelInvoicing',
         EXPENSIFY_CARD_EU_UK: 'expensifyCardEuUk',
@@ -899,9 +925,11 @@ const CONST = {
         BULK_EDIT: 'bulkEdit',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
         SUBMIT_2026: 'submit2026',
+        DATE_BOUND_MILEAGE_RATE: 'dateBoundMileageRate',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         WORKSPACE_ROOMS_PAGE: 'workspaceRoomsPage',
         CERTINIA: 'financialForceNewDot',
+        MERGE_HR: 'mergeHRConnections',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -914,18 +942,23 @@ const CONST = {
         WALLET: 'WALLET',
     },
     COUNTRY: {
-        US: 'US',
-        MX: 'MX',
+        AS: 'AS',
         AU: 'AU',
         CA: 'CA',
+        FI: 'FI',
+        FR: 'FR',
         GB: 'GB',
         GI: 'GI',
-        IT: 'IT',
-        PR: 'PR',
         GU: 'GU',
-        VI: 'VI',
-        AS: 'AS',
+        IE: 'IE',
+        IL: 'IL',
+        IS: 'IS',
+        IT: 'IT',
         MP: 'MP',
+        MX: 'MX',
+        PR: 'PR',
+        US: 'US',
+        VI: 'VI',
     },
     SWIPE_DIRECTION: {
         DOWN: 'down',
@@ -1335,6 +1368,7 @@ const CONST = {
         SECONDARY_ACTIONS: {
             SUBMIT: 'submit',
             APPROVE: 'approve',
+            RECEIVED_PAYMENT: 'receivedPayment',
             REMOVE_HOLD: 'removeHold',
             UNAPPROVE: 'unapprove',
             CANCEL_PAYMENT: 'cancelPayment',
@@ -1423,6 +1457,7 @@ const CONST = {
             APPROVE: 'approve',
             PAY: 'pay',
             FIX: 'fix',
+            TASK: 'task',
         },
         ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE: {
             EXPENSE: 'expense',
@@ -1452,6 +1487,7 @@ const CONST = {
                 CARD_ASSIGNED: 'CARDASSIGNED',
                 CARD_FROZEN: 'CARDFROZEN',
                 CARD_UNFROZEN: 'CARDUNFROZEN',
+                CARD_DEACTIVATED: 'CARDDEACTIVATED',
                 PERSONAL_CARD_CONNECTION_BROKEN: 'PERSONALCARDCONNECTIONBROKEN',
                 CHANGE_FIELD: 'CHANGEFIELD', // OldDot Action
                 CHANGE_POLICY: 'CHANGEPOLICY',
@@ -1893,13 +1929,16 @@ const CONST = {
             PRESERVE: 'preserve',
         },
         ANIMATION_TIMING: {
-            DEFAULT_IN: 300,
-            DEFAULT_OUT: 200,
-            DEFAULT_RIGHT_DOCKED_IOS_IN: 500,
-            DEFAULT_RIGHT_DOCKED_IOS_OUT: 400,
-            FAB_IN: 350,
-            FAB_OUT: 200,
+            DEFAULT_IN: ANIMATION_TIMING_DEFAULT_IN,
+            DEFAULT_OUT: ANIMATION_TIMING_DEFAULT_OUT,
+            DEFAULT_RIGHT_DOCKED_IOS_IN: ANIMATION_TIMING_DEFAULT_RIGHT_DOCKED_IOS_IN,
+            DEFAULT_RIGHT_DOCKED_IOS_OUT: ANIMATION_TIMING_DEFAULT_RIGHT_DOCKED_IOS_OUT,
+            FAB_IN: ANIMATION_TIMING_FAB_IN,
+            FAB_OUT: ANIMATION_TIMING_FAB_OUT,
+            RHP_DURATION_IN_WEB: 150,
+            RHP_DURATION_OUT_WEB: 100,
         },
+        RHP_ENTER_OFFSET_PX_WEB: 60,
     },
     FAB_MENU_ITEM_IDS: {
         QUICK_ACTION: 'quick-action',
@@ -1991,6 +2030,7 @@ const CONST = {
         // Span names
         SPAN_OPEN_REPORT: 'ManualOpenReport',
         SPAN_APP_STARTUP: 'ManualAppStartup',
+        SPAN_APP_STARTUP_NETWORK_REQUEST: 'ManualAppStartupNetworkRequest',
         SPAN_NAVIGATE_TO_REPORTS: 'ManualNavigateToReports',
         SPAN_NAVIGATE_TO_INBOX_TAB: 'ManualNavigateToInboxTab',
         SPAN_OD_ND_TRANSITION: 'ManualOdNdTransition',
@@ -2006,6 +2046,7 @@ const CONST = {
         SPAN_ENTRY_TO_SCAN_NAVIGATION: 'ManualEntryToScanNavigation',
         SPAN_ENTRY_TO_SCAN_READY: 'ManualEntryToScanReady',
         SPAN_SHUTTER_TO_CONFIRMATION: 'ManualShutterToConfirmation',
+        SPAN_THUMBNAIL_GATE: 'ManualThumbnailGate',
         SPAN_RECEIPT_CAPTURE: 'ManualReceiptCapture',
         SPAN_SCAN_PROCESS_AND_NAVIGATE: 'ManualScanProcessAndNavigate',
         SPAN_CONFIRMATION_MOUNT: 'ManualConfirmationMount',
@@ -2077,6 +2118,7 @@ const CONST = {
         ATTRIBUTE_IS_MULTI_SCAN: 'is_multi_scan',
         ATTRIBUTE_SOURCE: 'source',
         ATTRIBUTE_ODOMETER_IMAGE_TYPE: 'odometer_image_type',
+        ATTRIBUTE_DURATION_SINCE_NATIVE_APP_STARTUP_MS: 'duration_since_native_app_startup_ms',
         /** Follow-up action after expense submit (action-based; used as submit_follow_up_action in span). */
         SUBMIT_FOLLOW_UP_ACTION: {
             DISMISS_MODAL_AND_OPEN_REPORT: 'dismiss_modal_and_open_report',
@@ -2589,7 +2631,6 @@ const CONST = {
         WIDTH: 320,
         HEIGHT: 416,
     },
-    SEARCH_ITEM_LIMIT: 15,
     CATEGORY_SHORTCUT_BAR_HEIGHT: 32,
     SMALL_EMOJI_PICKER_SIZE: {
         WIDTH: '100%',
@@ -2754,6 +2795,7 @@ const CONST = {
             REPORT_FIELD: 'REPORT_FIELD',
         },
         ACCOUNTING_METHOD: 'accountingMethod',
+        TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
     },
 
     SAGE_INTACCT_MAPPING_VALUE: {
@@ -2777,6 +2819,8 @@ const CONST = {
         PRODUCTION: 'https://login.salesforce.com/packaging/installPackage.apexp?p0=04t4p000001UQVo',
         SANDBOX: 'https://test.salesforce.com/packaging/installPackage.apexp?p0=04t4p000001UQVo',
     },
+
+    CERTINIA_FFA_BUNDLE_VERSION: '1.4',
 
     CERTINIA_CONFIG: {
         EXPORTER: 'exporter',
@@ -2872,17 +2916,37 @@ const CONST = {
 
     GUSTO: {
         APPROVAL_MODE: {
-            BASIC: 'basic',
-            MANAGER: 'manager',
-            CUSTOM: 'custom',
+            BASIC: 'APPROVAL_SUBMIT_AND_APPROVE',
+            MANAGER: 'APPROVAL_ADVANCED',
+            CUSTOM: 'APPROVAL_MANUAL',
         },
     },
 
     ZENEFITS: {
         APPROVAL_MODE: {
+            BASIC: 'APPROVAL_SUBMIT_AND_APPROVE',
+            MANAGER: 'APPROVAL_ADVANCED',
+            CUSTOM: 'APPROVAL_MANUAL',
+        },
+    },
+
+    MERGE_HR: {
+        APPROVAL_MODE: {
             BASIC: 'basic',
             MANAGER: 'manager',
             CUSTOM: 'custom',
+        },
+        SYNC_STATUS: {
+            SYNCING: 'SYNCING',
+            DONE: 'DONE',
+            FAILED: 'FAILED',
+            DISABLED: 'DISABLED',
+        },
+        SYNC_TYPE: {
+            INITIAL: 'initial',
+            MANUAL: 'manual',
+            AUTO: 'auto',
+            WEBHOOK: 'webhook',
         },
     },
 
@@ -3285,7 +3349,6 @@ const CONST = {
         REWARDS: Number(Config?.EXPENSIFY_ACCOUNT_ID_REWARDS ?? 11023767), // rewards@expensify.com
         STUDENT_AMBASSADOR: Number(Config?.EXPENSIFY_ACCOUNT_ID_STUDENT_AMBASSADOR ?? 10476956),
         SVFG: Number(Config?.EXPENSIFY_ACCOUNT_ID_SVFG ?? 2012843),
-        MANAGER_MCTEST: Number(Config?.EXPENSIFY_ACCOUNT_ID_MANAGER_MCTEST ?? 18964612),
         QA_GUIDE: Number(Config?.EXPENSIFY_ACCOUNT_ID_QA_GUIDE ?? 14365522),
     },
 
@@ -3626,7 +3689,7 @@ const CONST = {
             // Often referred to as "collect" workspaces
             TEAM: 'team',
 
-            // Free "Submit" plan for employees submitting expenses to their employer
+            // Often referred to as "submit" workspaces
             SUBMIT: 'submit2026',
         },
         RULE_CONDITIONS: {
@@ -3647,6 +3710,32 @@ const CONST = {
             AUDITOR: 'auditor',
             USER: 'user',
             EDITOR: 'editor',
+            CARD_ADMIN: 'cardAdmin',
+            PEOPLE_ADMIN: 'peopleAdmin',
+            PAYMENTS_ADMIN: 'paymentsAdmin',
+        },
+        POLICY_FEATURE: {
+            OVERVIEW: 'overview',
+            MEMBERS: 'members',
+            ASSIGN_ELEVATED_ROLES: 'assignElevatedRoles',
+            WORKFLOWS: 'workflows',
+            WORKFLOWS_APPROVALS: 'workflowsApprovals',
+            WORKFLOWS_PAYMENTS: 'workflowsPayments',
+            EXPENSIFY_CARD: 'expensifyCard',
+            COMPANY_CARDS: 'companyCards',
+            CATEGORIES: 'categories',
+            TAGS: 'tags',
+            TAXES: 'taxes',
+            RULES: 'rules',
+            DISTANCE_RATES: 'distanceRates',
+            PER_DIEM: 'perDiem',
+            REPORT_FIELDS: 'reportFields',
+            ACCOUNTING: 'accounting',
+            MORE_FEATURES: 'moreFeatures',
+        },
+        POLICY_FEATURE_ACCESS: {
+            READ: 'read',
+            WRITE: 'write',
         },
         AUTO_REIMBURSEMENT_MAX_LIMIT_CENTS: 2000000,
 
@@ -3709,7 +3798,7 @@ const CONST = {
             DOWNLOAD_CSV: 'downloadCSV',
             SETTINGS: 'settings',
             EXPORT: 'export',
-            SYNC_WITH_GUSTO: 'syncWithGusto',
+            SYNC_WITH_HR: 'syncWithHR',
         },
         MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
@@ -3823,6 +3912,7 @@ const CONST = {
                 CERTINIA: 'financialforce',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
+                MERGE_HR: 'merge_hris',
             },
             SUPPORTED_ONLY_ON_OLDDOT: {
                 FINANCIALFORCE: 'financialforce',
@@ -3839,6 +3929,7 @@ const CONST = {
                 CERTINIA: 'certinia',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
+                MERGE_HR: 'merge-hr',
             },
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
@@ -3850,6 +3941,7 @@ const CONST = {
                 gusto: 'Gusto',
                 billCom: 'Bill.com',
                 zenefits: 'TriNet',
+                merge_hris: 'Merge HR',
                 sap: 'SAP',
                 oracle: 'Oracle',
                 microsoftDynamics: 'Microsoft Dynamics',
@@ -3859,7 +3951,7 @@ const CONST = {
                 return [this.NAME.QBO, this.NAME.QBD, this.NAME.XERO, this.NAME.NETSUITE, this.NAME.SAGE_INTACCT, this.NAME.CERTINIA] as const;
             },
             get HR_CONNECTION_NAMES() {
-                return [this.NAME.GUSTO, this.NAME.ZENEFITS] as const;
+                return [this.NAME.GUSTO, this.NAME.ZENEFITS, this.NAME.MERGE_HR] as const;
             },
             get EXPORTED_TO_INTEGRATION_DISPLAY_NAMES(): string[] {
                 return this.ACCOUNTING_CONNECTION_NAMES.map((name) => this.NAME_USER_FRIENDLY[name as keyof typeof this.NAME_USER_FRIENDLY]);
@@ -4111,6 +4203,12 @@ const CONST = {
         NAME: 'expensifyCard',
         BANK: 'Expensify Card',
         ROUTE: 'expensify-card',
+        // Countries where the most terminals are "offline," so users must
+        // change their PIN at an ATM rather than via the in-app online flow.
+        // - Offline-only: GB, IE
+        // - Mostly offline: FR
+        // - Many offline terminals: FI, IL, IS
+        OFFLINE_PIN_MARKETS: ['GB', 'IE', 'FR', 'FI', 'IL', 'IS'] as string[],
         CARD_PROGRAM: {
             CURRENT: 'CURRENT',
         },
@@ -4730,7 +4828,6 @@ const CONST = {
         EMAIL.STUDENT_AMBASSADOR,
         EMAIL.SVFG,
         EMAIL.TEAM,
-        EMAIL.MANAGER_MCTEST,
         EMAIL.QA_GUIDE,
     ] as string[],
     get EXPENSIFY_ACCOUNT_IDS() {
@@ -4752,7 +4849,6 @@ const CONST = {
             this.ACCOUNT_ID.REWARDS,
             this.ACCOUNT_ID.STUDENT_AMBASSADOR,
             this.ACCOUNT_ID.SVFG,
-            this.ACCOUNT_ID.MANAGER_MCTEST,
         ].filter((id) => id !== -1);
     },
 
@@ -4917,25 +5013,34 @@ const CONST = {
         PINK: 'Pink',
     },
 
-    MAP_MARKER_SIZE: 20,
+    MAP_MARKER_SIZES: {
+        CURRENT_LOCATION: {width: 48, height: 48},
+        START_WAYPOINT: {width: 48, height: 48},
+        STOP_WAYPOINT: {width: 48, height: 53},
+        WAYPOINT: {width: 40, height: 40},
+    },
 
     QUICK_REACTIONS: [
         {
             name: '+1',
             code: '👍',
+            hexcode: '1F44D',
             types: ['👍🏿', '👍🏾', '👍🏽', '👍🏼', '👍🏻'],
         },
         {
             name: 'heart',
             code: '❤️',
+            hexcode: '2764',
         },
         {
             name: 'joy',
             code: '😂',
+            hexcode: '1F602',
         },
         {
             name: 'fire',
             code: '🔥',
+            hexcode: '1F525',
         },
     ],
 
@@ -6313,6 +6418,8 @@ const CONST = {
         MENUITEM: 'menuitem',
         /** Use for selectable options within a listbox. */
         OPTION: 'option',
+        /** Use to group related elements together for assistive technology. */
+        GROUP: 'group',
         /** Use when no specific role is needed. */
         NONE: 'none',
         /** Use for elements that don't require a specific role. */
@@ -6464,6 +6571,12 @@ const CONST = {
         SMALL: 'small',
     },
 
+    BUTTON_SIZE: {
+        LARGE: 'large',
+        MEDIUM: 'medium',
+        SMALL: 'small',
+    },
+
     SF_COORDINATES: [-122.4194, 37.7749],
 
     NAVIGATION: {
@@ -6498,7 +6611,7 @@ const CONST = {
         PM: 'PM',
     },
     INDENTS: '    ',
-    PARENT_CHILD_SEPARATOR: ': ',
+    PARENT_CHILD_SEPARATOR: ':',
     DISTANCE_MERCHANT_SEPARATOR: '@',
     COLON: ':',
     MAPBOX: {
@@ -6825,6 +6938,7 @@ const CONST = {
         RHP_HOME_PAGE: 'rhpHomePage',
         TRACK_EXPENSES_WITH_CONCIERGE: 'trackExpensesWithConcierge',
         CONTROL: 'control',
+        INB_ADMINS_WEL: 'inbAdminsWel',
     },
     ONBOARDING_JOINABLE_WORKSPACES_LIMIT: 5,
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
@@ -6843,6 +6957,10 @@ const CONST = {
 
     // We need to store this server side error in order to not show the blocking screen when the error is for invalid code
     MERGE_ACCOUNT_INVALID_CODE_ERROR: '401 Not authorized - Invalid validateCode',
+    MERGE_ACCOUNT_2FA_ERROR: 'is a login for an Expensify account with Two-Factor Authentication (2FA) enabled',
+
+    // Returned when a user tries to add a work email tied to a closed work account, so we can show a specific error message instead of the generic blocking screen subtitle
+    WORK_ACCOUNT_CLOSED_ERROR: '401 work account is closed',
     REIMBURSEMENT_ACCOUNT: {
         DEFAULT_DATA: {
             achData: {
@@ -8482,6 +8600,14 @@ const CONST = {
                 description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.QBD}.description` as const,
                 icon: 'QBDSquare',
             },
+            [this.POLICY.CONNECTIONS.NAME.CERTINIA]: {
+                id: this.POLICY.CONNECTIONS.NAME.CERTINIA,
+                alias: 'certinia',
+                name: this.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.financialforce,
+                title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.CERTINIA}.title` as const,
+                description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.CERTINIA}.description` as const,
+                icon: 'CertiniaSquare',
+            },
             approvals: {
                 id: 'approvals' as const,
                 alias: 'approvals' as const,
@@ -8585,6 +8711,70 @@ const CONST = {
                 title: 'workspace.upgrade.reports.title' as const,
                 description: 'workspace.upgrade.reports.description' as const,
                 icon: 'ReportReceipt',
+            },
+            roles: {
+                id: 'roles' as const,
+                alias: 'roles',
+                name: 'Roles',
+                title: 'workspace.upgrade.roles.title' as const,
+                description: 'workspace.upgrade.roles.description' as const,
+                icon: 'BlueShield',
+            },
+            payments: {
+                id: 'payments' as const,
+                alias: 'payments',
+                name: 'Payments',
+                title: 'workspace.upgrade.payments.title' as const,
+                description: 'workspace.upgrade.payments.description' as const,
+                icon: 'Workflows',
+            },
+            accounting: {
+                id: 'accounting' as const,
+                alias: 'accounting',
+                name: 'Accounting',
+                title: 'workspace.upgrade.accounting.title' as const,
+                description: 'workspace.upgrade.accounting.description' as const,
+                icon: 'Accounting',
+            },
+            expensifyCard: {
+                id: 'expensifyCard' as const,
+                alias: 'expensify-card',
+                name: 'Expensify Card',
+                title: 'workspace.upgrade.expensifyCard.title' as const,
+                description: 'workspace.upgrade.expensifyCard.description' as const,
+                icon: 'HandCard',
+            },
+            invoicing: {
+                id: 'invoicing' as const,
+                alias: 'invoicing',
+                name: 'Invoicing',
+                title: 'workspace.upgrade.invoicing.title' as const,
+                description: 'workspace.upgrade.invoicing.description' as const,
+                icon: 'InvoiceBlue',
+            },
+            companyCardSubmit: {
+                id: 'companyCardSubmit' as const,
+                alias: 'company-card-submit',
+                name: 'Company cards',
+                title: 'workspace.upgrade.companyCardSubmit.title' as const,
+                description: 'workspace.upgrade.companyCardSubmit.description' as const,
+                icon: 'CompanyCard',
+            },
+            travelSubmit: {
+                id: 'travelSubmit' as const,
+                alias: 'travel-submit',
+                name: 'Travel',
+                title: 'workspace.upgrade.travelSubmit.title' as const,
+                description: 'workspace.upgrade.travelSubmit.description' as const,
+                icon: 'Luggage',
+            },
+            approvalSubmit: {
+                id: 'approvalSubmit' as const,
+                alias: 'approval-submit',
+                name: 'Approvals',
+                title: 'workspace.upgrade.approvalSubmit.title' as const,
+                description: 'workspace.upgrade.approvalSubmit.description' as const,
+                icon: 'AdvancedApprovalsSquare',
             },
         };
     },
@@ -8742,19 +8932,19 @@ const CONST = {
         EVENT: {
             SIGN_UP: {
                 NAME: 'sign_up',
-                META: 'SignUp',
+                META: 'CompleteRegistration',
                 REDDIT: 'SignUp',
                 LINKEDIN: 507587661,
             },
             WORKSPACE_CREATED: {
                 NAME: 'workspace_created',
-                META: 'WorkspaceCreated',
+                META: 'Lead',
                 REDDIT: 'Lead',
                 LINKEDIN: 25474804,
             },
             PAID_ADOPTION: {
                 NAME: 'paid_adoption',
-                META: 'PaidAdoption',
+                META: 'Purchase',
                 REDDIT: 'Purchase',
                 LINKEDIN: 25474820,
             },
@@ -9106,6 +9296,7 @@ const CONST = {
             ADVANCED_FILTER_ITEM: 'Search-AdvancedFilterItem',
             SAVE_SEARCH_BUTTON: 'Search-SaveSearchButton',
             VIEW_RESULTS_BUTTON: 'Search-ViewResultsButton',
+            CLEAR_FILTERS_BUTTON: 'Search-ClearFiltersButton',
             ACTION_CELL_VIEW: 'Search-ActionCellView',
             ACTION_CELL_PAY: 'Search-ActionCellPay',
             ACTION_CELL_ACTION: 'Search-ActionCellAction',
@@ -9213,6 +9404,7 @@ const CONST = {
             CLOSE_PDF_MODAL: 'MoreMenu-ClosePDFModal',
             SUBMIT: 'MoreMenu-Submit',
             APPROVE: 'MoreMenu-Approve',
+            RECEIVED_PAYMENT: 'MoreMenu-ReceivedPayment',
             UNAPPROVE: 'MoreMenu-Unapprove',
             CANCEL_PAYMENT: 'MoreMenu-CancelPayment',
             HOLD: 'MoreMenu-Hold',
@@ -9825,18 +10017,20 @@ const CONST = {
     },
 
     HOME: {
+        // Maximum number of items in TimeSensitiveSection and YourSpendSection. Any extra items are revealed via the expand toggle button.
+        SECTION_VISIBLE_LIMIT: 5,
         ANNOUNCEMENTS: [
             {
-                title: 'Smarter cards, mileage, and approvals',
-                subtitle: 'Product update',
-                url: 'https://use.expensify.com/blog/expensify-april-2026-product-update',
-                publishedDate: '2026-04-15',
+                title: 'Expensify and VAT IT Launch Integration Partnership to Simplify Global VAT Reclaim',
+                subtitle: 'Press release',
+                url: 'https://www.businesswire.com/news/home/20260521691479/en/Expensify-and-VAT-IT-Launch-Integration-Partnership-to-Simplify-Global-VAT-Reclaim',
+                publishedDate: '2026-05-21',
             },
             {
-                title: 'New BYOC partnership: Institute of Commercial Payments',
+                title: 'Expensify and Playroll Partner to Eliminate Compliance Complexity',
                 subtitle: 'Press release',
-                url: 'https://www.businesswire.com/news/home/20260421550894/en/Expensify-Partners-With-IOCP-to-Expand-Access-to-Modern-Spend-Management',
-                publishedDate: '2026-04-21',
+                url: 'https://www.businesswire.com/news/home/20260519341013/en/Expensify-and-Playroll-Partner-to-Eliminate-Compliance-Complexity-and-Streamline-Expenses-to-Payroll-for-Businesses-Going-Global',
+                publishedDate: '2026-05-19',
             },
             {
                 title: 'Expensify named Expense Platform of the Year',
@@ -9864,6 +10058,7 @@ const CONST = {
         USER_LOCATION: 'user-location',
         ROUTE_SOURCE: 'route-source',
         ROUTE_FILL: 'route-fill',
+        ROUTE_BORDER: 'route-border',
     },
 
     PARTNER_ID: {
@@ -9872,6 +10067,18 @@ const CONST = {
         NEWDOT: 83,
     },
 } as const;
+
+/** Upgrade intro feature ids from UPGRADE_FEATURE_INTRO_MAPPING for Submit workspace */
+const SUBMIT_FEATURE_IDS: ReadonlySet<string> = new Set([
+    CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.id,
+    CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.id,
+    CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id,
+    CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.id,
+    CONST.UPGRADE_FEATURE_INTRO_MAPPING.payments.id,
+    CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.id,
+    CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.id,
+    CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoicing.id,
+]);
 
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
@@ -9938,6 +10145,6 @@ export type {
     IOUActionParams,
 };
 
-export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, TASK_TO_FEATURE, FRAUD_PROTECTION_EVENT, COUNTRIES_US_BANK_FLOW};
+export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, TASK_TO_FEATURE, FRAUD_PROTECTION_EVENT, COUNTRIES_US_BANK_FLOW, SUBMIT_FEATURE_IDS};
 
 export default CONST;
