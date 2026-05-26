@@ -771,6 +771,20 @@ function MoneyRequestReportUnifiedList({
     const lastTransactionItemIndex = controller.transactionListItems.length - 1;
     const reportActionIndexOffset = controller.isEmptyTransactions ? 0 : controller.transactionListItems.length + 1;
 
+    // The hook compares unreadMarkerReportActionIndex (0-based within visibleReportActions) against
+    // raw FlashList indices. When transactions are present, report actions start at reportActionIndexOffset,
+    // so we shift all viewable indices down before forwarding so the comparison is apples-to-apples.
+    const onViewableItemsChangedAdjusted = (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
+        if (reportActionIndexOffset === 0) {
+            onViewableItemsChanged(info);
+            return;
+        }
+        onViewableItemsChanged({
+            ...info,
+            viewableItems: info.viewableItems.map((item) => ({...item, index: item.index !== null ? item.index - reportActionIndexOffset : null})),
+        });
+    };
+
     const dispatchRenderItem = ({item, index}: ListRenderItemInfo<UnifiedListItem>) => {
         switch (item.type) {
             case 'section-header':
@@ -803,7 +817,7 @@ function MoneyRequestReportUnifiedList({
                 keyExtractor={unifiedListKeyExtractor}
                 getItemType={unifiedListItemType}
                 initialScrollIndex={initialScrollIndex}
-                onViewableItemsChanged={onViewableItemsChanged}
+                onViewableItemsChanged={onViewableItemsChangedAdjusted}
                 onLayout={onLayout}
                 onEndReached={onEndReached}
                 onStartReached={onStartReached}
