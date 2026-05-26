@@ -1,13 +1,6 @@
-import type {DataModule, SkTypefaceFontProvider} from '@shopify/react-native-skia';
-import {useFonts, useTypeface} from '@shopify/react-native-skia';
-
-function webFont(url: string): DataModule {
-    // We construct a fake ESModule-shaped object because react-native-skia's `useFonts` on web expects
-    // a DataModule (i.e. the result of a dynamic `require()` call), which always has the shape
-    // `{ __esModule: true, default: <url> }`. The `__esModule` property uses a double-underscore prefix
-    // that violates the naming-convention rule, but it is mandated by the library's internal contract.
-    return {__esModule: true, default: url} as unknown as DataModule;
-}
+import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
+import {useFonts} from '@shopify/react-native-skia';
+import webFont from '@components/Charts/context/chartWebFont';
 
 function useChartFontManager(): SkTypefaceFontProvider | null {
     return useFonts({
@@ -22,11 +15,4 @@ function useChartFontManager(): SkTypefaceFontProvider | null {
     });
 }
 
-function useChartDefaultTypeface() {
-    const regular = useTypeface(webFont(require('@assets/fonts/web/ExpensifyNeue-Regular.woff2') as string));
-    const bold = useTypeface(webFont(require('@assets/fonts/web/ExpensifyNeue-Bold.woff2') as string));
-    return {regular, bold};
-}
-
-export {useChartDefaultTypeface};
 export default useChartFontManager;
