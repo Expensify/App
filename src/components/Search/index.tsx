@@ -25,7 +25,7 @@ import usePrevious from '@hooks/usePrevious';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSaveSortedReportIDs from '@hooks/useSaveSortedReportIDs';
-import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
+import useSearchAutoRefetch from '@hooks/useSearchAutoRefetch';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useStableArrayReference from '@hooks/useStableArrayReference';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -363,7 +363,7 @@ function Search({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isSmallScreenWidth]);
 
-    const {newSearchResultKeys, handleSelectionListScroll, newTransactions, hasQueuedHighlights} = useSearchHighlightAndScroll({
+    useSearchAutoRefetch({
         searchResults,
         transactions,
         previousTransactions,
@@ -375,16 +375,6 @@ function Search({
         previousReportActions,
         shouldUseLiveData,
     });
-
-    // Mirror `hasQueuedHighlights` into a ref so the post-create-flow `useFocusEffect`
-    // (which has empty deps) can read the latest value without re-creating its callback.
-    // Used to skip the deferral that would otherwise hide the freshly-added row from
-    // FlashList during the RHP dismiss transition, which would prevent the highlight
-    // animation from ever firing on it.
-    const hasQueuedHighlightsRef = useRef(hasQueuedHighlights);
-    useEffect(() => {
-        hasQueuedHighlightsRef.current = hasQueuedHighlights;
-    }, [hasQueuedHighlights]);
 
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
     // we also need to check that the searchResults matches the type and status of the current search
@@ -442,14 +432,6 @@ function Search({
 
             if (skipDeferralOnFocusRef.current) {
                 skipDeferralOnFocusRef.current = false;
-                return;
-            }
-
-            // If the highlight hook already queued rows for the post-create animation,
-            // skip the skeleton-during-transition defer. Otherwise FlashList stays empty
-            // for ~1s while the RHP dismiss transition runs, the row never mounts inside
-            // the 300ms highlight window, and `useAnimatedHighlightStyle` never fires.
-            if (hasQueuedHighlightsRef.current) {
                 return;
             }
 
@@ -1307,28 +1289,12 @@ function Search({
     const sortedData = useMemo(
         () =>
             getSortedSections(type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy).map((item) => {
-                const baseKey = isChat
-                    ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
-                    : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
-
-                const isBaseKeyMatch = !!newSearchResultKeys?.has(baseKey);
-
-                const isAnyTransactionMatch =
-                    !isChat &&
-                    (item as TransactionGroupListItemType)?.transactions?.some((transaction) => {
-                        const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
-                        return !!newSearchResultKeys?.has(transactionKey);
-                    });
-
-                const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
-
-                if (item.shouldAnimateInHighlight === shouldAnimateInHighlight && item.hash === hash) {
+                if (item.hash === hash) {
                     return item;
                 }
-
-                return {...item, shouldAnimateInHighlight, hash};
+                return {...item, hash};
             }),
-        [type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy, isChat, newSearchResultKeys, hash],
+        [type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy, hash],
     );
 
     useSaveSortedReportIDs(type, sortedData);
@@ -1429,9 +1395,8 @@ function Search({
 
     const onLayout = useCallback(() => {
         onLayoutBase();
-        handleSelectionListScroll(stableSortedData, searchListRef.current);
         onContentReady?.();
-    }, [onLayoutBase, handleSelectionListScroll, stableSortedData, onContentReady]);
+    }, [onLayoutBase, onContentReady]);
 
     // Must be a ref, not state: cancelNavigationSpans is called during render
     // (inside conditional returns), so using setState would trigger infinite re-renders.
@@ -1751,7 +1716,6 @@ function Search({
                     onLayout={onLayout}
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                     shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
-                    newTransactions={newTransactions}
                     hasLoadedAllTransactions={hasLoadedAllTransactions}
                     isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                     nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}

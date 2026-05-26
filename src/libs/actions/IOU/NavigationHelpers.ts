@@ -1,8 +1,5 @@
 import sharedDismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
-import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
-import {mergeTransactionIdsHighlightOnSearchRoute} from '@userActions/Transaction';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {getAllTransactions} from './index';
 
 /**
@@ -14,17 +11,6 @@ import {getAllTransactions} from './index';
 function dismissModalAndOpenReportInInboxTab(reportID?: string, isInvoice?: boolean) {
     const hasMultipleTransactions = Object.values(getAllTransactions()).filter((transaction) => transaction?.reportID === reportID).length > 0;
     sharedDismissModalAndOpenReportInInboxTab(reportID, isInvoice, hasMultipleTransactions);
-}
-
-/**
- * Marks a transaction for highlight on the Search page when the expense was created
- * from the global create button and the user is not on the Inbox tab.
- */
-function highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate: boolean | undefined, transactionID: string | undefined, dataType: SearchDataTypes) {
-    if (!isFromGlobalCreate || isReportTopmostSplitNavigator() || !transactionID) {
-        return;
-    }
-    mergeTransactionIdsHighlightOnSearchRoute(dataType, {[transactionID]: true});
 }
 
 /**
@@ -64,4 +50,4 @@ function handleNavigateAfterExpenseCreate({
     });
 }
 
-export {dismissModalAndOpenReportInInboxTab, handleNavigateAfterExpenseCreate, highlightTransactionOnSearchRouteIfNeeded};
+export {dismissModalAndOpenReportInInboxTab, handleNavigateAfterExpenseCreate};

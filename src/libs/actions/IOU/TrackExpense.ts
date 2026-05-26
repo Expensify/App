@@ -107,7 +107,7 @@ import {deleteMoneyRequest, getCleanUpTransactionThreadReportOnyxData, getNaviga
 import {getAllReports, getAllTransactionDrafts, getAllTransactions, getAllTransactionViolations, getMoneyRequestPolicyTags} from './index';
 import {buildMinimalTransactionForFormula, getMoneyRequestInformation, getReceiptError, getReportPreviewAction, getTransactionWithPreservedLocalReceiptSource} from './MoneyRequestBuilder';
 import type {BuildOnyxDataForMoneyRequestKeys, RequestMoneyInformation} from './MoneyRequestBuilder';
-import {handleNavigateAfterExpenseCreate, highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
+import {handleNavigateAfterExpenseCreate} from './NavigationHelpers';
 import type {ReplaceReceipt} from './Receipt';
 import {getSearchOnyxUpdate} from './SearchUpdate';
 import type {StartSplitBilActionParams} from './Split';
@@ -1885,7 +1885,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
     }
 
     if (!requestMoneyInformation.isRetry) {
-        highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
         if (shouldHandleNavigation) {
             const navigationReportID = backToReport ?? activeReportID;
             handleNavigateAfterExpenseCreate({
@@ -2704,8 +2703,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
     });
 
     if (!params.isRetry) {
-        highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction?.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
-
         if (shouldHandleNavigation) {
             handleNavigateAfterExpenseCreate({
                 activeReportID,

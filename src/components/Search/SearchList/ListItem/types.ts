@@ -424,7 +424,6 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
         searchType?: SearchDataTypes;
         accountID?: number;
         columns?: SearchColumnType[];
-        newTransactionID?: string;
         /** Non-personal and workspace cards for company card display */
         nonPersonalAndWorkspaceCards?: CardList;
         /** Callback to undelete a transaction */
