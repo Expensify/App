@@ -12,21 +12,29 @@ import ComposerFooter from './ComposerFooter';
 import ComposerImportedState from './ComposerImportedState';
 import ComposerInput from './ComposerInput';
 import ComposerInputArea from './ComposerInputArea';
-import ComposerLayout from './ComposerLayout';
 import ComposerLocalTime from './ComposerLocalTime';
 import ComposerProvider from './ComposerProvider';
 import ComposerSendButton from './ComposerSendButton';
 import ComposerTypingIndicator from './ComposerTypingIndicator';
-import EditOnlyReportActionCompose from './EditOnlyReportActionCompose';
-import type ReportActionComposeProps from './types';
+
+type ReportActionComposeProps = {
+    /** Report ID */
+    reportID: string;
+};
 
 function ReportActionCompose({reportID}: ReportActionComposeProps) {
     return (
         <ComposerProvider reportID={reportID}>
-            <ComposerLayout>
-                <ComposerInputArea />
-            </ComposerLayout>
+            <ComposerInputArea />
             <ComposerDefaultFooter />
+        </ComposerProvider>
+    );
+}
+
+function EditOnlyReportActionCompose({reportID}: ReportActionComposeProps) {
+    return (
+        <ComposerProvider reportID={reportID}>
+            <ComposerInputArea />
         </ComposerProvider>
     );
 }
@@ -44,7 +52,7 @@ ReportActionCompose.EditingButtons = ComposerEditingButtons;
 ReportActionCompose.Footer = ComposerFooter;
 ReportActionCompose.TypingIndicator = ComposerTypingIndicator;
 ReportActionCompose.ExceededLength = ComposerExceededLength;
-ReportActionCompose.Layout = ComposerLayout;
+ReportActionCompose.Layout = ComposerInputArea;
 ReportActionCompose.InputArea = ComposerInputArea;
 ReportActionCompose.DefaultFooter = ComposerDefaultFooter;
 ReportActionCompose.EditOnly = EditOnlyReportActionCompose;
