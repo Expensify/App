@@ -7766,18 +7766,6 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             amountFilter: ({operator, amount}: {operator: string; amount: string}) => `valores ${operator} ${amount}`,
             theCard: 'o cartão',
             multipleCards: ({count}: {count: number}) => `${count} cartões`,
-            joinFilters: ({items}: {items: string[]}) => {
-                if (items.length === 0) {
-                    return '';
-                }
-                if (items.length === 1) {
-                    return items.at(0) ?? '';
-                }
-                if (items.length === 2) {
-                    return `${items.at(0)} e ${items.at(1)}`;
-                }
-                return `${items.slice(0, -1).join(', ')} e ${items.at(-1)}`;
-            },
             addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
                 let text = verb;
                 if (filters !== '') {

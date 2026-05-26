@@ -7813,18 +7813,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             amountFilter: ({operator, amount}: {operator: string; amount: string}) => `Beträge ${operator} ${amount}`,
             theCard: 'die Karte',
             multipleCards: ({count}: {count: number}) => `${count} Karten`,
-            joinFilters: ({items}: {items: string[]}) => {
-                if (items.length === 0) {
-                    return '';
-                }
-                if (items.length === 1) {
-                    return items.at(0) ?? '';
-                }
-                if (items.length === 2) {
-                    return `${items.at(0)} und ${items.at(1)}`;
-                }
-                return `${items.slice(0, -1).join(', ')} und ${items.at(-1)}`;
-            },
             addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
                 let text = verb;
                 if (filters !== '') {

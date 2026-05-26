@@ -7803,18 +7803,6 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             amountFilter: ({operator, amount}: {operator: string; amount: string}) => `importi ${operator} ${amount}`,
             theCard: 'la carta',
             multipleCards: ({count}: {count: number}) => `${count} carte`,
-            joinFilters: ({items}: {items: string[]}) => {
-                if (items.length === 0) {
-                    return '';
-                }
-                if (items.length === 1) {
-                    return items.at(0) ?? '';
-                }
-                if (items.length === 2) {
-                    return `${items.at(0)} e ${items.at(1)}`;
-                }
-                return `${items.slice(0, -1).join(', ')} e ${items.at(-1)}`;
-            },
             addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
                 let text = verb;
                 if (filters !== '') {

@@ -7843,18 +7843,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             amountFilter: ({operator, amount}: {operator: string; amount: string}) => `montants ${operator} ${amount}`,
             theCard: 'la carte',
             multipleCards: ({count}: {count: number}) => `${count} cartes`,
-            joinFilters: ({items}: {items: string[]}) => {
-                if (items.length === 0) {
-                    return '';
-                }
-                if (items.length === 1) {
-                    return items.at(0) ?? '';
-                }
-                if (items.length === 2) {
-                    return `${items.at(0)} et ${items.at(1)}`;
-                }
-                return `${items.slice(0, -1).join(', ')} et ${items.at(-1)}`;
-            },
             addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
                 let text = verb;
                 if (filters !== '') {

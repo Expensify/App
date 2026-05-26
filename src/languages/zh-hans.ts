@@ -7568,18 +7568,6 @@ ${reportName}
             amountFilter: ({operator, amount}: {operator: string; amount: string}) => `金额 ${operator} ${amount}`,
             theCard: '该卡',
             multipleCards: ({count}: {count: number}) => `${count} 张卡片`,
-            joinFilters: ({items}: {items: string[]}) => {
-                if (items.length === 0) {
-                    return '';
-                }
-                if (items.length === 1) {
-                    return items.at(0) ?? '';
-                }
-                if (items.length === 2) {
-                    return `${items.at(0)} 和 ${items.at(1)}`;
-                }
-                return `${items.slice(0, -1).join(', ')}，以及 ${items.at(-1)}`;
-            },
             addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
                 let text = verb;
                 if (filters !== '') {

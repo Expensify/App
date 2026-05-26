@@ -7709,18 +7709,6 @@ ${reportName}
             amountFilter: ({operator, amount}: {operator: string; amount: string}) => `金額 ${operator} ${amount}`,
             theCard: 'カード',
             multipleCards: ({count}: {count: number}) => `${count} 枚のカード`,
-            joinFilters: ({items}: {items: string[]}) => {
-                if (items.length === 0) {
-                    return '';
-                }
-                if (items.length === 1) {
-                    return items.at(0) ?? '';
-                }
-                if (items.length === 2) {
-                    return `${items.at(0)} と ${items.at(1)}`;
-                }
-                return `${items.slice(0, -1).join(', ')}、および ${items.at(-1)}`;
-            },
             addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
                 let text = verb;
                 if (filters !== '') {

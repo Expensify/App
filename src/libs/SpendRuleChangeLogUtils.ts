@@ -4,6 +4,7 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import {convertAmountToDisplayString} from './CurrencyUtils';
+import {formatList} from './Localize';
 import Parser from './Parser';
 import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowupListFromHtml';
 import {getOriginalMessage, isActionOfType} from './ReportActionsUtils';
@@ -54,9 +55,9 @@ function getSpendRuleCardsSummary(translate: LocalizedTranslate, cards: Readonly
     return translate('workspaceActions.expensifyCardRule.multipleCards', {count: cards.length});
 }
 
-function getSpendRuleJoinFilters(translate: LocalizedTranslate, items: readonly string[]): string {
+function getSpendRuleJoinFilters(items: readonly string[]): string {
     const filtered = items.filter((value) => typeof value === 'string' && value !== '');
-    return translate('workspaceActions.expensifyCardRule.joinFilters', {items: filtered});
+    return formatList(filtered);
 }
 
 function getSpendRuleCategoryDisplayName(translate: LocalizedTranslate, category: string): string {
@@ -196,7 +197,7 @@ function joinSpendRulePhrases(translate: LocalizedTranslate, phrases: readonly S
 
     if (!allSameVerb) {
         const parts = phrases.map((phrase) => `${getSpendRulePhraseVerbWord(translate, phrase.verb)} ${phrase.bodyWithAdjective}`);
-        return getSpendRuleJoinFilters(translate, parts);
+        return getSpendRuleJoinFilters(parts);
     }
 
     const firstPhrase = phrases.at(0);
@@ -213,7 +214,7 @@ function joinSpendRulePhrases(translate: LocalizedTranslate, phrases: readonly S
         const useOwnAdjective = phrase.adjective !== '' && phrase.adjective !== firstAdjective;
         parts.push(useOwnAdjective ? phrase.bodyWithAdjective : phrase.bodyWithoutAdjective);
     }
-    return getSpendRuleJoinFilters(translate, parts);
+    return getSpendRuleJoinFilters(parts);
 }
 
 function getAddExpensifyCardRuleMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
@@ -243,7 +244,7 @@ function getAddExpensifyCardRuleMessage(translate: LocalizedTranslate, reportAct
     }
 
     const verb = getSpendRuleActionVerb(translate, action);
-    const filters = getSpendRuleJoinFilters(translate, items);
+    const filters = getSpendRuleJoinFilters(items);
     const cardsSummary = getSpendRuleCardsSummary(translate, cards);
 
     if (verb === '') {

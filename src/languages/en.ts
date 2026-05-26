@@ -7524,18 +7524,6 @@ const translations = {
             amountFilter: ({operator, amount}: {operator: string; amount: string}) => `amounts ${operator} ${amount}`,
             theCard: 'the card',
             multipleCards: ({count}: {count: number}) => `${count} cards`,
-            joinFilters: ({items}: {items: string[]}) => {
-                if (items.length === 0) {
-                    return '';
-                }
-                if (items.length === 1) {
-                    return items.at(0) ?? '';
-                }
-                if (items.length === 2) {
-                    return `${items.at(0)} and ${items.at(1)}`;
-                }
-                return `${items.slice(0, -1).join(', ')}, and ${items.at(-1)}`;
-            },
             addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
                 let text = verb;
                 if (filters !== '') {
