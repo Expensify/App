@@ -1511,12 +1511,14 @@ function AddWorkEmail(workEmail: string) {
             return;
         }
 
-        if (response?.message?.includes(CONST.MERGE_ACCOUNT_2FA_ERROR)) {
+        const responseMessage = response?.message ?? '';
+        const responseTitle = response?.title ?? '';
+        if (responseMessage.includes(CONST.MERGE_ACCOUNT_2FA_ERROR) || responseTitle.includes(CONST.MERGE_ACCOUNT_2FA_ERROR)) {
             Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.workEmail2FAError');
             return;
         }
 
-        if (response?.message === CONST.WORK_ACCOUNT_CLOSED_ERROR || response?.title === CONST.WORK_ACCOUNT_CLOSED_ERROR) {
+        if (responseMessage === CONST.WORK_ACCOUNT_CLOSED_ERROR || responseTitle === CONST.WORK_ACCOUNT_CLOSED_ERROR) {
             Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.mergeBlockScreen.workAccountClosedSubtitle');
             return;
         }

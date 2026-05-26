@@ -212,6 +212,21 @@ function AddWorkEmailShouldValidate() {
     return waitForBatchedUpdates().then(() => (HttpUtils.xhr = originalXhr));
 }
 
+function AddWorkEmailTwoFactorAuthFailure() {
+    const originalXhr = HttpUtils.xhr;
+    HttpUtils.xhr = jest.fn().mockImplementation(() => {
+        const mockedResponse: OnyxResponse<typeof ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY> = {
+            jsonCode: CONST.JSON_CODE.EXP_ERROR,
+            title: `${workEmail} ${CONST.MERGE_ACCOUNT_2FA_ERROR}`,
+        };
+
+        // Return a Promise that resolves with the mocked response
+        return Promise.resolve(mockedResponse);
+    });
+    AddWorkEmail(workEmail);
+    return waitForBatchedUpdates().then(() => (HttpUtils.xhr = originalXhr));
+}
+
 describe('OnboardingWorkEmail Page', () => {
     beforeAll(() => {
         Onyx.init({
@@ -338,6 +353,33 @@ describe('OnboardingWorkEmail Page', () => {
         await waitFor(() => {
             expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute());
         });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should show 2FA error when adding a work email from an account with 2FA enabled', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+        });
+
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        AddWorkEmailTwoFactorAuthFailure();
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByText(TestHelper.translateLocal('onboarding.workEmail2FAError'))).toBeOnTheScreen();
+        });
+
+        expect(navigate).not.toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(), {forceReplace: true});
 
         unmount();
         await waitForBatchedUpdatesWithAct();
