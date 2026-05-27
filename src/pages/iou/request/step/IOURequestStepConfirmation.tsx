@@ -342,14 +342,16 @@ function IOURequestStepConfirmation({
                 setTransactionReport(activeTransactionID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
                 navigation.setParams({iouType: CONST.IOU.TYPE.TRACK});
             } else {
-                navigation.setParams({iouType: CONST.IOU.TYPE.CREATE});
+                if (iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.CREATE) {
+                    navigation.setParams({iouType: CONST.IOU.TYPE.CREATE});
+                }
                 setMoneyRequestParticipants(activeTransactionID, participantsList);
             }
             if (participantsList.length > 0) {
                 closeParticipantPicker();
             }
         },
-        [activeTransactionID, closeParticipantPicker, currentUserPersonalDetails.accountID, navigation, selfDMReport],
+        [activeTransactionID, closeParticipantPicker, currentUserPersonalDetails.accountID, navigation, selfDMReport, iouType],
     );
 
     useEffect(() => {
