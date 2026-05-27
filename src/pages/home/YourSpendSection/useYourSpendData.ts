@@ -49,7 +49,7 @@ function getYourSpendApplicability(policies: OnyxCollection<Policy> | undefined)
     for (const policy of Object.values(policies ?? {})) {
         if (policy?.id && isPaidGroupPolicy(policy)) {
             paidGroupPolicyIDs.push(policy.id);
-            if (arePaymentsEnabled(policy ?? undefined)) {
+            if (!isPaymentApplicable && arePaymentsEnabled(policy ?? undefined)) {
                 isPaymentApplicable = true;
             }
         }
