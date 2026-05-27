@@ -53,11 +53,10 @@ function ReplaceDeviceVerifyNewPage() {
         if (!account || account.twoFactorAuthSecretKey) {
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_2FA_SUCCESS.route, {forceReplace: true});
+        Navigation.navigate(ROUTES.SETTINGS_2FA_SUCCESS, {forceReplace: true});
     }, [account, account?.twoFactorAuthSecretKey]);
 
     const handleInputFocus = () => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
                 scrollViewRef.current?.scrollToEnd({animated: true});

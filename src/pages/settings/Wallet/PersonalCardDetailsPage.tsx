@@ -1,15 +1,17 @@
 import {format} from 'date-fns';
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -17,15 +19,14 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isUsingStagingApi} from '@libs/ApiUtils';
-import {getCardFeedIcon, isCardConnectionBroken, isPersonalCard} from '@libs/CardUtils';
+import {getCardFeedIcon, getPlaidInstitutionIconUrl, isCardConnectionBroken, isPersonalCard} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import variables from '@styles/variables';
-import {clearCardErrorField, syncCard, unassignCard} from '@userActions/Card';
-import {openOldDotLink} from '@userActions/Link';
+import {clearCardErrorField, deletePersonalCard, syncCard, unassignCard} from '@userActions/Card';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,8 +42,8 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
     const {cardID} = route.params;
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
-    const [isUnassignModalVisible, setIsUnassignModalVisible] = useState(false);
     const {translate, getLocalDateFromDatetime} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
@@ -52,6 +53,9 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [savedColumnLayouts] = useOnyx(ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST);
 
     const card = cardList?.[cardID];
     const cardBank = card?.bank ?? '';
@@ -62,13 +66,23 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
     const isCSVImportedPersonalCard = !!(isUserPersonalCard && card && (card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)));
 
     const removeCardFromUser = () => {
-        setIsUnassignModalVisible(false);
         if (!card) {
-            Navigation.goBack();
             return;
         }
-        unassignCard(card);
-        Navigation.goBack();
+        showConfirmModal({
+            title: translate('workspace.moreFeatures.companyCards.removeCard'),
+            prompt: translate('workspace.moreFeatures.companyCards.removeCardDescription'),
+            confirmText: translate('workspace.moreFeatures.companyCards.remove'),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: true,
+            danger: true,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            unassignCard(card);
+            Navigation.goBack();
+        });
     };
 
     const updateCard = () => {
@@ -83,6 +97,28 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
             return;
         }
         syncCard(card.cardID, card.lastScrapeResult, true);
+    };
+
+    const confirmDeleteCard = () => {
+        if (!card) {
+            return;
+        }
+        showConfirmModal({
+            title: translate('walletPage.deleteCard'),
+            prompt: translate('walletPage.deleteCardConfirmation'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: true,
+            danger: true,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            const savedColumnLayout = savedColumnLayouts?.[card.cardID];
+            Navigation.goBack(ROUTES.SETTINGS_WALLET, {
+                afterTransition: () => deletePersonalCard({cardID: card.cardID, card, allTransactions, allReports, savedColumnLayout}),
+            });
+        });
     };
 
     // Show "Break connection" only when Mock Bank requests target non-production APIs.
@@ -108,6 +144,8 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
         return <NotFoundPage />;
     }
 
+    const plaidUrl = getPlaidInstitutionIconUrl(cardBank as CompanyCardFeed);
+
     return (
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
@@ -119,13 +157,20 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
             />
             <ScrollView addBottomSafeAreaPadding>
                 <View style={[styles.walletCard, styles.mb3]}>
-                    <ImageSVG
-                        contentFit="contain"
-                        src={getCardIconSource()}
-                        pointerEvents="none"
-                        height={variables.cardPreviewHeight}
-                        width={variables.cardPreviewWidth}
-                    />
+                    {plaidUrl ? (
+                        <PlaidCardFeedIcon
+                            plaidUrl={plaidUrl}
+                            isLarge
+                        />
+                    ) : (
+                        <ImageSVG
+                            contentFit="contain"
+                            src={getCardIconSource()}
+                            pointerEvents="none"
+                            height={variables.cardPreviewHeight}
+                            width={variables.cardPreviewWidth}
+                        />
+                    )}
                 </View>
                 {isCardBroken && (
                     <OfflineWithFeedback
@@ -148,7 +193,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                             />
                             <Button
                                 text={translate('personalCard.fixCard')}
-                                onPress={() => openOldDotLink(CONST.OLDDOT_URLS.SETTINGS_WALLET_URL)}
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_FIX_CONNECTION.getRoute(cardID))}
                                 isDisabled={isOffline || card?.isLoadingLastUpdated}
                                 style={styles.mb0}
                             />
@@ -169,20 +214,10 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                         shouldShowBreakConnection={shouldShowBreakConnection}
                         onUpdateCard={updateCard}
                         onBreakConnection={breakConnection}
-                        onUnassignCard={() => setIsUnassignModalVisible(true)}
+                        onUnassignCard={removeCardFromUser}
+                        onDeleteCard={confirmDeleteCard}
                     />
                 )}
-                <ConfirmModal
-                    title={translate('workspace.moreFeatures.companyCards.removeCard')}
-                    isVisible={isUnassignModalVisible}
-                    onConfirm={removeCardFromUser}
-                    onCancel={() => setIsUnassignModalVisible(false)}
-                    shouldSetModalVisibility={false}
-                    prompt={translate('workspace.moreFeatures.companyCards.removeCardDescription')}
-                    confirmText={translate('workspace.moreFeatures.companyCards.remove')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
             </ScrollView>
         </ScreenWrapper>
     );

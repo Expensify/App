@@ -4,6 +4,7 @@ type SignUpUserParams = {
     email?: string;
     preferredLocale: Locale | null;
     hasSMSMarketingConsent?: boolean;
+    deviceInfo: string;
 };
 
 export default SignUpUserParams;

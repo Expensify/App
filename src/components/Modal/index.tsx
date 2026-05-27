@@ -4,6 +4,7 @@ import useTheme from '@hooks/useTheme';
 import StatusBar from '@libs/StatusBar';
 import CONST from '@src/CONST';
 import BaseModal from './BaseModal';
+import {withInternalPopstate} from './internalPopstateGuard';
 import type BaseModalProps from './types';
 import type {WindowState} from './types';
 
@@ -55,7 +56,7 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
                 if (!(window.history.state as WindowState)?.shouldGoBack) {
                     return;
                 }
-                window.history.back();
+                withInternalPopstate(() => window.history.back());
             }, 0);
         } else {
             onModalHide();
@@ -105,7 +106,6 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
 
     return (
         <BaseModal
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
             onModalHide={hideModal}
             onModalShow={showModal}
