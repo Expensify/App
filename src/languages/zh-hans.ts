@@ -7570,7 +7570,7 @@ ${reportName}
                 if (filters !== '') {
                     text += ` ${filters}`;
                 }
-                text += `在 ${cards}`;
+                text += ` 在 ${cards}`;
                 return text;
             },
             removeRule: ({cards}: {cards: string}) => `已从 ${cards} 中移除消费规则`,

@@ -7852,7 +7852,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 if (filters !== '') {
                     text += ` ${filters}`;
                 }
-                text += `sur ${cards}`;
+                text += ` sur ${cards}`;
                 return text;
             },
             removeRule: ({cards}: {cards: string}) => `a supprimé la règle de dépense de ${cards}`,

@@ -7781,7 +7781,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 if (filters !== '') {
                     text += ` ${filters}`;
                 }
-                text += `op ${cards}`;
+                text += ` op ${cards}`;
                 return text;
             },
             removeRule: ({cards}: {cards: string}) => `besteedregel verwijderd van ${cards}`,

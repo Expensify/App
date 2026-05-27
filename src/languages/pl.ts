@@ -7771,7 +7771,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 if (filters !== '') {
                     text += ` ${filters}`;
                 }
-                text += `na ${cards}`;
+                text += ` na ${cards}`;
                 return text;
             },
             removeRule: ({cards}: {cards: string}) => `usunięto regułę wydatków z ${cards}`,

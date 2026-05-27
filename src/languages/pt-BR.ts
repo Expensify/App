@@ -7773,7 +7773,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 if (filters !== '') {
                     text += ` ${filters}`;
                 }
-                text += `em ${cards}`;
+                text += ` em ${cards}`;
                 return text;
             },
             removeRule: ({cards}: {cards: string}) => `removeu a regra de gasto de ${cards}`,

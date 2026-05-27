@@ -7811,7 +7811,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 if (filters !== '') {
                     text += ` ${filters}`;
                 }
-                text += `su ${cards}`;
+                text += ` su ${cards}`;
                 return text;
             },
             removeRule: ({cards}: {cards: string}) => `regola di spesa rimossa da ${cards}`,

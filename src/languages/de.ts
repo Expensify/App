@@ -7822,7 +7822,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 if (filters !== '') {
                     text += ` ${filters}`;
                 }
-                text += `auf ${cards}`;
+                text += ` auf ${cards}`;
                 return text;
             },
             removeRule: ({cards}: {cards: string}) => `Ausgaberegel von ${cards} entfernt`,
