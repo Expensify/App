@@ -1297,10 +1297,7 @@ const ROUTES = {
     SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT: {
         route: 'settings/profile/contact-methods/verify',
         getRoute: (backTo?: string, forwardTo?: string) =>
-            getUrlWithBackToParam(
-                forwardTo ? `settings/profile/contact-methods/verify?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/profile/contact-methods/verify',
-                backTo,
-            ),
+            getUrlWithBackToParam(forwardTo ? `settings/profile/contact-methods/verify?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/profile/contact-methods/verify', backTo),
     },
     SETTINGS_2FA_ENABLED: 'settings/security/two-factor-auth/enabled',
     SETTINGS_2FA_SUCCESS: 'settings/security/two-factor-auth/replace/success',
