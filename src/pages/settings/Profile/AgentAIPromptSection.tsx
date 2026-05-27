@@ -70,7 +70,6 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
         errorText = translate('common.error.invalidCharacter');
     }
     const storedPrompt = Str.htmlDecode(agentPrompt?.prompt ?? '');
-    const isDirty = draftPrompt !== storedPrompt;
 
     // Delegate.connect seeds IS_LOADING_APP=true via clearOnyxForDelegateTransition and OpenApp's optimisticData,
     // then flips it back to false in OpenApp's finallyData. By that point NetworkStore.authToken is the delegate.
@@ -170,7 +169,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
             subtitle={translate('profilePage.aiPromptSection.subtitle')}
             isCentralPane
             subtitleMuted
-            childrenStyles={styles.pt3}
+            childrenStyles={styles.pt5}
             titleStyles={styles.accountSettingsSectionTitle}
         >
             <OfflineWithFeedback
@@ -200,7 +199,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
                 icon={showSavedConfirmation ? icons.Checkmark : undefined}
                 onPress={handleSave}
                 isLoading={isSaving}
-                isDisabled={!isDirty || hasHtmlTag || isSaving}
+                isDisabled={hasHtmlTag || isSaving}
                 style={[styles.alignSelfStart]}
                 testID="save-prompt-button"
             />
