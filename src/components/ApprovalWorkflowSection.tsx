@@ -12,6 +12,7 @@ import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {getApprovalLimitDescription} from '@libs/WorkflowUtils';
 import CONST from '@src/CONST';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
+import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 import Button from './Button';
 import Icon from './Icon';
 import MenuItem from './MenuItem';
@@ -31,6 +32,13 @@ type ApprovalWorkflowSectionProps = {
     onAddAgentPress?: () => void;
 
     /**
+     * Called when the X is clicked on an approver row that carries `approver.errors`. The page
+     * uses this to discard the failed optimistic agent (clears the deferred-save entry, the
+     * optimistic personal detail / prompt, and the policy-level addAgent error).
+     */
+    onDismissApproverError?: (approver: Approver) => void;
+
+    /**
      * Whether the Add agent pill is allowed on this card. It is still gated by the
      * customAgent beta on top of this flag.
      */
@@ -43,7 +51,15 @@ type ApprovalWorkflowSectionProps = {
     isDisabled?: boolean;
 };
 
-function ApprovalWorkflowSection({approvalWorkflow, onPress, onAddAgentPress, canAddAgent = false, currency = CONST.CURRENCY.USD, isDisabled = false}: ApprovalWorkflowSectionProps) {
+function ApprovalWorkflowSection({
+    approvalWorkflow,
+    onPress,
+    onAddAgentPress,
+    onDismissApproverError,
+    canAddAgent = false,
+    currency = CONST.CURRENCY.USD,
+    isDisabled = false,
+}: ApprovalWorkflowSectionProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Lightbulb', 'Users', 'UserCheck', 'Pencil', 'Bot']);
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -120,15 +136,12 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, onAddAgentPress, ca
                 />
 
                 {approvalWorkflow.approvers.map((approver, index) => (
-                    // Wrap each approver row in OfflineWithFeedback so an approver that's still
-                    // being confirmed by the server (e.g. one seeded from Workflows > Add agent
-                    // while CREATE_AGENT is in flight, or a deferred-save approver waiting on the
-                    // agent to land) renders with reduced opacity — that's the visual cue the
-                    // admin asked for. The wrapper is a no-op when `pendingAction` is undefined.
                     <OfflineWithFeedback
                         // eslint-disable-next-line react/no-array-index-key
                         key={`approver-${approver.email || approver.accountID}-${index}`}
                         pendingAction={approver.pendingAction}
+                        errors={approver.errors}
+                        onClose={approver.errors && onDismissApproverError ? () => onDismissApproverError(approver) : undefined}
                     >
                         <View>
                             <View style={styles.workflowApprovalVerticalLine} />

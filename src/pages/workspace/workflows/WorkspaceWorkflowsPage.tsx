@@ -1,6 +1,6 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -25,6 +25,7 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
+import useDeferredAgentWorkflowReconciliation from '@hooks/useDeferredAgentWorkflowReconciliation';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -36,6 +37,7 @@ import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
+import {clearPendingAgentFromApprovalWorkflow} from '@libs/actions/Agent';
 import {
     clearPolicyErrorField,
     isCurrencySupportedForDirectReimbursement,
@@ -46,7 +48,7 @@ import {
     setWorkspaceReimbursement,
 } from '@libs/actions/Policy/Policy';
 import {dismissProductTraining} from '@libs/actions/Welcome';
-import {buildDeferredAgentWorkflowSaveKey, clearDeferredAgentWorkflowSave, setApprovalWorkflow, updateApprovalWorkflow} from '@libs/actions/Workflow';
+import {setApprovalWorkflow} from '@libs/actions/Workflow';
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import {getAllCardsForWorkspace, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -85,7 +87,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type DismissedProductTraining from '@src/types/onyx/DismissedProductTraining';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
@@ -150,9 +151,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const delegateAccountID = useDelegateAccountID();
     const {accountID: currentUserAccountID, email: currentUserEmail = ''} = useCurrentUserPersonalDetails();
     const isUserReimburser = policy?.achAccount?.reimburser !== undefined && account?.primaryLogin !== undefined && policy?.achAccount?.reimburser === account?.primaryLogin;
-    const [deferredAgentWorkflowSaves] = useOnyx(ONYXKEYS.DEFERRED_AGENT_WORKFLOW_SAVES);
-    const [agentPrompts] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT);
-    const [optimisticAgentAccountIDMapping] = useOnyx(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING);
     const {
         approvalWorkflows: rawApprovalWorkflows,
         availableMembers,
@@ -164,181 +162,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         currentUserLogin: currentUserEmail,
     });
 
-    // Overlay any deferred-save workflows on top of the server's view: when the admin clicks
-    // "Save" on the Edit Approvers page with a freshly-created agent still pending, we stash
-    // the workflow in `DEFERRED_AGENT_WORKFLOW_SAVES` and dismiss the modal. We render that
-    // stashed approver chain here so the new agent shows up faded in the workflow card while
-    // CREATE_AGENT is in flight. We match by the original workflow's primary approver email
-    // — the same key the Edit Approvers page uses to identify a workflow.
-    // `routingFirstApproverEmail` tags each workflow with the original (pre-overlay) first
-    // approver email so the edit route / list key keep using a routable identity even when
-    // the overlaid `approvers[0]` is a pending agent with an empty `email` placeholder.
-    const approvalWorkflows = useMemo<Array<ApprovalWorkflow & {routingFirstApproverEmail: string}>>(() => {
-        if (!deferredAgentWorkflowSaves || isEmptyObject(deferredAgentWorkflowSaves)) {
-            return rawApprovalWorkflows.map((workflow) => ({...workflow, routingFirstApproverEmail: workflow.approvers.at(0)?.email ?? ''}));
-        }
-        return rawApprovalWorkflows.map((workflow) => {
-            const firstApproverEmail = workflow.approvers.at(0)?.email ?? '';
-            if (!firstApproverEmail) {
-                return {...workflow, routingFirstApproverEmail: firstApproverEmail};
-            }
-            const deferredEntry = deferredAgentWorkflowSaves[buildDeferredAgentWorkflowSaveKey(route.params.policyID, firstApproverEmail)];
-            if (!deferredEntry) {
-                return {...workflow, routingFirstApproverEmail: firstApproverEmail};
-            }
-            return {
-                ...workflow,
-                approvers: deferredEntry.approvalWorkflow.approvers.filter((approver): approver is NonNullable<typeof approver> => !!approver),
-                routingFirstApproverEmail: firstApproverEmail,
-            };
-        });
-    }, [rawApprovalWorkflows, deferredAgentWorkflowSaves, route.params.policyID]);
-
-    // Tracks deferred-save keys we've already reconciled in this mount. `updateApprovalWorkflow`'s
-    // optimistic write to `policy.employeeList` re-renders this page before the matching
-    // `clearDeferredAgentWorkflowSave` Onyx merge settles; without this guard the effect would
-    // fire `updateApprovalWorkflow` (and the underlying `UPDATE_WORKSPACE_APPROVAL` API call)
-    // a second time for the same entry on that intermediate render.
-    const reconciledDeferredKeysRef = useRef<Set<string>>(new Set());
-
-    // Reconcile each deferred workflow save against the latest policy/personal-details data.
-    // Once the pending agent has a real email (the personal detail at `pendingAgentAccountID`
-    // gains a login OR a matching member shows up in `policy.employeeList`), we swap that
-    // email into the workflow, fire the real `updateApprovalWorkflow`, and clear the entry.
-    // We only run this on the WorkspaceWorkflowsPage because that's where the admin lands
-    // after the modal dismisses; if they navigate elsewhere before CREATE_AGENT resolves the
-    // entry stays parked and we'll pick it back up next time they visit the workflows page.
-    useEffect(() => {
-        // Drop any tracked keys whose Onyx entries are gone (clear has settled or the entry was
-        // removed elsewhere) so the same key can be reconciled again if it ever reappears.
-        if (reconciledDeferredKeysRef.current.size > 0) {
-            for (const key of [...reconciledDeferredKeysRef.current]) {
-                if (!deferredAgentWorkflowSaves?.[key]) {
-                    reconciledDeferredKeysRef.current.delete(key);
-                }
-            }
-        }
-        if (!deferredAgentWorkflowSaves || isEmptyObject(deferredAgentWorkflowSaves) || !policy || !personalDetails) {
-            return;
-        }
-        for (const deferredEntry of Object.values(deferredAgentWorkflowSaves)) {
-            if (!deferredEntry || deferredEntry.policyID !== route.params.policyID) {
-                continue;
-            }
-            const deferredKey = buildDeferredAgentWorkflowSaveKey(deferredEntry.policyID, deferredEntry.firstApproverEmail);
-            if (reconciledDeferredKeysRef.current.has(deferredKey)) {
-                continue;
-            }
-            const pendingApprover = deferredEntry.approvalWorkflow.approvers.find(
-                (approver) => approver?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && approver.accountID === deferredEntry.pendingAgentAccountID,
-            );
-            if (!pendingApprover) {
-                // Nothing left to wait on — the save can fire as-is (or was already fired).
-                reconciledDeferredKeysRef.current.add(deferredKey);
-                clearDeferredAgentWorkflowSave(deferredEntry.policyID, deferredEntry.firstApproverEmail);
-                continue;
-            }
-            // Prefer the live personal detail at the optimistic accountID — when CREATE_AGENT
-            // resolves, the optimistic detail is replaced by a real one keyed on the new
-            // accountID. The server echoes a `{optimisticID: realID}` mapping in the response's
-            // onyxData (`OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING`), so the primary resolution is a
-            // direct lookup of the real accountID, then read the email off the personal detail.
-            // We keep a prompt-match fallback so cross-tab scenarios (where the mapping write
-            // landed only on the originating tab) still reconcile — but prompt matching is
-            // ambiguous when multiple agents share the same prompt text, so the mapping wins
-            // whenever it's present.
-            let resolvedEmail = personalDetails[deferredEntry.pendingAgentAccountID]?.login;
-            let resolvedAccountID: number | undefined = deferredEntry.pendingAgentAccountID;
-            const mappedRealAccountID = optimisticAgentAccountIDMapping?.[deferredEntry.pendingAgentAccountID];
-            if (!resolvedEmail && mappedRealAccountID) {
-                const mappedDetail = personalDetails[mappedRealAccountID];
-                if (mappedDetail?.login && policy.employeeList?.[mappedDetail.login]) {
-                    resolvedEmail = mappedDetail.login;
-                    resolvedAccountID = mappedDetail.accountID ?? mappedRealAccountID;
-                }
-            }
-            if (!resolvedEmail && deferredEntry.pendingAgentPrompt && agentPrompts && policy.employeeList) {
-                const optimisticPromptKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${deferredEntry.pendingAgentAccountID}`;
-                const knownEmails = new Set(
-                    deferredEntry.approvalWorkflow.approvers
-                        .filter((approver) => approver?.email && approver.accountID !== deferredEntry.pendingAgentAccountID)
-                        .map((approver) => approver?.email),
-                );
-                // Several agents can share the same prompt text. Pick the highest positive
-                // accountID — server assigns IDs monotonically, so the freshest agent is the
-                // largest, which avoids resolving the pending approver to a pre-existing agent
-                // that happens to use the same default prompt.
-                let bestCandidateAccountID = -Infinity;
-                for (const [promptKey, promptValue] of Object.entries(agentPrompts)) {
-                    if (promptKey === optimisticPromptKey || !promptValue || promptValue.prompt !== deferredEntry.pendingAgentPrompt) {
-                        continue;
-                    }
-                    const candidateAccountID = Number(promptKey.slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length));
-                    if (!Number.isFinite(candidateAccountID) || candidateAccountID <= 0 || candidateAccountID <= bestCandidateAccountID) {
-                        continue;
-                    }
-                    const candidateDetail = personalDetails[candidateAccountID];
-                    if (!candidateDetail?.login || !policy.employeeList?.[candidateDetail.login] || knownEmails.has(candidateDetail.login)) {
-                        continue;
-                    }
-                    resolvedEmail = candidateDetail.login;
-                    resolvedAccountID = candidateDetail.accountID ?? candidateAccountID;
-                    bestCandidateAccountID = candidateAccountID;
-                }
-            }
-            if (!resolvedEmail) {
-                continue;
-            }
-            // Upgrade the deferred workflow with the real email, then fire the save action.
-            // `updateApprovalWorkflow` expects `ApprovalWorkflow` (approvers required, no
-            // editor-only fields), so filter out the holes in the Onyx representation and
-            // hand off only the fields it cares about.
-            const upgradedApprovers = deferredEntry.approvalWorkflow.approvers
-                .filter((approver): approver is NonNullable<typeof approver> => !!approver)
-                .map((approver) =>
-                    approver === pendingApprover
-                        ? {
-                              ...approver,
-                              email: resolvedEmail,
-                              accountID: resolvedAccountID,
-                              pendingAction: undefined,
-                          }
-                        : approver,
-                );
-            // When the saved workflow is the default one, the new agent becomes the new default
-            // approver. The deferred snapshot's `members` list was captured before CREATE_AGENT
-            // resolved, so the agent isn't in it — and `convertApprovalWorkflowToPolicyEmployees`
-            // only rewrites `submitsTo` for emails present in `members`. Without the agent in
-            // that list their `submitsTo` (set to the previous default approver by
-            // `shareWithEmployees` in CreateAgent.cpp) is never overwritten, leaving them as
-            // their own orphan submission group in the workflows list. Injecting them here
-            // mirrors the online editor's behaviour (where the agent is already in employeeList
-            // when the editor renders and falls naturally into the "Everyone" members list) so
-            // the agent ends up submitting to themselves like every other default approver.
-            const upgradedMembers =
-                deferredEntry.approvalWorkflow.isDefault && !deferredEntry.approvalWorkflow.members.some((member) => member.email === resolvedEmail)
-                    ? [
-                          ...deferredEntry.approvalWorkflow.members,
-                          {
-                              email: resolvedEmail,
-                              displayName: pendingApprover.displayName,
-                              avatar: pendingApprover.avatar,
-                          },
-                      ]
-                    : deferredEntry.approvalWorkflow.members;
-            const upgradedWorkflow = {
-                members: upgradedMembers,
-                approvers: upgradedApprovers,
-                isDefault: deferredEntry.approvalWorkflow.isDefault,
-            };
-            const initialApprovers = deferredEntry.initialApprovalWorkflow.approvers.filter((approver): approver is NonNullable<typeof approver> => !!approver);
-            const membersToRemove = deferredEntry.initialApprovalWorkflow.members.filter((initialMember) => !upgradedWorkflow.members.some((member) => member.email === initialMember.email));
-            const approversToRemove = initialApprovers.filter((initialApprover) => !upgradedWorkflow.approvers.some((approver) => approver.email === initialApprover.email));
-            reconciledDeferredKeysRef.current.add(deferredKey);
-            updateApprovalWorkflow(upgradedWorkflow, membersToRemove, approversToRemove, policy);
-            clearDeferredAgentWorkflowSave(deferredEntry.policyID, deferredEntry.firstApproverEmail);
-        }
-    }, [deferredAgentWorkflowSaves, policy, personalDetails, route.params.policyID, agentPrompts, optimisticAgentAccountIDMapping]);
+    const approvalWorkflows = useDeferredAgentWorkflowReconciliation(rawApprovalWorkflows, policy, route.params.policyID);
     const canAccessSubmit2026Features = canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled);
     const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true).length > 0;
 
@@ -525,7 +349,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         const hasReimburserError = !!policy?.errorFields?.reimburser;
         const hasApprovalError = !!policy?.errorFields?.approvalMode;
         const hasDelayedSubmissionError = !!(policy?.errorFields?.autoReporting ?? policy?.errorFields?.autoReportingFrequency);
-        const hasAddAgentError = !!policy?.errorFields?.[CONST.POLICY.COLLECTION_KEYS.ADD_AGENT];
 
         const getBadgeText = (accountState: string | undefined) => {
             switch (accountState) {
@@ -664,6 +487,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                             : () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, workflow.routingFirstApproverEmail))
                                     }
                                     onAddAgentPress={() => handleAddAgentPress(workflow)}
+                                    onDismissApproverError={(approver) => {
+                                        if (approver.accountID === undefined) {
+                                            return;
+                                        }
+                                        clearPendingAgentFromApprovalWorkflow(route.params.policyID, workflow.routingFirstApproverEmail, approver.accountID);
+                                    }}
                                     canAddAgent={!shouldBlockApprovalWorkflowEditing && isPolicyAdmin}
                                     currency={policy?.outputCurrency}
                                     isDisabled={shouldBlockApprovalWorkflowEditing}
@@ -691,19 +520,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                     isDEWEnabled ||
                     (([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policy?.approvalMode) && !hasApprovalError) ?? false),
                 pendingAction: policy?.pendingFields?.approvalMode,
-                // Merge the addAgent error into the approvals row so a failed CREATE_AGENT call
-                // (initiated from this page via the "Add agent" pill on a workflow) surfaces as
-                // both an inline error here and a red brick road indicator on the workspace.
-                errors: {
-                    ...getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
-                    ...(hasAddAgentError ? getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.ADD_AGENT) : {}),
-                },
-                onCloseError: () => {
-                    clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE);
-                    if (hasAddAgentError) {
-                        clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.ADD_AGENT);
-                    }
-                },
+                errors: getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
+                onCloseError: () => clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
             },
             {
                 title: translate('workflowsPage.makeOrTrackPaymentsTitle'),

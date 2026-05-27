@@ -139,6 +139,20 @@ function clearAgentError(optimisticAccountID: number) {
     Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`, null);
 }
 
+/**
+ * Discard a failed optimistic agent that was seeded into an approval workflow. Wipes the
+ * deferred workflow save (so the agent stops appearing as a pending approver), the optimistic
+ * personal detail + prompt entry, the optimistic->real ID mapping slot, and the policy-level
+ * addAgent error. Used by the RBR X click on the workflows page.
+ */
+function clearPendingAgentFromApprovalWorkflow(policyID: string, firstApproverEmail: string, optimisticAccountID: number) {
+    Onyx.merge(ONYXKEYS.DEFERRED_AGENT_WORKFLOW_SAVES, {[`${policyID}:${firstApproverEmail}`]: null});
+    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[optimisticAccountID]: null});
+    Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`, null);
+    Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {[optimisticAccountID]: null});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {[CONST.POLICY.COLLECTION_KEYS.ADD_AGENT]: null}});
+}
+
 function clearAgentUpdateError(accountID: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {errors: null, nameErrors: null, promptErrors: null, avatarErrors: null});
 }
@@ -336,6 +350,7 @@ export {
     openAgentsPage,
     createAgent,
     clearAgentError,
+    clearPendingAgentFromApprovalWorkflow,
     clearAgentUpdateError,
     clearAgentNameUpdateError,
     clearAgentPromptUpdateError,

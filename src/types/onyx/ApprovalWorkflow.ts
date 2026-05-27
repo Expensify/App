@@ -2,7 +2,7 @@ import type {ValueOf} from 'type-fest';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {OnyxValueWithOfflineFeedback, PendingAction, PendingFields} from './OnyxCommon';
+import type {Errors, OnyxValueWithOfflineFeedback, PendingAction, PendingFields} from './OnyxCommon';
 
 /**
  * Approver in the approval workflow
@@ -29,6 +29,13 @@ type Approver = {
      * that the approver is still being confirmed by the server.
      */
     pendingAction?: PendingAction;
+
+    /**
+     * Transient errors attached to an optimistic agent approver. Surfaced on the workflows
+     * page so a failed `CREATE_AGENT` shows up as an RBR / dismissible message next to the
+     * pending approver row. Not persisted to the server — set in the page-level overlay only.
+     */
+    errors?: Errors;
 
     /**
      * Email of the user this user forwards all approved reports to
