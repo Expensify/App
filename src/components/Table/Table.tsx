@@ -1,6 +1,12 @@
 import type {FlashListRef} from '@shopify/flash-list';
 import React, {useImperativeHandle, useRef} from 'react';
+import MenuItem from '@components/MenuItem';
+import Modal from '@components/Modal';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import CONST from '@src/CONST';
 import useFiltering from './middlewares/filtering';
 import useSearching from './middlewares/searching';
 import useSelection from './middlewares/selection';
@@ -146,6 +152,9 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     onRowSelectionChange,
     ...listProps
 }: TableProps<DataType, ColumnKey, FilterKey>) {
+    const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
+
     if (!columns || columns.length === 0) {
         throw new Error('Table columns must be provided');
     }
@@ -161,7 +170,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const {middleware: sortMiddleware, activeSorting, methods: sortMethods} = useSorting<DataType, ColumnKey>({compareItems, initialSortColumn});
     const sortedData = sortMiddleware(searchedData);
 
-    const {middleware: selectionMiddleware, methods: selectionMethods} = useSelection<DataType>({data: sortedData, onRowSelectionChange});
+    const {middleware: selectionMiddleware, methods: selectionMethods, isMobileSelectionModalVisible} = useSelection<DataType>({data: sortedData, onRowSelectionChange});
     const processedData = selectionMiddleware(sortedData);
 
     const listRef = useRef<FlashListRef<DataType>>(null);
@@ -208,6 +217,11 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const hasSearchString = activeSearchString.trim().length > 0;
     const isEmptyResult = processedData.length === 0 && originalDataLength > 0 && (hasSearchString || hasActiveFilters);
 
+    const handleMobileSelectionPress = () => {
+        turnOnMobileSelectionMode();
+        tableMethods.setIsMobileSelectionModalVisible(false);
+    };
+
     // eslint-disable-next-line react/jsx-no-constructed-context-values
     const contextValue: TableContextValue<DataType, ColumnKey, FilterKey> = {
         title,
@@ -228,7 +242,25 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         selectionEnabled,
     };
 
-    return <TableContext.Provider value={contextValue as unknown as TableContextValue<TableData, string, string>}>{children}</TableContext.Provider>;
+    return (
+        <TableContext.Provider value={contextValue as unknown as TableContextValue<TableData, string, string>}>
+            {children}
+
+            <Modal
+                isVisible={isMobileSelectionModalVisible}
+                type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
+                onClose={() => tableMethods.setIsMobileSelectionModalVisible(false)}
+                shouldPreventScrollOnFocus
+            >
+                <MenuItem
+                    icon={icons.CheckSquare}
+                    title={translate('common.select')}
+                    onPress={handleMobileSelectionPress}
+                    pressableTestID={CONST.SELECTION_LIST_WITH_MODAL_TEST_ID}
+                />
+            </Modal>
+        </TableContext.Provider>
+    );
 }
 
 export default Table;
