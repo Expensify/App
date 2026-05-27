@@ -40,7 +40,7 @@ To comply with financial regulations, you’ll need:
 - A recent bank statement for the connected account  
 - Beneficial ownership information (for anyone owning 25% or more)  
 
-Accepted file types: PDF, PNG, JPEG.
+Accepted file types: PDF, PNG, JPEG. Each file must be 2 MB or less.
 
 Note: Additional documentation may be requested by Expensify’s Compliance team during review.
 

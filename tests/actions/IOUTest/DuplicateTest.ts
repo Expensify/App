@@ -2,9 +2,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {getReportPreviewAction} from '@libs/actions/IOU';
 import {bulkDuplicateExpenses, bulkDuplicateReports, duplicateExpenseTransaction, duplicateReport, mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
 import type {BulkDuplicateReportsParams, DuplicateReportParams} from '@libs/actions/IOU/Duplicate';
+import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {addComment, openReport} from '@libs/actions/Report';
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
@@ -198,6 +198,7 @@ describe('actions/Duplicate', () => {
                 billable: true,
                 reimbursable: false,
                 tag: 'UpdatedProject',
+                taxCode: '',
                 receiptID: 123,
                 reportID,
             };
@@ -411,8 +412,8 @@ describe('actions/Duplicate', () => {
             });
             await waitForBatchedUpdates();
 
-            const transactionThreadReport1 = buildTransactionThread(iouAction1, expenseReport);
-            const transactionThreadReport2 = buildTransactionThread(iouAction2, expenseReport);
+            const transactionThreadReport1 = buildTransactionThread(iouAction1, expenseReport, RORY_ACCOUNT_ID);
+            const transactionThreadReport2 = buildTransactionThread(iouAction2, expenseReport, RORY_ACCOUNT_ID);
 
             expect(transactionThreadReport1.participants).toEqual({
                 [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
@@ -532,6 +533,7 @@ describe('actions/Duplicate', () => {
                 billable: true,
                 reimbursable: false,
                 tag: 'UpdatedProject',
+                taxCode: '',
                 receiptID: 123,
                 reportID,
             };
@@ -1149,7 +1151,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
@@ -1163,8 +1164,8 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                conciergeReportID: undefined,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -1214,7 +1215,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
@@ -1228,8 +1228,8 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                conciergeReportID: undefined,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -1272,7 +1272,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
@@ -1286,8 +1285,8 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                conciergeReportID: undefined,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -1327,7 +1326,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 targetPolicy: mockPolicy,
@@ -1340,8 +1338,8 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                conciergeReportID: undefined,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -1390,7 +1388,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 targetPolicy: mockPolicy,
@@ -1403,8 +1400,8 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                conciergeReportID: undefined,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -1438,7 +1435,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
@@ -1452,8 +1448,8 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                conciergeReportID: undefined,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -1480,7 +1476,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
@@ -1494,8 +1489,8 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                conciergeReportID: undefined,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -1524,7 +1519,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
@@ -1538,8 +1532,8 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                conciergeReportID: undefined,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -1577,7 +1571,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
@@ -1591,8 +1584,8 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                conciergeReportID: undefined,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -1643,7 +1636,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
@@ -1657,8 +1649,8 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                conciergeReportID: undefined,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -1694,7 +1686,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
@@ -1708,8 +1699,8 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                conciergeReportID: undefined,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -1756,7 +1747,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
@@ -1770,8 +1760,8 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                conciergeReportID: undefined,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -1940,6 +1930,7 @@ describe('actions/Duplicate', () => {
             currentUserAccountID: RORY_ACCOUNT_ID,
             currentUserLogin: RORY_EMAIL,
             recentWaypoints: [],
+            conciergeReportID: undefined,
             ...overrides,
         });
 
@@ -2477,7 +2468,6 @@ describe('actions/Duplicate', () => {
                 personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
                 isASAPSubmitBetaEnabled: false,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
@@ -2485,8 +2475,8 @@ describe('actions/Duplicate', () => {
                 draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints: [],
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                conciergeReportID: undefined,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -2600,6 +2590,7 @@ describe('actions/Duplicate', () => {
             transactionViolations: {},
             translate: mockTranslate,
             recentWaypoints: [],
+            conciergeReportID: undefined,
             ...overrides,
         });
 

@@ -40,7 +40,6 @@ jest.mock('@src/libs/API', () => ({
 jest.mock('@components/Search/DeferredSearchAutocompleteList', () => {
     const module = jest.requireActual<{default: React.ComponentType}>('@components/Search/SearchAutocompleteList');
     return {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
 
         default: module.default,
@@ -49,6 +48,7 @@ jest.mock('@components/Search/DeferredSearchAutocompleteList', () => {
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     dismissModalWithReport: jest.fn(),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
     getTopmostReportId: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     isDisplayedInModal: jest.fn(() => false),
@@ -56,13 +56,11 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@src/hooks/useRootNavigationState', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({contextualReportID: undefined, isSearchRouterScreen: false}),
 }));
 
 jest.mock('@hooks/useExportedToFilterOptions', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({
         exportedToFilterOptions: [],

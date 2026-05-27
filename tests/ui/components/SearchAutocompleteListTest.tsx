@@ -26,7 +26,6 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('@hooks/useResponsiveLayout', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => ({
         shouldUseNarrowLayout: true,
@@ -35,7 +34,6 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
 }));
 
 jest.mock('@hooks/useFilteredOptions', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => ({
         options: {
@@ -100,12 +98,14 @@ describe('SearchAutocompleteList', () => {
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
         };
 
+        const reportData = {
+            reportID,
+            parentReportID,
+            parentReportActionID: parentActionID,
+        };
+
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-                reportID,
-                parentReportID,
-                parentReportActionID: parentActionID,
-            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, reportData);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
                 [parentActionID]: parentReportAction,
             });
@@ -137,12 +137,13 @@ describe('SearchAutocompleteList', () => {
             actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
         };
 
+        const reportData = {
+            reportID,
+            parentReportID,
+            parentReportActionID: parentActionID,
+        };
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-                reportID,
-                parentReportID,
-                parentReportActionID: parentActionID,
-            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, reportData);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
                 [parentActionID]: parentReportAction,
             });

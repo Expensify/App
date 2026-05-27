@@ -25,4 +25,3 @@ function useLHNTooltipContext(): LHNTooltipContextValue {
 }
 
 export {LHNTooltipContext, useLHNTooltipContext};
-export type {LHNTooltipContextValue};
