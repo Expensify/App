@@ -4429,14 +4429,16 @@ function getBillableAndTaxTotal(report: OnyxEntry<Report>, transactions: Array<O
         }
         const billable = getBillable(transaction);
         // `isFromExpenseReport` is provably true: the early return above guarantees the report is an expense report.
-        const taxAmount = getTaxAmount(transaction, true);
+        const isFromExpenseReport = true;
+        const taxAmount = getTaxAmount(transaction, isFromExpenseReport);
         if (!billable && !taxAmount) {
             continue;
         }
         const sameCurrency = getCurrency(transaction) === reportCurrency;
         if (billable) {
             if (sameCurrency) {
-                billableTotal += getTransactionAmount(transaction, true, transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
+                const isUnreported = transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+                billableTotal += getTransactionAmount(transaction, isFromExpenseReport, isUnreported);
             } else {
                 billableTotal -= transaction.convertedAmount ?? 0;
             }
