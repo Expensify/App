@@ -44,7 +44,7 @@ If a report is in **Draft** status, clicking the export button may load an empty
 
 ## How Do I Update My Sage Intacct Credentials?
 
-Sage Intacct uses Web Services credentials (company ID, user ID, and password) that may need to be updated periodically. Unlike other integrations, you can proactively update your credentials at any time without waiting for a sync failure.
+Sage Intacct uses Web Services credentials (company ID, user ID, and password) that may need to be updated periodically. You can proactively update your credentials at any time. 
 
 1. Go to **Workspace > [Workspace Name] > Accounting**.
 2. Click the three dots **(⋮)** next to the Sage Intacct connection.
