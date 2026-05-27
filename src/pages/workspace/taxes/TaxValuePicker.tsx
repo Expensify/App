@@ -2,6 +2,7 @@ import React, {useEffect} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import {getTaxValueWithPercentage} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -29,10 +30,14 @@ type TaxValuePickerProps = {
 
 function TaxValuePicker({policyID, value, errorText, rightLabel, onInputChange, onPress}: TaxValuePickerProps) {
     const {translate} = useLocalize();
+    const previousValue = usePrevious(value);
 
     useEffect(() => {
+        if (previousValue === value) {
+            return;
+        }
         onInputChange?.(value);
-    }, [value, onInputChange]);
+    }, [previousValue, value, onInputChange]);
 
     const handlePress = (event: GestureResponderEvent | KeyboardEvent) => {
         onPress?.(event);
