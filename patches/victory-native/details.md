@@ -1,32 +1,28 @@
-# victory-native patch: explicitSize + headless props
+# `victory-native` patches
 
-Mirrors upstream PR: <https://github.com/FormidableLabs/victory-native-xl/pull/657>
+### [victory-native+41.20.2+001+horizontal-bars.patch](victory-native+41.20.2+001+horizontal-bars.patch)
 
-## Why
+- Reason:
 
-Expensify is building a Bun CLI that renders in-app `victory-native` charts to PNG using
-the same `CartesianChart` and `PolarChart` users see in-app, but without a React Native
-layout pass. This patch adds opt-in layout props:
+    ```
+    This patch adds support to horizontal bars when rendered in <BarGroup />
+    ```
 
-- `explicitSize?: { width: number; height: number }` — seeds chart dimensions immediately
-  instead of waiting for `onLayout`.
-- `headless?: boolean` — when paired with `explicitSize`, renders a Skia-only `<Group>`
-  subtree (no `GestureHandlerRootView`, `View`, or `Canvas` wrapper) for headless
-  `@shopify/react-native-skia` reconcilers.
+- Upstream PR/issue: Not yet. This is urgent patch with deadline.
+- E/App issue: https://github.com/Expensify/Expensify/issues/636601
+- PR introducing patch: https://github.com/Expensify/App/pull/91659
 
-Both props default to `undefined`; existing in-app callers are unchanged.
+### [victory-native+41.20.2+002+explicit-size-headless.patch](victory-native+41.20.2+002+explicit-size-headless.patch)
 
-## Packaging notes
+- Reason:
 
-The published `victory-native` package ships both `src/` and `dist/`:
+    ```
+    Adds opt-in explicitSize and headless props to CartesianChart and PolarChart so charts
+    can render in headless Skia environments (e.g. a Bun CLI for PNG email previews) without
+    a React Native layout pass. Patches both src/ (Metro) and dist/ (Bun/Node import).
+    Existing in-app callers are unchanged when neither prop is passed.
+    ```
 
-- Metro resolves `src/` via the package `react-native` export condition.
-- Bun and Node resolve compiled `dist/` via the `import` condition.
-
-This patch updates **both** trees. `dist/` was regenerated from the patched `src/` using
-the upstream `tsconfig.build.json` in `victory-native-xl/lib` (v41.20.2 base + PR diff
-applied with `patch -p2`).
-
-## Remove when
-
-Upstream PR is merged and we upgrade `victory-native` to a release that includes it.
+- Upstream PR/issue: https://github.com/FormidableLabs/victory-native-xl/pull/657
+- E/App issue: https://github.com/Expensify/App/issues/91528
+- PR introducing patch: https://github.com/Expensify/App/pull/91836

@@ -18,7 +18,7 @@
 "../../src/Expensify.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/GlobalModals.tsx"	"no-restricted-syntax"	2
 "../../src/ONYXKEYS.ts"	"no-restricted-syntax"	2
-"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	156
+"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	153
 "../../src/components/AccountingConnectionConfirmationModal.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/components/ActionSheetAwareScrollView/useActionSheetAwareScrollViewRef.ts"	"react-hooks/immutability"	1
 "../../src/components/ActionSheetAwareScrollView/useActionSheetKeyboardSpacing.ts"	"@typescript-eslint/no-deprecated/useScrollViewOffset"	1
@@ -442,6 +442,8 @@
 "../../src/pages/Debug/Transaction/DebugTransactionViolations.tsx"	"no-restricted-syntax"	1
 "../../src/pages/Debug/TransactionViolation/DebugTransactionViolationPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/DynamicReportChangeApproverPage.tsx"	"react-hooks/set-state-in-effect"	1
+"../../src/pages/DynamicReportDetailsPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
+"../../src/pages/DynamicReportDetailsPage.tsx"	"react-hooks/preserve-manual-memoization"	4
 "../../src/pages/EnablePayments/AddBankAccount/AddBankAccount.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
 "../../src/pages/EnablePayments/FeesAndTerms/FeesAndTerms.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
 "../../src/pages/EnablePayments/FeesAndTerms/FeesAndTerms.tsx"	"no-restricted-syntax"	2
@@ -458,8 +460,6 @@
 "../../src/pages/ReimbursementAccount/ReimbursementAccountPage.tsx"	"react-hooks/set-state-in-effect"	4
 "../../src/pages/ReimbursementAccount/USD/BusinessInfo/subSteps/IndustryCode/IndustryCodeSelector.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/ReportDescriptionPage.tsx"	"no-restricted-syntax"	1
-"../../src/pages/ReportDetailsPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
-"../../src/pages/ReportDetailsPage.tsx"	"react-hooks/preserve-manual-memoization"	4
 "../../src/pages/ReportParticipantDetailsPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/RoomMemberDetailsPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/RoomMembersPage.tsx"	"react-hooks/preserve-manual-memoization"	1
