@@ -26,6 +26,7 @@ type WorkspaceMemberRowData = TableData & {
     pendingAction?: OnyxCommon.PendingAction;
     invitedSecondaryLogin: string;
     action: () => void;
+    dismissError: () => void;
 };
 
 type WorkspaceMembersTableProps = {

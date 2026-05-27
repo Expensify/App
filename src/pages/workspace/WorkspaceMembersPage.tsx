@@ -7,7 +7,6 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import DecisionModal from '@components/DecisionModal';
-import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MessagesRow from '@components/MessagesRow';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -16,9 +15,7 @@ import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/Dro
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import SearchBar from '@components/SearchBar';
-import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
-import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import WorkspaceMembersTable, {WorkspaceMemberRowData} from '@components/Tables/WorkspaceMembersTable';
 import Text from '@components/Text';
@@ -386,25 +383,19 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         });
     };
 
-    /**
-     * Dismisses the errors on one item
-     */
-    const dismissError = useCallback(
-        (item: MemberOption) => {
-            if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                clearDeleteMemberError(route.params.policyID, item.login);
-                return;
-            }
+    const dismissError = (login: string, accountID: number, pendingAction?: PendingAction) => {
+        if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            clearDeleteMemberError(route.params.policyID, login);
+            return;
+        }
 
-            if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE) {
-                clearUpdateMemberRoleError(route.params.policyID, item.login);
-                return;
-            }
+        if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE) {
+            clearUpdateMemberRoleError(route.params.policyID, login);
+            return;
+        }
 
-            clearAddMemberError(route.params.policyID, item.login, item.accountID);
-        },
-        [route.params.policyID],
-    );
+        clearAddMemberError(route.params.policyID, login, accountID);
+    };
 
     const policyOwner = policy?.owner;
     const currentUserLogin = currentUserPersonalDetails.login;
@@ -460,8 +451,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 role = translate('common.auditor');
             }
 
+            const login = details.login ?? '';
+            const memberEmail = formatPhoneNumber(login);
             const memberName = formatPhoneNumber(getDisplayNameOrDefault(details));
-            const memberEmail = formatPhoneNumber(details?.login ?? '');
             const accessibilityLabel = [memberName, memberEmail, role].filter(Boolean).join(', ');
 
             return {
@@ -483,6 +475,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 // Note which secondary login was used to invite this primary login
                 invitedSecondaryLogin: details?.login ? (invitedPrimaryToSecondaryLogins[details.login] ?? '') : '',
                 action: () => openMemberDetails(accountID),
+                dismissError: () => dismissError(login, accountID, policyEmployee.pendingAction),
             };
         });
     }, [
@@ -1013,7 +1006,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         onClose={() => setIsDownloadFailureModalVisible(false)}
                     />
 
-                    <WorkspaceMembersTable members={data} />
+                    <WorkspaceMembersTable
+                        members={data}
+                        shouldShowCustomField1Column={shouldShowCustomField1Column}
+                        shouldShowCustomField2Column={shouldShowCustomField2Column}
+                    />
 
                     {/* <SelectionListWithModal
                         data={filteredData}

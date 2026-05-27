@@ -24,6 +24,7 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
             offlineWithFeedback={{
                 errors: item.errors,
                 pendingAction: item.pendingAction,
+                dismissError: item.dismissError,
             }}
         >
             {(hovered) => (
