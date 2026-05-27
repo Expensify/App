@@ -11,13 +11,13 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 /**
- * Link-styled text primitive used inside `Link`. Wraps `ButtonText` and
+ * Link-styled text primitive used inside `LinkButton`. Wraps `ButtonText` and
  * applies the link-specific typography (normal font weight, label font size)
  * plus the link color, swapping to `theme.linkHover` while the button is
  * hovered. Reads `isHovered` from the parent `Button`'s context so the hover
  * state is in sync with the surrounding pressable.
  */
-function LinkText({children, numberOfLines, style, hoverStyle}: ButtonTextProps) {
+function LinkButtonText({children, numberOfLines, style, hoverStyle}: ButtonTextProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -34,7 +34,7 @@ function LinkText({children, numberOfLines, style, hoverStyle}: ButtonTextProps)
 }
 
 /**
- * Link – composable link-style button.
+ * LinkButton – composable link-style button.
  *
  * Drop-in replacement for `<Button link>` from the legacy `@components/Button`.
  * Built on top of the new `ButtonComposed` `Button`, but `Button` no longer
@@ -44,26 +44,32 @@ function LinkText({children, numberOfLines, style, hoverStyle}: ButtonTextProps)
  *   - `shouldUseDefaultHover` is forced off because the legacy `link` Button
  *     was always rendered with `shouldUseDefaultHover={false}` everywhere it
  *     was used in the codebase. The two props are coupled in practice, so we
- *     bake that coupling into `Link` and remove both from the public API.
- *   - `Link.Text` (a `LinkText` instance) applies link-colored typography.
+ *     bake that coupling into `LinkButton` and remove both from the public API.
+ *   - `LinkButton.Text` (a `LinkButtonText` instance) applies link-colored
+ *     typography.
+ *
+ * The name is `LinkButton` (not `Link`) because `Link` collides with the
+ * `jsx-a11y/anchor-is-valid` rule that treats `<Link>` as an HTML anchor and
+ * demands an `href`. Our component is a button, never an anchor, so we use a
+ * name that doesn't trigger that false positive.
  *
  * Like `Button`, content is composed via children using the same primitives:
- *   - `Link.Icon`
- *   - `Link.Text`
- *   - `Link.DoubleLineText`
- *   - `Link.KeyboardShortcut`
+ *   - `LinkButton.Icon`
+ *   - `LinkButton.Text`
+ *   - `LinkButton.DoubleLineText`
+ *   - `LinkButton.KeyboardShortcut`
  *
  * @example
  * ```tsx
- * <Link onPress={handlePress}>
- *   <Link.Icon src={icons.ExternalLink} />
- *   <Link.Text>Open docs</Link.Text>
- * </Link>
+ * <LinkButton onPress={handlePress}>
+ *   <LinkButton.Icon src={icons.ExternalLink} />
+ *   <LinkButton.Text>Open docs</LinkButton.Text>
+ * </LinkButton>
  * ```
  */
-type LinkProps = Omit<ButtonProps, 'variant' | 'shouldUseDefaultHover'>;
+type LinkButtonProps = Omit<ButtonProps, 'variant' | 'shouldUseDefaultHover'>;
 
-function LinkComponent({innerStyles = [], children, ...rest}: LinkProps) {
+function LinkButtonComponent({innerStyles = [], children, ...rest}: LinkButtonProps) {
     const styles = useThemeStyles();
     return (
         <Button
@@ -76,12 +82,12 @@ function LinkComponent({innerStyles = [], children, ...rest}: LinkProps) {
     );
 }
 
-const Link = Object.assign(LinkComponent, {
+const LinkButton = Object.assign(LinkButtonComponent, {
     Icon: ButtonIcon,
-    Text: LinkText,
+    Text: LinkButtonText,
     DoubleLineText: ButtonDoubleLineText,
     KeyboardShortcut: ButtonKeyboardShortcut,
 });
 
-export default Link;
-export type {LinkProps};
+export default LinkButton;
+export type {LinkButtonProps};
