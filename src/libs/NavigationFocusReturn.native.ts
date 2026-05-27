@@ -10,15 +10,17 @@ import navigationRef from './Navigation/navigationRef';
 import TransitionTracker from './Navigation/TransitionTracker';
 import {diffNavigationState} from './navigationStateDiff';
 
-type TriggerEntry = {ref: RefObject<View | null>};
+type TriggerEntry = {ref: RefObject<View | null>; identifier?: string};
 
 const TRIGGER_MAP_MAX = 64;
 // Drop stale presses so a delayed nav (timer / deeplink / async redirect) doesn't capture an unrelated trigger.
 const PRESS_TRIGGER_TTL_MS = 3_000;
 
 let lastPressedTriggerRef: RefObject<View | null> | null = null;
+let lastPressedTriggerIdentifier: string | null = null;
 let lastPressedTriggerAt = 0;
 const triggerMap = new Map<string, TriggerEntry>();
+const pressableRegistry = new Map<string, Map<string, RefObject<View | null>>>();
 let prevState: NavigationState | undefined;
 let pendingRestore: {cancel: () => void} | null = null;
 let skipNextRestore = false;
@@ -37,12 +39,35 @@ function setTriggerEntry(routeKey: string, entry: TriggerEntry): void {
     }
 }
 
-function notifyPressedTrigger(ref: RefObject<View | null> | null): void {
+function notifyPressedTrigger(ref: RefObject<View | null> | null, identifier?: string): void {
     if (!Accessibility.isScreenReaderEnabledSync()) {
         return;
     }
     lastPressedTriggerRef = ref;
+    lastPressedTriggerIdentifier = identifier ?? null;
     lastPressedTriggerAt = ref ? Date.now() : 0;
+}
+
+function registerPressable(routeKey: string, identifier: string, ref: RefObject<View | null>): () => void {
+    let routeMap = pressableRegistry.get(routeKey);
+    if (!routeMap) {
+        routeMap = new Map();
+        pressableRegistry.set(routeKey, routeMap);
+    }
+    routeMap.set(identifier, ref);
+    return () => {
+        const map = pressableRegistry.get(routeKey);
+        if (!map) {
+            return;
+        }
+        // Guard against deregister-after-replace: a newer Pressable may have overwritten this identifier.
+        if (map.get(identifier) === ref) {
+            map.delete(identifier);
+        }
+        if (map.size === 0) {
+            pressableRegistry.delete(routeKey);
+        }
+    };
 }
 
 function captureTriggerForRoute(routeKey: string): void {
@@ -52,21 +77,29 @@ function captureTriggerForRoute(routeKey: string): void {
     if (!lastPressedTriggerRef || Date.now() - lastPressedTriggerAt > PRESS_TRIGGER_TTL_MS) {
         return;
     }
-    setTriggerEntry(routeKey, {ref: lastPressedTriggerRef});
+    setTriggerEntry(routeKey, {ref: lastPressedTriggerRef, identifier: lastPressedTriggerIdentifier ?? undefined});
 }
 
+// Fast path = captured ref still alive. Fallback = ref nulled by `react-native-screens` detach; resolve via the registry's live re-registration.
 function restoreTriggerForRoute(routeKey: string): RefObject<View | null> | null {
     const entry = triggerMap.get(routeKey);
     if (!entry) {
         return null;
     }
-    const view = entry.ref.current;
-    // `mergeRefs` nulls `.current` on Pressable unmount, so non-null here means still in React's tree.
+    let ref: RefObject<View | null> = entry.ref;
+    let view = ref.current;
+    if (!view && entry.identifier) {
+        const liveRef = pressableRegistry.get(routeKey)?.get(entry.identifier);
+        if (liveRef?.current) {
+            ref = liveRef;
+            view = liveRef.current;
+        }
+    }
     if (!view) {
         return null;
     }
     fireFocusEvent(view);
-    return entry.ref;
+    return ref;
 }
 
 function cancelPendingRestore(): void {
@@ -78,18 +111,31 @@ function scheduleRestore(routeKey: string): void {
     cancelPendingRestore();
     let cancelled = false;
     let refocusHandle: {cancel: () => void} | null = null;
+    let rafHandle: number | null = null;
     const handle = TransitionTracker.runAfterTransitions({
         callback: () => {
             if (cancelled) {
                 return;
             }
             const ref = restoreTriggerForRoute(routeKey);
-            triggerMap.delete(routeKey);
-            if (!ref) {
-                pendingRestore = null;
+            if (ref) {
+                triggerMap.delete(routeKey);
+                refocusHandle = scheduleRefocus(ref);
                 return;
             }
-            refocusHandle = scheduleRefocus(ref);
+            // Re-attach can lag transitionEnd by a frame; the new Pressable's mount effect will have populated the registry by next rAF.
+            rafHandle = requestAnimationFrame(() => {
+                if (cancelled) {
+                    return;
+                }
+                const retryRef = restoreTriggerForRoute(routeKey);
+                triggerMap.delete(routeKey);
+                if (!retryRef) {
+                    pendingRestore = null;
+                    return;
+                }
+                refocusHandle = scheduleRefocus(retryRef);
+            });
         },
     });
 
@@ -98,6 +144,9 @@ function scheduleRestore(routeKey: string): void {
             cancelled = true;
             handle.cancel();
             refocusHandle?.cancel();
+            if (rafHandle !== null) {
+                cancelAnimationFrame(rafHandle);
+            }
         },
     };
 }
@@ -113,6 +162,7 @@ function handleStateChange(newState: NavigationState | undefined): void {
         cancelPendingRestore();
         captureTriggerForRoute(action.captureKey);
         lastPressedTriggerRef = null;
+        lastPressedTriggerIdentifier = null;
     } else if (action.type === 'backward') {
         if (skipNextRestore) {
             skipNextRestore = false;
@@ -128,6 +178,7 @@ function handleStateChange(newState: NavigationState | undefined): void {
 
     for (const key of removedKeys) {
         triggerMap.delete(key);
+        pressableRegistry.delete(key);
         const compoundPrefix = `${key}${COMPOUND_KEY_DELIMITER}`;
         for (const mapKey of triggerMap.keys()) {
             if (mapKey.startsWith(compoundPrefix)) {
@@ -161,7 +212,9 @@ function teardownNavigationFocusReturn(): void {
     cancelPendingRestore();
     prevState = undefined;
     triggerMap.clear();
+    pressableRegistry.clear();
     lastPressedTriggerRef = null;
+    lastPressedTriggerIdentifier = null;
     lastPressedTriggerAt = 0;
     skipNextRestore = false;
     stateUnsubscribe?.();
@@ -201,8 +254,9 @@ function resetForTests(): void {
     teardownNavigationFocusReturn();
 }
 
-function setLastPressedTriggerRefForTests(ref: RefObject<View | null> | null): void {
+function setLastPressedTriggerRefForTests(ref: RefObject<View | null> | null, identifier?: string): void {
     lastPressedTriggerRef = ref;
+    lastPressedTriggerIdentifier = identifier ?? null;
     lastPressedTriggerAt = ref ? Date.now() : 0;
 }
 
@@ -210,11 +264,20 @@ function getTriggerMapSizeForTests(): number {
     return triggerMap.size;
 }
 
+function getRegistrySizeForTests(): number {
+    let total = 0;
+    for (const m of pressableRegistry.values()) {
+        total += m.size;
+    }
+    return total;
+}
+
 export {
     setupNavigationFocusReturn,
     teardownNavigationFocusReturn,
     handleStateChange,
     notifyPressedTrigger,
+    registerPressable,
     notifyPushParamsForward,
     notifyPushParamsBackward,
     cancelPendingFocusRestore,
@@ -224,4 +287,5 @@ export {
     resetForTests,
     setLastPressedTriggerRefForTests,
     getTriggerMapSizeForTests,
+    getRegistrySizeForTests,
 };

@@ -1,4 +1,5 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import {NavigationRouteContext} from '@react-navigation/native';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {Pressable} from 'react-native';
@@ -11,7 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Accessibility from '@libs/Accessibility';
 import HapticFeedback from '@libs/HapticFeedback';
 import mergeRefs from '@libs/mergeRefs';
-import {notifyPressedTrigger} from '@libs/NavigationFocusReturn';
+import {notifyPressedTrigger, registerPressable} from '@libs/NavigationFocusReturn';
 import CONST from '@src/CONST';
 
 function GenericPressable({
@@ -53,6 +54,16 @@ function GenericPressable({
     const isRoleButton = [rest.accessibilityRole, rest.role].includes(CONST.ROLE.BUTTON);
     const internalRef = useRef<View | null>(null);
     const composedRef = useMemo(() => mergeRefs(ref, internalRef), [ref]);
+    const routeKey = useContext(NavigationRouteContext)?.key ?? null;
+    const focusIdentifier = rest.accessibilityLabel ?? undefined;
+
+    // Survives react-native-screens detach/reattach: each remount re-registers the live ref under the same identifier.
+    useEffect(() => {
+        if (!routeKey || !focusIdentifier) {
+            return;
+        }
+        return registerPressable(routeKey, focusIdentifier, internalRef);
+    }, [routeKey, focusIdentifier]);
 
     const isDisabled = useMemo(() => {
         let shouldBeDisabledByScreenReader = false;
@@ -126,10 +137,10 @@ function GenericPressable({
                 ref.current?.blur();
                 Accessibility.moveAccessibilityFocus(nextFocusRef);
             }
-            notifyPressedTrigger(internalRef);
+            notifyPressedTrigger(internalRef, focusIdentifier);
             return onPress(event);
         },
-        [shouldUseHapticsOnPress, onPress, nextFocusRef, ref, isDisabled, interactive],
+        [shouldUseHapticsOnPress, onPress, nextFocusRef, ref, isDisabled, interactive, focusIdentifier],
     );
 
     const voidOnPressHandler = useCallback(

@@ -102,7 +102,13 @@ function skipNextFocusRestore(): void {
 
 /** Native-only. Web captures via `focusin`; no-op here so the import resolves cross-platform. */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function notifyPressedTrigger(_ref: RefObject<View | null> | null): void {}
+function notifyPressedTrigger(_ref: RefObject<View | null> | null, _identifier?: string): void {}
+
+/** Native-only registry no-op; cross-platform stub. */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function registerPressable(_routeKey: string, _identifier: string, _ref: RefObject<View | null>): () => void {
+    return () => {};
+}
 
 /** True only while restoreTriggerForRoute is in its .focus() call. Lists use it to tell the restore apart from a real keyboard Tab, which also has no sourceCapabilities. */
 function isFocusRestoreInProgress(): boolean {
@@ -484,6 +490,7 @@ export {
     cancelPendingFocusRestore,
     skipNextFocusRestore,
     notifyPressedTrigger,
+    registerPressable,
     isFocusRestoreInProgress,
     compoundParamsKey,
     shouldSkipAutoFocusDueToExistingFocus,

@@ -81,6 +81,7 @@ const {
     teardownNavigationFocusReturn,
     handleStateChange,
     notifyPressedTrigger,
+    registerPressable,
     notifyPushParamsForward,
     notifyPushParamsBackward,
     cancelPendingFocusRestore,
@@ -90,11 +91,13 @@ const {
     resetForTests,
     setLastPressedTriggerRefForTests,
     getTriggerMapSizeForTests,
+    getRegistrySizeForTests,
 } = require<{
     setupNavigationFocusReturn: () => void;
     teardownNavigationFocusReturn: () => void;
     handleStateChange: (state: unknown) => void;
-    notifyPressedTrigger: (ref: unknown) => void;
+    notifyPressedTrigger: (ref: unknown, identifier?: string) => void;
+    registerPressable: (routeKey: string, identifier: string, ref: unknown) => () => void;
     notifyPushParamsForward: (routeKey: string, prevParams: unknown) => void;
     notifyPushParamsBackward: (routeKey: string, targetParams: unknown) => void;
     cancelPendingFocusRestore: () => void;
@@ -102,8 +105,9 @@ const {
     isFocusRestoreInProgress: () => boolean;
     shouldSkipAutoFocusDueToExistingFocus: () => boolean;
     resetForTests: () => void;
-    setLastPressedTriggerRefForTests: (ref: unknown) => void;
+    setLastPressedTriggerRefForTests: (ref: unknown, identifier?: string) => void;
     getTriggerMapSizeForTests: () => number;
+    getRegistrySizeForTests: () => number;
 }>('../../src/libs/NavigationFocusReturn.native.ts');
 /* eslint-enable import/extensions */
 
@@ -481,6 +485,92 @@ describe('PUSH_PARAMS — same-route param change', () => {
         handleStateChange(stackState(0, [{key: ROUTE_KEY, name: 'Search'}]));
         handleStateChange(stackState(0, [{key: 'OtherRoot', name: 'Other'}]));
         expect(getTriggerMapSizeForTests()).toBe(0);
+    });
+});
+
+describe('pressable registry — identifier-based fallback', () => {
+    it('registers and deregisters by routeKey + identifier', () => {
+        const ref = fakeRef(fakeView('row'));
+        const deregister = registerPressable('A', 'Members', ref);
+        expect(getRegistrySizeForTests()).toBe(1);
+        deregister();
+        expect(getRegistrySizeForTests()).toBe(0);
+    });
+
+    it('deregister is a no-op once another Pressable has overwritten the same identifier (remount race)', () => {
+        const oldRef = fakeRef(fakeView('old'));
+        const newRef = fakeRef(fakeView('new'));
+        const deregisterOld = registerPressable('A', 'Members', oldRef);
+        registerPressable('A', 'Members', newRef);
+        deregisterOld();
+        expect(getRegistrySizeForTests()).toBe(1);
+    });
+
+    it('restoreTriggerForRoute falls back to the registry when the captured ref was nulled by detach', () => {
+        const detachedRef = fakeRef(fakeView('row'));
+        setLastPressedTriggerRefForTests(detachedRef, 'Members');
+
+        const prev = stackState(0, [{key: 'A', name: 'WorkspaceInitial'}]);
+        const forward = stackState(1, [
+            {key: 'A', name: 'WorkspaceInitial'},
+            {key: 'B', name: 'WorkspaceMembers'},
+        ]);
+        handleStateChange(prev);
+        handleStateChange(forward);
+
+        // Detach simulation: react-native-screens nulls the captured View ref.
+        detachedRef.current = null;
+        // Re-attach simulation: a new Pressable mounts on the sidebar with the same identifier and a live View.
+        const liveView = fakeView('row-remount');
+        const liveRef = fakeRef(liveView);
+        registerPressable('A', 'Members', liveRef);
+
+        const back = stackState(0, [{key: 'A', name: 'WorkspaceInitial'}]);
+        handleStateChange(back);
+        flushTransitions();
+
+        expect(mockFireFocusEvent).toHaveBeenCalledWith(liveView);
+    });
+
+    it('rAF retry rescues focus when re-attach lags transitionEnd', () => {
+        const detachedRef = fakeRef(fakeView('row'));
+        setLastPressedTriggerRefForTests(detachedRef, 'Members');
+
+        const prev = stackState(0, [{key: 'A', name: 'WorkspaceInitial'}]);
+        const forward = stackState(1, [
+            {key: 'A', name: 'WorkspaceInitial'},
+            {key: 'B', name: 'WorkspaceMembers'},
+        ]);
+        handleStateChange(prev);
+        handleStateChange(forward);
+
+        detachedRef.current = null;
+        handleStateChange(stackState(0, [{key: 'A', name: 'WorkspaceInitial'}]));
+        flushTransitions();
+        // No registry hit on transitionEnd: nothing fires yet.
+        expect(mockFireFocusEvent).not.toHaveBeenCalled();
+
+        // The new Pressable mounts a frame later.
+        const liveView = fakeView('row-remount');
+        registerPressable('A', 'Members', fakeRef(liveView));
+        jest.advanceTimersByTime(20);
+
+        expect(mockFireFocusEvent).toHaveBeenCalledWith(liveView);
+    });
+
+    it('clears the registry for a route key when that route is removed from the navigation tree', () => {
+        registerPressable('B', 'Member-Row', fakeRef(fakeView('row')));
+        expect(getRegistrySizeForTests()).toBe(1);
+
+        handleStateChange(
+            stackState(1, [
+                {key: 'A', name: 'WorkspaceInitial'},
+                {key: 'B', name: 'WorkspaceMembers'},
+            ]),
+        );
+        handleStateChange(stackState(0, [{key: 'A', name: 'WorkspaceInitial'}]));
+
+        expect(getRegistrySizeForTests()).toBe(0);
     });
 });
 

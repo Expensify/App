@@ -6,9 +6,7 @@ import {Priorities, tryClaim} from '@libs/ScreenFocusArbiter';
 import type UseScreenInitialFocus from './types';
 
 /*
- * Pressables transformed off-screen (Growl notifications, drawer items pre-animation) still pass
- * attribute checks; only geometry rules them out. Cheap inline test — no shared helper since this
- * is the only consumer.
+ * Off-screen Pressables (Growls, pre-animation drawers) pass attribute checks; geometry rules them out.
  */
 function isOnScreen(el: HTMLElement): boolean {
     const rect = el.getBoundingClientRect();
@@ -25,13 +23,9 @@ function isOnScreen(el: HTMLElement): boolean {
 }
 
 /*
- * Focuses the given element once per screen mount, after `didScreenTransitionEnd`. Used by
- * `HeaderWithBackButton` to land focus on the back button when a screen opens — covers narrow
- * mobile-web layouts (Chrome / Safari) where the RHP-only `useDialogContainerFocus` doesn't run.
- *
- * Hover-capable devices gate on Tab (WCAG 2.4.7 — mouse nav must not show focus rings);
- * touch-primary devices bypass since Tab is unavailable and screen-reader users need the back
- * button focused on mount.
+ * Focuses `ref` once after `didScreenTransitionEnd` — mobile-web counterpart to the RHP-only
+ * `useDialogContainerFocus`. Hover-capable devices gate on Tab (WCAG 2.4.7 — mouse nav must not
+ * show focus rings); touch-primary devices bypass.
  */
 const useScreenInitialFocus: UseScreenInitialFocus = (ref) => {
     const status = useContext(ScreenWrapperStatusContext);
