@@ -33,7 +33,6 @@ import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {
-    canEditWorkspaceSettings,
     canMemberRead,
     canPolicyAccessFeature,
     shouldShowPolicy as checkIfShouldShowPolicy,
@@ -139,25 +138,22 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     const policyName = policy?.name ?? '';
     const hasPolicyCreationError = policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors);
-    const canWriteWorkspaceSettings = canEditWorkspaceSettings(policy, currentUserLogin);
     const canReadPolicyFeature = (policyFeature: PolicyFeature) => canMemberRead(policy, currentUserLogin ?? '', policyFeature);
     const canReadMoreFeatures = canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
-    const shouldShowProtectedItems =
-        canWriteWorkspaceSettings ||
-        [
-            CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS,
-            CONST.POLICY.POLICY_FEATURE.ACCOUNTING,
-            CONST.POLICY.POLICY_FEATURE.CATEGORIES,
-            CONST.POLICY.POLICY_FEATURE.TAGS,
-            CONST.POLICY.POLICY_FEATURE.TAXES,
-            CONST.POLICY.POLICY_FEATURE.WORKFLOWS,
-            CONST.POLICY.POLICY_FEATURE.RULES,
-            CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES,
-            CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD,
-            CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS,
-            CONST.POLICY.POLICY_FEATURE.PER_DIEM,
-            CONST.POLICY.POLICY_FEATURE.MORE_FEATURES,
-        ].some(canReadPolicyFeature);
+    const shouldShowProtectedItems = [
+        CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS,
+        CONST.POLICY.POLICY_FEATURE.ACCOUNTING,
+        CONST.POLICY.POLICY_FEATURE.CATEGORIES,
+        CONST.POLICY.POLICY_FEATURE.TAGS,
+        CONST.POLICY.POLICY_FEATURE.TAXES,
+        CONST.POLICY.POLICY_FEATURE.WORKFLOWS,
+        CONST.POLICY.POLICY_FEATURE.RULES,
+        CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES,
+        CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD,
+        CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS,
+        CONST.POLICY.POLICY_FEATURE.PER_DIEM,
+        CONST.POLICY.POLICY_FEATURE.MORE_FEATURES,
+    ].some(canReadPolicyFeature);
 
     const accountingConnectionNames = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
     const hasSyncError = shouldShowSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy), accountingConnectionNames);

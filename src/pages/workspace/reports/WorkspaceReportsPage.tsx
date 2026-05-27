@@ -251,7 +251,7 @@ function WorkspaceReportFieldsPage({
                                     title={Str.htmlDecode(titleField?.defaultValue ?? '')}
                                     shouldShowRightIcon={canWriteReportFields}
                                     style={[styles.sectionMenuItemTopDescription, styles.mt6]}
-                                    onPress={canWriteReportFields ? () => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID)) : undefined}
+                                    onPress={() => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID))}
                                     interactive={canWriteReportFields}
                                 />
                             </OfflineWithFeedback>
@@ -263,11 +263,6 @@ function WorkspaceReportFieldsPage({
                                 titleStyle={toggleTitleStyle}
                                 isActive={titleField?.deletable === false}
                                 onToggle={(isEnabled) => {
-                                    if (!canWriteReportFields) {
-                                        showReadOnlyModal();
-                                        return;
-                                    }
-
                                     if (isEnabled && !isControlPolicy(policy)) {
                                         Navigation.navigate(
                                             ROUTES.WORKSPACE_UPGRADE.getRoute(
@@ -299,11 +294,6 @@ function WorkspaceReportFieldsPage({
                                 titleAccessibilityRole={CONST.ROLE.HEADER}
                                 isActive={!!policy?.areReportFieldsEnabled}
                                 onToggle={(isEnabled) => {
-                                    if (!canWriteReportFields) {
-                                        showReadOnlyModal();
-                                        return;
-                                    }
-
                                     if (!isEnabled) {
                                         showConfirmModal({
                                             danger: true,

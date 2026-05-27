@@ -229,7 +229,8 @@ function IndividualExpenseRulesSection({policyID, canWriteRules, showReadOnlyMod
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.INDIVIDUAL_EXPENSES_MENU_ITEM}
                             title={item.title}
                             description={translate(item.descriptionTranslationKey)}
-                            onPress={canWriteRules ? item.action : undefined}
+                            onPress={item.action}
+                            interactive={canWriteRules}
                             wrapperStyle={[styles.sectionMenuItemTopDescription]}
                             numberOfLinesTitle={2}
                         />

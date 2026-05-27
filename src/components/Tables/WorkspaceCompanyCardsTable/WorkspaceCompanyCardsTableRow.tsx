@@ -120,13 +120,14 @@ function WorkspaceCompanyCardTableRow({
             return;
         }
 
-        if (!canOpenCardDetails || assignedCard.cardID === undefined) {
+        const {cardID, fundID} = assignedCard;
+        if (!canOpenCardDetails || cardID === undefined || !fundID) {
             return;
         }
 
-        const feedName = getCardFeedWithDomainID(assignedCard?.bank as CompanyCardFeed, assignedCard.fundID);
+        const feedName = getCardFeedWithDomainID(assignedCard?.bank as CompanyCardFeed, fundID);
 
-        return Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName as CompanyCardFeedWithDomainID, assignedCard.cardID.toString()));
+        return Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName as CompanyCardFeedWithDomainID, cardID.toString()));
     };
 
     return (

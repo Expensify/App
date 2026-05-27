@@ -231,6 +231,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           titleStyle: styles.fontWeightNormal,
                           shouldShowRightIcon: canWriteAccounting && tenants.length > 1,
                           shouldShowDescriptionOnTop: true,
+                          interactive: canWriteAccounting,
                           onPress:
                               canWriteAccounting && tenants.length > 1
                                   ? () => {
@@ -253,6 +254,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           titleStyle: styles.fontWeightNormal,
                           shouldShowRightIcon: canWriteAccounting && netSuiteSubsidiaryList?.length > 1,
                           shouldShowDescriptionOnTop: true,
+                          interactive: canWriteAccounting,
                           pendingAction: policy?.connections?.netsuite?.options?.config?.pendingFields?.subsidiary,
                           brickRoadIndicator: policy?.connections?.netsuite?.options?.config?.errorFields?.subsidiary ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                           onPress:
@@ -273,6 +275,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           titleStyle: styles.fontWeightNormal,
                           shouldShowRightIcon: canWriteAccounting,
                           shouldShowDescriptionOnTop: true,
+                          interactive: canWriteAccounting,
                           pendingAction: policy?.connections?.intacct?.config?.pendingFields?.entity,
                           brickRoadIndicator: policy?.connections?.intacct?.config?.errorFields?.entity ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                           onPress: canWriteAccounting ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTITY.getRoute(policyID)) : undefined,
