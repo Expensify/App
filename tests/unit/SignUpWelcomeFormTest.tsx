@@ -18,8 +18,6 @@ jest.mock('@hooks/useLocalize', () =>
             }
             return key;
         }),
-        formatPhoneNumber: jest.fn((value: string) => value),
-        preferredLocale: 'en',
     })),
 );
 

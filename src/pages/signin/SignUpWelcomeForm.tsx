@@ -26,16 +26,17 @@ function SignUpWelcomeForm() {
     const serverErrorText = useMemo(() => (account ? getLatestErrorMessage(account) : ''), [account]);
     const isPhoneSignup = Str.isSMSLogin(credentials?.login ?? '');
     const [hasSMSMarketingConsent, setHasSMSMarketingConsent] = useState(false);
+    const marketingSMSConsentLabel = translate('welcomeSignUpForm.marketingSMSConsent');
 
     return (
         <>
             {isPhoneSignup && (
                 <View style={[styles.mt3]}>
                     <CheckboxWithLabel
-                        label={translate('welcomeSignUpForm.marketingSMSConsent')}
+                        label={marketingSMSConsentLabel}
                         isChecked={hasSMSMarketingConsent}
                         onInputChange={(value) => setHasSMSMarketingConsent(!!value)}
-                        accessibilityLabel={translate('welcomeSignUpForm.marketingSMSConsent')}
+                        accessibilityLabel={marketingSMSConsentLabel}
                     />
                 </View>
             )}
