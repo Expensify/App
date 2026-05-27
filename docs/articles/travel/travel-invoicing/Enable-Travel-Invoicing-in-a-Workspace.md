@@ -30,7 +30,6 @@ If a bank account is not set up, you’ll be prompted to add one during setup.
 
 ## How to enable Travel Invoicing in a Workspace
 
-Web and Mobile:
 
 1. Click the navigation tabs (on the left on web, on the bottom on mobile).
 2. Select **Workspaces**.
