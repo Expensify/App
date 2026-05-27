@@ -19,7 +19,7 @@ This means:
 
 ## Who can book travel using Travel Invoicing
 
-- Members in a Workspace with Travel enabled
+- Members on a Workspace with Travel enabled
 - Members in a Workspace with Travel Invoicing enabled
 
 If you’re unsure, ask your Workspace Admin.
