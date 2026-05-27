@@ -1,7 +1,6 @@
 import type {NavigationState} from '@react-navigation/native';
 // eslint-disable-next-line no-restricted-imports -- idiomatic defer primitive past navigation transitions.
 import {InteractionManager} from 'react-native';
-// eslint-disable-next-line no-restricted-imports -- type-only; matches notifyPressedTrigger's native-host param.
 import type {View} from 'react-native';
 import compoundParamsKey, {COMPOUND_KEY_DELIMITER} from './compoundParamsKey';
 import FOCUSABLE_SELECTOR from './focusableSelector';

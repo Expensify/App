@@ -10,7 +10,6 @@ jest.mock('@src/utils/findNodeHandle', () => ({
 
 AccessibilityInfo.sendAccessibilityEvent = mockSendAccessibilityEvent;
 
-// eslint-disable-next-line import/extensions
 const fireFocusEvent = require<{default: (view: unknown) => void}>('../../src/libs/Accessibility/fireFocusEvent/index.android').default;
 
 beforeEach(() => {
