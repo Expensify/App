@@ -118,6 +118,22 @@ function shouldForceEmployeesStep(signupQualifier: Onboarding['signupQualifier']
     return false;
 }
 
+function shouldRedirectToEmployeesFromResumePath(
+    signupQualifier: Onboarding['signupQualifier'] | undefined,
+    currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>,
+    onboardingInitialPath: string,
+): boolean {
+    if (!shouldForceEmployeesStep(signupQualifier, currentOnboardingCompanySize)) {
+        return false;
+    }
+
+    return onboardingInitialPath.includes(ROUTES.ONBOARDING_ACCOUNTING.route) || onboardingInitialPath.includes(ROUTES.ONBOARDING_INTERESTED_FEATURES.route);
+}
+
+function isFreshVsbOrSmbOnboardingStart(onboardingInitialPath: string): boolean {
+    return !onboardingInitialPath || onboardingInitialPath === '/' || !onboardingInitialPath.includes('onboarding');
+}
+
 function getQualifierOnboardingPath(onboardingInitialPath: string): string {
     const isValidOnboardingResumePath =
         onboardingInitialPath.includes(ROUTES.ONBOARDING_EMPLOYEES.route) ||
@@ -163,7 +179,7 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     }
 
     if (!isUserFromPublicDomain && hasAccessiblePolicies) {
-        if (shouldForceEmployeesStep(currentOnboardingValues?.signupQualifier, currentOnboardingCompanySize)) {
+        if (onboardingInitialPath && shouldRedirectToEmployeesFromResumePath(currentOnboardingValues?.signupQualifier, currentOnboardingCompanySize, onboardingInitialPath)) {
             return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
         }
         if (onboardingInitialPath) {
@@ -173,7 +189,11 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     }
 
     if (isVsb || isSmb) {
-        if (shouldForceEmployeesStep(currentOnboardingValues?.signupQualifier, currentOnboardingCompanySize)) {
+        if (
+            shouldForceEmployeesStep(currentOnboardingValues?.signupQualifier, currentOnboardingCompanySize) &&
+            (shouldRedirectToEmployeesFromResumePath(currentOnboardingValues?.signupQualifier, currentOnboardingCompanySize, onboardingInitialPath) ||
+                isFreshVsbOrSmbOnboardingStart(onboardingInitialPath))
+        ) {
             return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
         }
         return getQualifierOnboardingPath(onboardingInitialPath);
