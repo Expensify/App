@@ -547,10 +547,18 @@ async function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>): Promis
         Log.info('[SequentialQueue] Queue is running. Will flush when the current request is finished.', false, {
             command: newRequest.command,
         });
-        isReadyPromise.then(() => flush(true));
+        isReadyPromise.then(() => {
+            Log.info('[SequentialQueue] isReadyPromise resolved, flushing queue', false, {
+                command: newRequest.command,
+            });
+            flush(true);
+        });
         return;
     }
 
+    Log.info('[SequentialQueue] Queue is not running. Flushing the queue.', false, {
+        command: newRequest.command,
+    });
     flush(true);
 }
 
