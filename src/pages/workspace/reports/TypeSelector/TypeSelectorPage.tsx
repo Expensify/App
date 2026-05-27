@@ -69,7 +69,7 @@ function TypeSelectorPage({
                     <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.typeInputSubtitle')}</Text>
                 </View>
                 <ReportFieldTypePicker
-                    defaultValue={currentType ?? CONST.REPORT_FIELD_TYPES.TEXT}
+                    defaultValue={currentType}
                     onOptionSelected={onTypeSelected}
                 />
             </ScreenWrapper>
