@@ -1000,9 +1000,6 @@ function completeSplitBill(
                 // Because of the Expense reports are stored as negative values, we subtract the total from the amount
                 oneOnOneIOUReport.total -= splitAmount;
             }
-            if (typeof oneOnOneIOUReport?.reimbursableTotal === 'number') {
-                oneOnOneIOUReport.reimbursableTotal -= splitAmount;
-            }
         } else {
             oneOnOneIOUReport = updateIOUOwnerAndTotal(oneOnOneIOUReport, sessionAccountID, splitAmount, currency ?? '');
         }
@@ -1675,16 +1672,8 @@ function createSplitsAndOnyxData({
                     oneOnOneIOUReport.total -= splitAmount;
                 }
 
-                if (typeof oneOnOneIOUReport.reimbursableTotal === 'number') {
-                    oneOnOneIOUReport.reimbursableTotal -= splitAmount;
-                }
-
                 if (typeof oneOnOneIOUReport.unheldTotal === 'number') {
                     oneOnOneIOUReport.unheldTotal -= splitAmount;
-                }
-
-                if (typeof oneOnOneIOUReport.unheldReimbursableTotal === 'number') {
-                    oneOnOneIOUReport.unheldReimbursableTotal -= splitAmount;
                 }
             }
         } else {
