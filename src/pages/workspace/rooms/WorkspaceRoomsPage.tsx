@@ -51,25 +51,23 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const [policyReports] = useOnyx(
         ONYXKEYS.COLLECTION.REPORT,
         {
-            selector: policyChatRoomsSelector(policyID),
+            selector: policyChatRoomsSelector(policyID, archivedReportsIdSet),
         },
-        [policyID],
+        [policyID, archivedReportsIdSet],
     );
 
-    const rooms: WorkspaceRoomRowData[] = (policyReports ?? [])
-        .filter((report) => !archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`))
-        .map((report) => {
-            const ownerDetails = report.ownerAccountID ? personalDetails?.[report.ownerAccountID] : undefined;
-            return {
-                reportID: report.reportID,
-                name: getReportName(report, reportAttributes),
-                ownerAccountID: report.ownerAccountID,
-                ownerAvatar: ownerDetails?.avatar,
-                ownerDisplayName: ownerDetails ? getDisplayNameOrDefault(ownerDetails) : '',
-                memberCount: getParticipantsAccountIDsForDisplay(report, true, false, false, undefined, personalDetails).length,
-                action: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID)),
-            };
-        });
+    const rooms: WorkspaceRoomRowData[] = (policyReports ?? []).map((report) => {
+        const ownerDetails = report.ownerAccountID ? personalDetails?.[report.ownerAccountID] : undefined;
+        return {
+            reportID: report.reportID,
+            name: getReportName(report, reportAttributes),
+            ownerAccountID: report.ownerAccountID,
+            ownerAvatar: ownerDetails?.avatar,
+            ownerDisplayName: ownerDetails ? getDisplayNameOrDefault(ownerDetails) : '',
+            memberCount: getParticipantsAccountIDsForDisplay(report, true, false, false, undefined, personalDetails).length,
+            action: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID)),
+        };
+    });
 
     useFocusEffect(() => {
         openPolicyRoomsPage(policyID);

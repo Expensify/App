@@ -54,7 +54,8 @@ function WorkspaceRoomsTableRow({item, rowIndex, shouldUseNarrowTableLayout}: Wo
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
-    const narrowSubtitle = `${translate('common.createdBy')}: ${item.ownerDisplayName} • ${item.memberCount} ${translate('common.members').toLowerCase()}`;
+    const memberCountSubtitle = `${item.memberCount} ${translate('common.members').toLowerCase()}`;
+    const narrowSubtitle = item.ownerDisplayName ? `${translate('common.createdBy')}: ${item.ownerDisplayName} • ${memberCountSubtitle}` : memberCountSubtitle;
 
     return (
         <Table.Row

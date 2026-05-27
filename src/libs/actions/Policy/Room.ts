@@ -4,11 +4,6 @@ import {READ_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 
 function openPolicyRoomsPage(policyID: string) {
-    if (!policyID) {
-        Log.warn('openPolicyRoomsPage invalid params', {policyID});
-        return;
-    }
-
     const params: OpenPolicyRoomsPageParams = {policyID};
 
     read(READ_COMMANDS.OPEN_POLICY_ROOMS_PAGE, params);
