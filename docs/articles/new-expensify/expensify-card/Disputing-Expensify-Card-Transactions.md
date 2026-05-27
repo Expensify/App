@@ -80,7 +80,7 @@ Most service-related issues can be resolved directly with the merchant. This is 
 
 Expensify utilizes advanced algorithms to identify unusual card activity and provides real-time notifications for every charge made on your card.
 
-## What happens when I report fraud on a card frozen by my admin?
+## What happens when I report fraud on a card frozen by my workspace admin?
 
 Your card is permanently deactivated, but a replacement card is not automatically issued. You'll see a confirmation message asking you to contact your workspace admin to issue a new card.
 
