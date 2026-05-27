@@ -2,7 +2,7 @@ import {transactionViolationsByIDsSelector} from '@selectors/TransactionViolatio
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -26,8 +26,8 @@ type SearchHoldReasonPageProps =
 function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const {translate} = useLocalize();
     const {backTo = '', reportID} = route.params ?? {};
-    const {selectedTransactionIDs, selectedTransactions} = useSearchStateContext();
-    const {clearSelectedTransactions} = useSearchActionsContext();
+    const {selectedTransactionIDs, selectedTransactions} = useSearchSelectionContext();
+    const {clearSelectedTransactions} = useSearchSelectionActions();
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 

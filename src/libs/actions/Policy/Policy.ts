@@ -2656,6 +2656,9 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                 areReportFieldsEnabled: false,
                 areConnectionsEnabled: false,
                 areExpensifyCardsEnabled: false,
+                areInvoicesEnabled: false,
+                areRulesEnabled: false,
+                arePerDiemRatesEnabled: false,
                 employeeList: {
                     ...(policyOwnerEmail && policyOwnerEmail !== currentUserEmailParam
                         ? {

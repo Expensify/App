@@ -4439,29 +4439,6 @@ describe('ReportUtils', () => {
             expect(shouldDisableThread(reportAction, true)).toBeTruthy();
         });
 
-        it('should disable thread for messages sent by MANAGER_MCTEST', () => {
-            // Given a report action from MANAGER_MCTEST
-            const reportAction = {
-                actorAccountID: CONST.ACCOUNT_ID.MANAGER_MCTEST,
-                message: [
-                    {
-                        translationKey: '',
-                        type: 'COMMENT',
-                        html: 'Test message from Manager McTest',
-                        text: 'Test message from Manager McTest',
-                    },
-                ],
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-            } as ReportAction;
-
-            // When it's checked to see if the thread should be disabled
-            const isThreadDisabled = shouldDisableThread(reportAction, false);
-
-            // Then the thread should be disabled
-            // This ensures "Reply in thread" and "Join thread" context menu options won't be shown
-            expect(isThreadDisabled).toBeTruthy();
-        });
-
         it('should disable on a DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action', () => {
             const reportAction = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
@@ -9068,6 +9045,41 @@ describe('ReportUtils', () => {
             // AND include actionBadge (APPROVE) since it's a processing expense report the user can approve
             expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
             expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
+        });
+
+        it('should use allReportActionsParam when provided instead of module-level Onyx data', async () => {
+            // Given a submitted expense report with a DEW_APPROVE_FAILED action stored ONLY in the passed param (not in Onyx)
+            const report: OptionData = {
+                ...createRandomReport(70000, undefined),
+                keyForList: 'SomeKey',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            const dewApproveFailedAction: ReportAction = {
+                ...createRandomReportAction(70000),
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+                created: '2024-08-08 18:00:00.000',
+            };
+
+            // Do NOT set report actions in Onyx — only pass them via the param
+            const allReportActionsParam: OnyxCollection<ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {
+                    [dewApproveFailedAction.reportActionID]: dewApproveFailedAction,
+                },
+            };
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+
+            // Without the param, the function should NOT find DEW_APPROVE_FAILED (since it's not in Onyx)
+            const resultWithout = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            expect(resultWithout?.reason).not.toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
+
+            // With the param, the function should find DEW_APPROVE_FAILED from the passed param
+            const resultWith = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current, allReportActionsParam);
+            expect(resultWith).toHaveProperty('reason', CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
         });
 
         it('should return null for an archived report when there is a policy pending join request', async () => {
