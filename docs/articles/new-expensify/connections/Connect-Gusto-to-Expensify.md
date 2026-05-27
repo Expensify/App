@@ -65,13 +65,14 @@ After connecting Gusto, choose an approval mode that determines how expense repo
 - **Manager Approval** — Reports first go to the employee's direct manager (synced from Gusto), then to a final approver.
 - **Custom Approval** — Employees are synced from Gusto, but approval workflows are managed manually in Expensify.
 
-
 To change the approval mode or final approver on your workspace:
 
-1. In the left menu, click **HR**.
-2. Click **Gusto**.
-3. Click **Approval mode** or **Final approver** to update the settings.
-4. Click **Save**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces**.
+2. Click the name of the workspace connected to Gusto.
+3. In the left menu, click **HR**.
+4. Click **Gusto**.
+5. Click **Approval mode** or **Final approver** to update the settings.
+6. Click **Save**.
 
 When **Manager Approval** is selected, approval workflows are automatically built from the manager relationships in Gusto. These approval workflows appear on the **Workflows** tab with a Gusto indicator. The **Approvals** toggle on the **Workflows** tab is locked on and cannot be turned off while Gusto is connected.
 
@@ -81,24 +82,29 @@ To change approval settings, use the **HR** tab rather than the **Workflows** ta
 
 ---
 
-## How to view synced employees and refresh the Gusto sync
+## How to manually refresh the Gusto sync
 
 After connecting Gusto, a daily auto-sync runs to keep your workspace members up to date with Gusto. You can also refresh the sync manually at any time.
 
 To refresh the sync manually: 
 
-1. In the left menu, click **Members**.
-2. Click the **Re-sync** button in the Gusto section.
-3. Wait for the sync to complete. The sync results will display a summary of any changes.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces**.
+2. Click the name of the workspace connected to Gusto.
+3. In the left menu, click **HR**.
+4. In the left menu, click **Members**.
+5. Click the **Re-sync** button in the Gusto section.
+6. Wait for the sync to complete. The sync results will display a summary of any changes.
 
 ---
 
 ## How to disconnect Gusto from Expensify
 
-1. In the left menu, click **HR**.
-2. Click **Gusto**.
-3. Click **Disconnect**.
-4. Confirm by clicking **Disconnect** again.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces**.
+2. Click the name of the workspace connected to Gusto.
+3. In the left menu, click **HR**.
+4. Click **Gusto**.
+5. Click **Disconnect**.
+6. Confirm by clicking **Disconnect** again.
 
 Disconnecting Gusto unlocks the **Approvals** toggle on the **Workflows** tab, allowing you to manage approval workflows manually again. Disconnecting Gusto also stops future employee syncs and automatic removals. Existing workspace members are not removed.
 
