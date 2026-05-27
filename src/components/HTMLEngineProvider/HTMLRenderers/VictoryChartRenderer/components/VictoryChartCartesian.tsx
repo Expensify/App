@@ -1,9 +1,7 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {CartesianChart} from 'victory-native';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import {VictoryChartRenderArgsProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartRenderArgsContext';
-import {useVictoryChartScale} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartScaleContext';
-import type {VictoryChartScaleValue} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartScaleContext';
 import getYKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getYKey';
 import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import parseDomainPadding from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseDomainPadding';
@@ -11,32 +9,12 @@ import VictoryChartLabels from './VictoryChartLabels';
 import VictoryChartLegend from './VictoryChartLegend';
 import VictoryChartSeries from './VictoryChartSeries';
 
-type SidedNumber = number | {left?: number; right?: number; top?: number; bottom?: number};
-
-function scalePadding(value: SidedNumber | undefined, scale: VictoryChartScaleValue): SidedNumber | undefined {
-    if (value === undefined) {
-        return undefined;
-    }
-    const s = Math.min(scale.x, scale.y);
-    if (typeof value === 'number') {
-        return {left: value, right: value, top: Math.round(value * s), bottom: value};
-    }
-    return {
-        ...value,
-        top: value.top !== undefined ? Math.round(value.top * s) : undefined,
-    };
-}
-
 /**
  * Renders the CartesianChart with data, axes, and domain config drawn from context.
  * Labels and legend overlays are handled internally via `renderOutside`.
  */
 function VictoryChartCartesian() {
     const {data, xKey, yKeys, xAxis, yAxis, tnode, labelItems, legendItems} = useVictoryChartContext();
-    const scale = useVictoryChartScale();
-
-    const rawPadding = parseAttribute(tnode.attributes.padding) as SidedNumber | undefined;
-    const padding = useMemo(() => scalePadding(rawPadding, scale), [rawPadding, scale]);
 
     return (
         <CartesianChart
@@ -47,17 +25,11 @@ function VictoryChartCartesian() {
             yAxis={yAxis}
             domain={parseAttribute(tnode.attributes.domain)}
             domainPadding={parseDomainPadding(tnode.attributes.domainpadding)}
-            padding={padding}
+            padding={parseAttribute(tnode.attributes.padding)}
             renderOutside={(renderArgs) => (
                 <VictoryChartRenderArgsProvider value={renderArgs}>
-                    <VictoryChartLabels
-                        labelItems={labelItems}
-                        scale={scale}
-                    />
-                    <VictoryChartLegend
-                        legendItems={legendItems}
-                        scale={scale}
-                    />
+                    <VictoryChartLabels labelItems={labelItems} />
+                    <VictoryChartLegend legendItems={legendItems} />
                 </VictoryChartRenderArgsProvider>
             )}
         >

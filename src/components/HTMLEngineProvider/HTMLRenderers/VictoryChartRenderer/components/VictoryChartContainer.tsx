@@ -2,7 +2,6 @@ import React, {useCallback, useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
-import {DEFAULT_SCALE, VictoryChartScaleContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartScaleContext';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 function VictoryChartContainer({children}: {children: React.ReactNode}) {
@@ -18,30 +17,28 @@ function VictoryChartContainer({children}: {children: React.ReactNode}) {
         setContainerWidth(event.nativeEvent.layout.width);
     }, []);
 
-    const containerScale = useMemo(() => {
-        if (!hasExplicitDimensions || !designWidth || containerWidth <= 0) {
-            return DEFAULT_SCALE;
-        }
-        const s = Math.min(containerWidth / designWidth, 1);
-        return {x: s, y: s};
-    }, [hasExplicitDimensions, designWidth, containerWidth]);
+    const scale = hasExplicitDimensions && designWidth && containerWidth > 0 ? Math.min(containerWidth / designWidth, 1) : 1;
 
     const contentStyle = useMemo(() => {
-        if (hasExplicitDimensions && designWidth && designHeight) {
-            const {width: ignoredWidth, height: ignoredHeight, ...otherContentStyles} = chartContentStyles;
-            return [otherContentStyles, {aspectRatio: designWidth / designHeight}];
+        if (hasExplicitDimensions) {
+            return [chartContentStyles, {transform: [{scale}], transformOrigin: 'top left' as const}];
         }
         return [styles.chartContent, chartContentStyles];
-    }, [hasExplicitDimensions, designWidth, designHeight, styles, chartContentStyles]);
+    }, [hasExplicitDimensions, chartContentStyles, scale, styles]);
+
+    const containerStyle = useMemo(() => {
+        if (hasExplicitDimensions && designHeight) {
+            return [styles.chartContainer, chartContainerStyles, {height: designHeight * scale, overflow: 'hidden' as const}];
+        }
+        return [styles.chartContainer, styles.mw100, chartContainerStyles];
+    }, [hasExplicitDimensions, designHeight, scale, styles, chartContainerStyles]);
 
     return (
         <View
-            style={[styles.chartContainer, styles.flex1, chartContainerStyles]}
+            style={containerStyle}
             onLayout={handleLayout}
         >
-            <VictoryChartScaleContext.Provider value={containerScale}>
-                <View style={contentStyle}>{children}</View>
-            </VictoryChartScaleContext.Provider>
+            <View style={contentStyle}>{children}</View>
         </View>
     );
 }
