@@ -7860,7 +7860,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             update: {
                 modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) =>
                     `a modifié la règle de dépense de ${fromAction} à ${toAction} sur ${cards}`,
-                appliedToAdditionalCards: ({count}: {count: number}) => `règle de dépense appliquée à ${count} cartes supplémentaires`,
+                appliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: 'règle de dépense appliquée à 1 carte supplémentaire',
+                    other: `règle de dépense appliquée à ${count} cartes supplémentaires`,
+                }),
                 phraseVerb: {added: 'ajouté', removed: 'supprimé', changed: 'modifié', set: 'définir', applied: 'appliqué'},
                 bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} commerçant « ${value} »` : `commerçant « ${value} »`),
                 bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>

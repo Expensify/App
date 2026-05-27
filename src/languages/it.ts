@@ -7819,7 +7819,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             update: {
                 modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) =>
                     `ha modificato la regola di spesa da ${fromAction} a ${toAction} su ${cards}`,
-                appliedToAdditionalCards: ({count}: {count: number}) => `ha applicato la regola di spesa ad altre ${count} carte`,
+                appliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: 'ha applicato la regola di spesa a 1 altra carta',
+                    other: `ha applicato la regola di spesa ad altre ${count} carte`,
+                }),
                 phraseVerb: {added: 'aggiunto', removed: 'rimosso', changed: 'modificato', set: 'imposta', applied: 'applicata'},
                 bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} esercente '${value}'` : `esercente '${value}'`),
                 bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>

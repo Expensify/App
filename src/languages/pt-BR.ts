@@ -7781,7 +7781,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             update: {
                 modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) =>
                     `alterou a regra de gasto de ${fromAction} para ${toAction} em ${cards}`,
-                appliedToAdditionalCards: ({count}: {count: number}) => `regra de gasto aplicada a mais ${count} cartões`,
+                appliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: 'regra de gasto aplicada a mais 1 cartão',
+                    other: `regra de gasto aplicada a mais ${count} cartões`,
+                }),
                 phraseVerb: {added: 'adicionado', removed: 'removido', changed: 'alterado', set: 'definir', applied: 'aplicado'},
                 bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `comerciante ${adjective} '${value}'` : `estabelecimento comercial '${value}'`),
                 bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>

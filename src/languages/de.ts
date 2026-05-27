@@ -7829,7 +7829,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             restrictionVerb: {block: 'Block', allow: 'nur zulassen'},
             update: {
                 modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) => `Ausgaberegel von ${fromAction} zu ${toAction} auf ${cards} geändert`,
-                appliedToAdditionalCards: ({count}: {count: number}) => `Ausgaberegel auf ${count} weitere Karten angewendet`,
+                appliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: 'Ausgaberegel auf 1 weitere Karte angewendet',
+                    other: `Ausgaberegel auf ${count} weitere Karten angewendet`,
+                }),
                 phraseVerb: {added: 'hinzugefügt', removed: 'entfernt', changed: 'geändert', set: 'festlegen', applied: 'Angewendet'},
                 bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} Händler: „${value}“` : `Händler: „${value}“`),
                 bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>

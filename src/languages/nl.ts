@@ -7789,7 +7789,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             update: {
                 modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) =>
                     `heeft bestedingsregel gewijzigd van ${fromAction} naar ${toAction} op ${cards}`,
-                appliedToAdditionalCards: ({count}: {count: number}) => `uitgavenregel toegepast op ${count} extra kaarten`,
+                appliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: 'uitgavenregel toegepast op 1 extra kaart',
+                    other: `uitgavenregel toegepast op ${count} extra kaarten`,
+                }),
                 phraseVerb: {added: 'toegevoegd', removed: 'verwijderd', changed: 'gewijzigd', set: 'instellen', applied: 'toegepast'},
                 bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} handelaar '${value}'` : `handelaar '${value}'`),
                 bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>

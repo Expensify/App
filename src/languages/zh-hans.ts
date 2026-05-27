@@ -7577,7 +7577,10 @@ ${reportName}
             restrictionVerb: {block: '阻止', allow: '仅允许'},
             update: {
                 modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) => `已将 ${cards} 的消费规则从 ${fromAction} 更改为 ${toAction}`,
-                appliedToAdditionalCards: ({count}: {count: number}) => `已将支出规则应用于另外 ${count} 张卡片`,
+                appliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: '已将支出规则应用于另外 1 张卡片',
+                    other: `已将支出规则应用于另外 ${count} 张卡片`,
+                }),
                 phraseVerb: {added: '已添加', removed: '已移除', changed: '已更改', set: '设置', applied: '已应用'},
                 bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} 商家“${value}”` : `商户“${value}”`),
                 bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>

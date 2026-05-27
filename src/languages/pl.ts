@@ -7778,7 +7778,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             restrictionVerb: {block: 'zablokuj', allow: 'zezwalaj tylko'},
             update: {
                 modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) => `zmieniono regułę wydatków z ${fromAction} na ${toAction} na ${cards}`,
-                appliedToAdditionalCards: ({count}: {count: number}) => `zastosowano regułę wydatków do ${count} dodatkowych kart`,
+                appliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: 'zastosowano regułę wydatków do 1 dodatkowej karty',
+                    other: `zastosowano regułę wydatków do ${count} dodatkowych kart`,
+                }),
                 phraseVerb: {added: 'dodano', removed: 'usunięto', changed: 'zmieniono', set: 'ustaw', applied: 'zastosowano'},
                 bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} sprzedawca '${value}'` : `sprzedawca „${value}”`),
                 bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>

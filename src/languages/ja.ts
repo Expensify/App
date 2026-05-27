@@ -7725,7 +7725,10 @@ ${reportName}
             restrictionVerb: {block: 'ブロック', allow: 'のみ許可'},
             update: {
                 modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) => `${cards} の利用ルールを ${fromAction} から ${toAction} に変更しました`,
-                appliedToAdditionalCards: ({count}: {count: number}) => `追加で ${count} 枚のカードに支出ルールを適用しました`,
+                appliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: '追加で 1 枚のカードに支出ルールを適用しました',
+                    other: `追加で ${count} 枚のカードに支出ルールを適用しました`,
+                }),
                 phraseVerb: {added: '追加しました', removed: '削除済み', changed: '変更しました', set: '設定', applied: '適用済み'},
                 bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective}なマーチャント「${value}」` : `加盟店「${value}」`),
                 bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>

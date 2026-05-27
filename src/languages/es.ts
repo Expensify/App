@@ -7323,7 +7323,10 @@ ${amount} para ${merchant} - ${date}`,
             restrictionVerb: {block: 'bloquear', allow: 'permitir solo'},
             update: {
                 modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) => `cambió la regla de gasto de ${fromAction} a ${toAction} en ${cards}`,
-                appliedToAdditionalCards: ({count}: {count: number}) => `aplicó la regla de gasto a ${count} tarjetas adicionales`,
+                appliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: 'aplicó la regla de gasto a 1 tarjeta adicional',
+                    other: `aplicó la regla de gasto a ${count} tarjetas adicionales`,
+                }),
                 phraseVerb: {added: 'añadido', removed: 'eliminado', changed: 'cambió', set: 'establecer', applied: 'aplicado'},
                 bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} comercio «${value}»` : `comercio «${value}»`),
                 bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
