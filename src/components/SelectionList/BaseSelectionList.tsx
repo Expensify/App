@@ -129,40 +129,30 @@ function BaseSelectionList<TItem extends ListItem>({
     const hasFooter = !!footerContent || confirmButtonOptions?.showButton;
 
     const dataDetails = useMemo<DataDetailsType<TItem>>(() => {
-        const {disabledIndexes, disabledArrowKeyIndexes, selectedOptions, disabledSelectedIndexes} = data.reduce(
-            (acc: {disabledIndexes: number[]; disabledArrowKeyIndexes: number[]; selectedOptions: TItem[]; disabledSelectedIndexes: number[]}, item: TItem, index: number) => {
+        const {disabledIndexes, disabledArrowKeyIndexes, selectedOptions} = data.reduce(
+            (acc: {disabledIndexes: number[]; disabledArrowKeyIndexes: number[]; selectedOptions: TItem[]}, item: TItem, index: number) => {
                 const idx = item.index ?? index;
-                const itemIsSelected = isItemSelected(item);
-                const isItemDisabled = isDisabled || (!!item?.isDisabled && !itemIsSelected);
-                const isEffectivelyDisabled = isItemDisabled || !!item?.isDisabledCheckbox;
+                const isItemDisabled = isDisabled || (!!item?.isDisabled && !isItemSelected(item));
 
-                if (itemIsSelected && (canSelectMultiple || acc.selectedOptions.length === 0)) {
+                if (isItemSelected(item) && (canSelectMultiple || acc.selectedOptions.length === 0)) {
                     acc.selectedOptions.push(item);
                 }
+                if (isItemDisabled || item?.isDisabledCheckbox) {
+                    acc.disabledIndexes.push(idx);
 
-                if (!isEffectivelyDisabled) {
-                    return acc;
-                }
-
-                acc.disabledIndexes.push(idx);
-
-                if (isItemDisabled) {
-                    acc.disabledArrowKeyIndexes.push(idx);
-                }
-
-                if (itemIsSelected) {
-                    acc.disabledSelectedIndexes.push(idx);
+                    if (isItemDisabled) {
+                        acc.disabledArrowKeyIndexes.push(idx);
+                    }
                 }
 
                 return acc;
             },
-            {disabledIndexes: [], disabledArrowKeyIndexes: [], selectedOptions: [], disabledSelectedIndexes: []},
+            {disabledIndexes: [], disabledArrowKeyIndexes: [], selectedOptions: []},
         );
 
         const totalSelectable = data.length - disabledIndexes.length;
-        const selectableSelectedCount = selectedOptions.length - disabledSelectedIndexes.length;
-        const allSelected = selectableSelectedCount > 0 && selectableSelectedCount === totalSelectable;
-        const someSelected = selectableSelectedCount > 0 && selectableSelectedCount < totalSelectable;
+        const allSelected = selectedOptions.length > 0 && selectedOptions.length === totalSelectable;
+        const someSelected = selectedOptions.length > 0 && selectedOptions.length < totalSelectable;
 
         return {data, allSelected, someSelected, selectedOptions, disabledIndexes, disabledArrowKeyIndexes};
     }, [canSelectMultiple, data, isDisabled, isItemSelected]);

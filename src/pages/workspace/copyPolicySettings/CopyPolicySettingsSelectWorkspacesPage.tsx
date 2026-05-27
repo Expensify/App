@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -49,62 +49,78 @@ function CopyPolicySettingsSelectWorkspacesPage() {
     const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined;
     const isSourceCorporate = sourcePolicy?.type === CONST.POLICY.TYPE.CORPORATE;
 
-    const eligiblePolicies: EligiblePolicyItem[] = !policies
-        ? []
-        : Object.values(policies)
-              .filter((policy): policy is Policy => {
-                  if (!policy || policy.id === sourcePolicyID || policy.type === CONST.POLICY.TYPE.PERSONAL || isPendingDeletePolicy(policy) || !isPolicyAdmin(policy, currentUserEmail)) {
-                      return false;
-                  }
-                  // Release 1: when copying from a Corporate workspace, only allow Corporate targets.
-                  // Issue 7 (R2) lifts this restriction by inserting an upgrade step.
-                  if (isSourceCorporate && policy.type !== CONST.POLICY.TYPE.CORPORATE) {
-                      return false;
-                  }
-                  return true;
-              })
-              .map((policy) => ({
-                  id: policy.id,
-                  title: policy.name,
-                  avatarURL: policy.avatarURL,
-              }))
-              .sort((a, b) => localeCompare(a.title, b.title));
+    const eligiblePolicies = useMemo<EligiblePolicyItem[]>(() => {
+        if (!policies) {
+            return [];
+        }
+        return Object.values(policies)
+            .filter((policy): policy is Policy => {
+                if (!policy || policy.id === sourcePolicyID) {
+                    return false;
+                }
+                if (policy.type === CONST.POLICY.TYPE.PERSONAL) {
+                    return false;
+                }
+                if (!isPolicyAdmin(policy, currentUserEmail)) {
+                    return false;
+                }
+                if (isPendingDeletePolicy(policy)) {
+                    return false;
+                }
+                // Release 1: when copying from a Corporate workspace, only allow Corporate targets.
+                // Issue 7 (R2) lifts this restriction by inserting an upgrade step.
+                if (isSourceCorporate && policy.type !== CONST.POLICY.TYPE.CORPORATE) {
+                    return false;
+                }
+                return true;
+            })
+            .map((policy) => ({
+                id: policy.id,
+                title: policy.name,
+                avatarURL: policy.avatarURL,
+            }))
+            .sort((a, b) => localeCompare(a.title, b.title));
+    }, [policies, sourcePolicyID, isSourceCorporate, currentUserEmail, localeCompare]);
 
-    const filterPolicy = (policy: EligiblePolicyItem, query: string) => policy.title.toLowerCase().includes(query.toLowerCase());
-    const sortPolicies = (items: EligiblePolicyItem[]) => items;
+    const filterPolicy = useCallback((policy: EligiblePolicyItem, query: string) => policy.title.toLowerCase().includes(query.toLowerCase()), []);
+    const sortPolicies = useCallback((items: EligiblePolicyItem[]) => items, []);
     const [searchValue, setSearchValue, filteredPolicies] = useSearchResults(eligiblePolicies, filterPolicy, sortPolicies);
 
     const shouldShowSearch = eligiblePolicies.length > SEARCH_THRESHOLD;
 
-    const listItems: ListItem[] = filteredPolicies.map((policy) => ({
-        text: policy.title,
-        keyForList: policy.id,
-        isSelected: selectedTargetIDs.includes(policy.id),
-        leftElement: (
-            <View style={[styles.mr3]}>
-                <Avatar
-                    source={policy.avatarURL ?? getDefaultWorkspaceAvatar(policy.title)}
-                    size={CONST.AVATAR_SIZE.DEFAULT}
-                    name={policy.title}
-                    avatarID={policy.id}
-                    type={CONST.ICON_TYPE_WORKSPACE}
-                />
-            </View>
-        ),
-    }));
+    const listItems: ListItem[] = useMemo(
+        () =>
+            filteredPolicies.map((policy) => ({
+                text: policy.title,
+                keyForList: policy.id,
+                isSelected: selectedTargetIDs.includes(policy.id),
+                leftElement: (
+                    <View style={[styles.mr3]}>
+                        <Avatar
+                            source={policy.avatarURL ?? getDefaultWorkspaceAvatar(policy.title)}
+                            size={CONST.AVATAR_SIZE.DEFAULT}
+                            name={policy.title}
+                            avatarID={policy.id}
+                            type={CONST.ICON_TYPE_WORKSPACE}
+                        />
+                    </View>
+                ),
+            })),
+        [filteredPolicies, selectedTargetIDs, styles.mr3],
+    );
 
-    const toggleItem = (item: ListItem) => {
+    const toggleItem = useCallback((item: ListItem) => {
         if (!item.keyForList) {
             return;
         }
         const id = item.keyForList;
         setSelectedTargetIDs((prev) => (prev.includes(id) ? prev.filter((selectedID) => selectedID !== id) : [...prev, id]));
-    };
+    }, []);
 
     // Scope select-all to the currently visible (filtered) rows so its behavior matches
     // the header checkbox state that SelectionList derives from filteredPolicies. Selections
     // on rows hidden by the active search are preserved across toggles.
-    const toggleAll = () => {
+    const toggleAll = useCallback(() => {
         const visibleIDs = filteredPolicies.map((policy) => policy.id);
         if (visibleIDs.length === 0) {
             return;
@@ -117,29 +133,35 @@ function CopyPolicySettingsSelectWorkspacesPage() {
             }
             return Array.from(new Set([...prev, ...visibleIDs]));
         });
-    };
+    }, [filteredPolicies]);
 
-    const onConfirm = () => {
+    const onConfirm = useCallback(() => {
         if (!sourcePolicyID) {
             return;
         }
         setCopyPolicySettingsData({sourcePolicyID, targetPolicyIDs: selectedTargetIDs});
         Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_SELECT_FEATURES.getRoute(sourcePolicyID));
-    };
+    }, [sourcePolicyID, selectedTargetIDs]);
 
-    const confirmButtonOptions: ConfirmButtonOptions<ListItem> = {
-        showButton: true,
-        text: translate('common.next'),
-        onConfirm,
-        isDisabled: selectedTargetIDs.length === 0,
-    };
+    const confirmButtonOptions: ConfirmButtonOptions<ListItem> = useMemo(
+        () => ({
+            showButton: true,
+            text: translate('common.next'),
+            onConfirm,
+            isDisabled: selectedTargetIDs.length === 0,
+        }),
+        [translate, onConfirm, selectedTargetIDs.length],
+    );
 
-    const textInputOptions: TextInputOptions = {
-        label: translate('workspace.copyPolicySettings.searchPlaceholder'),
-        value: searchValue,
-        onChangeText: setSearchValue,
-        headerMessage: filteredPolicies.length === 0 && searchValue.length > 0 ? translate('common.noResultsFound') : undefined,
-    };
+    const textInputOptions: TextInputOptions = useMemo(
+        () => ({
+            label: translate('workspace.copyPolicySettings.searchPlaceholder'),
+            value: searchValue,
+            onChangeText: setSearchValue,
+            headerMessage: filteredPolicies.length === 0 && searchValue.length > 0 ? translate('common.noResultsFound') : undefined,
+        }),
+        [translate, searchValue, setSearchValue, filteredPolicies.length],
+    );
 
     return (
         <AccessOrNotFoundWrapper

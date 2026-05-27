@@ -81,8 +81,6 @@ function ListHeader<TItem extends ListItem>({
         />
     );
 
-    const isCheckboxOnRight = selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.RIGHT;
-
     const label = !customListHeader && (
         <PressableWithFeedback
             style={[styles.userSelectNone, styles.flexRow, styles.alignItemsCenter]}
@@ -95,9 +93,11 @@ function ListHeader<TItem extends ListItem>({
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             onMouseDown={handleMouseDown}
         >
-            <Text style={[styles.textStrong, isCheckboxOnRight ? styles.pr3 : styles.ph3, selectAllTextStyle]}>{translate('workspace.people.selectAll')}</Text>
+            <Text style={[styles.textStrong, styles.ph3, selectAllTextStyle]}>{translate('workspace.people.selectAll')}</Text>
         </PressableWithFeedback>
     );
+
+    const isCheckboxOnRight = selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.RIGHT;
 
     return (
         <View
