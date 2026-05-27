@@ -7,7 +7,7 @@ import {View} from 'react-native';
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
-import {ReportSubmitToPopoverAnchor, useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
+import {ReportSubmitToPopoverRoot, useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -39,15 +39,23 @@ import ExpenseReportListItemRow from './ExpenseReportListItemRow';
 import type {ExpenseReportListItemProps, ExpenseReportListItemType} from './types';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
+const ANCHOR_ALIGNMENT = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+};
+
 /**
  * An expense report row in search results, showing status badge, total, and participants.
  */
 function ExpenseReportListItem<TItem extends ListItem>(props: ExpenseReportListItemProps<TItem>) {
     const reportItem = props.item as unknown as ExpenseReportListItemType;
     return (
-        <ReportSubmitToPopoverAnchor reportID={reportItem.reportID}>
+        <ReportSubmitToPopoverRoot
+            reportID={reportItem.reportID}
+            anchorAlignment={ANCHOR_ALIGNMENT}
+        >
             <ExpenseReportListItemInner {...props} />
-        </ReportSubmitToPopoverAnchor>
+        </ReportSubmitToPopoverRoot>
     );
 }
 

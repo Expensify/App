@@ -206,10 +206,16 @@ function SubmitPrimaryAction({reportID}: SubmitPrimaryActionProps) {
     const {currentSearchResults} = useSearchResultsContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
 
+    const ANCHOR_ALIGNMENT = {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+    };
+
     return (
         <ReportSubmitToPopoverAnchor
             reportID={reportID}
             onSubmitSuccess={startSubmittingAnimation}
+            anchorAlignment={ANCHOR_ALIGNMENT}
         >
             <SubmitPrimaryActionContent
                 reportID={reportID}

@@ -195,9 +195,15 @@ function HeaderFirstRow<TItem extends ListItem>({
     );
 }
 
+const ANCHOR_ALIGNMENT = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+};
+
 function ReportListItemHeader<TItem extends ListItem>(props: ReportListItemHeaderProps<TItem>) {
+
     return (
-        <ReportSubmitToPopoverAnchor reportID={props.report.reportID}>
+        <ReportSubmitToPopoverAnchor reportID={props.report.reportID} anchorAlignment={ANCHOR_ALIGNMENT}>
             <ReportListItemHeaderInner {...props} />
         </ReportSubmitToPopoverAnchor>
     );

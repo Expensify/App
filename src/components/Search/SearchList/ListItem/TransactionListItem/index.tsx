@@ -40,10 +40,15 @@ import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
 import TransactionListItemNarrow from './TransactionListItemNarrow';
 import TransactionListItemWide from './TransactionListItemWide';
 
+const ANCHOR_ALIGNMENT = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+};
+
 function TransactionListItem<TItem extends ListItem>(props: TransactionListItemProps<TItem>) {
     const transactionItem = props.item as unknown as TransactionListItemType;
     return (
-        <ReportSubmitToPopoverAnchor reportID={transactionItem.reportID}>
+        <ReportSubmitToPopoverAnchor reportID={transactionItem.reportID} anchorAlignment={ANCHOR_ALIGNMENT}>
             <TransactionListItemInner {...props} />
         </ReportSubmitToPopoverAnchor>
     );

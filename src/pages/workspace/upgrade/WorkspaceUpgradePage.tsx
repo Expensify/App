@@ -103,14 +103,6 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             return;
         }
         switch (feature?.id) {
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approveReport.id: {
-                if (route.params?.reportID) {
-                    Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(route.params.reportID));
-                    return;
-                }
-                Navigation.goBack();
-                return;
-            }
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id:
                 Navigation.goBack();
@@ -143,7 +135,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             default:
                 return route.params.backTo ? Navigation.goBack(route.params.backTo) : Navigation.goBack();
         }
-    }, [feature, policyID, route.params?.backTo, route.params?.featureName, route.params?.reportID, featureNameAlias]);
+    }, [feature, policyID, route.params?.backTo, route.params?.featureName, featureNameAlias]);
 
     const onUpgradeToCorporate = () => {
         if (!canPerformUpgrade || !policy) {

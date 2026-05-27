@@ -2,6 +2,7 @@ import React, {Fragment} from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
+import {ReportSubmitToPopoverMeasurableAnchor} from '@components/ReportSubmitToPopoverAnchor';
 import DeferredActionCell from '@components/Search/SearchList/ListItem/ActionCell/DeferredActionCell';
 import DateCell from '@components/Search/SearchList/ListItem/DateCell';
 import ExportedIconCell from '@components/Search/SearchList/ListItem/ExportedIconCell';
@@ -188,17 +189,19 @@ function ExpenseReportListItemRowWide({
         ),
         [CONST.SEARCH.TABLE_COLUMNS.ACTION]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
-                <DeferredActionCell
-                    action={item.action}
-                    onButtonPress={onButtonPress}
-                    isSelected={item.isSelected}
-                    isLoading={isActionLoading}
-                    policyID={item.policyID}
-                    reportID={item.reportID}
-                    hash={item.hash}
-                    amount={item.total}
-                    shouldDisablePointerEvents={isPendingDelete}
-                />
+                <ReportSubmitToPopoverMeasurableAnchor>
+                    <DeferredActionCell
+                        action={item.action}
+                        onButtonPress={onButtonPress}
+                        isSelected={item.isSelected}
+                        isLoading={isActionLoading}
+                        policyID={item.policyID}
+                        reportID={item.reportID}
+                        hash={item.hash}
+                        amount={item.total}
+                        shouldDisablePointerEvents={isPendingDelete}
+                    />
+                </ReportSubmitToPopoverMeasurableAnchor>
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: (

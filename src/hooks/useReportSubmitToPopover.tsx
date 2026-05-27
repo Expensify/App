@@ -6,6 +6,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import ReportSubmitToContent from '@pages/ReportSubmitToContent';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import useOnyx from './useOnyx';
 import usePopoverPosition from './usePopoverPosition';
 import useResponsiveLayout from './useResponsiveLayout';
@@ -18,9 +19,9 @@ const popoverDimensions = {
     minHeight: CONST.POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT,
 };
 
-const ANCHOR_ALIGNMENT = {
-    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+const DEFAULT_ANCHOR_ALIGNMENT = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
 };
 
 type ReportSubmitToPopoverOpenOptions = {
@@ -30,9 +31,10 @@ type ReportSubmitToPopoverOpenOptions = {
 type UseReportSubmitToPopoverParams = {
     reportID: string | undefined;
     onSubmitSuccess?: () => void;
+    anchorAlignment?: AnchorAlignment;
 };
 
-function useReportSubmitToPopover({reportID, onSubmitSuccess}: UseReportSubmitToPopoverParams) {
+function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT}: UseReportSubmitToPopoverParams) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     // Bottom-docked Modal path only; aligns with Popover path that omits modal shell padding chrome
@@ -69,7 +71,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess}: UseReportSubmitTo
                 return;
             }
             oneShotOnSubmitSuccessRef.current = options?.onSubmitSuccess;
-            calculatePopoverPosition(anchorRef, ANCHOR_ALIGNMENT).then((pos) => {
+            calculatePopoverPosition(anchorRef, anchorAlignment).then((pos) => {
                 setAnchorPosition({
                     horizontal: pos.horizontal,
                     vertical: pos.vertical,
@@ -77,7 +79,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess}: UseReportSubmitTo
                 setIsVisible(true);
             });
         },
-        [calculatePopoverPosition, reportID, willAlertModalBecomeVisible],
+        [calculatePopoverPosition, reportID, willAlertModalBecomeVisible, anchorAlignment],
     );
 
     const reportSubmitToPopover = useMemo(
@@ -88,7 +90,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess}: UseReportSubmitTo
                 onClose={closeReportSubmitToPopover}
                 anchorPosition={anchorPosition}
                 popoverDimensions={popoverDimensions}
-                anchorAlignment={ANCHOR_ALIGNMENT}
+                anchorAlignment={anchorAlignment}
                 innerContainerStyle={isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DROPDOWN_WIDTH}}
                 restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
                 shouldSwitchPositionIfOverflow
@@ -109,7 +111,21 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess}: UseReportSubmitTo
                 </View>
             </PopoverWithMeasuredContent>
         ),
-        [StyleUtils, styles.w100, styles.flex1, isSmallScreenWidth, isVisible, closeReportSubmitToPopover, anchorPosition, report, policy, isLoadingReportData, handleCombinedSubmitSuccess],
+        [
+            StyleUtils,
+            styles.w100,
+            styles.flex1,
+            isSmallScreenWidth,
+            isVisible,
+            closeReportSubmitToPopover,
+            anchorPosition,
+            anchorAlignment,
+            anchorRef,
+            report,
+            policy,
+            isLoadingReportData,
+            handleCombinedSubmitSuccess,
+        ],
     );
 
     return {
