@@ -1,5 +1,6 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import type {TupleToUnion} from 'type-fest';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
@@ -48,7 +49,7 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const {cardRules, isLoadingCardRules} = useExpensifyCardRules(policyID);
 
-    const filterCardRules = (cardRule: (typeof cardRules)[number], searchInput: string) => {
+    const filterCardRules = (cardRule: TupleToUnion<typeof cardRules>, searchInput: string) => {
         const results = tokenizedSearch([cardRule], searchInput, (option) => option.searchTokens);
         return results.length > 0;
     };
