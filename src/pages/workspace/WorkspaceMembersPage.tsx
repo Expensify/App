@@ -26,7 +26,6 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useDebouncedValue from '@hooks/useDebouncedValue';
-import useFilteredSelection from '@hooks/useFilteredSelection';
 import useHRSyncResultsModal from '@hooks/useHRSyncResultsModal';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -271,7 +270,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             }
         }
 
-        setSelectedEmployees([]);
+        tableRef.current?.clearSelection();
         removeMembers(policy, selectedEmployees, policyMemberEmailsToAccountIDs);
     };
 
@@ -298,21 +297,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
         removeUsers();
     }, [confirmModalPrompt, removeUsers, selectedEmployees.length, showConfirmModal, translate]);
-
-    /**
-     * Add or remove all users passed from the selectedEmployees list
-     */
-    const toggleAllUsers = (memberList: MemberOption[]) => {
-        const enabledAccounts = memberList.filter((member) => !member.isDisabled && !member.isDisabledCheckbox);
-        const someSelected = selectedEmployees.length > 0;
-
-        if (someSelected) {
-            setSelectedEmployees([]);
-        } else {
-            const everyLogin = enabledAccounts.map((member) => member.login);
-            setSelectedEmployees(everyLogin);
-        }
-    };
 
     /**
      * Add user from the selectedEmployees list
@@ -504,7 +488,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     }
 
     const handleRoleFilterChange = (item: WorkspaceMemberFilterOption | undefined) => {
-        setSelectedEmployees([]);
+        tableRef.current?.clearSelection();
 
         if (!item || item.value === WORKSPACE_MEMBER_FILTER_VALUES.ALL) {
             setSelectedRoleFilter(null);
@@ -533,11 +517,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         }
     };
     const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers, rolePreFilter);
-
-    const handleSearchChange = (value: string) => {
-        setSelectedEmployees([]);
-        setInputValue(value);
-    };
 
     useEffect(() => {
         if (!isFocused) {
@@ -651,16 +630,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         </View>
     );
 
-    useEffect(() => {
-        if (isMobileSelectionModeEnabled) {
-            return;
-        }
-
-        setSelectedEmployees([]);
-    }, [setSelectedEmployees, isMobileSelectionModeEnabled]);
-
     useSearchBackPress({
-        onClearSelection: () => setSelectedEmployees([]),
+        onClearSelection: () => tableRef.current?.clearSelection(),
         onNavigationCallBack: () => Navigation.goBack(),
     });
 
@@ -716,7 +687,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
         const accountIDsToUpdate = loginsToUpdate.map((login) => policyMemberEmailsToAccountIDs[login]).filter((id) => id !== undefined);
 
-        setSelectedEmployees([]);
+        tableRef.current?.clearSelection();
         updateWorkspaceMembersRole(policy, loginsToUpdate, accountIDsToUpdate, role);
     };
 
@@ -929,18 +900,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             )}
             {(shouldShowRoleFilter || shouldShowSearchBar) && (
                 <View style={styles.flexColumn}>
-                    <View style={[styles.mh5, styles.gap3, styles.mb5, styles.flexRow, styles.alignItemsCenter]}>
-                        {!!roleFilterDropdown && roleFilterDropdown}
-                        {shouldShowSearchBar && (
-                            <SearchBar
-                                inputValue={inputValue}
-                                onChangeText={handleSearchChange}
-                                label={translate('workspace.people.findMember')}
-                                shouldShowEmptyState={false}
-                                style={[styles.flex1, styles.mh0, styles.mb0]}
-                            />
-                        )}
-                    </View>
+                    <View style={[styles.mh5, styles.gap3, styles.mb5, styles.flexRow, styles.alignItemsCenter]}>{!!roleFilterDropdown && roleFilterDropdown}</View>
                     {shouldShowEmptySearchMessage && (
                         <View style={[styles.ph5, styles.pb5]}>
                             <Text style={[styles.textNormal, styles.colorMuted]}>{noResultsMessage}</Text>
@@ -949,14 +909,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 </View>
             )}
         </>
-    );
-
-    const textInputOptions = useMemo(
-        () => ({
-            headerMessage: shouldUseNarrowLayout ? headerMessage : undefined,
-            ref: textInputRef,
-        }),
-        [headerMessage, shouldUseNarrowLayout],
     );
 
     return (
@@ -972,7 +924,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             shouldShowNonAdmin
             onBackButtonPress={() => {
                 if (isMobileSelectionModeEnabled) {
-                    setSelectedEmployees([]);
+                    tableRef.current?.clearSelection();
                     turnOffMobileSelectionMode();
                     return;
                 }
