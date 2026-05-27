@@ -69,8 +69,6 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const otherFeeds = useOtherFeedsForFeedSelector(policyID);
     const primaryContactMethod = usePrimaryContactMethod();
 
-    const isUserFromPublicDomain = isEmailPublicDomain(primaryContactMethod);
-
     const feeds: CardFeedListItem[] = (Object.entries(companyCardFeeds ?? {}) as Array<[CompanyCardFeedWithDomainID, CombinedCardFeed]>).map(([feedName, feedSettings]) => {
         const plaidUrl = getPlaidInstitutionIconUrl(feedSettings.feed);
         const domain = allDomains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${feedSettings.domainID}`];
@@ -130,14 +128,13 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     };
 
     const selectOtherFeed = (feed: CardFeedListItem) => {
-        if (isUserFromPublicDomain) {
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_ADD_WORK_EMAIL.getRoute(policyID, feed.value));
-            return;
-        }
-        const primaryLoginKey = primaryContactMethod ? Object.keys(loginList ?? {}).find((login) => login.toLowerCase() === primaryContactMethod.toLowerCase()) : undefined;
-        const isPrimaryContactValidated = primaryLoginKey ? !!loginList?.[primaryLoginKey]?.validatedDate : !primaryContactMethod;
-        if (!isPrimaryContactValidated) {
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, feed.value));
+        const hasValidatedNonPublicLogin = Object.entries(loginList ?? {}).some(([login, data]) => !!data?.validatedDate && !isEmailPublicDomain(login));
+        if (!hasValidatedNonPublicLogin) {
+            if (primaryContactMethod && !isEmailPublicDomain(primaryContactMethod)) {
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, feed.value));
+                return;
+            }
+            Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD.getRoute(Navigation.getActiveRoute()));
             return;
         }
         if (!feed.fundID) {

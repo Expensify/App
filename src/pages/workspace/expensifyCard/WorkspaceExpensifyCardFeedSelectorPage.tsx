@@ -1,4 +1,3 @@
-import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
@@ -58,7 +57,6 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     const {showLockedAccountModal} = useLockedAccountActions();
     const [lastSelectedExpensifyCardFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyID}`);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const primaryContactMethod = usePrimaryContactMethod();
     const defaultFundID = useDefaultFundID(policyID);
     const lastSelectedExpensifyCardFeedID = lastSelectedExpensifyCardFeed ?? defaultFundID;
@@ -149,16 +147,13 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
 
     const selectOtherFeed = (feed: ExpensifyFeedListItem) => {
         resetCardFlowState();
-        const isUserFromPublicDomain = isEmailPublicDomain(primaryContactMethod);
-        if (!isUserValidated || isUserFromPublicDomain) {
-            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ADD_WORK_EMAIL.getRoute(policyID, feed.value));
-            return;
-        }
-
-        const primaryLoginKey = primaryContactMethod ? Object.keys(loginList ?? {}).find((login) => login.toLowerCase() === primaryContactMethod.toLowerCase()) : undefined;
-        const isPrimaryContactValidated = primaryLoginKey ? !!loginList?.[primaryLoginKey]?.validatedDate : !primaryContactMethod;
-        if (!isPrimaryContactValidated) {
-            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, feed.value));
+        const hasValidatedNonPublicLogin = Object.entries(loginList ?? {}).some(([login, data]) => !!data?.validatedDate && !isEmailPublicDomain(login));
+        if (!hasValidatedNonPublicLogin) {
+            if (primaryContactMethod && !isEmailPublicDomain(primaryContactMethod)) {
+                Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, feed.value));
+                return;
+            }
+            Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD.getRoute(Navigation.getActiveRoute()));
             return;
         }
 
