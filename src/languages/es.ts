@@ -63,7 +63,9 @@ const translations: TranslationDeepObject<typeof en> = {
         save: 'Guardar',
         saveChanges: 'Guardar cambios',
         submit: 'Enviar',
+        markAsDone: 'Marcar como listo',
         submitted: 'Enviado',
+        markedAsDoneStatus: 'Marcado como listo',
         rotate: 'Rotar',
         zoom: 'Zoom',
         password: 'Contraseña',
@@ -791,6 +793,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistory: (users) => `Este chat es con ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName, submitterDisplayName) =>
             `Aquí es donde <strong>${submitterDisplayName}</strong> enviará los gastos al espacio de trabajo <strong>${workspaceName}</strong>. Solo usa el botón +.`,
+        beginningOfChatHistoryPolicyExpenseChatTrack: 'Aquí es donde harás seguimiento de los gastos',
         beginningOfChatHistorySelfDM: 'Este es tu espacio personal. Úsalo para notas, tareas, borradores y recordatorios.',
         beginningOfChatHistorySystemDM: '¡Bienvenido! Vamos a configurar tu cuenta.',
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
@@ -799,7 +802,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Tu espacio',
         welcomeToRoom: (roomName) => `¡Bienvenido a ${roomName}!`,
         usePlusButton: (additionalText) => ` Usa el botón + para ${additionalText} un gasto`,
-        askConcierge: 'Este es tu chat con Concierge, tu agente personal de IA. Puedo hacer casi cualquier cosa, ¡pruébame!',
+        askConcierge: 'Concierge puede responder preguntas, actualizar gastos y mucho más.',
         conciergeSupport: 'Tu agente personal de IA',
         create: 'crear',
         iouTypes: {
@@ -1301,6 +1304,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sendInvoice: (amount) => `Enviar factura de ${amount}`,
         expenseAmount: (formattedAmount, comment) => `${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         submitted: (memo) => `enviado${memo ? `, dijo ${memo}` : ''}`,
+        markedAsDone: (memo) => `marcado como listo${memo ? `, dijo ${memo}` : ''}`,
         automaticallySubmitted: `envió mediante <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">retrasar envíos</a>`,
         queuedToSubmitViaDEW: 'en cola para enviar a través del flujo de aprobación personalizado',
         failedToAutoSubmitViaDEW: (reason: string) => `no ha podido enviar este informe mediante <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">retrasar envíos</a>. ${reason}`,
@@ -1725,6 +1729,17 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Esperando a que <strong>${actor}</strong> envíe los gastos.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `Esperando a que un administrador envíe los gastos.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (actor, actorType, _eta, _etaType) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Esperando a que <strong>tú</strong> lo marques como listo.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Esperando a que <strong>${actor}</strong> lo marque como listo.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Esperando a que un administrador lo marque como listo.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_actor, _actorType, _eta, _etaType) => `¡No se requiere ninguna acción adicional!`,
@@ -2451,6 +2466,8 @@ ${amount} para ${merchant} - ${date}`,
         addApprovalTip: 'Este flujo de trabajo por defecto se aplica a todos los miembros, a menos que exista un flujo de trabajo más específico.',
         approver: 'Aprobador',
         addApprovalsDescription: 'Requiere una aprobación adicional antes de autorizar un pago.',
+        automateApprovalsWithAgentsTitle: 'Automatiza las aprobaciones con agentes',
+        automateApprovalsWithAgentsSubtitle: 'Añade el agente de abajo al flujo de trabajo para automatizar las aprobaciones.',
         configureViaHR: ({provider}: {provider: string}) => `Configurar mediante ${provider}.`,
         hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `Las aprobaciones se gestionan mediante tu integración de ${provider}. Para actualizar tu flujo de aprobación, ve a la configuración de conexión de ${provider}.`,
@@ -5894,6 +5911,12 @@ ${amount} para ${merchant} - ${date}`,
             selectWorkspaces: 'Selecciona espacios de trabajo',
             description: 'Elige los espacios de trabajo a los que quieres copiar la configuración y luego selecciona los ajustes que quieras copiar.',
             searchPlaceholder: 'Buscar espacios de trabajo',
+            selectFeatures: 'Selecciona las funciones que quieres copiar',
+            whichFeatures: 'Selecciona los ajustes que se sobrescribirán en tus espacios de trabajo existentes.',
+            workflowsWithoutMembersConfirm: 'Continuar sin miembros',
+            workflowsWithoutMembersPrompt: 'Copiar flujos de trabajo sin miembros no copiará los flujos de trabajo de aprobación. La configuración de envío y pago sí se copiará.',
+            accountingMismatch: ({part}: {part: string}) =>
+                `Solo puedes copiar ${part} si todos los espacios de trabajo usan el mismo sistema de contabilidad y la misma conexión de empresa.`,
         },
         emptyWorkspace: {
             title: 'Aún no hay espacios de trabajo',
@@ -5981,7 +6004,7 @@ ${amount} para ${merchant} - ${date}`,
         accounting: {
             settings: 'configuración',
             title: 'Conexiones',
-            subtitle: 'Conecta a tu sistema de contabilidad para codificar transacciones con tu plan de cuentas, auto-cotejar pagos, y mantener tus finanzas sincronizadas.',
+            subtitle: 'Conecta tu software de contabilidad para una sincronización automática.',
             qbo: 'QuickBooks Online',
             qbd: 'QuickBooks Desktop',
             xero: 'Xero',
@@ -6301,6 +6324,8 @@ ${amount} para ${merchant} - ${date}`,
         hr: {
             title: 'HR',
             connections: 'Conexiones',
+            connectionsSubtitle:
+                'Conéctate a tu sistema de RR. HH. para sincronizar los datos de empleados, emparejar automáticamente los reembolsos con las personas correctas y mantener los gastos de tu equipo precisos sin trabajo manual.',
             subtitle: 'Conecta herramientas de HR y mantén sincronizadas las aprobaciones de empleados.',
             connect: 'Conectar',
             syncNow: 'Sincronizar ahora',
@@ -6904,6 +6929,11 @@ ${amount} para ${merchant} - ${date}`,
                 autoPayReportsUnderDescription: 'Los informes de gastos totalmente conformes por debajo de este importe se pagarán automáticamente.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName) => `Añade ${featureName} para desbloquear esta función.`,
                 enableFeatureSubtitle: (featureName, moreFeaturesLink) => `Ir a [más características](${moreFeaturesLink}) y habilita ${featureName} para desbloquear esta función.`,
+            },
+            agentsPromoBanner: {
+                title: '¿No ves la regla que necesitas? Añade un agente',
+                subtitle: 'Añade reglas complejas y reduce las aprobaciones manuales con agentes personalizados.',
+                cta: 'Pruébalo',
             },
             merchantRules: {
                 title: 'Comerciante',
@@ -9241,7 +9271,7 @@ ${amount} para ${merchant} - ${date}`,
         copilotDelegatedAccess: 'Copilot: Acceso delegado',
         copilotDelegatedAccessDescription: 'Permitir que otros miembros accedan a tu cuenta.',
         learnMoreAboutDelegatedAccess: 'Más información sobre acceso delegado',
-        addCopilot: 'Añade un copiloto a tu cuenta',
+        addCopilot: 'Añade un copiloto',
         membersCanAccessYourAccount: 'Estos miembros pueden acceder a tu cuenta:',
         youCanAccessTheseAccounts: 'Puedes acceder a estas cuentas:',
         role: ({role} = {}) => {
