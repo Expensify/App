@@ -1,10 +1,10 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxKey} from 'react-native-onyx';
+import type {OnyxCollection, OnyxKey} from 'react-native-onyx';
 import {clearBulkEditDraftTransaction, initBulkEditDraftTransaction, updateBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU/BulkEdit';
 import CONST from '@src/CONST';
 import * as API from '@src/libs/API';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Policy, Report, ReportActions} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../../utils/collections/policies';
 import {createRandomReport} from '../../utils/collections/reports';
@@ -12,7 +12,6 @@ import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
 
 describe('actions/IOU/BulkEdit', () => {
@@ -68,12 +67,7 @@ describe('actions/IOU/BulkEdit', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
-                isSelfTourViewed: false,
-                hasCompletedGuidedSetupFlow: false,
                 delegateAccountID: undefined,
             });
 
@@ -145,12 +139,7 @@ describe('actions/IOU/BulkEdit', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
-                isSelfTourViewed: false,
-                hasCompletedGuidedSetupFlow: false,
                 delegateAccountID: undefined,
             });
 
@@ -210,12 +199,7 @@ describe('actions/IOU/BulkEdit', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
-                isSelfTourViewed: false,
-                hasCompletedGuidedSetupFlow: false,
                 delegateAccountID: undefined,
             });
 
@@ -284,12 +268,7 @@ describe('actions/IOU/BulkEdit', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
-                isSelfTourViewed: false,
-                hasCompletedGuidedSetupFlow: false,
                 delegateAccountID: undefined,
             });
 
@@ -363,12 +342,7 @@ describe('actions/IOU/BulkEdit', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
-                isSelfTourViewed: false,
-                hasCompletedGuidedSetupFlow: false,
                 delegateAccountID: undefined,
             });
 
@@ -432,12 +406,7 @@ describe('actions/IOU/BulkEdit', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
-                isSelfTourViewed: false,
-                hasCompletedGuidedSetupFlow: false,
                 delegateAccountID: undefined,
             });
 
@@ -500,12 +469,7 @@ describe('actions/IOU/BulkEdit', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
-                isSelfTourViewed: false,
-                hasCompletedGuidedSetupFlow: false,
                 delegateAccountID: undefined,
             });
 
@@ -574,12 +538,7 @@ describe('actions/IOU/BulkEdit', () => {
                     },
                 },
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
-                isSelfTourViewed: false,
-                hasCompletedGuidedSetupFlow: false,
                 delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
@@ -633,12 +592,7 @@ describe('actions/IOU/BulkEdit', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
-                isSelfTourViewed: false,
-                hasCompletedGuidedSetupFlow: false,
                 delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
@@ -695,12 +649,7 @@ describe('actions/IOU/BulkEdit', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
-                isSelfTourViewed: false,
-                hasCompletedGuidedSetupFlow: false,
                 delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
@@ -764,12 +713,7 @@ describe('actions/IOU/BulkEdit', () => {
                 },
                 policyTags: {},
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
-                isSelfTourViewed: false,
-                hasCompletedGuidedSetupFlow: false,
                 delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
@@ -834,12 +778,7 @@ describe('actions/IOU/BulkEdit', () => {
                 allPolicies: {
                     [`${ONYXKEYS.COLLECTION.POLICY}${transactionPolicyID}`]: transactionPolicy,
                 },
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
-                isSelfTourViewed: false,
-                hasCompletedGuidedSetupFlow: false,
                 delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
@@ -915,12 +854,7 @@ describe('actions/IOU/BulkEdit', () => {
                 allPolicies: {
                     [`${ONYXKEYS.COLLECTION.POLICY}${transactionPolicyID}`]: txPolicy,
                 },
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
-                isSelfTourViewed: false,
-                hasCompletedGuidedSetupFlow: false,
                 delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
@@ -984,12 +918,7 @@ describe('actions/IOU/BulkEdit', () => {
                 },
                 policyTags: {},
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
-                isSelfTourViewed: false,
-                hasCompletedGuidedSetupFlow: false,
                 delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
@@ -1065,12 +994,7 @@ describe('actions/IOU/BulkEdit', () => {
                     [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`]: policyTagsForPolicy,
                 },
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
-                isSelfTourViewed: false,
-                hasCompletedGuidedSetupFlow: false,
                 delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
@@ -1127,12 +1051,7 @@ describe('actions/IOU/BulkEdit', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
-                isSelfTourViewed: false,
-                hasCompletedGuidedSetupFlow: false,
                 delegateAccountID: undefined,
             });
 
@@ -1196,12 +1115,7 @@ describe('actions/IOU/BulkEdit', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: 'test@example.com',
                 currentUserAccountID: 1,
-                isSelfTourViewed: false,
-                hasCompletedGuidedSetupFlow: false,
                 delegateAccountID: undefined,
             });
 
@@ -1289,12 +1203,7 @@ describe('actions/IOU/BulkEdit', () => {
                 policyTags: {},
                 hash: undefined,
                 allPolicies,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
-                isSelfTourViewed: false,
-                hasCompletedGuidedSetupFlow: false,
                 delegateAccountID: undefined,
             });
 
@@ -1384,12 +1293,7 @@ describe('actions/IOU/BulkEdit', () => {
                 policyTags: {},
                 hash: undefined,
                 allPolicies,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
-                isSelfTourViewed: false,
-                hasCompletedGuidedSetupFlow: false,
                 delegateAccountID: undefined,
             });
 
@@ -1458,12 +1362,7 @@ describe('actions/IOU/BulkEdit', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
-                isSelfTourViewed: false,
-                hasCompletedGuidedSetupFlow: false,
                 delegateAccountID: undefined,
             });
 
@@ -1530,12 +1429,7 @@ describe('actions/IOU/BulkEdit', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
-                isSelfTourViewed: false,
-                hasCompletedGuidedSetupFlow: false,
                 delegateAccountID: undefined,
             });
 
@@ -1598,12 +1492,7 @@ describe('actions/IOU/BulkEdit', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
-                isSelfTourViewed: false,
-                hasCompletedGuidedSetupFlow: false,
                 delegateAccountID: undefined,
             });
 
@@ -1617,113 +1506,31 @@ describe('actions/IOU/BulkEdit', () => {
             canEditFieldSpy.mockRestore();
         });
 
-        it.each([
-            {isSelfTourViewed: true, hasCompletedGuidedSetupFlow: true},
-            {isSelfTourViewed: false, hasCompletedGuidedSetupFlow: false},
-        ])(
-            'forwards isSelfTourViewed=$isSelfTourViewed and hasCompletedGuidedSetupFlow=$hasCompletedGuidedSetupFlow into createTransactionThreadReport when no thread exists yet',
-            ({isSelfTourViewed, hasCompletedGuidedSetupFlow}) => {
-                // Transaction without transactionThreadReportID + iouReport present
-                // -> updateMultipleMoneyRequests should create an optimistic thread
-                //    and the two onboarding flags must be forwarded verbatim.
-                const transactionID = `transaction-thread-fwd-${isSelfTourViewed}`;
-                const iouReportID = `iou-thread-fwd-${isSelfTourViewed}`;
-                const policy = createRandomPolicy(99, CONST.POLICY.TYPE.TEAM);
+        it('creates an optimistic transaction thread when neither childReportID nor transactionThreadReportID exists', () => {
+            const transactionID = 'transaction-no-thread';
+            const iouReportID = 'iou-no-thread';
+            const policy = createRandomPolicy(20, CONST.POLICY.TYPE.TEAM);
 
-                const iouReport: Report = {
-                    ...createRandomReport(99, undefined),
-                    reportID: iouReportID,
-                    policyID: policy.id,
-                    type: CONST.REPORT.TYPE.EXPENSE,
-                };
-
-                const reports = {
-                    [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
-                };
-
-                // Note: no transactionThreadReportID set on the transaction
-                const transaction: Transaction = {
-                    ...createRandomTransaction(99),
-                    transactionID,
-                    reportID: iouReportID,
-                    amount: -1000,
-                    currency: CONST.CURRENCY.USD,
-                };
-                const transactions = {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
-                };
-
-                const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
-                // eslint-disable-next-line rulesdir/no-multiple-api-calls
-                const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
-                const createTransactionThreadReportSpy = jest.spyOn(require('@userActions/Report'), 'createTransactionThreadReport').mockReturnValue(undefined);
-
-                updateMultipleMoneyRequests({
-                    transactionIDs: [transactionID],
-                    changes: {merchant: 'Updated Merchant'},
-                    policy,
-                    reports,
-                    transactions,
-                    reportActions: {},
-                    policyCategories: undefined,
-                    policyTags: {},
-                    hash: undefined,
-                    introSelected: undefined,
-                    betas: undefined,
-                    currentUserLogin: RORY_EMAIL,
-                    currentUserAccountID: RORY_ACCOUNT_ID,
-                    isSelfTourViewed,
-                    hasCompletedGuidedSetupFlow,
-                    delegateAccountID: undefined,
-                });
-
-                expect(createTransactionThreadReportSpy).toHaveBeenCalledWith(
-                    expect.objectContaining({
-                        isSelfTourViewed,
-                        hasCompletedGuidedSetupFlow,
-                    }),
-                );
-
-                writeSpy.mockRestore();
-                canEditFieldSpy.mockRestore();
-                createTransactionThreadReportSpy.mockRestore();
-            },
-        );
-
-        it('does not call createTransactionThreadReport when the transaction already has a thread (onboarding flags are not forwarded)', () => {
-            // When a transactionThreadReportID is already known, no thread creation should happen.
-            // This isolates the new-param path from the steady-state path.
-            const transactionID = 'transaction-thread-existing';
-            const transactionThreadReportID = 'thread-existing';
-            const iouReportID = 'iou-thread-existing';
-            const policy = createRandomPolicy(100, CONST.POLICY.TYPE.TEAM);
-
-            const transactionThread: Report = {
-                ...createRandomReport(100, undefined),
-                reportID: transactionThreadReportID,
-                parentReportID: iouReportID,
-                policyID: policy.id,
-            };
             const iouReport: Report = {
-                ...createRandomReport(101, undefined),
+                ...createRandomReport(20, undefined),
                 reportID: iouReportID,
                 policyID: policy.id,
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
 
             const reports = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`]: transactionThread,
                 [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
             };
 
+            // Transaction has no transactionThreadReportID
             const transaction: Transaction = {
-                ...createRandomTransaction(100),
+                ...createRandomTransaction(20),
                 transactionID,
                 reportID: iouReportID,
-                transactionThreadReportID,
-                amount: -1000,
+                amount: 500,
                 currency: CONST.CURRENCY.USD,
             };
+            delete (transaction as Partial<Transaction>).transactionThreadReportID;
             const transactions = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
             };
@@ -1731,11 +1538,10 @@ describe('actions/IOU/BulkEdit', () => {
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
-            const createTransactionThreadReportSpy = jest.spyOn(require('@userActions/Report'), 'createTransactionThreadReport');
 
             updateMultipleMoneyRequests({
                 transactionIDs: [transactionID],
-                changes: {merchant: 'Updated Merchant'},
+                changes: {merchant: 'Coffee Shop'},
                 policy,
                 reports,
                 transactions,
@@ -1743,20 +1549,133 @@ describe('actions/IOU/BulkEdit', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
-                isSelfTourViewed: true,
-                hasCompletedGuidedSetupFlow: true,
                 delegateAccountID: undefined,
             });
 
-            expect(createTransactionThreadReportSpy).not.toHaveBeenCalled();
+            expect(writeSpy).toHaveBeenCalled();
+            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+            const onyxData = writeSpy.mock.calls.at(0)?.[2] as any;
+            const optimisticData = onyxData?.optimisticData as any[];
+
+            // An optimistic thread report should be created via SET
+            const optimisticReportSet = optimisticData.find(
+                (entry: any) => String(entry.key).startsWith(ONYXKEYS.COLLECTION.REPORT) && entry.onyxMethod === 'set' && entry.key !== `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+            );
+            expect(optimisticReportSet).toBeDefined();
+            const optimisticThreadReportID = String(optimisticReportSet.key).replace(ONYXKEYS.COLLECTION.REPORT, '');
+
+            // The transaction optimistic data should link back to the new thread via transactionThreadReportID
+            const transactionMerge = optimisticData.find((entry: any) => entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transactionMerge?.value?.transactionThreadReportID).toBe(optimisticThreadReportID);
+            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 
             writeSpy.mockRestore();
             canEditFieldSpy.mockRestore();
-            createTransactionThreadReportSpy.mockRestore();
+        });
+
+        it('prioritizes childReportID over transactionThreadReportID when resolving thread', () => {
+            const transactionID = 'transaction-priority';
+            const childReportID = 'thread-from-action';
+            const transactionThreadID = 'thread-from-transaction';
+            const iouReportID = 'iou-priority';
+            const reportActionID = 'action-priority';
+            const policy = createRandomPolicy(21, CONST.POLICY.TYPE.TEAM);
+
+            const childThread: Report = {
+                ...createRandomReport(21, undefined),
+                reportID: childReportID,
+                parentReportID: iouReportID,
+                policyID: policy.id,
+            };
+            const transactionThread: Report = {
+                ...createRandomReport(22, undefined),
+                reportID: transactionThreadID,
+                parentReportID: iouReportID,
+                policyID: policy.id,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(23, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`]: childThread,
+                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`]: transactionThread,
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            // Transaction has transactionThreadReportID pointing to one thread
+            const transaction: Transaction = {
+                ...createRandomTransaction(21),
+                transactionID,
+                reportID: iouReportID,
+                transactionThreadReportID: transactionThreadID,
+                amount: 500,
+                currency: CONST.CURRENCY.USD,
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            // Report action has childReportID pointing to a different thread
+            const reportActions = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`]: {
+                    [reportActionID]: {
+                        reportActionID,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        originalMessage: {
+                            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                            IOUTransactionID: transactionID,
+                        },
+                        childReportID,
+                        created: '2026-01-01 00:00:00',
+                    },
+                },
+            } as OnyxCollection<ReportActions>;
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests({
+                transactionIDs: [transactionID],
+                changes: {merchant: 'Priority Test'},
+                policy,
+                reports,
+                transactions,
+                reportActions,
+                policyCategories: undefined,
+                policyTags: {},
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+            });
+
+            expect(writeSpy).toHaveBeenCalled();
+            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+            const onyxData = writeSpy.mock.calls.at(0)?.[2] as any;
+            const optimisticData = onyxData?.optimisticData as any[];
+
+            // No optimistic thread report should be created — the existing thread from childReportID should be used
+            const optimisticReportSet = optimisticData.find(
+                (entry: any) => String(entry.key).startsWith(ONYXKEYS.COLLECTION.REPORT) && entry.onyxMethod === 'set' && entry.key !== `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+            );
+            expect(optimisticReportSet).toBeUndefined();
+
+            // The MODIFIED_EXPENSE report action should be written to the childReportID thread, not the transactionThreadReportID thread
+            const reportActionMerge = optimisticData.find((entry: any) => entry.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`);
+            expect(reportActionMerge).toBeDefined();
+
+            // No report action should be written to the transactionThreadReportID thread
+            const wrongThreadReportAction = optimisticData.find((entry: any) => entry.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`);
+            expect(wrongThreadReportAction).toBeUndefined();
+            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
         });
     });
 
