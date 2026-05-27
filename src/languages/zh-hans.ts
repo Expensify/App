@@ -6101,6 +6101,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `确定要连接 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? '此会计集成'} 吗？这将删除所有现有的会计连接。`,
             enterCredentials: '请输入您的凭证',
+            updateCredentials: '更新凭证',
             claimOffer: {
                 badgeText: '优惠可用！',
                 xero: {
@@ -8350,6 +8351,7 @@ ${reportName}
         duplicatedTransaction: '可能重复',
         fieldRequired: '报表字段为必填项',
         futureDate: '不允许使用未来日期',
+        inactiveVendor: '供应商不再有效',
         invoiceMarkup: (invoiceMarkup: number) => `加价 ${invoiceMarkup}%`,
         maxAge: (maxAge: number) => `日期早于 ${maxAge} 天`,
         missingCategory: '缺少类别',

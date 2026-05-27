@@ -6073,6 +6073,7 @@ ${amount} para ${merchant} - ${date}`,
             connectPrompt: ({connectionName}) =>
                 `¿Estás seguro de que quieres conectar a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'esta integración contable'}? Esto eliminará cualquier conexión contable existente.`,
             enterCredentials: 'Ingresa tus credenciales',
+            updateCredentials: 'Actualizar credenciales',
             claimOffer: {
                 badgeText: '¡Oferta disponible!',
                 xero: {
@@ -8797,6 +8798,7 @@ ${amount} para ${merchant} - ${date}`,
         duplicatedTransaction: 'Posible duplicado',
         fieldRequired: 'Los campos del informe son obligatorios',
         futureDate: 'Fecha futura no permitida',
+        inactiveVendor: 'El proveedor ya no es válido',
         invoiceMarkup: (invoiceMarkup) => `Incrementado un ${invoiceMarkup}%`,
         maxAge: (maxAge) => `Fecha de más de ${maxAge} días`,
         missingCategory: 'Falta categoría',

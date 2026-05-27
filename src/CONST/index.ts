@@ -992,6 +992,7 @@ const CONST = {
         WORKSPACE_ROOMS_PAGE: 'workspaceRoomsPage',
         CERTINIA: 'financialForceNewDot',
         MERGE_HR: 'mergeHRConnections',
+        VENDOR_MATCHING: 'vendorMatching',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -2809,6 +2810,7 @@ const CONST = {
         REIMBURSABLE_EXPENSES_ACCOUNT: 'reimbursableExpensesAccount',
         REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'reimbursableExpensesExportDestination',
         NON_REIMBURSABLE_BILL_DEFAULT_VENDOR: 'nonReimbursableBillDefaultVendor',
+        NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR: 'nonReimbursableCreditCardDefaultVendor',
         NON_REIMBURSABLE_EXPENSE_EXPORT_DESTINATION: 'nonReimbursableExpensesExportDestination',
         NON_REIMBURSABLE_EXPENSE_ACCOUNT: 'nonReimbursableExpensesAccount',
         RECEIVABLE_ACCOUNT: 'receivableAccount',
@@ -6888,6 +6890,7 @@ const CONST = {
         MODIFIED_AMOUNT: 'modifiedAmount',
         MODIFIED_DATE: 'modifiedDate',
         INCREASED_DISTANCE: 'increasedDistance',
+        INACTIVE_VENDOR: 'inactiveVendor',
         PROHIBITED_EXPENSE: 'prohibitedExpense',
         NON_EXPENSIWORKS_EXPENSE: 'nonExpensiworksExpense',
         OVER_AUTO_APPROVAL_LIMIT: 'overAutoApprovalLimit',
