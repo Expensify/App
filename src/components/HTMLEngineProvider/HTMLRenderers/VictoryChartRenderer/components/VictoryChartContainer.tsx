@@ -3,14 +3,12 @@ import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import ScrollView from '@components/ScrollView';
-import useDebouncedValue from '@hooks/useDebouncedValue';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 const MIN_CHART_WIDTH = 500;
-const RESIZE_DEBOUNCE_MS = 200;
 
-type InitialMeasurement = {
+type LayoutSnapshot = {
     containerWidth: number;
     windowWidth: number;
 };
@@ -18,9 +16,8 @@ type InitialMeasurement = {
 function VictoryChartContainer({children}: {children: React.ReactNode}) {
     const styles = useThemeStyles();
     const {chartContentStyles, chartContainerStyles} = useVictoryChartContext();
-    const [initialMeasurement, setInitialMeasurement] = useState<InitialMeasurement | null>(null);
+    const [layoutSnapshot, setLayoutSnapshot] = useState<LayoutSnapshot | null>(null);
     const {windowWidth} = useWindowDimensions();
-    const debouncedWindowWidth = useDebouncedValue(windowWidth, RESIZE_DEBOUNCE_MS) ?? windowWidth;
 
     const designWidth = typeof chartContentStyles.width === 'number' ? chartContentStyles.width : undefined;
     const designHeight = typeof chartContentStyles.height === 'number' ? chartContentStyles.height : undefined;
@@ -28,48 +25,64 @@ function VictoryChartContainer({children}: {children: React.ReactNode}) {
 
     const handleContainerLayout = useCallback(
         (event: LayoutChangeEvent) => {
-            const w = event.nativeEvent.layout.width;
-            setInitialMeasurement({containerWidth: w, windowWidth: debouncedWindowWidth});
+            setLayoutSnapshot({containerWidth: event.nativeEvent.layout.width, windowWidth});
         },
-        [debouncedWindowWidth],
+        [windowWidth],
     );
 
-    const estimatedContainerWidth = useMemo(() => {
-        if (!initialMeasurement) {
-            return null;
+    // When the window grows, react-native-render-html may cache the parent at
+    // a stale (smaller) width so onLayout never fires with the new size. We
+    // estimate the real available width by keeping the sidebar+margin offset
+    // constant and applying the window-width delta.
+    const availableWidth = useMemo(() => {
+        if (!layoutSnapshot) {
+            return 0;
         }
-        const ratio = initialMeasurement.containerWidth / initialMeasurement.windowWidth;
-        return Math.round(debouncedWindowWidth * ratio);
-    }, [debouncedWindowWidth, initialMeasurement]);
+        if (windowWidth === layoutSnapshot.windowWidth) {
+            return layoutSnapshot.containerWidth;
+        }
+        const offset = layoutSnapshot.windowWidth - layoutSnapshot.containerWidth;
+        return Math.max(windowWidth - offset, 0);
+    }, [windowWidth, layoutSnapshot]);
 
     const chartWidth = useMemo(() => {
-        if (!hasExplicitDimensions || estimatedContainerWidth === null) {
-            return designWidth;
+        if (!hasExplicitDimensions || !designWidth || availableWidth <= 0) {
+            return undefined;
         }
-        return Math.max(Math.min(estimatedContainerWidth, designWidth), Math.min(MIN_CHART_WIDTH, designWidth));
-    }, [hasExplicitDimensions, estimatedContainerWidth, designWidth]);
+        return Math.max(Math.min(availableWidth, designWidth), Math.min(MIN_CHART_WIDTH, designWidth));
+    }, [hasExplicitDimensions, availableWidth, designWidth]);
 
     const contentStyle = useMemo(() => {
         if (hasExplicitDimensions && chartWidth) {
-            const scaledHeight = chartWidth * (designHeight / designWidth);
-            return [styles.chartContent, chartContentStyles, {width: chartWidth, height: scaledHeight}];
+            const {width: ignoredWidth, height: ignoredHeight, ...otherContentStyles} = chartContentStyles;
+            return [otherContentStyles, {width: chartWidth, aspectRatio: designWidth / designHeight}];
         }
         return [styles.chartContent, styles.mw100, chartContentStyles];
     }, [hasExplicitDimensions, chartWidth, designWidth, designHeight, styles, chartContentStyles]);
 
-    const needsScroll = hasExplicitDimensions && estimatedContainerWidth !== null && chartWidth !== undefined && chartWidth > estimatedContainerWidth;
+    // Use the measured container width for scroll decisions so we don't add
+    // a scrollbar when the estimated available width is larger but the actual
+    // DOM parent hasn't expanded yet.
+    const measuredWidth = layoutSnapshot?.containerWidth ?? 0;
+    const needsScroll = hasExplicitDimensions && chartWidth !== undefined && measuredWidth > 0 && chartWidth > measuredWidth;
 
     const chartContent = <View style={contentStyle}>{children}</View>;
 
+    // When the estimated available width exceeds the measured container width
+    // (window grew but parent is cached), set an explicit width on the
+    // container so the chart can expand beyond the stale parent.
+    const containerWidthOverride = hasExplicitDimensions && availableWidth > measuredWidth && measuredWidth > 0 ? {width: availableWidth} : undefined;
+
     return (
         <View
-            style={[styles.chartContainer, styles.w100, chartContainerStyles]}
+            style={[styles.chartContainer, styles.mw100, chartContainerStyles, containerWidthOverride]}
             onLayout={handleContainerLayout}
         >
             {needsScroll ? (
                 <ScrollView
                     horizontal
-                    showsHorizontalScrollIndicator={false}
+                    showsHorizontalScrollIndicator
+                    nestedScrollEnabled
                 >
                     {chartContent}
                 </ScrollView>
