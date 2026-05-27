@@ -52,6 +52,9 @@ Purpose: Help users start booking
 
 ### Step 3: Select the Expensify Travel Card at checkout and retrieve CVV 
 
+
+After selecting your preferred itinerary in Expensify Travel, follow the steps below to complete the booking using Travel Invoicing.
+
 1. On the checkout page, select the Expensify Travel Card as the Payment method 
 2. If a CVV is requested, click the **Go to wallet** button in the blue banner at the top of the page
 5. Select **Travel CVV**.
