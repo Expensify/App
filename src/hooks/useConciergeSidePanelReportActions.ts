@@ -92,8 +92,9 @@ function useConciergeSidePanelReportActions({
         if (!isConciergeHiddenHistory || !hadUserMessageAtSessionStart || !sessionStartTime) {
             return false;
         }
-        return visibleReportActions.some((action) => !isCreatedAction(action) && action.created < sessionStartTime);
-    }, [isConciergeHiddenHistory, visibleReportActions, sessionStartTime, hadUserMessageAtSessionStart]);
+        const hasPreSessionActionInLoadedSet = visibleReportActions.some((action) => !isCreatedAction(action) && action.created < sessionStartTime);
+        return hasPreSessionActionInLoadedSet || hasOlderActions;
+    }, [isConciergeHiddenHistory, visibleReportActions, sessionStartTime, hadUserMessageAtSessionStart, hasOlderActions]);
 
     // Main DM only: check if there are any messages (from any actor) after sessionStartTime.
     // When true, we have unread content to display and should not enter welcome mode.
