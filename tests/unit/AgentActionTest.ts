@@ -170,8 +170,28 @@ describe('createAgent', () => {
         expect(result.avatarURI).toBeTruthy();
     });
 
-    it('never touches the policy employeeList — the server adds the real entry on the CREATE_AGENT response', () => {
+    it('mirrors pending/error state onto the policy so the workspace shows a brick road indicator', () => {
         createAgent('Bot', 'My prompt', undefined, undefined, undefined, 'POLICY_42');
+
+        const {optimisticData, successData, failureData} = getWriteOptions();
+        const policyKey = `${ONYXKEYS.COLLECTION.POLICY}POLICY_42`;
+        const addAgentKey = CONST.POLICY.COLLECTION_KEYS.ADD_AGENT;
+
+        const optimisticPolicy = optimisticData.find((u) => u.key === policyKey);
+        expect((optimisticPolicy?.value as Record<string, Record<string, unknown>>)?.pendingFields?.[addAgentKey]).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+        expect((optimisticPolicy?.value as Record<string, Record<string, unknown>>)?.errorFields?.[addAgentKey]).toBeNull();
+
+        const successPolicy = successData.find((u) => u.key === policyKey);
+        expect((successPolicy?.value as Record<string, Record<string, unknown>>)?.pendingFields?.[addAgentKey]).toBeNull();
+        expect((successPolicy?.value as Record<string, Record<string, unknown>>)?.errorFields?.[addAgentKey]).toBeNull();
+
+        const failurePolicy = failureData.find((u) => u.key === policyKey);
+        expect((failurePolicy?.value as Record<string, Record<string, unknown>>)?.pendingFields?.[addAgentKey]).toBeNull();
+        expect((failurePolicy?.value as Record<string, Record<string, unknown>>)?.errorFields?.[addAgentKey]).toBeTruthy();
+    });
+
+    it('does not touch the policy when no policyID is provided', () => {
+        createAgent('Bot', 'My prompt');
 
         const {optimisticData, successData, failureData} = getWriteOptions();
         const allKeys: string[] = [...optimisticData, ...successData, ...failureData].map((u) => String(u.key));
