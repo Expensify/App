@@ -4,13 +4,18 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import {getCardFeedIcon, getPlaidInstitutionIconUrl, getPlaidInstitutionId} from '@libs/CardUtils';
 import type {CardFeedWithDomainID} from '@src/types/onyx';
+import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type {IconProps} from './Icon';
 import Icon from './Icon';
 import PlaidCardFeedIcon from './PlaidCardFeedIcon';
 
 type CardFeedIconProps = {
     isExpensifyCardFeed?: boolean;
-    selectedFeed?: CardFeedWithDomainID | undefined;
+    // Accepts either `CardFeedWithDomainID` (employer feeds, e.g. `vcf|123`) or the
+    // bare `CardFeedWithNumber` (personal Plaid cards, e.g. `plaid.ins_109508`).
+    // The internal `getPlaidInstitutionId` / `getCardFeedIcon` helpers already accept
+    // the wider type.
+    selectedFeed?: CardFeedWithDomainID | CardFeedWithNumber | undefined;
     iconProps?: Partial<IconProps>;
     useSkeletonLoader?: boolean;
 };
