@@ -1,6 +1,6 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -10,7 +10,6 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import type {PromotedAction} from '@components/PromotedActionsBar';
@@ -18,15 +17,13 @@ import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBa
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -46,7 +43,6 @@ import {generateAccountID} from '@libs/UserUtils';
 import {isValidAccountRoute} from '@libs/ValidationUtils';
 import type {ProfileNavigatorParamList} from '@navigation/types';
 import {openAgentsPage} from '@userActions/Agent';
-import {connect} from '@userActions/Delegate';
 import {openExternalLink} from '@userActions/Link';
 import {openPublicProfilePage} from '@userActions/PersonalDetails';
 import {hasErrorInPrivateNotes} from '@userActions/Report';
@@ -56,7 +52,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
@@ -89,12 +84,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
-    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
-    const {isOffline} = useNetwork();
+    const switchToDelegator = useSwitchToDelegator();
     const guideCalendarLink = account?.guideDetails?.calendarLink ?? '';
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bug', 'Pencil', 'Phone', 'UserPlus']);
     const accountID = Number(route.params?.accountID ?? CONST.DEFAULT_NUMBER_ID);
@@ -108,26 +98,6 @@ function ProfilePage({route}: ProfilePageProps) {
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const {showConfirmModal} = useConfirmModal();
-
-    const showGpsInProgressModal = useCallback(
-        async (switchAccount: () => ReturnType<typeof connect>) => {
-            const result = await showConfirmModal({
-                title: translate('gps.switchAccountWarningTripInProgress.title'),
-                prompt: translate('gps.switchAccountWarningTripInProgress.prompt'),
-                confirmText: translate('gps.switchAccountWarningTripInProgress.confirm'),
-                cancelText: translate('common.cancel'),
-            });
-
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-
-            await stopGpsTrip(false, getGpsPoints(gpsDraftDetails), true);
-            switchAccount();
-        },
-        [gpsDraftDetails, showConfirmModal, translate],
-    );
 
     const isValidAccountID = isValidAccountRoute(accountID);
     const loginParams = route.params?.login;
@@ -181,7 +151,6 @@ function ProfilePage({route}: ProfilePageProps) {
     const statusContent = `${statusEmojiCode}  ${statusText}`;
 
     const isOwnedAgent = !isCurrentUser && isAgentEmail(login) && !!agentPrompt;
-    const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
 
     const navigateBackTo = route?.params?.backTo;
 
@@ -324,17 +293,7 @@ function ProfilePage({route}: ProfilePageProps) {
                             <MenuItem
                                 title={translate('profilePage.copilotIntoAccount')}
                                 icon={expensifyIcons.UserPlus}
-                                onPress={callFunctionIfActionIsAllowed(() => {
-                                    if (isOffline || isActingAsDelegate) {
-                                        return;
-                                    }
-                                    const switchAction = () => connect({email: login, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID});
-                                    if (isTrackingGPS) {
-                                        showGpsInProgressModal(switchAction);
-                                        return;
-                                    }
-                                    switchAction();
-                                })}
+                                onPress={callFunctionIfActionIsAllowed(() => switchToDelegator(login))}
                             />
                         )}
                         {shouldShowNotificationPreference && (
