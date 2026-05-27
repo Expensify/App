@@ -1,9 +1,10 @@
+import {personalDetailByAccountIDSelector} from '@selectors/PersonalDetails';
 import React from 'react';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
-import {canShowReportRecipientLocalTime, getReportOfflinePendingActionAndErrors, getReportRecipientAccountIDs} from '@libs/ReportUtils';
+import useReportRecipientLocalTime from '@hooks/useReportRecipientLocalTime';
+import {getReportOfflinePendingActionAndErrors, getReportRecipientAccountIDs} from '@libs/ReportUtils';
 import {isAgentEmail} from '@libs/SessionUtils';
 import ParticipantLocalTime from '@pages/inbox/report/ParticipantLocalTime';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -15,15 +16,14 @@ type ComposerLocalTimeProps = {
 
 function ComposerLocalTime({reportID}: ComposerLocalTimeProps) {
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const personalDetails = usePersonalDetails();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const canShowRecipientLocalTime = useReportRecipientLocalTime({report});
     const {reportPendingAction: pendingAction} = getReportOfflinePendingActionAndErrors(report);
 
-    const shouldShow = canShowReportRecipientLocalTime(personalDetails, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;
-    const reportRecipientAccountIDs = getReportRecipientAccountIDs(report, currentUserPersonalDetails.accountID);
-    const reportRecipient = personalDetails?.[reportRecipientAccountIDs[0]];
-
+    const shouldShow = canShowRecipientLocalTime && !isComposerFullSize;
+    const reportRecipientAccountID = getReportRecipientAccountIDs(report, currentUserAccountID).at(0);
+    const [reportRecipient] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailByAccountIDSelector(shouldShow ? reportRecipientAccountID : undefined)});
     if (!shouldShow || isEmptyObject(reportRecipient) || isAgentEmail(reportRecipient?.login)) {
         return null;
     }
