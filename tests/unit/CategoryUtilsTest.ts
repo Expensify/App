@@ -1,5 +1,12 @@
 import type {OnyxCollection} from 'react-native-onyx';
-import {formatRequireItemizedReceiptsOverText, getAvailableNonPersonalPolicyCategories, isCategoryDescriptionRequired, isCategoryMissing, processCategoryNameSegments, getDecodedLeafCategoryName} from '@libs/CategoryUtils';
+import {
+    formatRequireItemizedReceiptsOverText,
+    getAvailableNonPersonalPolicyCategories,
+    getDecodedLeafCategoryName,
+    isCategoryDescriptionRequired,
+    isCategoryMissing,
+    processCategoryNameSegments,
+} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
