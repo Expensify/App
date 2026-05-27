@@ -5,6 +5,7 @@ import PrevNextButtons from '@components/PrevNextButtons';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 import useFilterPendingDeleteReports from '@hooks/useFilterPendingDeleteReports';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchSections from '@hooks/useSearchSections';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -81,6 +82,7 @@ const buildSnapshotGuardSelector =
 
 function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersion, allReports, isSearchLoading, lastSearchQuery}: MoneyRequestReportNavigationContentProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
 
     const liveCurrentIndex = allReports.indexOf(reportID);
 
@@ -190,7 +192,9 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-            {!shouldDisplayNarrowVersion && <Text style={styles.mutedTextLabel}>{`${currentIndex + 1} of ${allReportsCount}`}</Text>}
+            {!shouldDisplayNarrowVersion && (
+                <Text style={[styles.mutedTextLabel, styles.textAlignRight, styles.mnw8]}>{translate('common.currentOfTotal', {current: currentIndex + 1, total: allReportsCount})}</Text>
+            )}
             <PrevNextButtons
                 isPrevButtonDisabled={hidePrevButton}
                 isNextButtonDisabled={hideNextButton}

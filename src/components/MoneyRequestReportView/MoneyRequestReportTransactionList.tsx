@@ -399,6 +399,12 @@ function MoneyRequestReportTransactionList({
         if (focusedRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
             return;
         }
+        // Don't overwrite active transaction IDs for one-transaction parent reports. When such a report is opened
+        // from the flat Spend > Expenses list, the search-list IDs were already set by Search/index.tsx onSelectRow
+        // and they back the carousel; overwriting with just this report's single transaction would collapse it.
+        if (visualOrderTransactionIDs.length < 2) {
+            return;
+        }
         setActiveTransactionIDs(visualOrderTransactionIDs);
         return () => {
             clearActiveTransactionIDs();

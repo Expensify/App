@@ -33,6 +33,7 @@ import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actio
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
+import {clearActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {flushDeferredWrite, hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -1101,6 +1102,20 @@ function Search({
 
             const isTransactionItem = isTransactionListItemType(item);
             const backTo = Navigation.getActiveRoute();
+
+            // When opening an expense from the Spend page (flat transaction list), populate the carousel
+            // with all sibling transactions so prev/next navigation works in the RHP transaction view.
+            if (isTransactionItem) {
+                const siblingTransactionIDs = (filteredData as TransactionListItemType[])
+                    .filter((t) => !!t && 'transactionID' in t && t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                    .map((t) => t.transactionID);
+                if (siblingTransactionIDs.length > 1) {
+                    setActiveTransactionIDs(siblingTransactionIDs);
+                } else {
+                    clearActiveTransactionIDs();
+                }
+            }
+
             // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
             if (isTransactionItem && !item?.reportAction?.childReportID) {
                 // If the report is unreported (self DM), we want to open the track expense thread instead of a report with an ID of 0
@@ -1260,6 +1275,7 @@ function Search({
             offset,
             searchResults?.search?.hasMoreResults,
             currentSearchKey,
+            filteredData,
         ],
     );
 

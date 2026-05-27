@@ -1,15 +1,20 @@
 import {findFocusedRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import PrevNextButtons from '@components/PrevNextButtons';
+import Text from '@components/Text';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
 import {clearActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {isOneTransactionReport} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,6 +25,7 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 type MoneyRequestReportRHPNavigationButtonsProps = {
     currentTransactionID: string;
     isFromReviewDuplicates?: boolean;
+    shouldDisplayNarrowVersion?: boolean;
 };
 
 const parentReportActionIDsSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => {
@@ -34,19 +40,21 @@ const parentReportActionIDsSelector = (reportActions: OnyxEntry<OnyxTypes.Report
     return parentActions;
 };
 
-function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromReviewDuplicates}: MoneyRequestReportRHPNavigationButtonsProps) {
+function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromReviewDuplicates, shouldDisplayNarrowVersion}: MoneyRequestReportRHPNavigationButtonsProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const [transactionIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {markReportIDAsExpense} = useWideRHPActions();
 
+    const currentTransactionIndex = transactionIDsList.findIndex((id) => id === currentTransactionID);
+
     const {prevTransactionID, nextTransactionID} = useMemo(() => {
         if (!transactionIDsList || transactionIDsList.length < 2) {
             return {prevTransactionID: undefined, nextTransactionID: undefined};
         }
-
-        const currentTransactionIndex = transactionIDsList.findIndex((id) => id === currentTransactionID);
 
         const prevID = currentTransactionIndex > 0 ? transactionIDsList.at(currentTransactionIndex - 1) : undefined;
         const nextID = transactionIDsList.at(currentTransactionIndex + 1);
@@ -55,7 +63,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             prevTransactionID: prevID,
             nextTransactionID: nextID,
         };
-    }, [currentTransactionID, transactionIDsList]);
+    }, [currentTransactionIndex, transactionIDsList]);
 
     const prevNextTransactionsSelector = useCallback(
         (allTransactions: OnyxCollection<OnyxTypes.Transaction>) =>
@@ -96,6 +104,8 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`);
     const [prevThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${prevParentReportAction?.childReportID}`);
     const [nextThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nextParentReportAction?.childReportID}`);
+    const [prevTransactionParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${prevTransaction?.reportID}`);
+    const [nextTransactionParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nextTransaction?.reportID}`);
 
     /**
      * We clear the sibling transactionThreadIDs when unmounting this component
@@ -115,15 +125,30 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         return;
     }
 
-    const onNext = (e: GestureResponderEvent | KeyboardEvent | undefined) => {
-        e?.preventDefault();
-
+    const getBackTo = () => {
         let backTo = Navigation.getActiveRoute();
         if (isFromReviewDuplicates) {
             const currentRoute = navigationRef.getCurrentRoute();
             const params = currentRoute?.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT] | undefined;
             backTo = params?.backTo ?? backTo;
         }
+        return backTo;
+    };
+
+    const onNext = (e: GestureResponderEvent | KeyboardEvent | undefined) => {
+        e?.preventDefault();
+        const backTo = getBackTo();
+
+        // If the next expense's parent is a one-transaction report, navigate to the parent report instead of the
+        // thread. This keeps the view at the same level (parent) so report-level primary actions (Approve, etc.)
+        // are preserved when navigating back. Mirrors the open-from-list logic in Search/index.tsx#onSelectRow.
+        if (isOneTransactionReport(nextTransactionParentReport) && nextTransaction?.reportID) {
+            const targetReportID = nextTransaction.reportID;
+            markReportIDAsExpense(targetReportID);
+            requestAnimationFrame(() => Navigation.setParams({reportID: targetReportID, reportActionID: undefined, backTo}));
+            return;
+        }
+
         const nextThreadReportID = nextParentReportAction?.childReportID;
         const navigationParams = {reportID: nextThreadReportID, reportActionID: undefined, backTo};
 
@@ -153,13 +178,16 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
 
     const onPrevious = (e: GestureResponderEvent | KeyboardEvent | undefined) => {
         e?.preventDefault();
+        const backTo = getBackTo();
 
-        let backTo = Navigation.getActiveRoute();
-        if (isFromReviewDuplicates) {
-            const currentRoute = navigationRef.getCurrentRoute();
-            const params = currentRoute?.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT] | undefined;
-            backTo = params?.backTo ?? backTo;
+        // See onNext for the rationale behind the one-transaction-parent branch.
+        if (isOneTransactionReport(prevTransactionParentReport) && prevTransaction?.reportID) {
+            const targetReportID = prevTransaction.reportID;
+            markReportIDAsExpense(targetReportID);
+            requestAnimationFrame(() => Navigation.setParams({reportID: targetReportID, reportActionID: undefined, backTo}));
+            return;
         }
+
         const prevThreadReportID = prevParentReportAction?.childReportID;
         const navigationParams = {reportID: prevThreadReportID, reportActionID: undefined, backTo};
 
@@ -188,12 +216,19 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     };
 
     return (
-        <PrevNextButtons
-            isPrevButtonDisabled={!prevTransactionID}
-            isNextButtonDisabled={!nextTransactionID}
-            onNext={onNext}
-            onPrevious={onPrevious}
-        />
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+            {!shouldDisplayNarrowVersion && currentTransactionIndex !== -1 && (
+                <Text style={[styles.mutedTextLabel, styles.textAlignRight, styles.mnw8]}>
+                    {translate('common.currentOfTotal', {current: currentTransactionIndex + 1, total: transactionIDsList.length})}
+                </Text>
+            )}
+            <PrevNextButtons
+                isPrevButtonDisabled={!prevTransactionID}
+                isNextButtonDisabled={!nextTransactionID}
+                onNext={onNext}
+                onPrevious={onPrevious}
+            />
+        </View>
     );
 }
 
