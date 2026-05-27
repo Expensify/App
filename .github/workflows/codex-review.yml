@@ -60,6 +60,32 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
+      - name: Add review in progress reaction
+        if: steps.gate.outputs.IS_AUTHORIZED == 'true'
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v7
+        env:
+          PR_NUMBER: ${{ env.PR_NUMBER }}
+        with:
+          script: |
+            const {owner, repo} = context.repo;
+
+            if (context.eventName === 'pull_request_target') {
+              await github.rest.reactions.createForIssue({
+                owner,
+                repo,
+                issue_number: Number(process.env.PR_NUMBER),
+                content: 'eyes',
+              });
+              return;
+            }
+
+            await github.rest.reactions.createForIssueComment({
+              owner,
+              repo,
+              comment_id: context.payload.comment.id,
+              content: 'eyes',
+            });
+
       - name: Build Codex prompt from PR diff
         if: steps.gate.outputs.IS_AUTHORIZED == 'true'
         env:
@@ -101,6 +127,59 @@ jobs:
           safety-strategy: drop-sudo
           sandbox: read-only
           prompt-file: prompt.txt
+
+      - name: Remove review in progress reaction
+        if: always() && steps.gate.outputs.IS_AUTHORIZED == 'true'
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v7
+        env:
+          PR_NUMBER: ${{ env.PR_NUMBER }}
+        with:
+          script: |
+            const {owner, repo} = context.repo;
+            const botLogin = 'github-actions[bot]';
+
+            const deleteEyesReaction = async (reactions, deleteReaction) => {
+              const eyesReaction = reactions.find(
+                (reaction) => reaction.content === 'eyes' && reaction.user.login === botLogin,
+              );
+
+              if (eyesReaction) {
+                await deleteReaction(eyesReaction.id);
+              }
+            };
+
+            if (context.eventName === 'pull_request_target') {
+              const {data: reactions} = await github.rest.reactions.listForIssue({
+                owner,
+                repo,
+                issue_number: Number(process.env.PR_NUMBER),
+              });
+
+              await deleteEyesReaction(reactions, (reactionId) =>
+                github.rest.reactions.deleteForIssue({
+                  owner,
+                  repo,
+                  issue_number: Number(process.env.PR_NUMBER),
+                  reaction_id: reactionId,
+                }),
+              );
+              return;
+            }
+
+            const {data: reactions} = await github.rest.reactions.listForIssueComment({
+              owner,
+              repo,
+              comment_id: context.payload.comment.id,
+            });
+
+            await deleteEyesReaction(reactions, (reactionId) =>
+              github.rest.reactions.deleteForIssueComment({
+                owner,
+                repo,
+                comment_id: context.payload.comment.id,
+                reaction_id: reactionId,
+              }),
+            );
 
       - name: Post Codex feedback
         if: steps.gate.outputs.IS_AUTHORIZED == 'true' && steps.codex.outputs.final-message != ''
