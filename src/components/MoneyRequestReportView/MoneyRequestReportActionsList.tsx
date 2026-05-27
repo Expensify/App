@@ -3,8 +3,7 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, ListRenderItemInfo, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
+import {DeviceEventEmitter, View} from 'react-native';
 import FlatListWithScrollKey from '@components/FlatList/FlatListWithScrollKey';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
