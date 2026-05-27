@@ -621,7 +621,7 @@ function ReportActionsList({
             return;
         }
 
-        TransitionTracker.runAfterTransitions({
+        const handle = TransitionTracker.runAfterTransitions({
             callback: () => {
                 if (shouldFocusToTopOnMount) {
                     return;
@@ -630,6 +630,8 @@ function ReportActionsList({
                 reportScrollManager.scrollToBottom();
             },
         });
+
+        return () => handle.cancel();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -858,8 +860,7 @@ function ReportActionsList({
             loadNewerChats(false);
             return;
         }
-
-        InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadNewerChats(false)));
+        TransitionTracker.runAfterTransitions({callback: () => loadNewerChats(false)});
     }, [loadNewerChats]);
 
     const onEndReached = useCallback(() => {
