@@ -1,7 +1,6 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -14,8 +13,6 @@ import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
-import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
-import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useFilteredSelection from '@hooks/useFilteredSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -27,6 +24,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
+import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
@@ -36,7 +34,7 @@ import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navig
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady, isSearchStringMatchUserDetails} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
+import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isPolicyAdmin, isPolicyEmployee as isPolicyEmployeeUtils} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
@@ -55,12 +53,13 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {personalDetailsSelector} from '@src/selectors/PersonalDetails';
 import type {PersonalDetails} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
-type RoomMembersPageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>;
+type RoomMembersPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>;
 
 function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     const route = useRoute<PlatformStackRouteProp<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>>();
@@ -71,11 +70,9 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     const reportAttributes = useReportAttributes();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`);
-    const currentUserAccountID = Number(session?.accountID);
     const {formatPhoneNumber, translate, localeCompare} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
-    const [searchValue, setSearchValue] = useState('');
     const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
     const personalDetails = usePersonalDetails();
     const isPolicyExpenseChat = useMemo(() => isPolicyExpenseChatUtils(report), [report]);
@@ -87,6 +84,11 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
         () => getReportPersonalDetailsParticipants(report, personalDetails, reportMetadata, true),
         [report, personalDetails, reportMetadata],
     );
+
+    const [searchValue, setSearchValue, searchFilteredAccountIDs] = useSearchResults(participants, (accountID, search) => {
+        const details = personalDetails?.[accountID];
+        return !!details && isSearchStringMatchUserDetails(details, search);
+    });
 
     const shouldIncludeMember = useCallback(
         (participant?: PersonalDetails) => {
@@ -105,6 +107,8 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     );
 
     const [selectedMembers, setSelectedMembers] = useFilteredSelection(personalDetailsParticipants, shouldIncludeMember);
+    const firstSelectedMember = selectedMembers?.at(0);
+    const [firstSelectedMemberDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(firstSelectedMember)});
 
     const isFocusedScreen = useIsFocused();
     const {isOffline} = useNetwork();
@@ -152,11 +156,9 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
             removeFromRoom(report, selectedMembers);
         }
         setSearchValue('');
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            setSelectedMembers([]);
-            clearUserSearchPhrase();
-        });
+
+        setSelectedMembers([]);
+        clearUserSearchPhrase();
     }, [report, selectedMembers, setSearchValue, setSelectedMembers]);
 
     const showRemoveMembersModal = useCallback(async () => {
@@ -164,7 +166,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
             title: translate('workspace.people.removeMembersTitle', {count: selectedMembers.length}),
             prompt: translate('roomMembersPage.removeMembersPrompt', {
                 count: selectedMembers.length,
-                memberName: formatPhoneNumber(getPersonalDetailsByIDs({accountIDs: selectedMembers, currentUserAccountID}).at(0)?.displayName ?? ''),
+                memberName: formatPhoneNumber(firstSelectedMemberDetails?.displayName ?? ''),
             }),
             confirmText: translate('common.remove'),
             cancelText: translate('common.cancel'),
@@ -174,7 +176,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
             return;
         }
         removeUsers();
-    }, [showConfirmModal, translate, selectedMembers, formatPhoneNumber, currentUserAccountID, removeUsers]);
+    }, [showConfirmModal, translate, selectedMembers.length, formatPhoneNumber, firstSelectedMemberDetails?.displayName, removeUsers]);
 
     /**
      * Add user from the selectedMembers list
@@ -250,7 +252,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
             return;
         }
         setSearchValue(userSearchPhrase ?? '');
-    }, [isFocusedScreen, shouldShowTextInput, userSearchPhrase]);
+    }, [isFocusedScreen, setSearchValue, shouldShowTextInput, userSearchPhrase]);
 
     useEffect(() => {
         updateUserSearchPhrase(searchValue);
@@ -279,11 +281,9 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     const data = useMemo((): ListItem[] => {
         let result: ListItem[] = [];
 
-        for (const accountID of participants) {
+        for (const accountID of searchFilteredAccountIDs) {
             const details = personalDetails?.[accountID];
-
-            // If search value is provided, filter out members that don't match the search value
-            if (!details || (searchValue.trim() && !isSearchStringMatchUserDetails(details, searchValue))) {
+            if (!details) {
                 continue;
             }
             const pendingChatMember = reportMetadata?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
@@ -323,12 +323,11 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
         formatPhoneNumber,
         localeCompare,
         isPolicyExpenseChat,
-        participants,
+        searchFilteredAccountIDs,
         personalDetails,
         policy,
         report.ownerAccountID,
         reportMetadata?.pendingChatMembers,
-        searchValue,
         selectedMembers,
         session?.accountID,
         icons.FallbackAvatar,
@@ -420,7 +419,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
             onChangeText: setSearchValue,
             headerMessage: searchValue.trim() && !data.length ? `${translate('roomMembersPage.memberNotFound')} ${translate('roomMembersPage.useInviteButton')}` : '',
         }),
-        [data.length, searchValue, translate],
+        [data.length, searchValue, setSearchValue, translate],
     );
 
     let subtitleKey: '' | TranslationPaths | undefined;
@@ -471,6 +470,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                         onTurnOnSelectionMode={(item) => item && toggleUser(item)}
                         onSelectAll={() => toggleAllUsers(data)}
                         canSelectMultiple={canSelectMultiple}
+                        selectAllAccessibilityLabel={translate('accessibilityHints.selectAllMembers')}
                         customListHeader={customListHeader}
                         onDismissError={dismissError}
                         turnOnSelectionModeOnLongPress
@@ -481,4 +481,4 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     );
 }
 
-export default withReportOrNotFound()(withCurrentUserPersonalDetails(RoomMembersPage));
+export default withReportOrNotFound()(RoomMembersPage);

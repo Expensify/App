@@ -4,7 +4,7 @@ import type {TransactionListItemType} from '@components/Search/SearchList/ListIt
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import CONST from '@src/CONST';
 import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportLoadingState, Transaction} from '@src/types/onyx';
-import {hasDeferredWrite} from './deferredLayoutWrite';
+import {hasDeferredWriteForReport} from './deferredLayoutWrite';
 import {isPaidGroupPolicy} from './PolicyUtils';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
 import {
@@ -137,7 +137,9 @@ function shouldWaitForTransactions(report: OnyxEntry<Report>, transactions: Tran
 
     const isTransactionDataReady = transactions !== undefined;
     const isTransactionThreadView = isReportTransactionThread(report);
-    const hasPendingDismissWrite = hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+    // Scope the dismiss-write check to *this* report so an unrelated submit flow that's
+    // mid-dismiss doesn't make every empty money-request/invoice report look like it's loading.
+    const hasPendingDismissWrite = hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, report?.reportID);
     const isStillLoadingData =
         transactions?.length === 0 &&
         ((!!reportLoadingState?.isLoadingInitialReportActions && !reportLoadingState.hasOnceLoadedReportActions) || report?.total !== 0 || hasPendingDismissWrite);
@@ -166,8 +168,8 @@ const getTotalAmountForIOUReportPreviewButton = (
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
 ) => {
     // Determine whether the non-held amount is appropriate to display for the PAY button.
-    const {nonHeldAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
-    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(report?.reportID);
+    const {nonHeldAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY, transactions);
+    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
     const canAllowSettlement = hasUpdatedTotal(report, policy);
 
     // Split the total spend into different categories as needed.
@@ -185,7 +187,7 @@ const getTotalAmountForIOUReportPreviewButton = (
         }
 
         // We shouldn't display the nonHeldAmount as the default option if it's not valid since we cannot pay partially in this case
-        if (hasHeldExpensesReportUtils(report?.reportID) && canAllowSettlement && hasValidNonHeldAmount && !hasOnlyHeldExpenses) {
+        if (hasHeldExpensesReportUtils(transactions) && canAllowSettlement && hasValidNonHeldAmount && !hasOnlyHeldExpenses) {
             return nonHeldAmount;
         }
 
@@ -203,6 +205,7 @@ export {
     getReportIDForTransaction,
     getTotalAmountForIOUReportPreviewButton,
     getAllNonDeletedTransactions,
+    isSingleTransactionReport,
     shouldDisplayReportTableView,
     shouldWaitForTransactions,
     isBillableEnabledOnPolicy,

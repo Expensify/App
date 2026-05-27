@@ -38,6 +38,7 @@ import {
     isPerDiemRequest,
     isScanning,
 } from '@libs/TransactionUtils';
+import type {CurrentUser} from '@userActions/Policy/Policy';
 import {createNewReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,9 +46,10 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
-import type {RequestMoneyInformation} from '.';
-import {getAllReportActionsFromIOU, getAllReports, getAllTransactions, getAllTransactionViolations, getMoneyRequestParticipantsFromReport} from '.';
+import {getAllReportActionsFromIOU, getAllReports, getAllTransactions, getAllTransactionViolations} from '.';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
+import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
+import type {RequestMoneyInformation} from './MoneyRequestBuilder';
 import type {PerDiemExpenseInformation} from './PerDiem';
 import {submitPerDiemExpense} from './PerDiem';
 import type {CreateDistanceRequestInformation} from './Split';
@@ -342,7 +344,7 @@ function mergeDuplicates({
 
     if (optimisticTransactionThreadReportID) {
         const iouAction = getIOUActionForReportID(params.reportID, params.transactionID);
-        const optimisticCreatedAction = buildOptimisticCreatedReportAction(currentUserLogin);
+        const optimisticCreatedAction = buildOptimisticCreatedReportAction({emailCreatingAction: currentUserLogin});
         const optimisticTransactionThreadReport = buildTransactionThread(iouAction, expenseReport, currentUserAccountID, undefined, optimisticTransactionThreadReportID);
 
         allParams.transactionThreadReportID = optimisticTransactionThreadReportID;
@@ -722,8 +724,7 @@ type DuplicateExpenseTransactionParams = {
     conciergeReportID: string | undefined;
     existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
     optimisticReportPreviewActionID?: string;
-    currentUserLogin: string;
-    currentUserAccountID: number;
+    currentUser: CurrentUser;
 };
 
 function duplicateExpenseTransaction({
@@ -750,12 +751,12 @@ function duplicateExpenseTransaction({
     conciergeReportID,
     existingIOUReport,
     optimisticReportPreviewActionID: externalReportPreviewActionID,
-    currentUserAccountID,
-    currentUserLogin,
+    currentUser,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
     }
+    const {accountID: currentUserAccountID, email: currentUserLogin = ''} = currentUser;
 
     const participants = getMoneyRequestParticipantsFromReport(targetReport, currentUserAccountID);
     const transactionDetails = getTransactionDetails(transaction);
@@ -821,6 +822,7 @@ function duplicateExpenseTransaction({
             },
             report: undefined,
             isDraftPolicy: false,
+            currentUser: {accountID: currentUserAccountID, email: currentUserLogin},
             introSelected,
             quickAction,
             recentWaypoints,
@@ -1030,8 +1032,7 @@ type BulkDuplicateExpensesParams = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     conciergeReportID: string | undefined;
-    currentUserLogin: string;
-    currentUserAccountID: number;
+    currentUser: CurrentUser;
 };
 
 function bulkDuplicateExpenses({
@@ -1053,8 +1054,7 @@ function bulkDuplicateExpenses({
     betas,
     recentWaypoints,
     conciergeReportID,
-    currentUserAccountID,
-    currentUserLogin,
+    currentUser,
 }: BulkDuplicateExpensesParams) {
     const transactionsToDuplicate = transactionIDs.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is OnyxTypes.Transaction => !!t);
 
@@ -1150,8 +1150,7 @@ function bulkDuplicateExpenses({
             conciergeReportID,
             existingIOUReport: optimisticIOUReport,
             optimisticReportPreviewActionID: currentReportPreviewActionID,
-            currentUserAccountID,
-            currentUserLogin,
+            currentUser,
         });
 
         if (result?.iouReport) {
@@ -1297,4 +1296,4 @@ function bulkDuplicateReports({
 }
 
 export {getIOUActionForTransactions, mergeDuplicates, resolveDuplicates, duplicateExpenseTransaction, bulkDuplicateExpenses, duplicateReport, bulkDuplicateReports};
-export type {DuplicateExpenseTransactionParams, BulkDuplicateExpensesParams, DuplicateReportParams, BulkDuplicateReportsParams};
+export type {DuplicateReportParams, BulkDuplicateReportsParams};

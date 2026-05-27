@@ -7,10 +7,11 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import Button from '@components/Button';
 import CategoryPicker from '@components/CategoryPicker';
 import FixedFooter from '@components/FixedFooter';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -18,10 +19,11 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
+import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getIOURequestPolicyID, setMoneyRequestCategory} from '@libs/actions/IOU';
+import {getIOURequestPolicyID, setMoneyRequestCategory} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestCategory} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {enablePolicyCategories, getPolicyCategories} from '@libs/actions/Policy/Category';
@@ -29,8 +31,8 @@ import {isCategoryMissing} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {getValidConnectedIntegration, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getReportOrDraftReport, getTransactionDetails, isGroupPolicy, isReportInGroupPolicy} from '@libs/ReportUtils';
+import {hasAccountingConnections, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getTransactionDetails, isGroupPolicy, isReportInGroupPolicy} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getRequestType} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -60,7 +62,7 @@ function IOURequestStepCategory({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
     const requestType = getRequestType(transaction);
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
-    const transactionReport = getReportOrDraftReport(transaction?.reportID);
+    const transactionReport = useReportOrReportDraft(transaction?.reportID);
     const report = reportReal ?? reportDraft ?? transactionReport;
     const policyIdReal = getIOURequestPolicyID(transaction, reportReal ?? transactionReport);
     const policyIdDraft = getIOURequestPolicyID(transaction, reportDraft);
@@ -77,7 +79,7 @@ function IOURequestStepCategory({
 
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
     const policyData = usePolicyData(policy?.id);
-    const {currentSearchHash} = useSearchStateContext();
+    const {currentSearchHash} = useSearchQueryContext();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
     const currentTransaction = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
@@ -86,12 +88,13 @@ function IOURequestStepCategory({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const categoryForDisplay = isCategoryMissing(transactionCategory) ? '' : transactionCategory;
 
-    const canCreateCategoryInSitu = isPolicyAdmin(policy) && !getValidConnectedIntegration(policy) && !!policy?.areCategoriesEnabled;
+    const canCreateCategoryInSitu = isPolicyAdmin(policy) && !hasAccountingConnections(policy) && !!policy?.areCategoriesEnabled;
 
     const createCategoryMenuItems = canCreateCategoryInSitu
         ? [
@@ -99,10 +102,11 @@ function IOURequestStepCategory({
                   icon: expensifyIcons.Plus,
                   text: translate('workspace.categories.addCategory'),
                   onSelected: () => {
-                      if (!policyID || !report?.reportID) {
+                      const reportID = report?.reportID ?? routeReportID;
+                      if (!policyID || !reportID) {
                           return;
                       }
-                      Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY_CREATE.getRoute(action, iouType, transactionID, report.reportID, reportActionID, backTo));
+                      Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY_CREATE.getRoute(action, iouType, transactionID, reportID, reportActionID, backTo));
                   },
               },
           ]
@@ -170,6 +174,7 @@ function IOURequestStepCategory({
                     currentUserEmailParam,
                     isASAPSubmitBetaEnabled,
                     hash: currentSearchHash,
+                    delegateAccountID,
                 });
                 navigateBack();
                 return;
@@ -231,7 +236,6 @@ function IOURequestStepCategory({
                                     if (!policy?.areCategoriesEnabled) {
                                         enablePolicyCategories({...policyData, categories: policyCategories}, true, false);
                                     }
-                                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                                     InteractionManager.runAfterInteractions(() => {
                                         Navigation.navigate(
                                             ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(

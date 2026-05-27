@@ -23,6 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
+import isTrackOnboardingChoice from '@libs/OnboardingUtils';
 import {hasURL} from '@libs/Url';
 import {isCurrentUserValidated} from '@libs/UserUtils';
 import {doesContainReservedWord, isValidDisplayName} from '@libs/ValidationUtils';
@@ -45,7 +46,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
@@ -93,7 +93,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 onboardingPolicyID,
                 introSelected,
                 isSelfTourViewed,
-                betas,
             });
 
             setOnboardingAdminsChatReportID();
@@ -121,7 +120,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             conciergeChatReportID,
             introSelected,
             isSelfTourViewed,
-            betas,
         ],
     );
 
@@ -150,15 +148,9 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 return;
             }
 
-            if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
+            if (isTrackOnboardingChoice(onboardingPurposeSelected)) {
                 updateDisplayName(firstName, lastName, formatPhoneNumber, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
                 autoCreateTrackWorkspace(firstName, lastName, onboardingPurposeSelected);
-                return;
-            }
-
-            if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
-                updateDisplayName(firstName, lastName, formatPhoneNumber, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-                Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE.getRoute(route.params?.backTo));
                 return;
             }
 
@@ -270,7 +262,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                         aria-label={translate('common.firstName')}
                         role={CONST.ROLE.PRESENTATION}
                         defaultValue={onboardingPersonalDetailsForm?.firstName ?? currentUserPersonalDetails?.firstName ?? ''}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...(currentUserPersonalDetails?.firstName && {defaultValue: currentUserPersonalDetails.firstName})}
                         shouldSaveDraft
                         spellCheck={false}
@@ -286,7 +277,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                         aria-label={translate('common.lastName')}
                         role={CONST.ROLE.PRESENTATION}
                         defaultValue={onboardingPersonalDetailsForm?.lastName ?? currentUserPersonalDetails?.lastName ?? ''}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...(currentUserPersonalDetails?.lastName && {defaultValue: currentUserPersonalDetails.lastName})}
                         shouldSaveDraft
                         spellCheck={false}

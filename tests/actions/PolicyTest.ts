@@ -80,6 +80,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                currency: CONST.CURRENCY.USD,
                 isSelfTourViewed: false,
                 betas: [CONST.BETAS.SUGGESTED_FOLLOWUPS],
                 hasActiveAdminPolicies: false,
@@ -124,6 +125,7 @@ describe('actions/Policy', () => {
             expect(policy?.employeeList).toEqual({[ESH_EMAIL]: {email: ESH_EMAIL, submitsTo: ESH_EMAIL, errors: {}, role: CONST.POLICY.ROLE.ADMIN}});
             expect(policy?.mccGroup).toBeDefined();
             expect(policy?.requiresCategory).toBe(true);
+            expect(policy?.outputCurrency).toBe(CONST.CURRENCY.USD);
 
             let allReports: OnyxCollection<Report> = await new Promise((resolve) => {
                 const connection = Onyx.connect({
@@ -773,6 +775,107 @@ describe('actions/Policy', () => {
             expect(messages?.at(0)?.text).toBe(callerEmail);
         });
 
+        it('duplicate workspace with distance rates clones all source rates in optimistic data with the default rebound to the API-known rate ID', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+
+            const sourceDistanceUnitID = 'srcDistUnit';
+            const sourceDefaultRateID = 'srcDefaultRate';
+            const sourceExtraRateID = 'srcExtraRate';
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(19, CONST.POLICY.TYPE.TEAM),
+                customUnits: {
+                    [sourceDistanceUnitID]: {
+                        customUnitID: sourceDistanceUnitID,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        enabled: true,
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                        rates: {
+                            [sourceDefaultRateID]: {customUnitRateID: sourceDefaultRateID, name: 'Default Rate', rate: 72.5, currency: 'USD', enabled: true, index: 0},
+                            [sourceExtraRateID]: {customUnitRateID: sourceExtraRateID, name: 'Extra Rate', rate: 100, currency: 'USD', enabled: true, index: 1},
+                        },
+                    },
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            const options = {
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                policyName: 'Distance Rates Duplicate',
+                policyID: fakePolicy.id,
+                targetPolicyID: policyID,
+                welcomeNote: 'Join my policy',
+                parts: {
+                    people: false,
+                    reports: false,
+                    connections: false,
+                    categories: false,
+                    tags: false,
+                    taxes: false,
+                    perDiem: false,
+                    reimbursements: false,
+                    expenses: false,
+                    distance: true,
+                    invoices: false,
+                    exportLayouts: false,
+                },
+                localCurrency: 'USD',
+            };
+
+            // Pause the API call so successData (which clears the optimistic source rate IDs) does not
+            // run yet — this lets us inspect the optimistic state the user sees offline.
+            mockFetch.pause();
+            Policy.duplicateWorkspace(fakePolicy, options);
+            await waitForBatchedUpdates();
+
+            const duplicatePolicy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            expect(duplicatePolicy?.areDistanceRatesEnabled).toBe(true);
+            const distanceUnit = Object.values(duplicatePolicy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+            if (!distanceUnit) {
+                throw new Error('Expected duplicated distance unit');
+            }
+            // The duplicated unit's customUnitID should differ from the source's (fresh ID).
+            expect(distanceUnit.customUnitID).not.toBe(sourceDistanceUnitID);
+            // Both rates should be present in optimistic data: the extra rate keeps its source ID,
+            // and the default is rebound to a fresh API-known customUnitRateID.
+            const rateKeys = Object.keys(distanceUnit.rates);
+            expect(rateKeys).toContain(sourceExtraRateID);
+            expect(rateKeys).not.toContain(sourceDefaultRateID);
+            expect(rateKeys).toHaveLength(2);
+            // The Default Rate should be the one picked by getDefaultDistanceRate (lowest enabled index).
+            const defaultRate = Object.values(distanceUnit.rates)
+                .filter((rate) => rate.enabled !== false)
+                .sort((a, b) => (a.index ?? CONST.DEFAULT_NUMBER_ID) - (b.index ?? CONST.DEFAULT_NUMBER_ID))
+                .at(0);
+            expect(defaultRate?.name).toBe('Default Rate');
+            expect(defaultRate?.rate).toBe(72.5);
+            // The default rate's customUnitRateID matches its dictionary key (rebound).
+            expect(defaultRate?.customUnitRateID).not.toBe(sourceDefaultRateID);
+            const defaultRateID = defaultRate?.customUnitRateID;
+            if (!defaultRateID) {
+                throw new Error('Expected default rate to have a customUnitRateID');
+            }
+            expect(distanceUnit.rates[defaultRateID]).toBe(defaultRate);
+
+            // Resume the mocked fetch so the API call resolves; the duplicated workspace's optimistic
+            // rates remain visible until a Pusher response (not mocked here) repopulates them with
+            // the server's rate set. We rely on the server preserving the source's non-default rate
+            // IDs in the duplicate, so the optimistic state and the eventual server state line up.
+            await mockFetch.resume?.();
+            await waitForBatchedUpdates();
+        });
+
         it('creates a new workspace with BASIC approval mode if the introSelected is MANAGE_TEAM', async () => {
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to MANAGE_TEAM
@@ -785,6 +888,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
@@ -817,6 +921,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
                 isSelfTourViewed: false,
                 hasActiveAdminPolicies: false,
                 activePolicy: undefined,
@@ -851,6 +956,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                currency: CONST.CURRENCY.EUR,
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
@@ -870,6 +976,36 @@ describe('actions/Policy', () => {
 
             // Then the policy should have approval mode set to OPTIONAL
             expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.OPTIONAL);
+            // And the explicit currency should be honored
+            expect(policy?.outputCurrency).toBe(CONST.CURRENCY.EUR);
+        });
+
+        it('does not reset NVP_INTRO_SELECTED.choice when a TRACK_WORKSPACE user creates a subsequent workspace', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await Onyx.set(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE});
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true, chatReportID: '12345'});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID,
+                engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
+                isSelfTourViewed: false,
+                betas: undefined,
+                hasActiveAdminPolicies: true,
+                activePolicy: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            const introSelected = await getOnyxValue(ONYXKEYS.NVP_INTRO_SELECTED);
+            expect(introSelected?.choice).toBe(CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE);
         });
 
         it('create a new workspace fails will reset hasCompletedGuidedSetupFlow to the correct value', async () => {
@@ -888,6 +1024,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
@@ -921,6 +1058,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
@@ -951,6 +1089,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
@@ -982,6 +1121,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
@@ -1011,6 +1151,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
@@ -1040,6 +1181,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
@@ -1069,6 +1211,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.EMPLOYER},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
@@ -1098,6 +1241,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
@@ -1131,6 +1275,7 @@ describe('actions/Policy', () => {
                 hasActiveAdminPolicies: false,
                 activePolicy: undefined,
                 type: CONST.POLICY.TYPE.SUBMIT,
+                currency: 'USD',
             });
             await waitForBatchedUpdates();
 
@@ -1212,6 +1357,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
                 isSelfTourViewed: true,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
@@ -1248,6 +1394,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
@@ -1269,6 +1416,9 @@ describe('actions/Policy', () => {
 
         it('should mark VIEW_TOUR task as completed in guidedSetupData when isSelfTourViewed is true', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            // EMPLOYER posts onboarding tasks to the Concierge chat (not #admins). Set a concierge
+            // report ID so prepareOnboardingOnyxData can resolve a target chat and does not early-return.
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, 'concierge-report-1');
             await waitForBatchedUpdates();
 
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
@@ -1277,15 +1427,18 @@ describe('actions/Policy', () => {
             // When creating a workspace with isSelfTourViewed set to true.
             // introSelected.choice is left undefined to simulate a user who hasn't completed onboarding yet —
             // that's the only state in which the onboarding-tasks block runs (see buildPolicyData guard).
+            // EMPLOYER is used because it has a VIEW_TOUR task (testDriveEmployeeTask); MANAGE_TEAM now uses
+            // the bespoke followups path (no tasks) so it no longer exercises this code path.
             Policy.createWorkspace({
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID,
-                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
                 introSelected: {},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
                 isSelfTourViewed: true,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
@@ -1313,6 +1466,9 @@ describe('actions/Policy', () => {
 
         it('should not mark VIEW_TOUR task as completed in guidedSetupData when isSelfTourViewed is false', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            // EMPLOYER posts onboarding tasks to the Concierge chat (not #admins). Set a concierge
+            // report ID so prepareOnboardingOnyxData can resolve a target chat and does not early-return.
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, 'concierge-report-1');
             await waitForBatchedUpdates();
 
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
@@ -1321,15 +1477,18 @@ describe('actions/Policy', () => {
             // When creating a workspace with isSelfTourViewed set to false.
             // introSelected.choice is left undefined to simulate a user who hasn't completed onboarding yet —
             // that's the only state in which the onboarding-tasks block runs (see buildPolicyData guard).
+            // EMPLOYER is used because it has a VIEW_TOUR task (testDriveEmployeeTask); MANAGE_TEAM now uses
+            // the bespoke followups path (no tasks) so it no longer exercises this code path.
             Policy.createWorkspace({
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID,
-                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
                 introSelected: {},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
@@ -1374,6 +1533,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
@@ -1414,6 +1574,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER, createWorkspace: createWorkspaceTaskReportID},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
@@ -1468,6 +1629,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
@@ -1502,6 +1664,7 @@ describe('actions/Policy', () => {
                 introSelected: {},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
@@ -1536,6 +1699,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
@@ -1573,6 +1737,7 @@ describe('actions/Policy', () => {
                 introSelected: {},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
@@ -1602,6 +1767,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
@@ -1609,7 +1775,7 @@ describe('actions/Policy', () => {
             });
 
             expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(1);
-            expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED, ESH_ACCOUNT_ID);
+            expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED.NAME, ESH_ACCOUNT_ID, ESH_EMAIL);
         });
 
         it('should not publish a workspace created event if this is not their first policy', () => {
@@ -1622,6 +1788,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: true,
@@ -1646,6 +1813,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
@@ -1678,6 +1846,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
@@ -1717,6 +1886,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
@@ -1732,6 +1902,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
@@ -1751,6 +1922,39 @@ describe('actions/Policy', () => {
             expect(memberData1.workspaceChatReportID).not.toBe(memberData2.workspaceChatReportID);
 
             apiWriteSpy.mockRestore();
+        });
+
+        it('should use the explicit currency argument and not fall back to the deprecated session user localCurrencyCode', async () => {
+            // Set Onyx session + personal details so localCurrencyCode would be EUR if the fallback were used
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [ESH_ACCOUNT_ID]: {accountID: ESH_ACCOUNT_ID, login: ESH_EMAIL, localCurrencyCode: CONST.CURRENCY.EUR},
+            });
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            // Pass explicit GBP currency — this should win over the session user's EUR localCurrencyCode
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID,
+                currency: 'GBP',
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
+                betas: undefined,
+                hasActiveAdminPolicies: false,
+                activePolicy: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+
+            expect(policy?.outputCurrency).toBe('GBP');
+            expect(policy?.outputCurrency).not.toBe(CONST.CURRENCY.EUR);
         });
     });
 
@@ -2440,7 +2644,15 @@ describe('actions/Policy', () => {
 
             const policyID = Policy.generatePolicyID();
 
-            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE}, WORKSPACE_NAME, ESH_ACCOUNT_ID, ESH_EMAIL, policyID, false, CONST.CURRENCY.EUR);
+            Policy.createDraftInitialWorkspace({
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE},
+                workspaceName: WORKSPACE_NAME,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                currency: CONST.CURRENCY.EUR,
+                policyID,
+                makeMeAdmin: false,
+            });
             await waitForBatchedUpdates();
 
             const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
@@ -2460,7 +2672,14 @@ describe('actions/Policy', () => {
             const customEmail = 'custom@example.com';
             const policyID = Policy.generatePolicyID();
 
-            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, WORKSPACE_NAME, customAccountID, customEmail, policyID);
+            Policy.createDraftInitialWorkspace({
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                workspaceName: WORKSPACE_NAME,
+                currentUserAccountID: customAccountID,
+                currentUserEmail: customEmail,
+                currency: undefined,
+                policyID,
+            });
             await waitForBatchedUpdates();
 
             const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
@@ -2482,7 +2701,14 @@ describe('actions/Policy', () => {
             const customEmail = 'approver@example.com';
             const policyID = Policy.generatePolicyID();
 
-            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, WORKSPACE_NAME, customAccountID, customEmail, policyID);
+            Policy.createDraftInitialWorkspace({
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                workspaceName: WORKSPACE_NAME,
+                currentUserAccountID: customAccountID,
+                currentUserEmail: customEmail,
+                currency: undefined,
+                policyID,
+            });
             await waitForBatchedUpdates();
 
             const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
@@ -2499,7 +2725,14 @@ describe('actions/Policy', () => {
             const customEmail = 'employee@example.com';
             const policyID = Policy.generatePolicyID();
 
-            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, WORKSPACE_NAME, customAccountID, customEmail, policyID);
+            Policy.createDraftInitialWorkspace({
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                workspaceName: WORKSPACE_NAME,
+                currentUserAccountID: customAccountID,
+                currentUserEmail: customEmail,
+                currency: undefined,
+                policyID,
+            });
             await waitForBatchedUpdates();
 
             const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
@@ -2594,6 +2827,7 @@ describe('actions/Policy', () => {
                 currentUserEmail: customEmail,
                 policyOwnerEmail: customEmail,
                 policyID,
+                currency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2783,6 +3017,32 @@ describe('actions/Policy', () => {
     });
 
     describe('enablePolicyRules', () => {
+        it('should enable billable tracking when policy rules are enabled', async () => {
+            mockFetch.pause();
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                areRulesEnabled: false,
+                disabledFields: {
+                    defaultBillable: true,
+                    reimbursable: false,
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            Policy.enablePolicyRules(fakePolicy, true);
+            await waitForBatchedUpdates();
+
+            const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            expect(policy?.areRulesEnabled).toBe(true);
+            expect(policy?.disabledFields?.defaultBillable).toBe(false);
+            expect(policy?.disabledFields?.reimbursable).toBe(false);
+            expect(policy?.pendingFields?.disabledFields).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            await mockFetch.resume();
+        });
+
         it('should not reset preventSelfApproval when the rule feature is turned off', async () => {
             (fetch as MockFetch)?.pause?.();
             Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
@@ -5466,7 +5726,7 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             // When creating policy expense chats for a new member
-            const result = Policy.createPolicyExpenseChats(policyID, {[newMemberEmail]: newMemberAccountID}, ESH_ACCOUNT_ID);
+            const result = Policy.createPolicyExpenseChats(policyID, {[newMemberEmail]: newMemberAccountID}, {accountID: ESH_ACCOUNT_ID});
 
             // Then optimistic data should be generated
             expect(result.onyxOptimisticData.length).toBeGreaterThan(0);
@@ -5524,7 +5784,7 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             // When creating policy expense chats for the existing member
-            const result = Policy.createPolicyExpenseChats(policyID, {[existingMemberEmail]: existingMemberAccountID}, ESH_ACCOUNT_ID);
+            const result = Policy.createPolicyExpenseChats(policyID, {[existingMemberEmail]: existingMemberAccountID}, {accountID: ESH_ACCOUNT_ID});
 
             // Then the existing report should be reused (no new reportActionID)
             const reportCreationEntry = result.reportCreationData[existingMemberEmail];
@@ -5543,7 +5803,7 @@ describe('actions/Policy', () => {
             const newMemberAccountID = 200;
             const customAccountID = 999;
 
-            const result = Policy.createPolicyExpenseChats(policyID, {[newMemberEmail]: newMemberAccountID}, customAccountID);
+            const result = Policy.createPolicyExpenseChats(policyID, {[newMemberEmail]: newMemberAccountID}, {accountID: customAccountID});
 
             // Find the optimistic report data
             const reportCreationEntry = result.reportCreationData[newMemberEmail];
@@ -6521,7 +6781,15 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             const policyID = Policy.generatePolicyID();
-            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, WORKSPACE_NAME, ESH_ACCOUNT_ID, ESH_EMAIL, policyID, false, 'USD');
+            Policy.createDraftInitialWorkspace({
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                workspaceName: WORKSPACE_NAME,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                currency: 'USD',
+                policyID,
+                makeMeAdmin: false,
+            });
             await waitForBatchedUpdates();
 
             const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
@@ -6548,7 +6816,15 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             const policyID = Policy.generatePolicyID();
-            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, WORKSPACE_NAME, ESH_ACCOUNT_ID, ESH_EMAIL, policyID, false, 'USD');
+            Policy.createDraftInitialWorkspace({
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                workspaceName: WORKSPACE_NAME,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                currency: 'USD',
+                policyID,
+                makeMeAdmin: false,
+            });
             await waitForBatchedUpdates();
 
             const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
@@ -6563,7 +6839,15 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             const policyID = Policy.generatePolicyID();
-            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND}, WORKSPACE_NAME, ESH_ACCOUNT_ID, ESH_EMAIL, policyID, false, 'USD');
+            Policy.createDraftInitialWorkspace({
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND},
+                workspaceName: WORKSPACE_NAME,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                currency: 'USD',
+                policyID,
+                makeMeAdmin: false,
+            });
             await waitForBatchedUpdates();
 
             const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
@@ -6578,7 +6862,15 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             const policyID = Policy.generatePolicyID();
-            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, WORKSPACE_NAME, ESH_ACCOUNT_ID, ESH_EMAIL, policyID, true, 'USD');
+            Policy.createDraftInitialWorkspace({
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                workspaceName: WORKSPACE_NAME,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                currency: 'USD',
+                policyID,
+                makeMeAdmin: true,
+            });
             await waitForBatchedUpdates();
 
             const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
@@ -6591,17 +6883,16 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             const policyID = Policy.generatePolicyID();
-            Policy.createDraftInitialWorkspace(
-                {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
-                WORKSPACE_NAME,
-                ESH_ACCOUNT_ID,
-                ESH_EMAIL,
+            Policy.createDraftInitialWorkspace({
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                workspaceName: WORKSPACE_NAME,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                currency: 'USD',
                 policyID,
-                false,
-                'USD',
-                undefined,
-                CONST.POLICY.TYPE.CORPORATE,
-            );
+                makeMeAdmin: false,
+                type: CONST.POLICY.TYPE.CORPORATE,
+            });
             await waitForBatchedUpdates();
 
             const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
@@ -6614,7 +6905,15 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             const policyID = Policy.generatePolicyID();
-            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, WORKSPACE_NAME, ESH_ACCOUNT_ID, ESH_EMAIL, policyID, false, 'GBP');
+            Policy.createDraftInitialWorkspace({
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                workspaceName: WORKSPACE_NAME,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                currency: 'GBP',
+                policyID,
+                makeMeAdmin: false,
+            });
             await waitForBatchedUpdates();
 
             const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
@@ -6641,7 +6940,15 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             const policyID = Policy.generatePolicyID();
-            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND}, WORKSPACE_NAME, ESH_ACCOUNT_ID, ESH_EMAIL, policyID, false, 'USD');
+            Policy.createDraftInitialWorkspace({
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND},
+                workspaceName: WORKSPACE_NAME,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                currency: 'USD',
+                policyID,
+                makeMeAdmin: false,
+            });
             await waitForBatchedUpdates();
 
             const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
@@ -6656,7 +6963,16 @@ describe('actions/Policy', () => {
 
             const policyID = Policy.generatePolicyID();
             const fakeFile = {uri: 'file://test-avatar.png', name: 'test-avatar.png'} as File;
-            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, WORKSPACE_NAME, ESH_ACCOUNT_ID, ESH_EMAIL, policyID, false, 'USD', fakeFile);
+            Policy.createDraftInitialWorkspace({
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                workspaceName: WORKSPACE_NAME,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                currency: 'USD',
+                policyID,
+                makeMeAdmin: false,
+                file: fakeFile,
+            });
             await waitForBatchedUpdates();
 
             const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
@@ -6801,6 +7117,64 @@ describe('actions/Policy', () => {
             expect(result).toBeDefined();
             expect(result?.policyID).toBeDefined();
             expect(result?.workspaceChatReportID).toBeDefined();
+
+            apiWriteSpy.mockRestore();
+            isIOUReportUsingReportSpy.mockRestore();
+        });
+
+        it('should clear iouReportID on the old DM chat optimistically and restore it on failure', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const employeeAccountID = 400;
+            const iouReportOwnerEmail = 'employee@example.com';
+            const oldChatReportID = '901';
+            const movedIouReportID = '900';
+
+            const iouReport: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: movedIouReportID,
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: employeeAccountID,
+                chatReportID: oldChatReportID,
+                policyID: 'oldPolicyID',
+                currency: CONST.CURRENCY.USD,
+                total: 1500,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+            await waitForBatchedUpdates();
+
+            const isIOUReportUsingReportSpy = jest.spyOn(ReportUtils, 'isIOUReportUsingReport').mockReturnValue(true);
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+
+            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[8];
+            Policy.createWorkspaceFromIOUPayment(iouReport, undefined, ESH_ACCOUNT_ID, ESH_EMAIL, iouReportOwnerEmail, undefined, CONST.CURRENCY.USD, undefined, mockTranslate, {});
+            await waitForBatchedUpdates();
+
+            const writeOptions = apiWriteSpy.mock.calls.at(0)?.at(2) as {
+                optimisticData?: Array<{onyxMethod?: string; key?: string; value?: Record<string, unknown> | null}>;
+                failureData?: Array<{onyxMethod?: string; key?: string; value?: Record<string, unknown> | null}>;
+            };
+
+            const oldChatKey = `${ONYXKEYS.COLLECTION.REPORT}${oldChatReportID}`;
+            const optimisticOldChatUpdate = (writeOptions?.optimisticData ?? []).find(
+                (update) => update.key === oldChatKey && (update.value as {iouReportID?: string | null} | null)?.iouReportID !== undefined,
+            );
+            const failureOldChatUpdate = (writeOptions?.failureData ?? []).find(
+                (update) => update.key === oldChatKey && (update.value as {iouReportID?: string | null} | null)?.iouReportID !== undefined,
+            );
+
+            // Optimistic update should clear the dangling pointer so a fresh IOU report is built
+            // for the next expense in this DM (the moved report otherwise gets reused via getMoneyRequestInformation).
+            expect(optimisticOldChatUpdate).toBeDefined();
+            expect((optimisticOldChatUpdate?.value as {iouReportID?: string | null})?.iouReportID).toBeNull();
+            expect((optimisticOldChatUpdate?.value as {hasOutstandingChildRequest?: boolean})?.hasOutstandingChildRequest).toBe(false);
+
+            // Failure rollback must restore the previous iouReportID so the DM chat is back to its prior state.
+            expect(failureOldChatUpdate).toBeDefined();
+            expect((failureOldChatUpdate?.value as {iouReportID?: string | null})?.iouReportID).toBe(movedIouReportID);
+            expect((failureOldChatUpdate?.value as {hasOutstandingChildRequest?: boolean})?.hasOutstandingChildRequest).toBe(true);
 
             apiWriteSpy.mockRestore();
             isIOUReportUsingReportSpy.mockRestore();

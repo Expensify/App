@@ -150,13 +150,25 @@ function isExpensifyCard(card?: Card) {
 }
 
 /**
- * Checks if the card supports PIN management features.
+ * Checks if the card is on the UK/EU Expensify card program (feedCountry GB).
+ * The UK/EU program is the only one that supports PIN management features and
+ * requires Strong Customer Authentication (SCA) for revealing card details.
  * @param card - The card to check.
  * @returns boolean
  */
-function supportsPINManagementFeatures(card: Card | undefined): boolean {
-    //  Use of PINs is based on card program. UK/EU (feedCountry GB) are the only program currently that supports these features.
+function isUkEuExpensifyCard(card: Card | undefined): boolean {
     return isExpensifyCard(card) && card?.nameValuePairs?.feedCountry === CONST.COUNTRY.GB;
+}
+
+/**
+ * Checks whether the user's current location is an offline PIN market —
+ * a region where PINs must be changed at an ATM rather than via the in-app flow.
+ */
+function isOfflinePINMarket(countryByIp: string | undefined): boolean {
+    if (!countryByIp) {
+        return false;
+    }
+    return CONST.EXPENSIFY_CARD.OFFLINE_PIN_MARKETS.includes(countryByIp);
 }
 
 /**
@@ -169,7 +181,7 @@ function getCardDescription(card: Card | undefined, translate: LocalizedTranslat
         return '';
     }
     if (isTravelCard(card)) {
-        return translate('cardTransactions.centralInvoicing');
+        return translate('cardTransactions.travelInvoicing');
     }
     const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
     if (isCSVCard) {
@@ -189,7 +201,7 @@ function getCardDescription(card: Card | undefined, translate: LocalizedTranslat
  */
 function getCardDescriptionForSearchTable(card: Card, translate: LocalizedTranslate, displayName?: string) {
     if (isTravelCard(card)) {
-        return translate('cardTransactions.centralInvoicing');
+        return translate('cardTransactions.travelInvoicing');
     }
     const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
     if (isCSVCard) {
@@ -213,7 +225,7 @@ function getCompanyCardDescription(translate: LocalizedTranslate, transactionCar
     const card = cards[cardID];
 
     if (isTravelCard(card)) {
-        return translate('cardTransactions.centralInvoicing');
+        return translate('cardTransactions.travelInvoicing');
     }
 
     if (isExpensifyCard(card)) {
@@ -800,7 +812,7 @@ function getFeedNameForDisplay(
 
     // Travel Invoicing cards share the Expensify Card bank, so feedCountry is what distinguishes them.
     if (feed === CONST.EXPENSIFY_CARD.BANK && feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US) {
-        return translate('search.filters.card.centralInvoicing');
+        return translate('search.filters.card.travelInvoicing');
     }
 
     const customName = customFeedName ?? getCustomFeedNameFromFeeds(cardFeeds, feed as CompanyCardFeed);
@@ -1047,22 +1059,24 @@ function checkIfNewFeedConnected(prevFeedsData: CombinedCardFeeds, currentFeedsD
     };
 }
 
-function filterAllInactiveCards(cards: CardList | undefined) {
+/**
+ * Filters cards by state. Closed and deactivated cards are excluded by default; suspended cards are
+ * only kept when frozen. When `includeDeactivated` is true (workspace card management views), admin-zeroed
+ * Expensify Cards are also kept — these are cards an admin set to a $0 limit, which the backend then
+ * transitions to deactivated/suspended. Admins still need to be able to find and manage them.
+ */
+function filterAllInactiveCards(cards: CardList | undefined, includeDeactivated = false) {
     if (!cards) {
         return {};
     }
 
     const closedStates = new Set<number>([CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED]);
-    const filteredCards = filterObject(cards, (_key, card) => {
+    return filterObject(cards, (_key, card) => {
         if (card.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED) {
-            // Only include suspended cards that are frozen.
-            return !!card.nameValuePairs?.frozen;
+            return !!card.nameValuePairs?.frozen || includeDeactivated;
         }
-
         return !closedStates.has(card.state);
     });
-
-    return filteredCards;
 }
 
 function filterInactiveCards(cardsList: WorkspaceCardsList | undefined) {
@@ -1075,11 +1089,26 @@ function filterInactiveCards(cardsList: WorkspaceCardsList | undefined) {
     } as WorkspaceCardsList;
 }
 
+/**
+ * Onyx selector for workspace Expensify Card management pages. Same as `filterInactiveCards`, but also
+ * keeps all suspended cards so admins can view and edit them.
+ */
+function filterInactiveCardsForWorkspace(cardsList: WorkspaceCardsList | undefined) {
+    const {cardList, ...assignedCards} = cardsList ?? {};
+    const filteredAssignedCards = filterAllInactiveCards(assignedCards, true);
+
+    return {
+        ...(cardList ? {cardList} : {}),
+        ...filteredAssignedCards,
+    } as WorkspaceCardsList;
+}
+
 function getAllCardsForWorkspace(
     workspaceAccountID: number,
     allCardList: OnyxCollection<WorkspaceCardsList>,
     cardFeeds?: CombinedCardFeeds,
     expensifyCardSettings?: OnyxCollection<ExpensifyCardSettings>,
+    includeDeactivated = false,
 ): CardList {
     const cards: CardList = {};
     const companyCardsDomainFeeds = Object.entries(cardFeeds ?? {}).map(([feedName, feedData]) => ({domainID: feedData.domainID, feedName}));
@@ -1093,7 +1122,7 @@ function getAllCardsForWorkspace(
         const isExpensifyDomainCards = expensifyCardsDomainIDs.some((domainID) => key.includes(domainID.toString()) && key.includes(CONST.EXPENSIFY_CARD.BANK));
         if ((isWorkspaceAccountCards || isCompanyDomainCards || isExpensifyDomainCards) && values) {
             const {cardList: assignableCards, ...assignedCards} = values ?? {};
-            const filteredCards = filterInactiveCards(assignedCards);
+            const filteredCards = filterAllInactiveCards(assignedCards, includeDeactivated);
             Object.assign(cards, filteredCards);
         }
     }
@@ -1782,7 +1811,8 @@ export {
     getAssignedCardSortKey,
     getDefaultExpensifyCardLimitType,
     isExpensifyCard,
-    supportsPINManagementFeatures,
+    isUkEuExpensifyCard,
+    isOfflinePINMarket,
     getDomainCards,
     formatCardExpiration,
     getMonthFromExpirationDateString,
@@ -1846,6 +1876,7 @@ export {
     isPolicyIDInLinkedExpensifyCardPolicyList,
     filterAllInactiveCards,
     filterInactiveCards,
+    filterInactiveCardsForWorkspace,
     getPersonalBankCardDetailsImage,
     isCardPendingIssue,
     isCardPendingActivate,

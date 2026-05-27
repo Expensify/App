@@ -248,7 +248,5 @@ function PolicyChangeLogContent({action, policyID}: PolicyChangeLogContentProps)
     return <ReportActionItemBasicMessage message={message} />;
 }
 
-PolicyChangeLogContent.displayName = 'PolicyChangeLogContent';
-
 export {isHandledPolicyChangeLogAction, HANDLED_POLICY_CHANGE_LOG_ACTIONS};
 export default PolicyChangeLogContent;

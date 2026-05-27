@@ -29,7 +29,10 @@ function webUpdate() {
             if (window.confirm('Refresh the page to get the latest updates!')) {
                 window.location.reload();
             }
-        });
+        })
+        // Soft-fail: webUpdate is a best-effort check, so we only log the error to the console
+        // eslint-disable-next-line no-console
+        .catch((error) => console.warn('[webUpdate] Failed to check version.json', error));
 }
 
 /**
@@ -66,4 +69,15 @@ export default function () {
 
     // Start current date updater
     DateUtils.startCurrentDateUpdater();
+
+    // Service worker is only emitted in production builds (GenerateSW is skipped in dev).
+    if (Config.IS_IN_PRODUCTION && 'serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/service-worker.js').catch((error) => {
+                // Soft-fail: app must continue working even if SW registration fails (Safari Private mode, etc.).
+                // eslint-disable-next-line no-console
+                console.warn('[SW] registration failed', error);
+            });
+        });
+    }
 }

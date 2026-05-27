@@ -7,7 +7,7 @@ import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import Search from '@components/Search';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchResultsContext} from '@components/Search/SearchContext';
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
 import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchActionsBarWide from '@components/Search/SearchPageHeader/SearchActionsBarWide';
@@ -42,6 +42,7 @@ type SearchPageWideProps = {
     shouldShowFooter: boolean;
     /** Overlay rendered above Search content during expense-creation flows (SearchStaticList or null). */
     searchOverlayContent: React.ReactNode;
+    /** Callback for Search to signal that real content is ready and the overlay can be dismissed. */
     onSearchContentReady: () => void;
 };
 
@@ -61,7 +62,7 @@ function SearchPageWide({
     const shouldShowLoadingSkeleton = useSearchLoadingState(queryJSON, searchResults);
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {shouldUseLiveData} = useSearchStateContext();
+    const {shouldUseLiveData} = useSearchResultsContext();
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const receiptDropTargetRef = useRef<View>(null);
 

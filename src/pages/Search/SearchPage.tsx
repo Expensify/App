@@ -1,10 +1,11 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import Animated from 'react-native-reanimated';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {SearchParams} from '@components/Search/types';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import useDocumentTitle from '@hooks/useDocumentTitle';
+import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
@@ -33,8 +34,11 @@ function SearchPage({route}: SearchPageProps) {
     useDocumentTitle(translate('common.spend'));
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const {selectedTransactions, lastSearchType, areAllMatchingItemsSelected, currentSearchKey, currentSearchResults, currentSearchQueryJSON, shouldUseLiveData} = useSearchStateContext();
-    const {clearSelectedTransactions, setLastSearchType} = useSearchActionsContext();
+    const {selectedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {lastSearchType, currentSearchResults, shouldUseLiveData} = useSearchResultsContext();
+    const {currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
+    const {clearSelectedTransactions} = useSearchSelectionActions();
+    const {setLastSearchType} = useSearchResultsActions();
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
     const [hasFilterBars = false] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: hasFilterBarsSelector});
@@ -44,6 +48,11 @@ function SearchPage({route}: SearchPageProps) {
     useConfirmReadyToOpenApp();
     useSearchPageSetup(currentSearchQueryJSON);
 
+    // Adjust state during rendering rather than in a useEffect: the value is consumed in the same
+    // render below (`searchResults = lastNonEmptySearchResults` when sorting), so a useEffect would
+    // commit one stale render before catching up. The reference equality check
+    // (`currentSearchResults !== lastNonEmptySearchResults`) bounds the re-render loop to a single
+    // extra pass — see https://react.dev/reference/react/useState#storing-information-from-previous-renders.
     if (currentSearchResults?.data && !shouldUseLiveData && currentSearchResults !== lastNonEmptySearchResults) {
         setLastNonEmptySearchResults(currentSearchResults);
     }
@@ -71,7 +80,7 @@ function SearchPage({route}: SearchPageProps) {
 
     const metadata = searchResults?.search;
     const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
-    const shouldShowFooter = selectedTransactionsKeys.length > 0 || (shouldAllowFooterTotals && !!metadata?.count);
+    const shouldShowFooter = (!areAllMatchingItemsSelected && selectedTransactionsKeys.length > 0) || (shouldAllowFooterTotals && !!metadata?.count);
 
     useEffect(() => {
         if (shouldUseNarrowLayout) {
@@ -115,7 +124,7 @@ function SearchPage({route}: SearchPageProps) {
             return {count: undefined, total: undefined, currency: undefined};
         }
 
-        const shouldUseClientTotal = selectedTransactionsKeys.length > 0 || !metadata?.count || (selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected);
+        const shouldUseClientTotal = selectedTransactionsKeys.length > 0 || !metadata?.count;
         const selectedTransactionItems = Object.values(selectedTransactions);
         const currency = metadata?.currency ?? selectedTransactionItems.at(0)?.groupCurrency ?? selectedTransactionItems.at(0)?.currency;
         const numberOfExpense = shouldUseClientTotal
@@ -130,13 +139,14 @@ function SearchPage({route}: SearchPageProps) {
         const total = shouldUseClientTotal ? selectedTransactionItems.reduce((acc, transaction) => acc - (transaction.groupAmount ?? -Math.abs(transaction.amount)), 0) : metadata?.total;
 
         return {count: numberOfExpense, total, currency};
-    }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys, shouldAllowFooterTotals]);
+    }, [metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys, shouldAllowFooterTotals]);
 
     const onSortPressedCallback = useCallback(() => {
         setIsSorting(true);
     }, []);
 
     const overlayContentContainerStyle = !isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles(!!hasFilterBars) : undefined;
+    const overlayEndSubmitSpans = useEndSubmitNavigationSpans();
     const {searchOverlayContent, onSearchContentReady, isOverlayActive} = useSearchOverlay({
         searchResults,
         queryJSON: currentSearchQueryJSON,
@@ -144,6 +154,7 @@ function SearchPage({route}: SearchPageProps) {
         isMobileSelectionModeEnabled,
         currentSearchKey,
         contentContainerStyle: overlayContentContainerStyle,
+        onDestinationVisible: overlayEndSubmitSpans,
     });
 
     return (
