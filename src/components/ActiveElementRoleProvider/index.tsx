@@ -49,4 +49,4 @@ function ActiveElementRoleProvider({children}: ActiveElementRoleProps) {
 }
 
 export default ActiveElementRoleProvider;
-export {ActiveElementRoleContext};
+export {ActiveElementRoleContext, getRoleForActive};
