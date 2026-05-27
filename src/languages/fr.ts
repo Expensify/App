@@ -108,7 +108,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: 'Sélection multiple',
         saveChanges: 'Enregistrer les modifications',
         submit: 'Soumettre',
+        markAsDone: 'Marquer comme terminé',
         submitted: 'Soumis',
+        markedAsDoneStatus: 'Marqué comme terminé',
         rotate: 'Pivoter',
         zoom: 'Zoom',
         password: 'Mot de passe',
@@ -124,6 +126,7 @@ const translations: TranslationDeepObject<typeof en> = {
             approve: 'Approuver',
             pay: 'Payer',
             fix: 'Corriger',
+            task: 'Tâche',
         },
         success: 'Réussi',
         group: 'Groupe',
@@ -848,6 +851,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistory: (users: string) => `Cette discussion est avec ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName: string, submitterDisplayName: string) =>
             `C’est ici que <strong>${submitterDisplayName}</strong> soumettra des dépenses à <strong>${workspaceName}</strong>. Utilisez simplement le bouton +.`,
+        beginningOfChatHistoryPolicyExpenseChatTrack: 'C\u2019est ici que vous suivrez vos dépenses',
         beginningOfChatHistorySelfDM: 'Ceci est votre espace personnel. Utilisez-le pour vos notes, tâches, brouillons et rappels.',
         beginningOfChatHistorySystemDM: 'Bienvenue ! Procédons à la configuration.',
         chatWithAccountManager: 'Discutez avec votre gestionnaire de compte ici',
@@ -856,7 +860,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Votre espace',
         welcomeToRoom: (roomName: string) => `Bienvenue dans ${roomName} !`,
         usePlusButton: (additionalText: string) => `Utilisez le bouton + pour ${additionalText} une dépense.`,
-        askConcierge: 'Ceci est votre chat avec Concierge, votre agent IA personnel. Je peux faire presque tout, essayez-moi !',
+        askConcierge: 'Concierge peut répondre aux questions, mettre à jour les dépenses, et plus encore.',
         conciergeSupport: 'Votre agent IA personnel',
         create: 'créer',
         iouTypes: {
@@ -1047,6 +1051,7 @@ const translations: TranslationDeepObject<typeof en> = {
             repaidLast30Days: 'Remboursé au cours des 30 derniers jours',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Transactions récentes • ${lastFour}`,
         },
+        seeMore: ({count}: {count: number}) => `Voir ${count} de plus`,
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -1344,6 +1349,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sendInvoice: (amount: string) => `Envoyer la facture de ${amount}`,
         expenseAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? `pour ${comment}` : ''}`,
         submitted: (memo?: string) => `soumis${memo ? `, indiquant « ${memo} »` : ''}`,
+        markedAsDone: (memo?: string) => `marqué comme terminé${memo ? `, en indiquant « ${memo} »` : ''}`,
         automaticallySubmitted: `soumis via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">soumissions différées</a>`,
         queuedToSubmitViaDEW: 'en file d’attente pour être soumis via le circuit d’approbation personnalisé',
         queuedToApproveViaDEW: 'mis en file d’attente pour approbation via un processus d’approbation personnalisé',
@@ -1789,6 +1795,21 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `En attente qu’un administrateur soumette des dépenses.`;
                 }
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `En attente que <strong>vous</strong> marquiez ceci comme terminé.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `En attente que <strong>${actor}</strong> marque ceci comme terminé.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `En attente qu'un administrateur marque ceci comme terminé.`;
+                }
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2229,7 +2250,7 @@ const translations: TranslationDeepObject<typeof en> = {
     deviceManagementPage: {
         title: 'Gestion des appareils',
         description:
-            'Gérez tous les appareils sur lesquels vous vous êtes connecté avec votre compte Expensify. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">En savoir plus</a>',
+            'Gérez tous les appareils sur lesquels vous vous êtes connecté avec votre compte Expensify. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">En savoir plus</a>.',
         revoke: 'Révoquer',
         unknownDevice: 'Appareil Inconnu',
     },
@@ -2244,11 +2265,11 @@ const translations: TranslationDeepObject<typeof en> = {
         disabled: 'L’authentification à deux facteurs est maintenant désactivée',
         noAuthenticatorApp: 'Vous n’aurez plus besoin d’une application d’authentification pour vous connecter à Expensify.',
         stepCodes: 'Codes de récupération',
-        keepCodesSafe: 'Conservez ces codes de récupération en lieu sûr !',
+        keepCodesSafe: 'Conservez ces codes en lieu sûr !',
         codesLoseAccess: dedent(`
             Si vous perdez l’accès à votre application d’authentification et que vous n’avez pas ces codes, vous perdrez l’accès à votre compte.
 
-            Remarque : la configuration de l’authentification à deux facteurs vous déconnectera de toutes les autres sessions actives.
+            <strong>Remarque</strong> : La configuration de l’authentification à deux facteurs vous déconnectera de toutes les autres sessions actives.
         `),
         errorStepCodes: 'Veuillez copier ou télécharger les codes avant de continuer',
         stepVerify: 'Vérifier',
@@ -2277,6 +2298,9 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyOldDeviceDescription: 'Saisissez le code à six chiffres de votre application d’authentification actuelle pour confirmer que vous y avez accès.',
         verifyNewDeviceTitle: 'Configurer un nouvel appareil',
         verifyNewDeviceDescription: 'Scannez le code QR avec votre nouvel appareil, puis saisissez le code pour terminer la configuration.',
+        downloadCodes: 'Télécharger les codes',
+        screenshotTip: 'Astuce : faites une capture d’écran pour l’enregistrer dans votre photothèque',
+        copyCodes: 'Copier les codes',
     },
     recoveryCodeForm: {
         error: {
@@ -2581,6 +2605,8 @@ ${amount} pour ${merchant} - ${date}`,
         addApprovalTip: 'Ce workflow par défaut s’applique à tous les membres, sauf si un workflow plus spécifique existe.',
         approver: 'Approbateur',
         addApprovalsDescription: 'Exiger une approbation supplémentaire avant d’autoriser un paiement.',
+        automateApprovalsWithAgentsTitle: 'Automatisez les approbations avec des agents',
+        automateApprovalsWithAgentsSubtitle: 'Ajoutez l’agent ci-dessous au flux de travail pour automatiser les approbations.',
         makeOrTrackPaymentsTitle: 'Paiements',
         makeOrTrackPaymentsDescription: 'Ajoutez un payeur autorisé pour les paiements effectués dans Expensify ou suivez les paiements effectués ailleurs.',
         customApprovalWorkflowEnabled:
@@ -2704,6 +2730,7 @@ ${amount} pour ${merchant} - ${date}`,
     reportFraudConfirmationPage: {
         title: 'Fraude à la carte signalée',
         description: 'Nous avons définitivement désactivé votre carte actuelle. Lorsque vous retournerez consulter les détails de votre carte, une nouvelle carte virtuelle sera disponible.',
+        descriptionCardNotReplaced: 'Votre carte a été désactivée définitivement. Veuillez contacter un administrateur pour émettre une nouvelle carte.',
         buttonText: 'Compris, merci !',
     },
     activateCardPage: {
@@ -2976,7 +3003,7 @@ ${amount} pour ${merchant} - ${date}`,
         peopleYouMayKnow: 'Des personnes que vous connaissez probablement sont déjà ici ! Vérifiez votre adresse e-mail pour les rejoindre.',
         workspaceYouMayJoin: (domain: string, email: string) => `Quelqu’un de ${domain} a déjà créé un espace de travail. Veuillez saisir le code magique envoyé à ${email}.`,
         joinAWorkspace: 'Rejoindre un espace de travail',
-        listOfWorkspaces: 'Voici la liste des espaces de travail que vous pouvez rejoindre. Ne vous inquiétez pas, vous pourrez toujours les rejoindre plus tard si vous préférez.',
+        listOfWorkspaces: 'Voici la liste des espaces de travail auxquels vous pouvez rejoindre.',
         skipForNow: 'Passer pour le moment',
         workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} membre${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         whereYouWork: 'Où travaillez-vous ?',
@@ -3337,7 +3364,6 @@ ${amount} pour ${merchant} - ${date}`,
         enterPhoneNumber: 'Quel est votre numéro de téléphone ?',
         personalDetails: 'Informations personnelles',
         privateDataMessage: 'Ces informations sont utilisées pour les déplacements et les paiements. Elles ne s’affichent jamais sur votre profil public.',
-        basicDetails: 'Détails de base',
         legalName: 'Nom légal',
         legalFirstName: 'Prénom légal',
         legalLastName: 'Nom de famille légal',
@@ -3535,7 +3561,7 @@ ${amount} pour ${merchant} - ${date}`,
             noBankAccountSelected: 'Veuillez choisir un compte',
             taxID: 'Veuillez saisir un numéro d’identification fiscale valide',
             website: 'Veuillez saisir un site web valide',
-            zipCode: `Veuillez saisir un code postal valide au format : ${COMMON_CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
+            zipCode: `Veuillez saisir un code postal valide au format : ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
             phoneNumber: 'Veuillez saisir un numéro de téléphone valide',
             email: 'Veuillez saisir une adresse e-mail valide',
             companyName: 'Veuillez saisir un nom d’entreprise valide',
@@ -5403,6 +5429,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     duplicateColumns: (duplicateColumn: string) => `Oups ! Vous avez associé un seul champ (« ${duplicateColumn} ») à plusieurs colonnes. Veuillez vérifier et réessayer.`,
                 },
                 fileImportDescription: 'Une option manuelle si votre banque ne peut pas envoyer de flux.',
+                duplicateFeedModal: {title: 'Flux de carte déjà connecté', prompt: 'Vous ne pouvez pas ajouter deux fois le même flux de carte au même espace de travail.'},
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Dernier jour du mois',
@@ -6072,6 +6099,13 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             selectWorkspaces: 'Sélectionner des espaces de travail',
             description: 'Choisissez les espaces de travail vers lesquels vous souhaitez copier les paramètres, puis sélectionnez les paramètres que vous souhaitez copier.',
             searchPlaceholder: 'Rechercher des espaces de travail',
+            selectFeatures: 'Sélectionner les fonctionnalités à copier',
+            whichFeatures: 'Sélectionnez les paramètres à écraser sur vos espaces de travail existants.',
+            workflowsWithoutMembersConfirm: 'Continuer sans membres',
+            workflowsWithoutMembersPrompt:
+                'La copie d’espaces de travail sans membres ne copiera pas les workflows d’approbation. Les paramètres de soumission et de paiement seront néanmoins copiés.',
+            accountingMismatch: ({part}: {part: string}) =>
+                `Vous ne pouvez copier ${part} que si tous les espaces de travail utilisent le même système de comptabilité et la même connexion d’entreprise.`,
         },
         emptyWorkspace: {
             title: 'Vous n’avez aucun espace de travail',
@@ -6212,8 +6246,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
         accounting: {
             settings: 'paramètres',
             title: 'Connexions',
-            subtitle:
-                'Connectez votre système comptable pour imputer les opérations à votre plan comptable, faire correspondre automatiquement les paiements et garder vos finances synchronisées.',
+            subtitle: 'Connectez votre logiciel de comptabilité pour une synchronisation automatique.',
             qbo: 'QuickBooks Online',
             qbd: 'QuickBooks Desktop',
             xero: 'Xero',
@@ -6789,8 +6822,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 perActiveMember: 'par membre actif et par mois.',
                 perMember: 'par membre et par mois.',
             },
-            note: (subscriptionLink: string) =>
-                `<muted-text>Mettez à niveau pour accéder à cette fonctionnalité, ou <a href="${subscriptionLink}">en savoir plus</a> sur nos offres et nos tarifs.</muted-text>`,
+            note: (subscriptionLink: string) => `<muted-text><a href="${subscriptionLink}">En savoir plus</a> sur nos offres et nos tarifs.</muted-text>`,
             upgradeToUnlock: 'Débloquer cette fonctionnalité',
             completed: {
                 headline: `Vous avez mis à niveau votre espace de travail !`,
@@ -7006,6 +7038,11 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Allez dans [plus de fonctionnalités](${moreFeaturesLink}) et activez ${featureName} pour déverrouiller cette fonctionnalité.`,
             },
+            agentsPromoBanner: {
+                title: 'Vous ne voyez pas la règle dont vous avez besoin ? Ajoutez un agent',
+                subtitle: 'Ajoutez des règles complexes et réduisez les approbations manuelles grâce à des agents personnalisés.',
+                cta: 'Essayer',
+            },
             merchantRules: {
                 title: 'Commerçant',
                 subtitle: 'Définissez les règles de commerçant pour que les dépenses arrivent correctement codées et nécessitent moins de nettoyage.',
@@ -7216,6 +7253,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         hr: {
             title: 'RH',
             connections: 'Connexions',
+            connectionsSubtitle:
+                'Connectez votre système RH pour synchroniser les données des employé·es, faire correspondre automatiquement les remboursements aux bonnes personnes et garder les dépenses de votre équipe exactes, sans travail manuel.',
             subtitle: 'Connectez vos outils RH et gardez les approbations des employés synchronisées.',
             connect: 'Connecter',
             syncNow: 'Synchroniser maintenant',

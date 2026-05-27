@@ -63,7 +63,9 @@ const translations: TranslationDeepObject<typeof en> = {
         save: 'Guardar',
         saveChanges: 'Guardar cambios',
         submit: 'Enviar',
+        markAsDone: 'Marcar como listo',
         submitted: 'Enviado',
+        markedAsDoneStatus: 'Marcado como listo',
         rotate: 'Rotar',
         zoom: 'Zoom',
         password: 'Contraseña',
@@ -78,6 +80,7 @@ const translations: TranslationDeepObject<typeof en> = {
             approve: 'Aprobar',
             pay: 'Pagar',
             fix: 'Corregir',
+            task: 'Tarea',
         },
         home: 'Inicio',
         group: 'Grupo',
@@ -790,6 +793,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistory: (users) => `Este chat es con ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName, submitterDisplayName) =>
             `Aquí es donde <strong>${submitterDisplayName}</strong> enviará los gastos al espacio de trabajo <strong>${workspaceName}</strong>. Solo usa el botón +.`,
+        beginningOfChatHistoryPolicyExpenseChatTrack: 'Aquí es donde harás seguimiento de los gastos',
         beginningOfChatHistorySelfDM: 'Este es tu espacio personal. Úsalo para notas, tareas, borradores y recordatorios.',
         beginningOfChatHistorySystemDM: '¡Bienvenido! Vamos a configurar tu cuenta.',
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
@@ -798,7 +802,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Tu espacio',
         welcomeToRoom: (roomName) => `¡Bienvenido a ${roomName}!`,
         usePlusButton: (additionalText) => ` Usa el botón + para ${additionalText} un gasto`,
-        askConcierge: 'Este es tu chat con Concierge, tu agente personal de IA. Puedo hacer casi cualquier cosa, ¡pruébame!',
+        askConcierge: 'Concierge puede responder preguntas, actualizar gastos y mucho más.',
         conciergeSupport: 'Tu agente personal de IA',
         create: 'crear',
         iouTypes: {
@@ -1008,6 +1012,7 @@ const translations: TranslationDeepObject<typeof en> = {
             }),
             today: 'Hoy',
         },
+        seeMore: ({count}: {count: number}) => `Ver ${count} más`,
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
@@ -1299,6 +1304,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sendInvoice: (amount) => `Enviar factura de ${amount}`,
         expenseAmount: (formattedAmount, comment) => `${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         submitted: (memo) => `enviado${memo ? `, dijo ${memo}` : ''}`,
+        markedAsDone: (memo) => `marcado como listo${memo ? `, dijo ${memo}` : ''}`,
         automaticallySubmitted: `envió mediante <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">retrasar envíos</a>`,
         queuedToSubmitViaDEW: 'en cola para enviar a través del flujo de aprobación personalizado',
         failedToAutoSubmitViaDEW: (reason: string) => `no ha podido enviar este informe mediante <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">retrasar envíos</a>. ${reason}`,
@@ -1725,6 +1731,17 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Esperando a que un administrador envíe los gastos.`;
                 }
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (actor, actorType, _eta, _etaType) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Esperando a que <strong>tú</strong> lo marques como listo.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Esperando a que <strong>${actor}</strong> lo marque como listo.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Esperando a que un administrador lo marque como listo.`;
+                }
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_actor, _actorType, _eta, _etaType) => `¡No se requiere ninguna acción adicional!`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (actor, actorType, _eta, _etaType) => {
                 switch (actorType) {
@@ -2109,7 +2126,7 @@ const translations: TranslationDeepObject<typeof en> = {
     deviceManagementPage: {
         title: 'Gestión de dispositivos',
         description:
-            'Gestiona todos los dispositivos en los que has iniciado sesión con tu cuenta de Expensify. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Más información</a>',
+            'Gestiona todos los dispositivos en los que has iniciado sesión con tu cuenta de Expensify. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Más información</a>.',
         revoke: 'Revocar',
         unknownDevice: 'Dispositivo Desconocido',
     },
@@ -2124,9 +2141,12 @@ const translations: TranslationDeepObject<typeof en> = {
         disabled: 'La autenticación de dos factores está ahora deshabilitada',
         noAuthenticatorApp: 'Ya no necesitarás una aplicación de autenticación para iniciar sesión en Expensify.',
         stepCodes: 'Códigos de recuperación',
-        keepCodesSafe: '¡Guarda los códigos de recuperación en un lugar seguro!',
-        codesLoseAccess:
-            'Si pierdes el acceso a tu aplicación de autenticación y no tienes estos códigos, perderás el acceso a tu cuenta. \n\nNota: Configurar la autenticación de dos factores cerrará la sesión de todas las demás sesiones activas.',
+        keepCodesSafe: '¡Guarda estos códigos en un lugar seguro!',
+        codesLoseAccess: dedent(`
+            Si pierdes el acceso a tu aplicación de autenticación y no tienes estos códigos, perderás el acceso a tu cuenta.
+
+            <strong>Nota</strong>: Configurar la autenticación de dos factores cerrará la sesión en todas las demás sesiones activas.
+        `),
         errorStepCodes: 'Copia o descarga los códigos antes de continuar',
         stepVerify: 'Verificar',
         scanCode: 'Escanea el código QR usando tu',
@@ -2154,6 +2174,9 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyOldDeviceDescription: 'Introduce el código de seis dígitos de tu aplicación de autenticación actual para confirmar que tienes acceso a ella.',
         verifyNewDeviceTitle: 'Configurar nuevo dispositivo',
         verifyNewDeviceDescription: 'Escanea el código QR con tu nuevo dispositivo y luego introduce el código para completar la configuración.',
+        downloadCodes: 'Descargar códigos',
+        screenshotTip: 'Consejo: haz una captura de pantalla para guardarla en tu galería de fotos',
+        copyCodes: 'Copiar códigos',
     },
     recoveryCodeForm: {
         error: {
@@ -2443,6 +2466,8 @@ ${amount} para ${merchant} - ${date}`,
         addApprovalTip: 'Este flujo de trabajo por defecto se aplica a todos los miembros, a menos que exista un flujo de trabajo más específico.',
         approver: 'Aprobador',
         addApprovalsDescription: 'Requiere una aprobación adicional antes de autorizar un pago.',
+        automateApprovalsWithAgentsTitle: 'Automatiza las aprobaciones con agentes',
+        automateApprovalsWithAgentsSubtitle: 'Añade el agente de abajo al flujo de trabajo para automatizar las aprobaciones.',
         configureViaHR: ({provider}: {provider: string}) => `Configurar mediante ${provider}.`,
         hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `Las aprobaciones se gestionan mediante tu integración de ${provider}. Para actualizar tu flujo de aprobación, ve a la configuración de conexión de ${provider}.`,
@@ -2565,6 +2590,7 @@ ${amount} para ${merchant} - ${date}`,
     reportFraudConfirmationPage: {
         title: 'Fraude con tarjeta reportado',
         description: 'Hemos desactivado permanentemente tu tarjeta existente. Cuando vuelvas a ver los detalles de tu tarjeta, tendrás una nueva tarjeta virtual disponible.',
+        descriptionCardNotReplaced: 'Tu tarjeta fue desactivada permanentemente. Por favor, contacta a un administrador para emitir una nueva tarjeta.',
         buttonText: 'Entendido, ¡gracias!',
     },
     activateCardPage: {
@@ -2840,7 +2866,7 @@ ${amount} para ${merchant} - ${date}`,
         workspaceMemberList: (employeeCount, policyOwner) => `${employeeCount} miembro${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         workspaceYouMayJoin: (domain, email) => `Alguien de ${domain} ya ha creado un espacio de trabajo. Por favor, introduce el código mágico enviado a ${email}.`,
         joinAWorkspace: 'Unirse a un espacio de trabajo',
-        listOfWorkspaces: 'Aquí está la lista de espacios de trabajo a los que puedes unirte. No te preocupes, siempre puedes unirte a ellos más tarde si lo prefieres.',
+        listOfWorkspaces: 'Aquí tienes la lista de espacios de trabajo a los que puedes unirte.',
         skipForNow: 'Omitir por ahora',
         whereYouWork: '¿Dónde trabajas?',
         errorSelection: 'Selecciona una opción para continuar',
@@ -3206,7 +3232,6 @@ ${amount} para ${merchant} - ${date}`,
         enterPhoneNumber: '¿Cuál es tu número de teléfono?',
         personalDetails: 'Datos personales',
         privateDataMessage: 'Estos detalles se utilizan para viajes y pagos. Nunca se mostrarán en tu perfil público.',
-        basicDetails: 'Datos básicos',
         legalName: 'Nombre completo',
         legalFirstName: 'Nombre legal',
         legalLastName: 'Apellidos legales',
@@ -3404,7 +3429,7 @@ ${amount} para ${merchant} - ${date}`,
             noBankAccountSelected: 'Por favor, elige una cuenta bancaria',
             taxID: 'Por favor, introduce un número de identificación fiscal válido',
             website: 'Por favor, introduce un sitio web válido',
-            zipCode: `Formato de código postal incorrecto. Formato aceptable: ${COMMON_CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}.`,
+            zipCode: `Formato de código postal incorrecto. Formato aceptable: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}.`,
             phoneNumber: 'Por favor, introduce un teléfono válido',
             email: 'Por favor, introduce una dirección de correo electrónico válida',
             companyName: 'Por favor, introduce un nombre comercial legal válido',
@@ -5217,6 +5242,7 @@ ${amount} para ${merchant} - ${date}`,
                     requiredColumns: (missingColumns: string) => `Por favor, asigna una columna a cada uno de los atributos: ${missingColumns}.`,
                     duplicateColumns: (duplicateColumn: string) => `¡Ups! Has asignado un solo campo ("${duplicateColumn}") a múltiples columnas. Por favor, revisa y vuelve a intentarlo.`,
                 },
+                duplicateFeedModal: {title: 'Feed de tarjeta ya conectado', prompt: 'No puedes añadir el mismo flujo de tarjeta al mismo espacio de trabajo dos veces.'},
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Último día del mes',
@@ -5885,6 +5911,12 @@ ${amount} para ${merchant} - ${date}`,
             selectWorkspaces: 'Selecciona espacios de trabajo',
             description: 'Elige los espacios de trabajo a los que quieres copiar la configuración y luego selecciona los ajustes que quieras copiar.',
             searchPlaceholder: 'Buscar espacios de trabajo',
+            selectFeatures: 'Selecciona las funciones que quieres copiar',
+            whichFeatures: 'Selecciona los ajustes que se sobrescribirán en tus espacios de trabajo existentes.',
+            workflowsWithoutMembersConfirm: 'Continuar sin miembros',
+            workflowsWithoutMembersPrompt: 'Copiar flujos de trabajo sin miembros no copiará los flujos de trabajo de aprobación. La configuración de envío y pago sí se copiará.',
+            accountingMismatch: ({part}: {part: string}) =>
+                `Solo puedes copiar ${part} si todos los espacios de trabajo usan el mismo sistema de contabilidad y la misma conexión de empresa.`,
         },
         emptyWorkspace: {
             title: 'Aún no hay espacios de trabajo',
@@ -5972,7 +6004,7 @@ ${amount} para ${merchant} - ${date}`,
         accounting: {
             settings: 'configuración',
             title: 'Conexiones',
-            subtitle: 'Conecta a tu sistema de contabilidad para codificar transacciones con tu plan de cuentas, auto-cotejar pagos, y mantener tus finanzas sincronizadas.',
+            subtitle: 'Conecta tu software de contabilidad para una sincronización automática.',
             qbo: 'QuickBooks Online',
             qbd: 'QuickBooks Desktop',
             xero: 'Xero',
@@ -6292,6 +6324,8 @@ ${amount} para ${merchant} - ${date}`,
         hr: {
             title: 'HR',
             connections: 'Conexiones',
+            connectionsSubtitle:
+                'Conéctate a tu sistema de RR. HH. para sincronizar los datos de empleados, emparejar automáticamente los reembolsos con las personas correctas y mantener los gastos de tu equipo precisos sin trabajo manual.',
             subtitle: 'Conecta herramientas de HR y mantén sincronizadas las aprobaciones de empleados.',
             connect: 'Conectar',
             syncNow: 'Sincronizar ahora',
@@ -6736,7 +6770,7 @@ ${amount} para ${merchant} - ${date}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>La facturación está disponible en los planes Recopilar y Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
-            note: (subscriptionLink) => `<muted-text>Mejore para acceder a esta función, o <a href="${subscriptionLink}">más información</a> sobre nuestros planes y precios.</muted-text>`,
+            note: (subscriptionLink: string) => `<muted-text><a href="${subscriptionLink}">Obtén más información</a> sobre nuestros planes y precios.</muted-text>`,
             pricing: {
                 perActiveMember: 'por miembro activo al mes.',
                 perMember: 'por miembro al mes.',
@@ -6895,6 +6929,11 @@ ${amount} para ${merchant} - ${date}`,
                 autoPayReportsUnderDescription: 'Los informes de gastos totalmente conformes por debajo de este importe se pagarán automáticamente.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName) => `Añade ${featureName} para desbloquear esta función.`,
                 enableFeatureSubtitle: (featureName, moreFeaturesLink) => `Ir a [más características](${moreFeaturesLink}) y habilita ${featureName} para desbloquear esta función.`,
+            },
+            agentsPromoBanner: {
+                title: '¿No ves la regla que necesitas? Añade un agente',
+                subtitle: 'Añade reglas complejas y reduce las aprobaciones manuales con agentes personalizados.',
+                cta: 'Pruébalo',
             },
             merchantRules: {
                 title: 'Comerciante',
@@ -9231,7 +9270,7 @@ ${amount} para ${merchant} - ${date}`,
         copilotDelegatedAccess: 'Copilot: Acceso delegado',
         copilotDelegatedAccessDescription: 'Permitir que otros miembros accedan a tu cuenta.',
         learnMoreAboutDelegatedAccess: 'Más información sobre acceso delegado',
-        addCopilot: 'Añade un copiloto a tu cuenta',
+        addCopilot: 'Añade un copiloto',
         membersCanAccessYourAccount: 'Estos miembros pueden acceder a tu cuenta:',
         youCanAccessTheseAccounts: 'Puedes acceder a estas cuentas:',
         role: ({role} = {}) => {
