@@ -1029,6 +1029,7 @@ type GetUpdateMoneyRequestParamsType = {
     policyRecentlyUsedCurrencies?: string[];
     iouReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     isSplitTransaction?: boolean;
+    isSelfDMSplit?: boolean;
     // TODO: This will be required eventually. Ref: https://github.com/Expensify/App/issues/66407
     isOffline?: boolean;
     delegateAccountID: number | undefined;
@@ -1070,6 +1071,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         policyRecentlyUsedCurrencies,
         iouReportNextStep,
         isSplitTransaction,
+        isSelfDMSplit,
         isOffline,
         delegateAccountID,
     } = params;
@@ -1188,6 +1190,31 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     const hasModifiedMerchant = 'merchant' in transactionChanges;
     // For split transactions, the merchant and amount are already computed in transactionChanges,
     // so we can build a valid optimistic MODIFIED_EXPENSE even when waypoints are pending.
+
+    // For selfDM splits, optimistically update the underlying transaction so that MoneyRequestView shows the new amount immediately.
+    if (isSelfDMSplit && isSplitTransaction && transaction && updatedTransaction && transactionID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                amount: updatedTransaction.amount,
+                modifiedAmount: updatedTransaction.modifiedAmount,
+                currency: updatedTransaction.currency,
+                modifiedCurrency: updatedTransaction.modifiedCurrency,
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                amount: transaction.amount,
+                modifiedAmount: transaction.modifiedAmount,
+                currency: transaction.currency,
+                modifiedCurrency: transaction.modifiedCurrency,
+            },
+        });
+    }
     const hasSplitDistanceMessageFields = !!isSplitTransaction && hasModifiedMerchant && hasModifiedAmount;
     // When distance is provided alongside waypoints (route was already calculated), we have valid
     // merchant/amount data to build the optimistic report action instead of waiting for the server.
