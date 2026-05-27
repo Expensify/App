@@ -559,6 +559,13 @@ function getCardFeedsForDisplay(
 /**
  * Given a collection of card feeds, return formatted card feeds grouped per policy.
  *
+ * Each feed is assigned to one or more policies using a three-tier fallback:
+ *  1. **linkedPolicyIDs** – if the feed has explicit linked policies, it is indexed under each of them.
+ *  2. **preferredPolicy** – if there are no linked policies but a preferred policy exists, use that.
+ *  3. **workspaceAccountID match** – if neither is set (orphan feed), fall back to any policy whose
+ *     workspaceAccountID matches the feed's fundID so the feed still surfaces under the correct workspace.
+ *     If no policy matches, the feed is stored under an empty-string key to avoid being silently lost.
+ *
  * Note: "Expensify Card" feeds are not included.
  */
 function getCardFeedsForDisplayPerPolicy(
