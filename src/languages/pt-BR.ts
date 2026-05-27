@@ -853,7 +853,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Seu espaço',
         welcomeToRoom: (roomName: string) => `Bem-vindo(a) a ${roomName}!`,
         usePlusButton: (additionalText: string) => `Use o botão + para ${additionalText} uma despesa.`,
-        askConcierge: 'Este é o seu chat com o Concierge, seu agente pessoal de IA. Posso fazer quase tudo, experimente!',
+        askConcierge: 'O Concierge pode responder perguntas, atualizar despesas e muito mais.',
         conciergeSupport: 'Seu agente de IA pessoal',
         create: 'criar',
         iouTypes: {
@@ -2565,6 +2565,8 @@ ${amount} para ${merchant} - ${date}`,
         addApprovalTip: 'Este fluxo de trabalho padrão se aplica a todos os membros, a menos que exista um fluxo de trabalho mais específico.',
         approver: 'Aprovador',
         addApprovalsDescription: 'Exigir aprovação adicional antes de autorizar um pagamento.',
+        automateApprovalsWithAgentsTitle: 'Automatize aprovações com agentes',
+        automateApprovalsWithAgentsSubtitle: 'Adicione o agente abaixo ao fluxo de trabalho para automatizar as aprovações.',
         makeOrTrackPaymentsTitle: 'Pagamentos',
         makeOrTrackPaymentsDescription: 'Adicione um pagador autorizado para pagamentos feitos no Expensify ou acompanhe pagamentos feitos em outros lugares.',
         customApprovalWorkflowEnabled:
@@ -6025,6 +6027,11 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             selectWorkspaces: 'Selecionar espaços de trabalho',
             description: 'Escolha os espaços de trabalho para os quais você quer copiar as configurações e, em seguida, selecione quais configurações deseja copiar.',
             searchPlaceholder: 'Buscar espaços de trabalho',
+            selectFeatures: 'Selecione os recursos para copiar',
+            whichFeatures: 'Selecione as configurações que deseja sobrescrever nos seus espaços de trabalho existentes.',
+            workflowsWithoutMembersConfirm: 'Continuar sem membros',
+            workflowsWithoutMembersPrompt: 'Copiar fluxos de trabalho sem membros não copiará os fluxos de aprovação. As configurações de envio e pagamento ainda serão copiadas.',
+            accountingMismatch: ({part}: {part: string}) => `Você só pode copiar ${part} se todos os espaços de trabalho usarem o mesmo sistema contábil e a mesma conexão da empresa.`,
         },
         emptyWorkspace: {
             title: 'Você não tem nenhum workspace',
@@ -6164,8 +6171,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
         accounting: {
             settings: 'configurações',
             title: 'Conexões',
-            subtitle:
-                'Conecte-se ao seu sistema contábil para classificar transações com seu plano de contas, fazer a correspondência automática de pagamentos e manter suas finanças sincronizadas.',
+            subtitle: 'Conecte seu software de contabilidade para uma sincronização automática.',
             qbo: 'QuickBooks Online',
             qbd: 'QuickBooks Desktop',
             xero: 'Xero',
@@ -6950,6 +6956,11 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Vá para [mais recursos](${moreFeaturesLink}) e ative ${featureName} para desbloquear este recurso.`,
             },
+            agentsPromoBanner: {
+                title: 'Não encontrou a regra que precisa? Adicione um agente',
+                subtitle: 'Adicione regras complexas e reduza aprovações manuais com agentes personalizados.',
+                cta: 'Experimente',
+            },
             merchantRules: {
                 title: 'Estabelecimento',
                 subtitle: 'Defina as regras de estabelecimento para que as despesas cheguem corretamente classificadas e exijam menos retrabalho.',
@@ -7159,6 +7170,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         hr: {
             title: 'RH',
             connections: 'Conexões',
+            connectionsSubtitle:
+                'Conecte-se ao seu sistema de RH para sincronizar os dados de funcionários, associar automaticamente os reembolsos às pessoas corretas e manter as despesas da sua equipe precisas, sem trabalho manual.',
             subtitle: 'Conecte ferramentas de RH e mantenha as aprovações de funcionários em sincronia.',
             connect: 'Conectar',
             syncNow: 'Sincronizar agora',
@@ -7810,7 +7823,6 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
     search: {
         resultsAreLimited: 'Os resultados da pesquisa são limitados.',
         viewResults: 'Ver resultados',
-        applyFilters: 'Aplicar filtros',
         appliedFilters: 'Filtros aplicados',
         resetFilters: 'Redefinir filtros',
         searchResults: {
@@ -7921,12 +7933,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             amount: {
                 lessThan: (amount?: string) => `Menos de ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Maior que ${amount ?? ''}`,
-                between: (greaterThan?: string, lessThan?: string) => {
-                    if (greaterThan && lessThan) {
-                        return `Entre ${greaterThan} e ${lessThan}`;
-                    }
-                    return 'Entre';
-                },
+                between: (greaterThan: string, lessThan: string) => `Entre ${greaterThan} e ${lessThan}`,
                 equalTo: (amount?: string) => `Igual a ${amount ?? ''}`,
             },
             card: {
@@ -9036,7 +9043,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         copilotDelegatedAccess: 'Copilot: Acesso delegado',
         copilotDelegatedAccessDescription: 'Permitir que outros membros acessem sua conta.',
         learnMoreAboutDelegatedAccess: 'Saiba mais sobre acesso delegado',
-        addCopilot: 'Adicionar copiloto',
+        addCopilot: 'Adicionar um copiloto',
         membersCanAccessYourAccount: 'Esses membros podem acessar sua conta:',
         youCanAccessTheseAccounts: 'Você pode acessar essas contas:',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
