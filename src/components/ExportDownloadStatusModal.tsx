@@ -1,5 +1,5 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -63,30 +63,26 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isReady, downloadURL]);
 
-    const handleSendFromConcierge = useCallback(() => {
+    const handleSendFromConcierge = () => {
         sendExportFileFromConcierge(exportID, displayedExport ?? undefined);
-    }, [exportID, displayedExport]);
+    };
 
-    const handleGoToConcierge = useCallback(() => {
+    const handleGoToConcierge = () => {
         onClose();
         navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
-    }, [onClose, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas]);
+    };
 
-    const handleDismiss = useCallback(() => {
-        onClose();
-    }, [onClose]);
-
-    const handleDownloadFile = useCallback(() => {
+    const handleDownloadFile = () => {
         if (!downloadURL) {
             return;
         }
         fileDownload(translate, downloadURL);
-    }, [downloadURL, translate]);
+    };
 
-    const handleClose = useCallback(() => {
+    const handleClose = () => {
         clearExportDownload(exportID, displayedExport ?? undefined);
         onClose();
-    }, [exportID, displayedExport, onClose]);
+    };
 
     const isNonDismissible = isPreparing;
 
@@ -124,7 +120,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
                     />
                     <Button
                         text={translate('exportDownload.dismiss')}
-                        onPress={handleDismiss}
+                        onPress={onClose}
                         style={[styles.w100, styles.mt3]}
                     />
                 </>
