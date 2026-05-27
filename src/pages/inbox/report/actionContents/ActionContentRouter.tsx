@@ -116,11 +116,11 @@ type ActionContentRouterProps = {
     /** Whether the search-page UI is active */
     isOnSearch: boolean;
 
-    /** Position index of the report action in the overall report FlatList view */
-    index: number;
-
     /** Toggle whether the payment method popover is active */
     setIsPaymentMethodPopoverActive: (value: boolean) => void;
+
+    /** Whether the user is a track intent user */
+    isTrackIntentUser?: boolean;
 };
 
 function ActionContentRouter({
@@ -141,14 +141,15 @@ function ActionContentRouter({
     personalDetails,
     shouldShowBorder,
     isOnSearch,
-    index,
     setIsPaymentMethodPopoverActive,
+    isTrackIntentUser,
 }: ActionContentRouterProps): React.JSX.Element | null {
     const {translate, formatTravelDate} = useLocalize();
     const styles = useThemeStyles();
 
-    // Report that owns this action for mutations (thread / merged-list cases use originalReport).
-    const actionOwnerReport = originalReport ?? report;
+    // Report that owns this action for mutations (thread / merged-list cases use originalReport). This is a stable projection (heartbeat fields stripped).
+    const actionOwnerReportStable = originalReport ?? report;
+
     const actionOwnerReportID = originalReportID ?? reportID;
     const policyID = report?.policyID;
     const reportOwnerAccountID = report?.ownerAccountID;
@@ -266,6 +267,7 @@ function ActionContentRouter({
                 policyID={policyID}
                 reportID={reportID}
                 originalReport={originalReport}
+                isTrackIntentUser={isTrackIntentUser ?? false}
             />
         );
     }
@@ -380,9 +382,10 @@ function ActionContentRouter({
         return (
             <MentionWhisperContent
                 action={action}
-                report={report}
-                originalReport={originalReport}
+                actionOwnerReportStable={actionOwnerReportStable}
                 originalReportID={originalReportID}
+                parentReport={originalReport ? report : undefined}
+                policyID={policyID}
             />
         );
     }
@@ -391,7 +394,7 @@ function ActionContentRouter({
             <ReportMentionWhisperContent
                 action={action}
                 reportID={reportID}
-                actionOwnerReport={actionOwnerReport}
+                actionOwnerReportStable={actionOwnerReportStable}
             />
         );
     }
@@ -400,7 +403,7 @@ function ActionContentRouter({
             <ConfirmWhisperContent
                 action={action}
                 reportID={reportID}
-                actionOwnerReport={actionOwnerReport}
+                actionOwnerReportStable={actionOwnerReportStable}
                 originalReportID={originalReportID}
             />
         );
@@ -485,7 +488,6 @@ function ActionContentRouter({
             originalReportID={originalReportID}
             displayAsGroup={displayAsGroup}
             draftMessage={draftMessage}
-            index={index}
             isHidden={isHidden}
             updateHiddenState={updateHiddenState}
             isOnSearch={isOnSearch}
