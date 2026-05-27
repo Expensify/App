@@ -13,7 +13,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
 import BulkDuplicateHandler from '@components/Search/BulkDuplicateHandler';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useFilterSelectedTransactions from '@hooks/useFilterSelectedTransactions';
@@ -71,8 +71,8 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
-    const {selectedTransactionIDs} = useSearchStateContext();
-    const {setSelectedTransactions, clearSelectedTransactions} = useSearchActionsContext();
+    const {selectedTransactionIDs} = useSearchSelectionContext();
+    const {setSelectedTransactions, clearSelectedTransactions} = useSearchSelectionActions();
 
     useFilterSelectedTransactions(transactions, reportID);
 
@@ -357,8 +357,8 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
 }
 
 function SelectionToolbarGate({reportID, transactions, reportActions}: SelectionToolbarProps) {
-    const {selectedTransactionIDs, currentSelectedTransactionReportID} = useSearchStateContext();
-    const {clearSelectedTransactions, setCurrentSelectedTransactionReportID} = useSearchActionsContext();
+    const {selectedTransactionIDs, currentSelectedTransactionReportID} = useSearchSelectionContext();
+    const {clearSelectedTransactions, setCurrentSelectedTransactionReportID} = useSearchSelectionActions();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
     useFocusEffect(() => {

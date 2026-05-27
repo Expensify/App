@@ -17,7 +17,7 @@ const PROTECTED_SCREENS = {
 const SCREENS = {
     ...PROTECTED_SCREENS,
     REPORT: 'Report',
-    PROFILE_AVATAR: 'ProfileAvatar',
+    DYNAMIC_PROFILE_AVATAR: 'Dynamic_Profile_Avatar',
     WORKSPACE_AVATAR: 'WorkspaceAvatar',
     WORKSPACE_DOCUMENT: 'WorkspaceDocument',
     REPORT_AVATAR: 'ReportAvatar',
@@ -516,7 +516,7 @@ const SCREENS = {
     },
 
     NEW_REPORT_WORKSPACE_SELECTION: {
-        ROOT: 'NewReportWorkspaceSelection_Root',
+        DYNAMIC_ROOT: 'Dynamic_NewReportWorkspaceSelection_Root',
     },
 
     SET_DEFAULT_WORKSPACE: 'SetDefaultWorkspace',
@@ -768,13 +768,13 @@ const SCREENS = {
         CATEGORIES: 'Workspace_Categories',
         TAGS: 'Workspace_Tags',
         TAGS_SETTINGS: 'Tags_Settings',
-        DYNAMIC_WORKSPACE_TAGS_EDIT: 'Dynamic_Workspace_Tags_Edit',
+        TAGS_EDIT: 'Tags_Edit',
         TAGS_IMPORT: 'Tags_Import',
         TAGS_IMPORT_MULTI_LEVEL_SETTINGS: 'Tags_Import_Multi_Level_Settings',
         TAGS_IMPORT_OPTIONS: 'Tags_Import_Options',
         TAGS_IMPORTED: 'Tags_Imported',
         TAGS_IMPORTED_MULTI_LEVEL: 'Tags_Imported_Multi_Level',
-        DYNAMIC_WORKSPACE_TAG_EDIT: 'Dynamic_Workspace_Tag_Edit',
+        TAG_EDIT: 'Tag_Edit',
         TAXES: 'Workspace_Taxes',
         REPORTS: 'Workspace_Reports',
         REPORT_FIELDS_SETTINGS: 'Workspace_ReportFields_Settings',
@@ -793,11 +793,11 @@ const SCREENS = {
         TAXES_SETTINGS_WORKSPACE_CURRENCY_DEFAULT: 'Workspace_Taxes_Settings_WorkspaceCurrency',
         TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT: 'Workspace_Taxes_Settings_ForeignCurrency',
         TAX_CREATE: 'Workspace_Tax_Create',
-        DYNAMIC_WORKSPACE_TAG_CREATE: 'Dynamic_Workspace_Tag_Create',
-        DYNAMIC_WORKSPACE_TAG_SETTINGS: 'Dynamic_Workspace_Tag_Settings',
-        DYNAMIC_WORKSPACE_TAG_APPROVER: 'Dynamic_Workspace_Tag_Approver',
-        DYNAMIC_WORKSPACE_TAG_LIST_VIEW: 'Dynamic_Workspace_Tag_List_View',
-        DYNAMIC_WORKSPACE_TAG_GL_CODE: 'Dynamic_Workspace_Tag_GL_Code',
+        TAG_CREATE: 'Tag_Create',
+        TAG_SETTINGS: 'Tag_Settings',
+        TAG_APPROVER: 'Tag_Approver',
+        TAG_LIST_VIEW: 'Tag_List_View',
+        TAG_GL_CODE: 'Tag_GL_Code',
         CURRENCY: 'Workspace_Overview_Currency',
         DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS: 'Dynamic_Workspace_Overview_Address',
         DYNAMIC_WORKSPACE_OVERVIEW_PLAN: 'Dynamic_Workspace_Overview_Plan_Type',
@@ -915,7 +915,7 @@ const SCREENS = {
 
     EDIT_REQUEST: {
         CURRENCY: 'EditRequest_Currency',
-        REPORT_FIELD: 'EditRequest_ReportField',
+        DYNAMIC_REPORT_FIELD: 'Dynamic_EditRequest_ReportField',
     },
 
     NEW_CHAT: {
@@ -978,7 +978,7 @@ const SCREENS = {
     WALLET_STATEMENT_ROOT: 'WalletStatement_Root',
     SIGN_IN_ROOT: 'SignIn_Root',
     DETAILS_ROOT: 'Details_Root',
-    PROFILE_ROOT: 'Profile_Root',
+    DYNAMIC_PROFILE: 'Dynamic_Profile_Root',
     AUTO_SUBMIT_ROOT: 'AutoSubmit_Modal_Root',
     DYNAMIC_CHANGE_POLICY_EDUCATIONAL_ROOT: 'DynamicChangePolicyEducational_Root',
     REPORT_DESCRIPTION_ROOT: 'Report_Description_Root',
@@ -1001,6 +1001,7 @@ const SCREENS = {
     DYNAMIC_PRIVATE_NOTES_LIST: 'Dynamic_PrivateNotes_List',
     DYNAMIC_PRIVATE_NOTES_EDIT: 'Dynamic_PrivateNotes_Edit',
     REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',
+    REIMBURSEMENT_ACCOUNT_USD: 'Reimbursement_Account_USD',
     REIMBURSEMENT_ACCOUNT_NON_USD: 'Reimbursement_Account_Non_USD',
     REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO: 'Reimbursement_Account_Signer_Info',
     REFERRAL_DETAILS: 'Referral_Details',

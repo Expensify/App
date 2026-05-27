@@ -75,7 +75,7 @@ import HoldOrRejectEducationalModal from './HoldOrRejectEducationalModal';
 import HoldSubmitterEducationalModal from './HoldSubmitterEducationalModal';
 import {ModalActions} from './Modal/Global/ModalContext';
 import {usePersonalDetails} from './OnyxListItemProvider';
-import {useSearchActionsContext, useSearchStateContext} from './Search/SearchContext';
+import {useSearchQueryContext, useSearchSelectionActions} from './Search/SearchContext';
 import {useWideRHPState} from './WideRHPContextProvider';
 
 type MoneyRequestHeaderSecondaryActionsProps = {
@@ -119,6 +119,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     // Per-key Onyx subscriptions
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
+    const [grandParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.parentReportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`);
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
@@ -163,8 +164,8 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const {showConfirmModal} = useConfirmModal();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const {currentSearchHash} = useSearchStateContext();
-    const {removeTransaction} = useSearchActionsContext();
+    const {currentSearchHash} = useSearchQueryContext();
+    const {removeTransaction} = useSearchSelectionActions();
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transaction?.transactionID ? [transaction.transactionID] : []);
     const isReportInSearch = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT;
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -276,18 +277,19 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         if (!transaction || !parentReportAction || !parentReport) {
             return [];
         }
-        return getSecondaryTransactionThreadActions(
-            currentUserLogin ?? '',
-            accountID,
+        return getSecondaryTransactionThreadActions({
+            currentUserLogin: currentUserLogin ?? '',
+            currentUserAccountID: accountID,
             parentReport,
-            transaction,
-            parentReportAction,
+            reportTransaction: transaction,
+            reportAction: parentReportAction,
             originalTransaction,
             policy,
-            report,
+            transactionThreadReport: report,
             outstandingReportsByPolicyID,
-            isChatIOUReportArchived,
-        );
+            isChatReportArchived: isChatIOUReportArchived,
+            grandParentReport,
+        });
     })();
 
     const secondaryActionsImplementation: Partial<
@@ -339,7 +341,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             icon: expensifyIcons.ArrowSplit,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT,
             onSelected: () => {
-                initSplitExpense(transaction, policy);
+                initSplitExpense(transaction, policy, report);
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE]: {
@@ -439,7 +441,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                     }
                     const backToRoute = route.params?.backTo ?? Navigation.getActiveRoute();
                     setDeleteTransactionNavigateBackUrl(backToRoute);
-                    if (isTrackExpenseAction(parentReportAction)) {
+                    if (isTrackExpenseAction(parentReportAction) && !isExpenseSplit) {
                         deleteTrackExpense({
                             chatReportID: report?.parentReportID,
                             chatReport: parentReport,

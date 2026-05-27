@@ -124,6 +124,7 @@ const translations: TranslationDeepObject<typeof en> = {
             approve: 'Genehmigen',
             pay: 'Bezahlen',
             fix: 'Beheben',
+            task: 'Aufgabe',
         },
         success: 'Erfolgreich',
         group: 'Gruppe',
@@ -207,6 +208,7 @@ const translations: TranslationDeepObject<typeof en> = {
         admin: 'Admin',
         owner: 'Inhaber',
         dateFormat: 'YYYY-MM-DD',
+        calendarOpened: 'Kalender geöffnet',
         send: 'Senden',
         na: 'k. A.',
         noResultsFound: 'Keine Ergebnisse gefunden',
@@ -694,6 +696,7 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'Wir haben Ihre Karte nicht versendet. Bitte versuchen Sie es erneut.'},
         revealPin: {couldNotReveal: 'Wir konnten Ihre PIN nicht anzeigen. Bitte versuchen Sie es erneut.'},
         changePin: {didNotChange: 'Wir haben Ihre PIN nicht geändert. Bitte versuchen Sie es erneut.'},
+        revealCardDetail: {couldNotReveal: 'Wir konnten Ihre Kartendaten nicht anzeigen. Bitte versuchen Sie es noch einmal.'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -851,7 +854,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Dein Bereich',
         welcomeToRoom: (roomName: string) => `Willkommen in ${roomName}!`,
         usePlusButton: (additionalText: string) => `Verwende die +‑Taste, um eine Ausgabe zu ${additionalText}.`,
-        askConcierge: 'Dies ist dein Chat mit Concierge, deinem persönlichen KI-Agenten. Ich kann fast alles, probier es aus!',
+        askConcierge: 'Concierge kann Fragen beantworten, Ausgaben aktualisieren und mehr.',
         conciergeSupport: 'Dein persönlicher KI-Agent',
         create: 'erstellen',
         iouTypes: {
@@ -912,7 +915,6 @@ const translations: TranslationDeepObject<typeof en> = {
         buttonFind: 'Etwas finden ...',
         buttonMySettings: 'Meine Einstellungen',
         fabNewChat: 'Chat starten',
-        fabNewChatExplained: 'Aktionsmenü öffnen',
         fabScanReceiptExplained: 'Beleg scannen',
         chatPinned: 'Chat angeheftet',
         draftedMessage: 'Entwurfene Nachricht',
@@ -1043,6 +1045,7 @@ const translations: TranslationDeepObject<typeof en> = {
             repaidLast30Days: 'In den letzten 30 Tagen zurückgezahlt',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Aktuelle Transaktionen • ${lastFour}`,
         },
+        seeMore: ({count}: {count: number}) => `${count} weitere anzeigen`,
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -1280,7 +1283,7 @@ const translations: TranslationDeepObject<typeof en> = {
         receiptStatusTitle: 'Scannen …',
         receiptStatusText: 'Nur du kannst diesen Beleg sehen, während er gescannt wird. Schau später noch einmal vorbei oder gib die Details jetzt ein.',
         receiptScanningFailed: 'Belegerkennung fehlgeschlagen. Bitte geben Sie die Details manuell ein.',
-        transactionPendingDescription: 'Transaktion ausstehend. Die Buchung kann ein paar Tage dauern.',
+        allTransactionsPendingNextStep: 'Alle Transaktionen sind ausstehend. Sie können diesen Bericht erst einreichen, wenn sie in ein paar Tagen verbucht wurden.',
         companyInfo: 'Unternehmensinfos',
         companyInfoDescription: 'Wir benötigen noch ein paar weitere Angaben, bevor du deine erste Rechnung senden kannst.',
         yourCompanyName: 'Ihr Firmenname',
@@ -1320,6 +1323,10 @@ const translations: TranslationDeepObject<typeof en> = {
         settlePayment: (formattedAmount: string) => `${formattedAmount} bezahlen`,
         settleBusiness: (formattedAmount?: string) => (formattedAmount ? `${formattedAmount} als Unternehmen bezahlen` : `Mit Geschäftskonto bezahlen`),
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `${formattedAmount} als bezahlt markieren` : `Als bezahlt markieren`),
+        confirmPaymentReceivedModalTitle: 'Zahlungseingang bestätigen',
+        receivedPayment: 'Zahlung erhalten',
+        receivedPaymentConfirmation: 'Bitte fahren Sie nur fort, wenn Sie die Zahlung bereits außerhalb von Expensify erhalten haben.',
+        confirmReceivedPayment: 'Ja, ich habe die Zahlung erhalten.',
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `${amount} mit persönlichem Konto ${last4Digits} bezahlt` : `Mit Privatkonto bezahlt`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `${amount} mit Geschäftskonto ${last4Digits} bezahlt` : `Mit Geschäftskonto bezahlt`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Bezahle ${formattedAmount} über ${policyName}` : `Bezahlen über ${policyName}`),
@@ -1469,6 +1476,8 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: 'Das Enddatum darf nicht mit dem Startdatum übereinstimmen',
             manySplitsProvided: `Die maximale Anzahl zulässiger Aufteilungen beträgt ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `Der Datumsbereich darf ${CONST.IOU.SPLITS_LIMIT} Tage nicht überschreiten.`,
+            unableToSubmitReport: 'Bericht kann nicht eingereicht werden',
+            allTransactionsPendingDescription: 'Sie können diesen Bericht nicht einreichen, weil alle Transaktionen ausstehen. Es kann einige Tage dauern, bis sie gebucht werden.',
             stitchOdometerImagesFailed: 'Kilometerzählerbilder konnten nicht zusammengeführt werden. Bitte versuchen Sie es später noch einmal.',
             failedToSaveOdometerDraft: 'Dein Kilometerzähler-Entwurf konnte nicht gespeichert werden. Bitte versuche es erneut.',
         },
@@ -1515,7 +1524,6 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Einige dieser Duplikate wurden bereits genehmigt oder bezahlt.',
         reviewDuplicates: 'Duplikate prüfen',
         keepAll: 'Alle behalten',
-        keepSelected: 'Auswahl behalten',
         noDuplicatesTitle: 'Alles erledigt!',
         noDuplicatesDescription: 'Es gibt hier keine doppelten Transaktionen zur Überprüfung.',
         confirmApprove: 'Genehmigungsbetrag bestätigen',
@@ -2215,7 +2223,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     deviceManagementPage: {
         title: 'Geräteverwaltung',
-        description: 'Verwalten Sie alle Geräte, auf denen Sie sich mit Ihrem Expensify-Konto angemeldet haben.',
+        description:
+            'Verwalten Sie alle Geräte, bei denen Sie sich mit Ihrem Expensify Konto angemeldet haben. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Erfahren Sie mehr</a>.',
         revoke: 'Widerrufen',
         unknownDevice: 'Unbekanntes Gerät',
     },
@@ -2230,11 +2239,11 @@ const translations: TranslationDeepObject<typeof en> = {
         disabled: 'Die Zwei-Faktor-Authentifizierung ist jetzt deaktiviert',
         noAuthenticatorApp: 'Sie benötigen keine Authentifizierungs-App mehr, um sich bei Expensify anzumelden.',
         stepCodes: 'Wiederherstellungscodes',
-        keepCodesSafe: 'Bewahre diese Wiederherstellungscodes sicher auf!',
+        keepCodesSafe: 'Bewahren Sie diese Codes sicher auf!',
         codesLoseAccess: dedent(`
-            Wenn du den Zugriff auf deine Authentifizierungs-App verlierst und diese Codes nicht hast, verlierst du den Zugriff auf dein Konto.
+            Wenn Sie den Zugriff auf Ihre Authentifizierungs-App verlieren und diese Codes nicht haben, verlieren Sie den Zugriff auf Ihr Konto.
 
-            Hinweis: Das Einrichten der Zwei-Faktor-Authentifizierung meldet dich von allen anderen aktiven Sitzungen ab.
+            <strong>Hinweis</strong>: Das Einrichten der Zwei-Faktor-Authentifizierung meldet Sie von allen anderen aktiven Sitzungen ab.
         `),
         errorStepCodes: 'Bitte kopiere oder lade die Codes herunter, bevor du fortfährst',
         stepVerify: 'Bestätigen',
@@ -2263,6 +2272,9 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyOldDeviceDescription: 'Geben Sie den sechsstelligen Code aus Ihrer aktuellen Authentifizierungs-App ein, um zu bestätigen, dass Sie Zugriff darauf haben.',
         verifyNewDeviceTitle: 'Neues Gerät einrichten',
         verifyNewDeviceDescription: 'Scannen Sie den QR-Code mit Ihrem neuen Gerät und geben Sie dann den Code ein, um die Einrichtung abzuschließen.',
+        downloadCodes: 'Codes herunterladen',
+        screenshotTip: 'Tipp: Machen Sie einen Screenshot, um ihn in Ihrer Fotomediathek zu speichern',
+        copyCodes: 'Codes kopieren',
     },
     recoveryCodeForm: {
         error: {
@@ -2566,6 +2578,8 @@ ${amount} für ${merchant} – ${date}`,
         addApprovalTip: 'Dieser Standard-Workflow gilt für alle Mitglieder, sofern kein spezifischerer Workflow vorhanden ist.',
         approver: 'Genehmiger',
         addApprovalsDescription: 'Zusätzliche Genehmigung einholen, bevor eine Zahlung autorisiert wird.',
+        automateApprovalsWithAgentsTitle: 'Genehmigungen mit Agenten automatisieren',
+        automateApprovalsWithAgentsSubtitle: 'Fügen Sie die untenstehende Person zum Workflow hinzu, um Genehmigungen zu automatisieren.',
         makeOrTrackPaymentsTitle: 'Zahlungen',
         makeOrTrackPaymentsDescription:
             'Fügen Sie eine bevollmächtigte zahlende Person für in Expensify getätigte Zahlungen hinzu oder verfolgen Sie Zahlungen, die andernorts getätigt wurden.',
@@ -2689,6 +2703,7 @@ ${amount} für ${merchant} – ${date}`,
     reportFraudConfirmationPage: {
         title: 'Kartenbetrug gemeldet',
         description: 'Wir haben Ihre bestehende Karte dauerhaft deaktiviert. Wenn Sie Ihre Kartendetails erneut aufrufen, steht Ihnen eine neue virtuelle Karte zur Verfügung.',
+        descriptionCardNotReplaced: 'Deine Karte wurde dauerhaft deaktiviert. Bitte kontaktiere einen Administrator, um eine neue Karte auszustellen.',
         buttonText: 'Verstanden, danke!',
     },
     activateCardPage: {
@@ -2961,7 +2976,7 @@ ${amount} für ${merchant} – ${date}`,
         workspaceYouMayJoin: (domain: string, email: string) =>
             `Jemand von ${domain} hat bereits einen Workspace erstellt. Bitte gib den magischen Code ein, der an ${email} gesendet wurde.`,
         joinAWorkspace: 'Einem Arbeitsbereich beitreten',
-        listOfWorkspaces: 'Hier ist die Liste der Arbeitsbereiche, denen du beitreten kannst. Keine Sorge, du kannst ihnen auch später jederzeit beitreten, wenn du möchtest.',
+        listOfWorkspaces: 'Hier ist die Liste der Arbeitsbereiche, denen Sie beitreten können.',
         skipForNow: 'Vorerst überspringen',
         workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} Mitglied${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         whereYouWork: 'Wo arbeitest du?',
@@ -3302,6 +3317,7 @@ ${amount} für ${merchant} – ${date}`,
             title: 'Mitglieder einladen',
             subtitle: 'Füge dein Team hinzu oder lade deine Steuerberatung ein. Je mehr, desto besser!',
         },
+        workEmail2FAError: 'Dieser Login gehört zu einem bestehenden Konto mit aktivierter Zwei-Faktor-Authentifizierung (2FA).',
     },
     featureTraining: {
         doNotShowAgain: 'Nicht mehr anzeigen',
@@ -5384,6 +5400,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                         `Ups! Du hast ein einzelnes Feld („${duplicateColumn}“) mehreren Spalten zugeordnet. Bitte überprüfe die Zuordnung und versuche es erneut.`,
                 },
                 fileImportDescription: 'Eine manuelle Option, falls Ihre Bank keinen Feed senden kann.',
+                duplicateFeedModal: {title: 'Karten-Feed bereits verbunden', prompt: 'Sie können denselben Kartenfeed nicht zweimal zu demselben Workspace hinzufügen.'},
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Letzter Tag des Monats',
@@ -6039,8 +6056,15 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             error: 'Beim Kopieren der Arbeitsbereichseinstellungen ist ein Fehler aufgetreten. Bitte versuche es erneut.',
             title: 'Einstellungen kopieren',
             selectWorkspaces: 'Arbeitsbereiche auswählen',
-            description: 'Wählen Sie die Arbeitsbereiche aus, in die Sie Einstellungen kopieren möchten, und wählen Sie dann die Einstellungen aus, die Sie kopieren möchten.',
-            searchPlaceholder: 'Workspaces durchsuchen',
+            description: 'Wählen Sie die Arbeitsbereiche, in die Sie Einstellungen kopieren möchten, und wählen Sie dann die Einstellungen aus, die Sie kopieren möchten.',
+            searchPlaceholder: 'Arbeitsbereiche suchen',
+            selectFeatures: 'Zu kopierende Funktionen auswählen',
+            whichFeatures: 'Wählen Sie die Einstellungen aus, die in Ihren bestehenden Arbeitsbereichen überschrieben werden sollen.',
+            workflowsWithoutMembersConfirm: 'Ohne Mitglieder fortfahren',
+            workflowsWithoutMembersPrompt:
+                'Beim Kopieren von Workflows ohne Mitglieder werden Genehmigungs-Workflows nicht kopiert. Einstellungen für Einreichung und Zahlung werden weiterhin kopiert.',
+            accountingMismatch: ({part}: {part: string}) =>
+                `Sie können ${part} nur kopieren, wenn alle Arbeitsbereiche dasselbe Buchhaltungssystem und dieselbe Unternehmensverbindung verwenden.`,
         },
         emptyWorkspace: {
             title: 'Du hast keine Arbeitsbereiche',
@@ -6120,8 +6144,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             approvers: 'Genehmigende',
             auditors: 'Prüfer',
             emptyRoleFilter: {title: 'Keine Mitglieder entsprechen diesem Filter', subtitle: 'Laden Sie ein Mitglied ein oder ändern Sie den Filter oben.'},
-            configureGustoSync: 'Gusto-Synchronisierung konfigurieren.',
-            syncWithGusto: 'Mit Gusto synchronisieren',
+            configureHRSync: (providerName: string) => `Synchronisierung mit ${providerName} einrichten.`,
+            syncWithHR: (providerName: string) => `Mit ${providerName} synchronisieren`,
         },
         card: {
             getStartedIssuing: 'Beginne, indem du deine erste virtuelle oder physische Karte ausstellst.',
@@ -6181,7 +6205,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
         accounting: {
             settings: 'Einstellungen',
             title: 'Verknüpfungen',
-            subtitle: 'Verbinde dein Buchhaltungssystem, um Transaktionen mit deinem Kontenrahmen zu kodieren, Zahlungen automatisch abzugleichen und deine Finanzen synchron zu halten.',
+            subtitle: 'Verbinden Sie Ihre Buchhaltungssoftware für eine automatische Synchronisierung.',
             qbo: 'QuickBooks Online',
             qbd: 'QuickBooks Desktop',
             xero: 'Xero',
@@ -6756,8 +6780,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 perActiveMember: 'pro aktivem Mitglied und Monat.',
                 perMember: 'pro Mitglied und Monat.',
             },
-            note: (subscriptionLink: string) =>
-                `<muted-text>Upgrade, um auf diese Funktion zuzugreifen, oder <a href="${subscriptionLink}">erfahre mehr</a> über unsere Tarife und Preise.</muted-text>`,
+            note: (subscriptionLink: string) => `<muted-text><a href="${subscriptionLink}">Erfahren Sie mehr</a> über unsere Pläne und Preise.</muted-text>`,
             upgradeToUnlock: 'Diese Funktion freischalten',
             completed: {
                 headline: `Du hast deinen Arbeitsbereich aktualisiert!`,
@@ -6973,6 +6996,11 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Gehe zu [weitere Funktionen](${moreFeaturesLink}) und aktiviere ${featureName}, um diese Funktion freizuschalten.`,
             },
+            agentsPromoBanner: {
+                title: 'Sie sehen die benötigte Regel nicht? Fügen Sie eine:n Agent:in hinzu',
+                subtitle: 'Fügen Sie komplexe Regeln hinzu und reduzieren Sie manuelle Genehmigungen mit benutzerdefinierten Agenten.',
+                cta: 'Ausprobieren',
+            },
             merchantRules: {
                 title: 'Händler',
                 subtitle: 'Legen Sie Händlerregeln fest, damit Spesen korrekt codiert ankommen und weniger Nachbearbeitung erfordern.',
@@ -7182,12 +7210,16 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         hr: {
             title: 'Personalwesen',
             connections: 'Verbindungen',
+            connectionsSubtitle:
+                'Verbinden Sie sich mit Ihrem HR-System, um Mitarbeiterdaten zu synchronisieren, Erstattungen automatisch den richtigen Personen zuzuordnen und die Ausgaben Ihres Teams ohne manuellen Aufwand korrekt zu halten.',
             subtitle: 'HR-Tools verbinden und Mitarbeitergenehmigungen synchron halten.',
             connect: 'Verbinden',
             syncNow: 'Jetzt synchronisieren',
             disconnect: 'Trennen',
             disconnectTitle: (providerName: string) => `${providerName} trennen`,
             disconnectPrompt: (providerName: string) => `Möchten Sie ${providerName} wirklich trennen?`,
+            alreadyConnectedTitle: 'Es kann keine Verbindung zu mehreren HR-Plattformen hergestellt werden',
+            alreadyConnectedPrompt: 'Sie müssen Ihre aktuelle HR-Plattform trennen, bevor Sie eine andere verbinden.',
             lastSync: (relativeDate: string) => `Zuletzt synchronisiert ${relativeDate}`,
             syncError: (providerName: string) => `Verbindung zu ${providerName} nicht möglich`,
             connectionDescription: (providerName: string) => `Verbinden Sie ${providerName}, um Mitarbeitergenehmigungen mit Ihrem Workspace zu synchronisieren.`,
@@ -7247,6 +7279,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             zenefits: {
                 title: 'TriNet',
             },
+            syncingModalTitle: 'Ihre Verbindung wird synchronisiert',
+            syncingModalDescription: 'Die erste Verbindung kann einige Zeit dauern. Sie werden über alle Fehler benachrichtigt.',
+            syncing: 'Mitarbeitende werden synchronisiert',
         },
     },
     getAssistancePage: {
@@ -8310,6 +8345,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         selectAllFeatures: 'Alle Funktionen auswählen',
         selectAllTransactions: 'Alle Transaktionen auswählen',
         selectAllItems: 'Alle Einträge auswählen',
+        openActionsMenu: 'Aktionsmenü öffnen',
         selectAllCategories: 'Alle Kategorien auswählen',
         selectAllDistanceRates: 'Alle Entfernungssätze auswählen',
         selectAllTags: 'Alle Tags auswählen',

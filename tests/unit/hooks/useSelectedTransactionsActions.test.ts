@@ -73,13 +73,14 @@ const mockCurrentSearchHash = 12345;
 let mockCurrentSearchResults: SearchResults | undefined;
 
 jest.mock('@components/Search/SearchContext', () => ({
-    useSearchStateContext: () => ({
+    useSearchQueryContext: () => ({currentSearchHash: mockCurrentSearchHash}),
+    useSearchResultsContext: () => ({currentSearchResults: undefined}),
+    useSearchSelectionContext: () => ({
         selectedTransactionIDs: mockSelectedTransactionIDs,
-        currentSearchHash: mockCurrentSearchHash,
         selectedTransactions: mockSelectedTransactions,
         currentSearchResults: mockCurrentSearchResults,
     }),
-    useSearchActionsContext: () => ({
+    useSearchSelectionActions: () => ({
         clearSelectedTransactions: mockClearSelectedTransactions,
     }),
 }));

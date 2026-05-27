@@ -200,7 +200,6 @@ const EMAIL = {
     EXPENSIFY_EMAIL_DOMAIN: '@expensify.com',
     EXPENSIFY_TEAM_EMAIL_DOMAIN: '@team.expensify.com',
     TEAM: 'team@expensify.com',
-    MANAGER_MCTEST: 'manager_mctest@expensify.com',
     QA_GUIDE: 'qa.guide@team.expensify.com',
 };
 
@@ -371,6 +370,11 @@ const CONST = {
     AUTH_TOKEN_TYPES: {
         ANONYMOUS: 'anonymousAccount',
         SUPPORT: 'support',
+    },
+
+    AUTH_METHOD: {
+        SAML: 'saml',
+        SHORT_LIVED_AUTH_TOKEN: 'shortLivedAuthToken',
     },
 
     AVATAR_MAX_ATTACHMENT_SIZE: 6291456,
@@ -662,7 +666,65 @@ const CONST = {
             VALIDATION: 'ValidationStep',
             ENABLE: 'EnableStep',
         },
+        PAGE_NAMES: {
+            COUNTRY: 'currency-and-country',
+            BANK_ACCOUNT: 'bank-info',
+            REQUESTOR: 'personal-info',
+            VERIFY_IDENTITY: 'verify-identity',
+            COMPANY: 'company',
+            BENEFICIAL_OWNERS: 'business-owner',
+            ACH_CONTRACT: 'ach-contract',
+            VALIDATION: 'validation',
+            ENABLE: 'enable',
+        },
         STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
+        BANK_INFO_STEP: {
+            SUB_PAGE_NAMES: {
+                MANUAL: 'manual',
+                PLAID: 'plaid',
+            },
+        },
+        PERSONAL_INFO_STEP: {
+            SUB_PAGE_NAMES: {
+                FULL_NAME: 'full-name',
+                DATE_OF_BIRTH: 'date-of-birth',
+                SSN: 'ssn',
+                ADDRESS: 'address',
+                CONFIRMATION: 'confirmation',
+            },
+        },
+        BUSINESS_INFO_STEP: {
+            SUB_PAGE_NAMES: {
+                NAME: 'name',
+                TAX_ID: 'tax-id',
+                WEBSITE: 'website',
+                PHONE: 'phone',
+                ADDRESS: 'address',
+                TYPE: 'type',
+                INCORPORATION_DATE: 'start-date',
+                INCORPORATION_STATE: 'state',
+                INCORPORATION_CODE: 'code',
+                CONFIRMATION: 'confirmation',
+            },
+        },
+        BENEFICIAL_OWNERS_STEP: {
+            SUB_PAGE_NAMES: {
+                IS_USER_UBO: 'is-user-ubo',
+                IS_ANYONE_ELSE_UBO: 'is-anyone-else-ubo',
+                ARE_THERE_MORE_UBOS: 'are-there-more-ubos',
+                UBOS_LIST: 'ubos-list',
+                LEGAL_NAME: 'legal-name',
+                DATE_OF_BIRTH: 'date-of-birth',
+                SSN: 'ssn',
+                ADDRESS: 'address',
+                CONFIRMATION: 'confirmation',
+            },
+        },
+        COMPLETE_VERIFICATION_STEP: {
+            SUB_PAGE_NAMES: {
+                CONFIRM_AGREEMENTS: 'confirm-agreements',
+            },
+        },
         SUBSTEP: {
             MANUAL: 'manual',
             PLAID: 'plaid',
@@ -912,7 +974,6 @@ const CONST = {
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
         PER_DIEM: 'newDotPerDiem',
-        NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         TRAVEL_INVOICING: 'travelInvoicing',
         EXPENSIFY_CARD_EU_UK: 'expensifyCardEuUk',
@@ -922,6 +983,7 @@ const CONST = {
         GUSTO: 'gustoNewDot',
         ZENEFITS: 'zenefitsNewDot',
         BULK_EDIT: 'bulkEdit',
+        BULK_EDIT_WORKSPACES: 'bulkEditWorkspaces',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
         SUBMIT_2026: 'submit2026',
         DATE_BOUND_MILEAGE_RATE: 'dateBoundMileageRate',
@@ -1367,6 +1429,7 @@ const CONST = {
         SECONDARY_ACTIONS: {
             SUBMIT: 'submit',
             APPROVE: 'approve',
+            RECEIVED_PAYMENT: 'receivedPayment',
             REMOVE_HOLD: 'removeHold',
             UNAPPROVE: 'unapprove',
             CANCEL_PAYMENT: 'cancelPayment',
@@ -1455,6 +1518,7 @@ const CONST = {
             APPROVE: 'approve',
             PAY: 'pay',
             FIX: 'fix',
+            TASK: 'task',
         },
         ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE: {
             EXPENSE: 'expense',
@@ -1484,6 +1548,7 @@ const CONST = {
                 CARD_ASSIGNED: 'CARDASSIGNED',
                 CARD_FROZEN: 'CARDFROZEN',
                 CARD_UNFROZEN: 'CARDUNFROZEN',
+                CARD_DEACTIVATED: 'CARDDEACTIVATED',
                 PERSONAL_CARD_CONNECTION_BROKEN: 'PERSONALCARDCONNECTIONBROKEN',
                 CHANGE_FIELD: 'CHANGEFIELD', // OldDot Action
                 CHANGE_POLICY: 'CHANGEPOLICY',
@@ -2026,6 +2091,7 @@ const CONST = {
         // Span names
         SPAN_OPEN_REPORT: 'ManualOpenReport',
         SPAN_APP_STARTUP: 'ManualAppStartup',
+        SPAN_APP_STARTUP_NETWORK_REQUEST: 'ManualAppStartupNetworkRequest',
         SPAN_NAVIGATE_TO_REPORTS: 'ManualNavigateToReports',
         SPAN_NAVIGATE_TO_INBOX_TAB: 'ManualNavigateToInboxTab',
         SPAN_OD_ND_TRANSITION: 'ManualOdNdTransition',
@@ -2113,6 +2179,7 @@ const CONST = {
         ATTRIBUTE_IS_MULTI_SCAN: 'is_multi_scan',
         ATTRIBUTE_SOURCE: 'source',
         ATTRIBUTE_ODOMETER_IMAGE_TYPE: 'odometer_image_type',
+        ATTRIBUTE_DURATION_SINCE_NATIVE_APP_STARTUP_MS: 'duration_since_native_app_startup_ms',
         /** Follow-up action after expense submit (action-based; used as submit_follow_up_action in span). */
         SUBMIT_FOLLOW_UP_ACTION: {
             DISMISS_MODAL_AND_OPEN_REPORT: 'dismiss_modal_and_open_report',
@@ -2918,9 +2985,9 @@ const CONST = {
 
     ZENEFITS: {
         APPROVAL_MODE: {
-            BASIC: 'basic',
-            MANAGER: 'manager',
-            CUSTOM: 'custom',
+            BASIC: 'APPROVAL_SUBMIT_AND_APPROVE',
+            MANAGER: 'APPROVAL_ADVANCED',
+            CUSTOM: 'APPROVAL_MANUAL',
         },
     },
 
@@ -2929,6 +2996,18 @@ const CONST = {
             BASIC: 'basic',
             MANAGER: 'manager',
             CUSTOM: 'custom',
+        },
+        SYNC_STATUS: {
+            SYNCING: 'SYNCING',
+            DONE: 'DONE',
+            FAILED: 'FAILED',
+            DISABLED: 'DISABLED',
+        },
+        SYNC_TYPE: {
+            INITIAL: 'initial',
+            MANUAL: 'manual',
+            AUTO: 'auto',
+            WEBHOOK: 'webhook',
         },
     },
 
@@ -3331,7 +3410,6 @@ const CONST = {
         REWARDS: Number(Config?.EXPENSIFY_ACCOUNT_ID_REWARDS ?? 11023767), // rewards@expensify.com
         STUDENT_AMBASSADOR: Number(Config?.EXPENSIFY_ACCOUNT_ID_STUDENT_AMBASSADOR ?? 10476956),
         SVFG: Number(Config?.EXPENSIFY_ACCOUNT_ID_SVFG ?? 2012843),
-        MANAGER_MCTEST: Number(Config?.EXPENSIFY_ACCOUNT_ID_MANAGER_MCTEST ?? 18964612),
         QA_GUIDE: Number(Config?.EXPENSIFY_ACCOUNT_ID_QA_GUIDE ?? 14365522),
     },
 
@@ -3781,7 +3859,7 @@ const CONST = {
             DOWNLOAD_CSV: 'downloadCSV',
             SETTINGS: 'settings',
             EXPORT: 'export',
-            SYNC_WITH_GUSTO: 'syncWithGusto',
+            SYNC_WITH_HR: 'syncWithHR',
         },
         MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
@@ -4021,7 +4099,6 @@ const CONST = {
                 ZENEFITS_SYNC_TITLE: 'zenefitsSyncTitle',
                 ZENEFITS_SYNC_LOAD_DATA: 'zenefitsSyncLoadData',
                 ZENEFITS_SYNC_PROVISIONING: 'zenefitsSyncProvisioning',
-                MERGE_HR_SYNC_TITLE: 'mergeHRSyncTitle',
                 FINANCIAL_FORCE_SYNC_CONNECTION: 'financialForceSyncConnection',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
@@ -4812,7 +4889,6 @@ const CONST = {
         EMAIL.STUDENT_AMBASSADOR,
         EMAIL.SVFG,
         EMAIL.TEAM,
-        EMAIL.MANAGER_MCTEST,
         EMAIL.QA_GUIDE,
     ] as string[],
     get EXPENSIFY_ACCOUNT_IDS() {
@@ -4834,7 +4910,6 @@ const CONST = {
             this.ACCOUNT_ID.REWARDS,
             this.ACCOUNT_ID.STUDENT_AMBASSADOR,
             this.ACCOUNT_ID.SVFG,
-            this.ACCOUNT_ID.MANAGER_MCTEST,
         ].filter((id) => id !== -1);
     },
 
@@ -4999,7 +5074,12 @@ const CONST = {
         PINK: 'Pink',
     },
 
-    MAP_MARKER_SIZE: 20,
+    MAP_MARKER_SIZES: {
+        CURRENT_LOCATION: {width: 48, height: 48},
+        START_WAYPOINT: {width: 48, height: 48},
+        STOP_WAYPOINT: {width: 48, height: 53},
+        WAYPOINT: {width: 40, height: 40},
+    },
 
     QUICK_REACTIONS: [
         {
@@ -6938,6 +7018,7 @@ const CONST = {
 
     // We need to store this server side error in order to not show the blocking screen when the error is for invalid code
     MERGE_ACCOUNT_INVALID_CODE_ERROR: '401 Not authorized - Invalid validateCode',
+    MERGE_ACCOUNT_2FA_ERROR: 'is a login for an Expensify account with Two-Factor Authentication (2FA) enabled',
 
     // Returned when a user tries to add a work email tied to a closed work account, so we can show a specific error message instead of the generic blocking screen subtitle
     WORK_ACCOUNT_CLOSED_ERROR: '401 work account is closed',
@@ -8223,6 +8304,7 @@ const CONST = {
             RANGE_PREFIX: 'reportFieldRange-',
         },
         TAG_EMPTY_VALUE: 'none',
+        TAG_UNTAGGED_VALUE: '(untagged)',
         CATEGORY_EMPTY_VALUE: 'none',
         CATEGORY_DEFAULT_VALUE: 'Uncategorized',
         MERCHANT_EMPTY_VALUE: 'none',
@@ -8995,6 +9077,8 @@ const CONST = {
         HAS_FILTER_NEGATION: 'hasFilterNegation',
     },
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
+    AGENTS_WORKFLOWS_BANNER: 'agentsWorkflowsBanner',
+    AGENTS_RULES_BANNER: 'agentsRulesBanner',
     SMART_BANNER_HEIGHT: 152,
 
     NAVIGATION_TESTS: {
@@ -9134,6 +9218,13 @@ const CONST = {
     SENTRY_LABEL: {
         BILLING_BANNER: {
             RIGHT_ICON: 'BillingBanner-RightIcon',
+        },
+        AGENTS_WORKFLOWS_BANNER: {
+            DISMISS: 'AgentsWorkflowsBanner-Dismiss',
+        },
+        AGENTS_RULES_BANNER: {
+            CTA: 'AgentsRulesBanner-CTA',
+            DISMISS: 'AgentsRulesBanner-Dismiss',
         },
         NAVIGATION_TAB_BAR: {
             EXPENSIFY_LOGO: 'NavigationTabBar-ExpensifyLogo',
@@ -9383,6 +9474,7 @@ const CONST = {
             CLOSE_PDF_MODAL: 'MoreMenu-ClosePDFModal',
             SUBMIT: 'MoreMenu-Submit',
             APPROVE: 'MoreMenu-Approve',
+            RECEIVED_PAYMENT: 'MoreMenu-ReceivedPayment',
             UNAPPROVE: 'MoreMenu-Unapprove',
             CANCEL_PAYMENT: 'MoreMenu-CancelPayment',
             HOLD: 'MoreMenu-Hold',
@@ -9995,18 +10087,20 @@ const CONST = {
     },
 
     HOME: {
+        // Maximum number of items in TimeSensitiveSection and YourSpendSection. Any extra items are revealed via the expand toggle button.
+        SECTION_VISIBLE_LIMIT: 5,
         ANNOUNCEMENTS: [
             {
-                title: 'Smarter cards, mileage, and approvals',
-                subtitle: 'Product update',
-                url: 'https://use.expensify.com/blog/expensify-april-2026-product-update',
-                publishedDate: '2026-04-15',
+                title: 'Expensify and VAT IT Launch Integration Partnership to Simplify Global VAT Reclaim',
+                subtitle: 'Press release',
+                url: 'https://www.businesswire.com/news/home/20260521691479/en/Expensify-and-VAT-IT-Launch-Integration-Partnership-to-Simplify-Global-VAT-Reclaim',
+                publishedDate: '2026-05-21',
             },
             {
-                title: 'New BYOC partnership: Institute of Commercial Payments',
+                title: 'Expensify and Playroll Partner to Eliminate Compliance Complexity',
                 subtitle: 'Press release',
-                url: 'https://www.businesswire.com/news/home/20260421550894/en/Expensify-Partners-With-IOCP-to-Expand-Access-to-Modern-Spend-Management',
-                publishedDate: '2026-04-21',
+                url: 'https://www.businesswire.com/news/home/20260519341013/en/Expensify-and-Playroll-Partner-to-Eliminate-Compliance-Complexity-and-Streamline-Expenses-to-Payroll-for-Businesses-Going-Global',
+                publishedDate: '2026-05-19',
             },
             {
                 title: 'Expensify named Expense Platform of the Year',
@@ -10034,6 +10128,7 @@ const CONST = {
         USER_LOCATION: 'user-location',
         ROUTE_SOURCE: 'route-source',
         ROUTE_FILL: 'route-fill',
+        ROUTE_BORDER: 'route-border',
     },
 
     PARTNER_ID: {
