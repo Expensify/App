@@ -12,10 +12,6 @@ on:
 
 permissions: {}
 
-concurrency:
-  group: codex-review-${{ github.event.pull_request.number || github.event.issue.number }}
-  cancel-in-progress: true
-
 jobs:
   codex_review:
     if: |
@@ -32,6 +28,9 @@ jobs:
           && contains(github.event.comment.body, '@Codex review')
         )
       )
+    concurrency:
+      group: codex-review-${{ github.event.pull_request.number || github.event.issue.number }}
+      cancel-in-progress: true
     runs-on: blacksmith-2vcpu-ubuntu-2404
     permissions:
       contents: read
