@@ -44,6 +44,9 @@ type BillingBannerProps = {
     /** Accessibility label for the right icon. */
     rightIconAccessibilityLabel?: string;
 
+    /** Sentry label for the right icon button. Defaults to `CONST.SENTRY_LABEL.BILLING_BANNER.RIGHT_ICON`. */
+    rightIconSentryLabel?: string;
+
     /** A component to be rendered on the right side of the banner. */
     rightComponent?: React.ReactNode;
 };
@@ -59,6 +62,7 @@ function BillingBanner({
     rightIcon,
     onRightIconPress,
     rightIconAccessibilityLabel,
+    rightIconSentryLabel,
     rightComponent,
 }: BillingBannerProps) {
     const styles = useThemeStyles();
@@ -74,7 +78,7 @@ function BillingBanner({
                     style={[styles.touchableButtonImage]}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={rightIconAccessibilityLabel}
-                    sentryLabel={CONST.SENTRY_LABEL.BILLING_BANNER.RIGHT_ICON}
+                    sentryLabel={rightIconSentryLabel ?? CONST.SENTRY_LABEL.BILLING_BANNER.RIGHT_ICON}
                 >
                     <Icon
                         src={rightIcon}
@@ -97,7 +101,18 @@ function BillingBanner({
                 />
             )
         );
-    }, [brickRoadIndicator, onRightIconPress, rightIcon, rightIconAccessibilityLabel, styles.touchableButtonImage, theme.danger, theme.icon, theme.success, expensifyIcons.DotIndicator]);
+    }, [
+        brickRoadIndicator,
+        onRightIconPress,
+        rightIcon,
+        rightIconAccessibilityLabel,
+        rightIconSentryLabel,
+        styles.touchableButtonImage,
+        theme.danger,
+        theme.icon,
+        theme.success,
+        expensifyIcons.DotIndicator,
+    ]);
 
     return (
         <View style={[styles.pv4, styles.ph5, styles.flexRow, styles.flexWrap, styles.gap3, styles.w100, styles.alignItemsCenter, styles.trialBannerBackgroundColor, style]}>
