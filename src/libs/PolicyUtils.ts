@@ -5,6 +5,7 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import type {SelectorType} from '@components/SelectionScreen';
 import CONST from '@src/CONST';
 import MERGE_HR_PROVIDERS from '@src/CONST/MERGE_HR_PROVIDERS';
+import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
@@ -66,13 +67,16 @@ type HRConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.HR_CONNECTI
 /** Display info for an HR provider connected to a policy. */
 type HRProviderInfo = {
     /** The internal connection name used as the key on `policy.connections` (e.g. `'gusto'`, `'zenefits'`, `'merge_hris'`). */
-    connectionName: string;
+    connectionName: ConnectionName;
 
     /** Human-readable label shown in the UI (e.g. `'Gusto'`, `'TriNet'`, or a Merge HR provider brand like `'Workday'`). */
     displayName: string;
 
     /** Optional logo URL. Populated only for Merge HR providers when their slug resolves in `MERGE_HR_PROVIDERS`. */
     iconUrl?: string;
+
+    /** Merge HR integration slug (e.g. `'bamboohr'`, `'workday'`). Only set when `connectionName` is Merge HR. */
+    mergeSlug?: MergeHRProviderSlug;
 };
 
 type WorkspaceDetails = {
@@ -1057,8 +1061,8 @@ function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
  * When conditions match, navigates to the workspace upgrade flow and returns true (caller should not enable the feature).
  * @returns true if upgrade navigation was performed; false otherwise
  */
-function tryNavigateToSubmitWorkspaceUpgrade(policy: OnyxEntry<Policy>, isEnabling: boolean, upgradeFeatureAlias: string, isSubmit2026BetaEnabled: boolean): boolean {
-    if (!policy?.id || !isEnabling || !canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)) {
+function tryNavigateToSubmitWorkspaceUpgrade(policy: OnyxEntry<Policy>, isEnabling: boolean, upgradeFeatureAlias: string): boolean {
+    if (!policy?.id || !isEnabling || !isSubmitPolicy(policy)) {
         return false;
     }
     Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policy?.id, upgradeFeatureAlias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policy?.id)));
@@ -1943,6 +1947,7 @@ function getConnectedHRProvider(policy?: OnyxEntry<Policy>): HRProviderInfo | nu
             connectionName: CONST.POLICY.CONNECTIONS.NAME.MERGE_HR,
             displayName: providerInfo?.displayName ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.merge_hris,
             iconUrl: providerInfo?.iconUrl ?? undefined,
+            mergeSlug: slug,
         };
     }
     return null;
@@ -2552,4 +2557,4 @@ export {
     isPolicyEditor,
 };
 
-export type {MemberEmailsToAccountIDs, PolicyFeature, PolicyFeatureAccess, HRProviderInfo};
+export type {MemberEmailsToAccountIDs, PolicyFeature, PolicyFeatureAccess, HRProviderInfo, HRConnectionName};

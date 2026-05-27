@@ -28,7 +28,7 @@ export type {default as ConnectPolicyToZenefitsParams} from './ConnectPolicyToZe
 export type {default as OpenPolicyProfilePageParams} from './OpenPolicyProfilePageParams';
 export type {default as OpenPolicyInitialPageParams} from './OpenPolicyInitialPageParams';
 export type {default as SyncPolicyToGustoParams} from './SyncPolicyToGustoParams';
-export type {default as SyncPolicyToMergeHRParams} from './SyncPolicyToMergeHRParams';
+export type {default as SyncPolicyToMergeParams} from './SyncPolicyToMergeParams';
 export type {default as SyncPolicyToZenefitsParams} from './SyncPolicyToZenefitsParams';
 export type {default as SyncPolicyToQuickbooksOnlineParams} from './SyncPolicyToQuickbooksOnlineParams';
 export type {default as SyncPolicyToXeroParams} from './SyncPolicyToXeroParams';
@@ -89,6 +89,7 @@ export type {default as ResolveActionableMentionWhisperParams} from './ResolveAc
 export type {default as ChangePolicyUberBillingAccountPageParams} from './ChangePolicyUberBillingAccountPageParams';
 export type {default as ResolveActionableReportMentionWhisperParams} from './ResolveActionableReportMentionWhisperParams';
 export type {default as RevealExpensifyCardDetailsParams} from './RevealExpensifyCardDetailsParams';
+export type {default as RevealExpensifyCardDetailsWithSCAParams} from './RevealExpensifyCardDetailsWithSCAParams';
 export type {default as SearchForReportsParams} from './SearchForReportsParams';
 export type {default as SearchForRoomsToMentionParams} from './SearchForRoomsToMentionParams';
 export type {default as SearchForUsersParams} from './SearchForUsersParams';
@@ -135,6 +136,7 @@ export type {default as ReadNewestActionParams} from './ReadNewestActionParams';
 export type {default as ImportPlaidAccountsParams} from './ImportPlaidAccountsParams';
 export type {default as MarkAllMessagesAsReadParams} from './MarkAllMessagesAsReadParams';
 export type {default as MarkAsUnreadParams} from './MarkAsUnreadParams';
+export type {default as MarkReportPaymentReceivedParams} from './MarkReportPaymentReceivedParams';
 export type {default as TogglePinnedChatParams} from './TogglePinnedChatParams';
 export type {default as DeleteCommentParams} from './DeleteCommentParams';
 export type {default as UpdateCommentParams} from './UpdateCommentParams';
@@ -257,8 +259,8 @@ export type {default as EnablePolicyReportFieldsParams} from './EnablePolicyRepo
 export type {default as EnablePolicyExpensifyCardsParams} from './EnablePolicyExpensifyCardsParams';
 export type {default as UpdateGustoApprovalModeParams} from './UpdateGustoApprovalModeParams';
 export type {default as UpdateGustoFinalApproverParams} from './UpdateGustoFinalApproverParams';
-export type {default as UpdateMergeHRApprovalModeParams} from './UpdateMergeHRApprovalModeParams';
-export type {default as UpdateMergeHRFinalApproverParams} from './UpdateMergeHRFinalApproverParams';
+export type {default as UpdateMergeApprovalModeParams} from './UpdateMergeApprovalModeParams';
+export type {default as UpdateMergeFinalApproverParams} from './UpdateMergeFinalApproverParams';
 export type {default as UpdateZenefitsApprovalModeParams} from './UpdateZenefitsApprovalModeParams';
 export type {default as UpdateZenefitsFinalApproverParams} from './UpdateZenefitsFinalApproverParams';
 export type {default as AcceptJoinRequestParams} from './AcceptJoinRequest';
