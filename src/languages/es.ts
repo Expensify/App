@@ -270,6 +270,7 @@ const translations: TranslationDeepObject<typeof en> = {
         merchant: 'Comerciante',
         change: 'Cambio',
         category: 'Categoría',
+        vendor: 'Proveedor',
         report: 'Informe',
         billable: 'Facturable',
         nonBillable: 'No facturable',

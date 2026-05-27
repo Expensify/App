@@ -314,6 +314,7 @@ const translations: TranslationDeepObject<typeof en> = {
         merchant: '商户',
         change: '更改',
         category: '类别',
+        vendor: '供应商',
         report: '报表',
         billable: '可计费',
         nonBillable: '不可计费',
