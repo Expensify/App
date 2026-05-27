@@ -124,6 +124,7 @@ const translations: TranslationDeepObject<typeof en> = {
             approve: 'Aprovar',
             pay: 'Pagar',
             fix: 'Corrigir',
+            task: 'Tarefa',
         },
         success: 'Concluído',
         group: 'Grupo',
@@ -852,7 +853,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Seu espaço',
         welcomeToRoom: (roomName: string) => `Bem-vindo(a) a ${roomName}!`,
         usePlusButton: (additionalText: string) => `Use o botão + para ${additionalText} uma despesa.`,
-        askConcierge: 'Este é o seu chat com o Concierge, seu agente pessoal de IA. Posso fazer quase tudo, experimente!',
+        askConcierge: 'O Concierge pode responder perguntas, atualizar despesas e muito mais.',
         conciergeSupport: 'Seu agente de IA pessoal',
         create: 'criar',
         iouTypes: {
@@ -1043,6 +1044,7 @@ const translations: TranslationDeepObject<typeof en> = {
             repaidLast30Days: 'Reembolsado nos últimos 30 dias',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Transações recentes • ${lastFour}`,
         },
+        seeMore: ({count}: {count: number}) => `Ver mais ${count}`,
     },
     allSettingsScreen: {
         subscription: 'Assinatura',
@@ -2213,7 +2215,7 @@ const translations: TranslationDeepObject<typeof en> = {
     deviceManagementPage: {
         title: 'Gerenciamento de dispositivos',
         description:
-            'Gerencie todos os dispositivos nos quais você fez login com sua conta Expensify. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Saiba mais</a>',
+            'Gerencie todos os dispositivos nos quais você fez login com sua conta Expensify. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Saiba mais</a>.',
         revoke: 'Revogar',
         unknownDevice: 'Dispositivo Desconhecido',
     },
@@ -2563,6 +2565,8 @@ ${amount} para ${merchant} - ${date}`,
         addApprovalTip: 'Este fluxo de trabalho padrão se aplica a todos os membros, a menos que exista um fluxo de trabalho mais específico.',
         approver: 'Aprovador',
         addApprovalsDescription: 'Exigir aprovação adicional antes de autorizar um pagamento.',
+        automateApprovalsWithAgentsTitle: 'Automatize aprovações com agentes',
+        automateApprovalsWithAgentsSubtitle: 'Adicione o agente abaixo ao fluxo de trabalho para automatizar as aprovações.',
         makeOrTrackPaymentsTitle: 'Pagamentos',
         makeOrTrackPaymentsDescription: 'Adicione um pagador autorizado para pagamentos feitos no Expensify ou acompanhe pagamentos feitos em outros lugares.',
         customApprovalWorkflowEnabled:
@@ -2956,7 +2960,7 @@ ${amount} para ${merchant} - ${date}`,
         peopleYouMayKnow: 'Pessoas que você talvez conheça já estão aqui! Verifique seu e-mail para se juntar a elas.',
         workspaceYouMayJoin: (domain: string, email: string) => `Alguém de ${domain} já criou um workspace. Insira o código mágico enviado para ${email}.`,
         joinAWorkspace: 'Participar de um workspace',
-        listOfWorkspaces: 'Aqui está a lista de espaços de trabalho que você pode entrar. Não se preocupe, você sempre pode entrar neles mais tarde, se preferir.',
+        listOfWorkspaces: 'Aqui está a lista de espaços de trabalho que você pode entrar.',
         skipForNow: 'Pular por enquanto',
         workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} membro${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         whereYouWork: 'Onde você trabalha?',
@@ -6023,6 +6027,11 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             selectWorkspaces: 'Selecionar espaços de trabalho',
             description: 'Escolha os espaços de trabalho para os quais você quer copiar as configurações e, em seguida, selecione quais configurações deseja copiar.',
             searchPlaceholder: 'Buscar espaços de trabalho',
+            selectFeatures: 'Selecione os recursos para copiar',
+            whichFeatures: 'Selecione as configurações que deseja sobrescrever nos seus espaços de trabalho existentes.',
+            workflowsWithoutMembersConfirm: 'Continuar sem membros',
+            workflowsWithoutMembersPrompt: 'Copiar fluxos de trabalho sem membros não copiará os fluxos de aprovação. As configurações de envio e pagamento ainda serão copiadas.',
+            accountingMismatch: ({part}: {part: string}) => `Você só pode copiar ${part} se todos os espaços de trabalho usarem o mesmo sistema contábil e a mesma conexão da empresa.`,
         },
         emptyWorkspace: {
             title: 'Você não tem nenhum workspace',
@@ -6162,8 +6171,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
         accounting: {
             settings: 'configurações',
             title: 'Conexões',
-            subtitle:
-                'Conecte-se ao seu sistema contábil para classificar transações com seu plano de contas, fazer a correspondência automática de pagamentos e manter suas finanças sincronizadas.',
+            subtitle: 'Conecte seu software de contabilidade para uma sincronização automática.',
             qbo: 'QuickBooks Online',
             qbd: 'QuickBooks Desktop',
             xero: 'Xero',
@@ -6733,8 +6741,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 perActiveMember: 'por membro ativo por mês.',
                 perMember: 'por membro por mês.',
             },
-            note: (subscriptionLink: string) =>
-                `<muted-text>Faça upgrade para acessar este recurso ou <a href="${subscriptionLink}">saiba mais</a> sobre nossos planos e preços.</muted-text>`,
+            note: (subscriptionLink: string) => `<muted-text><a href="${subscriptionLink}">Saiba mais</a> sobre nossos planos e preços.</muted-text>`,
             upgradeToUnlock: 'Desbloquear este recurso',
             completed: {
                 headline: `Você atualizou seu workspace!`,
@@ -6948,6 +6955,11 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Vá para [mais recursos](${moreFeaturesLink}) e ative ${featureName} para desbloquear este recurso.`,
             },
+            agentsPromoBanner: {
+                title: 'Não encontrou a regra que precisa? Adicione um agente',
+                subtitle: 'Adicione regras complexas e reduza aprovações manuais com agentes personalizados.',
+                cta: 'Experimente',
+            },
             merchantRules: {
                 title: 'Estabelecimento',
                 subtitle: 'Defina as regras de estabelecimento para que as despesas cheguem corretamente classificadas e exijam menos retrabalho.',
@@ -7157,6 +7169,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         hr: {
             title: 'RH',
             connections: 'Conexões',
+            connectionsSubtitle:
+                'Conecte-se ao seu sistema de RH para sincronizar os dados de funcionários, associar automaticamente os reembolsos às pessoas corretas e manter as despesas da sua equipe precisas, sem trabalho manual.',
             subtitle: 'Conecte ferramentas de RH e mantenha as aprovações de funcionários em sincronia.',
             connect: 'Conectar',
             syncNow: 'Sincronizar agora',
@@ -9028,7 +9042,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         copilotDelegatedAccess: 'Copilot: Acesso delegado',
         copilotDelegatedAccessDescription: 'Permitir que outros membros acessem sua conta.',
         learnMoreAboutDelegatedAccess: 'Saiba mais sobre acesso delegado',
-        addCopilot: 'Adicionar copiloto',
+        addCopilot: 'Adicionar um copiloto',
         membersCanAccessYourAccount: 'Esses membros podem acessar sua conta:',
         youCanAccessTheseAccounts: 'Você pode acessar essas contas:',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {

@@ -1,7 +1,14 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {MoneyRequestStepScanParticipantsFlowParams} from '@libs/actions/IOU/MoneyRequest';
-import {createTransaction, getMoneyRequestParticipantOptions, handleMoneyRequestStepDistanceNavigation, handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
+import {
+    clearMoneyRequestAmount,
+    createTransaction,
+    getMoneyRequestParticipantOptions,
+    handleMoneyRequestStepDistanceNavigation,
+    handleMoneyRequestStepScanParticipants,
+    setMoneyRequestAmount,
+} from '@libs/actions/IOU/MoneyRequest';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import Navigation from '@libs/Navigation/Navigation';
@@ -1704,6 +1711,55 @@ describe('MoneyRequest', () => {
             expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 100, undefined, pastDate)).toBe(false);
 
             await Onyx.clear();
+        });
+    });
+
+    describe('setMoneyRequestAmount and clearMoneyRequestAmount', () => {
+        const transactionID = 'amount-test-txn';
+
+        beforeEach(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                transactionID,
+                amount: 0,
+                currency: 'USD',
+                comment: {},
+                iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+            });
+        });
+
+        afterEach(async () => {
+            await Onyx.clear();
+        });
+
+        it('sets isAmountSet to true when the user enters an amount', async () => {
+            setMoneyRequestAmount(transactionID, 1500, 'USD');
+            await waitForBatchedUpdates();
+
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(transaction?.amount).toBe(1500);
+            expect(transaction?.currency).toBe('USD');
+            expect(transaction?.isAmountSet).toBe(true);
+        });
+
+        it('allows explicitly setting zero as a valid amount via isAmountSet', async () => {
+            setMoneyRequestAmount(transactionID, 0, 'USD');
+            await waitForBatchedUpdates();
+
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(transaction?.amount).toBe(0);
+            expect(transaction?.isAmountSet).toBe(true);
+        });
+
+        it('clears isAmountSet when the user deletes the amount input', async () => {
+            setMoneyRequestAmount(transactionID, 2500, 'USD');
+            await waitForBatchedUpdates();
+
+            clearMoneyRequestAmount(transactionID);
+            await waitForBatchedUpdates();
+
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(transaction?.amount).toBe(0);
+            expect(transaction?.isAmountSet).toBe(false);
         });
     });
 });

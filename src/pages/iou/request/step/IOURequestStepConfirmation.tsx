@@ -842,6 +842,7 @@ function IOURequestStepConfirmation({
                             <MoneyRequestConfirmationList
                                 transaction={transaction}
                                 selectedParticipants={participants}
+                                isParticipantPickerVisible={isParticipantPickerVisible}
                                 onOpenParticipantPicker={() => {
                                     if (!activeTransactionID) {
                                         return;

@@ -3991,7 +3991,7 @@ function getReimbursementQueuedActionMessage({
 function getReimbursementDeQueuedOrCanceledActionMessage(
     translate: LocalizedTranslate,
     reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED | typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED>>,
-    report: OnyxEntry<Report>,
+    reportOwnerAccountID: number | undefined,
 ): string {
     const originalMessage = getOriginalMessage(reportAction);
     const amount = originalMessage?.amount;
@@ -4000,7 +4000,7 @@ function getReimbursementDeQueuedOrCanceledActionMessage(
     if (originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN || originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.USER) {
         return translate('iou.adminCanceledRequest');
     }
-    const submitterDisplayName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
+    const submitterDisplayName = getDisplayNameForParticipant({accountID: reportOwnerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
     return translate('iou.canceledRequest', formattedAmount, submitterDisplayName);
 }
 
@@ -4186,12 +4186,13 @@ function getReasonAndReportActionThatRequiresAttention(
     currentUserAccountID: number,
     parentReportAction?: OnyxEntry<ReportAction>,
     isReportArchived = false,
+    allReportActionsParam?: OnyxCollection<ReportActions>,
 ): ReasonAndReportActionThatRequiresAttention | null {
     if (!optionOrReport) {
         return null;
     }
 
-    const reportActions = getAllReportActions(optionOrReport.reportID);
+    const reportActions = allReportActionsParam?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optionOrReport.reportID}`] ?? getAllReportActions(optionOrReport.reportID);
 
     if (optionOrReport.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
         const reportActionsArray = Object.values(reportActions ?? {});
@@ -4238,9 +4239,9 @@ function getReasonAndReportActionThatRequiresAttention(
 
     if (actionTypeForAssigneeToComplete) {
         const isAssigneeExpenseAction = actionTypeForAssigneeToComplete === CONST.REPORT.ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE.EXPENSE;
-        const expenseBadge = isAssigneeExpenseAction
+        const assigneeBadge = isAssigneeExpenseAction
             ? getBadgeFromIOUReport(optionOrReport, undefined, policy, optionReportMetadata, invoiceReceiverPolicy, currentUserLogin, currentUserAccountID)
-            : undefined;
+            : CONST.REPORT.ACTION_BADGE.TASK;
         return {
             reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
             reportAction: Object.values(reportActions)
@@ -4248,7 +4249,7 @@ function getReasonAndReportActionThatRequiresAttention(
                 // eslint-disable-next-line rulesdir/prefer-locale-compare-from-context
                 .sort((a, b) => (!a.created || !b.created ? 0 : a.created.localeCompare(b.created)))
                 .at(0),
-            ...(expenseBadge ? {actionBadge: expenseBadge} : {}),
+            ...(assigneeBadge ? {actionBadge: assigneeBadge} : {}),
         };
     }
 
@@ -4259,6 +4260,7 @@ function getReasonAndReportActionThatRequiresAttention(
         invoiceReceiverPolicy,
         currentUserLogin,
         currentUserAccountID,
+        allReportActionsParam,
     );
     const iouReportID = getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay);
     const transactions = getReportTransactions(iouReportID);
@@ -4377,31 +4379,43 @@ function getMoneyRequestSpendBreakdown(report: OnyxInputOrEntry<Report>, searchR
 }
 
 function getBillableAndTaxTotal(report: OnyxEntry<Report>, transactions: Array<OnyxEntry<Transaction>>) {
-    let billableTotal = 0;
-    let taxTotal = 0;
     if (!isExpenseReport(report)) {
         return {
             billableTotal: 0,
             taxTotal: 0,
         };
     }
+    let billableTotal = 0;
+    let taxTotal = 0;
+    const reportCurrency = report?.currency;
+    // We only need `amount`, `taxAmount`, `currency`, and `billable` here. Calling `getTransactionDetails`
+    // would materialize the full TransactionDetails object per transaction — including formatted dates
+    // (toDate + timezone-aware format), attendees, waypoints, etc. — all of which are discarded.
     for (const transaction of transactions) {
-        if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        if (!transaction || transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             continue;
         }
-        const {amount = 0, taxAmount = 0, currency, billable} = getTransactionDetails(transaction) ?? {};
+        const billable = getBillable(transaction);
+        // `isFromExpenseReport` is provably true: the early return above guarantees the report is an expense report.
+        const isFromExpenseReport = true;
+        const taxAmount = getTaxAmount(transaction, isFromExpenseReport);
+        if (!billable && !taxAmount) {
+            continue;
+        }
+        const sameCurrency = getCurrency(transaction) === reportCurrency;
         if (billable) {
-            if (currency === report?.currency) {
-                billableTotal += amount;
+            if (sameCurrency) {
+                const isUnreported = transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+                billableTotal += getTransactionAmount(transaction, isFromExpenseReport, isUnreported);
             } else {
-                billableTotal -= transaction?.convertedAmount ?? 0;
+                billableTotal -= transaction.convertedAmount ?? 0;
             }
         }
         if (taxAmount) {
-            if (currency === report?.currency) {
+            if (sameCurrency) {
                 taxTotal += taxAmount;
             } else {
-                taxTotal -= transaction?.convertedTaxAmount ?? 0;
+                taxTotal -= transaction.convertedTaxAmount ?? 0;
             }
         }
     }
@@ -6115,13 +6129,13 @@ function getParentNavigationSubtitle(
 /**
  * Navigate to the details page of a given report
  */
-function navigateToDetailsPage(report: OnyxEntry<Report>, backTo?: string, shouldUseActiveRoute?: boolean) {
+function navigateToDetailsPage(report: OnyxEntry<Report>, backTo?: string) {
     const isSelfDMReport = isSelfDM(report);
     const isOneOnOneChatReport = isOneOnOneChat(report);
     const participantAccountID = getParticipantsAccountIDsForDisplay(report);
 
     if (isSelfDMReport || isOneOnOneChatReport) {
-        Navigation.navigate(ROUTES.PROFILE.getRoute(participantAccountID.at(0), isSelfDMReport || shouldUseActiveRoute ? Navigation.getActiveRoute() : backTo));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(participantAccountID.at(0))));
         return;
     }
 
@@ -6138,7 +6152,7 @@ function goBackToDetailsPage(report: OnyxEntry<Report>, backTo?: string, shouldG
     const participantAccountID = getParticipantsAccountIDsForDisplay(report);
 
     if (isOneOnOneChatReport) {
-        Navigation.goBack(ROUTES.PROFILE.getRoute(participantAccountID.at(0), backTo));
+        Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(participantAccountID.at(0))));
         return;
     }
 
@@ -6182,7 +6196,7 @@ function goBackFromPrivateNotes(report: OnyxEntry<Report>, accountID?: number) {
         const participantAccountIDs = getParticipantsAccountIDsForDisplay(report);
 
         if (isOneOnOneChat(report)) {
-            Navigation.goBack(ROUTES.PROFILE.getRoute(participantAccountIDs.at(0)));
+            Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(participantAccountIDs.at(0))));
             return;
         }
 
@@ -7105,7 +7119,7 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
 
     if (type !== CONST.IOU.REPORT_ACTION_TYPE.PAY) {
         // Split expense made from a policy expense chat only have the payee's accountID as the participant because the payer could be any policy admin
-        if (isOwnPolicyExpenseChat && type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
+        if ((isOwnPolicyExpenseChat && type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) || isPersonalTrackingExpense) {
             originalMessage.participantAccountIDs = deprecatedCurrentUserAccountID ? [deprecatedCurrentUserAccountID] : [];
         } else {
             originalMessage.participantAccountIDs = deprecatedCurrentUserAccountID
@@ -10772,8 +10786,8 @@ function getReportActionWithSmartscanError(
         }
 
         const transactionID = isSplitOrTrackAction ? getOriginalMessage(action)?.IOUTransactionID : undefined;
-        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
-        const isTransactionThreadError = isSplitOrTrackAction && hasMissingSmartscanFieldsTransactionUtils(transaction as Transaction, report);
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        const isTransactionThreadError = isSplitOrTrackAction && hasMissingSmartscanFieldsTransactionUtils(transaction, report);
 
         return isTransactionThreadError;
     });
@@ -12685,7 +12699,8 @@ function generateReportAttributes({
     const hasErrors = Object.entries(reportErrors ?? {}).length > 0;
     const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActionsList);
     const parentReportAction = report?.parentReportActionID ? parentReportActionsList?.[report.parentReportActionID] : undefined;
-    const {reason, actionBadge, reportAction} = getReasonAndReportActionThatRequiresAttention(report, currentUserLogin, currentUserAccountID, parentReportAction, isReportArchived) ?? {};
+    const {reason, actionBadge, reportAction} =
+        getReasonAndReportActionThatRequiresAttention(report, currentUserLogin, currentUserAccountID, parentReportAction, isReportArchived, reportActions) ?? {};
 
     return {
         hasViolationsToDisplayInLHN,
