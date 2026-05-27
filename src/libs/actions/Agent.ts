@@ -208,10 +208,11 @@ function updateAgentName(accountID: number, firstName: string, originalFirstName
 }
 
 function updateAgentPrompt(accountID: number, prompt: string, originalPrompt: string) {
+    const onyxKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`;
     const optimisticData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`,
+            key: onyxKey,
             value: {prompt, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, errors: null},
         },
     ];
@@ -219,7 +220,7 @@ function updateAgentPrompt(accountID: number, prompt: string, originalPrompt: st
     const successData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`,
+            key: onyxKey,
             value: {pendingAction: null, promptErrors: null},
         },
     ];
@@ -227,7 +228,7 @@ function updateAgentPrompt(accountID: number, prompt: string, originalPrompt: st
     const failureData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`,
+            key: onyxKey,
             value: {prompt: originalPrompt, pendingAction: null, promptErrors: getMicroSecondOnyxErrorWithTranslationKey('agentsPage.error.updatePrompt')},
         },
     ];
@@ -348,6 +349,7 @@ function deleteAgent(accountID: number) {
 
 export {
     openAgentsPage,
+    openProfilePage,
     createAgent,
     clearAgentError,
     clearPendingAgentFromApprovalWorkflow,

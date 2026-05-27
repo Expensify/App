@@ -2038,6 +2038,14 @@ const translations = {
             title: 'Private',
             subtitle: "These details are used for travel and payments. They're never shown on your public profile.",
         },
+        aiPromptSection: {
+            title: 'AI prompt',
+            subtitle: 'Write custom instructions',
+            prompt: 'Prompt',
+            editPrompt: 'Edit prompt',
+            promptCannotBeEmpty: 'Prompt cannot be empty',
+            saved: 'Saved',
+        },
     },
     securityPage: {
         title: 'Security options',
@@ -2853,6 +2861,8 @@ const translations = {
         title: 'Edit agent',
         agentName: 'Agent name',
         instructions: 'Write custom instructions',
+        chatWithAgent: 'Chat with agent',
+        copilotIntoAccount: 'Copilot into account',
         deleteAgent: 'Delete agent',
         deleteAgentTitle: 'Delete agent?',
         deleteAgentMessage: 'Are you sure you want to delete this agent? This action cannot be undone.',
@@ -6326,6 +6336,7 @@ const translations = {
                     CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'this accounting integration'
                 }? This will remove any existing accounting connections.`,
             enterCredentials: 'Enter your credentials',
+            updateCredentials: 'Update credentials',
             claimOffer: {
                 badgeText: 'Offer available!',
                 xero: {
@@ -8629,6 +8640,7 @@ const translations = {
         duplicatedTransaction: 'Potential duplicate',
         fieldRequired: 'Report fields are required',
         futureDate: 'Future date not allowed',
+        inactiveVendor: 'Vendor no longer valid',
         invoiceMarkup: (invoiceMarkup: number) => `Marked up by ${invoiceMarkup}%`,
         maxAge: (maxAge: number) => `Date older than ${maxAge} days`,
         missingCategory: 'Missing category',
