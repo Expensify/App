@@ -624,42 +624,40 @@ function AdvancedSearchFilters() {
     };
 
     const filters = typeFiltersKeys.map((section) => {
-        return section
-            .filter((key) => key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED)
-            .map((key) => {
-                const onPress = singleExecution(waitForNavigate(() => Navigation.navigate(baseFilterConfig[key].route)));
-                let filterTitle;
-                if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
-                    filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, policies, searchCards, translate);
-                } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
-                    filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, taxRates);
-                } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
-                    filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate);
-                } else if (
-                    key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
-                    key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
-                    key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
-                    key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE
-                ) {
-                    filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails, formatPhoneNumber);
-                } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
-                    filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate, reports, reportAttributes?.reports ?? {});
-                } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
-                    const workspacesData = workspaces.flatMap((value) => value.data);
-                    filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, workspacesData);
-                } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) {
-                    filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, currentType, translate);
-                } else {
-                    filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare, convertToDisplayStringWithoutCurrency);
-                }
+        return section.map((key) => {
+            const onPress = singleExecution(waitForNavigate(() => Navigation.navigate(baseFilterConfig[key].route)));
+            let filterTitle;
+            if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, policies, searchCards, translate);
+            } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, taxRates);
+            } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate);
+            } else if (
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE
+            ) {
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails, formatPhoneNumber);
+            } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate, reports, reportAttributes?.reports ?? {});
+            } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
+                const workspacesData = workspaces.flatMap((value) => value.data);
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, workspacesData);
+            } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) {
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, currentType, translate);
+            } else {
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare, convertToDisplayStringWithoutCurrency);
+            }
 
-                return {
-                    key,
-                    title: filterTitle,
-                    description: translate(baseFilterConfig[key].description),
-                    onPress,
-                };
-            });
+            return {
+                key,
+                title: filterTitle,
+                description: translate(baseFilterConfig[key].description),
+                onPress,
+            };
+        });
     });
 
     const sections: SectionType[] = [
