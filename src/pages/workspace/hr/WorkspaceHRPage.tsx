@@ -7,7 +7,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
-import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useHRSyncResultsModal from '@hooks/useHRSyncResultsModal';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -139,11 +138,14 @@ function WorkspaceHRPage({
                 <ScrollView contentContainerStyle={styles.pt3}>
                     <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         <Section
-                            contentPaddingOnLargeScreens={{padding: 24}}
+                            title={translate('workspace.hr.connections')}
+                            subtitle={translate('workspace.hr.connectionsSubtitle')}
                             isCentralPane
-                            renderTitle={() => <Text style={[styles.textStrong]}>{translate('workspace.hr.connections')}</Text>}
+                            subtitleMuted
+                            titleStyles={styles.accountSettingsSectionTitle}
+                            childrenStyles={styles.pt5}
                         >
-                            <View style={styles.mt4}>
+                            <View>
                                 {connectedCards.map((card) => (
                                     <HRProviderCard
                                         key={card.key}
