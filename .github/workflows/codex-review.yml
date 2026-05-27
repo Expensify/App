@@ -38,8 +38,8 @@ jobs:
       issues: write
     env:
       PR_NUMBER: ${{ case(github.event_name == 'pull_request_target', github.event.pull_request.number, github.event.issue.number) }}
-      PR_AUTHOR: ${{ case(github.event_name == 'pull_request_target', github.event.pull_request.user.login, github.event.comment.user.login) }}
-      AUTHOR_ASSOCIATION: ${{ case(github.event_name == 'pull_request_target', github.event.pull_request.author_association, github.event.comment.author_association) }}
+      ACTOR: ${{ case(github.event_name == 'pull_request_target', github.event.pull_request.user.login, github.event.comment.user.login) }}
+      ACTOR_ASSOCIATION: ${{ case(github.event_name == 'pull_request_target', github.event.pull_request.author_association, github.event.comment.author_association) }}
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
@@ -49,8 +49,8 @@ jobs:
         uses: ./.github/actions/javascript/isAuthorizedContributor
         with:
           PR_NUMBER: ${{ env.PR_NUMBER }}
-          PR_AUTHOR: ${{ env.PR_AUTHOR }}
-          AUTHOR_ASSOCIATION: ${{ env.AUTHOR_ASSOCIATION }}
+          ACTOR: ${{ env.ACTOR }}
+          ACTOR_ASSOCIATION: ${{ env.ACTOR_ASSOCIATION }}
           GITHUB_TOKEN: ${{ github.token }}
           OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
