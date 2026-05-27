@@ -124,6 +124,7 @@ const translations: TranslationDeepObject<typeof en> = {
             approve: '承認する',
             pay: '支払う',
             fix: '修正',
+            task: 'タスク',
         },
         success: '成功しました',
         group: 'グループ',
@@ -840,7 +841,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'あなたのスペース',
         welcomeToRoom: (roomName: string) => `${roomName} へようこそ！`,
         usePlusButton: (additionalText: string) => `+ ボタンを使って経費を${additionalText}します。`,
-        askConcierge: 'こちらはあなた専属のAIエージェント、Conciergeとのチャットです。ほぼ何でもできますので、お試しください！',
+        askConcierge: 'Concierge は、質問にお答えしたり、経費を更新したり、さまざまなことができます。',
         conciergeSupport: 'あなた専用のAIエージェント',
         create: '作成',
         iouTypes: {
@@ -2548,6 +2549,8 @@ ${date} の ${merchant} への ${amount}`,
         addApprovalTip: 'より詳細なワークフローが存在する場合を除き、このデフォルトのワークフローがすべてのメンバーに適用されます。',
         approver: '承認者',
         addApprovalsDescription: '支払いを承認する前に、追加の承認を必須にする。',
+        automateApprovalsWithAgentsTitle: '代理を使って承認を自動化する',
+        automateApprovalsWithAgentsSubtitle: '承認を自動化するには、以下のエージェントをワークフローに追加してください。',
         makeOrTrackPaymentsTitle: '支払',
         makeOrTrackPaymentsDescription: 'Expensifyでの支払いに対する承認済み支払者を追加するか、他の場所で行われた支払いを記録します。',
         customApprovalWorkflowEnabled:
@@ -5977,6 +5980,11 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             selectWorkspaces: 'ワークスペースを選択',
             description: '設定をコピーしたいワークスペースを選択し、その後、コピーしたい設定を選びます。',
             searchPlaceholder: 'ワークスペースを検索',
+            selectFeatures: 'コピーする機能を選択します',
+            whichFeatures: '既存のワークスペースで上書きする設定を選択します。',
+            workflowsWithoutMembersConfirm: 'メンバーなしで続行',
+            workflowsWithoutMembersPrompt: 'メンバーのいないワークフローをコピーしても、承認ワークフローはコピーされません。申請および支払い設定は引き続きコピーされます。',
+            accountingMismatch: ({part}: {part: string}) => `すべてのワークスペースが同じ会計システムと会社接続を使用している場合にのみ、${part} をコピーできます。`,
         },
         emptyWorkspace: {
             title: 'ワークスペースがありません',
@@ -6116,7 +6124,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
         accounting: {
             settings: '設定',
             title: '接続',
-            subtitle: '会計システムに接続して勘定科目で取引を仕訳し、支払いを自動照合し、財務情報を常に同期させましょう。',
+            subtitle: '会計ソフトを接続して、自動同期を行いましょう。',
             qbo: 'QuickBooks Online',
             qbd: 'QuickBooks Desktop',
             xero: 'Xero',
@@ -6894,6 +6902,11 @@ ${reportName}
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `[その他の機能](${moreFeaturesLink})に移動し、${featureName} を有効にしてこの機能を利用できるようにしてください。`,
             },
+            agentsPromoBanner: {
+                title: '必要なルールが見つかりませんか？エージェントを追加してください',
+                subtitle: '複雑なルールを追加し、カスタムエージェントで手動承認を減らしましょう。',
+                cta: 'お試しください',
+            },
             merchantRules: {
                 title: '加盟店',
                 subtitle: '経費が正しくコード化され、後処理が最小限で済むように、取引先ルールを設定しましょう。',
@@ -7101,6 +7114,7 @@ ${reportName}
         hr: {
             title: '人事',
             connections: '接続',
+            connectionsSubtitle: '人事システムと連携して従業員データを同期し、精算を自動で正しい担当者に紐づけることで、手作業なしでチームの経費を正確に管理できます。',
             subtitle: '人事ツールを連携して、従業員の承認を常に同期させます。',
             connect: '接続',
             syncNow: '今すぐ同期',
@@ -7750,7 +7764,6 @@ ${reportName}
     search: {
         resultsAreLimited: '検索結果は制限されています。',
         viewResults: '結果を表示',
-        applyFilters: 'フィルターを適用する',
         appliedFilters: '適用されたフィルター',
         resetFilters: 'フィルターをリセット',
         searchResults: {
@@ -7860,12 +7873,7 @@ ${reportName}
             amount: {
                 lessThan: (amount?: string) => `${amount ?? ''} 未満`,
                 greaterThan: (amount?: string) => `${amount ?? ''}より大きい`,
-                between: (greaterThan?: string, lessThan?: string) => {
-                    if (greaterThan && lessThan) {
-                        return `${greaterThan} 以上 ${lessThan} 未満`;
-                    }
-                    return '間';
-                },
+                between: (greaterThan: string, lessThan: string) => `${greaterThan} 以上 ${lessThan} 未満`,
                 equalTo: (amount?: string) => `${amount ?? ''} に等しい`,
             },
             card: {
