@@ -79,7 +79,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
-    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {showConfirmModal} = useConfirmModal();
     const illustrations = useMemoizedLazyIllustrations([
@@ -283,7 +282,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 if (!policyID) {
                                     return;
                                 }
-                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias, isSubmit2026BetaEnabled)) {
+                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias)) {
                                     return;
                                 }
                                 enablePolicyConnections(policyID, isEnabled);
@@ -513,7 +512,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 if (!policyID) {
                                     return;
                                 }
-                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.alias, isSubmit2026BetaEnabled)) {
+                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.alias)) {
                                     return;
                                 }
                                 enablePolicyTravel(policyID, isEnabled);
@@ -537,7 +536,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 if (!policyID) {
                                     return;
                                 }
-                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.alias, isSubmit2026BetaEnabled)) {
+                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.alias)) {
                                     return;
                                 }
                                 enableExpensifyCard(policyID, isEnabled);
@@ -561,7 +560,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 if (!policyID) {
                                     return;
                                 }
-                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.alias, isSubmit2026BetaEnabled)) {
+                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.alias)) {
                                     return;
                                 }
                                 enableCompanyCards(policyID, isEnabled, true);
@@ -636,7 +635,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 if (!policyID) {
                                     return;
                                 }
-                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoicing.alias, isSubmit2026BetaEnabled)) {
+                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoicing.alias)) {
                                     return;
                                 }
                                 enablePolicyInvoicing(policyID, isEnabled);

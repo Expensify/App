@@ -67,7 +67,7 @@ type HRConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.HR_CONNECTI
 /** Display info for an HR provider connected to a policy. */
 type HRProviderInfo = {
     /** The internal connection name used as the key on `policy.connections` (e.g. `'gusto'`, `'zenefits'`, `'merge_hris'`). */
-    connectionName: string;
+    connectionName: ConnectionName;
 
     /** Human-readable label shown in the UI (e.g. `'Gusto'`, `'TriNet'`, or a Merge HR provider brand like `'Workday'`). */
     displayName: string;
@@ -1071,8 +1071,8 @@ function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
  * When conditions match, navigates to the workspace upgrade flow and returns true (caller should not enable the feature).
  * @returns true if upgrade navigation was performed; false otherwise
  */
-function tryNavigateToSubmitWorkspaceUpgrade(policy: OnyxEntry<Policy>, isEnabling: boolean, upgradeFeatureAlias: string, isSubmit2026BetaEnabled: boolean): boolean {
-    if (!policy?.id || !isEnabling || !canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)) {
+function tryNavigateToSubmitWorkspaceUpgrade(policy: OnyxEntry<Policy>, isEnabling: boolean, upgradeFeatureAlias: string): boolean {
+    if (!policy?.id || !isEnabling || !isSubmitPolicy(policy)) {
         return false;
     }
     Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policy?.id, upgradeFeatureAlias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policy?.id)));
