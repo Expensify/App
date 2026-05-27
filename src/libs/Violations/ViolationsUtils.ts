@@ -441,18 +441,8 @@ const ViolationsUtils = {
                     : getTagViolationsForMultiLevelTags(updatedTransaction, newTransactionViolations, policyTagList, hasDependentTags);
         }
 
-        // Inactive vendor violation. Mirrors `categoryOutOfPolicy` / `tagOutOfPolicy` — computed
-        // entirely client-side from the policy's imported vendor list. The vendor object on the
-        // transaction is left as-is when the violation fires (or when the feature is disabled) —
-        // we never clear the user's selection just because the vendor list changed; the admin
-        // needs to see what was previously set so they can re-pick. Gated behind the
-        // `vendorMatching` beta so Web-Expensify can ship the auto-match write path
-        // independently — no production workspace sees the violation until the beta is enabled.
-        //
-        // Skip the reconcile entirely while `allBetas` is still loading (the module-level Onyx
-        // subscription populates it asynchronously). Treating undefined as "no betas" would surface
-        // as "feature off" here and silently strip a valid server-set `inactiveVendor` violation
-        // during the startup window. The next recompute settles the state once betas land.
+        // Inactive vendor violation, gated behind the `vendorMatching` beta. The transaction's
+        // vendor is never cleared here — admins need to see what was set so they can re-pick.
         if (allBetas !== undefined) {
             const isVendorMatchingBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.VENDOR_MATCHING, allBetas);
             const hasInactiveVendorViolation = newTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.INACTIVE_VENDOR);
