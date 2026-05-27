@@ -68,6 +68,7 @@ function TextInputFilterContent({filterKey, value: initialValue, autoFocus, onCh
                 medium={!fullscreen}
                 large={fullscreen}
                 text={translate('common.confirm')}
+                pressOnEnter
                 onPress={() => onChange({[filterKey]: value})}
             />
         </View>

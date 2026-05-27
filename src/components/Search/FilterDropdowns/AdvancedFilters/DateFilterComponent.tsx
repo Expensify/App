@@ -81,6 +81,7 @@ function DateFilterComponent({filterKey, value: initialValue, onChange}: DateFil
                     medium={!fullscreen}
                     large={fullscreen}
                     text={translate(selectedDateModifier ? 'common.apply' : 'common.confirm')}
+                    pressOnEnter
                     onPress={() => {
                         if (selectedDateModifier) {
                             dateFilterRef.current?.save();

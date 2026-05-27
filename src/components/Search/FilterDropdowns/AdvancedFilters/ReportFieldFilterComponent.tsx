@@ -46,6 +46,7 @@ function ReportFieldFilterComponent({values, onChange}: ReportFieldComponentProp
                     medium={!fullscreen}
                     large={fullscreen}
                     text={translate(selectedField ? 'common.apply' : 'common.confirm')}
+                    pressOnEnter
                     onPress={() => {
                         if (!reportFieldRef.current) {
                             return;

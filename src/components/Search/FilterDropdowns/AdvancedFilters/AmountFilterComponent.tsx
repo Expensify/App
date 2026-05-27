@@ -220,6 +220,7 @@ function AmountFilterComponent({filterKey, value, onChange}: AmountFilterCompone
                 medium={!fullscreen}
                 large={fullscreen}
                 text={translate('common.confirm')}
+                pressOnEnter
                 onPress={updateAmountFilter}
             />
         </View>
