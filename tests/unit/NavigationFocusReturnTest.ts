@@ -1472,12 +1472,49 @@ describe('handleStateChange integration', () => {
             jest.runAllTimers();
             expect(spy).not.toHaveBeenCalled();
 
-            // The flag is one-shot: a subsequent Back-button dismissal restores normally.
+            // The flag is one-shot; the skipped entry was cleared, so the user must re-focus before forward to re-capture.
+            fireFocusIn(trigger);
             handleStateChange(onAB);
             trigger.blur();
             handleStateChange(onA);
             jest.runAllTimers();
             expect(spy).toHaveBeenCalled();
+        });
+    });
+
+    it('skipNextFocusRestore drops the captured entry, so a later back to the same route cannot inherit the skipped trigger', () => {
+        withFakeTimers(() => {
+            simulateTab();
+            const onA = stackState(0, [{key: 'a', name: 'A'}]);
+            const onAB = stackState(1, [
+                {key: 'a', name: 'A'},
+                {key: 'b', name: 'B'},
+            ]);
+            const onAC = stackState(1, [
+                {key: 'a', name: 'A'},
+                {key: 'c', name: 'C'},
+            ]);
+            handleStateChange(onA);
+
+            const trigger = appendButton();
+            fireFocusIn(trigger);
+            handleStateChange(onAB);
+            trigger.blur();
+
+            // Form-submit goBack: skipNextFocusRestore + backward → must clear the captured entry.
+            skipNextFocusRestore();
+            const spy = jest.spyOn(trigger, 'focus');
+            handleStateChange(onA);
+            jest.runAllTimers();
+            expect(spy).not.toHaveBeenCalled();
+
+            // Deeplink-style forward (no fresh trigger) → capture bails, so the stale entry must not resurface on the next back.
+            setLastInteractiveElementForTests(null);
+            setLastMouseTriggerForTests(null);
+            handleStateChange(onAC);
+            handleStateChange(onA);
+            jest.runAllTimers();
+            expect(spy).not.toHaveBeenCalled();
         });
     });
 

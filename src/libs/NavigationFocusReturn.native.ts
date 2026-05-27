@@ -120,6 +120,7 @@ function handleStateChange(newState: NavigationState | undefined): void {
         if (skipNextRestore) {
             skipNextRestore = false;
             cancelPendingRestore();
+            triggerMap.delete(action.restoreKey);
         } else {
             scheduleRestore(action.restoreKey);
         }
