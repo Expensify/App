@@ -13,7 +13,6 @@ import type {IOUAction, IOURequestType, IOUType, OdometerImageType} from './CONS
 import type {ReplacementReason} from './libs/actions/Card';
 import Log from './libs/Log';
 import type {RootNavigatorParamList} from './libs/Navigation/types';
-import type {ReimbursementAccountStepToOpen} from './libs/ReimbursementAccountUtils';
 import StringUtils from './libs/StringUtils';
 import {getUrlWithParams} from './libs/Url';
 import SCREENS from './SCREENS';
@@ -864,34 +863,20 @@ const ROUTES = {
 
         getRoute: (policyID?: string, backTo?: string) => getUrlWithBackToParam(`bank-account/${VERIFY_ACCOUNT}?policyID=${policyID}`, backTo),
     },
-    BANK_ACCOUNT_NEW: 'bank-account/new',
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
+    // TODO: rename the route as no longer accepts step
     BANK_ACCOUNT_WITH_STEP_TO_OPEN: {
-        route: 'bank-account/:stepToOpen?',
-        getRoute: ({
-            policyID,
-            stepToOpen = '',
-            bankAccountID,
-            backTo,
-            subStepToOpen,
-        }: {
-            policyID: string | undefined;
-            stepToOpen?: ReimbursementAccountStepToOpen;
-            bankAccountID?: number;
-            backTo?: string;
-            subStepToOpen?: typeof CONST.BANK_ACCOUNT.STEP.COUNTRY;
-        }) => {
-            if (!policyID && !bankAccountID) {
-                return getUrlWithBackToParam(`bank-account/${stepToOpen}`, backTo);
-            }
-
+        route: 'bank-account/new',
+        getRoute: ({policyID, bankAccountID, backTo}: {policyID: string | undefined; bankAccountID?: number; backTo?: string}) => {
+            let queryString = '';
             if (bankAccountID) {
-                return getUrlWithBackToParam(`bank-account/${stepToOpen}?bankAccountID=${bankAccountID}`, backTo);
+                queryString = `?bankAccountID=${bankAccountID}`;
+            } else if (policyID) {
+                queryString = `?policyID=${policyID}`;
             }
             // TODO this backTo comes from drilling it through bank account form screens
             // should be removed once https://github.com/Expensify/App/pull/72219 is resolved
-
-            return getUrlWithBackToParam(`bank-account/${stepToOpen}?policyID=${policyID}${subStepToOpen ? `&subStep=${subStepToOpen}` : ''}`, backTo);
+            return getUrlWithBackToParam(`bank-account/new${queryString}`, backTo);
         },
     },
     BANK_ACCOUNT_ENTER_SIGNER_INFO: {
@@ -913,6 +898,18 @@ const ROUTES = {
 
         getRoute: ({policyID, page, subPage, action, backTo}: {policyID?: string; page?: string; subPage?: string; action?: 'edit'; backTo?: string}) => {
             const base = 'bank-account/new/global';
+            const pagePart = page ? `/${page}` : '';
+            const subPagePart = subPage ? `/${subPage}` : '';
+            const actionPart = action ? `/${action}` : '';
+            const queryString = policyID ? `?policyID=${policyID}` : '';
+
+            return getUrlWithBackToParam(`${base}${pagePart}${subPagePart}${actionPart}${queryString}`, backTo);
+        },
+    },
+    BANK_ACCOUNT_USD_SETUP: {
+        route: 'bank-account/new/us/:page?/:subPage?/:action?',
+        getRoute: ({policyID, page, subPage, action, backTo}: {policyID?: string; page?: string; subPage?: string; action?: 'edit'; backTo?: string}) => {
+            const base = 'bank-account/new/us';
             const pagePart = page ? `/${page}` : '';
             const subPagePart = subPage ? `/${subPage}` : '';
             const actionPart = action ? `/${action}` : '';
