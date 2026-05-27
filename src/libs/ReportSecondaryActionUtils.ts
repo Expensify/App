@@ -114,6 +114,7 @@ function isSplitAction(
     currentUserLogin: string,
     currentUserAccountID: number,
     policy?: OnyxEntry<Policy>,
+    parentReport?: OnyxEntry<Report>,
 ): boolean {
     if (Number(reportTransactions?.length) !== 1 || !report) {
         return false;
@@ -140,6 +141,10 @@ function isSplitAction(
 
     if (isBillSplit) {
         return false;
+    }
+
+    if (isSelfDMReportUtils(report) || isSelfDMReportUtils(parentReport)) {
+        return true;
     }
 
     if (!isExpenseReportUtils(report)) {
@@ -669,7 +674,8 @@ function shouldShowEditSplitInDeleteAction(
         return false;
     }
 
-    return shouldRedirectDeleteToSplitExpenseEdit(reportTransaction, originalTransaction) && isDeleteAction(report, reportTransactions, reportActions);
+    const isSelfDMSplit = isSelfDMReportUtils(report);
+    return shouldRedirectDeleteToSplitExpenseEdit(reportTransaction, originalTransaction, isSelfDMSplit) && isDeleteAction(report, reportTransactions, reportActions);
 }
 
 function isRetractAction(report: Report, policy?: Policy): boolean {
@@ -895,6 +901,7 @@ function getSecondaryReportActions({
     policies,
     outstandingReportsByPolicyID,
     isChatReportArchived = false,
+    parentReport,
 }: {
     currentUserLogin: string;
     currentUserAccountID: number;
@@ -912,6 +919,7 @@ function getSecondaryReportActions({
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue;
     canUseNewDotSplits?: boolean;
     isChatReportArchived?: boolean;
+    parentReport?: OnyxEntry<Report>;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
@@ -1011,7 +1019,7 @@ function getSecondaryReportActions({
     }
 
     if (
-        isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, currentUserAccountID, policy) &&
+        isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, currentUserAccountID, policy, parentReport) &&
         !shouldShowEditSplitInDeleteAction(report, reportTransactions, reportActions, originalTransaction)
     ) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
@@ -1099,18 +1107,31 @@ function getSecondaryExportReportActions(
     return options;
 }
 
-function getSecondaryTransactionThreadActions(
-    currentUserLogin: string,
-    currentUserAccountID: number,
-    parentReport: Report,
-    reportTransaction: Transaction,
-    reportAction: ReportAction | undefined,
-    originalTransaction: OnyxEntry<Transaction>,
-    policy: OnyxEntry<Policy>,
-    transactionThreadReport?: OnyxEntry<Report>,
-    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
-    isChatReportArchived?: boolean,
-): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
+function getSecondaryTransactionThreadActions({
+    currentUserLogin,
+    currentUserAccountID,
+    parentReport,
+    reportTransaction,
+    reportAction,
+    originalTransaction,
+    policy,
+    transactionThreadReport,
+    outstandingReportsByPolicyID,
+    isChatReportArchived,
+    grandParentReport,
+}: {
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    parentReport: Report;
+    reportTransaction: Transaction;
+    reportAction: ReportAction | undefined;
+    originalTransaction: OnyxEntry<Transaction>;
+    policy: OnyxEntry<Policy>;
+    transactionThreadReport?: OnyxEntry<Report>;
+    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue;
+    isChatReportArchived?: boolean;
+    grandParentReport?: OnyxEntry<Report>;
+}): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
     if (!!reportAction && isHoldActionForTransaction(parentReport, reportTransaction, reportAction, policy, currentUserAccountID)) {
@@ -1126,7 +1147,7 @@ function getSecondaryTransactionThreadActions(
     }
 
     if (
-        isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, currentUserAccountID, policy) &&
+        isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, currentUserAccountID, policy, grandParentReport) &&
         !shouldShowEditSplitInDeleteAction(parentReport, [reportTransaction], reportAction ? [reportAction] : [], originalTransaction)
     ) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT);

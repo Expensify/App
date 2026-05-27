@@ -49,6 +49,7 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 import Visibility from '@libs/Visibility';
 import isSearchTopmostFullScreenRoute from '@navigation/helpers/isSearchTopmostFullScreenRoute';
 import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
+import ReportActionIndexContext from '@pages/inbox/report/ReportActionIndexContext';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
@@ -58,6 +59,7 @@ import {getOlderActions, openReport, readNewestAction, subscribeToNewActionEvent
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import {getStableReportSelector} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportHorizontalScrollWrapper from './MoneyRequestReportHorizontalScrollWrapper';
 import type {MoneyRequestReportTransactionListController, TransactionListItemData} from './MoneyRequestReportTransactionList';
@@ -123,6 +125,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     // Self-subscribe to report, policy, metadata, actions, transactions
     // report is guaranteed to exist — callers only render this component when report is loaded
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`) as unknown as [OnyxTypes.Report];
+    const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {selector: getStableReportSelector});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
     const [reportPaginationState] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportIDFromRoute}`);
@@ -578,28 +581,29 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                 hasNextActionMadeBySameActor(visibleReportActions, indexWithinReportActions, isOffline);
 
             return (
-                <ReportActionsListItemRenderer
-                    reportAction={reportAction}
-                    parentReportAction={parentReportAction}
-                    parentReportActionForTransactionThread={EmptyParentReportActionForTransactionThread}
-                    index={indexWithinReportActions}
-                    report={report}
-                    transactionThreadReport={transactionThreadReport}
-                    displayAsGroup={displayAsGroup}
-                    shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
-                    shouldDisplayReplyDivider={visibleReportActions.length > 1}
-                    isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
-                    shouldHideThreadDividerLine
-                    linkedReportActionID={linkedReportActionID}
-                    personalDetails={personalDetails}
-                    isHarvestCreatedExpenseReport={shouldShowHarvestCreatedAction}
-                />
+                <ReportActionIndexContext.Provider value={indexWithinReportActions}>
+                    <ReportActionsListItemRenderer
+                        reportAction={reportAction}
+                        parentReportAction={parentReportAction}
+                        parentReportActionForTransactionThread={EmptyParentReportActionForTransactionThread}
+                        report={reportStable}
+                        transactionThreadReport={transactionThreadReport}
+                        displayAsGroup={displayAsGroup}
+                        shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
+                        shouldDisplayReplyDivider={visibleReportActions.length > 1}
+                        isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
+                        shouldHideThreadDividerLine
+                        linkedReportActionID={linkedReportActionID}
+                        personalDetails={personalDetails}
+                        isHarvestCreatedExpenseReport={shouldShowHarvestCreatedAction}
+                    />
+                </ReportActionIndexContext.Provider>
             );
         },
         [
             visibleReportActions,
             parentReportAction,
-            report,
+            reportStable,
             isOffline,
             transactionThreadReport,
             unreadMarkerReportActionID,
