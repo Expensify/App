@@ -4,6 +4,7 @@ import type {ValueOf} from 'type-fest';
 import AmountWithoutCurrencyInput from '@components/AmountWithoutCurrencyInput';
 import Button from '@components/Button';
 import ScrollView from '@components/ScrollView';
+import useFullscreenAdvancedFilters from '@components/Search/FilterDropdowns/AdvancedFilters/useFullscreenAdvancedFilters';
 import type {SearchAmountFilterKeys, SearchAmountValues} from '@components/Search/types';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -14,7 +15,6 @@ import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/Cur
 import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import useFullscreenAdvancedFilters from '../../FilterDropdowns/AdvancedFilters/useFullscreenAdvancedFilters';
 
 const BETWEEN_MODIFIER = 'Between';
 
