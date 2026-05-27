@@ -1,0 +1,1307 @@
+diff --git a/node_modules/victory-native/dist/cartesian/CartesianChart.d.ts b/node_modules/victory-native/dist/cartesian/CartesianChart.d.ts
+index 5b718aa..6802428 100644
+--- a/node_modules/victory-native/dist/cartesian/CartesianChart.d.ts
++++ b/node_modules/victory-native/dist/cartesian/CartesianChart.d.ts
+@@ -7,10 +7,15 @@ import type { AxisProps, CartesianChartRenderArg, InputFields, NumericalFields,
+ import type { ChartPressState, ChartPressStateInit } from "./hooks/useChartPressState";
+ import { type ChartTransformState } from "./hooks/useChartTransformState";
+ import { type PanTransformGestureConfig, type PinchTransformGestureConfig } from "./utils/transformGestures";
++import { type ChartLayoutModeProps } from "../shared/ChartLayoutModeProps";
+ export type CartesianActionsHandle<T = undefined> = T extends ChartPressState<infer S> ? S extends ChartPressStateInit ? {
+     handleTouch: (v: T, x: number, y: number) => void;
+ } : never : never;
+ export type CartesianChartRef<T = undefined> = {
++    /**
++     * The Skia canvas ref for imperative drawing. This is `null` in headless mode
++     * because no `Canvas` is mounted; the host must supply an offscreen surface.
++     */
+     canvas: CanvasRef | null;
+     actions: CartesianActionsHandle<T>;
+ };
+@@ -62,6 +67,6 @@ type CartesianChartProps<RawData extends Record<string, unknown>, XK extends key
+         x: InputFields<RawData>[XK];
+         y: Record<YK, number>;
+     }> | undefined>>;
+-};
++} & ChartLayoutModeProps;
+ export declare function CartesianChart<RawData extends Record<string, unknown>, XK extends keyof InputFields<RawData>, YK extends keyof NumericalFields<RawData>>({ transformState, children, ref, ...rest }: CartesianChartProps<RawData, XK, YK>): React.JSX.Element;
+ export {};
+diff --git a/node_modules/victory-native/dist/cartesian/CartesianChart.js b/node_modules/victory-native/dist/cartesian/CartesianChart.js
+index a3a842c..ee24734 100644
+--- a/node_modules/victory-native/dist/cartesian/CartesianChart.js
++++ b/node_modules/victory-native/dist/cartesian/CartesianChart.js
+@@ -39,7 +39,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.CartesianChart = void 0;
+ const React = __importStar(require("react"));
+-const react_native_1 = require("react-native");
+ const react_native_skia_1 = require("@shopify/react-native-skia");
+ const react_native_reanimated_1 = require("react-native-reanimated");
+ const react_native_gesture_handler_1 = require("react-native-gesture-handler");
+@@ -59,6 +58,8 @@ const transformGestures_1 = require("./utils/transformGestures");
+ const CartesianTransformContext_1 = require("./contexts/CartesianTransformContext");
+ const tickHelpers_1 = require("../utils/tickHelpers");
+ const GestureHandler_1 = require("../shared/GestureHandler");
++const ChartWrapper_1 = require("../shared/ChartWrapper");
++const useChartCanvasSize_1 = require("../shared/useChartCanvasSize");
+ const boundsToClip_1 = require("../utils/boundsToClip");
+ const normalizeYAxisTicks_1 = require("../utils/normalizeYAxisTicks");
+ const createFallbackChartState_1 = require("./utils/createFallbackChartState");
+@@ -71,18 +72,13 @@ function CartesianChart(_a) {
+     </CartesianTransformContext_1.CartesianTransformProvider>);
+ }
+ exports.CartesianChart = CartesianChart;
+-function CartesianChartContent({ data, xKey, yKeys, padding, domainPadding, children, renderOutside = () => null, axisOptions, domain, chartPressState, chartPressConfig, gestureHandlerConfig, onChartBoundsChange, onScaleChange, gestureLongPressDelay = 100, xAxis, yAxis, frame, transformState, transformConfig, customGestures, actionsRef, viewport, ref, }) {
++function CartesianChartContent({ data, xKey, yKeys, padding, domainPadding, children, renderOutside = () => null, axisOptions, domain, chartPressState, chartPressConfig, gestureHandlerConfig, onChartBoundsChange, onScaleChange, gestureLongPressDelay = 100, xAxis, yAxis, frame, transformState, transformConfig, customGestures, actionsRef, viewport, ref, explicitSize, headless, }) {
+     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
+-    const [size, setSize] = React.useState({ width: 0, height: 0 });
++    const { size, hasMeasuredLayoutSize, onLayout, isHeadless } = (0, useChartCanvasSize_1.useChartCanvasSize)({ explicitSize, headless });
+     const chartBoundsRef = React.useRef(undefined);
+     const xScaleRef = React.useRef(undefined);
+     const yScaleRef = React.useRef(undefined);
+     const canvasRef = React.useRef(null);
+-    const [hasMeasuredLayoutSize, setHasMeasuredLayoutSize] = React.useState(false);
+-    const onLayout = React.useCallback(({ nativeEvent: { layout } }) => {
+-        setHasMeasuredLayoutSize(true);
+-        setSize(layout);
+-    }, []);
+     const normalizedAxisProps = (0, useBuildChartAxis_1.useBuildChartAxis)({
+         xAxis,
+         yAxis,
+@@ -153,6 +149,7 @@ function CartesianChartContent({ data, xKey, yKeys, padding, domainPadding, chil
+         domainPadding,
+         normalizedAxisProps,
+         viewport,
++        axisOptions === null || axisOptions === void 0 ? void 0 : axisOptions.axisScales,
+     ]);
+     React.useEffect(() => {
+         tData.value = _tData;
+@@ -458,8 +455,7 @@ function CartesianChartContent({ data, xKey, yKeys, padding, domainPadding, chil
+         : null;
+     const XAxisComponents = hasMeasuredLayoutSize && (axisOptions || xAxis) ? (<XAxis_1.XAxis {...normalizedAxisProps.xAxis} xScale={xScale} yScale={zoomY.rescaleY(primaryYScale)} ix={_tData.ix} isNumericalData={isNumericalData} chartBounds={chartBounds} zoom={zoomX}/>) : null;
+     const FrameComponent = hasMeasuredLayoutSize && (axisOptions || frame) ? (<Frame_1.Frame {...normalizedAxisProps.frame} xScale={xScale} yScale={primaryYScale}/>) : null;
+-    // Body of the chart.
+-    const body = (<react_native_skia_1.Canvas ref={canvasRef} style={{ flex: 1 }}>
++    const chartContent = (<>
+       {YAxisComponents}
+       {XAxisComponents}
+       {FrameComponent}
+@@ -471,31 +467,29 @@ function CartesianChartContent({ data, xKey, yKeys, padding, domainPadding, chil
+         </react_native_skia_1.Group>
+       </CartesianChartContext_1.CartesianChartProvider>
+       {hasMeasuredLayoutSize && (renderOutside === null || renderOutside === void 0 ? void 0 : renderOutside(renderArg))}
+-    </react_native_skia_1.Canvas>);
+-    let composed = customGestures !== null && customGestures !== void 0 ? customGestures : react_native_gesture_handler_1.Gesture.Race();
+-    if (transformState) {
+-        let gestures = react_native_gesture_handler_1.Gesture.Simultaneous();
+-        if ((_j = (_h = transformConfig === null || transformConfig === void 0 ? void 0 : transformConfig.pinch) === null || _h === void 0 ? void 0 : _h.enabled) !== null && _j !== void 0 ? _j : true) {
+-            gestures = react_native_gesture_handler_1.Gesture.Simultaneous(gestures, (0, transformGestures_1.pinchTransformGesture)(transformState, transformConfig === null || transformConfig === void 0 ? void 0 : transformConfig.pinch));
++    </>);
++    let gestureOverlay;
++    if (!isHeadless) {
++        let composed = customGestures !== null && customGestures !== void 0 ? customGestures : react_native_gesture_handler_1.Gesture.Race();
++        if (transformState) {
++            let gestures = react_native_gesture_handler_1.Gesture.Simultaneous();
++            if ((_j = (_h = transformConfig === null || transformConfig === void 0 ? void 0 : transformConfig.pinch) === null || _h === void 0 ? void 0 : _h.enabled) !== null && _j !== void 0 ? _j : true) {
++                gestures = react_native_gesture_handler_1.Gesture.Simultaneous(gestures, (0, transformGestures_1.pinchTransformGesture)(transformState, transformConfig === null || transformConfig === void 0 ? void 0 : transformConfig.pinch));
++            }
++            if ((_l = (_k = transformConfig === null || transformConfig === void 0 ? void 0 : transformConfig.pan) === null || _k === void 0 ? void 0 : _k.enabled) !== null && _l !== void 0 ? _l : true) {
++                gestures = react_native_gesture_handler_1.Gesture.Simultaneous(gestures, (0, transformGestures_1.panTransformGesture)(transformState, transformConfig === null || transformConfig === void 0 ? void 0 : transformConfig.pan));
++            }
++            composed = react_native_gesture_handler_1.Gesture.Race(composed, react_native_gesture_handler_1.Gesture.Simultaneous(gestures));
+         }
+-        if ((_l = (_k = transformConfig === null || transformConfig === void 0 ? void 0 : transformConfig.pan) === null || _k === void 0 ? void 0 : _k.enabled) !== null && _l !== void 0 ? _l : true) {
+-            gestures = react_native_gesture_handler_1.Gesture.Simultaneous(gestures, (0, transformGestures_1.panTransformGesture)(transformState, transformConfig === null || transformConfig === void 0 ? void 0 : transformConfig.pan));
++        if (chartPressState) {
++            composed = react_native_gesture_handler_1.Gesture.Race(composed, panGesture);
+         }
+-        composed = react_native_gesture_handler_1.Gesture.Race(composed, react_native_gesture_handler_1.Gesture.Simultaneous(gestures));
+-    }
+-    if (chartPressState) {
+-        composed = react_native_gesture_handler_1.Gesture.Race(composed, panGesture);
++        gestureOverlay = (<GestureHandler_1.GestureHandler config={gestureHandlerConfig} gesture={composed} transformState={transformState} dimensions={{
++                x: Math.min(xScale.range()[0], 0),
++                y: Math.min(primaryYScale.range()[0], 0),
++                width: xScale.range()[1] - Math.min(xScale.range()[0], 0),
++                height: primaryYScale.range()[1] - Math.min(primaryYScale.range()[0], 0),
++            }}/>);
+     }
+-    return (<react_native_gesture_handler_1.GestureHandlerRootView>
+-      <react_native_1.View style={{ flex: 1, overflow: "hidden" }} onLayout={onLayout}>
+-        {body}
+-        <GestureHandler_1.GestureHandler config={gestureHandlerConfig} gesture={composed} transformState={transformState} dimensions={{
+-            x: Math.min(xScale.range()[0], 0),
+-            y: Math.min(primaryYScale.range()[0], 0),
+-            width: xScale.range()[1] - Math.min(xScale.range()[0], 0),
+-            height: primaryYScale.range()[1] -
+-                Math.min(primaryYScale.range()[0], 0),
+-        }}/>
+-      </react_native_1.View>
+-    </react_native_gesture_handler_1.GestureHandlerRootView>);
++    return (<ChartWrapper_1.ChartWrapper isHeadless={isHeadless} explicitSize={explicitSize} onLayout={onLayout} hasMeasuredLayoutSize={hasMeasuredLayoutSize} canvasSize={size} canvasRef={canvasRef} chartContent={chartContent} gestureOverlay={gestureOverlay}/>);
+ }
+diff --git a/node_modules/victory-native/dist/index.d.ts b/node_modules/victory-native/dist/index.d.ts
+index 86ccba5..6676895 100644
+--- a/node_modules/victory-native/dist/index.d.ts
++++ b/node_modules/victory-native/dist/index.d.ts
+@@ -2,6 +2,8 @@
+  * Cartesian chart exports (including useful types)
+  */
+ export { CartesianChart, type CartesianActionsHandle, type CartesianChartRef, } from "./cartesian/CartesianChart";
++export { type ChartExplicitSize } from "./shared/ChartExplicitSize";
++export { type ChartLayoutModeProps } from "./shared/ChartLayoutModeProps";
+ export { type InputDatum, type CartesianChartRenderArg, type Viewport, type ChartBounds, type YAxisSide, type XAxisSide, type PointsArray, type Scale, type MaybeNumber, } from "./types";
+ export { type CurveType } from "./cartesian/utils/curves";
+ export { type RoundedCorners } from "./utils/createRoundedRectPath";
+diff --git a/node_modules/victory-native/dist/pie/PieChart.js b/node_modules/victory-native/dist/pie/PieChart.js
+index 250f69e..0c4061b 100644
+--- a/node_modules/victory-native/dist/pie/PieChart.js
++++ b/node_modules/victory-native/dist/pie/PieChart.js
+@@ -25,9 +25,9 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.PieChart = void 0;
+ const React = __importStar(require("react"));
+-const react_native_skia_1 = require("@shopify/react-native-skia");
+ const PieSlice_1 = require("./PieSlice");
+ const innerRadius_1 = require("./utils/innerRadius");
++const pieLayout_1 = require("./utils/pieLayout");
+ const PieSliceContext_1 = require("./contexts/PieSliceContext");
+ const PolarChartContext_1 = require("../polar/contexts/PolarChartContext");
+ const CIRCLE_SWEEP_DEGREES = 360;
+@@ -36,12 +36,7 @@ const PieChart = (props) => {
+     const { canvasSize, data: _data, labelKey, valueKey, colorKey, } = (0, PolarChartContext_1.usePolarChartContext)();
+     // The sum all the slices' values
+     const totalCircleValue = _data.reduce((sum, entry) => sum + Number(entry[valueKey]), 0);
+-    const width = size !== null && size !== void 0 ? size : canvasSize.width; // Get the dynamic canvas size
+-    const height = size !== null && size !== void 0 ? size : canvasSize.height; // Get the dynamic canvas size
+-    // The size of the chart will need to be adjusted if the labels are positioned outside the chart.
+-    // ie we need to decrease the Pie Charts radius to account for the labels so the labels don't get cut off.
+-    const radius = Math.min(width, height) / 2; // Calculate the radius based on canvas size
+-    const center = (0, react_native_skia_1.vec)(canvasSize.width / 2, canvasSize.height / 2);
++    const { center, radius } = (0, pieLayout_1.getPieLayout)({ canvasSize, size });
+     const data = React.useMemo(() => {
+         let startAngle = _startAngle; // Initialize the start angle for the first slice
+         const enhanced = _data.map((datum) => {
+diff --git a/node_modules/victory-native/dist/pie/utils/computePieLayout.d.ts b/node_modules/victory-native/dist/pie/utils/computePieLayout.d.ts
+new file mode 100644
+index 0000000..aca9e4c
+--- /dev/null
++++ b/node_modules/victory-native/dist/pie/utils/computePieLayout.d.ts
+@@ -0,0 +1,12 @@
++import { type ChartCanvasSize } from "../../shared/chartCanvasSizeUtils";
++export type ComputedPieLayout = {
++    centerX: number;
++    centerY: number;
++    radius: number;
++    layoutWidth: number;
++    layoutHeight: number;
++};
++export declare function computePieLayout({ canvasSize, size, }: {
++    canvasSize: ChartCanvasSize;
++    size?: number;
++}): ComputedPieLayout;
+diff --git a/node_modules/victory-native/dist/pie/utils/computePieLayout.js b/node_modules/victory-native/dist/pie/utils/computePieLayout.js
+new file mode 100644
+index 0000000..66a31a8
+--- /dev/null
++++ b/node_modules/victory-native/dist/pie/utils/computePieLayout.js
+@@ -0,0 +1,12 @@
++"use strict";
++Object.defineProperty(exports, "__esModule", { value: true });
++exports.computePieLayout = void 0;
++function computePieLayout({ canvasSize, size, }) {
++    const layoutWidth = size !== null && size !== void 0 ? size : canvasSize.width;
++    const layoutHeight = size !== null && size !== void 0 ? size : canvasSize.height;
++    const radius = Math.min(layoutWidth, layoutHeight) / 2;
++    const centerX = (canvasSize.width - layoutWidth) / 2 + layoutWidth / 2;
++    const centerY = (canvasSize.height - layoutHeight) / 2 + layoutHeight / 2;
++    return { centerX, centerY, radius, layoutWidth, layoutHeight };
++}
++exports.computePieLayout = computePieLayout;
+diff --git a/node_modules/victory-native/dist/pie/utils/pieLayout.d.ts b/node_modules/victory-native/dist/pie/utils/pieLayout.d.ts
+new file mode 100644
+index 0000000..c94df2d
+--- /dev/null
++++ b/node_modules/victory-native/dist/pie/utils/pieLayout.d.ts
+@@ -0,0 +1,12 @@
++import { type SkPoint } from "@shopify/react-native-skia";
++import { type ChartCanvasSize } from "../../shared/chartCanvasSizeUtils";
++export type PieLayout = {
++    center: SkPoint;
++    radius: number;
++    layoutWidth: number;
++    layoutHeight: number;
++};
++export declare function getPieLayout({ canvasSize, size, }: {
++    canvasSize: ChartCanvasSize;
++    size?: number;
++}): PieLayout;
+diff --git a/node_modules/victory-native/dist/pie/utils/pieLayout.js b/node_modules/victory-native/dist/pie/utils/pieLayout.js
+new file mode 100644
+index 0000000..d1d957d
+--- /dev/null
++++ b/node_modules/victory-native/dist/pie/utils/pieLayout.js
+@@ -0,0 +1,15 @@
++"use strict";
++Object.defineProperty(exports, "__esModule", { value: true });
++exports.getPieLayout = void 0;
++const react_native_skia_1 = require("@shopify/react-native-skia");
++const computePieLayout_1 = require("./computePieLayout");
++function getPieLayout({ canvasSize, size, }) {
++    const { centerX, centerY, radius, layoutWidth, layoutHeight } = (0, computePieLayout_1.computePieLayout)({ canvasSize, size });
++    return {
++        center: (0, react_native_skia_1.vec)(centerX, centerY),
++        radius,
++        layoutWidth,
++        layoutHeight,
++    };
++}
++exports.getPieLayout = getPieLayout;
+diff --git a/node_modules/victory-native/dist/polar/PolarChart.d.ts b/node_modules/victory-native/dist/polar/PolarChart.d.ts
+index 8e77d54..6cf2971 100644
+--- a/node_modules/victory-native/dist/polar/PolarChart.d.ts
++++ b/node_modules/victory-native/dist/polar/PolarChart.d.ts
+@@ -2,6 +2,8 @@ import * as React from "react";
+ import { type ViewStyle, type StyleProp, type LayoutChangeEvent } from "react-native";
+ import type { ColorFields, InputFields, NumericalFields, StringKeyOf } from "../types";
+ import { type ChartTransformState } from "../cartesian/hooks/useChartTransformState";
++import { type ChartExplicitSize } from "../shared/ChartExplicitSize";
++import { type ChartLayoutModeProps } from "../shared/ChartLayoutModeProps";
+ type PolarChartBaseProps = {
+     onLayout: ({ nativeEvent: { layout } }: LayoutChangeEvent) => void;
+     hasMeasuredLayoutSize: boolean;
+@@ -12,12 +14,14 @@ type PolarChartBaseProps = {
+     containerStyle?: StyleProp<ViewStyle>;
+     canvasStyle?: StyleProp<ViewStyle>;
+     transformState?: ChartTransformState;
++    isHeadless: boolean;
++    explicitSize?: ChartExplicitSize;
+ };
+ type PolarChartProps<RawData extends Record<string, unknown>, LabelKey extends StringKeyOf<InputFields<RawData>>, ValueKey extends StringKeyOf<NumericalFields<RawData>>, ColorKey extends StringKeyOf<ColorFields<RawData>>> = {
+     data: RawData[];
+     colorKey: ColorKey;
+     labelKey: LabelKey;
+     valueKey: ValueKey;
+-} & Omit<PolarChartBaseProps, "canvasSize" | "onLayout" | "hasMeasuredLayoutSize">;
++} & ChartLayoutModeProps & Omit<PolarChartBaseProps, "canvasSize" | "onLayout" | "hasMeasuredLayoutSize" | "isHeadless">;
+ export declare const PolarChart: <RawData extends Record<string, unknown>, LabelKey extends StringKeyOf<InputFields<RawData>>, ValueKey extends StringKeyOf<NumericalFields<RawData>>, ColorKey extends StringKeyOf<ColorFields<RawData>>>(props: React.PropsWithChildren<PolarChartProps<RawData, LabelKey, ValueKey, ColorKey>>) => React.JSX.Element;
+ export {};
+diff --git a/node_modules/victory-native/dist/polar/PolarChart.js b/node_modules/victory-native/dist/polar/PolarChart.js
+index 7107dee..d6416d0 100644
+--- a/node_modules/victory-native/dist/polar/PolarChart.js
++++ b/node_modules/victory-native/dist/polar/PolarChart.js
+@@ -26,55 +26,36 @@ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.PolarChart = void 0;
+ const React = __importStar(require("react"));
+ const react_native_skia_1 = require("@shopify/react-native-skia");
+-const react_native_1 = require("react-native");
+ const react_native_gesture_handler_1 = require("react-native-gesture-handler");
+ const its_fine_1 = require("its-fine");
+ const PolarChartContext_1 = require("./contexts/PolarChartContext");
+ const transformGestures_1 = require("../cartesian/utils/transformGestures");
+ const GestureHandler_1 = require("../shared/GestureHandler");
++const ChartWrapper_1 = require("../shared/ChartWrapper");
++const useChartCanvasSize_1 = require("../shared/useChartCanvasSize");
+ const PolarChartBase = (props) => {
+-    const { containerStyle, canvasStyle, children, onLayout, hasMeasuredLayoutSize, canvasSize, transformState, } = props;
++    const { containerStyle, canvasStyle, children, onLayout, hasMeasuredLayoutSize, canvasSize, transformState, isHeadless, explicitSize, } = props;
+     const { width, height } = canvasSize;
+     const Bridge = (0, its_fine_1.useContextBridge)();
+     let composed = react_native_gesture_handler_1.Gesture.Race();
+     if (transformState) {
+         composed = react_native_gesture_handler_1.Gesture.Race(composed, (0, transformGestures_1.pinchTransformGesture)(transformState), (0, transformGestures_1.panTransformGesture)(transformState));
+     }
+-    return (<react_native_1.View style={[styles.baseContainer, containerStyle]} onLayout={onLayout}>
+-      <react_native_gesture_handler_1.GestureHandlerRootView style={{ flex: 1, overflow: "hidden" }}>
+-        <react_native_skia_1.Canvas style={react_native_1.StyleSheet.flatten([
+-            styles.canvasContainer,
+-            hasMeasuredLayoutSize ? { width, height } : null,
+-            canvasStyle,
+-        ])}>
+-          <Bridge>
+-            <react_native_skia_1.Group matrix={transformState === null || transformState === void 0 ? void 0 : transformState.matrix}>{children}</react_native_skia_1.Group>
+-          </Bridge>
+-        </react_native_skia_1.Canvas>
+-        <GestureHandler_1.GestureHandler gesture={composed} dimensions={{ x: 0, y: 0, width: width, height: height }}/>
+-      </react_native_gesture_handler_1.GestureHandlerRootView>
+-    </react_native_1.View>);
++    const chartContent = (<react_native_skia_1.Group matrix={transformState === null || transformState === void 0 ? void 0 : transformState.matrix}>
++      {hasMeasuredLayoutSize && children}
++    </react_native_skia_1.Group>);
++    return (<ChartWrapper_1.ChartWrapper isHeadless={isHeadless} explicitSize={explicitSize} onLayout={onLayout} hasMeasuredLayoutSize={hasMeasuredLayoutSize} canvasSize={canvasSize} containerStyle={containerStyle} canvasStyle={canvasStyle} chartContent={chartContent} wrapCanvasContent={isHeadless ? undefined : (content) => <Bridge>{content}</Bridge>} gestureOverlay={isHeadless ? undefined : (<GestureHandler_1.GestureHandler gesture={composed} dimensions={{ x: 0, y: 0, width, height }}/>)}/>);
+ };
+ const PolarChart = (props) => {
+     const { data, labelKey, colorKey, valueKey } = props;
+-    const [canvasSize, setCanvasSize] = React.useState({ width: 0, height: 0 });
+-    const [hasMeasuredLayoutSize, setHasMeasuredLayoutSize] = React.useState(false);
+-    const onLayout = React.useCallback(({ nativeEvent: { layout } }) => {
+-        setHasMeasuredLayoutSize(true);
+-        setCanvasSize(layout);
+-    }, []);
++    const { size: canvasSize, hasMeasuredLayoutSize, onLayout, isHeadless, } = (0, useChartCanvasSize_1.useChartCanvasSize)({
++        explicitSize: props.explicitSize,
++        headless: props.headless,
++    });
+     return (<its_fine_1.FiberProvider>
+       <PolarChartContext_1.PolarChartProvider data={data} labelKey={labelKey.toString()} colorKey={colorKey.toString()} valueKey={valueKey.toString()} canvasSize={canvasSize}>
+-        <PolarChartBase {...props} onLayout={onLayout} hasMeasuredLayoutSize={hasMeasuredLayoutSize} canvasSize={canvasSize}/>
++        <PolarChartBase {...props} onLayout={onLayout} hasMeasuredLayoutSize={hasMeasuredLayoutSize} canvasSize={canvasSize} isHeadless={isHeadless}/>
+       </PolarChartContext_1.PolarChartProvider>
+     </its_fine_1.FiberProvider>);
+ };
+ exports.PolarChart = PolarChart;
+-const styles = react_native_1.StyleSheet.create({
+-    baseContainer: {
+-        flex: 1,
+-    },
+-    canvasContainer: {
+-        flex: 1,
+-    },
+-});
+diff --git a/node_modules/victory-native/dist/shared/ChartExplicitSize.d.ts b/node_modules/victory-native/dist/shared/ChartExplicitSize.d.ts
+new file mode 100644
+index 0000000..6882e1c
+--- /dev/null
++++ b/node_modules/victory-native/dist/shared/ChartExplicitSize.d.ts
+@@ -0,0 +1,4 @@
++export type ChartExplicitSize = {
++    width: number;
++    height: number;
++};
+diff --git a/node_modules/victory-native/dist/shared/ChartExplicitSize.js b/node_modules/victory-native/dist/shared/ChartExplicitSize.js
+new file mode 100644
+index 0000000..c8ad2e5
+--- /dev/null
++++ b/node_modules/victory-native/dist/shared/ChartExplicitSize.js
+@@ -0,0 +1,2 @@
++"use strict";
++Object.defineProperty(exports, "__esModule", { value: true });
+diff --git a/node_modules/victory-native/dist/shared/ChartLayoutModeProps.d.ts b/node_modules/victory-native/dist/shared/ChartLayoutModeProps.d.ts
+new file mode 100644
+index 0000000..edac104
+--- /dev/null
++++ b/node_modules/victory-native/dist/shared/ChartLayoutModeProps.d.ts
+@@ -0,0 +1,17 @@
++import { type ChartExplicitSize } from "./ChartExplicitSize";
++/**
++ * Layout props for charts that support optional fixed sizing and headless mode.
++ *
++ * - `explicitSize` alone: fixed dimensions with normal mounted chrome.
++ * - `headless: true`: requires `explicitSize`; renders a Skia-only subtree.
++ */
++export type ChartLayoutModeProps = {
++    /**
++     * Initializes chart dimensions without waiting for React Native `onLayout`.
++     */
++    explicitSize?: ChartExplicitSize;
++    headless?: false;
++} | {
++    explicitSize: ChartExplicitSize;
++    headless: true;
++};
+diff --git a/node_modules/victory-native/dist/shared/ChartLayoutModeProps.js b/node_modules/victory-native/dist/shared/ChartLayoutModeProps.js
+new file mode 100644
+index 0000000..c8ad2e5
+--- /dev/null
++++ b/node_modules/victory-native/dist/shared/ChartLayoutModeProps.js
+@@ -0,0 +1,2 @@
++"use strict";
++Object.defineProperty(exports, "__esModule", { value: true });
+diff --git a/node_modules/victory-native/dist/shared/ChartWrapper.d.ts b/node_modules/victory-native/dist/shared/ChartWrapper.d.ts
+new file mode 100644
+index 0000000..0688ab2
+--- /dev/null
++++ b/node_modules/victory-native/dist/shared/ChartWrapper.d.ts
+@@ -0,0 +1,20 @@
++import * as React from "react";
++import { type LayoutChangeEvent, type StyleProp, type ViewStyle } from "react-native";
++import { type CanvasRef } from "@shopify/react-native-skia";
++import { type ChartExplicitSize } from "./ChartExplicitSize";
++import { type ChartCanvasSize } from "./chartCanvasSizeUtils";
++type ChartWrapperProps = {
++    isHeadless: boolean;
++    explicitSize?: ChartExplicitSize;
++    onLayout: (e: LayoutChangeEvent) => void;
++    hasMeasuredLayoutSize: boolean;
++    canvasSize: ChartCanvasSize;
++    canvasRef?: React.Ref<CanvasRef>;
++    chartContent: React.ReactNode;
++    gestureOverlay?: React.ReactNode;
++    containerStyle?: StyleProp<ViewStyle>;
++    canvasStyle?: StyleProp<ViewStyle>;
++    wrapCanvasContent?: (content: React.ReactNode) => React.ReactNode;
++};
++export declare function ChartWrapper({ isHeadless, explicitSize, onLayout, hasMeasuredLayoutSize, canvasSize, canvasRef, chartContent, gestureOverlay, containerStyle, canvasStyle, wrapCanvasContent, }: ChartWrapperProps): React.JSX.Element;
++export {};
+diff --git a/node_modules/victory-native/dist/shared/ChartWrapper.js b/node_modules/victory-native/dist/shared/ChartWrapper.js
+new file mode 100644
+index 0000000..5aca3cc
+--- /dev/null
++++ b/node_modules/victory-native/dist/shared/ChartWrapper.js
+@@ -0,0 +1,64 @@
++"use strict";
++var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
++    if (k2 === undefined) k2 = k;
++    var desc = Object.getOwnPropertyDescriptor(m, k);
++    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
++      desc = { enumerable: true, get: function() { return m[k]; } };
++    }
++    Object.defineProperty(o, k2, desc);
++}) : (function(o, m, k, k2) {
++    if (k2 === undefined) k2 = k;
++    o[k2] = m[k];
++}));
++var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
++    Object.defineProperty(o, "default", { enumerable: true, value: v });
++}) : function(o, v) {
++    o["default"] = v;
++});
++var __importStar = (this && this.__importStar) || function (mod) {
++    if (mod && mod.__esModule) return mod;
++    var result = {};
++    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
++    __setModuleDefault(result, mod);
++    return result;
++};
++Object.defineProperty(exports, "__esModule", { value: true });
++exports.ChartWrapper = void 0;
++const React = __importStar(require("react"));
++const react_native_1 = require("react-native");
++const react_native_skia_1 = require("@shopify/react-native-skia");
++const react_native_gesture_handler_1 = require("react-native-gesture-handler");
++function ChartWrapper({ isHeadless, explicitSize, onLayout, hasMeasuredLayoutSize, canvasSize, canvasRef, chartContent, gestureOverlay, containerStyle, canvasStyle, wrapCanvasContent, }) {
++    if (isHeadless) {
++        return <react_native_skia_1.Group>{chartContent}</react_native_skia_1.Group>;
++    }
++    const { width, height } = canvasSize;
++    return (<react_native_gesture_handler_1.GestureHandlerRootView>
++      <react_native_1.View style={[
++            !explicitSize && styles.flex1,
++            styles.overflowHidden,
++            explicitSize
++                ? { width: explicitSize.width, height: explicitSize.height }
++                : null,
++            containerStyle,
++        ]} onLayout={explicitSize ? undefined : onLayout}>
++        <react_native_skia_1.Canvas ref={canvasRef} style={react_native_1.StyleSheet.flatten([
++            styles.flex1,
++            hasMeasuredLayoutSize ? { width, height } : null,
++            canvasStyle,
++        ])}>
++          {wrapCanvasContent ? wrapCanvasContent(chartContent) : chartContent}
++        </react_native_skia_1.Canvas>
++        {gestureOverlay}
++      </react_native_1.View>
++    </react_native_gesture_handler_1.GestureHandlerRootView>);
++}
++exports.ChartWrapper = ChartWrapper;
++const styles = react_native_1.StyleSheet.create({
++    flex1: {
++        flex: 1,
++    },
++    overflowHidden: {
++        overflow: "hidden",
++    },
++});
+diff --git a/node_modules/victory-native/dist/shared/chartCanvasSizeUtils.d.ts b/node_modules/victory-native/dist/shared/chartCanvasSizeUtils.d.ts
+new file mode 100644
+index 0000000..5b941dc
+--- /dev/null
++++ b/node_modules/victory-native/dist/shared/chartCanvasSizeUtils.d.ts
+@@ -0,0 +1,11 @@
++import { type ChartExplicitSize } from "./ChartExplicitSize";
++export type ChartCanvasSize = ChartExplicitSize;
++export declare function getInitialChartCanvasSizeState(explicitSize?: ChartExplicitSize): {
++    size: ChartExplicitSize;
++    hasMeasuredLayoutSize: boolean;
++};
++export declare function isChartHeadless(headless?: boolean, explicitSize?: ChartExplicitSize): boolean;
++export declare function applyChartLayoutChange(explicitSize: ChartExplicitSize | undefined, layout: ChartCanvasSize): {
++    size: ChartCanvasSize;
++    hasMeasuredLayoutSize: boolean;
++} | null;
+diff --git a/node_modules/victory-native/dist/shared/chartCanvasSizeUtils.js b/node_modules/victory-native/dist/shared/chartCanvasSizeUtils.js
+new file mode 100644
+index 0000000..5aa2199
+--- /dev/null
++++ b/node_modules/victory-native/dist/shared/chartCanvasSizeUtils.js
+@@ -0,0 +1,21 @@
++"use strict";
++Object.defineProperty(exports, "__esModule", { value: true });
++exports.applyChartLayoutChange = exports.isChartHeadless = exports.getInitialChartCanvasSizeState = void 0;
++function getInitialChartCanvasSizeState(explicitSize) {
++    return {
++        size: explicitSize !== null && explicitSize !== void 0 ? explicitSize : { width: 0, height: 0 },
++        hasMeasuredLayoutSize: Boolean(explicitSize),
++    };
++}
++exports.getInitialChartCanvasSizeState = getInitialChartCanvasSizeState;
++function isChartHeadless(headless, explicitSize) {
++    return Boolean(headless && explicitSize);
++}
++exports.isChartHeadless = isChartHeadless;
++function applyChartLayoutChange(explicitSize, layout) {
++    if (explicitSize) {
++        return null;
++    }
++    return { size: layout, hasMeasuredLayoutSize: true };
++}
++exports.applyChartLayoutChange = applyChartLayoutChange;
+diff --git a/node_modules/victory-native/dist/shared/useChartCanvasSize.d.ts b/node_modules/victory-native/dist/shared/useChartCanvasSize.d.ts
+new file mode 100644
+index 0000000..6926a44
+--- /dev/null
++++ b/node_modules/victory-native/dist/shared/useChartCanvasSize.d.ts
+@@ -0,0 +1,15 @@
++import { type LayoutChangeEvent } from "react-native";
++import { type ChartExplicitSize } from "./ChartExplicitSize";
++/** Runtime layout args after prop destructuring (wider than {@link ChartLayoutModeProps}). */
++export type UseChartCanvasSizeProps = {
++    explicitSize?: ChartExplicitSize;
++    headless?: boolean;
++};
++export type { ChartCanvasSize } from "./chartCanvasSizeUtils";
++export { applyChartLayoutChange, getInitialChartCanvasSizeState, isChartHeadless, } from "./chartCanvasSizeUtils";
++export declare function useChartCanvasSize({ explicitSize, headless, }: UseChartCanvasSizeProps): {
++    size: ChartExplicitSize;
++    hasMeasuredLayoutSize: boolean;
++    onLayout: ({ nativeEvent: { layout } }: LayoutChangeEvent) => void;
++    isHeadless: boolean;
++};
+diff --git a/node_modules/victory-native/dist/shared/useChartCanvasSize.js b/node_modules/victory-native/dist/shared/useChartCanvasSize.js
+new file mode 100644
+index 0000000..9233001
+--- /dev/null
++++ b/node_modules/victory-native/dist/shared/useChartCanvasSize.js
+@@ -0,0 +1,47 @@
++"use strict";
++var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
++    if (k2 === undefined) k2 = k;
++    var desc = Object.getOwnPropertyDescriptor(m, k);
++    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
++      desc = { enumerable: true, get: function() { return m[k]; } };
++    }
++    Object.defineProperty(o, k2, desc);
++}) : (function(o, m, k, k2) {
++    if (k2 === undefined) k2 = k;
++    o[k2] = m[k];
++}));
++var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
++    Object.defineProperty(o, "default", { enumerable: true, value: v });
++}) : function(o, v) {
++    o["default"] = v;
++});
++var __importStar = (this && this.__importStar) || function (mod) {
++    if (mod && mod.__esModule) return mod;
++    var result = {};
++    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
++    __setModuleDefault(result, mod);
++    return result;
++};
++Object.defineProperty(exports, "__esModule", { value: true });
++exports.useChartCanvasSize = exports.isChartHeadless = exports.getInitialChartCanvasSizeState = exports.applyChartLayoutChange = void 0;
++const React = __importStar(require("react"));
++const chartCanvasSizeUtils_1 = require("./chartCanvasSizeUtils");
++var chartCanvasSizeUtils_2 = require("./chartCanvasSizeUtils");
++Object.defineProperty(exports, "applyChartLayoutChange", { enumerable: true, get: function () { return chartCanvasSizeUtils_2.applyChartLayoutChange; } });
++Object.defineProperty(exports, "getInitialChartCanvasSizeState", { enumerable: true, get: function () { return chartCanvasSizeUtils_2.getInitialChartCanvasSizeState; } });
++Object.defineProperty(exports, "isChartHeadless", { enumerable: true, get: function () { return chartCanvasSizeUtils_2.isChartHeadless; } });
++function useChartCanvasSize({ explicitSize, headless, }) {
++    const [size, setSize] = React.useState(() => (0, chartCanvasSizeUtils_1.getInitialChartCanvasSizeState)(explicitSize).size);
++    const [hasMeasuredLayoutSize, setHasMeasuredLayoutSize] = React.useState(() => (0, chartCanvasSizeUtils_1.getInitialChartCanvasSizeState)(explicitSize).hasMeasuredLayoutSize);
++    const isHeadless = (0, chartCanvasSizeUtils_1.isChartHeadless)(headless, explicitSize);
++    const onLayout = React.useCallback(({ nativeEvent: { layout } }) => {
++        const result = (0, chartCanvasSizeUtils_1.applyChartLayoutChange)(explicitSize, layout);
++        if (!result) {
++            return;
++        }
++        setHasMeasuredLayoutSize(result.hasMeasuredLayoutSize);
++        setSize(result.size);
++    }, [explicitSize]);
++    return { size, hasMeasuredLayoutSize, onLayout, isHeadless };
++}
++exports.useChartCanvasSize = useChartCanvasSize;
+diff --git a/node_modules/victory-native/src/cartesian/CartesianChart.tsx b/node_modules/victory-native/src/cartesian/CartesianChart.tsx
+index 9b82b54..67012fa 100644
+--- a/node_modules/victory-native/src/cartesian/CartesianChart.tsx
++++ b/node_modules/victory-native/src/cartesian/CartesianChart.tsx
+@@ -1,11 +1,9 @@
+ import * as React from "react";
+-import { View, type LayoutChangeEvent } from "react-native";
+-import { Canvas, Group, type CanvasRef } from "@shopify/react-native-skia";
++import { Group, type CanvasRef } from "@shopify/react-native-skia";
+ import { useSharedValue } from "react-native-reanimated";
+ import {
+   type ComposedGesture,
+   Gesture,
+-  GestureHandlerRootView,
+   type TouchData,
+ } from "react-native-gesture-handler";
+ import { type MutableRefObject } from "react";
+@@ -54,6 +52,9 @@ import {
+ } from "./contexts/CartesianTransformContext";
+ import { downsampleTicks } from "../utils/tickHelpers";
+ import { GestureHandler } from "../shared/GestureHandler";
++import { type ChartLayoutModeProps } from "../shared/ChartLayoutModeProps";
++import { ChartWrapper } from "../shared/ChartWrapper";
++import { useChartCanvasSize } from "../shared/useChartCanvasSize";
+ import { boundsToClip } from "../utils/boundsToClip";
+ import { normalizeYAxisTicks } from "../utils/normalizeYAxisTicks";
+ import { createFallbackChartState } from "./utils/createFallbackChartState";
+@@ -68,6 +69,10 @@ export type CartesianActionsHandle<T = undefined> =
+     : never;
+ 
+ export type CartesianChartRef<T = undefined> = {
++  /**
++   * The Skia canvas ref for imperative drawing. This is `null` in headless mode
++   * because no `Canvas` is mounted; the host must supply an offscreen surface.
++   */
+   canvas: CanvasRef | null;
+   actions: CartesianActionsHandle<T>;
+ };
+@@ -130,7 +135,7 @@ type CartesianChartProps<
+       | undefined
+     >
+   >;
+-};
++} & ChartLayoutModeProps;
+ 
+ export function CartesianChart<
+   RawData extends Record<string, unknown>,
+@@ -180,8 +185,11 @@ function CartesianChartContent<
+   actionsRef,
+   viewport,
+   ref,
++  explicitSize,
++  headless,
+ }: CartesianChartProps<RawData, XK, YK>) {
+-  const [size, setSize] = React.useState({ width: 0, height: 0 });
++  const { size, hasMeasuredLayoutSize, onLayout, isHeadless } =
++    useChartCanvasSize({ explicitSize, headless });
+   const chartBoundsRef = React.useRef<ChartBounds | undefined>(undefined);
+   const xScaleRef = React.useRef<
+     ScaleLogarithmic<number, number> | ScaleLinear<number, number> | undefined
+@@ -191,15 +199,6 @@ function CartesianChartContent<
+     undefined,
+   );
+   const canvasRef = React.useRef<CanvasRef | null>(null);
+-  const [hasMeasuredLayoutSize, setHasMeasuredLayoutSize] =
+-    React.useState(false);
+-  const onLayout = React.useCallback(
+-    ({ nativeEvent: { layout } }: LayoutChangeEvent) => {
+-      setHasMeasuredLayoutSize(true);
+-      setSize(layout);
+-    },
+-    [],
+-  );
+   const normalizedAxisProps = useBuildChartAxis({
+     xAxis,
+     yAxis,
+@@ -295,6 +294,7 @@ function CartesianChartContent<
+     domainPadding,
+     normalizedAxisProps,
+     viewport,
++    axisOptions?.axisScales,
+   ]);
+ 
+   React.useEffect(() => {
+@@ -707,9 +707,8 @@ function CartesianChartContent<
+       />
+     ) : null;
+ 
+-  // Body of the chart.
+-  const body = (
+-    <Canvas ref={canvasRef} style={{ flex: 1 }}>
++  const chartContent = (
++    <>
+       {YAxisComponents}
+       {XAxisComponents}
+       {FrameComponent}
+@@ -721,51 +720,61 @@ function CartesianChartContent<
+         </Group>
+       </CartesianChartProvider>
+       {hasMeasuredLayoutSize && renderOutside?.(renderArg)}
+-    </Canvas>
++    </>
+   );
+ 
+-  let composed = customGestures ?? Gesture.Race();
+-  if (transformState) {
+-    let gestures = Gesture.Simultaneous();
++  let gestureOverlay: React.ReactNode;
++  if (!isHeadless) {
++    let composed = customGestures ?? Gesture.Race();
++    if (transformState) {
++      let gestures = Gesture.Simultaneous();
+ 
+-    if (transformConfig?.pinch?.enabled ?? true) {
+-      gestures = Gesture.Simultaneous(
+-        gestures,
+-        pinchTransformGesture(transformState, transformConfig?.pinch),
+-      );
+-    }
++      if (transformConfig?.pinch?.enabled ?? true) {
++        gestures = Gesture.Simultaneous(
++          gestures,
++          pinchTransformGesture(transformState, transformConfig?.pinch),
++        );
++      }
+ 
+-    if (transformConfig?.pan?.enabled ?? true) {
+-      gestures = Gesture.Simultaneous(
+-        gestures,
+-        panTransformGesture(transformState, transformConfig?.pan),
+-      );
++      if (transformConfig?.pan?.enabled ?? true) {
++        gestures = Gesture.Simultaneous(
++          gestures,
++          panTransformGesture(transformState, transformConfig?.pan),
++        );
++      }
++
++      composed = Gesture.Race(composed, Gesture.Simultaneous(gestures));
++    }
++    if (chartPressState) {
++      composed = Gesture.Race(composed, panGesture);
+     }
+ 
+-    composed = Gesture.Race(composed, Gesture.Simultaneous(gestures));
+-  }
+-  if (chartPressState) {
+-    composed = Gesture.Race(composed, panGesture);
++    gestureOverlay = (
++      <GestureHandler
++        config={gestureHandlerConfig}
++        gesture={composed}
++        transformState={transformState}
++        dimensions={{
++          x: Math.min(xScale.range()[0]!, 0),
++          y: Math.min(primaryYScale.range()[0]!, 0),
++          width: xScale.range()[1]! - Math.min(xScale.range()[0]!, 0),
++          height:
++            primaryYScale.range()[1]! - Math.min(primaryYScale.range()[0]!, 0),
++        }}
++      />
++    );
+   }
+ 
+   return (
+-    <GestureHandlerRootView>
+-      <View style={{ flex: 1, overflow: "hidden" }} onLayout={onLayout}>
+-        {body}
+-        <GestureHandler
+-          config={gestureHandlerConfig}
+-          gesture={composed}
+-          transformState={transformState}
+-          dimensions={{
+-            x: Math.min(xScale.range()[0]!, 0),
+-            y: Math.min(primaryYScale.range()[0]!, 0),
+-            width: xScale.range()[1]! - Math.min(xScale.range()[0]!, 0),
+-            height:
+-              primaryYScale.range()[1]! -
+-              Math.min(primaryYScale.range()[0]!, 0),
+-          }}
+-        />
+-      </View>
+-    </GestureHandlerRootView>
++    <ChartWrapper
++      isHeadless={isHeadless}
++      explicitSize={explicitSize}
++      onLayout={onLayout}
++      hasMeasuredLayoutSize={hasMeasuredLayoutSize}
++      canvasSize={size}
++      canvasRef={canvasRef}
++      chartContent={chartContent}
++      gestureOverlay={gestureOverlay}
++    />
+   );
+ }
+diff --git a/node_modules/victory-native/src/index.ts b/node_modules/victory-native/src/index.ts
+index 3065639..433d4c9 100644
+--- a/node_modules/victory-native/src/index.ts
++++ b/node_modules/victory-native/src/index.ts
+@@ -6,6 +6,8 @@ export {
+   type CartesianActionsHandle,
+   type CartesianChartRef,
+ } from "./cartesian/CartesianChart";
++export { type ChartExplicitSize } from "./shared/ChartExplicitSize";
++export { type ChartLayoutModeProps } from "./shared/ChartLayoutModeProps";
+ 
+ export {
+   type InputDatum,
+diff --git a/node_modules/victory-native/src/pie/PieChart.tsx b/node_modules/victory-native/src/pie/PieChart.tsx
+index 3cbef98..4497d0c 100644
+--- a/node_modules/victory-native/src/pie/PieChart.tsx
++++ b/node_modules/victory-native/src/pie/PieChart.tsx
+@@ -1,7 +1,8 @@
+ import * as React from "react";
+-import { vec, type Color } from "@shopify/react-native-skia";
++import { type Color } from "@shopify/react-native-skia";
+ import { PieSlice, type PieSliceData } from "./PieSlice";
+ import { handleTranslateInnerRadius } from "./utils/innerRadius";
++import { getPieLayout } from "./utils/pieLayout";
+ import { PieSliceProvider } from "./contexts/PieSliceContext";
+ import { usePolarChartContext } from "../polar/contexts/PolarChartContext";
+ 
+@@ -37,13 +38,7 @@ export const PieChart = (props: PieChartProps) => {
+     0,
+   );
+ 
+-  const width = size ?? canvasSize.width; // Get the dynamic canvas size
+-  const height = size ?? canvasSize.height; // Get the dynamic canvas size
+-
+-  // The size of the chart will need to be adjusted if the labels are positioned outside the chart.
+-  // ie we need to decrease the Pie Charts radius to account for the labels so the labels don't get cut off.
+-  const radius = Math.min(width, height) / 2; // Calculate the radius based on canvas size
+-  const center = vec(canvasSize.width / 2, canvasSize.height / 2);
++  const { center, radius } = getPieLayout({ canvasSize, size });
+ 
+   const data = React.useMemo(() => {
+     let startAngle = _startAngle; // Initialize the start angle for the first slice
+diff --git a/node_modules/victory-native/src/pie/utils/computePieLayout.ts b/node_modules/victory-native/src/pie/utils/computePieLayout.ts
+new file mode 100644
+index 0000000..8078941
+--- /dev/null
++++ b/node_modules/victory-native/src/pie/utils/computePieLayout.ts
+@@ -0,0 +1,25 @@
++import { type ChartCanvasSize } from "../../shared/chartCanvasSizeUtils";
++
++export type ComputedPieLayout = {
++  centerX: number;
++  centerY: number;
++  radius: number;
++  layoutWidth: number;
++  layoutHeight: number;
++};
++
++export function computePieLayout({
++  canvasSize,
++  size,
++}: {
++  canvasSize: ChartCanvasSize;
++  size?: number;
++}): ComputedPieLayout {
++  const layoutWidth = size ?? canvasSize.width;
++  const layoutHeight = size ?? canvasSize.height;
++  const radius = Math.min(layoutWidth, layoutHeight) / 2;
++  const centerX = (canvasSize.width - layoutWidth) / 2 + layoutWidth / 2;
++  const centerY = (canvasSize.height - layoutHeight) / 2 + layoutHeight / 2;
++
++  return { centerX, centerY, radius, layoutWidth, layoutHeight };
++}
+diff --git a/node_modules/victory-native/src/pie/utils/pieLayout.ts b/node_modules/victory-native/src/pie/utils/pieLayout.ts
+new file mode 100644
+index 0000000..44c645d
+--- /dev/null
++++ b/node_modules/victory-native/src/pie/utils/pieLayout.ts
+@@ -0,0 +1,28 @@
++import { vec, type SkPoint } from "@shopify/react-native-skia";
++import { type ChartCanvasSize } from "../../shared/chartCanvasSizeUtils";
++import { computePieLayout } from "./computePieLayout";
++
++export type PieLayout = {
++  center: SkPoint;
++  radius: number;
++  layoutWidth: number;
++  layoutHeight: number;
++};
++
++export function getPieLayout({
++  canvasSize,
++  size,
++}: {
++  canvasSize: ChartCanvasSize;
++  size?: number;
++}): PieLayout {
++  const { centerX, centerY, radius, layoutWidth, layoutHeight } =
++    computePieLayout({ canvasSize, size });
++
++  return {
++    center: vec(centerX, centerY),
++    radius,
++    layoutWidth,
++    layoutHeight,
++  };
++}
+diff --git a/node_modules/victory-native/src/polar/PolarChart.tsx b/node_modules/victory-native/src/polar/PolarChart.tsx
+index c21904f..4229d7b 100644
+--- a/node_modules/victory-native/src/polar/PolarChart.tsx
++++ b/node_modules/victory-native/src/polar/PolarChart.tsx
+@@ -1,13 +1,11 @@
+ import * as React from "react";
+-import { Canvas, Group } from "@shopify/react-native-skia";
++import { Group } from "@shopify/react-native-skia";
+ import {
+-  StyleSheet,
+-  View,
+   type ViewStyle,
+   type StyleProp,
+   type LayoutChangeEvent,
+ } from "react-native";
+-import { Gesture, GestureHandlerRootView } from "react-native-gesture-handler";
++import { Gesture } from "react-native-gesture-handler";
+ import { type ContextBridge, FiberProvider, useContextBridge } from "its-fine";
+ import { PolarChartProvider } from "./contexts/PolarChartContext";
+ import type {
+@@ -22,6 +20,10 @@ import {
+   pinchTransformGesture,
+ } from "../cartesian/utils/transformGestures";
+ import { GestureHandler } from "../shared/GestureHandler";
++import { type ChartExplicitSize } from "../shared/ChartExplicitSize";
++import { type ChartLayoutModeProps } from "../shared/ChartLayoutModeProps";
++import { ChartWrapper } from "../shared/ChartWrapper";
++import { useChartCanvasSize } from "../shared/useChartCanvasSize";
+ 
+ type PolarChartBaseProps = {
+   onLayout: ({ nativeEvent: { layout } }: LayoutChangeEvent) => void;
+@@ -30,6 +32,8 @@ type PolarChartBaseProps = {
+   containerStyle?: StyleProp<ViewStyle>;
+   canvasStyle?: StyleProp<ViewStyle>;
+   transformState?: ChartTransformState;
++  isHeadless: boolean;
++  explicitSize?: ChartExplicitSize;
+ };
+ 
+ const PolarChartBase = (
+@@ -43,6 +47,8 @@ const PolarChartBase = (
+     hasMeasuredLayoutSize,
+     canvasSize,
+     transformState,
++    isHeadless,
++    explicitSize,
+   } = props;
+   const { width, height } = canvasSize;
+   const Bridge: ContextBridge = useContextBridge();
+@@ -56,26 +62,34 @@ const PolarChartBase = (
+     );
+   }
+ 
++  const chartContent = (
++    <Group matrix={transformState?.matrix}>
++      {hasMeasuredLayoutSize && children}
++    </Group>
++  );
++
+   return (
+-    <View style={[styles.baseContainer, containerStyle]} onLayout={onLayout}>
+-      <GestureHandlerRootView style={{ flex: 1, overflow: "hidden" }}>
+-        <Canvas
+-          style={StyleSheet.flatten([
+-            styles.canvasContainer,
+-            hasMeasuredLayoutSize ? { width, height } : null,
+-            canvasStyle,
+-          ])}
+-        >
+-          <Bridge>
+-            <Group matrix={transformState?.matrix}>{children}</Group>
+-          </Bridge>
+-        </Canvas>
+-        <GestureHandler
+-          gesture={composed}
+-          dimensions={{ x: 0, y: 0, width: width, height: height }}
+-        />
+-      </GestureHandlerRootView>
+-    </View>
++    <ChartWrapper
++      isHeadless={isHeadless}
++      explicitSize={explicitSize}
++      onLayout={onLayout}
++      hasMeasuredLayoutSize={hasMeasuredLayoutSize}
++      canvasSize={canvasSize}
++      containerStyle={containerStyle}
++      canvasStyle={canvasStyle}
++      chartContent={chartContent}
++      wrapCanvasContent={
++        isHeadless ? undefined : (content) => <Bridge>{content}</Bridge>
++      }
++      gestureOverlay={
++        isHeadless ? undefined : (
++          <GestureHandler
++            gesture={composed}
++            dimensions={{ x: 0, y: 0, width, height }}
++          />
++        )
++      }
++    />
+   );
+ };
+ 
+@@ -89,10 +103,11 @@ type PolarChartProps<
+   colorKey: ColorKey;
+   labelKey: LabelKey;
+   valueKey: ValueKey;
+-} & Omit<
+-  PolarChartBaseProps,
+-  "canvasSize" | "onLayout" | "hasMeasuredLayoutSize" // omit exposing internal props for calculating canvas layout/size
+->;
++} & ChartLayoutModeProps &
++  Omit<
++    PolarChartBaseProps,
++    "canvasSize" | "onLayout" | "hasMeasuredLayoutSize" | "isHeadless"
++  >;
+ export const PolarChart = <
+   RawData extends Record<string, unknown>,
+   LabelKey extends StringKeyOf<InputFields<RawData>>,
+@@ -105,18 +120,15 @@ export const PolarChart = <
+ ) => {
+   const { data, labelKey, colorKey, valueKey } = props;
+ 
+-  const [canvasSize, setCanvasSize] = React.useState({ width: 0, height: 0 });
+-
+-  const [hasMeasuredLayoutSize, setHasMeasuredLayoutSize] =
+-    React.useState(false);
+-
+-  const onLayout = React.useCallback(
+-    ({ nativeEvent: { layout } }: LayoutChangeEvent) => {
+-      setHasMeasuredLayoutSize(true);
+-      setCanvasSize(layout);
+-    },
+-    [],
+-  );
++  const {
++    size: canvasSize,
++    hasMeasuredLayoutSize,
++    onLayout,
++    isHeadless,
++  } = useChartCanvasSize({
++    explicitSize: props.explicitSize,
++    headless: props.headless,
++  });
+ 
+   return (
+     <FiberProvider>
+@@ -132,17 +144,9 @@ export const PolarChart = <
+           onLayout={onLayout}
+           hasMeasuredLayoutSize={hasMeasuredLayoutSize}
+           canvasSize={canvasSize}
++          isHeadless={isHeadless}
+         />
+       </PolarChartProvider>
+     </FiberProvider>
+   );
+ };
+-
+-const styles = StyleSheet.create({
+-  baseContainer: {
+-    flex: 1,
+-  },
+-  canvasContainer: {
+-    flex: 1,
+-  },
+-});
+diff --git a/node_modules/victory-native/src/shared/ChartExplicitSize.ts b/node_modules/victory-native/src/shared/ChartExplicitSize.ts
+new file mode 100644
+index 0000000..df8d886
+--- /dev/null
++++ b/node_modules/victory-native/src/shared/ChartExplicitSize.ts
+@@ -0,0 +1,4 @@
++export type ChartExplicitSize = {
++  width: number;
++  height: number;
++};
+diff --git a/node_modules/victory-native/src/shared/ChartLayoutModeProps.ts b/node_modules/victory-native/src/shared/ChartLayoutModeProps.ts
+new file mode 100644
+index 0000000..c85147f
+--- /dev/null
++++ b/node_modules/victory-native/src/shared/ChartLayoutModeProps.ts
+@@ -0,0 +1,20 @@
++import { type ChartExplicitSize } from "./ChartExplicitSize";
++
++/**
++ * Layout props for charts that support optional fixed sizing and headless mode.
++ *
++ * - `explicitSize` alone: fixed dimensions with normal mounted chrome.
++ * - `headless: true`: requires `explicitSize`; renders a Skia-only subtree.
++ */
++export type ChartLayoutModeProps =
++  | {
++      /**
++       * Initializes chart dimensions without waiting for React Native `onLayout`.
++       */
++      explicitSize?: ChartExplicitSize;
++      headless?: false;
++    }
++  | {
++      explicitSize: ChartExplicitSize;
++      headless: true;
++    };
+diff --git a/node_modules/victory-native/src/shared/ChartWrapper.tsx b/node_modules/victory-native/src/shared/ChartWrapper.tsx
+new file mode 100644
+index 0000000..ab149e9
+--- /dev/null
++++ b/node_modules/victory-native/src/shared/ChartWrapper.tsx
+@@ -0,0 +1,83 @@
++import * as React from "react";
++import {
++  StyleSheet,
++  View,
++  type LayoutChangeEvent,
++  type StyleProp,
++  type ViewStyle,
++} from "react-native";
++import { Canvas, Group, type CanvasRef } from "@shopify/react-native-skia";
++import { GestureHandlerRootView } from "react-native-gesture-handler";
++import { type ChartExplicitSize } from "./ChartExplicitSize";
++import { type ChartCanvasSize } from "./chartCanvasSizeUtils";
++
++type ChartWrapperProps = {
++  isHeadless: boolean;
++  explicitSize?: ChartExplicitSize;
++  onLayout: (e: LayoutChangeEvent) => void;
++  hasMeasuredLayoutSize: boolean;
++  canvasSize: ChartCanvasSize;
++  canvasRef?: React.Ref<CanvasRef>;
++  chartContent: React.ReactNode;
++  gestureOverlay?: React.ReactNode;
++  containerStyle?: StyleProp<ViewStyle>;
++  canvasStyle?: StyleProp<ViewStyle>;
++  wrapCanvasContent?: (content: React.ReactNode) => React.ReactNode;
++};
++
++export function ChartWrapper({
++  isHeadless,
++  explicitSize,
++  onLayout,
++  hasMeasuredLayoutSize,
++  canvasSize,
++  canvasRef,
++  chartContent,
++  gestureOverlay,
++  containerStyle,
++  canvasStyle,
++  wrapCanvasContent,
++}: ChartWrapperProps) {
++  if (isHeadless) {
++    return <Group>{chartContent}</Group>;
++  }
++
++  const { width, height } = canvasSize;
++
++  return (
++    <GestureHandlerRootView>
++      <View
++        style={[
++          !explicitSize && styles.flex1,
++          styles.overflowHidden,
++          explicitSize
++            ? { width: explicitSize.width, height: explicitSize.height }
++            : null,
++          containerStyle,
++        ]}
++        onLayout={explicitSize ? undefined : onLayout}
++      >
++        <Canvas
++          ref={canvasRef}
++          style={StyleSheet.flatten([
++            styles.flex1,
++            hasMeasuredLayoutSize ? { width, height } : null,
++            canvasStyle,
++          ])}
++        >
++          {wrapCanvasContent ? wrapCanvasContent(chartContent) : chartContent}
++        </Canvas>
++        {gestureOverlay}
++      </View>
++    </GestureHandlerRootView>
++  );
++}
++
++const styles = StyleSheet.create({
++  flex1: {
++    flex: 1,
++  },
++  overflowHidden: {
++    overflow: "hidden",
++  },
++});
+diff --git a/node_modules/victory-native/src/shared/chartCanvasSizeUtils.ts b/node_modules/victory-native/src/shared/chartCanvasSizeUtils.ts
+new file mode 100644
+index 0000000..136e9a2
+--- /dev/null
++++ b/node_modules/victory-native/src/shared/chartCanvasSizeUtils.ts
+@@ -0,0 +1,30 @@
++import { type ChartExplicitSize } from "./ChartExplicitSize";
++
++export type ChartCanvasSize = ChartExplicitSize;
++
++export function getInitialChartCanvasSizeState(
++  explicitSize?: ChartExplicitSize,
++) {
++  return {
++    size: explicitSize ?? { width: 0, height: 0 },
++    hasMeasuredLayoutSize: Boolean(explicitSize),
++  };
++}
++
++export function isChartHeadless(
++  headless?: boolean,
++  explicitSize?: ChartExplicitSize,
++) {
++  return Boolean(headless && explicitSize);
++}
++
++export function applyChartLayoutChange(
++  explicitSize: ChartExplicitSize | undefined,
++  layout: ChartCanvasSize,
++): { size: ChartCanvasSize; hasMeasuredLayoutSize: boolean } | null {
++  if (explicitSize) {
++    return null;
++  }
++
++  return { size: layout, hasMeasuredLayoutSize: true };
++}
+diff --git a/node_modules/victory-native/src/shared/useChartCanvasSize.ts b/node_modules/victory-native/src/shared/useChartCanvasSize.ts
+new file mode 100644
+index 0000000..4cb501c
+--- /dev/null
++++ b/node_modules/victory-native/src/shared/useChartCanvasSize.ts
+@@ -0,0 +1,49 @@
++import * as React from "react";
++import { type LayoutChangeEvent } from "react-native";
++import { type ChartExplicitSize } from "./ChartExplicitSize";
++import {
++  applyChartLayoutChange,
++  getInitialChartCanvasSizeState,
++  isChartHeadless,
++} from "./chartCanvasSizeUtils";
++
++/** Runtime layout args after prop destructuring (wider than {@link ChartLayoutModeProps}). */
++export type UseChartCanvasSizeProps = {
++  explicitSize?: ChartExplicitSize;
++  headless?: boolean;
++};
++
++export type { ChartCanvasSize } from "./chartCanvasSizeUtils";
++export {
++  applyChartLayoutChange,
++  getInitialChartCanvasSizeState,
++  isChartHeadless,
++} from "./chartCanvasSizeUtils";
++
++export function useChartCanvasSize({
++  explicitSize,
++  headless,
++}: UseChartCanvasSizeProps) {
++  const [size, setSize] = React.useState(
++    () => getInitialChartCanvasSizeState(explicitSize).size,
++  );
++  const [hasMeasuredLayoutSize, setHasMeasuredLayoutSize] = React.useState(
++    () => getInitialChartCanvasSizeState(explicitSize).hasMeasuredLayoutSize,
++  );
++  const isHeadless = isChartHeadless(headless, explicitSize);
++
++  const onLayout = React.useCallback(
++    ({ nativeEvent: { layout } }: LayoutChangeEvent) => {
++      const result = applyChartLayoutChange(explicitSize, layout);
++      if (!result) {
++        return;
++      }
++
++      setHasMeasuredLayoutSize(result.hasMeasuredLayoutSize);
++      setSize(result.size);
++    },
++    [explicitSize],
++  );
++
++  return { size, hasMeasuredLayoutSize, onLayout, isHeadless };
++}
