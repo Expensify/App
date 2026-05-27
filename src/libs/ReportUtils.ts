@@ -4186,12 +4186,13 @@ function getReasonAndReportActionThatRequiresAttention(
     currentUserAccountID: number,
     parentReportAction?: OnyxEntry<ReportAction>,
     isReportArchived = false,
+    allReportActionsParam?: OnyxCollection<ReportActions>,
 ): ReasonAndReportActionThatRequiresAttention | null {
     if (!optionOrReport) {
         return null;
     }
 
-    const reportActions = getAllReportActions(optionOrReport.reportID);
+    const reportActions = allReportActionsParam?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optionOrReport.reportID}`] ?? getAllReportActions(optionOrReport.reportID);
 
     if (optionOrReport.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
         const reportActionsArray = Object.values(reportActions ?? {});
@@ -4259,6 +4260,7 @@ function getReasonAndReportActionThatRequiresAttention(
         invoiceReceiverPolicy,
         currentUserLogin,
         currentUserAccountID,
+        allReportActionsParam,
     );
     const iouReportID = getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay);
     const transactions = getReportTransactions(iouReportID);
@@ -12685,7 +12687,8 @@ function generateReportAttributes({
     const hasErrors = Object.entries(reportErrors ?? {}).length > 0;
     const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActionsList);
     const parentReportAction = report?.parentReportActionID ? parentReportActionsList?.[report.parentReportActionID] : undefined;
-    const {reason, actionBadge, reportAction} = getReasonAndReportActionThatRequiresAttention(report, currentUserLogin, currentUserAccountID, parentReportAction, isReportArchived) ?? {};
+    const {reason, actionBadge, reportAction} =
+        getReasonAndReportActionThatRequiresAttention(report, currentUserLogin, currentUserAccountID, parentReportAction, isReportArchived, reportActions) ?? {};
 
     return {
         hasViolationsToDisplayInLHN,
