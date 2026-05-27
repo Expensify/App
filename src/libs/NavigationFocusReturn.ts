@@ -10,6 +10,7 @@ import getHadTabNavigation from './hadTabNavigation';
 import {consumeLauncher, pickLauncher, resetLauncherStackForTests} from './LauncherStack';
 import navigationRef from './Navigation/navigationRef';
 import {collectRouteKeys, diffNavigationState} from './navigationStateDiff';
+import {markProgrammaticFocus} from './programmaticFocus';
 import {isCycleIdle, Priorities, resetCycle, tryClaim} from './ScreenFocusArbiter';
 
 /** focusin tracks the last keyboard-focused element; a nav state listener captures it against the outgoing route and restores it on backward nav. */
@@ -43,7 +44,6 @@ function setTriggerEntry(routeKey: string, entry: TriggerEntry): void {
 
 let prevState: NavigationState | undefined;
 let pendingRestore: {cancel: () => void} | null = null;
-let skipNextRestore = false;
 let isRestoringFocus = false;
 let focusinHandler: ((e: FocusEvent) => void) | null = null;
 let mouseActivationHandler: ((e: MouseEvent) => void) | null = null;
@@ -93,11 +93,6 @@ function notifyPushParamsForward(routeKey: string, prevParams: unknown): void {
 
 function notifyPushParamsBackward(routeKey: string, targetParams: unknown): void {
     scheduleRestore(compoundParamsKey(routeKey, targetParams));
-}
-
-/** Skips the focus restore for the next back navigation. Call it before a form-submit goBack so the re-focused row doesn't eat the next Enter (which should hit the page's submit). Back and Esc don't call it, so they still restore focus. */
-function skipNextFocusRestore(): void {
-    skipNextRestore = true;
 }
 
 /** Native-only. Web captures via `focusin`; no-op here so the import resolves cross-platform. */
@@ -238,6 +233,7 @@ function restoreTriggerForRoute(routeKey: string): boolean {
     for (const candidate of candidates) {
         const before = document.activeElement;
         isRestoringFocus = true;
+        const unmarkProgrammaticFocus = markProgrammaticFocus(candidate);
         try {
             candidate.focus(focusOptions);
         } finally {
@@ -257,6 +253,7 @@ function restoreTriggerForRoute(routeKey: string): boolean {
             scheduleReturnHoldRelease();
             return true;
         }
+        unmarkProgrammaticFocus();
     }
 
     // Silent no-op (transient display:none / visibility:hidden ancestor) — leave the entry for scheduleRestore to retry; release the cycle so AUTO/INITIAL aren't blocked during the window.
@@ -338,7 +335,6 @@ function handleStateChange(newState: NavigationState | undefined): void {
     }
 
     if (action.type === 'forward') {
-        skipNextRestore = false;
         cancelPendingRestore();
         captureTriggerForRoute(action.captureKey);
         // Loose refs would pin detached unmounted nodes; triggerMap holds the captured copy.
@@ -346,15 +342,8 @@ function handleStateChange(newState: NavigationState | undefined): void {
         lastMouseTrigger = null;
         lastMouseTriggerAt = 0;
     } else if (action.type === 'backward') {
-        if (skipNextRestore) {
-            skipNextRestore = false;
-            cancelPendingRestore();
-            triggerMap.delete(action.restoreKey);
-        } else {
-            scheduleRestore(action.restoreKey);
-        }
+        scheduleRestore(action.restoreKey);
     } else if (action.type === 'lateral') {
-        skipNextRestore = false;
         // Stale restore would steal focus back on sibling nav.
         cancelPendingRestore();
     }
@@ -437,7 +426,6 @@ function teardownNavigationFocusReturn(): void {
     lastInteractiveElement = null;
     lastMouseTrigger = null;
     lastMouseTriggerAt = 0;
-    skipNextRestore = false;
     if (typeof document !== 'undefined') {
         if (focusinHandler) {
             document.removeEventListener('focusin', focusinHandler, true);
@@ -465,7 +453,6 @@ function resetForTests(): void {
     lastMouseTrigger = null;
     lastMouseTriggerAt = 0;
     lastRestoreTarget = null;
-    skipNextRestore = false;
 }
 
 function setLastInteractiveElementForTests(element: HTMLElement | null): void {
@@ -488,7 +475,6 @@ export {
     notifyPushParamsForward,
     notifyPushParamsBackward,
     cancelPendingFocusRestore,
-    skipNextFocusRestore,
     notifyPressedTrigger,
     registerPressable,
     isFocusRestoreInProgress,

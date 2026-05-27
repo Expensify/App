@@ -85,7 +85,6 @@ const {
     notifyPushParamsForward,
     notifyPushParamsBackward,
     cancelPendingFocusRestore,
-    skipNextFocusRestore,
     isFocusRestoreInProgress,
     shouldSkipAutoFocusDueToExistingFocus,
     resetForTests,
@@ -101,7 +100,6 @@ const {
     notifyPushParamsForward: (routeKey: string, prevParams: unknown) => void;
     notifyPushParamsBackward: (routeKey: string, targetParams: unknown) => void;
     cancelPendingFocusRestore: () => void;
-    skipNextFocusRestore: () => void;
     isFocusRestoreInProgress: () => boolean;
     shouldSkipAutoFocusDueToExistingFocus: () => boolean;
     resetForTests: () => void;
@@ -256,55 +254,6 @@ describe('handleStateChange — backward', () => {
         // The Android race-mitigation re-fire lives in scheduleRefocus/index.android.ts.
         expect(mockFireFocusEvent).toHaveBeenCalledTimes(1);
         expect(mockFireFocusEvent).toHaveBeenCalledWith(view);
-    });
-
-    it('does NOT restore when skipNextFocusRestore was called before goBack (form-submit path)', () => {
-        setLastPressedTriggerRefForTests(fakeRef(fakeView('display-name')));
-        const prev = stackState(0, [{key: 'profile', name: 'Profile'}]);
-        const forward = stackState(1, [
-            {key: 'profile', name: 'Profile'},
-            {key: 'display-name-page', name: 'DisplayName'},
-        ]);
-        const back = stackState(0, [{key: 'profile', name: 'Profile'}]);
-
-        handleStateChange(prev);
-        handleStateChange(forward);
-        skipNextFocusRestore();
-        handleStateChange(back);
-        flushTransitions();
-
-        expect(mockFireFocusEvent).not.toHaveBeenCalled();
-    });
-
-    it('clears the trigger entry when skipNextFocusRestore suppresses the restore, so a later back to the same route cannot inherit the skipped trigger', () => {
-        setLastPressedTriggerRefForTests(fakeRef(fakeView('display-name')));
-        const profile = stackState(0, [{key: 'profile', name: 'Profile'}]);
-        const intoDisplayName = stackState(1, [
-            {key: 'profile', name: 'Profile'},
-            {key: 'display-name-page', name: 'DisplayName'},
-        ]);
-        const backToProfile = stackState(0, [{key: 'profile', name: 'Profile'}]);
-
-        handleStateChange(profile);
-        handleStateChange(intoDisplayName);
-        expect(getTriggerMapSizeForTests()).toBe(1);
-
-        // Form-submit goBack: skipNextFocusRestore + backward → entry must be cleared, not left dangling.
-        skipNextFocusRestore();
-        handleStateChange(backToProfile);
-        flushTransitions();
-        expect(mockFireFocusEvent).not.toHaveBeenCalled();
-        expect(getTriggerMapSizeForTests()).toBe(0);
-
-        // Simulate a later deeplink-style forward (no fresh staged trigger) + back to "profile".
-        const intoNewScreen = stackState(1, [
-            {key: 'profile', name: 'Profile'},
-            {key: 'new-screen', name: 'NewScreen'},
-        ]);
-        handleStateChange(intoNewScreen);
-        handleStateChange(backToProfile);
-        flushTransitions();
-        expect(mockFireFocusEvent).not.toHaveBeenCalled();
     });
 
     it('does NOT call sendAccessibilityEvent when no trigger was staged before the forward navigation', () => {

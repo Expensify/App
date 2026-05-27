@@ -13,7 +13,6 @@ import {diffNavigationState} from './navigationStateDiff';
 type TriggerEntry = {ref: RefObject<View | null>; identifier?: string};
 
 const TRIGGER_MAP_MAX = 64;
-// Drop stale presses so a delayed nav (timer / deeplink / async redirect) doesn't capture an unrelated trigger.
 const PRESS_TRIGGER_TTL_MS = 3_000;
 
 let lastPressedTriggerRef: RefObject<View | null> | null = null;
@@ -23,7 +22,6 @@ const triggerMap = new Map<string, TriggerEntry>();
 const pressableRegistry = new Map<string, Map<string, RefObject<View | null>>>();
 let prevState: NavigationState | undefined;
 let pendingRestore: {cancel: () => void} | null = null;
-let skipNextRestore = false;
 let stateUnsubscribe: (() => void) | null = null;
 
 // Delete-then-set so a re-set moves the key to the tail and FIFO eviction drops the truly oldest.
@@ -158,21 +156,13 @@ function handleStateChange(newState: NavigationState | undefined): void {
     const {action, removedKeys} = diffNavigationState(prevState, newState);
 
     if (action.type === 'forward') {
-        skipNextRestore = false;
         cancelPendingRestore();
         captureTriggerForRoute(action.captureKey);
         lastPressedTriggerRef = null;
         lastPressedTriggerIdentifier = null;
     } else if (action.type === 'backward') {
-        if (skipNextRestore) {
-            skipNextRestore = false;
-            cancelPendingRestore();
-            triggerMap.delete(action.restoreKey);
-        } else {
-            scheduleRestore(action.restoreKey);
-        }
+        scheduleRestore(action.restoreKey);
     } else if (action.type === 'lateral') {
-        skipNextRestore = false;
         cancelPendingRestore();
     }
 
@@ -216,14 +206,8 @@ function teardownNavigationFocusReturn(): void {
     lastPressedTriggerRef = null;
     lastPressedTriggerIdentifier = null;
     lastPressedTriggerAt = 0;
-    skipNextRestore = false;
     stateUnsubscribe?.();
     stateUnsubscribe = null;
-}
-
-/** Skip the next backward restore; call before a form-submit goBack. */
-function skipNextFocusRestore(): void {
-    skipNextRestore = true;
 }
 
 /** PUSH_PARAMS reuses the focused key, so `diffNavigationState` reports `noop`; key against `routeKey + params`. */
@@ -281,7 +265,6 @@ export {
     notifyPushParamsForward,
     notifyPushParamsBackward,
     cancelPendingFocusRestore,
-    skipNextFocusRestore,
     isFocusRestoreInProgress,
     shouldSkipAutoFocusDueToExistingFocus,
     resetForTests,

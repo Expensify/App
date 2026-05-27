@@ -21,7 +21,6 @@ const {
     notifyPushParamsForward,
     notifyPushParamsBackward,
     cancelPendingFocusRestore,
-    skipNextFocusRestore,
     isFocusRestoreInProgress,
     compoundParamsKey,
     shouldSkipAutoFocusDueToExistingFocus,
@@ -39,7 +38,6 @@ const {
     notifyPushParamsForward: (routeKey: string, prevParams: unknown) => void;
     notifyPushParamsBackward: (routeKey: string, targetParams: unknown) => void;
     cancelPendingFocusRestore: () => void;
-    skipNextFocusRestore: () => void;
     isFocusRestoreInProgress: () => boolean;
     compoundParamsKey: (routeKey: string, params: unknown) => string;
     shouldSkipAutoFocusDueToExistingFocus: () => boolean;
@@ -1456,7 +1454,7 @@ describe('handleStateChange integration', () => {
         });
     });
 
-    it('skipNextFocusRestore suppresses the restore for the next backward nav only (form-submit goBack), then resumes', () => {
+    it('marks the restored element with `data-programmatic-focus` so consumers (Button enter-shortcut suppression, list cursor-sync) can tell a restore apart from a user-driven Tab', () => {
         withFakeTimers(() => {
             simulateTab();
             handleStateChange(onA);
@@ -1466,29 +1464,16 @@ describe('handleStateChange integration', () => {
             handleStateChange(onAB);
             trigger.blur();
 
-            skipNextFocusRestore();
-            const spy = jest.spyOn(trigger, 'focus');
             handleStateChange(onA);
             jest.runAllTimers();
-            expect(spy).not.toHaveBeenCalled();
 
-            // The flag is one-shot; the skipped entry was cleared, so the user must re-focus before forward to re-capture.
-            fireFocusIn(trigger);
-            handleStateChange(onAB);
-            trigger.blur();
-            handleStateChange(onA);
-            jest.runAllTimers();
-            expect(spy).toHaveBeenCalled();
+            expect(trigger.getAttribute('data-programmatic-focus')).toBe('true');
         });
     });
 
-    it('skipNextFocusRestore drops the captured entry, so a later back to the same route cannot inherit the skipped trigger', () => {
+    it("clears the `data-programmatic-focus` marker on the restored element's blur so the next user-driven focus is not misclassified", () => {
         withFakeTimers(() => {
             simulateTab();
-            const onAC = stackState(1, [
-                {key: 'a', name: 'A'},
-                {key: 'c', name: 'C'},
-            ]);
             handleStateChange(onA);
 
             const trigger = appendButton();
@@ -1496,39 +1481,13 @@ describe('handleStateChange integration', () => {
             handleStateChange(onAB);
             trigger.blur();
 
-            // Form-submit goBack: skipNextFocusRestore + backward → must clear the captured entry.
-            skipNextFocusRestore();
-            const spy = jest.spyOn(trigger, 'focus');
             handleStateChange(onA);
             jest.runAllTimers();
-            expect(spy).not.toHaveBeenCalled();
+            expect(trigger.getAttribute('data-programmatic-focus')).toBe('true');
 
-            // Deeplink-style forward (no fresh trigger) → capture bails, so the stale entry must not resurface on the next back.
-            setLastInteractiveElementForTests(null);
-            setLastMouseTriggerForTests(null);
-            handleStateChange(onAC);
-            handleStateChange(onA);
-            jest.runAllTimers();
-            expect(spy).not.toHaveBeenCalled();
-        });
-    });
-
-    it('skipNextFocusRestore flag is cleared by an intervening forward nav so it cannot leak into a later backward', () => {
-        withFakeTimers(() => {
-            simulateTab();
-            handleStateChange(onA);
-
-            const trigger = appendButton();
-            fireFocusIn(trigger);
-
-            skipNextFocusRestore();
-            handleStateChange(onAB);
-
+            // User Tab moves focus away → blur fires on the restored element → marker is removed.
             trigger.blur();
-            const spy = jest.spyOn(trigger, 'focus');
-            handleStateChange(onA);
-            jest.runAllTimers();
-            expect(spy).toHaveBeenCalled();
+            expect(trigger.getAttribute('data-programmatic-focus')).toBeNull();
         });
     });
 
