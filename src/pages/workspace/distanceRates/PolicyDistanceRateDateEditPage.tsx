@@ -22,7 +22,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PolicyDistanceRateEditForm';
 
-type PolicyDistanceRateDateEditPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATE_START_DATE_EDIT>;
+type PolicyDistanceRateDateEditPageProps = PlatformStackScreenProps<
+    SettingsNavigatorParamList,
+    typeof SCREENS.WORKSPACE.DISTANCE_RATE_START_DATE_EDIT,
+    typeof SCREENS.WORKSPACE.DISTANCE_RATE_END_DATE_EDIT
+>;
 
 function PolicyDistanceRateDateEditPage({route}: PolicyDistanceRateDateEditPageProps) {
     const styles = useThemeStyles();
