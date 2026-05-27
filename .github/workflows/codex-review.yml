@@ -182,7 +182,7 @@ jobs:
             );
 
       - name: Post Codex feedback
-        if: steps.gate.outputs.IS_AUTHORIZED == 'true' && steps.codex.outputs.final-message != ''
+        if: steps.gate.outputs.IS_AUTHORIZED == 'true' && steps.codex.outcome == 'success'
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v7
         env:
           PR_NUMBER: ${{ env.PR_NUMBER }}
@@ -190,13 +190,17 @@ jobs:
           WORKFLOW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           script: |
-            const body = [
-              '## Codex review',
-              '',
-              process.env.CODEX_FINAL_MESSAGE,
-              '',
-              `_[Workflow run](${process.env.WORKFLOW_RUN_URL})_`,
-            ].join('\n');
+            const codexMessage = process.env.CODEX_FINAL_MESSAGE?.trim() ?? '';
+            const body =
+              codexMessage === ''
+                ? 'LGTM :+1:'
+                : [
+                    '## Codex review',
+                    '',
+                    codexMessage,
+                    '',
+                    `_[Workflow run](${process.env.WORKFLOW_RUN_URL})_`,
+                  ].join('\n');
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,
