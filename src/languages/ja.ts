@@ -5385,6 +5385,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             },
             deletedCard: '削除されたカード',
             assignNewCards: {title: '新しいカードを割り当てる', description: '銀行から割り当て可能な最新のカードを取得します'},
+            openContactMethods: '連絡方法を開く',
         },
         expensifyCard: {
             issueAndManageCards: 'Expensify カードを発行して管理する',

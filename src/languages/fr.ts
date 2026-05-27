@@ -5465,6 +5465,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             },
             deletedCard: 'Carte supprimée',
             assignNewCards: {title: 'Assigner de nouvelles cartes', description: 'Obtenez les dernières cartes à assigner depuis votre banque'},
+            openContactMethods: 'Ouvrir les moyens de contact',
         },
         expensifyCard: {
             issueAndManageCards: 'Émettre et gérer vos Cartes Expensify',
