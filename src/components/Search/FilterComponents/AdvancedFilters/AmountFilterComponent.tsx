@@ -14,7 +14,7 @@ import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/Cur
 import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import useFullscreenAdvancedFilters from './useFullscreenAdvancedFilters';
+import useFullscreenAdvancedFilters from '../../FilterDropdowns/AdvancedFilters/useFullscreenAdvancedFilters';
 
 const BETWEEN_MODIFIER = 'Between';
 

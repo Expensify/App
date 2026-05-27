@@ -1,8 +1,9 @@
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 import SafeTriangle from '@components/SafeTriangle';
+import FilterContent from '@components/Search/FilterComponents/AdvancedFilters/FilterContent';
+import FilterList from '@components/Search/FilterComponents/AdvancedFilters/FilterList';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
-import SearchAdvancedFilterList from '@components/Search/SearchAdvancedFilterList';
 import type {SearchQueryJSON} from '@components/Search/types';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -11,7 +12,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SelectedFilterContent from '../SelectedFilterContent';
 
 type AdvancedFiltersPopupProps = {
     queryJSON: SearchQueryJSON;
@@ -30,7 +30,7 @@ function AdvancedFiltersPopup({queryJSON}: AdvancedFiltersPopupProps) {
     return (
         <SafeTriangle submenuRef={filterContentRef}>
             <View style={[styles.flexRow, StyleUtils.getHeight(Math.min(windowHeight, CONST.ADVANCED_FILTERS_POPOVER_HEIGHT))]}>
-                <SearchAdvancedFilterList
+                <FilterList
                     style={[styles.typeFiltersPopupContainer]}
                     type={searchAdvancedFiltersForm?.type}
                     policyID={searchAdvancedFiltersForm?.policyID}
@@ -42,7 +42,7 @@ function AdvancedFiltersPopup({queryJSON}: AdvancedFiltersPopupProps) {
                     ref={filterContentRef}
                     style={[styles.filterContentContainer]}
                 >
-                    <SelectedFilterContent
+                    <FilterContent
                         values={searchAdvancedFiltersForm}
                         filterKey={selectedFilter}
                         policyIDQuery={queryJSON.policyID}

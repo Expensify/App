@@ -2,12 +2,12 @@ import React, {useContext} from 'react';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SearchAdvancedFilterList from '@components/Search/SearchAdvancedFilterList';
+import FilterList from '@components/Search/FilterComponents/AdvancedFilters/FilterList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {SearchAdvancedFiltersActionContext, SearchAdvancedFiltersContext} from '@pages/Search/SearchAdvancedFiltersProvider';
 import ROUTES from '@src/ROUTES';
-import {SearchAdvancedFiltersActionContext, SearchAdvancedFiltersContext} from '../SearchAdvancedFiltersProvider';
 
 function SearchAdvancedFiltersBase() {
     const styles = useThemeStyles();
@@ -23,7 +23,7 @@ function SearchAdvancedFiltersBase() {
             includeSafeAreaPaddingBottom
         >
             <HeaderWithBackButton title={translate('search.filtersHeader')} />
-            <SearchAdvancedFilterList
+            <FilterList
                 contentContainerStyle={[styles.pb5]}
                 type={currentDraftFilters.type}
                 policyID={currentDraftFilters.policyID}

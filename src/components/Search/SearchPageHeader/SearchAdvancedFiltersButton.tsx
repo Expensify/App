@@ -2,6 +2,7 @@ import React from 'react';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
+import AdvancedFiltersPopup from '@components/Search/FilterDropdowns/AdvancedFilters/AdvancedFiltersPopup';
 import useFullscreenAdvancedFilters from '@components/Search/FilterDropdowns/AdvancedFilters/useFullscreenAdvancedFilters';
 import FilterPopupButton from '@components/Search/FilterDropdowns/FilterPopupButton';
 import type {ButtonComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
@@ -16,7 +17,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import AdvancedFiltersPopup from '../FilterDropdowns/AdvancedFilters/AdvancedFiltersPopup';
 
 type SearchAdvancedFiltersButtonProp = {
     queryJSON: SearchQueryJSON;
@@ -82,9 +82,11 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
               />
           );
 
+    const filtersPopup = () => <AdvancedFiltersPopup queryJSON={queryJSON} />;
+
     return (
         <FilterPopupButton
-            PopoverComponent={() => <AdvancedFiltersPopup queryJSON={queryJSON} />}
+            PopoverComponent={filtersPopup}
             popoverWidth={CONST.ADVANCED_FILTERS_POPOVER_WIDTH}
             popoverAnchorAlignment={{
                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,

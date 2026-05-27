@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {PolicyReportField} from '@src/types/onyx';
-import useFullscreenAdvancedFilters from './useFullscreenAdvancedFilters';
+import useFullscreenAdvancedFilters from '../../FilterDropdowns/AdvancedFilters/useFullscreenAdvancedFilters';
 
 type ReportFieldComponentProps = {
     values: Partial<SearchAdvancedFiltersForm> | undefined;

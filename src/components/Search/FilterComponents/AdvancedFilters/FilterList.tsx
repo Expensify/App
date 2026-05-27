@@ -13,7 +13,8 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
-import {FILTER_VIEW_MAP, type SearchFilter} from '@libs/SearchUIUtils';
+import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
+import type {SearchFilter} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
@@ -24,7 +25,7 @@ type FilterItemCallbacks = {
     onPress?: ItemCallback;
 };
 
-type SearchAdvancedFilterListProps = FilterItemCallbacks & {
+type FilterListProps = FilterItemCallbacks & {
     type: SearchDataTypes | undefined;
     policyID: string[] | undefined;
     selectedFilter?: SearchFilter['key'];
@@ -89,7 +90,7 @@ function FilterItem({filterKey, isSelected, onPress, onHoverIn, onFocus}: Filter
     );
 }
 
-function SearchAdvancedFilterList({type, policyID, selectedFilter, style, contentContainerStyle, onHoverIn, onFocus, onPress}: SearchAdvancedFilterListProps) {
+function FilterList({type, policyID, selectedFilter, style, contentContainerStyle, onHoverIn, onFocus, onPress}: FilterListProps) {
     const styles = useThemeStyles();
     const typeFiltersKeys = useAdvancedSearchFilters(type, policyID);
 
@@ -123,4 +124,4 @@ function SearchAdvancedFilterList({type, policyID, selectedFilter, style, conten
     );
 }
 
-export default SearchAdvancedFilterList;
+export default FilterList;

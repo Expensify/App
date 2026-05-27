@@ -11,12 +11,12 @@ import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import useFullscreenAdvancedFilters from '../../FilterDropdowns/AdvancedFilters/useFullscreenAdvancedFilters';
 import AmountFilterComponent from './AmountFilterComponent';
 import DateFilterComponent from './DateFilterComponent';
 import ReportFieldFilterComponent from './ReportFieldFilterComponent';
-import useFullscreenAdvancedFilters from './useFullscreenAdvancedFilters';
 
-type SelectedFilterContentProps = SearchFilterSelectionListProps & {
+type FilterContentProps = SearchFilterSelectionListProps & {
     filterKey: SearchFilter['key'];
     values: Partial<SearchAdvancedFiltersForm> | undefined;
     policyIDQuery: string[] | undefined;
@@ -114,7 +114,7 @@ function CommonContent({filterKey, value: initialValue, type, policyIDs, policyI
     );
 }
 
-function SelectedFilterContent({filterKey, values, policyIDQuery, autoFocus, onChange}: SelectedFilterContentProps) {
+function FilterContent({filterKey, values, policyIDQuery, autoFocus, onChange}: FilterContentProps) {
     if (
         filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
         filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION ||
@@ -186,4 +186,4 @@ function SelectedFilterContent({filterKey, values, policyIDQuery, autoFocus, onC
     );
 }
 
-export default SelectedFilterContent;
+export default FilterContent;

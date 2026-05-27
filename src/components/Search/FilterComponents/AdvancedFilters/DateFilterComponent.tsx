@@ -13,7 +13,7 @@ import {getDatePresets} from '@libs/SearchUIUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import useFullscreenAdvancedFilters from './useFullscreenAdvancedFilters';
+import useFullscreenAdvancedFilters from '../../FilterDropdowns/AdvancedFilters/useFullscreenAdvancedFilters';
 
 type DateFilterComponentProps = {
     filterKey: SearchDateFilterKeys;

@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectedFilterContent from '@components/Search/FilterDropdowns/AdvancedFilters/SelectedFilterContent';
+import FilterContent from '@components/Search/FilterComponents/AdvancedFilters/FilterContent';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -12,9 +12,9 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchAdvancedFiltersParamList} from '@libs/Navigation/types';
 import {FILTER_VIEW_MAP, SearchFilter} from '@libs/SearchUIUtils';
-import ROUTES from '@src/ROUTES';
+import {SearchAdvancedFiltersActionContext, SearchAdvancedFiltersContext} from '@pages/Search/SearchAdvancedFiltersProvider';
+import type ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {SearchAdvancedFiltersActionContext, SearchAdvancedFiltersContext} from '../SearchAdvancedFiltersProvider';
 
 function isFilterKeyValid(filterKey: string): filterKey is SearchFilter['key'] {
     return filterKey in FILTER_VIEW_MAP;
@@ -43,7 +43,7 @@ function SearchAdvancedFiltersContentBase() {
                 <>
                     <HeaderWithBackButton title={translate(FILTER_VIEW_MAP[validFilterKey].labelKey)} />
                     <View style={[styles.filterContentContainer]}>
-                        <SelectedFilterContent
+                        <FilterContent
                             values={currentDraftFilters}
                             filterKey={validFilterKey}
                             policyIDQuery={currentSearchQueryJSON?.policyID}
