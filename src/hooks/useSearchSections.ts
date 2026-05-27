@@ -35,7 +35,7 @@ function useSearchSections(): UseSearchSectionsResult {
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
 
-    const archivedReportsIdSet = useArchivedReportsIDSet();
+    const archivedReportsIDSet = useArchivedReportsIDSet();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const reportAttributesDerivedValue = useReportAttributes();
 
@@ -59,7 +59,7 @@ function useSearchSections(): UseSearchSectionsResult {
             groupBy,
             reportActions: exportReportActions,
             currentSearch: searchKey,
-            archivedReportsIDList: archivedReportsIdSet,
+            archivedReportsIDList: archivedReportsIDSet,
             isActionLoadingSet,
             cardFeeds,
             cardList: nonPersonalAndWorkspaceCards,

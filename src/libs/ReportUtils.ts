@@ -2251,7 +2251,7 @@ function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, lastVis
  * This function is used to find the last accessed report and we don't need to subscribe the data in the UI.
  * So please use `Onyx.connectWithoutView()` to get the necessary data when we remove the `Onyx.connect()`
  */
-function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = false, excludeReportID?: string, archivedReportsIdSet?: ArchivedReportsIDSet): OnyxEntry<Report> {
+function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = false, excludeReportID?: string, archivedReportsIDSet?: ArchivedReportsIDSet): OnyxEntry<Report> {
     let reportsValues = Object.values(deprecatedAllReports ?? {});
 
     if (openOnAdminRoom) {
@@ -2288,7 +2288,7 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
     reportsValues =
         reportsValues.filter((report) => {
             const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`;
-            const isArchived = archivedReportsIdSet ? archivedReportsIdSet.has(reportNameValuePairsKey) : isArchivedReport(allReportNameValuePair?.[reportNameValuePairsKey]);
+            const isArchived = archivedReportsIDSet ? archivedReportsIDSet.has(reportNameValuePairsKey) : isArchivedReport(allReportNameValuePair?.[reportNameValuePairsKey]);
             return !isSystemChat(report) && !isArchived;
         }) ?? [];
 
@@ -4972,7 +4972,7 @@ function canEditFieldOfMoneyRequest({
 
     // Unreported transaction from OldDot can have the reportID as an empty string
     const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-    const archivedReportsIDSetForOutstandingReports = archivedReportsIDSet ?? buildArchivedReportsIDSet(allReportNameValuePair);
+    const archivedReportIDs = archivedReportsIDSet ?? buildArchivedReportsIDSet(allReportNameValuePair);
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE) {
         // The distance rate can be modified only on the distance expense reports
@@ -4992,7 +4992,7 @@ function canEditFieldOfMoneyRequest({
             return true;
         }
 
-        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, archivedReportsIDSet)) {
+        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, archivedReportIDs)) {
             return false;
         }
 
@@ -5007,7 +5007,7 @@ function canEditFieldOfMoneyRequest({
                 getOutstandingReportsForUser(
                     moneyRequestReport?.policyID,
                     moneyRequestReport?.ownerAccountID,
-                    archivedReportsIDSetForOutstandingReports,
+                    archivedReportIDs,
                     outstandingReportsByPolicyID?.[moneyRequestReport?.policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
                 ).length > 0
             );
@@ -5021,19 +5021,14 @@ function canEditFieldOfMoneyRequest({
         }
 
         // Check the cheaper condition first
-        if ((isOwner || isAdmin || isManager) && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, archivedReportsIDSet)) {
+        if ((isOwner || isAdmin || isManager) && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, archivedReportIDs)) {
             return true;
         }
 
         // Check if there are multiple outstanding reports across policies
         let outstandingReportsCount = 0;
         for (const currentPolicy of policiesArray) {
-            const reports = getOutstandingReportsForUser(
-                currentPolicy.id,
-                moneyRequestReport?.ownerAccountID,
-                archivedReportsIDSetForOutstandingReports,
-                outstandingReportsByPolicyID?.[currentPolicy?.id] ?? {},
-            );
+            const reports = getOutstandingReportsForUser(currentPolicy.id, moneyRequestReport?.ownerAccountID, archivedReportIDs, outstandingReportsByPolicyID?.[currentPolicy?.id] ?? {});
             outstandingReportsCount += reports.length;
 
             // Short-circuit once we find more than 1
@@ -11512,8 +11507,8 @@ function isReportOutstanding(
     ) {
         return false;
     }
-    const reportNameValuePair = archivedReportsIDSet ? undefined : allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
-    if ((archivedReportsIDSet && isReportArchivedByID(archivedReportsIDSet, iouReport.reportID)) || isArchivedReport(reportNameValuePair)) {
+    const reportNameValuePair = allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
+    if (archivedReportsIDSet ? isReportArchivedByID(archivedReportsIDSet, iouReport.reportID) : isArchivedReport(reportNameValuePair)) {
         return false;
     }
     const currentRoute = navigationRef.getCurrentRoute();
@@ -11529,9 +11524,7 @@ function isReportOutstanding(
  * Get outstanding expense reports for a given policy ID
  * @param policyID - The policy ID to filter reports by
  * @param reportOwnerAccountID - The accountID of the report owner
- * @param archivedReportsIDSet - Set of archived report IDs
  * @param reports - Collection of reports to filter
- * @param allowSubmitted - Whether submitted reports are allowed
  * @returns Array of outstanding expense reports
  */
 function getOutstandingReportsForUser(

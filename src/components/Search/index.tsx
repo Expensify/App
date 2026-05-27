@@ -288,7 +288,7 @@ function Search({
 
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
-    const archivedReportsIdSet = useArchivedReportsIDSet();
+    const archivedReportsIDSet = useArchivedReportsIDSet();
 
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         selector: selectFilteredReportActions,
@@ -522,7 +522,7 @@ function Search({
             groupBy: validGroupBy,
             reportActions: exportReportActions,
             currentSearch: currentSearchKey,
-            archivedReportsIDList: archivedReportsIdSet,
+            archivedReportsIDList: archivedReportsIDSet,
             queryJSON,
             isActionLoadingSet,
             cardFeeds,
@@ -554,7 +554,7 @@ function Search({
         searchDataWithOptimisticTransaction,
         searchResults,
         type,
-        archivedReportsIdSet,
+        archivedReportsIDSet,
         translate,
         formatPhoneNumber,
         accountID,
@@ -807,7 +807,7 @@ function Search({
                             transaction: transactionItem,
                             report: transactionItem.report,
                             policy: transactionItem.policy,
-                            archivedReportsIDSet: archivedReportsIdSet,
+                            archivedReportsIDSet,
                         }),
 
                         isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID]?.isSelected || isExpenseReportType,
@@ -864,7 +864,7 @@ function Search({
                         transaction: transactionItem,
                         report: transactionItem.report,
                         policy: transactionItem.policy,
-                        archivedReportsIDSet: archivedReportsIdSet,
+                        archivedReportsIDSet,
                     }),
 
                     isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID].isSelected,
@@ -1019,7 +1019,7 @@ function Search({
                     selectedTransactions,
                     email ?? '',
                     accountID,
-                    archivedReportsIdSet,
+                    archivedReportsIDSet,
                     outstandingReportsByPolicyID,
                 );
                 setSelectedTransactions(updatedTransactions);
@@ -1081,18 +1081,15 @@ function Search({
                     currentTransactions
                         .filter((t) => !isTransactionPendingDelete(t))
                         .map((transactionItem) => {
-                            const itemTransaction = (searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] ??
-                                transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`]) as OnyxEntry<Transaction>;
-                            const originalItemTransaction =
-                                searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`] ??
-                                transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
+                            const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
+                            const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
                             return mapTransactionItemToSelectedEntry(
                                 transactionItem,
                                 itemTransaction,
                                 originalItemTransaction,
                                 email ?? '',
                                 accountID,
-                                archivedReportsIdSet,
+                                archivedReportsIDSet,
                                 outstandingReportsByPolicyID,
                             );
                         }),
@@ -1101,17 +1098,7 @@ function Search({
             setSelectedTransactions(updatedTransactions);
             updateSelectAllMatchingItemsState(updatedTransactions);
         },
-        [
-            selectedTransactions,
-            setSelectedTransactions,
-            updateSelectAllMatchingItemsState,
-            transactions,
-            email,
-            accountID,
-            outstandingReportsByPolicyID,
-            searchResults?.data,
-            archivedReportsIdSet,
-        ],
+        [selectedTransactions, setSelectedTransactions, updateSelectAllMatchingItemsState, transactions, email, accountID, outstandingReportsByPolicyID, archivedReportsIDSet],
     );
 
     const onSelectRowInMobileSelectionMode = (item: SearchListItem) => {
@@ -1420,7 +1407,7 @@ function Search({
                             originalItemTransaction,
                             email ?? '',
                             accountID,
-                            archivedReportsIdSet,
+                            archivedReportsIDSet,
                             outstandingReportsByPolicyID,
                         );
                     });
@@ -1440,7 +1427,7 @@ function Search({
                             originalItemTransaction,
                             email ?? '',
                             accountID,
-                            archivedReportsIdSet,
+                            archivedReportsIDSet,
                             outstandingReportsByPolicyID,
                         );
                     }),
@@ -1460,7 +1447,7 @@ function Search({
         accountID,
         outstandingReportsByPolicyID,
         searchResults?.data,
-        archivedReportsIdSet,
+        archivedReportsIDSet,
     ]);
 
     const onLayoutBase = useCallback(() => {

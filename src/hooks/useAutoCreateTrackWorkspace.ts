@@ -50,7 +50,7 @@ function useAutoCreateTrackWorkspace() {
 
     const [conciergeChatReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
-    const archivedReportsIdSet = useArchivedReportsIDSet();
+    const archivedReportsIDSet = useArchivedReportsIDSet();
     const {isBetaEnabled} = usePermissions();
 
     const mergedAccountConciergeReportID = !onboardingValues?.shouldRedirectToClassicAfterMerge && onboardingValues?.shouldValidate ? conciergeChatReportID : undefined;
@@ -120,7 +120,7 @@ function useAutoCreateTrackWorkspace() {
                     shouldUseNarrowLayout,
                     isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                     conciergeChatReportID,
-                    archivedReportsIdSet,
+                    archivedReportsIDSet,
                     newPolicyID,
                     mergedAccountConciergeReportID,
                     false,
@@ -148,7 +148,7 @@ function useAutoCreateTrackWorkspace() {
             shouldUseNarrowLayout,
             isBetaEnabled,
             conciergeChatReportID,
-            archivedReportsIdSet,
+            archivedReportsIDSet,
             mergedAccountConciergeReportID,
         ],
     );

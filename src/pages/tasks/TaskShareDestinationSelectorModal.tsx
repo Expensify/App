@@ -64,15 +64,15 @@ function TaskShareDestinationSelectorModal() {
         onSingleSelect: selectReportHandler,
     });
 
-    const archivedReportsIdSet = useArchivedReportsIDSet();
+    const archivedReportsIDSet = useArchivedReportsIDSet();
 
     const filteredOptions = useMemo(() => {
-        const filteredReports = reportFilter(availableOptions.recentReports as Array<SearchOption<Report>>, archivedReportsIdSet);
+        const filteredReports = reportFilter(availableOptions.recentReports as Array<SearchOption<Report>>, archivedReportsIDSet);
         return {
             ...availableOptions,
             recentReports: filteredReports ?? [],
         };
-    }, [availableOptions, archivedReportsIdSet]);
+    }, [availableOptions, archivedReportsIDSet]);
 
     const data = useMemo(
         () =>

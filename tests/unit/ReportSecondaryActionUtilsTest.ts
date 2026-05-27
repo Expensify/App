@@ -2132,6 +2132,7 @@ describe('getSecondaryAction', () => {
             reportAction: undefined,
             originalTransaction: {} as Transaction,
             policy,
+            archivedReportsIDSet: new Set<string>(),
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
@@ -3195,6 +3196,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 reportAction: undefined,
                 originalTransaction: {} as Transaction,
                 policy,
+                archivedReportsIDSet: new Set<string>(),
             }),
         ).toEqual(result);
     });
@@ -3224,6 +3226,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: actionR14932,
             originalTransaction: {} as Transaction,
             policy,
+            archivedReportsIDSet: new Set<string>(),
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(true);
     });
@@ -3250,6 +3253,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: {} as Transaction,
             policy,
             transactionThreadReport,
+            archivedReportsIDSet: new Set<string>(),
         });
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
 
@@ -3264,6 +3268,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: {} as Transaction,
             policy,
             transactionThreadReport,
+            archivedReportsIDSet: new Set<string>(),
         });
         expect(result2).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
@@ -3289,6 +3294,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: undefined,
             originalTransaction: {} as Transaction,
             policy,
+            archivedReportsIDSet: new Set<string>(),
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -3347,6 +3353,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: undefined,
             originalTransaction,
             policy,
+            archivedReportsIDSet: new Set<string>(),
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
@@ -3445,6 +3452,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: actionR14932,
             originalTransaction: {} as Transaction,
             policy,
+            archivedReportsIDSet: new Set<string>(),
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
     });
@@ -3489,6 +3497,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: actionR14932,
             originalTransaction: {} as Transaction,
             policy,
+            archivedReportsIDSet: new Set<string>(),
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
@@ -3534,6 +3543,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: actionR14932,
             originalTransaction: {} as Transaction,
             policy,
+            archivedReportsIDSet: new Set<string>(),
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
@@ -3583,6 +3593,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: actionR14932,
             originalTransaction: {} as Transaction,
             policy,
+            archivedReportsIDSet: new Set<string>(),
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
@@ -3611,6 +3622,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: {} as Transaction,
             policy,
             isChatReportArchived: false,
+            archivedReportsIDSet: new Set<string>(),
         });
         expect(result).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
     });
@@ -3639,6 +3651,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: {} as Transaction,
             policy,
             isChatReportArchived: false,
+            archivedReportsIDSet: new Set<string>(),
         });
         expect(result).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
     });

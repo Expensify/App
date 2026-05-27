@@ -77,7 +77,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {isBetaEnabled} = usePermissions();
-    const archivedReportsIdSet = useArchivedReportsIDSet();
+    const archivedReportsIDSet = useArchivedReportsIDSet();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const {isOffline} = useNetwork();
 
@@ -267,7 +267,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
                 const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${action?.childReportID}`];
                 const chatIOUReportID = chatReport?.reportID;
-                const isChatIOUReportArchived = isReportArchivedByID(archivedReportsIdSet, chatIOUReportID);
+                const isChatIOUReportArchived = isReportArchivedByID(archivedReportsIDSet, chatIOUReportID);
                 deleteMoneyRequest({
                     transactionID,
                     reportAction: action,
@@ -301,7 +301,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             allReports,
             allSnapshots,
             allTransactions,
-            archivedReportsIdSet,
+            archivedReportsIDSet,
             currentUserPersonalDetails,
             currentSearchQueryJSON,
             currentSearchResults?.data,

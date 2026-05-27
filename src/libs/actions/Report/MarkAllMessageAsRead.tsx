@@ -27,7 +27,7 @@ Onyx.connectWithoutView({
     callback: (value) => (allReports = value),
 });
 
-function markAllMessagesAsRead(archivedReportsIdSet: ArchivedReportsIDSet) {
+function markAllMessagesAsRead(archivedReportsIDSet: ArchivedReportsIDSet) {
     if (isAnonymousUser()) {
         return;
     }
@@ -48,7 +48,7 @@ function markAllMessagesAsRead(archivedReportsIdSet: ArchivedReportsIDSet) {
         const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
         const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]);
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
-        const isArchivedReport = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
+        const isArchivedReport = archivedReportsIDSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
         if (!isUnread(report, oneTransactionThreadReport, isArchivedReport)) {
             continue;
         }

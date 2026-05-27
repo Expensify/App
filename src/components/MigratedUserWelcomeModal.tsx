@@ -31,7 +31,7 @@ function MigratedUserWelcomeModal() {
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBetaEnabled} = usePermissions();
-    const archivedReportsIdSet = useArchivedReportsIDSet();
+    const archivedReportsIDSet = useArchivedReportsIDSet();
     const isReduceMotionEnabled = Accessibility.useReducedMotion();
     const illustrations = useMemoizedLazyIllustrations(['ChatBubbles', 'ConciergeBot', 'PlanetWithMobileApp', 'MagnifyingGlassReceipt']);
     const isCurrentUserPolicyAdmin = useIsPaidPolicyAdmin();
@@ -66,7 +66,7 @@ function MigratedUserWelcomeModal() {
     const onClose = () => {
         Log.hmmm('[MigratedUserWelcomeModal] onClose called, dismissing product training');
         dismissProductTraining(CONST.MIGRATED_USER_WELCOME_MODAL);
-        const lastAccessedReportID = findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), shouldOpenOnAdminRoom(), undefined, archivedReportsIdSet)?.reportID;
+        const lastAccessedReportID = findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), shouldOpenOnAdminRoom(), undefined, archivedReportsIDSet)?.reportID;
         if (lastAccessedReportID) {
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID));
         }

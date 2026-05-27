@@ -914,6 +914,7 @@ function getSecondaryReportActions({
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue;
     canUseNewDotSplits?: boolean;
     isChatReportArchived?: boolean;
+    // Temporarily optional while archived report checks are migrated in smaller PRs. Remove this fallback as part of https://github.com/Expensify/App/issues/66422.
     archivedReportsIDSet?: ArchivedReportsIDSet;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
@@ -1126,7 +1127,7 @@ function getSecondaryTransactionThreadActions({
     transactionThreadReport?: OnyxEntry<Report>;
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue;
     isChatReportArchived?: boolean;
-    archivedReportsIDSet?: ArchivedReportsIDSet;
+    archivedReportsIDSet: ArchivedReportsIDSet;
 }): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
