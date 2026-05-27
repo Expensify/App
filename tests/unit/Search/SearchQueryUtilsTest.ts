@@ -18,7 +18,6 @@ import {
     getDateRangeDisplayValueFromFormValue,
     getDisplayQueryFiltersForKey,
     getFilterDisplayValue,
-    getKeywordQueryWithCurrentSearchContext,
     getQueryWithUpdatedValues,
     getRangeBoundariesFromFormValue,
     serializeQueryJSONForBackend,
@@ -252,6 +251,31 @@ describe('SearchQueryUtils', () => {
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
             expect(result).toEqual('type:expense category:equipment,consulting,none,Uncategorized');
+        });
+
+        test('serializes No Tag filter as missing tag query', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                tag: [CONST.SEARCH.TAG_EMPTY_VALUE],
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense -has:tag');
+            expect(result).not.toContain('tag:none');
+        });
+
+        test('serializes real tag values as tag filters', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                tag: ['Engineering'],
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense tag:Engineering');
         });
 
         test('empty filter values', () => {
@@ -1195,6 +1219,39 @@ describe('SearchQueryUtils', () => {
             const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
 
             expect(result['reportFieldRange-start-date']).toBeUndefined();
+        });
+
+        test('hydrates missing tag query as No Tag filter', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense -has:tag');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+
+            expect(result).toEqual({
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                tag: [CONST.SEARCH.TAG_EMPTY_VALUE],
+            });
+        });
+
+        test('hydrates missing tag query while preserving other has filters', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense has:receipt -has:tag');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+
+            expect(result).toEqual({
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                has: [CONST.SEARCH.HAS_VALUES.RECEIPT],
+                tag: [CONST.SEARCH.TAG_EMPTY_VALUE],
+            });
         });
 
         describe('view parameter', () => {

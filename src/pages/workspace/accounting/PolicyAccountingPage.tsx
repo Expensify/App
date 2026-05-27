@@ -115,9 +115,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const hasAccountingConnection = hasAccountingConnections(policy);
     const synchronizationError = connectedIntegration && getSynchronizationErrorMessage(policy, connectedIntegration, isSyncInProgress, translate, styles);
 
-    const isSageIntacct = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT;
-    const hasAuthError = !!connectedIntegration && !!synchronizationError && isAuthenticationError(policy, connectedIntegration);
-    const shouldShowEnterCredentials = !!connectedIntegration && (hasAuthError || isSageIntacct);
+    const shouldShowEnterCredentials = connectedIntegration && !!synchronizationError && isAuthenticationError(policy, connectedIntegration);
 
     // Get the last successful date of the integration. Then, if `connectionSyncProgress` is the same integration displayed and the state is 'jobDone', get the more recent update time of the two.
     const successfulDate = getIntegrationLastSuccessfulDate(
@@ -152,30 +150,21 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 ? [
                       {
                           icon: icons.Key,
-                          text: translate(isSageIntacct && !hasAuthError ? 'workspace.accounting.updateCredentials' : 'workspace.accounting.enterCredentials'),
-                          onSelected: () => {
-                              if (isSageIntacct && policyID) {
-                                  Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS.getRoute(policyID));
-                                  return;
-                              }
-                              startIntegrationFlow({name: connectedIntegration});
-                          },
+                          text: translate('workspace.accounting.enterCredentials'),
+                          onSelected: () => startIntegrationFlow({name: connectedIntegration}),
                           shouldCallAfterModalHide: true,
                           disabled: isOffline,
                           iconRight: icons.NewWindow,
                       },
                   ]
-                : []),
-            ...(!hasAuthError || isSageIntacct
-                ? [
+                : [
                       {
                           icon: icons.Sync,
                           text: translate('workspace.accounting.syncNow'),
                           onSelected: () => syncConnection(policy, connectedIntegration),
                           disabled: isOffline,
                       },
-                  ]
-                : []),
+                  ]),
             {
                 icon: icons.Trashcan,
                 text: translate('workspace.accounting.disconnect'),
@@ -196,9 +185,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             policy,
             connectedIntegration,
             startIntegrationFlow,
-            isSageIntacct,
-            hasAuthError,
-            policyID,
         ],
     );
 
