@@ -46,6 +46,12 @@ type RequestMoneyParams = {
     /** Unit for time tracking (e.g., 'h' for hours) */
     unit?: ValueOf<typeof CONST.TIME_TRACKING.UNIT>;
 
+    /** Odometer start reading for an odometer distance expense */
+    odometerStart?: number;
+
+    /** Odometer end reading for an odometer distance expense */
+    odometerEnd?: number;
+
     /** When true, the backend defers auto-submit so batch expense creation (e.g. duplicate report) can finish before the report is submitted */
     shouldDeferAutoSubmit?: boolean;
 };
