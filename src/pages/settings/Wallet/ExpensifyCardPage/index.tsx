@@ -559,6 +559,15 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                     )}
                                 </React.Fragment>
                             ))}
+                        {shouldShowSpendRulesSummary && (
+                            <MenuItemWithTopDescription
+                                description={translate('cardPage.spendRules')}
+                                descriptionTextStyle={[styles.fontSizeLabel]}
+                                titleComponent={spendRulesTitleComponent}
+                                accessibilityLabel={spendRulesSummary.join('. ')}
+                            />
+                        )}
+
                         {shouldShowActionRows && (
                             <View style={styles.mt6}>
                                 {shouldShowReportVirtualCardFraudRows &&
@@ -605,16 +614,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                             }
                                             Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(String(currentPhysicalCard?.cardID)));
                                         }}
-                                    />
-                                )}
-
-                                {shouldShowSpendRulesSummary && (
-                                    <MenuItemWithTopDescription
-                                        description={translate('cardPage.spendRules')}
-                                        descriptionTextStyle={[styles.fontSizeLabel]}
-                                        titleComponent={spendRulesTitleComponent}
-                                        onPress={navigateToSpendRulesPage}
-                                        accessibilityLabel={spendRulesSummary.join('. ')}
                                     />
                                 )}
 
