@@ -1,3 +1,4 @@
+import React from 'react';
 import {View} from 'react-native';
 import Table from '@components/Table';
 import {WorkspaceMemberRowData} from '.';
