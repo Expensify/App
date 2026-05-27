@@ -3,7 +3,7 @@ import {DeviceEventEmitter} from 'react-native';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import {initBulkEditDraftTransaction} from '@libs/actions/IOU/BulkEdit';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
@@ -78,8 +78,9 @@ function useSelectedTransactionsActions({
     const {isOffline} = useNetworkWithOfflineStatus();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const {selectedTransactionIDs, currentSearchHash, selectedTransactions: selectedTransactionsMeta} = useSearchStateContext();
-    const {clearSelectedTransactions} = useSearchActionsContext();
+    const {selectedTransactionIDs, selectedTransactions: selectedTransactionsMeta} = useSearchSelectionContext();
+    const {currentSearchHash} = useSearchQueryContext();
+    const {clearSelectedTransactions} = useSearchSelectionActions();
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
@@ -471,12 +472,13 @@ function useSelectedTransactionsActions({
         const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransaction?.comment?.originalTransactionID}`];
 
         const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(firstTransaction, originalTransaction);
-        const hasMultipleSplits = getChildTransactions(allTransactions, allReports, firstTransaction?.comment?.originalTransactionID, true).length > 1;
+        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
+        const hasMultipleSplits = getChildTransactions(allTransactions, firstTransaction?.comment?.originalTransactionID).length > 1;
         const canSplitTransaction =
             selectedTransactionsList.length === 1 &&
             report &&
             !(isExpenseSplit && hasMultipleSplits) &&
-            isSplitAction(report, [firstTransaction], originalTransaction, login ?? '', currentUserAccountID, policy);
+            isSplitAction(report, [firstTransaction], originalTransaction, login ?? '', currentUserAccountID, policy, parentReport);
 
         if (canSplitTransaction) {
             options.push({
@@ -484,7 +486,7 @@ function useSelectedTransactionsActions({
                 icon: expensifyIcons.ArrowSplit,
                 value: SPLIT,
                 onSelected: () => {
-                    initSplitExpense(firstTransaction, policy);
+                    initSplitExpense(firstTransaction, policy, report);
                 },
             });
         }
