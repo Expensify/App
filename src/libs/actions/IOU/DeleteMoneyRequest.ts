@@ -27,7 +27,6 @@ import {
 import {getAmount, getCurrency, isOnHold, removeTransactionFromDuplicateTransactionViolation} from '@libs/TransactionUtils';
 import {clearByKey as clearPdfByOnyxKey} from '@userActions/CachedPDFPaths';
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
-import {deleteRequestsByPredicate} from '@userActions/PersistedRequests';
 import {optimisticReportLastData} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -283,6 +282,14 @@ function getNavigationUrlOnMoneyRequestDelete(
 }
 
 /**
+ * Performs a local-only cleanup of a money request: nulls the transaction and its violations from Onyx,
+ * updates (or deletes) the IOU report and report actions, and clears outstanding flags on the chat.
+ *
+ * Use this when the optimistic state needs to be torn down without going through the full server-backed
+ * `deleteMoneyRequest()` flow — for example when the user dismisses a failed-upload receipt that wasn't
+ * confirmed server-side, or when an optimistic transaction needs to be reverted without telling the
+ * server to delete a resource. For deleting a confirmed server-side expense, use `deleteMoneyRequest()`
+ * instead.
  *
  * @param transactionID  - The transactionID of IOU
  * @param reportAction - The reportAction of the transaction in the IOU report
@@ -298,22 +305,7 @@ function cleanUpMoneyRequest(
     isChatIOUReportArchived: boolean | undefined,
     originalReportID: string | undefined,
     isSingleTransactionView = false,
-    /** When true, also purge any queued write for this transactionID and enqueue a server-side DELETE so a ghost upload can't resurrect. */
-    shouldEnsureServerCleanup = false,
 ) {
-    if (shouldEnsureServerCleanup) {
-        deleteRequestsByPredicate((request) => {
-            const data = request.data as {transactionID?: string} | undefined;
-            return data?.transactionID === transactionID;
-        });
-
-        const deleteParameters: DeleteMoneyRequestParams = {
-            transactionID,
-            reportActionID: reportAction.reportActionID,
-        };
-        API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST, deleteParameters, {optimisticData: [], successData: [], failureData: []});
-    }
-
     const allReports = getAllReports();
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`];
 

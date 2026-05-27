@@ -314,29 +314,6 @@ function deleteRequestsByIndices(indices: number[]): Promise<void> {
     });
 }
 
-/** Removes queued requests matching the predicate. Does not cancel an in-flight `ongoingRequest`. Returns the number of removed requests. */
-function deleteRequestsByPredicate(predicate: (request: AnyRequest) => boolean): Promise<number> {
-    const previousLength = persistedRequests.length;
-    const removed = persistedRequests.filter(predicate);
-    if (removed.length === 0) {
-        Log.info('[PersistedRequests] deleteRequestsByPredicate: no matching requests in queue', false, {
-            currentQueueLength: previousLength,
-        });
-        return Promise.resolve(0);
-    }
-
-    persistedRequests = persistedRequests.filter((request) => !predicate(request));
-
-    Log.info('[PersistedRequests] deleteRequestsByPredicate: removing requests', false, {
-        removedCount: removed.length,
-        removedCommands: getCommands(removed),
-        previousQueueLength: previousLength,
-        newQueueLength: persistedRequests.length,
-    });
-
-    return trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests)).then(() => removed.length);
-}
-
 function update<TKey extends OnyxKey>(oldRequestIndex: number, newRequest: Request<TKey>): Promise<void> {
     const requests = [...persistedRequests];
     const oldRequest = requests.at(oldRequestIndex);
@@ -520,7 +497,6 @@ export {
     updateOngoingRequest,
     rollbackOngoingRequest,
     deleteRequestsByIndices,
-    deleteRequestsByPredicate,
     onInitialization,
     onCrossTabRequestsMerged,
     resetPendingWritesForTest,
