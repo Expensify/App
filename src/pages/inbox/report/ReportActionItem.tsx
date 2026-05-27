@@ -7,6 +7,7 @@ import useReportTransactions from '@hooks/useReportTransactions';
 import {getIOUReportIDFromReportActionPreview, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isClosedExpenseReportWithNoExpenses} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {getStableReportSelector} from '@src/selectors/Report';
 import type {PersonalDetailsList, Transaction} from '@src/types/onyx';
 import type {PureReportActionItemProps} from './PureReportActionItem';
 import PureReportActionItem from './PureReportActionItem';
@@ -23,7 +24,7 @@ type ReportActionItemProps = PureReportActionItemProps & {
 function ReportActionItem({action, report, draftMessage: draftMessageProp, personalDetails, linkedTransactionRouteError: linkedTransactionRouteErrorProp, ...props}: ReportActionItemProps) {
     const reportID = report?.reportID;
     const originalReportID = useOriginalReportID(reportID, action);
-    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`);
+    const [stableOriginalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {selector: getStableReportSelector});
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`);
 
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
@@ -53,7 +54,7 @@ function ReportActionItem({action, report, draftMessage: draftMessageProp, perso
             linkedTransactionRouteError={linkedTransactionRouteError}
             personalDetails={personalDetails}
             originalReportID={originalReportID}
-            originalReport={originalReport}
+            originalReport={stableOriginalReport}
             isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses(iouReport, transactionsOnIOUReport)}
             isTrackIntentUser={isTrackIntentUser}
         />
