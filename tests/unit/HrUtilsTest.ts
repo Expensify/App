@@ -360,6 +360,23 @@ describe('getHRCards', () => {
         }
     });
 
+    it('returns the connected Zenefits card even when the Zenefits beta is disabled', () => {
+        const policy = makePolicy({
+            connections: {
+                zenefits: {
+                    config: {approvalMode: CONST.ZENEFITS.APPROVAL_MODE.BASIC, finalApprover: 'admin@test.com'},
+                    data: {},
+                    lastSync: {isSuccessful: true},
+                },
+            } as unknown as Policy['connections'],
+        });
+        const cards = getHRCards(makeGetHRCardsParams({policy, isBetaEnabled: noBetasEnabled}));
+        const zenefits = cards.find((c) => c.key === 'zenefits');
+
+        expect(zenefits?.isConnected).toBe(true);
+        expect(zenefits?.config).toBeDefined();
+    });
+
     it('marks the connected Gusto card as connected with config', () => {
         const policy = makePolicy({
             connections: {
