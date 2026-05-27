@@ -41,14 +41,21 @@ describe('VictoryTheme', () => {
     });
 
     describe('colors.default', () => {
-        it('equals the palette entry at the default index (blue400)', () => {
+        it('equals the palette entry at the default index (green400)', () => {
             const VictoryTheme = loadVictoryTheme();
-            expect(VictoryTheme.colors.default).toBe(colors.blue400);
+            expect(VictoryTheme.colors.default).toBe(colors.green400);
         });
 
-        it('matches getColor(5)', () => {
+        it('matches getColor(3)', () => {
             const VictoryTheme = loadVictoryTheme();
-            expect(VictoryTheme.colors.default).toBe(VictoryTheme.colors.getColor(5));
+            expect(VictoryTheme.colors.default).toBe(VictoryTheme.colors.getColor(3));
+        });
+    });
+
+    describe('colors.defaultDot', () => {
+        it('equals the palette entry at the default dot index (green500)', () => {
+            const VictoryTheme = loadVictoryTheme();
+            expect(VictoryTheme.colors.defaultDot).toBe(colors.green500);
         });
     });
 
@@ -125,7 +132,6 @@ describe('VictoryTheme', () => {
         it('exposes tooltip values', () => {
             const VictoryTheme = loadVictoryTheme();
             expect(VictoryTheme.tooltip).toEqual({
-                pieRadiusDistance: 2 / 3,
                 pointerHeight: 4,
                 pointerWidth: 12,
             });
