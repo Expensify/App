@@ -2768,6 +2768,83 @@ describe('CardUtils', () => {
             expect(result).toHaveLength(1);
             expect(result.at(0)?.cardID).toBe(2);
         });
+
+        it('should exclude pending-issue (STATE_NOT_ISSUED) Expensify cards from the displayable list', () => {
+            const cardList: CardList = {
+                1: {
+                    accountID: 1,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardID: 1,
+                    cardName: 'Pending Issue Expensify Card',
+                    domainName: 'test.com',
+                    fraud: 'none',
+                    lastFourPAN: '1234',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED,
+                },
+            };
+            const result = getDisplayableExpensifyCards(cardList);
+            expect(result).toEqual([]);
+        });
+
+        it('should exclude pending-activation (NOT_ACTIVATED) Expensify cards from the displayable list', () => {
+            const cardList: CardList = {
+                1: {
+                    accountID: 1,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardID: 1,
+                    cardName: 'Pending Activation Expensify Card',
+                    domainName: 'test.com',
+                    fraud: 'none',
+                    lastFourPAN: '1234',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED,
+                },
+            };
+            const result = getDisplayableExpensifyCards(cardList);
+            expect(result).toEqual([]);
+        });
+
+        it('should include OPEN Expensify cards with a normal limit', () => {
+            const cardList: CardList = {
+                1: {
+                    accountID: 1,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardID: 1,
+                    cardName: 'Open Expensify Card',
+                    domainName: 'test.com',
+                    fraud: 'none',
+                    lastFourPAN: '1234',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                },
+            };
+            const result = getDisplayableExpensifyCards(cardList);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.cardID).toBe(1);
+        });
+
+        it('should exclude STATE_DEACTIVATED Expensify cards from the displayable list', () => {
+            const cardList: CardList = {
+                1: {
+                    accountID: 1,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardID: 1,
+                    cardName: 'Deactivated Expensify Card',
+                    domainName: 'test.com',
+                    fraud: 'none',
+                    lastFourPAN: '1234',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED,
+                },
+            };
+            const result = getDisplayableExpensifyCards(cardList);
+            expect(result).toEqual([]);
+        });
     });
 
     describe('PersonalCard (isPersonalCard)', () => {

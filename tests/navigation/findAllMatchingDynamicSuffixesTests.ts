@@ -1,4 +1,4 @@
-import findMatchingDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/findMatchingDynamicSuffix';
+import findAllMatchingDynamicSuffixes, {findMatchingDynamicSuffix} from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 
 jest.mock('@src/ROUTES', () => ({
     DYNAMIC_ROUTES: {
@@ -10,6 +10,9 @@ jest.mock('@src/ROUTES', () => ({
         KEYBOARD_SHORTCUTS: {path: 'keyboard-shortcuts'},
         OPT_TRAILING: {path: 'opt-page/:id?'},
         OPT_MIDDLE: {path: 'wrap/:p?/end'},
+        CATEGORY_GL_CODE: {path: 'gl-code'},
+        TAG_SETTINGS: {path: 'tag-settings/:orderWeight/:tagName'},
+        TAG_APPROVER: {path: 'tag-approver'},
     },
 }));
 
@@ -166,5 +169,60 @@ describe('findMatchingDynamicSuffix', () => {
                 pathParams: {},
             });
         });
+    });
+});
+
+describe('findAllMatchingDynamicSuffixes', () => {
+    it('should return an empty array when no suffix matches', () => {
+        expect(findAllMatchingDynamicSuffixes('/settings/wallet/unknown-page')).toEqual([]);
+    });
+
+    it('should return an empty array for an empty path', () => {
+        expect(findAllMatchingDynamicSuffixes('')).toEqual([]);
+    });
+
+    it('should return an empty array for undefined', () => {
+        expect(findAllMatchingDynamicSuffixes(undefined)).toEqual([]);
+    });
+
+    it('should return a single-element array for an unambiguous static path', () => {
+        expect(findAllMatchingDynamicSuffixes('settings/wallet/verify-account')).toEqual([{pattern: 'verify-account', actualSuffix: 'verify-account', pathParams: {}}]);
+    });
+
+    it('should return both a static and a parametric candidate when a tag name matches a static suffix (gl-code collision)', () => {
+        expect(findAllMatchingDynamicSuffixes('/settings/tags/tag-settings/0/gl-code')).toEqual([
+            {pattern: 'gl-code', actualSuffix: 'gl-code', pathParams: {}},
+            {
+                pattern: 'tag-settings/:orderWeight/:tagName',
+                actualSuffix: 'tag-settings/0/gl-code',
+                pathParams: {orderWeight: '0', tagName: 'gl-code'},
+            },
+        ]);
+    });
+
+    it('should place static candidates before strict parametric candidates (priority order)', () => {
+        const results = findAllMatchingDynamicSuffixes('/base/flag/123/verify-account');
+        expect(results).toHaveLength(2);
+        expect(results.at(0)).toEqual({pattern: 'verify-account', actualSuffix: 'verify-account', pathParams: {}});
+        expect(results.at(1)).toEqual({
+            pattern: 'flag/:reportID/:reportActionID',
+            actualSuffix: 'flag/123/verify-account',
+            pathParams: {reportID: '123', reportActionID: 'verify-account'},
+        });
+    });
+
+    it('should place static candidates before optional parametric candidates (priority order)', () => {
+        const results = findAllMatchingDynamicSuffixes('/base/opt-page/verify-account');
+        expect(results).toHaveLength(2);
+        expect(results.at(0)).toEqual({pattern: 'verify-account', actualSuffix: 'verify-account', pathParams: {}});
+        expect(results.at(1)).toEqual({
+            pattern: 'opt-page/:id?',
+            actualSuffix: 'opt-page/verify-account',
+            pathParams: {id: 'verify-account'},
+        });
+    });
+
+    it('should return a single-element array when only one candidate exists (tag-approver at the end)', () => {
+        expect(findAllMatchingDynamicSuffixes('/settings/tags/tag-settings/0/tagname/tag-approver')).toEqual([{pattern: 'tag-approver', actualSuffix: 'tag-approver', pathParams: {}}]);
     });
 });
