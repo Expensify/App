@@ -7246,6 +7246,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             alreadyConnectedPrompt: 'Vous devez déconnecter votre plateforme RH actuelle avant d’en connecter une autre.',
             lastSync: (relativeDate: string) => `Dernière synchronisation ${relativeDate}`,
             syncError: (providerName: string) => `Impossible de se connecter à ${providerName}`,
+            authenticationError: (providerName: string) => `Impossible de se connecter à ${providerName} en raison d’identifiants incorrects.`,
+            reconnect: 'Reconnecter',
             connectionDescription: (providerName: string) => `Connectez ${providerName} pour synchroniser les approbations des employés avec votre espace de travail.`,
             approvalMode: "Mode d'approbation",
             providerApprovalMode: (providerName: string) => `Mode d'approbation ${providerName}`,

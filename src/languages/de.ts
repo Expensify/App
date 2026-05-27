@@ -7222,6 +7222,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             alreadyConnectedPrompt: 'Sie müssen Ihre aktuelle HR-Plattform trennen, bevor Sie eine andere verbinden.',
             lastSync: (relativeDate: string) => `Zuletzt synchronisiert ${relativeDate}`,
             syncError: (providerName: string) => `Verbindung zu ${providerName} nicht möglich`,
+            authenticationError: (providerName: string) => `Verbindung zu ${providerName} aufgrund falscher Anmeldedaten nicht möglich.`,
+            reconnect: 'Erneut verbinden',
             connectionDescription: (providerName: string) => `Verbinden Sie ${providerName}, um Mitarbeitergenehmigungen mit Ihrem Workspace zu synchronisieren.`,
             approvalMode: 'Genehmigungsmodus',
             providerApprovalMode: (providerName: string) => `${providerName}-Genehmigungsmodus`,
