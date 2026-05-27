@@ -17,7 +17,8 @@ import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPo
 import SearchBar from '@components/SearchBar';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
-import WorkspaceMembersTable, {WorkspaceMemberRowData} from '@components/Tables/WorkspaceMembersTable';
+import {TableHandle} from '@components/Table';
+import WorkspaceMembersTable, {WorkspaceMemberRowData, WorkspaceMembersTableColumnKey} from '@components/Tables/WorkspaceMembersTable';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import TextLink from '@components/TextLink';
@@ -120,9 +121,9 @@ type WorkspaceMemberFilterOption = SingleSelectItem<WorkspaceMemberFilterValue>;
 
 function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembersPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'common.members');
+    const tableRef = useRef<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey>>(null);
     const icons = useMemoizedLazyExpensifyIcons(['Download', 'FallbackAvatar', 'MakeAdmin', 'Plus', 'RemoveMembers', 'Sync', 'Table', 'User', 'UserEye']);
     const policyMemberEmailsToAccountIDs = useMemo(() => getMemberAccountIDsForWorkspace(policy?.employeeList, true), [policy?.employeeList]);
-    const employeeListDetails = useMemo(() => policy?.employeeList ?? ({} as PolicyEmployeeList), [policy?.employeeList]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
     const {showConfirmModal} = useConfirmModal();
@@ -138,21 +139,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
-    const filterEmployees = useCallback(
-        (employee: PolicyEmployee | undefined) => {
-            if (!employee?.email) {
-                return false;
-            }
-            if (employee.email === policy?.owner || employee.email === currentUserPersonalDetails.login) {
-                return false;
-            }
-            const isPendingDelete = employee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-            return !isPendingDelete;
-        },
-        [currentUserPersonalDetails.login, policy?.owner],
-    );
-
-    const [selectedEmployees, setSelectedEmployees] = useFilteredSelection(employeeListDetails, filterEmployees);
+    const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -1006,10 +993,15 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     />
 
                     <WorkspaceMembersTable
+                        ref={tableRef}
                         members={data}
                         isPolicyAdmin={isPolicyAdmin}
                         shouldShowCustomField1Column={shouldShowCustomField1Column}
                         shouldShowCustomField2Column={shouldShowCustomField2Column}
+                        onRowSelectionChange={(selectedRows) => {
+                            const selectedLogins = selectedRows.map((row) => row.login);
+                            setSelectedEmployees(selectedLogins);
+                        }}
                     />
                 </>
             )}

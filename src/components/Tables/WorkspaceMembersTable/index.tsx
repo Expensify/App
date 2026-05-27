@@ -36,9 +36,10 @@ type WorkspaceMembersTableProps = {
     isPolicyAdmin: boolean;
     shouldShowCustomField1Column: boolean;
     shouldShowCustomField2Column: boolean;
+    onRowSelectionChange: (selectedRows: WorkspaceMemberRowData[]) => void;
 };
 
-export default function WorkspaceMembersTable({ref, isPolicyAdmin, shouldShowCustomField1Column, shouldShowCustomField2Column, members}: WorkspaceMembersTableProps) {
+export default function WorkspaceMembersTable({ref, isPolicyAdmin, shouldShowCustomField1Column, shouldShowCustomField2Column, members, onRowSelectionChange}: WorkspaceMembersTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -85,15 +86,23 @@ export default function WorkspaceMembersTable({ref, isPolicyAdmin, shouldShowCus
         const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
 
         if (activeSorting.columnKey === 'member') {
+            return localeCompare(item1.name, item2.name) * orderMultiplier;
         }
 
         if (activeSorting.columnKey === 'role') {
+            return localeCompare(item1.role, item2.role) * orderMultiplier;
         }
 
         if (activeSorting.columnKey === 'customField1') {
+            const item1CustomField1Value = item1.employeeUserID ?? '';
+            const item2CustomField1Value = item2.employeeUserID ?? '';
+            return localeCompare(item1CustomField1Value, item2CustomField1Value) * orderMultiplier;
         }
 
         if (activeSorting.columnKey === 'customField2') {
+            const item1CustomField2Value = item1.employeePayrollID ?? '';
+            const item2CustomField2Value = item2.employeePayrollID ?? '';
+            return localeCompare(item1CustomField2Value, item2CustomField2Value) * orderMultiplier;
         }
 
         return 1;
@@ -124,6 +133,7 @@ export default function WorkspaceMembersTable({ref, isPolicyAdmin, shouldShowCus
             renderItem={renderTableItem}
             compareItems={compareTableItems}
             isItemInSearch={isTableItemInSearch}
+            onRowSelectionChange={onRowSelectionChange}
         >
             {members.length > CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.people.findMember')} />}
             <Table.Header />
