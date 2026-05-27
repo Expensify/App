@@ -23,9 +23,15 @@ type NavigationTabBarAvatarProps = {
 
     /** Additional styles to add to the button */
     style?: StyleProp<ViewStyle>;
+
+    /** Whether to render the "Account" label below the avatar. */
+    shouldShowLabel?: boolean;
+
+    /** Override for the outer pressable wrapper style. Defaults to flex:1 for the LHN tab cell. */
+    wrapperStyle?: StyleProp<ViewStyle>;
 };
 
-function NavigationTabBarAvatar({onPress, isSelected = false, style}: NavigationTabBarAvatarProps) {
+function NavigationTabBarAvatar({onPress, isSelected = false, style, shouldShowLabel = true, wrapperStyle}: NavigationTabBarAvatarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -75,7 +81,7 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
             onPress={onPress}
             accessibilityLabel={`${translate('initialSettingsPage.account')}, ${translate('sidebarScreen.buttonMySettings')}. ${status ? `${translate('common.yourReviewIsRequired')}.` : ''}`}
             role={CONST.ROLE.TAB}
-            wrapperStyle={styles.flex1}
+            wrapperStyle={wrapperStyle ?? styles.flex1}
             accessibilityState={accountAccessibilityState}
             aria-selected={accountAccessibilityState.selected}
             style={({hovered}) => [style, !shouldUseNarrowLayout && hovered && styles.navigationTabBarItemHovered]}
@@ -84,9 +90,11 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
             {({hovered}) => (
                 <>
                     {renderAvatar(isSelected || (!shouldUseNarrowLayout && hovered))}
-                    <Text style={[styles.textSmall, styles.textAlignCenter, isSelected ? styles.textBold : styles.textSupporting, styles.mt0Half, styles.navigationTabBarLabel]}>
-                        {translate('initialSettingsPage.account')}
-                    </Text>
+                    {shouldShowLabel && (
+                        <Text style={[styles.textSmall, styles.textAlignCenter, isSelected ? styles.textBold : styles.textSupporting, styles.mt0Half, styles.navigationTabBarLabel]}>
+                            {translate('initialSettingsPage.account')}
+                        </Text>
+                    )}
                 </>
             )}
         </PressableWithFeedback>

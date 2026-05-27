@@ -7,6 +7,8 @@ import {findFocusedRoute, useNavigation, useNavigationState} from '@react-naviga
 import React, {lazy, Suspense, useEffect} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
+import GlobalNavBar, {GLOBAL_NAV_BAR_HEIGHT} from '@components/Navigation/GlobalNavBar';
+import GlobalNavBarHeightContext from '@components/Navigation/GlobalNavBar/GlobalNavBarHeightContext';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -98,39 +100,45 @@ function TabNavigator() {
         parentNavigation.setOptions({gestureEnabled: !isRootScreen});
     }, [focusedRouteName, shouldUseNarrowLayout, parentNavigation]);
 
+    const barHeight = shouldUseNarrowLayout ? 0 : GLOBAL_NAV_BAR_HEIGHT;
     const screenOptions = {
         ...TAB_SCREEN_OPTIONS_BASE,
-        sceneStyle: {flex: 1, backgroundColor: theme.appBG},
+        sceneStyle: {flex: 1, backgroundColor: theme.appBG, paddingTop: barHeight},
         tabBarPosition: shouldUseNarrowLayout ? ('bottom' as const) : ('left' as const),
     };
 
     return (
-        <Tab.Navigator
-            backBehavior="fullHistory"
-            tabBar={renderTabBar}
-            screenOptions={screenOptions}
-        >
-            <Tab.Screen
-                name={SCREENS.HOME}
-                component={HomePageScreen}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
-                component={ReportsSplitNavigatorScreen}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
-                component={SearchFullscreenNavigator}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
-                component={SettingsSplitNavigatorScreen}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.WORKSPACE_NAVIGATOR}
-                component={WorkspaceNavigatorScreen}
-            />
-        </Tab.Navigator>
+        <GlobalNavBarHeightContext.Provider value={barHeight}>
+            <View style={{flex: 1}}>
+                <Tab.Navigator
+                    backBehavior="fullHistory"
+                    tabBar={renderTabBar}
+                    screenOptions={screenOptions}
+                >
+                    <Tab.Screen
+                        name={SCREENS.HOME}
+                        component={HomePageScreen}
+                    />
+                    <Tab.Screen
+                        name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
+                        component={ReportsSplitNavigatorScreen}
+                    />
+                    <Tab.Screen
+                        name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
+                        component={SearchFullscreenNavigator}
+                    />
+                    <Tab.Screen
+                        name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
+                        component={SettingsSplitNavigatorScreen}
+                    />
+                    <Tab.Screen
+                        name={NAVIGATORS.WORKSPACE_NAVIGATOR}
+                        component={WorkspaceNavigatorScreen}
+                    />
+                </Tab.Navigator>
+                {!shouldUseNarrowLayout && <GlobalNavBar />}
+            </View>
+        </GlobalNavBarHeightContext.Provider>
     );
 }
 

@@ -2,7 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import {accountGuideDetailsSelector} from '@selectors/Account';
 import {pendingChatMembersSelector} from '@selectors/ReportMetaData';
 import {isPast} from 'date-fns';
-import React, {useMemo} from 'react';
+import React, {useContext, useMemo} from 'react';
 import {Keyboard, View} from 'react-native';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
@@ -10,6 +10,7 @@ import ChronosTimerHeaderButton from '@components/ChronosTimerHeaderButton';
 import DisplayNames from '@components/DisplayNames';
 import HeaderLoadingBar from '@components/HeaderLoadingBar';
 import Icon from '@components/Icon';
+import GlobalNavBarHeightContext from '@components/Navigation/GlobalNavBar/GlobalNavBarHeightContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import OnboardingHelpDropdownButton from '@components/OnboardingHelpDropdownButton';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
@@ -125,6 +126,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
+    const isGlobalNavBarVisible = useContext(GlobalNavBarHeightContext) > 0;
     const isSelfDM = isSelfDMReportUtils(report);
     const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report, isReportArchived);
     const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
@@ -418,8 +420,8 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                         </PressableWithoutFeedback>
                                     </Tooltip>
                                 )}
-                                {shouldDisplaySearchRouter && <SearchButton style={styles.ml2} />}
-                                {!isInSidePanel && !isConciergeChat && <SidePanelButton />}
+                                {shouldDisplaySearchRouter && !isGlobalNavBarVisible && <SearchButton style={styles.ml2} />}
+                                {!isInSidePanel && !isConciergeChat && !isGlobalNavBarVisible && <SidePanelButton />}
                             </View>
                         </View>
                     )}

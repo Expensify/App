@@ -3905,7 +3905,6 @@ const staticStyles = (theme: ThemeColors) =>
         homePageContentContainer: {
             flexGrow: 1,
             paddingTop: 0,
-            paddingHorizontal: 20,
             paddingBottom: 20,
         },
 
@@ -6702,6 +6701,13 @@ const plainStyles = (theme: ThemeColors) =>
         homePageLeftColumn: {flex: 7, flexBasis: '58.333%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,
 
         homePageRightColumn: {flex: 5, flexBasis: '41.667%', maxWidth: variables.homePageRightColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,
+
+        homePageCenteredContent: {
+            width: '100%',
+            maxWidth: variables.contentMaxWidth,
+            alignSelf: 'center',
+            paddingHorizontal: 20,
+        } satisfies ViewStyle,
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>

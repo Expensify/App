@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import LoadingBar from '@components/LoadingBar';
@@ -12,10 +12,12 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import SignInButton from '@pages/inbox/sidebar/SignInButton';
+import variables from '@styles/variables';
 import {isAnonymousUser as isAnonymousUserUtil} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
+import GlobalNavBarHeightContext from './GlobalNavBar/GlobalNavBarHeightContext';
 
 type TopBarProps = {
     breadcrumbLabel: string;
@@ -24,11 +26,22 @@ type TopBarProps = {
     shouldShowLoadingBar?: boolean;
     cancelSearch?: () => void;
     children?: React.ReactNode;
+
+    /** Drop the default horizontal margin on the breadcrumb row. */
+    shouldRemoveHorizontalMargin?: boolean;
 };
 
 const authTokenTypeSelector = (session: OnyxEntry<Session>) => session && {authTokenType: session.authTokenType};
 
-function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpButton = false, cancelSearch, shouldShowLoadingBar, children}: TopBarProps) {
+function TopBar({
+    breadcrumbLabel,
+    shouldDisplaySearch = true,
+    shouldDisplayHelpButton = false,
+    cancelSearch,
+    shouldShowLoadingBar,
+    children,
+    shouldRemoveHorizontalMargin = false,
+}: TopBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
@@ -37,14 +50,29 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
     const isInLandscapeMode = useIsInLandscapeMode();
     const {wideRHPRouteKeys} = useWideRHPState();
     const isWideRHPVisible = !!wideRHPRouteKeys.length;
+    const isGlobalNavBarVisible = useContext(GlobalNavBarHeightContext) > 0;
 
     const displaySignIn = isAnonymousUser;
-    const displaySearch = !isAnonymousUser && shouldDisplaySearch;
+    const displaySearch = !isAnonymousUser && shouldDisplaySearch && !isGlobalNavBarVisible;
+    const displayHelpButton = shouldDisplayHelpButton && !isGlobalNavBarVisible;
 
     return (
         <View style={[styles.w100, styles.zIndex10]}>
             <View
-                style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ml5, styles.mr3, styles.headerBarHeight]}
+                style={[
+                    styles.flexRow,
+                    styles.alignItemsCenter,
+                    styles.justifyContentBetween,
+                    !shouldRemoveHorizontalMargin && styles.ml5,
+                    !shouldRemoveHorizontalMargin && styles.mr3,
+                    shouldRemoveHorizontalMargin && {
+                        width: '100%',
+                        maxWidth: variables.contentMaxWidth,
+                        alignSelf: 'center',
+                        paddingHorizontal: 20,
+                    },
+                    styles.headerBarHeight,
+                ]}
                 dataSet={{dragArea: true}}
                 onTouchStart={isInLandscapeMode ? () => Keyboard.dismiss() : undefined}
             >
@@ -74,7 +102,7 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
                     </PressableWithoutFeedback>
                 )}
                 {displaySearch && <SearchButton />}
-                {shouldDisplayHelpButton && <SidePanelButton />}
+                {displayHelpButton && <SidePanelButton />}
             </View>
             <LoadingBar shouldShow={!isWideRHPVisible && !!shouldShowLoadingBar} />
         </View>
