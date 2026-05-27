@@ -134,7 +134,7 @@ const DYNAMIC_ROUTES = {
     },
     REPORT_SETTINGS_NAME: {
         path: 'settings/name',
-        entryScreens: [SCREENS.REPORT_DETAILS.ROOT],
+        entryScreens: [SCREENS.REPORT_DETAILS.DYNAMIC_ROOT],
     },
     REPORT_SETTINGS_WRITE_CAPABILITY: {
         path: 'who-can-post',
@@ -151,13 +151,19 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
-            SCREENS.REPORT_DETAILS.ROOT,
-            SCREENS.REPORT_CHANGE_WORKSPACE.ROOT,
+            SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
+            SCREENS.REPORT_CHANGE_WORKSPACE.DYNAMIC_ROOT,
         ],
     },
     EDIT_REPORT_FIELD: {
         path: 'edit/policyField/:policyID/:fieldID',
-        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.REPORT_DETAILS.ROOT],
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
+        ],
         getRoute: (policyID: string, fieldID: string) => `edit/policyField/${policyID}/${encodeURIComponent(fieldID)}` as const,
     },
     PROFILE: {
@@ -564,6 +570,27 @@ const DYNAMIC_ROUTES = {
         path: 'confirm-magic-code',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW],
     },
+    WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_SELECTION: {
+        path: 'rules/selection',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW],
+    },
+    WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MERCHANTS: {
+        path: 'rules/merchants',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW],
+    },
+    WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MERCHANT_EDIT: {
+        path: 'edit/:merchantIndex',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MERCHANTS],
+        getRoute: (merchantIndex: string) => `edit/${merchantIndex}` as const,
+    },
+    WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CATEGORY: {
+        path: 'rules/category',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW],
+    },
+    WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MAX_AMOUNT: {
+        path: 'rules/max-amount',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW],
+    },
     WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: {
         path: 'issue-new',
         entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD, SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT, SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SELECT_FEED],
@@ -636,6 +663,35 @@ const DYNAMIC_ROUTES = {
         path: 'exit-survey/confirm',
         entryScreens: ['*'],
     },
+    REPORT_DETAILS: {
+        path: 'details',
+        entryScreens: [SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.SEARCH.ROOT],
+    },
+    REPORT_DETAILS_SHARE_CODE: {
+        path: 'share-code',
+        entryScreens: [
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.SEARCH.ROOT,
+            SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
+        ],
+    },
+    REFERRAL_DETAILS: {
+        path: 'referral/:contentType',
+        entryScreens: ['*'],
+        getRoute: (contentType: string) => `referral/${contentType}` as const,
+    },
+    REPORT_DETAILS_EXPORT: {
+        path: 'details/export/:connectionName',
+        entryScreens: [SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.SEARCH.ROOT],
+        getRoute: (connectionName: ConnectionName) => `details/export/${connectionName as string}` as const,
+    },
+    REPORT_CHANGE_WORKSPACE: {
+        path: 'change-workspace',
+        entryScreens: [SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.SEARCH.ROOT],
+    },
     TRAVEL_PUBLIC_DOMAIN_ERROR: {
         path: 'public-domain-error',
         entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.WORKSPACE.TRAVEL, SCREENS.SEARCH.ROOT],
@@ -678,7 +734,13 @@ const DYNAMIC_ROUTES = {
     },
     REPORT_DESCRIPTION: {
         path: 'description',
-        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.REPORT_DETAILS.ROOT],
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
+        ],
     },
     TASK_ASSIGNEE: {
         path: 'assignee',
@@ -691,7 +753,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
-            SCREENS.REPORT_DETAILS.ROOT,
+            SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
             SCREENS.DYNAMIC_PROFILE,
         ],
         getRoute: (reportID?: string) => getUrlWithParams('notes', reportID ? {reportID} : {}),
@@ -704,7 +766,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
-            SCREENS.REPORT_DETAILS.ROOT,
+            SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
             SCREENS.DYNAMIC_PROFILE,
             SCREENS.DYNAMIC_PRIVATE_NOTES_LIST,
         ],
@@ -1326,6 +1388,19 @@ const ROUTES = {
         route: 'r/:threadReportID/edit/currency',
         getRoute: (threadReportID: string, currency: string, backTo: string) => `r/${threadReportID}/edit/currency?currency=${currency}&backTo=${backTo}` as const,
     },
+    EDIT_REPORT_FIELD_REQUEST: {
+        route: 'r/:reportID/edit/policyField/:policyID/:fieldID',
+        getRoute: (reportID: string | undefined, policyID: string | undefined, fieldID: string, backTo?: string) => {
+            if (!policyID || !reportID) {
+                Log.warn('Invalid policyID or reportID is used to build the EDIT_REPORT_FIELD_REQUEST route', {
+                    policyID,
+                    reportID,
+                });
+            }
+
+            return getUrlWithBackToParam(`r/${reportID}/edit/policyField/${policyID}/${encodeURIComponent(fieldID)}` as const, backTo);
+        },
+    },
     REPORT_WITH_ID_DETAILS_SHARE_CODE: {
         route: 'r/:reportID/details/shareCode',
         getRoute: (reportID: string | undefined, backTo?: string) => {
@@ -1363,26 +1438,6 @@ const ROUTES = {
         route: 'r/:reportID/participants/:accountID/role',
 
         getRoute: (reportID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/participants/${accountID}/role` as const, backTo),
-    },
-    REPORT_WITH_ID_DETAILS: {
-        route: 'r/:reportID/details',
-        getRoute: (reportID: string | number | undefined, backTo?: string) => {
-            if (!reportID) {
-                Log.warn('Invalid reportID is used to build the REPORT_WITH_ID_DETAILS route');
-            }
-
-            return getUrlWithBackToParam(`r/${reportID}/details`, backTo);
-        },
-    },
-    REPORT_WITH_ID_DETAILS_EXPORT: {
-        route: 'r/:reportID/details/export/:connectionName',
-
-        getRoute: (reportID: string, connectionName: ConnectionName, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/details/export/${connectionName as string}` as const, backTo),
-    },
-    REPORT_WITH_ID_CHANGE_WORKSPACE: {
-        route: 'r/:reportID/change-workspace',
-
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/change-workspace` as const, backTo),
     },
     REPORT_SETTINGS: {
         route: 'r/:reportID/settings',
@@ -3147,12 +3202,6 @@ const ROUTES = {
     RULES_MERCHANT_PREVIEW_MATCHES: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/preview-matches',
         getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/preview-matches` as const,
-    },
-    // Referral program promotion
-    REFERRAL_DETAILS_MODAL: {
-        route: 'referral/:contentType',
-
-        getRoute: (contentType: string, backTo?: string) => getUrlWithBackToParam(`referral/${contentType}`, backTo),
     },
     SHARE_ROOT: 'share/root',
     SHARE_ROOT_SHARE: 'share/root/share',
