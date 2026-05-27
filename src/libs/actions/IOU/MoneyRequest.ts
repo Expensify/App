@@ -1424,6 +1424,7 @@ export {
     setMoneyRequestParticipantsFromReport,
     getIOURequestPolicyID,
     updateLastLocationPermissionPrompt,
+    setMultipleMoneyRequestParticipantsFromReport,
     setMoneyRequestTaxRate,
     setMoneyRequestTaxValue,
     setMoneyRequestTaxAmount,
