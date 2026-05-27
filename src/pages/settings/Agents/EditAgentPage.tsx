@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
@@ -121,10 +122,12 @@ function EditAgentPage({route}: EditAgentPageProps) {
                 >
                     <MenuItemWithTopDescription
                         description={translate('editAgentPage.instructions')}
-                        title={agent?.prompt?.trim() ?? ''}
+                        title={Str.htmlDecode(agent?.prompt?.trim() ?? '')}
+                        shouldParseTitle
+                        shouldTruncateTitle
+                        characterLimit={CONST.AGENT_PROMPT_LIMIT}
                         shouldShowRightIcon
                         onPress={handleEditPromptPress}
-                        numberOfLinesTitle={10}
                     />
                 </OfflineWithFeedback>
                 <MenuItem
