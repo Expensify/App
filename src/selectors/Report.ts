@@ -151,8 +151,6 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         nextStep: report.nextStep,
         pendingAction: report.pendingAction,
         pendingFields: report.pendingFields,
-        reimbursableTotal: report.reimbursableTotal,
-        unheldReimbursableTotal: report.unheldReimbursableTotal,
     } satisfies Record<keyof StableReport, unknown> & StableReport;
 }
 
