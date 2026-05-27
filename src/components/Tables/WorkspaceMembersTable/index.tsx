@@ -177,9 +177,14 @@ export default function WorkspaceMembersTable({ref, isPolicyAdmin, shouldShowCus
             isItemInSearch={isTableItemInSearch}
             onRowSelectionChange={onRowSelectionChange}
         >
-            <View style={[styles.flexRow, styles.gap2]}>
+            <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.mb5, styles.mh5]}>
                 <Table.FilterButtons />
-                {members.length > CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.people.findMember')} />}
+                {members.length > CONST.STANDARD_LIST_ITEM_LIMIT && (
+                    <Table.SearchBar
+                        label={translate('workspace.people.findMember')}
+                        style={[styles.mb0, styles.mh0]}
+                    />
+                )}
             </View>
 
             <Table.Header />
