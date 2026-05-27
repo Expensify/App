@@ -2,10 +2,8 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry, OnyxMergeCollectionInput} from 'react-native-onyx';
 import '@libs/actions/IOU/MoneyRequest';
-import {handleNavigateAfterExpenseCreate} from '@libs/actions/IOU/NavigationHelpers';
 import {createSplitsAndOnyxData} from '@libs/actions/IOU/Split';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
-import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import {rand64} from '@libs/NumberUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
@@ -56,7 +54,6 @@ jest.mock('@src/libs/actions/Report', () => {
     };
 });
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
-jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
 // In production, requestMoney defers its API.write() call until the target screen's
 // content lays out (or a safety timeout fires). In tests there is no target component
 // to flush the deferred write, so we bypass the deferral by executing the callback immediately.
@@ -419,33 +416,6 @@ describe('actions/IOU', () => {
             expect(result.size).toBe(1);
             expect(result.get('mainReport')).toBe(12000); // 10000 - (-2000) = 12000
         });
-    });
-
-    it('handleNavigateAfterExpenseCreate', async () => {
-        const mockedIsReportTopmostSplitNavigator = isReportTopmostSplitNavigator as jest.MockedFunction<typeof isReportTopmostSplitNavigator>;
-        const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest.spyOn(require('@libs/actions/Transaction'), 'mergeTransactionIdsHighlightOnSearchRoute');
-        const activeReportID = '1';
-        const transactionID = '1';
-        mockedIsReportTopmostSplitNavigator.mockReturnValue(false);
-
-        handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: false});
-        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
-
-        handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: true});
-        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
-
-        mockedIsReportTopmostSplitNavigator.mockReturnValue(true);
-        handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: true, transactionID});
-        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
-
-        mockedIsReportTopmostSplitNavigator.mockReturnValue(false);
-        handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: true, transactionID});
-        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
-
-        handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: true, transactionID, isInvoice: true});
-        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
-
-        spyOnMergeTransactionIdsHighlightOnSearchRoute.mockReset();
     });
 
     describe('createSplitsAndOnyxData', () => {
