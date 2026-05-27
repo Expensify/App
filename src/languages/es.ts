@@ -7316,7 +7316,7 @@ ${amount} para ${merchant} - ${date}`,
                 if (filters !== '') {
                     text += ` ${filters}`;
                 }
-                text += `en ${cards}`;
+                text += ` en ${cards}`;
                 return text;
             },
             removeRule: ({cards}: {cards: string}) => `eliminó la regla de gasto de ${cards}`,
