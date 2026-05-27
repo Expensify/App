@@ -10,23 +10,27 @@ import ROUTES from '@src/ROUTES';
 type ConciergeSessionStateContextType = {
     sessionStartTime: string | null;
     showFullHistory: boolean;
+    hadMessagesAtSessionStart: boolean;
 };
 
 type ConciergeSessionActionsContextType = {
     startSession: (unreadBoundary?: string | null) => void;
     endSession: () => void;
     setShowFullHistory: (show: boolean) => void;
+    setHadMessagesAtSessionStart: (value: boolean) => void;
 };
 
 const ConciergeSessionStateContext = createContext<ConciergeSessionStateContextType>({
     sessionStartTime: null,
     showFullHistory: false,
+    hadMessagesAtSessionStart: false,
 });
 
 const ConciergeSessionActionsContext = createContext<ConciergeSessionActionsContextType>({
     startSession: () => {},
     endSession: () => {},
     setShowFullHistory: () => {},
+    setHadMessagesAtSessionStart: () => {},
 });
 
 /**
@@ -47,6 +51,7 @@ function ConciergeSessionProvider({children}: PropsWithChildren) {
 
     const [sessionStartTime, setSessionStartTime] = useState<string | null>(null);
     const [showFullHistory, setShowFullHistory] = useState(false);
+    const [hadMessagesAtSessionStart, setHadMessagesAtSessionStart] = useState(false);
     const [prevIsConciergeMainDM, setPrevIsConciergeMainDM] = useState(isConciergeMainDM);
     const [pendingClear, setPendingClear] = useState(false);
 
@@ -55,6 +60,7 @@ function ConciergeSessionProvider({children}: PropsWithChildren) {
         if (currentReportID !== conciergeReportID) {
             setSessionStartTime(null);
             setShowFullHistory(false);
+            setHadMessagesAtSessionStart(false);
         }
     }
 
@@ -69,6 +75,7 @@ function ConciergeSessionProvider({children}: PropsWithChildren) {
             if (isReportOrInbox) {
                 setSessionStartTime(null);
                 setShowFullHistory(false);
+                setHadMessagesAtSessionStart(false);
             }
         }
     }
@@ -90,8 +97,8 @@ function ConciergeSessionProvider({children}: PropsWithChildren) {
         setPendingClear(true);
     }, []);
 
-    const stateValue = useMemo(() => ({sessionStartTime, showFullHistory}), [sessionStartTime, showFullHistory]);
-    const actionsValue = useMemo(() => ({startSession, endSession, setShowFullHistory}), [startSession, endSession]);
+    const stateValue = useMemo(() => ({sessionStartTime, showFullHistory, hadMessagesAtSessionStart}), [sessionStartTime, showFullHistory, hadMessagesAtSessionStart]);
+    const actionsValue = useMemo(() => ({startSession, endSession, setShowFullHistory, setHadMessagesAtSessionStart}), [startSession, endSession]);
 
     return (
         <ConciergeSessionStateContext.Provider value={stateValue}>

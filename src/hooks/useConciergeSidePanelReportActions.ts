@@ -1,4 +1,4 @@
-import {useCallback, useMemo, useState} from 'react';
+import {useCallback, useLayoutEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import {isCreatedAction} from '@libs/ReportActionsUtils';
@@ -19,6 +19,8 @@ type UseConciergeSidePanelReportActionsParams = {
     isConciergeMainDM?: boolean;
     showFullHistory?: boolean;
     onSetShowFullHistory?: (show: boolean) => void;
+    hadMessagesAtSessionStart?: boolean;
+    onSetHadMessagesAtSessionStart?: (value: boolean) => void;
 };
 
 function useConciergeSidePanelReportActions({
@@ -35,30 +37,37 @@ function useConciergeSidePanelReportActions({
     isConciergeMainDM,
     showFullHistory: externalShowFullHistory,
     onSetShowFullHistory,
+    hadMessagesAtSessionStart: externalHadMessagesAtSessionStart,
+    onSetHadMessagesAtSessionStart,
 }: UseConciergeSidePanelReportActionsParams) {
     const [localShowFullHistory, setLocalShowFullHistory] = useState(false);
+    const [localHadMessagesAtSessionStart, setLocalHadMessagesAtSessionStart] = useState(
+        () =>
+            externalHadMessagesAtSessionStart ??
+            (!!isConciergeMainDM && !!sessionStartTime && visibleReportActions.some((action) => !isCreatedAction(action) && action.created >= sessionStartTime)),
+    );
     const [prevSessionStartTime, setPrevSessionStartTime] = useState(sessionStartTime);
     const [prevHasUserSentMessage, setPrevHasUserSentMessage] = useState(hasUserSentMessage);
-    const [hadMessagesAtSessionStart, setHadMessagesAtSessionStart] = useState(
-        () => !!isConciergeMainDM && !!sessionStartTime && visibleReportActions.some((action) => !isCreatedAction(action) && action.created >= sessionStartTime),
-    );
 
+    const hadMessagesAtSessionStart = localHadMessagesAtSessionStart;
     const showFullHistory = externalShowFullHistory ?? localShowFullHistory;
     const setShowFullHistory = onSetShowFullHistory ?? setLocalShowFullHistory;
 
     if (prevSessionStartTime !== sessionStartTime) {
         setPrevSessionStartTime(sessionStartTime);
         setLocalShowFullHistory(false);
-        // Main DM only: determine once at session start whether unread messages already exist.
-        // This value never changes for the rest of the session.
         const messagesExistAtStart = !!isConciergeMainDM && !!sessionStartTime && visibleReportActions.some((action) => !isCreatedAction(action) && action.created >= sessionStartTime);
-        setHadMessagesAtSessionStart(messagesExistAtStart);
+        setLocalHadMessagesAtSessionStart(messagesExistAtStart);
     } else if (prevHasUserSentMessage && !hasUserSentMessage) {
         setPrevHasUserSentMessage(hasUserSentMessage);
         setLocalShowFullHistory(false);
     } else if (prevHasUserSentMessage !== hasUserSentMessage) {
         setPrevHasUserSentMessage(hasUserSentMessage);
     }
+
+    useLayoutEffect(() => {
+        onSetHadMessagesAtSessionStart?.(localHadMessagesAtSessionStart);
+    }, [localHadMessagesAtSessionStart, onSetHadMessagesAtSessionStart]);
 
     // Check if the user had sent any message BEFORE this session started.
     // Uses sessionStartTime as the boundary — any user message created before the

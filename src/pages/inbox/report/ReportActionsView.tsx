@@ -62,8 +62,8 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
     const hasOnceLoadedReportActions = reportLoadingState?.hasOnceLoadedReportActions;
 
-    const {sessionStartTime: mainDMSessionStartTime, showFullHistory: conciergeShowFullHistory} = useConciergeSessionState();
-    const {startSession, endSession, setShowFullHistory: setConciergeShowFullHistory} = useConciergeSessionActions();
+    const {sessionStartTime: mainDMSessionStartTime, showFullHistory: conciergeShowFullHistory, hadMessagesAtSessionStart: conciergeHadMessagesAtSessionStart} = useConciergeSessionState();
+    const {startSession, endSession, setShowFullHistory: setConciergeShowFullHistory, setHadMessagesAtSessionStart: setConciergeHadMessagesAtSessionStart} = useConciergeSessionActions();
     const isReportTransactionThread = isReportTransactionThreadUtil(report);
 
     const isReportArchived = useReportIsArchived(reportID);
@@ -116,6 +116,8 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
         mainDMSessionStartTime,
         conciergeShowFullHistory: conciergeShowFullHistory || !!reportActionIDFromRoute,
         setConciergeShowFullHistory,
+        conciergeHadMessagesAtSessionStart,
+        setConciergeHadMessagesAtSessionStart,
     });
 
     useLayoutEffect(() => {

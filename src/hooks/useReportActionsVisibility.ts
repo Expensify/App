@@ -23,6 +23,8 @@ type UseReportActionsVisibilityParams = {
     mainDMSessionStartTime?: string | null;
     conciergeShowFullHistory?: boolean;
     setConciergeShowFullHistory?: (show: boolean) => void;
+    conciergeHadMessagesAtSessionStart?: boolean;
+    setConciergeHadMessagesAtSessionStart?: (value: boolean) => void;
 };
 
 type UseReportActionsVisibilityResult = {
@@ -47,6 +49,8 @@ function useReportActionsVisibility({
     mainDMSessionStartTime,
     conciergeShowFullHistory,
     setConciergeShowFullHistory,
+    conciergeHadMessagesAtSessionStart,
+    setConciergeHadMessagesAtSessionStart,
 }: UseReportActionsVisibilityParams): UseReportActionsVisibilityResult {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -109,6 +113,8 @@ function useReportActionsVisibility({
             isConciergeMainDM,
             showFullHistory: isConciergeMainDM ? conciergeShowFullHistory : undefined,
             onSetShowFullHistory: isConciergeMainDM ? setConciergeShowFullHistory : undefined,
+            hadMessagesAtSessionStart: isConciergeMainDM ? conciergeHadMessagesAtSessionStart : undefined,
+            onSetHadMessagesAtSessionStart: isConciergeMainDM ? setConciergeHadMessagesAtSessionStart : undefined,
         });
 
     return {
