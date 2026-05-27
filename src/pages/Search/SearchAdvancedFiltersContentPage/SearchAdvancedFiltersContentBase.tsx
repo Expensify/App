@@ -13,8 +13,8 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {SearchAdvancedFiltersParamList} from '@libs/Navigation/types';
 import {FILTER_VIEW_MAP, SearchFilter} from '@libs/SearchUIUtils';
 import {SearchAdvancedFiltersActionContext, SearchAdvancedFiltersContext} from '@pages/Search/SearchAdvancedFiltersProvider';
-import type ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
 function isFilterKeyValid(filterKey: string): filterKey is SearchFilter['key'] {
     return filterKey in FILTER_VIEW_MAP;
