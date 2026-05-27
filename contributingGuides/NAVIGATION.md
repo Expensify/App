@@ -728,7 +728,7 @@ Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
 
 The `entryScreens` array in `DYNAMIC_ROUTES` defines which base screens are allowed to open this dynamic route.
 
-When parsing a URL, `src/libs/Navigation/helpers/getStateFromPath.ts` resolves the base path (without the dynamic suffix), gets the focused route for that path, and checks whether it is in `entryScreens`. If it is not, the dynamic route state is not built and a warning is logged. This prevents opening e.g. `/some/random/path/verify-account` when that path's screen is not allowed.
+When parsing a URL, `src/libs/Navigation/helpers/getStateFromPath.ts` calls `findAllMatchingDynamicSuffixes` to get all syntactically matching suffixes in priority order, then iterates through them: for each candidate it resolves the base path (without the dynamic suffix), gets the focused route for that path, and checks whether it is in `entryScreens`. The first candidate that passes this check is used. If no candidate passes, the dynamic route state is not built and a warning is logged. This prevents opening e.g. `/some/random/path/verify-account` when that path's screen is not allowed, while also handling ambiguous matches gracefully by falling back to lower-priority candidates.
 
 When adding or extending a dynamic route, list every screen that should be able to open it (e.g. `SCREENS.SETTINGS.WALLET.ROOT` for Verify Account from Wallet).
 
@@ -774,11 +774,25 @@ DYNAMIC_ROUTES: {
 },
 ```
 
+#### Suffix resolution (`findAllMatchingDynamicSuffixes`)
+
+The core matching logic lives in
+[`src/libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes.ts`](../src/libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes.ts).
+
+Given a path, `findAllMatchingDynamicSuffixes` returns **all** registered suffixes that
+syntactically match the end of that path, ordered by priority. The caller (e.g. `getStateFromPath`)
+then iterates through the list and picks the first candidate whose base path resolves to a screen
+listed in `entryScreens`. This prevents false-positive greedy matches where a user-defined name
+(e.g. a tag named "gl-code") coincides with a registered static suffix.
+
+A convenience wrapper `findMatchingDynamicSuffix` (named export from the same file) returns only
+the first (highest-priority) match — equivalent to `findAllMatchingDynamicSuffixes(path)[0]`.
+Use it only when you don't need to validate against additional context.
+
 #### Precedence rules
 
-When several registered suffixes could match the same URL, the matcher uses a deterministic
-three-phase order. Each phase exhausts all sub-suffix lengths (longest to shortest) before the
-next phase begins:
+The priority order within the returned array is determined by a three-phase algorithm.
+Each phase exhausts all sub-suffix lengths (longest to shortest) before the next phase begins:
 
 1. **Static beats everything.** All sub-suffix lengths are checked for an exact static match
    first. A short static match (e.g. single-segment `country`) always beats a longer parametric
@@ -801,12 +815,12 @@ they can span multiple segments separated by `/`.
 For example, the suffix `add-bank-account/verify-account` is a valid
 multi-segment suffix that combines two segments into one dynamic route.
 
-When the URL is parsed, the matching algorithm
+When the URL is parsed, `findAllMatchingDynamicSuffixes`
 iterates from the longest candidate suffix to the shortest,
 so overlapping registrations are resolved deterministically.
 For instance, if both `verify-account` and `add-bank-account/verify-account`
 are registered, a path ending with `/add-bank-account/verify-account`
-will always match the longer, more specific suffix.
+will always match the longer, more specific suffix first in the returned array.
 
 ### Suffix layering (stacking dynamic routes)
 

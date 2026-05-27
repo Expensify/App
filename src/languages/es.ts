@@ -63,9 +63,7 @@ const translations: TranslationDeepObject<typeof en> = {
         save: 'Guardar',
         saveChanges: 'Guardar cambios',
         submit: 'Enviar',
-        markAsDone: 'Marcar como listo',
         submitted: 'Enviado',
-        markedAsDoneStatus: 'Marcado como listo',
         rotate: 'Rotar',
         zoom: 'Zoom',
         password: 'Contraseña',
@@ -793,7 +791,6 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistory: (users) => `Este chat es con ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName, submitterDisplayName) =>
             `Aquí es donde <strong>${submitterDisplayName}</strong> enviará los gastos al espacio de trabajo <strong>${workspaceName}</strong>. Solo usa el botón +.`,
-        beginningOfChatHistoryPolicyExpenseChatTrack: 'Aquí es donde harás seguimiento de los gastos',
         beginningOfChatHistorySelfDM: 'Este es tu espacio personal. Úsalo para notas, tareas, borradores y recordatorios.',
         beginningOfChatHistorySystemDM: '¡Bienvenido! Vamos a configurar tu cuenta.',
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
@@ -802,7 +799,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Tu espacio',
         welcomeToRoom: (roomName) => `¡Bienvenido a ${roomName}!`,
         usePlusButton: (additionalText) => ` Usa el botón + para ${additionalText} un gasto`,
-        askConcierge: 'Este es tu chat con Concierge, tu agente personal de IA. Puedo hacer casi cualquier cosa, ¡pruébame!',
+        askConcierge: 'Concierge puede responder preguntas, actualizar gastos y mucho más.',
         conciergeSupport: 'Tu agente personal de IA',
         create: 'crear',
         iouTypes: {
@@ -1304,7 +1301,6 @@ const translations: TranslationDeepObject<typeof en> = {
         sendInvoice: (amount) => `Enviar factura de ${amount}`,
         expenseAmount: (formattedAmount, comment) => `${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         submitted: (memo) => `enviado${memo ? `, dijo ${memo}` : ''}`,
-        markedAsDone: (memo) => `marcado como listo${memo ? `, dijo ${memo}` : ''}`,
         automaticallySubmitted: `envió mediante <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">retrasar envíos</a>`,
         queuedToSubmitViaDEW: 'en cola para enviar a través del flujo de aprobación personalizado',
         failedToAutoSubmitViaDEW: (reason: string) => `no ha podido enviar este informe mediante <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">retrasar envíos</a>. ${reason}`,
@@ -1729,17 +1725,6 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Esperando a que <strong>${actor}</strong> envíe los gastos.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `Esperando a que un administrador envíe los gastos.`;
-                }
-            },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (actor, actorType, _eta, _etaType) => {
-                // eslint-disable-next-line default-case
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Esperando a que <strong>tú</strong> lo marques como listo.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Esperando a que <strong>${actor}</strong> lo marque como listo.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Esperando a que un administrador lo marque como listo.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_actor, _actorType, _eta, _etaType) => `¡No se requiere ninguna acción adicional!`,
@@ -6268,6 +6253,8 @@ ${amount} para ${merchant} - ${date}`,
         },
         card: {
             issueCard: 'Emitir tarjeta',
+            chooseRule: 'Elige una regla',
+            searchRules: 'Buscar regla de gasto',
             getStartedIssuing: 'Empieza emitiendo tu primera tarjeta virtual o física.',
             issueNewCard: {
                 whoNeedsCard: '¿Quién necesita una tarjeta?',
@@ -6310,10 +6297,15 @@ ${amount} para ${merchant} - ${date}`,
                 enterValidDate: 'Ingresa una fecha válida',
                 expirationDate: 'Fecha de vencimiento',
                 limitAmount: 'Importe del límite',
-                setExpiryOptions: 'Establecer opciones de vencimiento',
-                setExpiryDate: 'Establecer fecha de vencimiento',
-                setExpiryDateDescription: 'La tarjeta expirará según se indica en la tarjeta',
+                setCardRules: 'Configurar reglas de la tarjeta',
+                addSpendRule: 'Añadir regla de gasto',
+                addExpirationDate: 'Añade la fecha de vencimiento',
+                addExpirationDateDescription: 'Si no se establece una fecha específica, la tarjeta caducará según la fecha de vencimiento existente en la tarjeta.',
                 amount: 'Importe',
+                copyExisting: 'Copiar existente',
+                createNew: 'Crear nuevo',
+                spendRulesEmptyStateTitle: 'No hay reglas para elegir',
+                spendRulesEmptyStateSubtitle: 'Aún no has creado ninguna regla. Puedes crear una desde la pantalla anterior.',
             },
             deactivateCardModal: {
                 deactivate: 'Desactivar',

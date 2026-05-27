@@ -342,4 +342,120 @@ describe('useTimeSensitiveCards', () => {
         expect(result.current.cardsWithFraud).toHaveLength(1);
         expect(result.current.shouldShowReviewCardFraud).toBe(true);
     });
+
+    it('should not show fraud review for deactivated cards even when possibleFraud and an unresolved fraud action exist', async () => {
+        const deactivatedFraudCard = createRandomExpensifyCard(1, {
+            state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED,
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+            possibleFraud: {triggerAmount: 5663, triggerMerchant: 'WAL-MART #2366', currency: 'USD', fraudAlertReportID: 987654},
+        });
+        const cardList: CardList = {'1': deactivatedFraudCard};
+        const unresolvedFraudAction = {
+            ...createRandomReportAction(10),
+            actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+        };
+
+        await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${deactivatedFraudCard.nameValuePairs?.possibleFraud?.fraudAlertReportID}`, {
+            [unresolvedFraudAction.reportActionID]: unresolvedFraudAction,
+        });
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useTimeSensitiveCards());
+
+        expect(result.current.cardsWithFraud).toHaveLength(0);
+        expect(result.current.shouldShowReviewCardFraud).toBe(false);
+    });
+
+    it('should not show fraud review for closed cards even when possibleFraud is set', async () => {
+        const closedFraudCard = createRandomExpensifyCard(1, {
+            state: CONST.EXPENSIFY_CARD.STATE.CLOSED,
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+            possibleFraud: {triggerAmount: 5663, triggerMerchant: 'WAL-MART #2366', currency: 'USD', fraudAlertReportID: 987655},
+        });
+        const cardList: CardList = {'1': closedFraudCard};
+        const unresolvedFraudAction = {
+            ...createRandomReportAction(11),
+            actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+        };
+
+        await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${closedFraudCard.nameValuePairs?.possibleFraud?.fraudAlertReportID}`, {
+            [unresolvedFraudAction.reportActionID]: unresolvedFraudAction,
+        });
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useTimeSensitiveCards());
+
+        expect(result.current.cardsWithFraud).toHaveLength(0);
+        expect(result.current.shouldShowReviewCardFraud).toBe(false);
+    });
+
+    it('should exclude pending-replacement (STATE_NOT_ISSUED) cards from shipping address to-dos', async () => {
+        const pendingReplaceShippingCard: Card = {
+            ...createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED}),
+            nameValuePairs: {
+                terminationReason: CONST.EXPENSIFY_CARD.TERMINATION_REASON.LOST,
+                statusChanges: [{date: '2024-01-01', status: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED}],
+            } as Card['nameValuePairs'],
+        };
+        const brandNewShippingCard = createRandomExpensifyCard(2, {state: CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED});
+        const cardList: CardList = {'1': pendingReplaceShippingCard, '2': brandNewShippingCard};
+
+        await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useTimeSensitiveCards());
+
+        // Only the brand-new pending card (no terminationReason) should surface the shipping to-do
+        expect(result.current.cardsNeedingShippingAddress).toHaveLength(1);
+        expect(result.current.cardsNeedingShippingAddress.at(0)?.cardID).toBe(2);
+        expect(result.current.shouldShowAddShippingAddress).toBe(true);
+    });
+
+    it('should exclude pending-replacement (NOT_ACTIVATED) cards from activation to-dos', async () => {
+        const pendingReplaceActivationCard: Card = {
+            ...createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED}),
+            nameValuePairs: {
+                terminationReason: CONST.EXPENSIFY_CARD.TERMINATION_REASON.LOST,
+                statusChanges: [{date: '2024-01-01', status: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED}],
+            } as Card['nameValuePairs'],
+        };
+        const brandNewActivationCard = createRandomExpensifyCard(2, {state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED});
+        const cardList: CardList = {'1': pendingReplaceActivationCard, '2': brandNewActivationCard};
+
+        await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useTimeSensitiveCards());
+
+        // Only the brand-new pending card (no terminationReason) should surface the activation to-do
+        expect(result.current.cardsNeedingActivation).toHaveLength(1);
+        expect(result.current.cardsNeedingActivation.at(0)?.cardID).toBe(2);
+        expect(result.current.shouldShowActivateCard).toBe(true);
+    });
+
+    it('should not surface any to-dos for a deactivated card regardless of other signals', async () => {
+        const deactivatedCard: Card = {
+            ...createRandomExpensifyCard(1, {
+                state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED,
+                fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+                possibleFraud: {triggerAmount: 100, triggerMerchant: 'TEST', currency: 'USD', fraudAlertReportID: 555111},
+            }),
+            nameValuePairs: {isVirtual: false, possibleFraud: {triggerAmount: 100, triggerMerchant: 'TEST', currency: 'USD', fraudAlertReportID: 555111}} as Card['nameValuePairs'],
+        };
+        const cardList: CardList = {'1': deactivatedCard};
+
+        await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useTimeSensitiveCards());
+
+        expect(result.current.cardsNeedingShippingAddress).toHaveLength(0);
+        expect(result.current.cardsNeedingActivation).toHaveLength(0);
+        expect(result.current.cardsWithFraud).toHaveLength(0);
+        expect(result.current.shouldShowAddShippingAddress).toBe(false);
+        expect(result.current.shouldShowActivateCard).toBe(false);
+        expect(result.current.shouldShowReviewCardFraud).toBe(false);
+    });
 });
