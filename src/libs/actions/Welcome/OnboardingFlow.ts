@@ -187,10 +187,6 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         return `/${ROUTES.ONBOARDING_PURPOSE.route}`;
     }
 
-    if (onboardingInitialPath.includes(ROUTES.ONBOARDING_ACCOUNTING.route) && shouldForceEmployeesStep(currentOnboardingValues?.signupQualifier, currentOnboardingCompanySize)) {
-        return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
-    }
-
     if (
         onboardingInitialPath.includes(ROUTES.ONBOARDING_ACCOUNTING.route) &&
         ((currentOnboardingPurposeSelected !== null && !isCurrentOnboardingPurposeManageTeam) || (currentOnboardingCompanySize === null && currentOnboardingPurposeSelected !== null))
@@ -426,4 +422,4 @@ const getOnboardingMessages = (locale?: Locale) => {
 };
 
 export type {OnboardingMessage, OnboardingTask, OnboardingTaskLinks, OnboardingPurpose, OnboardingCompanySize, GetOnboardingInitialPathParamsType};
-export {getOnboardingInitialPath, shouldForceEmployeesStep, startOnboardingFlow, getOnboardingMessages};
+export {getOnboardingInitialPath, startOnboardingFlow, getOnboardingMessages};

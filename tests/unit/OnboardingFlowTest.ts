@@ -1,4 +1,4 @@
-import {getOnboardingInitialPath, shouldForceEmployeesStep} from '@libs/actions/Welcome/OnboardingFlow';
+import {getOnboardingInitialPath} from '@libs/actions/Welcome/OnboardingFlow';
 import type {GetOnboardingInitialPathParamsType} from '@libs/actions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
 
@@ -149,20 +149,6 @@ describe('OnboardingFlow', () => {
             };
             const path = getOnboardingInitialPath(params);
             expect(path).toBe('/onboarding/accounting');
-        });
-    });
-
-    describe('shouldForceEmployeesStep', () => {
-        it('should return true for VSB without a company size', () => {
-            expect(shouldForceEmployeesStep(CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB, null)).toBe(true);
-        });
-
-        it('should return true for VSB with legacy MICRO company size', () => {
-            expect(shouldForceEmployeesStep(CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB, CONST.ONBOARDING_COMPANY_SIZE.MICRO)).toBe(true);
-        });
-
-        it('should return false for VSB with a valid company size', () => {
-            expect(shouldForceEmployeesStep(CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB, CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL)).toBe(false);
         });
     });
 });

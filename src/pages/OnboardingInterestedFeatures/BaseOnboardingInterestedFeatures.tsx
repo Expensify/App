@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
 import FixedFooter from '@components/FixedFooter';
-import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -30,7 +29,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from '@libs/actions/Policy/Policy';
 import {completeOnboarding} from '@libs/actions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/actions/Welcome';
-import {shouldForceEmployeesStep} from '@libs/actions/Welcome/OnboardingFlow';
 import Log from '@libs/Log';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
@@ -60,7 +58,6 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
-    const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [userReportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -77,7 +74,6 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
     const {isOffline} = useNetwork();
     const [isLoading, setIsLoading] = useState(false);
-    const [continueError, setContinueError] = useState('');
 
     const features: Feature[] = useMemo(() => {
         return [
@@ -181,20 +177,11 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         setOnboardingPolicyID(paidGroupPolicy.id);
     }, [paidGroupPolicy, onboardingPolicyID]);
 
-    useEffect(() => {
-        if (!shouldForceEmployeesStep(onboardingValues?.signupQualifier, onboardingCompanySize)) {
-            return;
-        }
-        Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
-    }, [onboardingValues?.signupQualifier, onboardingCompanySize]);
-
     const handleContinue = useCallback(async () => {
         if (!onboardingPurposeSelected || !onboardingCompanySize) {
-            setContinueError(translate('onboarding.errorSelection'));
             return;
         }
 
-        setContinueError('');
         try {
             setIsLoading(true);
 
@@ -305,7 +292,6 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         hasActiveAdminPolicies,
         lastWorkspaceNumber,
         translate,
-        onboardingValues?.signupQualifier,
     ]);
 
     // Create items for enabled features
@@ -426,13 +412,6 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             <ScrollView style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>{sections.map(renderSection)}</ScrollView>
 
             <FixedFooter style={[styles.pt3, styles.ph5]}>
-                {!!continueError && (
-                    <FormHelpMessage
-                        style={[styles.ph1, styles.mb2]}
-                        isError
-                        message={continueError}
-                    />
-                )}
                 <Button
                     success
                     large
