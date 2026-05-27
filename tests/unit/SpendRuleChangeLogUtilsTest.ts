@@ -45,7 +45,7 @@ describe('SpendRuleChangeLogUtils', () => {
                     cards: [{cardID: 1, displayName: 'My Visa'}],
                 },
             } as ReportAction;
-            expect(getAddExpensifyCardRuleMessage(translateLocal, action)).toBe('allowed on My Visa');
+            expect(getAddExpensifyCardRuleMessage(translateLocal, action)).toBe("allowed on 'My Visa'");
         });
 
         it('returns block message with merchant filter', () => {
@@ -59,7 +59,7 @@ describe('SpendRuleChangeLogUtils', () => {
                     cards: [{cardID: 1, displayName: 'My Visa'}],
                 },
             } as ReportAction;
-            expect(getAddExpensifyCardRuleMessage(translateLocal, action)).toBe("blocked 'Starbucks' on My Visa");
+            expect(getAddExpensifyCardRuleMessage(translateLocal, action)).toBe("blocked 'Starbucks' on 'My Visa'");
         });
 
         it('returns allow message with category filter', () => {
@@ -73,7 +73,7 @@ describe('SpendRuleChangeLogUtils', () => {
                     cards: [{cardID: 1, displayName: 'My Visa'}],
                 },
             } as ReportAction;
-            expect(getAddExpensifyCardRuleMessage(translateLocal, action)).toBe("allowed 'Dining' on My Visa");
+            expect(getAddExpensifyCardRuleMessage(translateLocal, action)).toBe("allowed 'Dining' on 'My Visa'");
         });
 
         it('returns block message with amount-over filter', () => {
@@ -88,7 +88,7 @@ describe('SpendRuleChangeLogUtils', () => {
                     cards: [{cardID: 1, displayName: 'My Visa'}],
                 },
             } as ReportAction;
-            expect(getAddExpensifyCardRuleMessage(translateLocal, action)).toBe('blocked amounts over $100.00 on My Visa');
+            expect(getAddExpensifyCardRuleMessage(translateLocal, action)).toBe("blocked amounts over $100.00 on 'My Visa'");
         });
 
         it('returns allow message with merchant and amount-under filter joined', () => {
@@ -104,7 +104,7 @@ describe('SpendRuleChangeLogUtils', () => {
                     cards: [{cardID: 1, displayName: 'My Visa'}],
                 },
             } as ReportAction;
-            expect(getAddExpensifyCardRuleMessage(translateLocal, action)).toBe("allowed 'Amazon' and amounts under $50.00 on My Visa");
+            expect(getAddExpensifyCardRuleMessage(translateLocal, action)).toBe("allowed 'Amazon' and amounts under $50.00 on 'My Visa'");
         });
 
         it('returns message with multiple-cards summary', () => {
@@ -147,7 +147,7 @@ describe('SpendRuleChangeLogUtils', () => {
                     cards: [{cardID: 1, displayName: 'My Visa'}],
                 },
             } as ReportAction;
-            expect(getUpdateExpensifyCardRuleMessage(translateLocal, action)).toBe('changed spend rule from only allow to block on My Visa');
+            expect(getUpdateExpensifyCardRuleMessage(translateLocal, action)).toBe("changed spend rule from only allow to block on 'My Visa'");
         });
 
         it('returns applied-to-additional-cards message when only new cards were added', () => {
@@ -164,7 +164,7 @@ describe('SpendRuleChangeLogUtils', () => {
                     ],
                 },
             } as ReportAction;
-            expect(getUpdateExpensifyCardRuleMessage(translateLocal, action)).toBe('applied spend rule to 1 additional cards');
+            expect(getUpdateExpensifyCardRuleMessage(translateLocal, action)).toBe('applied spend rule to 1 additional card');
         });
 
         it('returns remove-rule message when only cards were removed', () => {
@@ -181,7 +181,7 @@ describe('SpendRuleChangeLogUtils', () => {
                     cards: [{cardID: 1, displayName: 'Card A'}],
                 },
             } as ReportAction;
-            expect(getUpdateExpensifyCardRuleMessage(translateLocal, action)).toBe('removed spend rule from Card B');
+            expect(getUpdateExpensifyCardRuleMessage(translateLocal, action)).toBe("removed spend rule from 'Card B'");
         });
 
         it('returns added-merchant message with adjective for allow action', () => {
@@ -197,7 +197,7 @@ describe('SpendRuleChangeLogUtils', () => {
                     cards: [{cardID: 1, displayName: 'My Visa'}],
                 },
             } as ReportAction;
-            expect(getUpdateExpensifyCardRuleMessage(translateLocal, action)).toBe("added allowed merchant 'Starbucks' on My Visa");
+            expect(getUpdateExpensifyCardRuleMessage(translateLocal, action)).toBe("added allowed merchant 'Starbucks' on 'My Visa'");
         });
 
         it('returns changed-category message when single category was swapped', () => {
@@ -213,7 +213,7 @@ describe('SpendRuleChangeLogUtils', () => {
                     cards: [{cardID: 1, displayName: 'My Visa'}],
                 },
             } as ReportAction;
-            expect(getUpdateExpensifyCardRuleMessage(translateLocal, action)).toBe("changed blocked spend category from 'Airlines' to 'Dining' on My Visa");
+            expect(getUpdateExpensifyCardRuleMessage(translateLocal, action)).toBe("changed blocked spend category from 'Airlines' to 'Dining' on 'My Visa'");
         });
 
         it('returns set-max-amount message when amount is newly added', () => {
@@ -230,7 +230,7 @@ describe('SpendRuleChangeLogUtils', () => {
                     cards: [{cardID: 1, displayName: 'My Visa'}],
                 },
             } as ReportAction;
-            expect(getUpdateExpensifyCardRuleMessage(translateLocal, action)).toBe('set max amount to $100.00 on My Visa');
+            expect(getUpdateExpensifyCardRuleMessage(translateLocal, action)).toBe("set max amount to $100.00 on 'My Visa'");
         });
 
         it('returns changed-max-amount message when amount value changes', () => {
@@ -247,7 +247,7 @@ describe('SpendRuleChangeLogUtils', () => {
                     cards: [{cardID: 1, displayName: 'My Visa'}],
                 },
             } as ReportAction;
-            expect(getUpdateExpensifyCardRuleMessage(translateLocal, action)).toBe('changed max amount from $50.00 to $100.00 on My Visa');
+            expect(getUpdateExpensifyCardRuleMessage(translateLocal, action)).toBe("changed max amount from $50.00 to $100.00 on 'My Visa'");
         });
 
         it('returns removed-max-amount message when amount is cleared', () => {
@@ -264,7 +264,7 @@ describe('SpendRuleChangeLogUtils', () => {
                     cards: [{cardID: 1, displayName: 'My Visa'}],
                 },
             } as ReportAction;
-            expect(getUpdateExpensifyCardRuleMessage(translateLocal, action)).toBe('removed max amount from My Visa');
+            expect(getUpdateExpensifyCardRuleMessage(translateLocal, action)).toBe("removed max amount from 'My Visa'");
         });
     });
 
@@ -288,7 +288,7 @@ describe('SpendRuleChangeLogUtils', () => {
                     cards: [{cardID: 1, displayName: 'My Visa'}],
                 },
             } as ReportAction;
-            expect(getRemoveExpensifyCardRuleMessage(translateLocal, action)).toBe('removed spend rule from My Visa');
+            expect(getRemoveExpensifyCardRuleMessage(translateLocal, action)).toBe("removed spend rule from 'My Visa'");
         });
 
         it('returns message with multiple-cards summary', () => {

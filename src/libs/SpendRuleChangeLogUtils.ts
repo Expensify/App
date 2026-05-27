@@ -50,7 +50,7 @@ function getSpendRuleCardsSummary(translate: LocalizedTranslate, cards: Readonly
     }
     if (cards.length === 1) {
         const displayName = cards.at(0)?.displayName ?? '';
-        return displayName !== '' ? displayName : translate('workspaceActions.expensifyCardRule.theCard');
+        return displayName !== '' ? `'${displayName}'` : translate('workspaceActions.expensifyCardRule.theCard');
     }
     return translate('workspaceActions.expensifyCardRule.multipleCards', {count: cards.length});
 }
