@@ -1,14 +1,15 @@
 import React from 'react';
-import {Pie, PolarChart} from 'victory-native';
-import {COLOR_KEY, LABEL_KEY, VALUE_KEY, X_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
+import {PolarChart} from 'victory-native';
+import {COLOR_KEY, LABEL_KEY, VALUE_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
-import VictoryChartPie from './VictoryChartPie';
+import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getHierarchyID';
+import VictoryChartCategories from './VictoryChartCategories';
 
 /**
  * Renders the PolarChart with data drawn from context.
  */
 function VictoryChartPolar() {
-    const {data} = useVictoryChartContext();
+    const {tnode, data} = useVictoryChartContext();
 
     return (
         <PolarChart
@@ -17,7 +18,12 @@ function VictoryChartPolar() {
             valueKey={VALUE_KEY}
             colorKey={COLOR_KEY}
         >
-            <VictoryChartPie />
+            {tnode.children.map((child) => (
+                <VictoryChartCategories
+                    key={`${child.tagName ?? 'node'}-${getHierarchyID(child)}`}
+                    tnode={child}
+                />
+            ))}
         </PolarChart>
     );
 }
