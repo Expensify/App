@@ -85,11 +85,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         // When validation succeeded but there are no joinable workspaces and the API call has completed,
         // navigate to the next onboarding step (same as the skip button behavior).
         if (getAccessiblePoliciesAction?.loading === false) {
-            if (isVsb) {
-                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
-                return;
-            }
-            if (isSmb) {
+            if (isVsb || isSmb) {
                 Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
                 return;
             }
@@ -139,12 +135,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                         shouldShowSkipButton
                         handleSkipButtonPress={() => {
-                            if (isVsb) {
-                                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
-                                return;
-                            }
-
-                            if (isSmb) {
+                            if (isVsb || isSmb) {
                                 Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
                                 return;
                             }
