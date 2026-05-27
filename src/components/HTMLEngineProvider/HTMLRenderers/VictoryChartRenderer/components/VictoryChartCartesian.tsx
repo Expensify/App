@@ -2,7 +2,7 @@ import React from 'react';
 import {CartesianChart} from 'victory-native';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import {VictoryChartRenderArgsProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartRenderArgsContext';
-import getYKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getYKey';
+import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getHierarchyID';
 import VictoryChartLabels from './VictoryChartLabels';
 import VictoryChartLegend from './VictoryChartLegend';
 import VictoryChartSeries from './VictoryChartSeries';
@@ -35,7 +35,7 @@ function VictoryChartCartesian() {
                 <VictoryChartRenderArgsProvider value={renderArgs}>
                     {tnode.children.map((child) => (
                         <VictoryChartSeries
-                            key={`${child.tagName ?? 'node'}-${getYKey(child)}`}
+                            key={`${child.tagName ?? 'node'}-${getHierarchyID(child)}`}
                             tnode={child}
                             isHorizontal={isHorizontal}
                         />
