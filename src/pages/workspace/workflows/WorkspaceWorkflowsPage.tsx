@@ -85,7 +85,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type DismissedProductTraining from '@src/types/onyx/DismissedProductTraining';
-import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';

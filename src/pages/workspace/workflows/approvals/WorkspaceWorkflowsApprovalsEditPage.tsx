@@ -290,7 +290,25 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                   }
                 : approver,
         );
-        setApprovalWorkflow({...approvalWorkflow, approvers: upgradedApprovers});
+
+        // Mirror the deferred-save reconciliation in WorkspaceWorkflowsPage: when the new agent
+        // becomes the default approver, inject it into `members` so the subsequent save updates
+        // their `submitsTo` to point at themselves. Without this, `convertApprovalWorkflowToPolicyEmployees`
+        // never rewrites the agent's `submitsTo` (set to the previous default approver by
+        // `shareWithEmployees` in CreateAgent.cpp), leaving an orphan "Expenses from agent → previous
+        // approver" workflow card on the workflows page.
+        const upgradedMembers =
+            approvalWorkflow.isDefault && !approvalWorkflow.members.some((member) => member.email === resolvedEmail)
+                ? [
+                      ...approvalWorkflow.members,
+                      {
+                          email: resolvedEmail,
+                          displayName: resolvedPersonalDetail.displayName ?? resolvedEmail,
+                          avatar: resolvedPersonalDetail.avatar,
+                      },
+                  ]
+                : approvalWorkflow.members;
+        setApprovalWorkflow({...approvalWorkflow, approvers: upgradedApprovers, members: upgradedMembers});
     }, [approvalWorkflow, policy?.employeeList, personalDetails, agentPrompts]);
 
     const submitButtonContainerStyles = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, style: [styles.mb5, styles.mh5]});

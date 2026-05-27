@@ -114,6 +114,30 @@ function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRem
         defaultApprover: newDefaultApprover ?? previousDefaultApprover ?? '',
     });
 
+    // Force the new default approver's `submitsTo` to themselves whenever the default
+    // approver changes. `convertApprovalWorkflowToPolicyEmployees` only rewrites `submitsTo`
+    // for emails present in `approvalWorkflow.members`, so a newly-promoted approver who
+    // wasn't already a member (e.g., an agent the backend's `shareWithEmployees` just added
+    // with `submitsTo = previous default approver`) keeps that stale value and shows up as
+    // their own orphan submission group on the workflows page. This backstop guarantees the
+    // new default approver self-submits regardless of the caller's `members` snapshot.
+    if (newDefaultApprover && newDefaultApprover !== previousDefaultApprover) {
+        const existing = updatedEmployees[newDefaultApprover] ?? previousEmployeeList[newDefaultApprover];
+        if (existing && existing.submitsTo !== newDefaultApprover) {
+            const previousPendingAction = previousEmployeeList[newDefaultApprover]?.pendingAction;
+            updatedEmployees[newDefaultApprover] = {
+                ...existing,
+                email: newDefaultApprover,
+                submitsTo: newDefaultApprover,
+                pendingAction: previousPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? previousPendingAction : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                pendingFields: {
+                    ...existing.pendingFields,
+                    submitsTo: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            };
+        }
+    }
+
     // If there are no changes to the employees list, we can exit early
     if (isEmptyObject(updatedEmployees) && !newDefaultApprover) {
         return;
