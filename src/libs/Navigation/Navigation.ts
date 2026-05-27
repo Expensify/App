@@ -1132,27 +1132,26 @@ function removePreInsertedFullscreenIfNeeded() {
         return;
     }
 
-    // RHP already dismissed. For the tab-switch path, jump back to the original tab.
-    // For the push path, pop the pre-inserted route directly.
+    // RHP already dismissed. Restore the entire TAB_NAVIGATOR route from the snapshot so both
+    // the focused tab AND the focused tab's nested stack are put back. A bare jumpTo here only
+    // covers the cross-tab case (e.g. IOU pre-inserts on a different tab); when the pre-insert
+    // happened in-tab (e.g. workspace creation with `collapseTabToLeaf` that wiped WORKSPACES_LIST
+    // from under the new workspace leaf), jumpTo is a no-op against the current tab and the user
+    // is stranded on the collapsed leaf instead of the screen they came from.
     const originalTabRoute = getPreInsertedOriginalTabRoute();
     if (originalTabRoute) {
         clearPreInsertedOriginalTabRoute();
-        const originalTabState = originalTabRoute.state as NavigationState | undefined;
-        const originalFocusedTabIndex = originalTabState?.index ?? 0;
-        const originalTabName = originalTabState?.routes?.[originalFocusedTabIndex]?.name;
-        if (originalTabName) {
-            requestAnimationFrame(() => {
-                const currentState = navigationRef.getRootState();
-                const tabNavRoute = currentState?.routes.findLast((r) => r.name === NAVIGATORS.TAB_NAVIGATOR);
-                if (!tabNavRoute?.state?.key) {
-                    return;
+        requestAnimationFrame(() => {
+            navigationRef.current?.dispatch((state) => {
+                const tabNavIndex = state.routes.findLastIndex((r) => r.name === NAVIGATORS.TAB_NAVIGATOR);
+                if (tabNavIndex < 0) {
+                    return CommonActions.reset(state);
                 }
-                navigationRef.current?.dispatch({
-                    ...TabActions.jumpTo(originalTabName),
-                    target: tabNavRoute.state.key,
-                });
+                const newRoutes = [...state.routes.slice(0, tabNavIndex), originalTabRoute as (typeof state.routes)[number], ...state.routes.slice(tabNavIndex + 1)];
+                const clampedIndex = state.index >= newRoutes.length ? newRoutes.length - 1 : state.index;
+                return CommonActions.reset({...state, routes: newRoutes, index: clampedIndex});
             });
-        }
+        });
         return;
     }
 
