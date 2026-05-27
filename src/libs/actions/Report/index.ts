@@ -7559,7 +7559,7 @@ function changeReportPolicyAndInviteSubmitter({
     if (!submitterEmail) {
         return;
     }
-    const {accountID: currentUserAccountID = CONST.DEFAULT_NUMBER_ID, email: currentUserEmail = ''} = currentUser;
+    const {accountID: currentUserAccountID, email: currentUserEmail = ''} = currentUser;
     const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(employeeList, false, false));
     const {
         optimisticData: optimisticAddMembersData,
