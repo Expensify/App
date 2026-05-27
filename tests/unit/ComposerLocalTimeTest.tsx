@@ -98,7 +98,7 @@ describe('ComposerLocalTime', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${REPORT_ID}`, true);
         await waitForBatchedUpdates();
 
-        const {toJSON} = renderWithProviders(<ComposerLocalTime reportID={REPORT_ID} />);
+        const {toJSON} = renderWithProviders(<ComposerLocalTime />, REPORT_ID);
 
         await waitForBatchedUpdates();
 
