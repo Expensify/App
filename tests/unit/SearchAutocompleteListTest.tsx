@@ -260,7 +260,7 @@ describe('SearchAutocompleteList', () => {
             expect(screen.queryByText('Search results')).toBeNull();
         });
 
-        it('should not show "Recent chats" header when an active search query is entered', async () => {
+        it('should keep "Recent chats" header when an active search query is entered', async () => {
             const recentSearches: Record<string, {query: string; timestamp: string}> = {};
             recentSearches['2024-01-01T00:00:00'] = {query: 'type:expense', timestamp: '2024-01-01T00:00:00'};
 
@@ -285,10 +285,10 @@ describe('SearchAutocompleteList', () => {
             fireEvent.changeText(textInput, 'test');
             await flushAllUpdates();
 
-            // "Recent chats" header should NOT be visible with an active query
-            // (local section has no title, server section uses "Search results")
+            // "Recent chats" header should still be visible with an active query
+            // (local section keeps the title, server section uses "Search results")
             await waitFor(() => {
-                expect(screen.queryByText('Recent chats')).toBeNull();
+                expect(screen.getByText('Recent chats')).toBeTruthy();
             });
         });
 
@@ -312,9 +312,9 @@ describe('SearchAutocompleteList', () => {
             fireEvent.changeText(textInput, 'some query');
             await flushAllUpdates();
 
-            // "Recent chats" should be gone
+            // "Recent chats" should still be visible with an active query
             await waitFor(() => {
-                expect(screen.queryByText('Recent chats')).toBeNull();
+                expect(screen.getByText('Recent chats')).toBeTruthy();
             });
 
             // Clear the query
@@ -355,9 +355,9 @@ describe('SearchAutocompleteList', () => {
             fireEvent.changeText(textInput, 'test');
             await flushAllUpdates();
 
-            // "Recent chats" header should not be visible (local section has no title)
+            // "Recent chats" header should still be visible (local section keeps its title)
             await waitFor(() => {
-                expect(screen.queryByText('Recent chats')).toBeNull();
+                expect(screen.getByText('Recent chats')).toBeTruthy();
             });
 
             // Now simulate server results arriving by updating the mock to return results

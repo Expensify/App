@@ -514,7 +514,7 @@ function SearchAutocompleteList({
             localRows.sort((a, b) => (frozenLocalRank.get(a.keyForList ?? '') ?? 0) - (frozenLocalRank.get(b.keyForList ?? '') ?? 0));
 
             if (localRows.length > 0 || !isLoadingOptions) {
-                pushSection({title: undefined, data: localRows, sectionIndex: sectionIndex++});
+                pushSection({title: translate('search.recentChats'), data: localRows, sectionIndex: sectionIndex++});
             } else {
                 // Options are still loading and no local results matched — show a skeleton so the
                 // user sees feedback instead of a bare section header.
