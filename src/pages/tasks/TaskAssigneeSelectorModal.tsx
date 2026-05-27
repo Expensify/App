@@ -200,9 +200,7 @@ function TaskAssigneeSelectorModal() {
                 undefined, // passing null as report is null in this condition
                 isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? undefined}, loginList, currentUserEmail),
             );
-            InteractionManager.runAfterInteractions(() => {
-                Navigation.goBack(ROUTES.NEW_TASK.getRoute(backTo));
-            });
+            Navigation.goBack(ROUTES.NEW_TASK.getRoute(backTo), {waitForTransition: true});
         }
     };
 

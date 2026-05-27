@@ -1,6 +1,4 @@
 import React from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import {shouldOpenRHPVariant} from '@components/SidePanel/RHPVariantTest';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -18,10 +16,8 @@ function AdminTestDriveModal() {
 
     const navigate = () => {
         Log.hmmm('[AdminTestDriveModal] Navigate function called');
-        InteractionManager.runAfterInteractions(() => {
-            Log.hmmm('[AdminTestDriveModal] Calling Navigation.navigate()');
-            Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
-        });
+        Log.hmmm('[AdminTestDriveModal] Calling Navigation.navigate()');
+        Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT, {waitForTransition: true});
     };
 
     const skipTestDrive = () => {
