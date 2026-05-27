@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -13,6 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {OnboardingCompanySize} from '@libs/actions/Welcome/OnboardingFlow';
+import {getPreviousOnboardingRoute} from '@libs/getOnboardingStepCounter';
 import Navigation from '@libs/Navigation/Navigation';
 import {setOnboardingCompanySize} from '@userActions/Welcome';
 import CONST from '@src/CONST';
@@ -36,6 +37,31 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
     const [error, setError] = useState('');
 
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [purposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+
+    const onboardingFlowContext = useMemo(
+        () => ({
+            signupQualifier: onboardingValues?.signupQualifier,
+            isFromPublicDomain: account?.isFromPublicDomain,
+            hasAccessibleDomainPolicies: account?.hasAccessibleDomainPolicies,
+            purposeSelected: purposeSelected ?? undefined,
+            isMergeAccountStepSkipped: onboardingValues?.isMergeAccountStepSkipped,
+        }),
+        [account?.hasAccessibleDomainPolicies, account?.isFromPublicDomain, onboardingValues?.isMergeAccountStepSkipped, onboardingValues?.signupQualifier, purposeSelected],
+    );
+
+    const handleBackButtonPress = useCallback(() => {
+        const previousRoute = getPreviousOnboardingRoute(SCREENS.ONBOARDING.EMPLOYEES, onboardingFlowContext, route.params?.backTo);
+
+        if (previousRoute) {
+            Navigation.navigate(previousRoute);
+            return;
+        }
+
+        Navigation.goBack(ROUTES.ONBOARDING_PURPOSE.getRoute());
+    }, [onboardingFlowContext, route.params?.backTo]);
+
     const companySizeOptions: OnboardingListItem[] = useMemo(() => {
         const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
         const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
@@ -100,9 +126,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                 shouldShowBackButton={!isEmployeesFirstStep}
                 stepCounter={onboardingStep?.stepCounter}
                 progressBarPercentage={onboardingStep?.progressBarPercentage}
-                onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.ONBOARDING_PURPOSE.getRoute());
-                }}
+                onBackButtonPress={handleBackButtonPress}
                 shouldDisplayHelpButton={false}
             />
             <Text
