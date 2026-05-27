@@ -4,6 +4,9 @@ name: Codex review
 # This is safe here because we never check out PR code — the only
 # untrusted input Codex ever sees is the plaintext diff from `gh pr diff`,
 # wrapped in explicit delimiters in the prompt.
+#
+# On-demand reviews use `/codex-review` in a PR comment (not `@codex review`)
+# so we do not trigger the hosted Codex GitHub app's default integration.
 on:
   pull_request_target:
     types: [opened, ready_for_review]
@@ -25,7 +28,7 @@ jobs:
         || (
           github.event_name == 'issue_comment'
           && github.event.issue.pull_request
-          && contains(github.event.comment.body, '@Codex review')
+          && contains(github.event.comment.body, '/codex-review')
         )
       )
     concurrency:
