@@ -14,7 +14,7 @@ import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsCon
 import NavigationDeferredMount from '@components/NavigationDeferredMount';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -44,10 +44,10 @@ import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import type {KYCFlowEvent, TriggerKYCFlow, WorkspacePolicyPaymentOption} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
 import {sortPoliciesByName} from '@libs/PolicyUtils';
+import {REPORT_MORE_MENU_SECTIONS, sortAndSectionPopoverMenuItems} from '@libs/PopoverMenuSections';
 import {getFilteredReportActionsForReportView, hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
@@ -132,7 +132,8 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const {currentSearchQueryJSON, currentSearchKey, currentSearchResults} = useSearchStateContext();
+    const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
+    const {currentSearchResults} = useSearchResultsContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
 
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
@@ -344,7 +345,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             icon: expensifyIcons.Info,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.VIEW_DETAILS,
             onSelected: () => {
-                navigateToDetailsPage(moneyRequestReport, Navigation.getReportRHPActiveRoute());
+                navigateToDetailsPage(moneyRequestReport);
             },
         },
         ...exportActionEntries,
@@ -362,9 +363,10 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         },
     };
 
-    const applicableSecondaryActions = secondaryActions
-        .map((action) => secondaryActionsImplementation[action])
-        .filter((action) => action?.shouldShow !== false && action?.value !== primaryAction);
+    const applicableSecondaryActions = sortAndSectionPopoverMenuItems(
+        secondaryActions.map((action) => secondaryActionsImplementation[action]).filter((action) => action?.shouldShow !== false && action?.value !== primaryAction),
+        REPORT_MORE_MENU_SECTIONS,
+    );
 
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
 
