@@ -70,7 +70,7 @@ To change the approval mode or final approver on your workspace:
 
 1. In the left menu, click **HR**.
 2. Click **Gusto**.
-3. Click on **Approval mode** or **Final approver** to update the settings.
+3. Click **Approval mode** or **Final approver** to update the settings.
 4. Click **Save**.
 
 When **Manager Approval** is selected, approval workflows are automatically built from the manager relationships in Gusto. These approval workflows appear on the **Workflows** tab with a Gusto indicator. The **Approvals** toggle on the **Workflows** tab is locked on and cannot be turned off while Gusto is connected.
