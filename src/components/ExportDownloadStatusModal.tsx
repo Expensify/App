@@ -61,7 +61,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
         }
         fileDownload(translate, downloadURL);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isReady]);
+    }, [isReady, downloadURL]);
 
     const handleSendFromConcierge = useCallback(() => {
         sendExportFileFromConcierge(exportID, displayedExport ?? undefined);
