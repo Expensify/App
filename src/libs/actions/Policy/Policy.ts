@@ -3018,14 +3018,15 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         expenseCreatedReportActionID,
         customUnitID,
         customUnitRateID,
-        engagementChoice,
         currency: outputCurrency,
         file: clonedFile,
-        companySize,
-        userReportedIntegration: userReportedIntegration ?? undefined,
         features: features ? JSON.stringify(features) : undefined,
         shouldAddGuideWelcomeMessage,
         areDistanceRatesEnabled,
+        // Only include engagement/onboarding fields when CreateWorkspace will bundle guidedSetupData.
+        // When shouldAddOnboardingTasks is false, a separate CompleteGuidedSetup call sends these
+        // fields, and including them here would cause the backend to trigger the trial email twice.
+        ...(shouldAddOnboardingTasks ? {engagementChoice, companySize, userReportedIntegration: userReportedIntegration ?? undefined} : {}),
     };
 
     if (introSelected !== undefined && (introSelected.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER || !introSelected?.choice) && engagementChoice && shouldAddOnboardingTasks) {
