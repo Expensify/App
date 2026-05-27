@@ -7,7 +7,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {search} from '@libs/actions/Search';
 import {getDisplayableExpensifyCards} from '@libs/CardUtils';
-import {arePaymentsEnabled, hasApprovalFlow, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {arePaymentsEnabled, isGroupPolicy, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
@@ -38,28 +38,31 @@ type YourSpendCardRow = {
 type YourSpendApplicability = {
     isApprovalApplicable: boolean;
     isPaymentApplicable: boolean;
-    // Sorted IDs of policies that pass `hasApprovalFlow`. The sort keeps the resulting
-    // search-query hash stable across unrelated `policies` updates (e.g. Onyx key
-    // insertion-order shuffles), so subscribers don't churn between snapshot keys.
-    approvalPolicyIDs: string[];
+    // Sorted IDs of the user's group policies (Team/Corporate/Submit — anything that
+    // isn't a personal workspace). Used to scope the "Awaiting approval" query to
+    // reports owned by the user on a real workspace, which excludes IOU reports
+    // (no policyID) and personal-policy expenses. Sorted so the resulting search-query
+    // hash stays stable across unrelated `policies` updates (e.g. Onyx key insertion-order
+    // shuffles), keeping subscribers on the same snapshot key.
+    groupPolicyIDs: string[];
 };
 
 function getYourSpendApplicability(policies: OnyxCollection<Policy> | undefined): YourSpendApplicability {
-    const approvalPolicyIDs: string[] = [];
+    const groupPolicyIDs: string[] = [];
     let isPaymentApplicable = false;
     for (const policy of Object.values(policies ?? {})) {
-        if (policy?.id && hasApprovalFlow(policy)) {
-            approvalPolicyIDs.push(policy.id);
+        if (policy?.id && isGroupPolicy(policy)) {
+            groupPolicyIDs.push(policy.id);
         }
         if (isPaidGroupPolicy(policy) && arePaymentsEnabled(policy ?? undefined)) {
             isPaymentApplicable = true;
         }
     }
-    approvalPolicyIDs.sort();
+    groupPolicyIDs.sort();
     return {
-        isApprovalApplicable: approvalPolicyIDs.length > 0,
+        isApprovalApplicable: groupPolicyIDs.length > 0,
         isPaymentApplicable,
-        approvalPolicyIDs,
+        groupPolicyIDs,
     };
 }
 
@@ -102,9 +105,9 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
-    const {isApprovalApplicable, isPaymentApplicable, approvalPolicyIDs} = getYourSpendApplicability(policies);
+    const {isApprovalApplicable, isPaymentApplicable, groupPolicyIDs} = getYourSpendApplicability(policies);
 
-    const awaitingApprovalQuery = buildAwaitingApprovalQuery(accountID, approvalPolicyIDs);
+    const awaitingApprovalQuery = buildAwaitingApprovalQuery(accountID, groupPolicyIDs);
     const repaidLast30DaysQuery = buildRepaidLast30DaysQuery(accountID);
 
     const approvalQueryJSON = buildSearchQueryJSON(awaitingApprovalQuery);
@@ -279,10 +282,10 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const paymentTotals: YourSpendRowTotals = shouldUseCachedPayment && cachedPaymentReady ? cachedPaymentReady : paymentTotalsRaw;
 
     // Stable key that changes whenever approval/payment applicability flips OR
-    // the set of approval-flow workspaces changes (which changes the policyID
+    // the set of group-policy workspaces changes (which changes the policyID
     // filter and therefore the snapshot key the row subscribes to). Used to
     // re-fire the search effect when the user joins/leaves a workspace.
-    const applicabilityKey = `${isApprovalApplicable ? 1 : 0}${isPaymentApplicable ? 1 : 0}|${approvalPolicyIDs.join(',')}`;
+    const applicabilityKey = `${isApprovalApplicable ? 1 : 0}${isPaymentApplicable ? 1 : 0}|${groupPolicyIDs.join(',')}`;
 
     const fireSearches = useEffectEvent(() => {
         if (isOffline) {

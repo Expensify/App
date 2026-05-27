@@ -17,8 +17,8 @@ function buildAwaitingApprovalQuery(accountID: number, policyIDs: string[]): str
         status: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
         from: [String(accountID)],
         reimbursable: CONST.SEARCH.BOOLEAN.YES,
-        // Scope to workspaces with an approval flow so IOU reports (no policyID)
-        // and personal/optional-approval workspaces (excluded from the list) don't
+        // Scope to the user's group workspaces (Team/Corporate/Submit) so IOU reports
+        // (no policyID) and personal-policy expenses (excluded from the list) don't
         // inflate the count.
         ...(policyIDs.length > 0 ? {[FILTER_KEYS.POLICY_ID]: policyIDs} : {}),
     });

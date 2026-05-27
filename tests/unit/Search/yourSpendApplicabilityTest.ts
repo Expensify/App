@@ -100,54 +100,67 @@ describe('arePaymentsEnabled (payment row applicability)', () => {
 });
 
 describe('getYourSpendApplicability', () => {
-    it('returns empty approvalPolicyIDs and isApprovalApplicable=false for no policies', () => {
+    it('returns empty groupPolicyIDs and isApprovalApplicable=false for no policies', () => {
         const result = getYourSpendApplicability(undefined);
-        expect(result.approvalPolicyIDs).toEqual([]);
+        expect(result.groupPolicyIDs).toEqual([]);
         expect(result.isApprovalApplicable).toBe(false);
     });
 
-    it('returns empty approvalPolicyIDs and isApprovalApplicable=false for an empty collection', () => {
+    it('returns empty groupPolicyIDs and isApprovalApplicable=false for an empty collection', () => {
         const result = getYourSpendApplicability({});
-        expect(result.approvalPolicyIDs).toEqual([]);
+        expect(result.groupPolicyIDs).toEqual([]);
         expect(result.isApprovalApplicable).toBe(false);
     });
 
-    it('includes only IDs of policies that pass hasApprovalFlow', () => {
-        const corporateBasic = makePolicy({id: 'b_corp_basic', type: CONST.POLICY.TYPE.CORPORATE, approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC});
-        const personalBasic = makePolicy({id: 'c_personal_basic', type: CONST.POLICY.TYPE.PERSONAL, approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC});
-        const teamOptional = makePolicy({id: 'd_team_optional', type: CONST.POLICY.TYPE.TEAM, approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL});
-        const teamBasic = makePolicy({id: 'a_team_basic', type: CONST.POLICY.TYPE.TEAM, approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC});
+    it('includes IDs of group policies (Team/Corporate/Submit) and excludes personal policies', () => {
+        const corporate = makePolicy({id: 'b_corp', type: CONST.POLICY.TYPE.CORPORATE});
+        const personal = makePolicy({id: 'c_personal', type: CONST.POLICY.TYPE.PERSONAL});
+        const submit = makePolicy({id: 'd_submit', type: CONST.POLICY.TYPE.SUBMIT});
+        const team = makePolicy({id: 'a_team', type: CONST.POLICY.TYPE.TEAM});
 
-        const result = getYourSpendApplicability(policiesCollection([corporateBasic, personalBasic, teamOptional, teamBasic]));
+        const result = getYourSpendApplicability(policiesCollection([corporate, personal, submit, team]));
 
-        expect(result.approvalPolicyIDs).toEqual(['a_team_basic', 'b_corp_basic']);
+        // Personal excluded; everything else (Team/Corporate/Submit) included and sorted.
+        expect(result.groupPolicyIDs).toEqual(['a_team', 'b_corp', 'd_submit']);
         expect(result.isApprovalApplicable).toBe(true);
     });
 
-    it('returns approvalPolicyIDs sorted ascending regardless of input order', () => {
-        const p1 = makePolicy({id: 'z_policy', type: CONST.POLICY.TYPE.CORPORATE, approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC});
-        const p2 = makePolicy({id: 'a_policy', type: CONST.POLICY.TYPE.TEAM, approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC});
-        const p3 = makePolicy({id: 'm_policy', type: CONST.POLICY.TYPE.CORPORATE, approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED});
+    it('includes group policies regardless of approvalMode (BASIC, ADVANCED, OPTIONAL, unset)', () => {
+        // The widget no longer requires an approval workflow — any group policy counts.
+        // OPTIONAL-approval reports won't usually be OUTSTANDING in practice (auto-closed),
+        // but if they are, they should still surface here.
+        const optional = makePolicy({id: 'optional', type: CONST.POLICY.TYPE.TEAM, approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL});
+        const unset = makePolicy({id: 'unset', type: CONST.POLICY.TYPE.CORPORATE, approvalMode: undefined});
+
+        const result = getYourSpendApplicability(policiesCollection([optional, unset]));
+
+        expect(result.groupPolicyIDs).toEqual(['optional', 'unset']);
+        expect(result.isApprovalApplicable).toBe(true);
+    });
+
+    it('returns groupPolicyIDs sorted ascending regardless of input order', () => {
+        const p1 = makePolicy({id: 'z_policy', type: CONST.POLICY.TYPE.CORPORATE});
+        const p2 = makePolicy({id: 'a_policy', type: CONST.POLICY.TYPE.TEAM});
+        const p3 = makePolicy({id: 'm_policy', type: CONST.POLICY.TYPE.SUBMIT});
 
         const result = getYourSpendApplicability(policiesCollection([p1, p2, p3]));
 
-        expect(result.approvalPolicyIDs).toEqual(['a_policy', 'm_policy', 'z_policy']);
+        expect(result.groupPolicyIDs).toEqual(['a_policy', 'm_policy', 'z_policy']);
     });
 
-    it('reports isPaymentApplicable independently of approvalPolicyIDs', () => {
-        // A TEAM policy with payments enabled but OPTIONAL approval mode: contributes to payment
-        // applicability, but not to approvalPolicyIDs.
-        const teamOptional = makePolicy({
-            id: 'team_optional',
-            type: CONST.POLICY.TYPE.TEAM,
-            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+    it('reports isPaymentApplicable independently of groupPolicyIDs', () => {
+        // A SUBMIT policy is a group policy (so groupPolicyIDs contains it) but not a paid
+        // group policy, so isPaymentApplicable stays false.
+        const submit = makePolicy({
+            id: 'submit_only',
+            type: CONST.POLICY.TYPE.SUBMIT,
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
         });
 
-        const result = getYourSpendApplicability(policiesCollection([teamOptional]));
+        const result = getYourSpendApplicability(policiesCollection([submit]));
 
-        expect(result.approvalPolicyIDs).toEqual([]);
-        expect(result.isApprovalApplicable).toBe(false);
-        expect(result.isPaymentApplicable).toBe(true);
+        expect(result.groupPolicyIDs).toEqual(['submit_only']);
+        expect(result.isApprovalApplicable).toBe(true);
+        expect(result.isPaymentApplicable).toBe(false);
     });
 });
