@@ -237,7 +237,7 @@ function SubmitPrimaryAction({reportID}: SubmitPrimaryActionProps) {
                 currentSearchResults={currentSearchResults}
                 shouldCalculateTotals={shouldCalculateTotals}
                 allTransactionViolations={allTransactionViolations}
-                isTrackIntentUser={isTrackIntentUser}
+                isTrackIntentUser={isTrackIntentUser ?? false}
             />
         </ReportSubmitToPopoverAnchor>
     );
