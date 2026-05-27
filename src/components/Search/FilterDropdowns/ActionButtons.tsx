@@ -18,7 +18,7 @@ function ActionButtons({containerStyle, resetSentryLabel, applySentryLabel, onRe
 
     return (
         <View style={containerStyle}>
-            {onReset && (
+            {!!onReset && (
                 <Button
                     medium
                     style={[styles.flex1]}

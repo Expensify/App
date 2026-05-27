@@ -11,7 +11,7 @@ import type {ReportFieldDateKey, ReportFieldTextKey} from '@components/Search/ty
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDateModifierTitle, isSearchDatePreset} from '@libs/SearchQueryUtils';
+import {getDateModifierTitle} from '@libs/SearchQueryUtils';
 import {getDateDisplayValue, getDatePresets} from '@libs/SearchUIUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
