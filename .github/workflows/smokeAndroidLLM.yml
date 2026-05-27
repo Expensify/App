@@ -41,7 +41,7 @@ jobs:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 35
     env:
-      AGENT_DEVICE_VERSION: "0.14.7"
+      AGENT_DEVICE_VERSION: "0.15.2"
       # Hard kill-switch: total input+output tokens accumulated across
       # the run. Bounds runaway spend if a prompt or tool design
       # accidentally explodes context. ~$1 worst-case at sonnet 4.6
