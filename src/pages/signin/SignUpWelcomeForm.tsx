@@ -21,10 +21,10 @@ function SignUpWelcomeForm() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [login] = useOnyx(ONYXKEYS.CREDENTIALS, {selector: (credentials) => credentials?.login});
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
     const serverErrorText = useMemo(() => (account ? getLatestErrorMessage(account) : ''), [account]);
-    const isPhoneSignup = Str.isSMSLogin(credentials?.login ?? '');
+    const isPhoneSignup = Str.isSMSLogin(login ?? '');
     const [hasSMSMarketingConsent, setHasSMSMarketingConsent] = useState(false);
     const marketingSMSConsentLabel = translate('welcomeSignUpForm.marketingSMSConsent');
 
