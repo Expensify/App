@@ -142,7 +142,7 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
             isCentralPane
             subtitleMuted
         >
-            {cardRules.length > CONST.STANDARD_LIST_ITEM_LIMIT && (
+            {cardRules.length >= CONST.STANDARD_LIST_ITEM_LIMIT && (
                 <SearchBar
                     label={translate('workspace.card.searchRules')}
                     inputValue={inputValue}
