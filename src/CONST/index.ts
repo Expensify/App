@@ -276,9 +276,6 @@ const CONST = {
     POPOVER_DATE_RANGE_WIDTH: 672,
     POPOVER_DATE_MAX_HEIGHT: 366,
     POPOVER_DATE_MIN_HEIGHT: 322,
-    ADVANCED_FILTERS_POPOVER_HEIGHT: 520,
-    ADVANCED_FILTERS_POPOVER_WIDTH: 582,
-    ADVANCED_FILTERS_CONTENT_WIDTH: 331,
     TOOLTIP_ANIMATION_DURATION: 500,
     DROPDOWN_SCROLL_THRESHOLD: 5,
     // Multiplier for gyroscope animation in order to make it a bit more subtle
@@ -373,6 +370,11 @@ const CONST = {
     AUTH_TOKEN_TYPES: {
         ANONYMOUS: 'anonymousAccount',
         SUPPORT: 'support',
+    },
+
+    AUTH_METHOD: {
+        SAML: 'saml',
+        SHORT_LIVED_AUTH_TOKEN: 'shortLivedAuthToken',
     },
 
     AVATAR_MAX_ATTACHMENT_SIZE: 6291456,
@@ -8244,6 +8246,7 @@ const CONST = {
             RANGE_PREFIX: 'reportFieldRange-',
         },
         TAG_EMPTY_VALUE: 'none',
+        TAG_UNTAGGED_VALUE: '(untagged)',
         CATEGORY_EMPTY_VALUE: 'none',
         CATEGORY_DEFAULT_VALUE: 'Uncategorized',
         MERCHANT_EMPTY_VALUE: 'none',
@@ -9016,6 +9019,8 @@ const CONST = {
         HAS_FILTER_NEGATION: 'hasFilterNegation',
     },
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
+    AGENTS_WORKFLOWS_BANNER: 'agentsWorkflowsBanner',
+    AGENTS_RULES_BANNER: 'agentsRulesBanner',
     SMART_BANNER_HEIGHT: 152,
 
     NAVIGATION_TESTS: {
@@ -9155,6 +9160,13 @@ const CONST = {
     SENTRY_LABEL: {
         BILLING_BANNER: {
             RIGHT_ICON: 'BillingBanner-RightIcon',
+        },
+        AGENTS_WORKFLOWS_BANNER: {
+            DISMISS: 'AgentsWorkflowsBanner-Dismiss',
+        },
+        AGENTS_RULES_BANNER: {
+            CTA: 'AgentsRulesBanner-CTA',
+            DISMISS: 'AgentsRulesBanner-Dismiss',
         },
         NAVIGATION_TAB_BAR: {
             EXPENSIFY_LOGO: 'NavigationTabBar-ExpensifyLogo',
@@ -9297,7 +9309,6 @@ const CONST = {
             ADVANCED_FILTER_ITEM: 'Search-AdvancedFilterItem',
             SAVE_SEARCH_BUTTON: 'Search-SaveSearchButton',
             VIEW_RESULTS_BUTTON: 'Search-ViewResultsButton',
-            CLEAR_FILTERS_BUTTON: 'Search-ClearFiltersButton',
             ACTION_CELL_VIEW: 'Search-ActionCellView',
             ACTION_CELL_PAY: 'Search-ActionCellPay',
             ACTION_CELL_ACTION: 'Search-ActionCellAction',
