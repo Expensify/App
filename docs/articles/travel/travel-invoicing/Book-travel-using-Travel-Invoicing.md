@@ -26,7 +26,7 @@ If you’re unsure, ask your Workspace Admin.
 
 ---
 
-## How to book travel using Travel Invoicing
+## How to pay for a booking using Travel Invoicing
 
 ### Step 1: Start a travel booking
 
