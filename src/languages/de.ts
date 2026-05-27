@@ -2955,6 +2955,7 @@ ${amount} für ${merchant} – ${date}`,
         phoneOrEmail: 'Telefon oder E-Mail',
         error: {
             invalidFormatEmailLogin: 'Die eingegebene E-Mail-Adresse ist ungültig. Bitte korrigiere das Format und versuche es erneut.',
+            agentSignInBlocked: 'Bei Agentenkonten ist eine direkte Anmeldung nicht möglich. Um einen Agenten zu verwenden, melde dich mit deinem eigenen Konto an und greife über Copilot darauf zu.',
         },
         cannotGetAccountDetails: 'Kontodetails konnten nicht abgerufen werden. Bitte melde dich erneut an.',
         loginForm: 'Anmeldeformular',

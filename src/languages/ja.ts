@@ -2923,6 +2923,7 @@ ${date} の ${merchant} への ${amount}`,
         phoneOrEmail: '電話番号またはメールアドレス',
         error: {
             invalidFormatEmailLogin: '入力されたメールアドレスが無効です。形式を修正して、もう一度お試しください。',
+            agentSignInBlocked: 'エージェントアカウントには直接サインインできません。エージェントを使用するには、ご自身のアカウントでサインインし、コパイロット経由でアクセスしてください。',
         },
         cannotGetAccountDetails: 'アカウントの詳細を取得できませんでした。もう一度サインインしてください。',
         loginForm: 'ログインフォーム',

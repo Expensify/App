@@ -2962,6 +2962,7 @@ ${amount} pour ${merchant} - ${date}`,
     loginForm: {
         phoneOrEmail: 'Téléphone ou e-mail',
         error: {
+            agentSignInBlocked: 'Les comptes agents ne peuvent pas être connectés directement. Pour utiliser un agent, connectez-vous avec votre propre compte et accédez-y via Copilot.',
             invalidFormatEmailLogin: 'L’adresse e-mail saisie est invalide. Veuillez corriger le format et réessayer.',
         },
         cannotGetAccountDetails: 'Impossible de récupérer les détails du compte. Veuillez essayer de vous reconnecter.',
