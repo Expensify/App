@@ -109,11 +109,8 @@ const translations = {
         selectMultiple: 'Select multiple',
         saveChanges: 'Save changes',
         submit: 'Submit',
-        markAsDone: 'Mark as done',
         // @context Status label meaning an item has already been sent or submitted (e.g., a form or report). Not the action “to submit.”
         submitted: 'Submitted',
-        // @context Status label meaning an item has been marked as done (track-intent users). Not the action “to mark as done.”
-        markedAsDoneStatus: 'Marked as done',
         rotate: 'Rotate',
         zoom: 'Zoom',
         password: 'Password',
@@ -879,7 +876,6 @@ const translations = {
         beginningOfChatHistory: (users: string) => `This chat is with ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName: string, submitterDisplayName: string) =>
             `This is where <strong>${submitterDisplayName}</strong> will submit expenses to <strong>${workspaceName}</strong>. Just use the + button.`,
-        beginningOfChatHistoryPolicyExpenseChatTrack: "This is where you'll track expenses.",
         beginningOfChatHistorySelfDM: 'This is your personal space. Use it for notes, tasks, drafts, and reminders.',
         beginningOfChatHistorySystemDM: "Welcome! Let's get you set up.",
         chatWithAccountManager: 'Chat with your account manager here',
@@ -888,7 +884,7 @@ const translations = {
         yourSpace: 'Your space',
         welcomeToRoom: (roomName: string) => `Welcome to ${roomName}!`,
         usePlusButton: (additionalText: string) => ` Use the + button to ${additionalText} an expense.`,
-        askConcierge: 'This is your chat with Concierge, your personal AI agent. I can do almost anything, try me!',
+        askConcierge: 'Concierge can answer questions, update expenses, and more.',
         conciergeSupport: 'Your personal AI agent',
         create: 'create',
         iouTypes: {
@@ -1399,7 +1395,6 @@ const translations = {
         sendInvoice: (amount: string) => `Send ${amount} invoice`,
         expenseAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         submitted: (memo?: string) => `submitted${memo ? `, saying ${memo}` : ''}`,
-        markedAsDone: (memo?: string) => `marked as done${memo ? `, saying ${memo}` : ''}`,
         automaticallySubmitted: `submitted via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">delay submissions</a>`,
         queuedToSubmitViaDEW: 'queued to submit via custom approval workflow',
         failedToAutoSubmitViaDEW: (reason: string) => `failed to submit the report via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">delay submissions</a>. ${reason}`,
@@ -1842,22 +1837,6 @@ const translations = {
                         return `Waiting for <strong>${actor}</strong> to submit expenses.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `Waiting for an admin to submit expenses.`;
-                }
-            },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                // eslint-disable-next-line default-case
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Waiting for <strong>you</strong> to mark this as done.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Waiting for <strong>${actor}</strong> to mark this as done.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Waiting for an admin to mark this as done.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (
@@ -6197,6 +6176,8 @@ const translations = {
         card: {
             getStartedIssuing: 'Get started by issuing your first virtual or physical card.',
             issueCard: 'Issue card',
+            chooseRule: 'Choose a rule',
+            searchRules: 'Find spend rule',
             issueNewCard: {
                 whoNeedsCard: 'Who needs a card?',
                 inviteNewMember: 'Invite new member',
@@ -6238,10 +6219,15 @@ const translations = {
                 enterValidDate: 'Enter a valid date',
                 expirationDate: 'Expiration date',
                 limitAmount: 'Limit amount',
-                setExpiryOptions: 'Set expiry options',
-                setExpiryDate: 'Set expiry date',
-                setExpiryDateDescription: 'Card will expire as listed on the card',
+                setCardRules: 'Set card rules',
+                addSpendRule: 'Add spend rule',
+                addExpirationDate: 'Add expiration date',
+                addExpirationDateDescription: 'If no specific date is set, card will expire based on the existing expiration date on the card',
                 amount: 'Amount',
+                copyExisting: 'Copy existing',
+                createNew: 'Create new',
+                spendRulesEmptyStateTitle: 'No rules to choose from',
+                spendRulesEmptyStateSubtitle: "You haven't created any rules yet. You can create one from the previous screen.",
             },
             deactivateCardModal: {
                 deactivate: 'Deactivate',
