@@ -228,7 +228,7 @@ function AvatarWithDisplayName({
     }, [parentReportActionActorAccountID, report?.parentReportActionID]);
 
     const goToDetailsPage = () => {
-        navigateToDetailsPage(report);
+        navigateToDetailsPage(report, Navigation.getActiveRoute());
     };
 
     const navigateToEditReportTitle = (event?: GestureResponderEvent | KeyboardEvent) => {
@@ -267,7 +267,7 @@ function AvatarWithDisplayName({
 
         if (report?.reportID) {
             // Report detail route is added as fallback but based on the current implementation this route won't be executed
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path));
+            Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
         }
     };
 

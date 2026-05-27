@@ -5,10 +5,7 @@ import VictoryChartBar from './VictoryChartBar';
 import VictoryChartBarGroup from './VictoryChartBarGroup';
 import VictoryChartLine from './VictoryChartLine';
 
-type VictoryChartSeriesProps = {
-    tnode: TNode;
-    isHorizontal?: boolean;
-};
+type VictoryChartSeriesProps = {tnode: TNode};
 
 type SeriesComponent = (props: VictoryChartSeriesProps) => React.ReactElement | null;
 
@@ -22,7 +19,7 @@ const SERIES_RENDERERS: Partial<Record<string, SeriesComponent>> = {
     victoryline: VictoryChartLine,
 };
 
-function VictoryChartSeries({tnode, isHorizontal}: VictoryChartSeriesProps) {
+function VictoryChartSeries({tnode}: VictoryChartSeriesProps) {
     const SeriesRenderer = SERIES_RENDERERS[tnode.tagName ?? ''];
 
     useEffect(() => {
@@ -36,12 +33,7 @@ function VictoryChartSeries({tnode, isHorizontal}: VictoryChartSeriesProps) {
         return null;
     }
 
-    return (
-        <SeriesRenderer
-            tnode={tnode}
-            isHorizontal={isHorizontal}
-        />
-    );
+    return <SeriesRenderer tnode={tnode} />;
 }
 
 VictoryChartSeries.displayName = 'VictoryChartSeries';

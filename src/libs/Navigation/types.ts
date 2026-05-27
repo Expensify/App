@@ -1278,22 +1278,6 @@ type SettingsNavigatorParamList = {
         policyID: string;
         fundID: number;
     };
-    [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_SELECTION]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MERCHANTS]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MERCHANT_EDIT]: {
-        policyID: string;
-        merchantIndex: string;
-    };
-    [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CATEGORY]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MAX_AMOUNT]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_VERIFY_WORK_EMAIL]: {
         policyID: string;
         fundID: number;
@@ -1706,16 +1690,22 @@ type NewReportWorkspaceSelectionNavigatorParamList = {
 };
 
 type ReportDetailsNavigatorParamList = {
-    [SCREENS.REPORT_DETAILS.DYNAMIC_ROOT]: {
+    [SCREENS.REPORT_DETAILS.ROOT]: {
         reportID: string;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
     };
-    [SCREENS.REPORT_DETAILS.DYNAMIC_SHARE_CODE]: {
+    [SCREENS.REPORT_DETAILS.SHARE_CODE]: {
         reportID: string;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
     };
-    [SCREENS.REPORT_DETAILS.DYNAMIC_EXPORT]: {
+    [SCREENS.REPORT_DETAILS.EXPORT]: {
         reportID: string;
         policyID: string;
         connectionName: ConnectionName;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
     };
 };
 
@@ -1728,8 +1718,10 @@ type ReportCardActivateNavigatorParamList = {
 };
 
 type ReportChangeWorkspaceNavigatorParamList = {
-    [SCREENS.REPORT_CHANGE_WORKSPACE.DYNAMIC_ROOT]: {
+    [SCREENS.REPORT_CHANGE_WORKSPACE.ROOT]: {
         reportID: string;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
     };
 };
 
@@ -2403,8 +2395,10 @@ type FeatureTrainingNavigatorParamList = {
 };
 
 type ReferralDetailsNavigatorParamList = {
-    [SCREENS.DYNAMIC_REFERRAL_DETAILS]: {
+    [SCREENS.REFERRAL_DETAILS]: {
         contentType: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES>;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo: string;
     };
 };
 

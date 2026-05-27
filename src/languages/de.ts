@@ -6150,7 +6150,6 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
         card: {
             getStartedIssuing: 'Beginne, indem du deine erste virtuelle oder physische Karte ausstellst.',
             issueCard: 'Karte ausstellen',
-            chooseRule: 'Wählen Sie eine Regel',
             issueNewCard: {
                 whoNeedsCard: 'Wer braucht eine Karte?',
                 inviteNewMember: 'Neues Mitglied einladen',
@@ -6192,22 +6191,16 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 enterValidDate: 'Gib ein gültiges Datum ein',
                 expirationDate: 'Ablaufdatum',
                 limitAmount: 'Limitbetrag',
-                setCardRules: 'Kartenregeln festlegen',
-                addSpendRule: 'Ausgaberegel hinzufügen',
-                addExpirationDate: 'Ablaufdatum hinzufügen',
-                addExpirationDateDescription: 'Wenn kein bestimmtes Datum festgelegt ist, läuft die Karte basierend auf dem bestehenden Ablaufdatum der Karte ab',
+                setExpiryOptions: 'Ablaufoptionen festlegen',
+                setExpiryDate: 'Ablaufdatum festlegen',
+                setExpiryDateDescription: 'Die Karte läuft ab, wie auf der Karte angegeben',
                 amount: 'Betrag',
-                copyExisting: 'Vorhandene kopieren',
-                createNew: 'Neu erstellen',
-                spendRulesEmptyStateTitle: 'Keine Regeln zur Auswahl',
-                spendRulesEmptyStateSubtitle: 'Sie haben noch keine Regeln erstellt. Sie können eine auf dem vorherigen Bildschirm erstellen.',
             },
             deactivateCardModal: {
                 deactivate: 'Deaktivieren',
                 deactivateCard: 'Karte deaktivieren',
                 deactivateConfirmation: 'Wenn du diese Karte deaktivierst, werden alle zukünftigen Transaktionen abgelehnt und dies kann nicht rückgängig gemacht werden.',
             },
-            searchRules: 'Ausgaberegel finden',
         },
         accounting: {
             settings: 'Einstellungen',

@@ -81,15 +81,7 @@ type MoneyRequestReportTransactionItemProps = {
     shouldScrollHorizontally?: boolean;
 };
 
-type MoneyRequestReportTransactionItemBodyProps = MoneyRequestReportTransactionItemProps & {
-    /** Inline-edit values from `useTransactionInlineEdit`. Undefined on narrow layouts where the hook is skipped. */
-    inlineEdit?: InlineEditValues;
-
-    /** Highlight animation style, computed by the parent so its state survives the narrow↔wide swap on resize. */
-    animatedHighlightStyle: ReturnType<typeof useAnimatedHighlightStyle>;
-};
-
-function MoneyRequestReportTransactionItemBody({
+function MoneyRequestReportTransactionItem({
     transaction,
     report,
     policy,
@@ -108,9 +100,7 @@ function MoneyRequestReportTransactionItemBody({
     nonPersonalAndWorkspaceCards,
     isLastItem = false,
     shouldScrollHorizontally = false,
-    inlineEdit,
-    animatedHighlightStyle,
-}: MoneyRequestReportTransactionItemBodyProps) {
+}: MoneyRequestReportTransactionItemProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -119,15 +109,27 @@ function MoneyRequestReportTransactionItemBody({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
+    const theme = useTheme();
     const isPendingDelete = isTransactionPendingDelete(transaction);
     const pendingAction = getTransactionPendingAction(transaction);
     // Filter violations based on user visibility and dismissal state at the row level.
     const filteredViolations = useTransactionViolations(transaction.transactionID);
 
-    // On narrow layouts `inlineEdit` is undefined (the parent skips the hook). The fallback ref
-    // keeps the press handler shape identical without ever being mutated on narrow.
-    const fallbackEditingOnMouseDownRef = useRef(false);
-    const wasEditingOnMouseDownRef = inlineEdit?.wasEditingOnMouseDownRef ?? fallbackEditingOnMouseDownRef;
+    const {
+        canEditDate,
+        canEditMerchant,
+        canEditDescription,
+        canEditCategory,
+        canEditAmount,
+        canEditTag,
+        onEditDate,
+        onEditMerchant,
+        onEditDescription,
+        onEditCategory,
+        onEditAmount,
+        onEditTag,
+        wasEditingOnMouseDownRef,
+    } = useTransactionInlineEdit({transactionID: transaction.transactionID});
 
     const viewRef = useRef<View>(null);
 
@@ -140,6 +142,14 @@ function MoneyRequestReportTransactionItemBody({
             scrollToNewTransaction?.(pageY);
         });
     }, [scrollToNewTransaction, shouldBeHighlighted]);
+
+    const animatedHighlightStyle = useAnimatedHighlightStyle({
+        borderRadius: shouldUseNarrowLayout ? variables.componentBorderRadius : 0,
+        shouldHighlight: shouldBeHighlighted,
+        highlightColor: theme.messageHighlightBG,
+        backgroundColor: theme.highlightBG,
+        shouldApplyOtherStyles: !shouldUseNarrowLayout,
+    });
 
     return (
         <OfflineWithFeedback
@@ -208,69 +218,22 @@ function MoneyRequestReportTransactionItemBody({
                         isHover={hovered}
                         nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                         shouldRemoveTotalColumnFlex={hasFlexColumn(columns)}
-                        canEditDate={inlineEdit?.canEditDate}
-                        canEditMerchant={inlineEdit?.canEditMerchant}
-                        canEditDescription={inlineEdit?.canEditDescription}
-                        canEditCategory={inlineEdit?.canEditCategory}
-                        canEditAmount={inlineEdit?.canEditAmount}
-                        canEditTag={inlineEdit?.canEditTag}
-                        onEditDate={inlineEdit?.onEditDate}
-                        onEditMerchant={inlineEdit?.onEditMerchant}
-                        onEditDescription={inlineEdit?.onEditDescription}
-                        onEditCategory={inlineEdit?.onEditCategory}
-                        onEditAmount={inlineEdit?.onEditAmount}
-                        onEditTag={inlineEdit?.onEditTag}
+                        canEditDate={canEditDate}
+                        canEditMerchant={canEditMerchant}
+                        canEditDescription={canEditDescription}
+                        canEditCategory={canEditCategory}
+                        canEditAmount={canEditAmount}
+                        canEditTag={canEditTag}
+                        onEditDate={onEditDate}
+                        onEditMerchant={onEditMerchant}
+                        onEditDescription={onEditDescription}
+                        onEditCategory={onEditCategory}
+                        onEditAmount={onEditAmount}
+                        onEditTag={onEditTag}
                     />
                 )}
             </PressableWithFeedback>
         </OfflineWithFeedback>
-    );
-}
-
-type InlineEditValues = ReturnType<typeof useTransactionInlineEdit>;
-
-function MoneyRequestReportTransactionItemWithInlineEdit(props: Omit<MoneyRequestReportTransactionItemBodyProps, 'inlineEdit'>) {
-    const inlineEdit = useTransactionInlineEdit({transactionID: props.transaction.transactionID});
-
-    return (
-        <MoneyRequestReportTransactionItemBody
-            {...props}
-            inlineEdit={inlineEdit}
-        />
-    );
-}
-
-function MoneyRequestReportTransactionItem(props: MoneyRequestReportTransactionItemProps) {
-    const {isMediumScreenWidth} = useResponsiveLayout();
-    const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
-    const theme = useTheme();
-    // Mirrors the layout check inside TransactionItemRow so the narrow body never pays for useTransactionInlineEdit.
-    const isNarrowLayout = shouldUseNarrowLayout || (isMediumScreenWidth && !props.shouldScrollHorizontally);
-
-    // Hoisted out of the body so the highlight animation timeline survives the narrow↔wide
-    // component-type swap caused by browser resize.
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: shouldUseNarrowLayout ? variables.componentBorderRadius : 0,
-        shouldHighlight: props.shouldBeHighlighted,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: theme.highlightBG,
-        shouldApplyOtherStyles: !shouldUseNarrowLayout,
-    });
-
-    if (isNarrowLayout) {
-        return (
-            <MoneyRequestReportTransactionItemBody
-                {...props}
-                animatedHighlightStyle={animatedHighlightStyle}
-            />
-        );
-    }
-
-    return (
-        <MoneyRequestReportTransactionItemWithInlineEdit
-            {...props}
-            animatedHighlightStyle={animatedHighlightStyle}
-        />
     );
 }
 

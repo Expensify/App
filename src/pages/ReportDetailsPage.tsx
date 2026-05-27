@@ -30,7 +30,6 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
-import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -137,7 +136,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
-type DynamicReportDetailsPageMenuItem = {
+type ReportDetailsPageMenuItem = {
     key: DeepValueOf<typeof CONST.REPORT_DETAILS_MENU_ITEM>;
     translationKey: TranslationPaths;
     icon: IconAsset;
@@ -149,7 +148,7 @@ type DynamicReportDetailsPageMenuItem = {
     subtitleStyle?: StyleProp<ViewStyle>;
 };
 
-type DynamicReportDetailsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>;
+type ReportDetailsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>;
 
 const CASES = {
     DEFAULT: 'default',
@@ -159,7 +158,7 @@ const CASES = {
 
 type CaseID = ValueOf<typeof CASES>;
 
-function DynamicReportDetailsPage({policy, report, route, reportMetadata, reportLoadingState}: DynamicReportDetailsPageProps) {
+function ReportDetailsPage({policy, report, route, reportMetadata, reportLoadingState}: ReportDetailsPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
@@ -180,7 +179,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         'Trashcan',
         'ArrowSplit',
     ]);
-    const navigateBackFromReportDetailsPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_DETAILS.path);
+    const backTo = route.params.backTo;
 
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -399,8 +398,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const shouldShowWriteCapability = !isMoneyRequestReport;
     const shouldShowMenuItem = shouldShowNotificationPref || shouldShowWriteCapability || (!!report?.visibility && report.chatType !== CONST.REPORT.CHAT_TYPE.INVOICE);
 
-    const menuItems: DynamicReportDetailsPageMenuItem[] = useMemo(() => {
-        const items: DynamicReportDetailsPageMenuItem[] = [];
+    const menuItems: ReportDetailsPageMenuItem[] = useMemo(() => {
+        const items: ReportDetailsPageMenuItem[] = [];
 
         if (isSelfDM) {
             return [];
@@ -433,9 +432,9 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 shouldShowRightIcon: true,
                 action: () => {
                     if (shouldOpenRoomMembersPage) {
-                        Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(report?.reportID, Navigation.getActiveRoute()));
+                        Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(report?.reportID, backTo));
                     } else {
-                        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID, Navigation.getActiveRoute()));
+                        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID, backTo));
                     }
                 },
             });
@@ -460,7 +459,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
-                    Navigation.navigate(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID, Navigation.getActiveRoute()));
+                    Navigation.navigate(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID, backTo));
                 },
             });
         }
@@ -570,7 +569,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     translationKey: 'task.markAsIncomplete',
                     isAnonymousAction: false,
                     action: callFunctionIfActionIsAllowed(() => {
-                        Navigation.goBack(navigateBackFromReportDetailsPath);
+                        Navigation.goBack(backTo);
                         reopenTask(report, parentReport, currentUserPersonalDetails?.accountID, delegateEmail);
                     }),
                 });
@@ -661,7 +660,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         expensifyIcons.Bug,
         styles.ph2,
         shouldOpenRoomMembersPage,
-        navigateBackFromReportDetailsPath,
+        backTo,
         parentReportAction,
         reportActionsForOriginalReportID,
         iouTransactionID,
@@ -773,10 +772,10 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
             result.push(PromotedActions.pin(report));
         }
 
-        result.push(PromotedActions.share());
+        result.push(PromotedActions.share(report, backTo));
 
         return result;
-    }, [canJoin, report, currentUserPersonalDetails.accountID]);
+    }, [canJoin, report, backTo, currentUserPersonalDetails.accountID]);
 
     const shouldDisplayGroupWorkspaceAsPushRow = !isThread && (isGroupChat || isUserCreatedPolicyRoom || isDefaultRoom);
     const nameSectionGroupWorkspace = (
@@ -1057,11 +1056,11 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         !isEmptyObject(parentNavigationSubtitleData) && (shouldShowEditableTitleField || isMoneyRequestReport || isInvoiceReport || isMoneyRequest || isTaskReport);
 
     return (
-        <ScreenWrapper testID="DynamicReportDetailsPage">
+        <ScreenWrapper testID="ReportDetailsPage">
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
                 <HeaderWithBackButton
                     title={translate('common.details')}
-                    onBackButtonPress={() => Navigation.goBack(navigateBackFromReportDetailsPath)}
+                    onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <View style={[styles.reportDetailsTitleContainer, styles.pb0]}>{renderedAvatar}</View>
@@ -1142,4 +1141,4 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     );
 }
 
-export default withReportOrNotFound()(DynamicReportDetailsPage);
+export default withReportOrNotFound()(ReportDetailsPage);

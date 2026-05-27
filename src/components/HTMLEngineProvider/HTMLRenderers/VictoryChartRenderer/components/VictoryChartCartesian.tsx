@@ -3,6 +3,8 @@ import {CartesianChart} from 'victory-native';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import {VictoryChartRenderArgsProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartRenderArgsContext';
 import getYKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getYKey';
+import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
+import parseDomainPadding from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseDomainPadding';
 import VictoryChartLabels from './VictoryChartLabels';
 import VictoryChartLegend from './VictoryChartLegend';
 import VictoryChartSeries from './VictoryChartSeries';
@@ -12,7 +14,7 @@ import VictoryChartSeries from './VictoryChartSeries';
  * Labels and legend overlays are handled internally via `renderOutside`.
  */
 function VictoryChartCartesian() {
-    const {tnode, data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, labelItems, legendItems} = useVictoryChartContext();
+    const {data, xKey, yKeys, xAxis, yAxis, tnode, labelItems, legendItems} = useVictoryChartContext();
 
     return (
         <CartesianChart
@@ -21,9 +23,9 @@ function VictoryChartCartesian() {
             yKeys={yKeys}
             xAxis={xAxis}
             yAxis={yAxis}
-            domain={domain}
-            domainPadding={domainPadding}
-            padding={padding}
+            domain={parseAttribute(tnode.attributes.domain)}
+            domainPadding={parseDomainPadding(tnode.attributes.domainpadding)}
+            padding={parseAttribute(tnode.attributes.padding)}
             renderOutside={(renderArgs) => (
                 <VictoryChartRenderArgsProvider value={renderArgs}>
                     <VictoryChartLabels labelItems={labelItems} />
@@ -37,7 +39,6 @@ function VictoryChartCartesian() {
                         <VictoryChartSeries
                             key={`${child.tagName ?? 'node'}-${getYKey(child)}`}
                             tnode={child}
-                            isHorizontal={isHorizontal}
                         />
                     ))}
                 </VictoryChartRenderArgsProvider>

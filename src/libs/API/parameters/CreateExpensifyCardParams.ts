@@ -3,14 +3,11 @@ type CreateExpensifyCardParams = {
     limit: number;
     limitType: string;
     cardTitle: string;
-    feedCountry?: string;
-    validateCode?: string;
+    feedCountry: string;
     domainAccountID: number;
     policyID?: string;
     validFrom?: string;
     validThru?: string;
-    cardRuleID?: string;
-    cardRuleValue?: string;
 };
 
 export default CreateExpensifyCardParams;

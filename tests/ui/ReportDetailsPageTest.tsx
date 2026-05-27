@@ -6,7 +6,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
-import DynamicReportDetailsPage from '@pages/DynamicReportDetailsPage';
+import ReportDetailsPage from '@pages/ReportDetailsPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -29,7 +29,7 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-describe('DynamicReportDetailsPage', () => {
+describe('ReportDetailsPage', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -74,15 +74,15 @@ describe('DynamicReportDetailsPage', () => {
         const {rerender} = render(
             <OnyxListItemProvider>
                 <LocaleContextProvider>
-                    <DynamicReportDetailsPage
+                    <ReportDetailsPage
                         betas={[]}
                         isLoadingReportData={false}
-                        navigation={{} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>['navigation']}
+                        navigation={{} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>['navigation']}
                         policy={undefined}
                         report={trackExpenseReport}
                         reportMetadata={undefined}
                         reportLoadingState={undefined}
-                        route={{params: {reportID: trackExpenseReportID}} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>['route']}
+                        route={{params: {reportID: trackExpenseReportID}} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>['route']}
                     />
                 </LocaleContextProvider>
             </OnyxListItemProvider>,
@@ -109,15 +109,15 @@ describe('DynamicReportDetailsPage', () => {
         rerender(
             <OnyxListItemProvider>
                 <LocaleContextProvider>
-                    <DynamicReportDetailsPage
+                    <ReportDetailsPage
                         betas={[]}
                         isLoadingReportData={false}
-                        navigation={{} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>['navigation']}
+                        navigation={{} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>['navigation']}
                         policy={undefined}
                         report={movedTrackExpenseReport}
                         reportMetadata={undefined}
                         reportLoadingState={undefined}
-                        route={{params: {reportID: trackExpenseReportID}} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>['route']}
+                        route={{params: {reportID: trackExpenseReportID}} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>['route']}
                     />
                 </LocaleContextProvider>
             </OnyxListItemProvider>,

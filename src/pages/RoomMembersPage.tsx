@@ -29,7 +29,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
@@ -52,7 +51,7 @@ import {clearAddRoomMemberError, openRoomMembersPage, removeFromRoom} from '@use
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {personalDetailsSelector} from '@src/selectors/PersonalDetails';
 import type {PersonalDetails} from '@src/types/onyx';
@@ -78,9 +77,6 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     const personalDetails = usePersonalDetails();
     const isPolicyExpenseChat = useMemo(() => isPolicyExpenseChatUtils(report), [report]);
     const backTo = route.params.backTo;
-    const navigateBackToReportDetails = useCallback(() => {
-        Navigation.goBack(backTo ?? createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(report.reportID)));
-    }, [backTo, report.reportID]);
     const isReportArchived = useReportIsArchived(report.reportID);
     const reportForSubtitle = useMemo(() => getReportForHeader(report), [report]);
 
@@ -278,7 +274,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
         onClearSelection: () => setSelectedMembers([]),
         onNavigationCallBack: () => {
             setSearchValue('');
-            navigateBackToReportDetails();
+            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
         },
     });
 
@@ -440,7 +436,9 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
             <FullPageNotFoundView
                 shouldShow={isEmptyObject(report) || isReportArchived || (!isChatThread(report) && ((isUserCreatedPolicyRoom(report) && !isPolicyEmployee) || isDefaultRoom(report)))}
                 subtitleKey={subtitleKey}
-                onBackButtonPress={navigateBackToReportDetails}
+                onBackButtonPress={() => {
+                    Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
+                }}
             >
                 <HeaderWithBackButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
@@ -455,7 +453,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                         }
 
                         setSearchValue('');
-                        navigateBackToReportDetails();
+                        Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
                     }}
                 />
                 <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>

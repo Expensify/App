@@ -7,7 +7,7 @@ import type Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
-import DynamicReportDetailsPage from '@pages/DynamicReportDetailsPage';
+import ReportDetailsPage from '@pages/ReportDetailsPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -30,7 +30,7 @@ jest.mock('@react-navigation/native', () => {
 
 const mockHtmlToText = jest.spyOn(Parser, 'htmlToText');
 
-describe('DynamicReportDetailsPage', () => {
+describe('ReportDetailsPage', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -74,15 +74,15 @@ describe('DynamicReportDetailsPage', () => {
         render(
             <OnyxListItemProvider>
                 <LocaleContextProvider>
-                    <DynamicReportDetailsPage
+                    <ReportDetailsPage
                         betas={[]}
                         isLoadingReportData={false}
-                        navigation={{} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>['navigation']}
+                        navigation={{} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>['navigation']}
                         policy={undefined}
                         report={report}
                         reportMetadata={undefined}
                         reportLoadingState={undefined}
-                        route={{params: {reportID}} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>['route']}
+                        route={{params: {reportID}} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>['route']}
                     />
                 </LocaleContextProvider>
             </OnyxListItemProvider>,

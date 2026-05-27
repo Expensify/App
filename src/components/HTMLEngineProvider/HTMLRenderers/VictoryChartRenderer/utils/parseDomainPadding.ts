@@ -7,13 +7,16 @@ type DomainPadding = CartesianChartProps['domainPadding'];
 /**
  * Translate VictoryChart's `domainPadding` attribute into victory-native's `domainPadding` shape.
  */
-function parseDomainPadding(attribute: string, isHorizontal: boolean): DomainPadding {
+function parseDomainPadding(attribute: string): DomainPadding {
     const domainPadding = parseAttribute(attribute);
     if (typeof domainPadding === 'number') {
         return domainPadding;
     }
     if (Array.isArray(domainPadding)) {
-        return isHorizontal ? {bottom: Number(domainPadding.at(0)), top: Number(domainPadding.at(1))} : {left: Number(domainPadding.at(0)), right: Number(domainPadding.at(1))};
+        return {
+            left: Number(domainPadding.at(0)),
+            right: Number(domainPadding.at(1)),
+        };
     }
     if (lodashIsObject(domainPadding)) {
         let left: number | undefined;
@@ -34,7 +37,7 @@ function parseDomainPadding(attribute: string, isHorizontal: boolean): DomainPad
             top = Number(domainPadding.y.at(1));
             bottom = Number(domainPadding.y.at(0));
         }
-        return isHorizontal ? {left: bottom, right: top, top: right, bottom: left} : {left, right, top, bottom};
+        return {left, right, top, bottom};
     }
     return undefined;
 }

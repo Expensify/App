@@ -38,6 +38,22 @@ function TransactionListItemNarrow<TItem extends ListItem>({
     exportedReportActions,
     nonPersonalAndWorkspaceCards,
     isAttendeesEnabledForMovingPolicy,
+    shouldDisableHoverStyle,
+    onPressRow,
+    onMouseDownRow,
+    onHoverInRow,
+    onEditDate,
+    onEditMerchant,
+    onEditDescription,
+    onEditCategory,
+    onEditAmount,
+    onEditTag,
+    canEditDate,
+    canEditMerchant,
+    canEditDescription,
+    canEditCategory,
+    canEditAmount,
+    canEditTag,
 }: TransactionListItemNarrowProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -46,15 +62,6 @@ function TransactionListItemNarrow<TItem extends ListItem>({
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
     const transactionItem = item as unknown as TransactionListItemType;
-
-    // Narrow rows don't support inline cell editing, so the press handler can skip the
-    // editing-dismissal logic that the wide variant needs.
-    const handleOnPress: React.ComponentProps<typeof PressableWithFeedback>['onPress'] = (event) => {
-        if (isDeletedTransaction && !canSelectMultiple) {
-            return;
-        }
-        onSelectRow(item, transactionPreviewData, event);
-    };
 
     const pressableStyle = [
         styles.transactionListItemStyle,
@@ -77,12 +84,14 @@ function TransactionListItemNarrow<TItem extends ListItem>({
             <PressableWithFeedback
                 ref={pressableRef}
                 onLongPress={() => onLongPressRow?.(item)}
-                onPress={handleOnPress}
+                onPress={onPressRow}
                 disabled={isDisabled && !item.isSelected}
                 accessibilityLabel={item.text ?? ''}
                 role={!isDeletedTransaction ? getButtonRole(true) : 'none'}
                 isNested
-                hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, item.isSelected && styles.activeComponentBG]}
+                onMouseDown={onMouseDownRow}
+                onHoverIn={onHoverInRow}
+                hoverStyle={[!item.isDisabled && !shouldDisableHoverStyle && styles.hoveredComponentBG, item.isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 id={item.keyForList ?? ''}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM}
@@ -136,6 +145,18 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                             nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                             reportActions={exportedReportActions}
                             isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
+                            onEditDate={onEditDate}
+                            onEditMerchant={onEditMerchant}
+                            onEditDescription={onEditDescription}
+                            onEditCategory={onEditCategory}
+                            onEditAmount={onEditAmount}
+                            onEditTag={onEditTag}
+                            canEditDate={canEditDate}
+                            canEditMerchant={canEditMerchant}
+                            canEditDescription={canEditDescription}
+                            canEditCategory={canEditCategory}
+                            canEditAmount={canEditAmount}
+                            canEditTag={canEditTag}
                         />
                     </>
                 )}

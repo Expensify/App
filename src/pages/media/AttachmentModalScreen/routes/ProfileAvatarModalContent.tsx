@@ -15,8 +15,7 @@ import type SCREENS from '@src/SCREENS';
 import useDownloadAttachment from './hooks/useDownloadAttachment';
 
 function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.DYNAMIC_PROFILE_AVATAR>) {
-    const {accountID: accountIDParam, source: tempSource, originalFileName: tempOriginalFileName} = route.params;
-    const accountID = Number(accountIDParam ?? CONST.DEFAULT_NUMBER_ID);
+    const {accountID = CONST.DEFAULT_NUMBER_ID, source: tempSource, originalFileName: tempOriginalFileName} = route.params;
 
     const defaultAvatars = useDefaultAvatars();
     const {formatPhoneNumber} = useLocalize();

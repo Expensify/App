@@ -50,8 +50,6 @@ type DropdownOption<TValueType> = WithSentryLabel & {
     shouldShow?: boolean;
     /** Whether to show a loading spinner for this option */
     shouldShowLoadingSpinnerIcon?: boolean;
-    /** Whether to render a divider before this option */
-    addSeparatorBefore?: boolean;
     /** The type of brick road indicator to show */
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     /** Whether selecting this option should bypass the delete confirmation modal */
