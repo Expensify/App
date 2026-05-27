@@ -13180,18 +13180,6 @@ function getLinkedIOUTransaction(reportAction: OnyxEntry<ReportAction | Optimist
     return transactionID ? transactions.find((item) => item.transactionID === transactionID) : undefined;
 }
 
-/**
- * Returns true if the "Mark as done" copy/button should be shown.
- * Aligns with backend: only shown when all four conditions are true (isTrackIntentUser, isSubmitAndClose, isSubmitter, isSubmittingToSelf).
- *
- */
-function shouldShowMarkAsDone({isTrackIntentUser, report, policy}: {isTrackIntentUser?: boolean; report: OnyxEntry<Report>; policy: OnyxEntry<Policy>}): boolean {
-    if (!isTrackIntentUser || !isSubmitAndClose(policy) || !isReportOwner(report)) {
-        return false;
-    }
-    return getNextApproverAccountID(report) === report?.ownerAccountID;
-}
-
 export {
     areAllRequestsBeingSmartScanned,
     buildConciergeGreetingReportAction,
@@ -13574,7 +13562,6 @@ export {
     getTransactionSortValue,
     isSortableColumnName,
     getLinkedIOUTransaction,
-    shouldShowMarkAsDone,
     hasHeldExpensesFromTransactions,
 };
 
