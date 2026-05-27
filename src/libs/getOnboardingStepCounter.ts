@@ -2,6 +2,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {StepCounterParams} from '@src/languages/params';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 type OnboardingScreen = ValueOf<typeof SCREENS.ONBOARDING>;
@@ -136,7 +137,7 @@ function getOnboardingStepCounter(page: OnboardingScreen, context: OnboardingFlo
     };
 }
 
-const onboardingScreenRoutes: Partial<Record<OnboardingScreen, (backTo?: string) => string>> = {
+const onboardingScreenRoutes: Partial<Record<OnboardingScreen, (backTo?: string) => Route>> = {
     [ONBOARDING.WORK_EMAIL]: (backTo) => ROUTES.ONBOARDING_WORK_EMAIL.getRoute(backTo),
     [ONBOARDING.WORK_EMAIL_VALIDATION]: (backTo) => ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute(backTo),
     [ONBOARDING.PRIVATE_DOMAIN]: (backTo) => ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(backTo),
@@ -148,7 +149,7 @@ const onboardingScreenRoutes: Partial<Record<OnboardingScreen, (backTo?: string)
     [ONBOARDING.INTERESTED_FEATURES]: (backTo) => ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute(undefined, backTo),
 };
 
-function getPreviousOnboardingRoute(page: OnboardingScreen, context: OnboardingFlowContext, backTo?: string): string | undefined {
+function getPreviousOnboardingRoute(page: OnboardingScreen, context: OnboardingFlowContext, backTo?: string): Route | undefined {
     const flow = getOnboardingFlow(context);
     if (!flow) {
         return undefined;
