@@ -108,9 +108,27 @@ function getHRApprovalMode(
     return null;
 }
 
-/** Returns true if the Merge HR integration is configured in manager approval mode. */
-function isMergeHRManagerMode(policy?: OnyxEntry<Policy>): boolean {
-    return policy?.connections?.merge_hris?.config?.approvalMode === CONST.MERGE_HR.APPROVAL_MODE.MANAGER;
+/** Returns true if any connected HR integration (Gusto, Zenefits, or Merge HR) is configured in manager approval mode. */
+function isHRManagerMode(policy?: OnyxEntry<Policy>): boolean {
+    return (
+        policy?.connections?.gusto?.config?.approvalMode === CONST.GUSTO.APPROVAL_MODE.MANAGER ||
+        policy?.connections?.zenefits?.config?.approvalMode === CONST.ZENEFITS.APPROVAL_MODE.MANAGER ||
+        policy?.connections?.merge_hris?.config?.approvalMode === CONST.MERGE_HR.APPROVAL_MODE.MANAGER
+    );
+}
+
+/** Returns the finalApprover from whichever HR provider (Gusto, Zenefits, or Merge HR) is currently in manager approval mode, or null if none are. */
+function getHRManagerModeFinalApprover(policy?: OnyxEntry<Policy>): string | null {
+    if (policy?.connections?.gusto?.config?.approvalMode === CONST.GUSTO.APPROVAL_MODE.MANAGER) {
+        return policy.connections.gusto.config.finalApprover ?? null;
+    }
+    if (policy?.connections?.zenefits?.config?.approvalMode === CONST.ZENEFITS.APPROVAL_MODE.MANAGER) {
+        return policy.connections.zenefits.config.finalApprover ?? null;
+    }
+    if (policy?.connections?.merge_hris?.config?.approvalMode === CONST.MERGE_HR.APPROVAL_MODE.MANAGER) {
+        return policy.connections.merge_hris.config.finalApprover ?? null;
+    }
+    return null;
 }
 
 /** Returns the Merge HR finalApprover when the integration is in basic or manager mode, or null otherwise. */
@@ -123,15 +141,34 @@ function getMergeHRFinalApprover(policy: OnyxEntry<Policy>): string | null {
     return null;
 }
 
+/** Returns the finalApprover from whichever HR provider (Gusto, Zenefits, or Merge HR) is configured in basic or manager approval mode, or null if none are. */
+function getHRFinalApprover(policy?: OnyxEntry<Policy>): string | null {
+    const gustoMode = policy?.connections?.gusto?.config?.approvalMode;
+    if ((gustoMode === CONST.GUSTO.APPROVAL_MODE.BASIC || gustoMode === CONST.GUSTO.APPROVAL_MODE.MANAGER) && policy?.connections?.gusto?.config?.finalApprover) {
+        return policy.connections.gusto.config.finalApprover;
+    }
+    const zenefitsMode = policy?.connections?.zenefits?.config?.approvalMode;
+    if ((zenefitsMode === CONST.ZENEFITS.APPROVAL_MODE.BASIC || zenefitsMode === CONST.ZENEFITS.APPROVAL_MODE.MANAGER) && policy?.connections?.zenefits?.config?.finalApprover) {
+        return policy.connections.zenefits.config.finalApprover;
+    }
+    const mergeMode = policy?.connections?.merge_hris?.config?.approvalMode;
+    if ((mergeMode === CONST.MERGE_HR.APPROVAL_MODE.BASIC || mergeMode === CONST.MERGE_HR.APPROVAL_MODE.MANAGER) && policy?.connections?.merge_hris?.config?.finalApprover) {
+        return policy.connections.merge_hris.config.finalApprover;
+    }
+    return null;
+}
+
 export {
     getConnectedHRProvider,
     getHRApprovalMode,
     getHRConnectionNames,
+    getHRFinalApprover,
+    getHRManagerModeFinalApprover,
     getMergeHRFinalApprover,
     isAnyHRConnected,
     isAnyHRReadOnlyWorkflowMode,
     isGustoConnected,
-    isMergeHRManagerMode,
+    isHRManagerMode,
     isMergeHRConnected,
     isZenefitsConnected,
 };

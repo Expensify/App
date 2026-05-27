@@ -13,7 +13,7 @@ import type Policy from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
-import {getMergeHRFinalApprover, isMergeHRManagerMode} from './HRUtils';
+import {getHRFinalApprover, getHRManagerModeFinalApprover} from './HRUtils';
 import {getDefaultApprover, isExpensifyTeam, shouldFilterExpensifyTeam} from './PolicyUtils';
 
 const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
@@ -151,7 +151,7 @@ function findFirstNonExpensifyApprover(employees: PolicyEmployeeList, startEmail
 /** Convert a list of policy employees to a list of approval workflows */
 function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, firstApprover, localeCompare, currentUserLogin}: PolicyConversionParams): PolicyConversionResult {
     const employees = policy?.employeeList ?? {};
-    const defaultApprover = getMergeHRFinalApprover(policy) ?? getDefaultApprover(policy);
+    const defaultApprover = getHRFinalApprover(policy) ?? getDefaultApprover(policy);
     const approvalWorkflows: Record<string, ApprovalWorkflow> = {};
     const shouldFilterOutExpensifyTeam = shouldFilterExpensifyTeam(policy?.owner, currentUserLogin);
 
@@ -162,8 +162,7 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
         personalDetailsByEmail[value?.login ?? key] = value;
     }
     const availableMembers: Member[] = [];
-    const mergeConfig = policy?.connections?.merge_hris?.config;
-    const mergeFinalApproverEmail = isMergeHRManagerMode(policy) ? mergeConfig?.finalApprover : undefined;
+    const hrManagerModeFinalApproverEmail = getHRManagerModeFinalApprover(policy);
 
     for (const employee of Object.values(employees)) {
         const {email, submitsTo, pendingAction} = employee;
@@ -182,7 +181,7 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
             availableMembers.push(member);
         }
 
-        if (!submitsTo || (!employees[submitsTo] && !mergeFinalApproverEmail)) {
+        if (!submitsTo || (!employees[submitsTo] && !hrManagerModeFinalApproverEmail)) {
             continue;
         }
 
@@ -205,17 +204,17 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
             if (shouldFilterOutExpensifyTeam) {
                 approvers = approvers.filter((approver) => !isExpensifyTeam(approver.email));
             }
-            if (mergeFinalApproverEmail) {
+            if (hrManagerModeFinalApproverEmail) {
                 const lastApprover = approvers.at(-1);
-                if (lastApprover && lastApprover.email !== mergeFinalApproverEmail) {
+                if (lastApprover && lastApprover.email !== hrManagerModeFinalApproverEmail) {
                     approvers.push({
-                        email: mergeFinalApproverEmail,
+                        email: hrManagerModeFinalApproverEmail,
                         forwardsTo: undefined,
-                        avatar: personalDetailsByEmail[mergeFinalApproverEmail]?.avatar,
-                        displayName: personalDetailsByEmail[mergeFinalApproverEmail]?.displayName ?? mergeFinalApproverEmail,
+                        avatar: personalDetailsByEmail[hrManagerModeFinalApproverEmail]?.avatar,
+                        displayName: personalDetailsByEmail[hrManagerModeFinalApproverEmail]?.displayName ?? hrManagerModeFinalApproverEmail,
                         isCircularReference: false,
                     });
-                    usedApproverEmails.add(mergeFinalApproverEmail);
+                    usedApproverEmails.add(hrManagerModeFinalApproverEmail);
                 }
             }
             if (effectiveSubmitsTo !== firstApprover) {

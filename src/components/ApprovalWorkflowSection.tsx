@@ -36,9 +36,20 @@ type ApprovalWorkflowSectionProps = {
 
     /** When true, uses HR manager mode labels: "Manager (from {provider})" then "Final approver" */
     isHRManagerMode?: boolean;
+
+    /** Email of the configured final approver in HR manager mode, used to correctly label a sole approver who is the final approver */
+    hrFinalApproverEmail?: string;
 };
 
-function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CURRENCY.USD, isDisabled = false, hrProviderName, isHRManagerMode = false}: ApprovalWorkflowSectionProps) {
+function ApprovalWorkflowSection({
+    approvalWorkflow,
+    onPress,
+    currency = CONST.CURRENCY.USD,
+    isDisabled = false,
+    hrProviderName,
+    isHRManagerMode = false,
+    hrFinalApproverEmail,
+}: ApprovalWorkflowSectionProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Lightbulb', 'Users', 'UserCheck']);
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -49,6 +60,10 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
     const approverTitle = (index: number) => {
         if (isHRManagerMode) {
             if (approvalWorkflow.approvers.length <= 1) {
+                const singleApprover = approvalWorkflow.approvers.at(0);
+                if (hrFinalApproverEmail && singleApprover?.email === hrFinalApproverEmail) {
+                    return translate('workflowsPage.finalApprover');
+                }
                 return translate('workflowsPage.approver');
             }
             const isLastApprover = index === approvalWorkflow.approvers.length - 1;
