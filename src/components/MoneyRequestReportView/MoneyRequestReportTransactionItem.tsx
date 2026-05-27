@@ -81,7 +81,7 @@ type MoneyRequestReportTransactionItemProps = {
     shouldScrollHorizontally?: boolean;
 };
 
-function MoneyRequestReportTransactionItem({
+function MoneyRequestReportTransactionItemBody({
     transaction,
     report,
     policy,
@@ -100,7 +100,8 @@ function MoneyRequestReportTransactionItem({
     nonPersonalAndWorkspaceCards,
     isLastItem = false,
     shouldScrollHorizontally = false,
-}: MoneyRequestReportTransactionItemProps) {
+    inlineEdit,
+}: MoneyRequestReportTransactionItemProps & {inlineEdit?: InlineEditValues}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -115,21 +116,10 @@ function MoneyRequestReportTransactionItem({
     // Filter violations based on user visibility and dismissal state at the row level.
     const filteredViolations = useTransactionViolations(transaction.transactionID);
 
-    const {
-        canEditDate,
-        canEditMerchant,
-        canEditDescription,
-        canEditCategory,
-        canEditAmount,
-        canEditTag,
-        onEditDate,
-        onEditMerchant,
-        onEditDescription,
-        onEditCategory,
-        onEditAmount,
-        onEditTag,
-        wasEditingOnMouseDownRef,
-    } = useTransactionInlineEdit({transactionID: transaction.transactionID});
+    // On narrow layouts `inlineEdit` is undefined (the parent skips the hook). The fallback ref
+    // keeps the press handler shape identical without ever being mutated on narrow.
+    const fallbackEditingOnMouseDownRef = useRef(false);
+    const wasEditingOnMouseDownRef = inlineEdit?.wasEditingOnMouseDownRef ?? fallbackEditingOnMouseDownRef;
 
     const viewRef = useRef<View>(null);
 
@@ -218,23 +208,49 @@ function MoneyRequestReportTransactionItem({
                         isHover={hovered}
                         nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                         shouldRemoveTotalColumnFlex={hasFlexColumn(columns)}
-                        canEditDate={canEditDate}
-                        canEditMerchant={canEditMerchant}
-                        canEditDescription={canEditDescription}
-                        canEditCategory={canEditCategory}
-                        canEditAmount={canEditAmount}
-                        canEditTag={canEditTag}
-                        onEditDate={onEditDate}
-                        onEditMerchant={onEditMerchant}
-                        onEditDescription={onEditDescription}
-                        onEditCategory={onEditCategory}
-                        onEditAmount={onEditAmount}
-                        onEditTag={onEditTag}
+                        canEditDate={inlineEdit?.canEditDate}
+                        canEditMerchant={inlineEdit?.canEditMerchant}
+                        canEditDescription={inlineEdit?.canEditDescription}
+                        canEditCategory={inlineEdit?.canEditCategory}
+                        canEditAmount={inlineEdit?.canEditAmount}
+                        canEditTag={inlineEdit?.canEditTag}
+                        onEditDate={inlineEdit?.onEditDate}
+                        onEditMerchant={inlineEdit?.onEditMerchant}
+                        onEditDescription={inlineEdit?.onEditDescription}
+                        onEditCategory={inlineEdit?.onEditCategory}
+                        onEditAmount={inlineEdit?.onEditAmount}
+                        onEditTag={inlineEdit?.onEditTag}
                     />
                 )}
             </PressableWithFeedback>
         </OfflineWithFeedback>
     );
+}
+
+type InlineEditValues = ReturnType<typeof useTransactionInlineEdit>;
+
+function MoneyRequestReportTransactionItemWithInlineEdit(props: MoneyRequestReportTransactionItemProps) {
+    const inlineEdit = useTransactionInlineEdit({transactionID: props.transaction.transactionID});
+
+    return (
+        <MoneyRequestReportTransactionItemBody
+            {...props}
+            inlineEdit={inlineEdit}
+        />
+    );
+}
+
+function MoneyRequestReportTransactionItem(props: MoneyRequestReportTransactionItemProps) {
+    const {isMediumScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
+    // Mirrors the layout check inside TransactionItemRow so the narrow body never pays for useTransactionInlineEdit.
+    const isNarrowLayout = shouldUseNarrowLayout || (isMediumScreenWidth && !props.shouldScrollHorizontally);
+
+    if (isNarrowLayout) {
+        return <MoneyRequestReportTransactionItemBody {...props} />;
+    }
+
+    return <MoneyRequestReportTransactionItemWithInlineEdit {...props} />;
 }
 
 export default MoneyRequestReportTransactionItem;
