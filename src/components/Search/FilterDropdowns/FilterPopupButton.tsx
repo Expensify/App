@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/core';
 import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
 import type {ReactNode, RefObject} from 'react';
 import React, {useRef, useState} from 'react';
@@ -53,7 +54,7 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHP and narrow layout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-
+    const isFocused = useIsFocused();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();
@@ -100,6 +101,10 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
 
     const popoverContent = PopoverComponent({closeOverlay: toggleOverlay, isExpanded: isOverlayVisible, setPopoverWidth: setCustomPopoverWidth});
 
+    if (!isFocused) {
+        return null;
+    }
+
     return (
         <View
             ref={anchorRef}
@@ -123,7 +128,6 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
                 // This must be false because we dont want the modal to close if we open the RHP for selections
                 // such as date years
                 shouldCloseWhenBrowserNavigationChanged={false}
-                shouldHandleNavigationBack
                 innerContainerStyle={{...containerStyles, ...styles.p0}}
                 popoverDimensions={{
                     width: actualPopoverWidth,
