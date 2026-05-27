@@ -3444,7 +3444,7 @@ function getCategoryTaxRateMessage(translate: LocalizedTranslate, action: Report
     const newTax = newTaxPercentage ? `${newTaxName} (${newTaxPercentage})` : newTaxName;
 
     return translate('workspaceActions.updatedCategoryTaxRate', {
-        categoryName,
+        categoryName: getDecodedCategoryName(categoryName),
         oldTax,
         newTax,
     });
