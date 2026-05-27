@@ -439,43 +439,36 @@ describe('PUSH_PARAMS — same-route param change', () => {
 
 describe('pressable registry — identifier-based fallback', () => {
     it('registers and deregisters by routeKey + identifier', () => {
-        const ref = fakeRef(fakeView('row'));
-        const deregister = registerPressable('A', 'Members', ref);
+        const deregister = registerPressable('A', 'row', fakeRef(fakeView('row')));
         expect(getRegistrySizeForTests()).toBe(1);
         deregister();
         expect(getRegistrySizeForTests()).toBe(0);
     });
 
     it('deregister is a no-op once another Pressable has overwritten the same identifier (remount race)', () => {
-        const oldRef = fakeRef(fakeView('old'));
-        const newRef = fakeRef(fakeView('new'));
-        const deregisterOld = registerPressable('A', 'Members', oldRef);
-        registerPressable('A', 'Members', newRef);
+        const deregisterOld = registerPressable('A', 'row', fakeRef(fakeView('old')));
+        registerPressable('A', 'row', fakeRef(fakeView('new')));
         deregisterOld();
         expect(getRegistrySizeForTests()).toBe(1);
     });
 
     it('restoreTriggerForRoute falls back to the registry when the captured ref was nulled by detach', () => {
         const detachedRef = fakeRef(fakeView('row'));
-        setLastPressedTriggerRefForTests(detachedRef, 'Members');
+        setLastPressedTriggerRefForTests(detachedRef, 'row');
 
-        const prev = stackState(0, [{key: 'A', name: 'WorkspaceInitial'}]);
-        const forward = stackState(1, [
-            {key: 'A', name: 'WorkspaceInitial'},
-            {key: 'B', name: 'WorkspaceMembers'},
-        ]);
-        handleStateChange(prev);
-        handleStateChange(forward);
+        handleStateChange(stackState(0, [{key: 'A', name: 'A'}]));
+        handleStateChange(
+            stackState(1, [
+                {key: 'A', name: 'A'},
+                {key: 'B', name: 'B'},
+            ]),
+        );
 
-        // Detach simulation: react-native-screens nulls the captured View ref.
         detachedRef.current = null;
-        // Re-attach simulation: a new Pressable mounts on the sidebar with the same identifier and a live View.
         const liveView = fakeView('row-remount');
-        const liveRef = fakeRef(liveView);
-        registerPressable('A', 'Members', liveRef);
+        registerPressable('A', 'row', fakeRef(liveView));
 
-        const back = stackState(0, [{key: 'A', name: 'WorkspaceInitial'}]);
-        handleStateChange(back);
+        handleStateChange(stackState(0, [{key: 'A', name: 'A'}]));
         flushTransitions();
 
         expect(mockFireFocusEvent).toHaveBeenCalledWith(liveView);
@@ -483,59 +476,53 @@ describe('pressable registry — identifier-based fallback', () => {
 
     it('rAF retry rescues focus when re-attach lags transitionEnd', () => {
         const detachedRef = fakeRef(fakeView('row'));
-        setLastPressedTriggerRefForTests(detachedRef, 'Members');
+        setLastPressedTriggerRefForTests(detachedRef, 'row');
 
-        const prev = stackState(0, [{key: 'A', name: 'WorkspaceInitial'}]);
-        const forward = stackState(1, [
-            {key: 'A', name: 'WorkspaceInitial'},
-            {key: 'B', name: 'WorkspaceMembers'},
-        ]);
-        handleStateChange(prev);
-        handleStateChange(forward);
+        handleStateChange(stackState(0, [{key: 'A', name: 'A'}]));
+        handleStateChange(
+            stackState(1, [
+                {key: 'A', name: 'A'},
+                {key: 'B', name: 'B'},
+            ]),
+        );
 
         detachedRef.current = null;
-        handleStateChange(stackState(0, [{key: 'A', name: 'WorkspaceInitial'}]));
+        handleStateChange(stackState(0, [{key: 'A', name: 'A'}]));
         flushTransitions();
-        // No registry hit on transitionEnd: nothing fires yet.
         expect(mockFireFocusEvent).not.toHaveBeenCalled();
 
-        // The new Pressable mounts a frame later.
         const liveView = fakeView('row-remount');
-        registerPressable('A', 'Members', fakeRef(liveView));
+        registerPressable('A', 'row', fakeRef(liveView));
         jest.advanceTimersByTime(20);
 
         expect(mockFireFocusEvent).toHaveBeenCalledWith(liveView);
     });
 
     it('stores two same-route entries under distinct identifiers — duplicate-label rows do NOT collide when distinct ids exist', () => {
-        const rowAEdit = fakeRef(fakeView('edit-a'));
-        const rowBEdit = fakeRef(fakeView('edit-b'));
-        registerPressable('A', 'base-list-item-natu26+305', rowAEdit);
-        registerPressable('A', 'base-list-item-natu26+306', rowBEdit);
+        registerPressable('A', 'row-a', fakeRef(fakeView('a')));
+        registerPressable('A', 'row-b', fakeRef(fakeView('b')));
         expect(getRegistrySizeForTests()).toBe(2);
     });
 
     it('fallback resolves the captured identifier even when other same-label registry entries exist for the route', () => {
-        // Simulate two rows with the same accessibilityLabel "Edit" but distinct ids (the per-pressable disambiguation we get for free via the fallback chain).
-        const pressedRef = fakeRef(fakeView('edit-on-row-A'));
-        const otherRef = fakeRef(fakeView('edit-on-row-B'));
-        setLastPressedTriggerRefForTests(pressedRef, 'base-list-item-natu26+305');
+        const pressedRef = fakeRef(fakeView('a'));
+        const otherRef = fakeRef(fakeView('b'));
+        setLastPressedTriggerRefForTests(pressedRef, 'row-a');
 
-        handleStateChange(stackState(0, [{key: 'A', name: 'WorkspaceMembers'}]));
+        handleStateChange(stackState(0, [{key: 'A', name: 'List'}]));
         handleStateChange(
             stackState(1, [
-                {key: 'A', name: 'WorkspaceMembers'},
-                {key: 'B', name: 'MemberDetails'},
+                {key: 'A', name: 'List'},
+                {key: 'B', name: 'Detail'},
             ]),
         );
 
-        // Detach + re-register under both ids. Only the pressed-row's identifier should resolve.
         pressedRef.current = null;
-        const liveA = fakeView('edit-on-row-A-remount');
-        registerPressable('A', 'base-list-item-natu26+305', fakeRef(liveA));
-        registerPressable('A', 'base-list-item-natu26+306', otherRef);
+        const liveA = fakeView('a-remount');
+        registerPressable('A', 'row-a', fakeRef(liveA));
+        registerPressable('A', 'row-b', otherRef);
 
-        handleStateChange(stackState(0, [{key: 'A', name: 'WorkspaceMembers'}]));
+        handleStateChange(stackState(0, [{key: 'A', name: 'List'}]));
         flushTransitions();
 
         expect(mockFireFocusEvent).toHaveBeenCalledWith(liveA);
@@ -543,16 +530,16 @@ describe('pressable registry — identifier-based fallback', () => {
     });
 
     it('clears the registry for a route key when that route is removed from the navigation tree', () => {
-        registerPressable('B', 'Member-Row', fakeRef(fakeView('row')));
+        registerPressable('B', 'row', fakeRef(fakeView('row')));
         expect(getRegistrySizeForTests()).toBe(1);
 
         handleStateChange(
             stackState(1, [
-                {key: 'A', name: 'WorkspaceInitial'},
-                {key: 'B', name: 'WorkspaceMembers'},
+                {key: 'A', name: 'A'},
+                {key: 'B', name: 'B'},
             ]),
         );
-        handleStateChange(stackState(0, [{key: 'A', name: 'WorkspaceInitial'}]));
+        handleStateChange(stackState(0, [{key: 'A', name: 'A'}]));
 
         expect(getRegistrySizeForTests()).toBe(0);
     });
