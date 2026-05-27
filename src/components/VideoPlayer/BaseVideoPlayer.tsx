@@ -589,7 +589,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
                             {controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE &&
                                 !shouldShowOfflineIndicator &&
                                 !shouldShowErrorIndicator &&
-                                (isPopoverVisible || isHovered || canUseTouchScreen || isEnded) && (
+                                ((isPopoverVisible && !isFullScreenRef.current) || isHovered || canUseTouchScreen || isEnded) && (
                                     <VideoPlayerControls
                                         duration={duration || 0}
                                         position={currentTime || 0}
