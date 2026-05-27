@@ -1555,7 +1555,6 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.LINK_CARD_FEED_TO_POLICY]: Parameters.LinkCardToPolicyParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_CARD_PIN]: Parameters.RevealCardPINParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.CHANGE_CARD_PIN]: Parameters.ChangeCardPINParams;
-    [SIDE_EFFECT_REQUEST_COMMANDS.ADD_WORK_EMAIL]: Parameters.AddWorkEmailParams;
 };
 
 type ApiRequestCommandParameters = WriteCommandParameters & ReadCommandParameters & SideEffectRequestCommandParameters;
