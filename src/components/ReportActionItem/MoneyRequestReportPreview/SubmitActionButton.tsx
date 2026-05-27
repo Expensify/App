@@ -177,7 +177,7 @@ function SubmitActionButton({iouReportID, isSubmittingAnimationRunning, stopAnim
                 isSubmittingAnimationRunning={isSubmittingAnimationRunning}
                 stopAnimation={stopAnimation}
                 startSubmittingAnimation={startSubmittingAnimation}
-                isTrackIntentUser={isTrackIntentUser}
+                isTrackIntentUser={isTrackIntentUser ?? false}
             />
         </ReportSubmitToPopoverAnchor>
     );

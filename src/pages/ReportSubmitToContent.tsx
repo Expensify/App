@@ -1,5 +1,4 @@
 import {delegateEmailSelector} from '@selectors/Account';
-import omit from 'lodash/omit';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -254,10 +253,11 @@ function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, 
                 if (previous.some((member) => member.email.toLowerCase() === itemEmailLower)) {
                     return previous;
                 }
+                const {isSelected, ...memberWithoutSelection} = item;
                 return [
                     ...previous,
                     {
-                        ...omit(item, 'isSelected'),
+                        ...memberWithoutSelection,
                         keyForList: item.keyForList?.startsWith('nonWorkspace:') ? item.keyForList : `nonWorkspace:${item.email}`,
                     },
                 ];
