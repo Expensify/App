@@ -38,13 +38,8 @@ type YourSpendCardRow = {
 type YourSpendApplicability = {
     isApprovalApplicable: boolean;
     isPaymentApplicable: boolean;
-    // Sorted IDs of the user's paid group policies (Team/Corporate). Used to scope
-    // the "Awaiting approval" query to reports owned by the user on a real workspace,
-    // which excludes IOU reports (no policyID) and personal-policy expenses. Submit
-    // workspaces are intentionally excluded here — to be revisited once we've confirmed
-    // the UX makes sense for them. Sorted so the resulting search-query hash stays
-    // stable across unrelated `policies` updates (e.g. Onyx key insertion-order
-    // shuffles), keeping subscribers on the same snapshot key.
+    // IDs of the user's Team/Corporate workspaces. Used to scope the
+    // "Awaiting approval" query so IOU and personal expenses don't count.
     paidGroupPolicyIDs: string[];
 };
 
@@ -59,7 +54,6 @@ function getYourSpendApplicability(policies: OnyxCollection<Policy> | undefined)
             }
         }
     }
-    paidGroupPolicyIDs.sort();
     return {
         isApprovalApplicable: paidGroupPolicyIDs.length > 0,
         isPaymentApplicable,
@@ -282,10 +276,8 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const approvalTotals: YourSpendRowTotals = shouldUseCachedApproval && cachedApprovalReady ? cachedApprovalReady : approvalTotalsRaw;
     const paymentTotals: YourSpendRowTotals = shouldUseCachedPayment && cachedPaymentReady ? cachedPaymentReady : paymentTotalsRaw;
 
-    // Stable key that changes whenever approval/payment applicability flips OR
-    // the set of paid-group workspaces changes (which changes the policyID
-    // filter and therefore the snapshot key the row subscribes to). Used to
-    // re-fire the search effect when the user joins/leaves a workspace.
+    // Re-fires the search effect when applicability flips or the user
+    // joins/leaves a workspace (which changes the policyID filter).
     const applicabilityKey = `${isApprovalApplicable ? 1 : 0}${isPaymentApplicable ? 1 : 0}|${paidGroupPolicyIDs.join(',')}`;
 
     const fireSearches = useEffectEvent(() => {

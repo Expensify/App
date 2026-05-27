@@ -17,9 +17,7 @@ function buildAwaitingApprovalQuery(accountID: number, policyIDs: string[]): str
         status: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
         from: [String(accountID)],
         reimbursable: CONST.SEARCH.BOOLEAN.YES,
-        // Scope to the user's paid group workspaces (Team/Corporate) so IOU reports
-        // (no policyID) and personal-policy expenses (excluded from the list) don't
-        // inflate the count.
+        // Limit to the user's workspaces so IOU and personal expenses aren't counted.
         ...(policyIDs.length > 0 ? {[FILTER_KEYS.POLICY_ID]: policyIDs} : {}),
     });
 }

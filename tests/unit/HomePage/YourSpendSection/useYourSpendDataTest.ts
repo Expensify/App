@@ -366,14 +366,13 @@ describe('useYourSpendData — query builder integration', () => {
         expect(buildAwaitingApprovalQuery).toHaveBeenCalledWith(ACCOUNT_ID, []);
     });
 
-    it('passes the sorted IDs of paid group policies into buildAwaitingApprovalQuery', () => {
-        const policyA = makeCorporatePolicy({id: 'a_policy'});
-        const policyZ = makeCorporatePolicy({id: 'z_policy'});
-        // Reverse insertion order: the hook should still pass them sorted ascending.
-        setupPolicies([policyZ, policyA]);
+    it('passes the IDs of paid group policies into buildAwaitingApprovalQuery', () => {
+        const policyA = makeCorporatePolicy({id: 'policy_a'});
+        const policyB = makeCorporatePolicy({id: 'policy_b'});
+        setupPolicies([policyA, policyB]);
         mockedIsPaidGroupPolicy.mockReturnValue(true);
         renderHook(() => useYourSpendData());
-        expect(buildAwaitingApprovalQuery).toHaveBeenCalledWith(ACCOUNT_ID, ['a_policy', 'z_policy']);
+        expect(buildAwaitingApprovalQuery).toHaveBeenCalledWith(ACCOUNT_ID, expect.arrayContaining(['policy_a', 'policy_b']));
     });
 
     it('excludes policies that do not pass isPaidGroupPolicy from the policyIDs list', () => {
