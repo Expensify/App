@@ -1,12 +1,15 @@
 import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
+import ReportActionAvatars from '@components/ReportActionAvatars';
 import Table from '@components/Table';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import {WorkspaceMemberRowData} from '.';
 
 type WorkspaceMembersTableRowProps = {
@@ -29,7 +32,15 @@ type WorkspaceMembersTableRowProps = {
 export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCustomField1Column, shouldShowCustomField2Column, shouldUseNarrowTableLayout}: WorkspaceMembersTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const styleUtils = useStyleUtils();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+
+    const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
+
+    const getSecondaryAvatarContainerStyle = (hovered: boolean) => [
+        styleUtils.getBackgroundAndBorderStyle(theme.sidebar),
+        hovered ? styleUtils.getBackgroundAndBorderStyle(styles.sidebarLinkHover?.backgroundColor ?? theme.sidebar) : undefined,
+    ];
 
     return (
         <Table.Row
@@ -45,8 +56,15 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
         >
             {(hovered) => (
                 <>
-                    <View></View>
-                    <View></View>
+                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                        <ReportActionAvatars
+                            size={avatarSize}
+                            accountIDs={[item.accountID]}
+                            fallbackDisplayName={item.name ?? item.email}
+                            secondaryAvatarContainerStyle={getSecondaryAvatarContainerStyle(!!hovered)}
+                        />
+                    </View>
+                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}></View>
 
                     {shouldShowCustomField1Column && (
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
