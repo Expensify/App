@@ -574,6 +574,7 @@ type CreateWorkspaceWithPolicyDraftParams = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     hasActiveAdminPolicies: boolean;
     isAnnualSubscription?: boolean;
+    didPreinsertWorkspaceRouteUnderModal?: boolean;
 };
 
 /**
@@ -601,6 +602,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         betas,
         hasActiveAdminPolicies,
         isAnnualSubscription = false,
+        didPreinsertWorkspaceRouteUnderModal = false,
     } = params;
 
     const policyIDWithDefault = policyID || generatePolicyID();
@@ -651,6 +653,11 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
                 Navigation.dismissModal({
                     afterTransition: () => Navigation.navigate(routeToNavigate),
                 });
+                return;
+            }
+
+            if (didPreinsertWorkspaceRouteUnderModal) {
+                Navigation.dismissModal();
                 return;
             }
 
