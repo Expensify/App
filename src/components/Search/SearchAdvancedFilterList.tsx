@@ -1,23 +1,37 @@
 import React from 'react';
+import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
+import ScrollView from '@components/ScrollView';
+import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
+import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
-import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
-import type {SearchFilter} from '@libs/SearchUIUtils';
+import {FILTER_VIEW_MAP, type SearchFilter} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 
-type FilterItemProps = {
+type ItemCallback = (filter: SearchFilter['key']) => void;
+type FilterItemCallbacks = {
+    onHoverIn?: ItemCallback;
+    onFocus?: ItemCallback;
+    onPress?: ItemCallback;
+};
+
+type SearchAdvancedFilterListProps = FilterItemCallbacks & {
+    selectedFilter?: SearchFilter['key'];
+    style?: StyleProp<ViewStyle>;
+    contentContainerStyle?: StyleProp<ViewStyle>;
+};
+
+type FilterItemProps = FilterItemCallbacks & {
     filterKey: SearchFilter['key'];
     isSelected?: boolean;
-    onPress?: () => void;
-    onHoverIn?: () => void;
-    onFocus?: () => void;
 };
 
 function FilterItem({filterKey, isSelected, onPress, onHoverIn, onFocus}: FilterItemProps) {
@@ -46,9 +60,9 @@ function FilterItem({filterKey, isSelected, onPress, onHoverIn, onFocus}: Filter
             style={({pressed}) => [styles.typeFilterMenu, getPressableBackgroundStyle(pressed)]}
             accessible
             accessibilityLabel={filterKey}
-            onHoverIn={onHoverIn}
-            onFocus={onFocus}
-            onPress={onPress}
+            onHoverIn={() => onHoverIn?.(filterKey)}
+            onFocus={() => onFocus?.(filterKey)}
+            onPress={() => onPress?.(filterKey)}
             sentryLabel={`Search-Advanced-Filter-${filterKey}`}
         >
             {({pressed}) => (
@@ -72,4 +86,38 @@ function FilterItem({filterKey, isSelected, onPress, onHoverIn, onFocus}: Filter
     );
 }
 
-export default FilterItem;
+function SearchAdvancedFilterList({selectedFilter, style, contentContainerStyle, onHoverIn, onFocus, onPress}: SearchAdvancedFilterListProps) {
+    const styles = useThemeStyles();
+    const {typeFiltersKeys} = useAdvancedSearchFilters();
+
+    return (
+        <ScrollView
+            style={[style]}
+            contentContainerStyle={[contentContainerStyle]}
+            showsVerticalScrollIndicator={false}
+        >
+            {typeFiltersKeys.map((section, index) => (
+                <View key={`${section.at(0)}`}>
+                    {index !== 0 && (
+                        <SpacerView
+                            shouldShow
+                            style={[styles.reportHorizontalRule]}
+                        />
+                    )}
+                    {section.map((item) => (
+                        <FilterItem
+                            key={item}
+                            filterKey={item}
+                            isSelected={item === selectedFilter}
+                            onHoverIn={onHoverIn}
+                            onFocus={onFocus}
+                            onPress={onPress}
+                        />
+                    ))}
+                </View>
+            ))}
+        </ScrollView>
+    );
+}
+
+export default SearchAdvancedFilterList;

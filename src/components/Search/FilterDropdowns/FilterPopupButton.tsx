@@ -49,14 +49,7 @@ const ANCHOR_ORIGIN = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-function FilterPopupButton({
-    viewportOffsetTop,
-    popoverWidth,
-    wrapperStyle,
-    popoverAnchorAlignment: popoverAnchorAlignmentProp,
-    PopoverComponent,
-    renderButton,
-}: FilterPopupButtonProps) {
+function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popoverAnchorAlignment: popoverAnchorAlignmentProp, PopoverComponent, renderButton}: FilterPopupButtonProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHP and narrow layout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -146,5 +139,5 @@ function FilterPopupButton({
     );
 }
 
-export type {PopoverComponentProps, FilterPopupButtonProps};
+export type {PopoverComponentProps, ButtonComponentProps, FilterPopupButtonProps};
 export default withViewportOffsetTop(FilterPopupButton);

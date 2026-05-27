@@ -35,6 +35,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import createRightModalNavigator from '@navigation/AppNavigator/createRightModalNavigator';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
 import {PINContextProvider} from '@pages/MissingPersonalDetails/PINContext';
+import SearchAdvancedFiltersProvider from '@pages/Search/SearchAdvancedFiltersProvider';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -55,6 +56,14 @@ function MissingPersonalDetailsWithPINContext(props: Record<string, unknown>) {
         <PINContextProvider>
             <ModalStackNavigators.MissingPersonalDetailsModalStackNavigator {...props} />
         </PINContextProvider>
+    );
+}
+
+function SearchAdvancedFiltersWithContext(props: Record<string, unknown>) {
+    return (
+        <SearchAdvancedFiltersProvider>
+            <ModalStackNavigators.SearchAdvancedFiltersModalStackNavigator {...props} />
+        </SearchAdvancedFiltersProvider>
     );
 }
 
@@ -406,7 +415,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 />
                                 <Stack.Screen
                                     name={SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS}
-                                    component={ModalStackNavigators.SearchAdvancedFiltersModalStackNavigator}
+                                    component={SearchAdvancedFiltersWithContext}
                                 />
                                 <Stack.Screen
                                     name={SCREENS.RIGHT_MODAL.SEARCH_SAVED_SEARCH}

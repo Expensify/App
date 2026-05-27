@@ -5002,7 +5002,7 @@ const staticStyles = (theme: ThemeColors) =>
             marginTop: 3,
         },
 
-        typeFiltersContainer: {
+        typeFiltersPopupContainer: {
             borderRightWidth: 1,
             borderRightColor: theme.border,
             paddingVertical: 8,

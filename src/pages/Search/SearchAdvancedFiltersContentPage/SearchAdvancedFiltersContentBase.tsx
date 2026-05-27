@@ -1,0 +1,52 @@
+import {useRoute} from '@react-navigation/core';
+import React, {useContext} from 'react';
+import {View} from 'react-native';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import SelectedFilterContent from '@components/Search/FilterDropdowns/AdvancedFilters/SelectedFilterContent';
+import {useSearchQueryContext} from '@components/Search/SearchContext';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SearchAdvancedFiltersParamList} from '@libs/Navigation/types';
+import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+import {SearchAdvancedFiltersActionContext, SearchAdvancedFiltersContext} from '../SearchAdvancedFiltersProvider';
+
+function SearchAdvancedFiltersContentBase() {
+    const route = useRoute<PlatformStackRouteProp<SearchAdvancedFiltersParamList, typeof SCREENS.SEARCH.ADVANCED_FILTERS_CONTENT_RHP>>();
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+
+    const {currentSearchQueryJSON} = useSearchQueryContext();
+    const filterKey = route.params.filterKey;
+    const {currentDraftFilters} = useContext(SearchAdvancedFiltersContext);
+    const {setDraftFilters} = useContext(SearchAdvancedFiltersActionContext);
+
+    return (
+        <ScreenWrapper
+            testID="SearchAdvancedFiltersPage"
+            shouldShowOfflineIndicatorInWideScreen
+            offlineIndicatorStyle={styles.mtAuto}
+            includeSafeAreaPaddingBottom
+        >
+            <HeaderWithBackButton title={translate(FILTER_VIEW_MAP[filterKey].labelKey)} />
+            <View style={[styles.filterContentContainer]}>
+                <SelectedFilterContent
+                    values={currentDraftFilters}
+                    filterKey={filterKey}
+                    policyIDQuery={currentSearchQueryJSON?.policyID}
+                    autoFocus
+                    onChange={(newValues) => {
+                        setDraftFilters((prevValues) => ({...prevValues, ...newValues}));
+                        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+                    }}
+                />
+            </View>
+        </ScreenWrapper>
+    );
+}
+
+export default SearchAdvancedFiltersContentBase;

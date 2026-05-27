@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import FilterComponents from '@components/Search/FilterComponents';
 import type {FilterComponentsProps} from '@components/Search/FilterComponents';
+import type {SearchFilterSelectionListProps} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isAmountFilterKey, isDateFilterKey} from '@libs/SearchUIUtils';
@@ -14,7 +15,7 @@ import DateFilterComponent from './DateFilterComponent';
 import ReportFieldFilterComponent from './ReportFieldFilterComponent';
 import useFullscreenAdvancedFilters from './useFullscreenAdvancedFilters';
 
-type SelectedFilterContentProps = {
+type SelectedFilterContentProps = SearchFilterSelectionListProps & {
     filterKey: SearchFilter['key'];
     values: Partial<SearchAdvancedFiltersForm> | undefined;
     policyIDQuery: string[] | undefined;
@@ -30,17 +31,18 @@ type TextInputFilterContentProps = {
         | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE
         | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID;
     value: string | undefined;
+    autoFocus: boolean | undefined;
     onChange: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
-type CommonContentProps = {
+type CommonContentProps = SearchFilterSelectionListProps & {
     filterKey: FilterComponentsProps['filterKey'];
     value: FilterComponentsProps['value'];
     policyIDQuery: string[] | undefined;
     onChange: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
-function TextInputFilterContent({filterKey, value: initialValue, onChange}: TextInputFilterContentProps) {
+function TextInputFilterContent({filterKey, value: initialValue, autoFocus, onChange}: TextInputFilterContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [value, setValue] = useState(initialValue);
@@ -53,7 +55,7 @@ function TextInputFilterContent({filterKey, value: initialValue, onChange}: Text
                 value={value}
                 filterKey={filterKey}
                 policyIDQuery={undefined}
-                autoFocus={fullscreen}
+                autoFocus={autoFocus}
                 onChange={(v) => setValue(v as string)}
             />
             <Button
@@ -68,7 +70,7 @@ function TextInputFilterContent({filterKey, value: initialValue, onChange}: Text
     );
 }
 
-function CommonContent({filterKey, value: initialValue, policyIDQuery, onChange}: CommonContentProps) {
+function CommonContent({filterKey, value: initialValue, policyIDQuery, autoFocus, onChange}: CommonContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [value, setValue] = useState<FilterComponentsProps['value']>(initialValue);
@@ -82,7 +84,7 @@ function CommonContent({filterKey, value: initialValue, policyIDQuery, onChange}
             policyIDQuery={policyIDQuery}
             selectionListTextInputStyle={!fullscreen && [styles.pb1, styles.pt5]}
             selectionListStyle={!fullscreen ? {contentContainerStyle: [styles.pv2]} : undefined}
-            autoFocus={fullscreen}
+            autoFocus={autoFocus}
             allowDeselectSingleSelection
             onChange={(newValue) => {
                 if (fullscreen) {
@@ -105,7 +107,7 @@ function CommonContent({filterKey, value: initialValue, policyIDQuery, onChange}
     );
 }
 
-function SelectedFilterContent({filterKey, values, policyIDQuery, onChange}: SelectedFilterContentProps) {
+function SelectedFilterContent({filterKey, values, policyIDQuery, autoFocus, onChange}: SelectedFilterContentProps) {
     if (
         filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
         filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION ||
@@ -119,6 +121,7 @@ function SelectedFilterContent({filterKey, values, policyIDQuery, onChange}: Sel
                 key={filterKey}
                 filterKey={filterKey}
                 value={values?.[filterKey]}
+                autoFocus={autoFocus}
                 onChange={onChange}
             />
         );
@@ -168,6 +171,7 @@ function SelectedFilterContent({filterKey, values, policyIDQuery, onChange}: Sel
             filterKey={filterKey}
             value={values?.[filterKey]}
             policyIDQuery={policyIDQuery}
+            autoFocus={autoFocus}
             onChange={onChange}
         />
     );

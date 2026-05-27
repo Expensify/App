@@ -2,6 +2,7 @@ import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 import SafeTriangle from '@components/SafeTriangle';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
+import SearchAdvancedFilterList from '@components/Search/SearchAdvancedFilterList';
 import type {SearchQueryJSON} from '@components/Search/types';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -10,8 +11,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import FilterList from './FilterList';
-import SelectedFilterContent from './SelectedFilterContent';
+import SelectedFilterContent from '../SelectedFilterContent';
 
 type AdvancedFiltersPopupProps = {
     queryJSON: SearchQueryJSON;
@@ -25,14 +25,16 @@ function AdvancedFiltersPopup({queryJSON}: AdvancedFiltersPopupProps) {
     const filterContentRef = useRef<View>(null);
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
-    const updateFilterQueryParams = useUpdateFilterQuery(queryJSON, false);
+    const updateFilterQueryParams = useUpdateFilterQuery(queryJSON);
 
     return (
         <SafeTriangle submenuRef={filterContentRef}>
             <View style={[styles.flexRow, StyleUtils.getHeight(Math.min(windowHeight, CONST.ADVANCED_FILTERS_POPOVER_HEIGHT))]}>
-                <FilterList
+                <SearchAdvancedFilterList
+                    style={[styles.typeFiltersPopupContainer]}
                     selectedFilter={selectedFilter}
-                    onFilterSelected={setSelectedFilter}
+                    onHoverIn={setSelectedFilter}
+                    onFocus={setSelectedFilter}
                 />
                 <View
                     ref={filterContentRef}

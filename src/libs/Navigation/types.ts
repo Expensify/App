@@ -6,6 +6,7 @@ import type {SearchQueryString} from '@components/Search/types';
 import type {ReplacementReason} from '@libs/actions/Card';
 import type {SaveSearchParams} from '@libs/API/parameters';
 import type {ReimbursementAccountStepToOpen} from '@libs/ReimbursementAccountUtils';
+import type {SearchFilter} from '@libs/SearchUIUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type {AttachmentModalContainerModalProps} from '@pages/media/AttachmentModalScreen/types';
 import type RECONCILIATION_ACCOUNT_SETTINGS_TYPE from '@pages/workspace/accounting/reconciliation/constants';
@@ -3140,6 +3141,9 @@ type SearchFullscreenNavigatorParamList = {
 
 type SearchAdvancedFiltersParamList = {
     [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: Record<string, never>;
+    [SCREENS.SEARCH.ADVANCED_FILTERS_CONTENT_RHP]: {
+        filterKey: SearchFilter['key'];
+    };
 };
 
 type SearchSavedSearchParamList = {
