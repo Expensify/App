@@ -56,7 +56,6 @@ function WorkspaceCreateTaxValuePage({
     return (
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
-            includePaddingTop={false}
             testID="WorkspaceCreateTaxValuePage"
             shouldEnableMaxHeight
         >
