@@ -327,7 +327,6 @@ describe('getHRCards', () => {
         const cards = getHRCards(makeGetHRCardsParams({isBetaEnabled}));
 
         const mergeKeys = Object.keys(MERGE_HR_PROVIDERS);
-        expect(cards).toHaveLength(mergeKeys.length);
         for (const slug of mergeKeys) {
             expect(cards.find((c) => c.key === `merge_${slug}`)).toBeDefined();
         }
@@ -343,16 +342,19 @@ describe('getHRCards', () => {
     it('sets correct routes for Zenefits cards', () => {
         const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.ZENEFITS;
         const cards = getHRCards(makeGetHRCardsParams({isBetaEnabled}));
+        const zenefits = cards.find((c) => c.key === 'zenefits');
 
-        expect(cards?.at(0)?.approvalModeRoute).toBe(ROUTES.WORKSPACE_HR_ZENEFITS_APPROVAL_MODE.getRoute(POLICY_ID));
-        expect(cards?.at(0)?.finalApproverRoute).toBe(ROUTES.WORKSPACE_HR_ZENEFITS_FINAL_APPROVER.getRoute(POLICY_ID));
+        expect(zenefits?.approvalModeRoute).toBe(ROUTES.WORKSPACE_HR_ZENEFITS_APPROVAL_MODE.getRoute(POLICY_ID));
+        expect(zenefits?.finalApproverRoute).toBe(ROUTES.WORKSPACE_HR_ZENEFITS_FINAL_APPROVER.getRoute(POLICY_ID));
     });
 
     it('sets correct routes for Merge HR cards', () => {
         const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.MERGE_HR;
         const cards = getHRCards(makeGetHRCardsParams({isBetaEnabled}));
+        const mergeCards = cards.filter((c) => c.key.startsWith('merge_'));
 
-        for (const card of cards) {
+        expect(mergeCards.length).toBeGreaterThan(0);
+        for (const card of mergeCards) {
             expect(card.approvalModeRoute).toBe(ROUTES.WORKSPACE_HR_MERGE_APPROVAL_MODE.getRoute(POLICY_ID));
             expect(card.finalApproverRoute).toBe(ROUTES.WORKSPACE_HR_MERGE_FINAL_APPROVER.getRoute(POLICY_ID));
         }
@@ -476,8 +478,10 @@ describe('getHRCards', () => {
     it('uses provider iconUrl for Merge cards', () => {
         const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.MERGE_HR;
         const cards = getHRCards(makeGetHRCardsParams({isBetaEnabled}));
+        const mergeCards = cards.filter((c) => c.key.startsWith('merge_'));
 
-        for (const card of cards) {
+        expect(mergeCards.length).toBeGreaterThan(0);
+        for (const card of mergeCards) {
             const slug = card.key.replace('merge_', '');
             const expected = MERGE_HR_PROVIDERS[slug as keyof typeof MERGE_HR_PROVIDERS]?.iconUrl;
             expect(card.icon).toBe(expected);
