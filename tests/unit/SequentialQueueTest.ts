@@ -36,29 +36,30 @@ describe('SequentialQueue', () => {
         expect(getLength()).toBe(2);
     });
 
-    it('should push two requests with conflict resolution and replace', () => {
-        SequentialQueue.push(request);
-        const requestWithConflictResolution: Request<never> = {
-            command: 'ReconnectApp',
-            data: {accountID: 56789},
-            checkAndFixConflictingRequest: (persistedRequests) => {
-                // should be one instance of ReconnectApp, get the index to replace it later
-                const index = persistedRequests.findIndex((r) => r.command === 'ReconnectApp');
-                if (index === -1) {
-                    return {conflictAction: {type: 'push'}};
-                }
-
-                return {
-                    conflictAction: {type: 'replace', index},
-                };
-            },
-        };
-        SequentialQueue.push(requestWithConflictResolution);
-        expect(getLength()).toBe(1);
-        // We know there is only one request and it's ongoing.
-        // We can get it and verify that the ongoing request is the second one.
-        const ongoingRequest = getOngoingRequest();
-        expect(ongoingRequest?.data?.accountID).toBe(56789);
+    it('should push two requests with conflict resolution and replace', async () => {
+        // Pause the queue so `process()` does not consume the first request before
+        // the conflict resolver runs. Under persist-before-fire `push()` is async,
+        // so we await both pushes and then assert on the on-disk queue directly.
+        SequentialQueue.pause();
+        try {
+            await SequentialQueue.push(request);
+            const requestWithConflictResolution: Request<never> = {
+                command: 'ReconnectApp',
+                data: {accountID: 56789},
+                checkAndFixConflictingRequest: (persistedRequests) => {
+                    const index = persistedRequests.findIndex((r) => r.command === 'ReconnectApp');
+                    if (index === -1) {
+                        return {conflictAction: {type: 'push'}};
+                    }
+                    return {conflictAction: {type: 'replace', index}};
+                },
+            };
+            await SequentialQueue.push(requestWithConflictResolution);
+            expect(getLength()).toBe(1);
+            expect(getAll().at(0)?.data?.accountID).toBe(56789);
+        } finally {
+            SequentialQueue.unpause();
+        }
     });
 
     it('should push two requests with conflict resolution and push', () => {
@@ -88,105 +89,112 @@ describe('SequentialQueue', () => {
     });
 
     it('should add a new request even if a similar one is ongoing', async () => {
-        // .push at the end flush the queue
-        SequentialQueue.push(request);
+        // Pause fetch so the first request lands as `ongoingRequest` but never completes.
+        // The conflict checker on push 2 inspects the persisted queue (which excludes the
+        // ongoing request), so it cannot find a 'ReconnectApp' to replace and falls back
+        // to 'push'. The new request is therefore added to the queue.
+        const mockedFetch = global.fetch as ReturnType<typeof TestHelper.getGlobalFetchMock> & {pause: () => void; resume: () => Promise<void>};
+        mockedFetch.pause();
+        try {
+            await SequentialQueue.push(request);
+            await waitForBatchedUpdates();
+            expect(getOngoingRequest()?.command).toBe('ReconnectApp');
 
-        // wait for Onyx.connect execute the callback and start processing the queue
-        await Promise.resolve();
+            const requestWithConflictResolution: Request<never> = {
+                command: 'ReconnectApp',
+                data: {accountID: 56789},
+                checkAndFixConflictingRequest: (persistedRequests) => {
+                    const index = persistedRequests.findIndex((r) => r.command === 'ReconnectApp');
+                    if (index === -1) {
+                        return {conflictAction: {type: 'push'}};
+                    }
+                    return {conflictAction: {type: 'replace', index}};
+                },
+            };
 
-        const requestWithConflictResolution: Request<never> = {
-            command: 'ReconnectApp',
-            data: {accountID: 56789},
-            checkAndFixConflictingRequest: (persistedRequests) => {
-                // should be one instance of ReconnectApp, get the index to replace it later
-                const index = persistedRequests.findIndex((r) => r.command === 'ReconnectApp');
-                if (index === -1) {
-                    return {conflictAction: {type: 'push'}};
-                }
+            await SequentialQueue.push(requestWithConflictResolution);
 
-                return {
-                    conflictAction: {type: 'replace', index},
-                };
-            },
-        };
-
-        SequentialQueue.push(requestWithConflictResolution);
-
-        const ongoingRequest = getOngoingRequest();
-        expect(ongoingRequest?.data?.accountID).toBe(56789);
+            // The new request is in the persisted queue with the expected accountID.
+            expect(getAll().some((r) => r.data?.accountID === 56789)).toBe(true);
+        } finally {
+            await mockedFetch.resume();
+        }
     });
 
     it('should replace request request in queue while a similar one is ongoing', async () => {
-        // .push at the end flush the queue
-        SequentialQueue.push(request);
+        const mockedFetch = global.fetch as ReturnType<typeof TestHelper.getGlobalFetchMock> & {pause: () => void; resume: () => Promise<void>};
+        mockedFetch.pause();
+        try {
+            await SequentialQueue.push(request);
+            await waitForBatchedUpdates();
+            expect(getOngoingRequest()?.command).toBe('ReconnectApp');
 
-        // wait for Onyx.connect execute the callback and start processing the queue
-        await Promise.resolve();
-
-        const conflictResolver = <TKey extends OnyxKey>(persistedRequests: Array<Request<TKey>>): ConflictActionData => {
-            // should be one instance of ReconnectApp, get the index to replace it later
-            const index = persistedRequests.findIndex((r) => r.command === 'ReconnectApp');
-            if (index === -1) {
-                return {conflictAction: {type: 'push'}};
-            }
-
-            return {
-                conflictAction: {type: 'replace', index},
-            };
-        };
-
-        const requestWithConflictResolution: Request<never> = {
-            command: 'ReconnectApp',
-            data: {accountID: 56789},
-            checkAndFixConflictingRequest: conflictResolver,
-        };
-
-        const requestWithConflictResolution2: Request<never> = {
-            command: 'ReconnectApp',
-            data: {accountID: 56789},
-            checkAndFixConflictingRequest: conflictResolver,
-        };
-
-        SequentialQueue.push(requestWithConflictResolution);
-        SequentialQueue.push(requestWithConflictResolution2);
-
-        expect(getLength()).toBe(2);
-    });
-
-    it('should replace request request in queue while a similar one is ongoing and keep the same index', () => {
-        SequentialQueue.push({command: 'OpenReport'});
-        SequentialQueue.push(request);
-
-        const requestWithConflictResolution: Request<never> = {
-            command: 'ReconnectApp',
-            data: {accountID: 56789},
-            checkAndFixConflictingRequest: (persistedRequests) => {
-                // should be one instance of ReconnectApp, get the index to replace it later
+            const conflictResolver = <TKey extends OnyxKey>(persistedRequests: Array<Request<TKey>>): ConflictActionData => {
                 const index = persistedRequests.findIndex((r) => r.command === 'ReconnectApp');
                 if (index === -1) {
                     return {conflictAction: {type: 'push'}};
                 }
+                return {conflictAction: {type: 'replace', index}};
+            };
 
-                return {
-                    conflictAction: {type: 'replace', index},
-                };
-            },
-        };
+            const requestWithConflictResolution: Request<never> = {
+                command: 'ReconnectApp',
+                data: {accountID: 56789},
+                checkAndFixConflictingRequest: conflictResolver,
+            };
 
-        SequentialQueue.push(requestWithConflictResolution);
-        SequentialQueue.push({command: 'AddComment'});
-        SequentialQueue.push({command: 'OpenReport'});
+            const requestWithConflictResolution2: Request<never> = {
+                command: 'ReconnectApp',
+                data: {accountID: 56789},
+                checkAndFixConflictingRequest: conflictResolver,
+            };
 
-        expect(getLength()).toBe(4);
-        const persistedRequests = getAll();
-        const ongoingRequest = getOngoingRequest();
+            // First conflict push: queue is empty (ongoing not in queue) → push action → queue=[r2].
+            // Second conflict push: queue=[r2] → replace at 0 → queue=[r3].
+            // Total in-flight items: ongoing + queue = 2.
+            await SequentialQueue.push(requestWithConflictResolution);
+            await SequentialQueue.push(requestWithConflictResolution2);
 
-        // The first OpenReport call is ongoing
-        expect(ongoingRequest?.command).toBe('OpenReport');
+            expect(getLength()).toBe(2);
+        } finally {
+            await mockedFetch.resume();
+        }
+    });
 
-        // We know ReconnectApp is at index 0 in the queue now, so we can get it to verify
-        // that was replaced by the new request.
-        expect(persistedRequests.at(0)?.data?.accountID).toBe(56789);
+    it('should replace request request in queue while a similar one is ongoing and keep the same index', async () => {
+        const mockedFetch = global.fetch as ReturnType<typeof TestHelper.getGlobalFetchMock> & {pause: () => void; resume: () => Promise<void>};
+        mockedFetch.pause();
+        try {
+            // First push moves into `ongoingRequest`; subsequent pushes stack in the queue.
+            await SequentialQueue.push({command: 'OpenReport'});
+            await waitForBatchedUpdates();
+            expect(getOngoingRequest()?.command).toBe('OpenReport');
+
+            await SequentialQueue.push(request);
+
+            const requestWithConflictResolution: Request<never> = {
+                command: 'ReconnectApp',
+                data: {accountID: 56789},
+                checkAndFixConflictingRequest: (persistedRequests) => {
+                    const index = persistedRequests.findIndex((r) => r.command === 'ReconnectApp');
+                    if (index === -1) {
+                        return {conflictAction: {type: 'push'}};
+                    }
+                    return {conflictAction: {type: 'replace', index}};
+                },
+            };
+
+            await SequentialQueue.push(requestWithConflictResolution);
+            await SequentialQueue.push({command: 'AddComment'});
+            await SequentialQueue.push({command: 'OpenReport'});
+
+            expect(getLength()).toBe(4);
+            const persistedRequests = getAll();
+            expect(getOngoingRequest()?.command).toBe('OpenReport');
+            expect(persistedRequests.at(0)?.data?.accountID).toBe(56789);
+        } finally {
+            await mockedFetch.resume();
+        }
     });
 
     // need to test a rance condition between processing the next request and then pushing a new request with conflict resolver
