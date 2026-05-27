@@ -96,7 +96,7 @@ function ShareTab({ref}: ShareTabProps) {
               personalDetails,
               sortedActions,
               conciergeReportID,
-          })
+          }).options
         : defaultListOptions;
 
     let recentReportsOptions: OptionData[];

@@ -260,7 +260,6 @@ type Options = {
     currentUserOption: SearchOptionData | null | undefined;
     workspaceChats?: SearchOptionData[];
     selfDMChat?: SearchOptionData | undefined;
-    hasMore?: boolean;
 };
 
 type PreviewConfig = {
@@ -297,6 +296,11 @@ type OrderReportOptionsConfig = {
 
 type ReportAndPersonalDetailOptions = Pick<Options, 'recentReports' | 'personalDetails' | 'workspaceChats'>;
 
+type OptionsResult = {
+    options: Options;
+    hasMore?: boolean;
+};
+
 export type {
     FilterUserToInviteConfig,
     GetOptionsConfig,
@@ -318,4 +322,5 @@ export type {
     SelectionListSections,
     SectionForSearchTerm,
     IsValidReportsConfig,
+    OptionsResult,
 };

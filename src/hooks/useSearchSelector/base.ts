@@ -217,7 +217,7 @@ function useSearchSelectorBase({
     const computedSearchTerm = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode);
     const trimmedSearchInput = debouncedSearchTerm.trim();
 
-    const baseOptions = (() => {
+    const {options: baseOptions, hasMore} = (() => {
         if (!areOptionsInitialized) {
             return getEmptyOptions();
         }
@@ -340,7 +340,7 @@ function useSearchSelectorBase({
     })();
 
     const onListEndReached = useDebounce(() => {
-        if (!areOptionsInitialized || !baseOptions.hasMore) {
+        if (!areOptionsInitialized || !hasMore) {
             return;
         }
 
