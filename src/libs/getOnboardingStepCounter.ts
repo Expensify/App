@@ -1,6 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {StepCounterParams} from '@src/languages/params';
+import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import getOnboardingRouteFromScreen from './Navigation/helpers/getOnboardingRouteFromScreen';
 
@@ -136,7 +137,7 @@ function getOnboardingStepCounter(page: OnboardingScreen, context: OnboardingFlo
     };
 }
 
-function getPreviousOnboardingRoute(page: OnboardingScreen, context: OnboardingFlowContext, backTo?: string): string | undefined {
+function getPreviousOnboardingRoute(page: OnboardingScreen, context: OnboardingFlowContext, backTo?: string): Route | undefined {
     const flow = getOnboardingFlow(context);
     if (!flow) {
         return undefined;
