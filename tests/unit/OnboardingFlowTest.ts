@@ -1,4 +1,4 @@
-import {getOnboardingInitialPath} from '@libs/actions/Welcome/OnboardingFlow';
+import {getOnboardingInitialPath, shouldForceEmployeesStep} from '@libs/actions/Welcome/OnboardingFlow';
 import type {GetOnboardingInitialPathParamsType} from '@libs/actions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
 
@@ -59,7 +59,7 @@ describe('OnboardingFlow', () => {
                     signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB,
                 },
                 currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.EMPLOYER,
-                currentOnboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                currentOnboardingCompanySize: null,
                 onboardingInitialPath: '/',
                 onboardingValues: undefined,
             };
@@ -85,7 +85,84 @@ describe('OnboardingFlow', () => {
                 onboardingValues: undefined,
             };
             const path = getOnboardingInitialPath(params);
+            expect(path).toBe('/onboarding/accounting');
+        });
+
+        it('should return employees for VSB when resuming at accounting without a company size', () => {
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: false,
+                hasAccessiblePolicies: false,
+                onboardingValuesParam: {
+                    hasCompletedGuidedSetupFlow: false,
+                    shouldRedirectToClassicAfterMerge: false,
+                    shouldValidate: false,
+                    isMergingAccountBlocked: false,
+                    isMergeAccountStepCompleted: false,
+                    signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB,
+                },
+                currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                currentOnboardingCompanySize: null,
+                onboardingInitialPath: '/onboarding/accounting',
+                onboardingValues: undefined,
+            };
+            const path = getOnboardingInitialPath(params);
             expect(path).toBe('/onboarding/employees');
+        });
+
+        it('should return employees for VSB when resuming with legacy MICRO company size', () => {
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: false,
+                hasAccessiblePolicies: true,
+                onboardingValuesParam: {
+                    hasCompletedGuidedSetupFlow: false,
+                    shouldRedirectToClassicAfterMerge: false,
+                    shouldValidate: false,
+                    isMergingAccountBlocked: false,
+                    isMergeAccountStepCompleted: false,
+                    signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB,
+                },
+                currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                currentOnboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                onboardingInitialPath: '/onboarding/interested-features',
+                onboardingValues: undefined,
+            };
+            const path = getOnboardingInitialPath(params);
+            expect(path).toBe('/onboarding/employees');
+        });
+
+        it('should resume VSB onboarding when a valid company size is selected', () => {
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: false,
+                hasAccessiblePolicies: false,
+                onboardingValuesParam: {
+                    hasCompletedGuidedSetupFlow: false,
+                    shouldRedirectToClassicAfterMerge: false,
+                    shouldValidate: false,
+                    isMergingAccountBlocked: false,
+                    isMergeAccountStepCompleted: false,
+                    signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB,
+                },
+                currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                currentOnboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL,
+                onboardingInitialPath: '/onboarding/accounting',
+                onboardingValues: undefined,
+            };
+            const path = getOnboardingInitialPath(params);
+            expect(path).toBe('/onboarding/accounting');
+        });
+    });
+
+    describe('shouldForceEmployeesStep', () => {
+        it('should return true for VSB without a company size', () => {
+            expect(shouldForceEmployeesStep(CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB, null)).toBe(true);
+        });
+
+        it('should return true for VSB with legacy MICRO company size', () => {
+            expect(shouldForceEmployeesStep(CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB, CONST.ONBOARDING_COMPANY_SIZE.MICRO)).toBe(true);
+        });
+
+        it('should return false for VSB with a valid company size', () => {
+            expect(shouldForceEmployeesStep(CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB, CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL)).toBe(false);
         });
     });
 });
