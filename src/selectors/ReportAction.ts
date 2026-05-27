@@ -99,4 +99,11 @@ function getReceiptScanFailedIOUActionDataSelector(
     };
 }
 
-export {getParentReportActionSelector, getLastClosedReportAction, getReportActionsForReportIDs, getReportActionByIDSelector, getReceiptScanFailedIOUActionDataSelector};
+export {
+    getParentReportActionSelector,
+    getLastClosedReportAction,
+    getReportActionsForReportIDs,
+    getReportActionByIDSelector,
+    getReceiptScanFailedIOUActionDataSelector,
+    findIOUActionForReceiptScanFailed,
+};

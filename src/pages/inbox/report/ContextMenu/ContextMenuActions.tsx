@@ -1,3 +1,4 @@
+import {findIOUActionForReceiptScanFailed} from '@selectors/ReportAction';
 import {Str} from 'expensify-common';
 import type {RefObject} from 'react';
 import React from 'react';
@@ -59,6 +60,7 @@ import {
     getInvoiceCompanyWebsiteUpdateMessage,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
+    getLinkedTransactionID,
     getMarkedReimbursedMessage,
     getMemberChangeMessageFragment,
     getMessageOfOldDotReportAction,
@@ -190,6 +192,7 @@ import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils
 import {isExpenseSplit, isPerDiemRequest} from '@libs/TransactionUtils';
 import {setDownload} from '@userActions/Download';
 import {toggleEmojiReaction} from '@userActions/EmojiReactions';
+import {getAllReportActionsFromIOU, getAllTransactionViolations} from '@userActions/IOU';
 import {
     explain,
     markCommentAsUnread,
@@ -1211,6 +1214,19 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getDynamicExternalWorkflowSubmitFailedActionMessage(translate, reportAction));
                 } else if (isDynamicExternalWorkflowApproveFailedAction(reportAction)) {
                     setClipboardMessage(getDynamicExternalWorkflowApproveFailedActionMessage(translate, reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED)) {
+                    const isIOUReport = report?.type === CONST.REPORT.TYPE.IOU || report?.type === CONST.REPORT.TYPE.EXPENSE || report?.type === CONST.REPORT.TYPE.INVOICE;
+                    const IOUReportID = isIOUReport ? report?.reportID : report?.parentReportID;
+                    const allActions = getAllReportActionsFromIOU();
+                    const IOUReportActions = allActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOUReportID}`];
+                    const iouAction = findIOUActionForReceiptScanFailed(IOUReportActions, isIOUReport, report?.parentReportActionID, reportAction?.reportID);
+                    const transactionID = getLinkedTransactionID(iouAction);
+                    const canEdit = !!iouAction?.actorAccountID && iouAction.actorAccountID === currentUserPersonalDetails.accountID;
+                    const allViolations = getAllTransactionViolations();
+                    const transactionViolations = allViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+                    const smartscanFailedViolation = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED);
+                    const missingFields = smartscanFailedViolation?.data?.missingFields ?? [];
+                    Clipboard.setString(translate('violations.smartscanFailed', {canEdit, missingFields}));
                 } else if (content) {
                     setClipboardMessage(
                         content.replaceAll(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {
