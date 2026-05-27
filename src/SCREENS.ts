@@ -17,7 +17,7 @@ const PROTECTED_SCREENS = {
 const SCREENS = {
     ...PROTECTED_SCREENS,
     REPORT: 'Report',
-    PROFILE_AVATAR: 'ProfileAvatar',
+    DYNAMIC_PROFILE_AVATAR: 'Dynamic_Profile_Avatar',
     WORKSPACE_AVATAR: 'WorkspaceAvatar',
     WORKSPACE_DOCUMENT: 'WorkspaceDocument',
     REPORT_AVATAR: 'ReportAvatar',
@@ -283,9 +283,11 @@ const SCREENS = {
         },
     },
     TWO_FACTOR_AUTH: {
-        ROOT: 'Settings_TwoFactorAuth_Root',
-        VERIFY: 'Settings_TwoFactorAuth_Verify',
-        VERIFY_ACCOUNT: 'Settings_TwoFactorAuth_VerifyAccount',
+        DYNAMIC_ROOT: 'Dynamic_Settings_TwoFactorAuth_Root',
+        DYNAMIC_VERIFY: 'Dynamic_Settings_TwoFactorAuth_Verify',
+        DYNAMIC_VERIFY_ACCOUNT: 'Dynamic_Settings_TwoFactorAuth_Verify_Account',
+        DYNAMIC_SUCCESS: 'Dynamic_Settings_TwoFactorAuth_Success',
+        ENABLED: 'Settings_TwoFactorAuth_Enabled',
         SUCCESS: 'Settings_TwoFactorAuth_Success',
         DISABLED: 'Settings_TwoFactorAuth_Disabled',
         DISABLE: 'Settings_TwoFactorAuth_Disable',
@@ -457,7 +459,7 @@ const SCREENS = {
         SETTINGS_CATEGORY_GL_CODE: 'Settings_Category_GL_Code',
     },
     EXPENSIFY_CARD: {
-        EXPENSIFY_CARD_DETAILS: 'Expensify_Card_Details',
+        DYNAMIC_EXPENSIFY_CARD_DETAILS: 'Dynamic_Expensify_Card_Details',
         DYNAMIC_EXPENSIFY_CARD_NAME: 'Dynamic_Expensify_Card_Name',
         DYNAMIC_EXPENSIFY_CARD_LIMIT: 'Dynamic_Expensify_Card_Limit',
         DYNAMIC_EXPENSIFY_CARD_LIMIT_TYPE: 'Dynamic_Expensify_Card_Limit_Type',
@@ -515,7 +517,7 @@ const SCREENS = {
     },
 
     NEW_REPORT_WORKSPACE_SELECTION: {
-        ROOT: 'NewReportWorkspaceSelection_Root',
+        DYNAMIC_ROOT: 'Dynamic_NewReportWorkspaceSelection_Root',
     },
 
     SET_DEFAULT_WORKSPACE: 'SetDefaultWorkspace',
@@ -824,6 +826,7 @@ const SCREENS = {
         DYNAMIC_CATEGORY_DEFAULT_TAX_RATE: 'Dynamic_Category_Default_Tax_Rate',
         DYNAMIC_CATEGORY_FLAG_AMOUNTS_OVER: 'Dynamic_Category_Flag_Amounts_Over',
         DYNAMIC_EXPENSE_LIMIT_TYPE_SELECTOR: 'Dynamic_Expense_Limit_Type_Selector',
+        DYNAMIC_IMPORTED_MEMBERS_ROLE: 'Dynamic_Imported_Members_Role',
         DYNAMIC_CATEGORY_DESCRIPTION_HINT: 'Dynamic_Category_Description_Hint',
         DYNAMIC_CATEGORY_APPROVER: 'Dynamic_Category_Approver',
         DYNAMIC_CATEGORY_REQUIRE_RECEIPTS_OVER: 'Dynamic_Category_Require_Receipts_Over',
@@ -853,6 +856,7 @@ const SCREENS = {
         CREATE_DISTANCE_RATE: 'Create_Distance_Rate',
         CREATE_DISTANCE_RATE_UPGRADE: 'Create_Distance_Rate_Upgrade',
         DISTANCE_RATES_SETTINGS: 'Distance_Rates_Settings',
+        DISTANCE_RATES_UNIT: 'Distance_Rates_Unit',
         DISTANCE_RATE_DETAILS: 'Distance_Rate_Details',
         DISTANCE_RATE_EDIT: 'Distance_Rate_Edit',
         DISTANCE_RATE_NAME_EDIT: 'Distance_Rate_Name_Edit',
@@ -912,7 +916,7 @@ const SCREENS = {
 
     EDIT_REQUEST: {
         CURRENCY: 'EditRequest_Currency',
-        REPORT_FIELD: 'EditRequest_ReportField',
+        DYNAMIC_REPORT_FIELD: 'Dynamic_EditRequest_ReportField',
     },
 
     NEW_CHAT: {
@@ -975,7 +979,7 @@ const SCREENS = {
     WALLET_STATEMENT_ROOT: 'WalletStatement_Root',
     SIGN_IN_ROOT: 'SignIn_Root',
     DETAILS_ROOT: 'Details_Root',
-    PROFILE_ROOT: 'Profile_Root',
+    DYNAMIC_PROFILE: 'Dynamic_Profile_Root',
     AUTO_SUBMIT_ROOT: 'AutoSubmit_Modal_Root',
     DYNAMIC_CHANGE_POLICY_EDUCATIONAL_ROOT: 'DynamicChangePolicyEducational_Root',
     REPORT_DESCRIPTION_ROOT: 'Report_Description_Root',
@@ -992,6 +996,11 @@ const SCREENS = {
         DETAILS: 'RoomMember_Details',
     },
     DYNAMIC_FLAG_COMMENT: 'Dynamic_Flag_Comment',
+    DYNAMIC_TASK_TITLE: 'Dynamic_Task_Title',
+    DYNAMIC_TASK_ASSIGNEE: 'Dynamic_Task_Assignee',
+    DYNAMIC_REPORT_DESCRIPTION: 'Dynamic_Report_Description',
+    DYNAMIC_PRIVATE_NOTES_LIST: 'Dynamic_PrivateNotes_List',
+    DYNAMIC_PRIVATE_NOTES_EDIT: 'Dynamic_PrivateNotes_Edit',
     REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',
     REIMBURSEMENT_ACCOUNT_NON_USD: 'Reimbursement_Account_Non_USD',
     REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO: 'Reimbursement_Account_Signer_Info',

@@ -28,7 +28,7 @@ import useDeferNonEssentials from './hooks/useDeferNonEssentials';
 import useFlushDeferredWriteOnFocus from './hooks/useFlushDeferredWriteOnFocus';
 import LinkedActionNotFoundGuard from './LinkedActionNotFoundGuard';
 import ReactionListWrapper from './ReactionListWrapper';
-import ReportActionComposePlaceholder from './report/ReportActionCompose/ReportActionComposePlaceholder';
+import ReportActionCompose from './report/ReportActionCompose/ReportActionCompose';
 import {ReportActionEditMessageContextProvider, ReportScreenEditMessageProviderWithTransactionThread} from './report/ReportActionEditMessageContext';
 import ReportFooter from './report/ReportFooter';
 import useClearReportActionDraftsOnReportChange from './report/useClearReportActionDraftsOnReportChange';
@@ -148,7 +148,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                                             testID="report-actions-view-wrapper"
                                                         >
                                                             <ReportActionsList />
-                                                            {shouldDeferNonEssentials ? <ReportActionComposePlaceholder /> : <ReportFooter />}
+                                                            {shouldDeferNonEssentials ? <ReportActionCompose.Placeholder /> : <ReportFooter />}
                                                         </View>
                                                     </ConciergeDraftProvider>
                                                 </AgentZeroStatusProvider>

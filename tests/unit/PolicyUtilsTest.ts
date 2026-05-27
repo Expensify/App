@@ -4,7 +4,9 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import DateUtils from '@libs/DateUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {
+    canAccessSubmitWorkspaceFeatures,
     canMemberRead,
     canMemberWrite,
     canSendInvoiceFromWorkspace,
@@ -42,11 +44,13 @@ import {
     shouldShowPolicy,
     sortPoliciesByName,
     sortWorkspacesBySelected,
+    tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
 import {isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import {getPolicyBrickRoadIndicatorStatus} from '@src/libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
 import type {Connections} from '@src/types/onyx/Policy';
 import createCollection from '../utils/collections/createCollection';
@@ -67,6 +71,10 @@ const GENERATED_ACCOUNT_ID = '555555';
 jest.mock('@libs/UserUtils', () => ({
     // generateAccountID: () => GENERATED_ACCOUNT_ID,
     generateAccountID: jest.fn().mockReturnValue(GENERATED_ACCOUNT_ID),
+}));
+
+jest.mock('@libs/Navigation/Navigation', () => ({
+    navigate: jest.fn(),
 }));
 
 const testDate = DateUtils.getDBTime();
@@ -2688,6 +2696,57 @@ describe('PolicyUtils', () => {
         });
     });
 
+    describe('canAccessSubmitWorkspaceFeatures', () => {
+        const submitPolicyForAccessTest: Policy = {...createRandomPolicy(99001, CONST.POLICY.TYPE.SUBMIT), id: 'policy-submit-access-test'};
+        const teamPolicyForAccessTest: Policy = {...createRandomPolicy(99002, CONST.POLICY.TYPE.TEAM), id: 'policy-team-access-test'};
+
+        it('returns true when policy is Submit and SUBMIT_2026 beta is enabled', () => {
+            expect(canAccessSubmitWorkspaceFeatures(submitPolicyForAccessTest, true)).toBe(true);
+        });
+
+        it('returns false when policy is Submit and SUBMIT_2026 beta is disabled', () => {
+            expect(canAccessSubmitWorkspaceFeatures(submitPolicyForAccessTest, false)).toBe(false);
+        });
+
+        it('returns false when policy is not Submit even if beta is enabled', () => {
+            expect(canAccessSubmitWorkspaceFeatures(teamPolicyForAccessTest, true)).toBe(false);
+        });
+
+        it('returns false when policy is undefined', () => {
+            expect(canAccessSubmitWorkspaceFeatures(undefined, true)).toBe(false);
+        });
+    });
+
+    describe('tryNavigateToSubmitWorkspaceUpgrade', () => {
+        const submitPolicyForNavTest: Policy = {...createRandomPolicy(99003, CONST.POLICY.TYPE.SUBMIT), id: 'policy-submit-nav-test'};
+        const teamPolicyForNavTest: Policy = {...createRandomPolicy(99004, CONST.POLICY.TYPE.TEAM), id: 'policy-team-nav-test'};
+        const featureAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias;
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
+
+        it('returns false and does not navigate when isEnabling is false', () => {
+            expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, false, featureAlias)).toBe(false);
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        it('returns false when policy is not Submit', () => {
+            expect(tryNavigateToSubmitWorkspaceUpgrade(teamPolicyForNavTest, true, featureAlias)).toBe(false);
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        it('navigates to workspace upgrade and returns true for Submit policy regardless of beta', () => {
+            const policyID = submitPolicyForNavTest.id;
+            const expectedRoute = ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, featureAlias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+
+            expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, true, featureAlias)).toBe(true);
+
+            expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+            expect(Navigation.navigate).toHaveBeenCalledWith(expectedRoute);
+        });
+    });
+
     describe('HR connection helpers', () => {
         describe('isMergeHRConnected', () => {
             it('returns false for undefined policy', () => {
@@ -2761,6 +2820,7 @@ describe('PolicyUtils', () => {
                 const provider = getConnectedHRProvider(policy);
                 expect(provider?.connectionName).toBe(CONST.POLICY.CONNECTIONS.NAME.MERGE_HR);
                 expect(provider?.displayName).toBe('Workday');
+                expect(provider?.mergeSlug).toBe('workday');
             });
         });
 
