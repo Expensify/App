@@ -59,16 +59,14 @@ function ApprovalWorkflowSection({
 
     const approverTitle = (index: number) => {
         if (isHRManagerMode) {
-            if (approvalWorkflow.approvers.length <= 1) {
-                const singleApprover = approvalWorkflow.approvers.at(0);
-                if (hrFinalApproverEmail && singleApprover?.email === hrFinalApproverEmail) {
-                    return translate('workflowsPage.finalApprover');
-                }
-                return translate('workflowsPage.approver');
-            }
-            const isLastApprover = index === approvalWorkflow.approvers.length - 1;
-            if (isLastApprover) {
+            const isLast = index === approvalWorkflow.approvers.length - 1;
+            const approver = approvalWorkflow.approvers.at(index);
+            const isConfiguredFinalApprover = !!hrFinalApproverEmail && approver?.email === hrFinalApproverEmail;
+            if (isLast && isConfiguredFinalApprover) {
                 return translate('workflowsPage.finalApprover');
+            }
+            if (approvalWorkflow.approvers.length <= 1) {
+                return translate('workflowsPage.approver');
             }
             const fromProviderSuffix = hrProviderName ? ` (${translate('workflowsPage.approverFromProvider', {provider: hrProviderName})})` : '';
             return `${translate('workflowsPage.manager')}${fromProviderSuffix}`;
