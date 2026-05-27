@@ -260,11 +260,7 @@ describe('handleStateChange — backward', () => {
         handleStateChange(back);
         flushTransitions();
         expect(mockFireFocusEvent).toHaveBeenCalledTimes(1);
-        expect(mockFireFocusEvent).toHaveBeenNthCalledWith(1, view);
-
-        jest.runAllTimers();
-        expect(mockFireFocusEvent).toHaveBeenCalledTimes(2);
-        expect(mockFireFocusEvent).toHaveBeenNthCalledWith(2, view);
+        expect(mockFireFocusEvent).toHaveBeenCalledWith(view);
     });
 
     it('does NOT restore when skipNextFocusRestore was called before goBack (form-submit path)', () => {
@@ -334,7 +330,6 @@ describe('handleStateChange — backward', () => {
         expect(getTriggerMapSizeForTests()).toBe(1);
         handleStateChange(back);
         flushTransitions();
-        jest.runAllTimers();
         expect(getTriggerMapSizeForTests()).toBe(0);
     });
 });
@@ -444,7 +439,6 @@ describe('PUSH_PARAMS — same-route param change', () => {
 
         notifyPushParamsBackward(ROUTE_KEY, {q: 'old'});
         flushTransitions();
-        jest.runAllTimers();
         expect(mockFireFocusEvent).toHaveBeenCalledWith(trigger);
     });
 
@@ -455,7 +449,6 @@ describe('PUSH_PARAMS — same-route param change', () => {
         notifyPushParamsForward(ROUTE_KEY, {q: 'old'});
         notifyPushParamsBackward(ROUTE_KEY, {q: 'unrelated'});
         flushTransitions();
-        jest.runAllTimers();
         expect(mockFireFocusEvent).not.toHaveBeenCalled();
     });
 

@@ -1,7 +1,5 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import {Keyboard, StyleSheet, View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports -- type-only; needed to match PressableRef's cross-platform union for the back-button callback ref.
-import type {Text as RNText, View as RNView} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Avatar from '@components/Avatar';
@@ -24,7 +22,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
-import {notifyBackButtonMounted} from '@libs/NavigationFocusReturn';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -93,14 +90,6 @@ function HeaderWithBackButton({
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
     const isInLandscapeMode = useIsInLandscapeMode();
-    // Param signature mirrors PressableRef's cross-platform union; the guard rejects HTMLDivElement so only a native host instance reaches notifyBackButtonMounted.
-    const backButtonRefCallback = useCallback((node: RNView | HTMLDivElement | RNText | null | undefined) => {
-        if (!node || !('measure' in node) || 'innerHTML' in node) {
-            notifyBackButtonMounted(null);
-            return;
-        }
-        notifyBackButtonMounted(node);
-    }, []);
 
     const downloadReasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
         () => ({
@@ -255,7 +244,6 @@ function HeaderWithBackButton({
                 {shouldShowBackButton && (
                     <Tooltip text={translate('common.back')}>
                         <PressableWithoutFeedback
-                            ref={backButtonRefCallback}
                             onPress={() => {
                                 if (Keyboard.isVisible()) {
                                     Keyboard.dismiss();

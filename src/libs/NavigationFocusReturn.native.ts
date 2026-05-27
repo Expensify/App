@@ -5,20 +5,15 @@ import type {View} from 'react-native';
 import findNodeHandle from '@src/utils/findNodeHandle';
 import Accessibility from './Accessibility';
 import fireFocusEvent from './Accessibility/fireFocusEvent';
-import {notifyBackButtonMounted, scheduleForwardAutoFocus} from './Accessibility/forwardAutoFocus';
 import compoundParamsKey, {COMPOUND_KEY_DELIMITER} from './compoundParamsKey';
 import navigationRef from './Navigation/navigationRef';
 // eslint-disable-next-line no-restricted-imports -- focus-return is a sibling primitive to TransitionTracker; the exact transitionEnd signal is what we need to avoid focus-restore races with the OS.
 import TransitionTracker from './Navigation/TransitionTracker';
 import {diffNavigationState} from './navigationStateDiff';
 
-/** Press-driven capture of the triggering View on forward nav; restore via `AccessibilityInfo.sendAccessibilityEvent` on backward. */
-
 type TriggerEntry = {ref: RefObject<View | null>};
 
 const TRIGGER_MAP_MAX = 64;
-// The first focus event can lose to the OS's own window-change auto-focus; a delayed second call lands after the OS settles.
-const RESTORE_RETRY_MS = 300;
 // A press long before a delayed nav (timer / deeplink / async redirect) shouldn't be captured as that nav's trigger.
 const PRESS_TRIGGER_TTL_MS = 3_000;
 
@@ -62,24 +57,17 @@ function captureTriggerForRoute(routeKey: string): void {
     setTriggerEntry(routeKey, {ref});
 }
 
-function tryFireFocusEvent(view: View): boolean {
-    if (findNodeHandle(view) == null) {
-        return false;
-    }
-    fireFocusEvent(view);
-    return true;
-}
-
-function restoreTriggerForRoute(routeKey: string): View | null {
+function restoreTriggerForRoute(routeKey: string): void {
     const entry = triggerMap.get(routeKey);
     if (!entry) {
-        return null;
+        return;
     }
     const view = entry.ref.current;
-    if (!view) {
-        return null;
+    // Truthy ref can still point to a detached View; findNodeHandle returns null then.
+    if (!view || findNodeHandle(view) == null) {
+        return;
     }
-    return tryFireFocusEvent(view) ? view : null;
+    fireFocusEvent(view);
 }
 
 function cancelPendingRestore(): void {
@@ -90,25 +78,14 @@ function cancelPendingRestore(): void {
 function scheduleRestore(routeKey: string): void {
     cancelPendingRestore();
     let cancelled = false;
-    let retryTimerId: ReturnType<typeof setTimeout> | undefined;
     const handle = TransitionTracker.runAfterTransitions({
         callback: () => {
             if (cancelled) {
                 return;
             }
-            const view = restoreTriggerForRoute(routeKey);
-            if (!view) {
-                pendingRestore = null;
-                return;
-            }
-            retryTimerId = setTimeout(() => {
-                if (cancelled) {
-                    return;
-                }
-                tryFireFocusEvent(view);
-                triggerMap.delete(routeKey);
-                pendingRestore = null;
-            }, RESTORE_RETRY_MS);
+            restoreTriggerForRoute(routeKey);
+            triggerMap.delete(routeKey);
+            pendingRestore = null;
         },
     });
 
@@ -116,9 +93,6 @@ function scheduleRestore(routeKey: string): void {
         cancel: () => {
             cancelled = true;
             handle.cancel();
-            if (retryTimerId !== undefined) {
-                clearTimeout(retryTimerId);
-            }
         },
     };
 }
@@ -134,7 +108,6 @@ function handleStateChange(newState: NavigationState | undefined): void {
         cancelPendingRestore();
         captureTriggerForRoute(action.captureKey);
         lastPressedTrigger = null;
-        scheduleForwardAutoFocus();
     } else if (action.type === 'backward') {
         if (skipNextRestore) {
             skipNextRestore = false;
@@ -149,7 +122,6 @@ function handleStateChange(newState: NavigationState | undefined): void {
 
     for (const key of removedKeys) {
         triggerMap.delete(key);
-        // Map iteration is safe under in-loop delete.
         const compoundPrefix = `${key}${COMPOUND_KEY_DELIMITER}`;
         for (const mapKey of triggerMap.keys()) {
             if (mapKey.startsWith(compoundPrefix)) {
@@ -195,7 +167,7 @@ function skipNextFocusRestore(): void {
     skipNextRestore = true;
 }
 
-/** PUSH_PARAMS changes route params without changing the focused key, so `diffNavigationState` sees it as `noop`; capture/restore against the compound key (route + params) directly. */
+/** PUSH_PARAMS reuses the focused key, so `diffNavigationState` reports `noop`; key against `routeKey + params`. */
 function notifyPushParamsForward(routeKey: string, prevParams: unknown): void {
     cancelPendingRestore();
     captureTriggerForRoute(compoundParamsKey(routeKey, prevParams));
@@ -239,7 +211,6 @@ export {
     notifyPushParamsBackward,
     cancelPendingFocusRestore,
     skipNextFocusRestore,
-    notifyBackButtonMounted,
     isFocusRestoreInProgress,
     shouldSkipAutoFocusDueToExistingFocus,
     resetForTests,

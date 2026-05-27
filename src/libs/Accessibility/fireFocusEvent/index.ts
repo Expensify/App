@@ -1,4 +1,4 @@
-// Web: focus is moved by `element.focus()` directly elsewhere; this helper is a no-op so cross-platform consumers can call it unconditionally.
+// Web uses `element.focus()` directly; this is the cross-platform no-op.
 // eslint-disable-next-line no-restricted-imports -- type-only; mirrors PressableRef's cross-platform host-instance union.
 import type {Text as RNText, View} from 'react-native';
 

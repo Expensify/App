@@ -16,27 +16,24 @@ function warmCache<T>(label: string, fetch: () => Promise<T>, apply: (value: T) 
 }
 
 let cachedScreenReaderValue = false;
-const screenReaderSubscribers = new Set<() => void>();
 
-function setScreenReaderValue(value: boolean): void {
-    if (cachedScreenReaderValue === value) {
-        return;
-    }
-    cachedScreenReaderValue = value;
-    for (const cb of screenReaderSubscribers) {
-        cb();
-    }
-}
+// Warm the cache at module load so the sync read is meaningful before any hook subscribes.
+warmCache('screen-reader', isScreenReaderEnabled, (enabled) => {
+    cachedScreenReaderValue = enabled;
+});
 
-// Single always-on listener. Decouples cache freshness from React subscriber lifecycle — toggling TalkBack mid-session updates the cache even if no `useScreenReaderStatus` consumer is currently mounted.
-AccessibilityInfo.addEventListener('screenReaderChanged', setScreenReaderValue);
-warmCache('screen-reader', isScreenReaderEnabled, setScreenReaderValue);
+function subscribeScreenReader(callback: () => void) {
+    const subscription = AccessibilityInfo.addEventListener('screenReaderChanged', (enabled) => {
+        cachedScreenReaderValue = enabled;
+        callback();
+    });
 
-function subscribeScreenReader(callback: () => void): () => void {
-    screenReaderSubscribers.add(callback);
-    return () => {
-        screenReaderSubscribers.delete(callback);
-    };
+    warmCache('screen-reader', isScreenReaderEnabled, (enabled) => {
+        cachedScreenReaderValue = enabled;
+        callback();
+    });
+
+    return () => subscription?.remove();
 }
 
 function getScreenReaderSnapshot() {
