@@ -98,7 +98,7 @@ function startOnboardingFlow(startOnboardingFlowParams: GetOnboardingInitialPath
     } as PartialState<NavigationState>);
 }
 
-function shouldForceEmployeesStep(signupQualifier: Onboarding['signupQualifier'] | undefined, currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>): boolean {
+function needsCompanySizeSelection(signupQualifier: Onboarding['signupQualifier'] | undefined, currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>): boolean {
     const isVsb = signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
 
@@ -118,20 +118,12 @@ function shouldForceEmployeesStep(signupQualifier: Onboarding['signupQualifier']
     return false;
 }
 
-function shouldRedirectToEmployeesFromResumePath(
-    signupQualifier: Onboarding['signupQualifier'] | undefined,
-    currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>,
-    onboardingInitialPath: string,
-): boolean {
-    if (!shouldForceEmployeesStep(signupQualifier, currentOnboardingCompanySize)) {
-        return false;
-    }
-
-    return onboardingInitialPath.includes(ROUTES.ONBOARDING_ACCOUNTING.route) || onboardingInitialPath.includes(ROUTES.ONBOARDING_INTERESTED_FEATURES.route);
+function isFreshOnboardingStart(onboardingInitialPath: string): boolean {
+    return !onboardingInitialPath || onboardingInitialPath === '/' || !onboardingInitialPath.includes('onboarding');
 }
 
-function isFreshVsbOrSmbOnboardingStart(onboardingInitialPath: string): boolean {
-    return !onboardingInitialPath || onboardingInitialPath === '/' || !onboardingInitialPath.includes('onboarding');
+function isOnboardingStepPastEmployees(onboardingInitialPath: string): boolean {
+    return onboardingInitialPath.includes(ROUTES.ONBOARDING_ACCOUNTING.route) || onboardingInitialPath.includes(ROUTES.ONBOARDING_INTERESTED_FEATURES.route);
 }
 
 function getQualifierOnboardingPath(onboardingInitialPath: string): string {
@@ -179,7 +171,8 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     }
 
     if (!isUserFromPublicDomain && hasAccessiblePolicies) {
-        if (onboardingInitialPath && shouldRedirectToEmployeesFromResumePath(currentOnboardingValues?.signupQualifier, currentOnboardingCompanySize, onboardingInitialPath)) {
+        const signupQualifier = currentOnboardingValues?.signupQualifier;
+        if (onboardingInitialPath && needsCompanySizeSelection(signupQualifier, currentOnboardingCompanySize) && isOnboardingStepPastEmployees(onboardingInitialPath)) {
             return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
         }
         if (onboardingInitialPath) {
@@ -189,11 +182,12 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     }
 
     if (isVsb || isSmb) {
-        if (
-            shouldForceEmployeesStep(currentOnboardingValues?.signupQualifier, currentOnboardingCompanySize) &&
-            (shouldRedirectToEmployeesFromResumePath(currentOnboardingValues?.signupQualifier, currentOnboardingCompanySize, onboardingInitialPath) ||
-                isFreshVsbOrSmbOnboardingStart(onboardingInitialPath))
-        ) {
+        const signupQualifier = currentOnboardingValues?.signupQualifier;
+        const shouldStartAtEmployees =
+            needsCompanySizeSelection(signupQualifier, currentOnboardingCompanySize) &&
+            (isFreshOnboardingStart(onboardingInitialPath) || isOnboardingStepPastEmployees(onboardingInitialPath));
+
+        if (shouldStartAtEmployees) {
             return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
         }
         return getQualifierOnboardingPath(onboardingInitialPath);
