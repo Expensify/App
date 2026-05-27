@@ -93,7 +93,7 @@ function AgentsListRow({accountID, displayName, login, pendingAction, errors, on
                     )}
                 </PressableWithFeedback>
             ) : (
-                <View style={[styles.selectionListPressableItemWrapper, styles.mb2, styles.gap3]}>
+                <View style={[styles.selectionListPressableItemWrapper, styles.mb2, styles.gap2]}>
                     <AgentInfoRow
                         accountID={accountID}
                         displayName={displayName}
