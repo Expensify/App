@@ -10,10 +10,10 @@ import ActionButtons from './ActionButtons';
 type BasePopupProps = React.PropsWithChildren & {
     label?: string;
     applySentryLabel: string;
-    resetSentryLabel: string;
+    resetSentryLabel?: string;
     style?: StyleProp<ViewStyle>;
     onApply: () => void;
-    onReset: () => void;
+    onReset?: () => void;
     onBackButtonPress?: () => void;
 };
 
