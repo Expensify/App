@@ -16,11 +16,13 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchResults from '@hooks/useSearchResults';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,6 +46,13 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
     const defaultFundID = useDefaultFundID(policyID);
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const {cardRules, isLoadingCardRules} = useExpensifyCardRules(policyID);
+
+    const filterCardRules = (cardRule: (typeof cardRules)[number], searchInput: string) => {
+        const results = tokenizedSearch([cardRule], searchInput, (option) => option.searchTokens);
+        return results.length > 0;
+    };
+
+    const [inputValue, setInputValue, filteredCardRules] = useSearchResults(cardRules, filterCardRules);
 
     useEffect(() => {
         if (!defaultFundID || defaultFundID === CONST.DEFAULT_NUMBER_ID) {
