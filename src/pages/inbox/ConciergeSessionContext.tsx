@@ -71,8 +71,6 @@ function ConciergeSessionProvider({children}: PropsWithChildren) {
                 setSessionStartTime(null);
                 setShowFullHistory(false);
             }
-        } else if (isConciergeMainDM && !sessionStartTime) {
-            setSessionStartTime(DateUtils.getDBTime());
         }
     }
 

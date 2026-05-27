@@ -129,6 +129,19 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps -- startSession/endSession are stable; captured values at mount only
     }, [isConciergeMainDM, startSession, endSession, hasOnceLoadedReportActions]);
 
+    // On native the component stays mounted in the navigation stack, so the
+    // effect above never re-fires (its isConciergeMainDM dep is always true).
+    // When the provider clears the session (user navigated away), this effect
+    // detects sessionStartTime === null and restarts with the correct unread
+    // boundary instead of a bare "now" timestamp.
+    useLayoutEffect(() => {
+        if (!isConciergeMainDM || !hasOnceLoadedReportActions || mainDMSessionStartTime !== null) {
+            return;
+        }
+        startSession(oldestUnreadReportAction ? report?.lastReadTime : undefined);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to session being cleared
+    }, [isConciergeMainDM, hasOnceLoadedReportActions, mainDMSessionStartTime, startSession]);
+
     const isSingleExpenseReport = reportPreviewAction?.childMoneyRequestCount === 1;
     const isMissingTransactionThreadReportID = !transactionThreadReport?.reportID;
     const isReportDataIncomplete = isSingleExpenseReport && isMissingTransactionThreadReportID;
