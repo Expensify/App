@@ -91,12 +91,10 @@ import {
     getIndicatedMissingPaymentMethod,
     getIOUReportActionDisplayMessage,
     getLinkedIOUTransaction,
-    getMoneyRequestSpendBreakdown,
     getMostRecentlyVisitedReport,
     getMovedActionMessage,
     getMovedTransactionMessage,
     getNextApproverAccountID,
-    getNonHeldAndFullAmount,
     getOriginalReportID,
     getOutstandingChildRequest,
     getParentNavigationSubtitle,
@@ -105,7 +103,6 @@ import {
     getPolicyIDsWithEmptyReportsForAccount,
     getPolicyName,
     getReasonAndReportActionThatRequiresAttention,
-    getReimbursableTotal,
     getReportActionWithSmartscanError,
     getReportIDFromLink,
     getReportOrDraftReport,
@@ -116,7 +113,6 @@ import {
     getTitleFieldWithFallback,
     getTransactionDetails,
     getTransactionSortValue,
-    getUnheldReimbursableTotal,
     getUnreportedTransactionMessage,
     getViolatingReportIDForRBRInLHN,
     getWorkspaceIcon,
@@ -163,6 +159,7 @@ import {
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
     shouldShowFlagComment,
+    shouldShowMarkAsDone,
     sortIconsByName,
     sortOutstandingReportsBySelected,
     temporary_getMoneyRequestOptions,
@@ -9051,6 +9048,41 @@ describe('ReportUtils', () => {
             expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
         });
 
+        it('should use allReportActionsParam when provided instead of module-level Onyx data', async () => {
+            // Given a submitted expense report with a DEW_APPROVE_FAILED action stored ONLY in the passed param (not in Onyx)
+            const report: OptionData = {
+                ...createRandomReport(70000, undefined),
+                keyForList: 'SomeKey',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            const dewApproveFailedAction: ReportAction = {
+                ...createRandomReportAction(70000),
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+                created: '2024-08-08 18:00:00.000',
+            };
+
+            // Do NOT set report actions in Onyx — only pass them via the param
+            const allReportActionsParam: OnyxCollection<ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {
+                    [dewApproveFailedAction.reportActionID]: dewApproveFailedAction,
+                },
+            };
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+
+            // Without the param, the function should NOT find DEW_APPROVE_FAILED (since it's not in Onyx)
+            const resultWithout = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            expect(resultWithout?.reason).not.toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
+
+            // With the param, the function should find DEW_APPROVE_FAILED from the passed param
+            const resultWith = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current, allReportActionsParam);
+            expect(resultWith).toHaveProperty('reason', CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
+        });
+
         it('should return null for an archived report when there is a policy pending join request', async () => {
             // Given an archived admin room with a pending join request
             const joinRequestReportAction: ReportAction = {
@@ -17753,166 +17785,6 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('getReimbursableTotal', () => {
-        it('returns 0 when the report is undefined', () => {
-            expect(getReimbursableTotal(undefined)).toBe(0);
-        });
-
-        it('returns the freshly computed reimbursableTotal when set', () => {
-            const report = {total: -1000, nonReimbursableTotal: -200, reimbursableTotal: -750};
-            expect(getReimbursableTotal(report)).toBe(-750);
-        });
-
-        it('falls back to total minus nonReimbursableTotal when reimbursableTotal is missing', () => {
-            const report = {total: -1000, nonReimbursableTotal: -200};
-            expect(getReimbursableTotal(report)).toBe(-800);
-        });
-
-        it('treats missing total and nonReimbursableTotal as 0 when reimbursableTotal is missing', () => {
-            expect(getReimbursableTotal({})).toBe(0);
-        });
-
-        it('prefers reimbursableTotal of 0 over the legacy derivation', () => {
-            const report = {total: -1000, nonReimbursableTotal: -1000, reimbursableTotal: 0};
-            expect(getReimbursableTotal(report)).toBe(0);
-        });
-    });
-
-    describe('getUnheldReimbursableTotal', () => {
-        it('returns 0 when the report is undefined', () => {
-            expect(getUnheldReimbursableTotal(undefined)).toBe(0);
-        });
-
-        it('returns the freshly computed unheldReimbursableTotal when set', () => {
-            const report = {unheldTotal: -1000, unheldNonReimbursableTotal: -200, unheldReimbursableTotal: -750};
-            expect(getUnheldReimbursableTotal(report)).toBe(-750);
-        });
-
-        it('falls back to unheldTotal minus unheldNonReimbursableTotal when unheldReimbursableTotal is missing', () => {
-            const report = {unheldTotal: -1000, unheldNonReimbursableTotal: -200};
-            expect(getUnheldReimbursableTotal(report)).toBe(-800);
-        });
-
-        it('treats missing unheldTotal and unheldNonReimbursableTotal as 0 when unheldReimbursableTotal is missing', () => {
-            expect(getUnheldReimbursableTotal({})).toBe(0);
-        });
-    });
-
-    describe('getMoneyRequestSpendBreakdown', () => {
-        it('returns zeroes when the report is empty', () => {
-            const fields = getMoneyRequestSpendBreakdown(undefined);
-            expect(fields.totalDisplaySpend).toBe(0);
-            expect(fields.reimbursableSpend).toBe(0);
-            expect(fields.nonReimbursableSpend).toBe(0);
-        });
-
-        it('uses the freshly tracked reimbursableTotal for an expense report', () => {
-            const expenseReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                total: -10000,
-                nonReimbursableTotal: -3000,
-                reimbursableTotal: -7000,
-            };
-            const fields = getMoneyRequestSpendBreakdown(expenseReport);
-            expect(fields.reimbursableSpend).toBe(7000);
-            expect(fields.nonReimbursableSpend).toBe(3000);
-            expect(fields.totalDisplaySpend).toBe(10000);
-        });
-
-        it('falls back to total minus nonReimbursableTotal when reimbursableTotal is missing', () => {
-            const expenseReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                total: -10000,
-                nonReimbursableTotal: -3000,
-            };
-            const fields = getMoneyRequestSpendBreakdown(expenseReport);
-            expect(fields.reimbursableSpend).toBe(7000);
-            expect(fields.nonReimbursableSpend).toBe(3000);
-            expect(fields.totalDisplaySpend).toBe(10000);
-        });
-
-        it('returns 0 reimbursableSpend (not -0) for an all-non-reimbursable expense report', () => {
-            const expenseReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                total: -4000,
-                nonReimbursableTotal: -4000,
-                reimbursableTotal: 0,
-            };
-            const fields = getMoneyRequestSpendBreakdown(expenseReport);
-            expect(fields.reimbursableSpend).toBe(0);
-            expect(Object.is(fields.reimbursableSpend, -0)).toBe(false);
-            expect(fields.nonReimbursableSpend).toBe(4000);
-            expect(fields.totalDisplaySpend).toBe(4000);
-        });
-
-        it('uses Math.abs for an IOU report so values are positive', () => {
-            const iouReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.IOU,
-                total: 5000,
-                nonReimbursableTotal: 0,
-                reimbursableTotal: 5000,
-            };
-            const fields = getMoneyRequestSpendBreakdown(iouReport);
-            expect(fields.reimbursableSpend).toBe(5000);
-            expect(fields.nonReimbursableSpend).toBe(0);
-            expect(fields.totalDisplaySpend).toBe(5000);
-        });
-    });
-
-    describe('getNonHeldAndFullAmount', () => {
-        it('uses the freshly tracked unheldReimbursableTotal when shouldExcludeNonReimbursables is true', () => {
-            const expenseReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                currency: CONST.CURRENCY.USD,
-                total: -10000,
-                unheldTotal: -8000,
-                nonReimbursableTotal: -3000,
-                unheldNonReimbursableTotal: -2000,
-                reimbursableTotal: -7000,
-                unheldReimbursableTotal: -6000,
-            };
-            const result = getNonHeldAndFullAmount(expenseReport, true, []);
-            expect(result.fullAmount).toContain('70.00');
-            expect(result.nonHeldAmount).toContain('60.00');
-        });
-
-        it('uses the full reimbursable plus non-reimbursable when shouldExcludeNonReimbursables is false', () => {
-            const expenseReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                currency: CONST.CURRENCY.USD,
-                total: -10000,
-                unheldTotal: -8000,
-                nonReimbursableTotal: -3000,
-                unheldNonReimbursableTotal: -2000,
-                reimbursableTotal: -7000,
-                unheldReimbursableTotal: -6000,
-            };
-            const result = getNonHeldAndFullAmount(expenseReport, false, []);
-            expect(result.fullAmount).toContain('100.00');
-            expect(result.nonHeldAmount).toContain('80.00');
-        });
-
-        it('falls back to legacy unheldTotal minus unheldNonReimbursableTotal when unheldReimbursableTotal is missing', () => {
-            const expenseReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                currency: CONST.CURRENCY.USD,
-                total: -10000,
-                unheldTotal: -8000,
-                nonReimbursableTotal: -3000,
-                unheldNonReimbursableTotal: -2000,
-            };
-            const result = getNonHeldAndFullAmount(expenseReport, true, []);
-            expect(result.nonHeldAmount).toContain('60.00');
-        });
-    });
-
     describe('hasExportError', () => {
         it('returns true when report.hasExportError is true', () => {
             const report = {hasExportError: true} as Report;
@@ -17946,5 +17818,139 @@ describe('ReportUtils', () => {
             ] as ReportAction[];
             expect(hasExportError(reportActions, report)).toBe(true);
         });
+    });
+});
+
+describe('shouldShowMarkAsDone', () => {
+    const policyID = '1';
+    const otherAccountID = 42;
+
+    it('should return false when user is not a track-intent user', () => {
+        const report = {
+            reportID: 'report1',
+            ownerAccountID: currentUserAccountID,
+            managerID: currentUserAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as Report;
+        const testPolicy = {
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            type: CONST.POLICY.TYPE.TEAM,
+        } as Policy;
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: false, report, policy: testPolicy})).toBe(false);
+    });
+
+    it('should return false when policy is not submit-and-close', () => {
+        const report = {
+            reportID: 'report1',
+            ownerAccountID: currentUserAccountID,
+            managerID: currentUserAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as Report;
+        const testPolicy = {
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            type: CONST.POLICY.TYPE.TEAM,
+        } as Policy;
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy: testPolicy})).toBe(false);
+    });
+
+    it('should return false when user does not own the report', () => {
+        const report = {
+            reportID: 'report1',
+            ownerAccountID: otherAccountID,
+            managerID: otherAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as Report;
+        const testPolicy = {
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            type: CONST.POLICY.TYPE.TEAM,
+        } as Policy;
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy: testPolicy})).toBe(false);
+    });
+
+    it('should return false when next approver is different from owner', () => {
+        const report = {
+            reportID: 'report1',
+            ownerAccountID: currentUserAccountID,
+            managerID: otherAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as Report;
+        const testPolicy = {
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            type: CONST.POLICY.TYPE.TEAM,
+        } as Policy;
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy: testPolicy})).toBe(false);
+    });
+
+    it('should return false when isTrackIntentUser is undefined', () => {
+        const report = {
+            reportID: 'report1',
+            ownerAccountID: currentUserAccountID,
+            managerID: currentUserAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as Report;
+        const testPolicy = {
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            type: CONST.POLICY.TYPE.TEAM,
+        } as Policy;
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: undefined, report, policy: testPolicy})).toBe(false);
+    });
+
+    it('should return false when report is undefined', () => {
+        const testPolicy = {
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            type: CONST.POLICY.TYPE.TEAM,
+        } as Policy;
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report: undefined, policy: testPolicy})).toBe(false);
+    });
+
+    it('should return false when policy is undefined', () => {
+        const report = {
+            reportID: 'report1',
+            ownerAccountID: currentUserAccountID,
+            managerID: currentUserAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as Report;
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy: undefined})).toBe(false);
+    });
+
+    it('should return true when user is track-intent, policy is submit-and-close, user owns report, and submits to self', async () => {
+        const report = {
+            reportID: 'report1',
+            ownerAccountID: currentUserAccountID,
+            managerID: currentUserAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as Report;
+        const testPolicy = {
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            type: CONST.POLICY.TYPE.TEAM,
+            owner: currentUserEmail,
+        } as Policy;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, testPolicy);
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [currentUserAccountID]: {accountID: currentUserAccountID, login: currentUserEmail},
+        });
+        await waitForBatchedUpdates();
+        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy: testPolicy})).toBe(true);
     });
 });

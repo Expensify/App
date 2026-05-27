@@ -11,11 +11,8 @@ import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import {useComposerActions, useComposerEditState, useComposerMeta, useComposerSendState, useComposerState} from './ComposerContext';
 import useAttachmentPicker from './useAttachmentPicker';
 
-type ComposerActionMenuProps = {
-    reportID: string;
-};
-
-function ComposerActionMenu({reportID}: ComposerActionMenuProps) {
+function ComposerActionMenu() {
+    const {reportID} = useComposerState();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isMenuVisible, isFullComposerAvailable} = useComposerState();
     const {draftComment} = useComposerEditState();
