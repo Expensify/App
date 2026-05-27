@@ -37,6 +37,7 @@ import type {
     PolicyFeatureName,
     Rate,
     Tenant,
+    Vendor,
 } from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -2009,6 +2010,45 @@ function getConnectedIntegration(policy: Policy | undefined, connectionNames: re
     return connectionNames.find((integration) => !!policy?.connections?.[integration]);
 }
 
+/**
+ * QBO vendor feature gate. Returns true when the workspace has the `vendorMatching` beta enabled
+ * AND QBO is connected with an individual card transaction non-reimbursable export type — the only
+ * scope the Vendor field is shown for. Mirrors `QuickbooksOnline::hasVendorFeature` on the PHP side
+ * so the App and backend agree on which workspaces see the field.
+ */
+function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
+    if (!isVendorMatchingBetaEnabled || !policy) {
+        return false;
+    }
+    const qboConnection = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO];
+    if (!qboConnection) {
+        return false;
+    }
+    const exportDestination = qboConnection.config?.nonReimbursableExpensesExportDestination;
+    return exportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD || exportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD;
+}
+
+/**
+ * Returns the QBO vendor list imported into the workspace (empty array when QBO isn't connected or
+ * the sync hasn't populated vendors yet). Source of truth for the workspace Vendors tab and the
+ * vendor selector RHP.
+ */
+function getQBOVendors(policy: OnyxEntry<Policy>): Vendor[] {
+    return policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]?.data?.vendors ?? [];
+}
+
+/**
+ * Look up a single QBO vendor by `externalID`. Used to resolve the vendor name for display when
+ * only the ID is stored on the transaction NVP. Returns undefined when the ID isn't found
+ * (which happens after a vendor is deleted from QBO — see the inactive-vendor violation).
+ */
+function getQBOVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined): Vendor | undefined {
+    if (!vendorID) {
+        return undefined;
+    }
+    return getQBOVendors(policy).find((vendor) => vendor.id === vendorID);
+}
+
 function getValidConnectedIntegration(policy: Policy | undefined, connectionNames: readonly ConnectionName[] = getAccountingConnectionNames()) {
     return connectionNames.find((integration) => !!policy?.connections?.[integration] && !isConnectionUnverified(policy, integration));
 }
@@ -2394,6 +2434,9 @@ export {
     getConnectedIntegration,
     getConnectedIntegrationNamesForPolicies,
     getConnectionExporters,
+    getQBOVendorByID,
+    getQBOVendors,
+    hasVendorFeature,
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
