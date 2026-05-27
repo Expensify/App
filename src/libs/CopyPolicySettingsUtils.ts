@@ -236,4 +236,4 @@ export {
     isCopyPolicySettingsPartEnabledOnSource,
     FEATURE_ROWS,
 };
-export type {AccountingConnectionIdentity, CopyPolicySettingsSourceFeatureContext, FeatureRow};
+export type {CopyPolicySettingsSourceFeatureContext};

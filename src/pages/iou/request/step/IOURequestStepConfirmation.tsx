@@ -906,7 +906,4 @@ const IOURequestStepConfirmationWithFullTransactionOrNotFound = withFullTransact
 
 const IOURequestStepConfirmationWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepConfirmationWithFullTransactionOrNotFound);
 
-type IOURequestStepConfirmationPublicProps = ComponentProps<typeof IOURequestStepConfirmationWithWritableReportOrNotFound>;
-
 export default IOURequestStepConfirmationWithWritableReportOrNotFound;
-export type {IOURequestStepConfirmationPublicProps};

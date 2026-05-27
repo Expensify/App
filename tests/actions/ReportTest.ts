@@ -3,7 +3,6 @@ import {afterEach, beforeAll, beforeEach, describe, expect, it} from '@jest/glob
 import {renderHook} from '@testing-library/react-native';
 import {addSeconds, format, subMinutes} from 'date-fns';
 import {toZonedTime} from 'date-fns-tz';
-import type {Mock} from 'jest-mock';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
@@ -1581,7 +1580,7 @@ describe('actions/Report', () => {
         jest.runOnlyPendingTimers();
         await waitForBatchedUpdates();
 
-        const httpCalls = (HttpUtils.xhr as Mock).mock.calls;
+        const httpCalls = (HttpUtils.xhr as jest.Mock).mock.calls;
 
         const addCommentCalls = httpCalls.filter(([command]) => command === 'AddComment');
         const deleteCommentCalls = httpCalls.filter(([command]) => command === 'DeleteComment');

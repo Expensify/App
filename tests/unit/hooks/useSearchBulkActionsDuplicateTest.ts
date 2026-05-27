@@ -23,7 +23,6 @@ jest.mock('@libs/actions/Search', () => ({
     queueExportSearchItemsToCSV: jest.fn(),
     queueExportSearchWithTemplate: jest.fn(),
     approveMoneyRequestOnSearch: jest.fn(),
-    bulkDeleteReports: jest.fn(),
     getLastPolicyBankAccountID: jest.fn(),
     getLastPolicyPaymentMethod: jest.fn(),
     getPayMoneyOnSearchInvoiceParams: jest.fn(),
