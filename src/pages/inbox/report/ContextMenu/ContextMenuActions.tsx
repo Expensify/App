@@ -176,14 +176,18 @@ import {
     getPolicyChangeMessage,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
+    getReportOrDraftReport,
     getReportPreviewMessage,
     getUnreportedTransactionMessage,
     getWorkspaceNameUpdatedMessage,
     isExpenseReport,
+    isSelfDM,
     shouldDisableThread,
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesReportUtils,
+    shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
+import {isExpenseSplit, isPerDiemRequest} from '@libs/TransactionUtils';
 import {setDownload} from '@userActions/Download';
 import {toggleEmojiReaction} from '@userActions/EmojiReactions';
 import {
@@ -198,6 +202,7 @@ import {
 } from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {
     BankAccountList,
@@ -292,6 +297,7 @@ type ContextMenuActionPayload = {
     originalReport: OnyxEntry<ReportType>;
     isHarvestReport?: boolean;
     isTryNewDotNVPDismissed?: boolean;
+    isTrackIntentUser?: boolean;
     childReport?: OnyxEntry<ReportType>;
     movedFromReport?: OnyxEntry<ReportType>;
     movedToReport?: OnyxEntry<ReportType>;
@@ -831,6 +837,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 originalReport,
                 isHarvestReport,
                 isTryNewDotNVPDismissed,
+                isTrackIntentUser,
                 movedFromReport,
                 movedToReport,
                 childReport,
@@ -876,7 +883,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const modifyExpenseMessage = Parser.htmlToMarkdown(modifyExpenseMessageWithHTML);
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (isReimbursementDeQueuedOrCanceledAction(reportAction)) {
-                    const displayMessage = getReimbursementDeQueuedOrCanceledActionMessage(translate, reportAction, report);
+                    const displayMessage = getReimbursementDeQueuedOrCanceledActionMessage(translate, reportAction, report?.ownerAccountID);
                     Clipboard.setString(displayMessage);
                 } else if (isMoneyRequestAction(reportAction)) {
                     const displayMessage = getIOUReportActionDisplayMessage(translate, reportAction, transaction, report, bankAccountList);
@@ -1003,7 +1010,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
                     Clipboard.setString(getMarkedReimbursedMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
-                    Clipboard.setString(getReimbursedMessage(translate, reportAction, report, currentUserPersonalDetails.accountID));
+                    Clipboard.setString(getReimbursedMessage(translate, reportAction, report?.ownerAccountID, currentUserPersonalDetails.accountID));
                 } else if (isReimbursementQueuedAction(reportAction)) {
                     Clipboard.setString(
                         getReimbursementQueuedActionMessage({reportAction, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils, report, shouldUseShortDisplayName: false}),
@@ -1024,7 +1031,15 @@ const ContextMenuActions: ContextMenuAction[] = [
                     if (harvesting) {
                         setClipboardMessage(translate('iou.automaticallySubmitted'));
                     } else {
-                        Clipboard.setString(translate('iou.submitted', getOriginalMessage(reportAction)?.message));
+                        Clipboard.setString(
+                            shouldShowMarkAsDone({
+                                policy,
+                                isTrackIntentUser,
+                                report,
+                            })
+                                ? translate('iou.markedAsDone', getOriginalMessage(reportAction)?.message)
+                                : translate('iou.submitted', getOriginalMessage(reportAction)?.message),
+                        );
                     }
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
                     const {automaticAction} = getOriginalMessage(reportAction) ?? {};
@@ -1370,6 +1385,17 @@ const ContextMenuActions: ContextMenuAction[] = [
             } else if (isReportPreviewActionReportActionsUtils(reportAction)) {
                 reportID = reportAction?.childReportID;
             }
+
+            // Hide Delete for per-diem expense split children in selfDM — users must edit the
+            // splits instead (matches the secondary "More" menu behavior).
+            const chatReport = getReportOrDraftReport(reportIDParam);
+            if (isSelfDM(chatReport) && iouTransaction) {
+                const originalTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${iouTransaction.comment?.originalTransactionID}`];
+                if (isExpenseSplit(iouTransaction, originalTransaction) && isPerDiemRequest(originalTransaction ?? iouTransaction)) {
+                    return false;
+                }
+            }
+
             return (
                 !!reportIDParam &&
                 type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&

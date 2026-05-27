@@ -4858,7 +4858,7 @@ describe('initSplitExpense', () => {
             reportID: '456',
         };
 
-        initSplitExpense(transaction, undefined);
+        initSplitExpense(transaction, undefined, undefined);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -4883,7 +4883,7 @@ describe('initSplitExpense', () => {
     });
     it('should not initialize split expense for null transaction', async () => {
         const transaction: Transaction | undefined = undefined;
-        initSplitExpense(transaction, undefined);
+        initSplitExpense(transaction, undefined, undefined);
         await waitForBatchedUpdates();
 
         expect(transaction).toBeFalsy();
@@ -4907,7 +4907,7 @@ describe('initSplitExpense', () => {
             reportID: '456',
         };
 
-        initSplitExpense(transaction, undefined);
+        initSplitExpense(transaction, undefined, undefined);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -4976,7 +4976,7 @@ describe('initSplitExpense', () => {
             reportID: '456',
         };
 
-        initSplitExpense(transaction, policy);
+        initSplitExpense(transaction, policy, undefined);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -5049,7 +5049,7 @@ describe('initSplitExpense', () => {
         await waitForBatchedUpdates();
 
         // When the user initiates a split on the remaining transaction
-        initSplitExpense(remainingTransaction, undefined);
+        initSplitExpense(remainingTransaction, undefined, undefined);
         await waitForBatchedUpdates();
 
         // Then a fresh split is started keyed by the remaining transaction (2 new splits)
@@ -5110,7 +5110,7 @@ describe('initSplitExpense', () => {
         await waitForBatchedUpdates();
 
         // When the user opens the edit-splits flow from one of the children
-        initSplitExpense(secondChildTransaction, undefined);
+        initSplitExpense(secondChildTransaction, undefined, undefined);
         await waitForBatchedUpdates();
 
         // Then the edit-splits draft is keyed by the original transaction and rebuilt from the existing children
@@ -6222,7 +6222,12 @@ describe('resetSplitExpensesByDateRange', () => {
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
         };
 
-        resetSplitExpensesByDateRange(transaction, transactionReport, startDate, endDate);
+        const draftTransactionInput: Transaction = {
+            ...transaction,
+            comment: {...transaction.comment, originalTransactionID: transactionID},
+        };
+
+        resetSplitExpensesByDateRange(transaction, draftTransactionInput, transactionReport, startDate, endDate);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -6305,7 +6310,12 @@ describe('resetSplitExpensesByDateRange', () => {
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
         };
 
-        resetSplitExpensesByDateRange(transaction, transactionReport, startDate, endDate, policy);
+        const draftTransactionInput: Transaction = {
+            ...transaction,
+            comment: {...transaction.comment, originalTransactionID: transactionID},
+        };
+
+        resetSplitExpensesByDateRange(transaction, draftTransactionInput, transactionReport, startDate, endDate, policy);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -6351,7 +6361,12 @@ describe('resetSplitExpensesByDateRange', () => {
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
         };
 
-        resetSplitExpensesByDateRange(transaction, transactionReport, startDate, endDate);
+        const draftTransactionInput: Transaction = {
+            ...transaction,
+            comment: {...transaction.comment, originalTransactionID: transactionID},
+        };
+
+        resetSplitExpensesByDateRange(transaction, draftTransactionInput, transactionReport, startDate, endDate);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -6363,7 +6378,7 @@ describe('resetSplitExpensesByDateRange', () => {
     });
 
     it('should not reset if transaction, startDate, or endDate is missing', async () => {
-        resetSplitExpensesByDateRange(undefined, undefined, '2024-01-01', '2024-01-03');
+        resetSplitExpensesByDateRange(undefined, undefined, undefined, '2024-01-01', '2024-01-03');
         await waitForBatchedUpdates();
     });
 });
