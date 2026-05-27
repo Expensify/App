@@ -148,10 +148,11 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                     inputValue={inputValue}
                     onChangeText={setInputValue}
                     shouldShowEmptyState={!isLoadingCardRules && filteredCardRules.length === 0}
+                    style={[styles.mb0, styles.mt5, styles.mh0]}
                 />
             )}
             <MenuItem
-                wrapperStyle={[styles.borderedContentCard, styles.mt6, styles.ph4, styles.pv4]}
+                wrapperStyle={[styles.borderedContentCard, styles.mt5, styles.ph4, styles.pv4]}
                 titleComponent={menuItemBody}
                 accessibilityLabel={`${descriptionLabel}. ${blockLabel} ${defaultRuleTitle}`}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
@@ -170,7 +171,7 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                     />
                 </View>
             ) : (
-                cardRules.map((rule) => (
+                filteredCardRules.map((rule) => (
                     <OfflineWithFeedback
                         key={rule.ruleID}
                         pendingAction={rule.pendingAction}
