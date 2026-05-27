@@ -31,7 +31,7 @@ type IOURequestStepVendorProps = WithWritableReportOrNotFoundProps<typeof SCREEN
 function IOURequestStepVendor({
     report,
     route: {
-        params: {action, iouType, transactionID, reportActionID, backTo},
+        params: {action, iouType, transactionID, reportActionID},
     },
     transaction,
 }: IOURequestStepVendorProps) {
@@ -69,7 +69,7 @@ function IOURequestStepVendor({
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction) || !isFeatureAvailable;
 
     const navigateBack = () => {
-        Navigation.goBack(backTo);
+        Navigation.goBack();
     };
 
     const selectVendor = (item: VendorListItem) => {
