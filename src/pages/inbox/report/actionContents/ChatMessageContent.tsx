@@ -1,10 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {AttachmentContext} from '@components/AttachmentContext';
 import Button from '@components/Button';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
-import {useBlockedFromConcierge} from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -18,54 +16,32 @@ import {
     isConciergeCategoryOptions,
     isConciergeDescriptionOptions,
 } from '@libs/ReportActionsUtils';
-import {chatIncludesConcierge, isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import ReportActionItemMessage from '@pages/inbox/report/ReportActionItemMessage';
 import ReportActionItemMessageEdit from '@pages/inbox/report/ReportActionItemMessageEdit';
-import {isBlockedFromConcierge} from '@userActions/User';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import ChatActionableButtons from './ChatActionableButtons';
 
 type ChatMessageContentProps = {
     action: OnyxTypes.ReportAction;
-    report: OnyxEntry<OnyxTypes.Report>;
-    originalReport: OnyxEntry<OnyxTypes.Report>;
+    policyID: string | undefined;
     reportID: string | undefined;
     originalReportID: string;
     displayAsGroup: boolean;
     draftMessage: string | undefined;
-    index: number;
     isHidden: boolean;
     updateHiddenState: (isHiddenValue: boolean) => void;
-    isArchivedRoom?: boolean;
     isOnSearch: boolean;
-    userBillingFundID: number | undefined;
 };
 
-function ChatMessageContent({
-    action,
-    report,
-    originalReport,
-    reportID,
-    originalReportID,
-    displayAsGroup,
-    draftMessage,
-    index,
-    isHidden,
-    updateHiddenState,
-    isArchivedRoom,
-    isOnSearch,
-    userBillingFundID,
-}: ChatMessageContentProps) {
+function ChatMessageContent({action, policyID, reportID, originalReportID, displayAsGroup, draftMessage, isHidden, updateHiddenState, isOnSearch}: ChatMessageContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const blockedFromConcierge = useBlockedFromConcierge();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isEditingInline = !shouldUseNarrowLayout && draftMessage !== undefined;
 
-    const mentionReportContextValue = {currentReportID: report?.reportID, exactlyMatch: true};
-
+    const mentionReportContextValue = {currentReportID: reportID, exactlyMatch: true};
     const attachmentContextValue = isOnSearch ? {type: CONST.ATTACHMENT_TYPE.SEARCH} : {reportID, type: CONST.ATTACHMENT_TYPE.REPORT};
 
     const {hasBeenFlagged} = getModerationFlagState(action);
@@ -86,10 +62,7 @@ function ChatMessageContent({
                         action={action}
                         reportID={reportID}
                         originalReportID={originalReportID}
-                        policyID={report?.policyID}
-                        index={index}
-                        shouldDisableEmojiPicker={(chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) || isArchivedNonExpenseReport(report, isArchivedRoom)}
-                        isGroupPolicyReport={!!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE}
+                        policyID={policyID}
                     />
                 ) : (
                     <View style={displayAsGroup && hasBeenFlagged ? styles.blockquote : {}}>
@@ -117,11 +90,8 @@ function ChatMessageContent({
                         {mayHaveActionableButtons && (
                             <ChatActionableButtons
                                 action={action}
-                                report={report}
-                                originalReport={originalReport}
-                                reportID={reportID}
                                 originalReportID={originalReportID}
-                                userBillingFundID={userBillingFundID}
+                                reportID={reportID}
                             />
                         )}
                     </View>

@@ -124,6 +124,7 @@ const translations: TranslationDeepObject<typeof en> = {
             approve: 'Approva',
             pay: 'Paga',
             fix: 'Correggi',
+            task: 'Attività',
         },
         success: 'Operazione riuscita',
         group: 'Gruppo',
@@ -207,6 +208,7 @@ const translations: TranslationDeepObject<typeof en> = {
         admin: 'Amministrazione',
         owner: 'Proprietario',
         dateFormat: 'YYYY-MM-DD',
+        calendarOpened: 'calendario aperto',
         send: 'Invia',
         na: 'N/D',
         noResultsFound: 'Nessun risultato trovato',
@@ -695,6 +697,7 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'Non abbiamo spedito la tua carta. Riprova.'},
         revealPin: {couldNotReveal: 'Non siamo riusciti a mostrare il tuo PIN. Riprova.'},
         changePin: {didNotChange: 'Non abbiamo modificato il tuo PIN. Riprova.'},
+        revealCardDetail: {couldNotReveal: 'Non siamo riusciti a mostrare i dettagli della tua carta. Riprova.'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -852,7 +855,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Il tuo spazio',
         welcomeToRoom: (roomName: string) => `Benvenuto in ${roomName}!`,
         usePlusButton: (additionalText: string) => `Usa il pulsante + per ${additionalText} una spesa.`,
-        askConcierge: 'Questa è la tua chat con Concierge, il tuo agente IA personale. Posso fare quasi tutto, mettimi alla prova!',
+        askConcierge: 'Concierge può rispondere alle domande, aggiornare le spese e altro ancora.',
         conciergeSupport: 'Il tuo agente IA personale',
         create: 'crea',
         iouTypes: {
@@ -913,7 +916,6 @@ const translations: TranslationDeepObject<typeof en> = {
         buttonFind: 'Trova qualcosa...',
         buttonMySettings: 'Le mie impostazioni',
         fabNewChat: 'Avvia chat',
-        fabNewChatExplained: 'Apri il menu azioni',
         fabScanReceiptExplained: 'Scansiona ricevuta',
         chatPinned: 'Chat fissata',
         draftedMessage: 'Bozza di messaggio',
@@ -1044,6 +1046,7 @@ const translations: TranslationDeepObject<typeof en> = {
             repaidLast30Days: 'Rimborsato negli ultimi 30 giorni',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Transazioni recenti • ${lastFour}`,
         },
+        seeMore: ({count}: {count: number}) => `Vedi altri ${count}`,
     },
     allSettingsScreen: {
         subscription: 'Abbonamento',
@@ -1280,7 +1283,7 @@ const translations: TranslationDeepObject<typeof en> = {
         receiptStatusTitle: 'Scansione in corso…',
         receiptStatusText: 'Solo tu puoi vedere questa ricevuta mentre viene scansionata. Controlla più tardi o inserisci i dettagli ora.',
         receiptScanningFailed: 'Scansione della ricevuta non riuscita. Inserisci i dettagli manualmente.',
-        transactionPendingDescription: 'Transazione in sospeso. Potrebbero essere necessari alcuni giorni prima che venga registrata.',
+        allTransactionsPendingNextStep: 'Tutte le transazioni sono in sospeso. Non puoi inviare questo rendiconto finché non saranno registrate tra qualche giorno.',
         companyInfo: 'Informazioni azienda',
         companyInfoDescription: 'Ci servono ancora alcuni dettagli prima che tu possa inviare la tua prima fattura.',
         yourCompanyName: 'Nome dell’azienda',
@@ -1320,6 +1323,10 @@ const translations: TranslationDeepObject<typeof en> = {
         settlePayment: (formattedAmount: string) => `Paga ${formattedAmount}`,
         settleBusiness: (formattedAmount?: string) => (formattedAmount ? `Paga ${formattedAmount} come azienda` : `Paga con conto aziendale`),
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `Segna ${formattedAmount} come pagato` : `Segna come pagata`),
+        confirmPaymentReceivedModalTitle: 'Conferma la ricezione del pagamento',
+        receivedPayment: 'Pagamento ricevuto',
+        receivedPaymentConfirmation: 'Procedi solo se hai già ricevuto il pagamento al di fuori di Expensify.',
+        confirmReceivedPayment: 'Sì, ho ricevuto il pagamento.',
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `pagato ${amount} con conto personale ${last4Digits}` : `Pagato con conto personale`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `ha pagato ${amount} con il conto aziendale ${last4Digits}` : `Pagato con conto aziendale`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Paga ${formattedAmount} tramite ${policyName}` : `Paga tramite ${policyName}`),
@@ -1466,6 +1473,8 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateBeforeStartDate: 'La data di fine non può essere precedente alla data di inizio',
             endDateSameAsStartDate: 'La data di fine non può essere uguale alla data di inizio',
             manySplitsProvided: `Il numero massimo di suddivisioni consentite è ${CONST.IOU.SPLITS_LIMIT}.`,
+            unableToSubmitReport: 'Impossibile inviare il report',
+            allTransactionsPendingDescription: 'Non puoi inviare questo report perché tutte le transazioni sono in sospeso. Potrebbero volerci alcuni giorni prima che vengano registrate.',
             dateRangeExceedsMaxDays: `L’intervallo di date non può superare ${CONST.IOU.SPLITS_LIMIT} giorni.`,
             stitchOdometerImagesFailed: 'Impossibile combinare le immagini del contachilometri. Riprova più tardi.',
             failedToSaveOdometerDraft: 'Impossibile salvare la tua bozza del contachilometri. Riprova.',
@@ -2213,7 +2222,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     deviceManagementPage: {
         title: 'Gestione dei dispositivi',
-        description: `Gestisci tutti i dispositivi su cui hai effettuato l'accesso con il tuo account Expensify.`,
+        description:
+            'Gestisci tutti i dispositivi su cui hai effettuato l\'accesso con il tuo account Expensify. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Scopri di più</a>.',
         revoke: 'Revoca',
         unknownDevice: 'Dispositivo Sconosciuto',
     },
@@ -2228,11 +2238,11 @@ const translations: TranslationDeepObject<typeof en> = {
         disabled: "L'autenticazione a due fattori è ora disattivata",
         noAuthenticatorApp: 'Non sarà più necessaria un’app di autenticazione per accedere a Expensify.',
         stepCodes: 'Codici di recupero',
-        keepCodesSafe: 'Conserva questi codici di recupero in un luogo sicuro!',
+        keepCodesSafe: 'Conserva questi codici al sicuro!',
         codesLoseAccess: dedent(`
             Se perdi l'accesso alla tua app di autenticazione e non hai questi codici, perderai l'accesso al tuo account.
 
-            Nota: Configurare l'autenticazione a due fattori ti disconnetterà da tutte le altre sessioni attive.
+            <strong>Nota</strong>: configurare l'autenticazione a due fattori ti disconnetterà da tutte le altre sessioni attive.
         `),
         errorStepCodes: 'Copia o scarica i codici prima di continuare',
         stepVerify: 'Verifica',
@@ -2261,6 +2271,9 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyOldDeviceDescription: 'Inserisci il codice a sei cifre dalla tua attuale app di autenticazione per confermare che hai accesso ad essa.',
         verifyNewDeviceTitle: 'Configura nuovo dispositivo',
         verifyNewDeviceDescription: 'Scansiona il codice QR con il tuo nuovo dispositivo, poi inserisci il codice per completare la configurazione.',
+        downloadCodes: 'Scarica codici',
+        screenshotTip: 'Suggerimento: fai uno screenshot per salvarlo nel rullino fotografico',
+        copyCodes: 'Copia codici',
     },
     recoveryCodeForm: {
         error: {
@@ -2561,6 +2574,8 @@ ${amount} per ${merchant} - ${date}`,
         addApprovalTip: 'Questo flusso di lavoro predefinito si applica a tutti i membri, a meno che non esista un flusso di lavoro più specifico.',
         approver: 'Approvante',
         addApprovalsDescription: 'Richiedi un’approvazione aggiuntiva prima di autorizzare un pagamento.',
+        automateApprovalsWithAgentsTitle: 'Automatizza le approvazioni con gli agenti',
+        automateApprovalsWithAgentsSubtitle: 'Aggiungi l’agente qui sotto al workflow per automatizzare le approvazioni.',
         makeOrTrackPaymentsTitle: 'Pagamenti',
         makeOrTrackPaymentsDescription: 'Aggiungi un pagatore autorizzato per i pagamenti effettuati in Expensify o tieni traccia dei pagamenti effettuati altrove.',
         customApprovalWorkflowEnabled:
@@ -2684,6 +2699,7 @@ ${amount} per ${merchant} - ${date}`,
     reportFraudConfirmationPage: {
         title: 'Frode della carta segnalata',
         description: 'Abbiamo disattivato definitivamente la tua carta esistente. Quando tornerai a visualizzare i dettagli della carta, avrai a disposizione una nuova carta virtuale.',
+        descriptionCardNotReplaced: 'La tua carta è stata disattivata permanentemente. Contatta un amministratore per emettere una nuova carta.',
         buttonText: 'Ricevuto, grazie!',
     },
     activateCardPage: {
@@ -2954,7 +2970,7 @@ ${amount} per ${merchant} - ${date}`,
         peopleYouMayKnow: 'Alcune persone che potresti conoscere sono già qui! Verifica la tua email per unirti a loro.',
         workspaceYouMayJoin: (domain: string, email: string) => `Qualcuno di ${domain} ha già creato uno spazio di lavoro. Inserisci il codice magico inviato a ${email}.`,
         joinAWorkspace: 'Unisciti a uno spazio di lavoro',
-        listOfWorkspaces: "Ecco l'elenco degli spazi di lavoro a cui puoi unirti. Non preoccuparti, potrai sempre unirti anche in un secondo momento, se preferisci.",
+        listOfWorkspaces: "Ecco l'elenco degli spazi di lavoro a cui puoi unirti.",
         skipForNow: 'Salta per ora',
         workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} membro${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         whereYouWork: 'Dove lavori?',
@@ -3294,6 +3310,7 @@ ${amount} per ${merchant} - ${date}`,
             title: 'Invita membri',
             subtitle: 'Aggiungi il tuo team o invita il tuo commercialista. Più siamo, meglio è!',
         },
+        workEmail2FAError: 'Questo login è associato a un account esistente con l’Autenticazione a Due Fattori (2FA) abilitata.',
     },
     featureTraining: {
         doNotShowAgain: 'Non mostrarmelo più',
@@ -4817,6 +4834,26 @@ ${amount} per ${merchant} - ${date}`,
                 },
             },
         },
+        certinia: {
+            title: 'Certinia',
+            prerequisites: {
+                title: 'Prima di connetterti',
+                installBundle: 'Per connessioni FFA',
+                installBundleDescription: ({href, version}: {href: string; version: string}) =>
+                    `Installa il bundle Expensify in Salesforce facendo clic su questo link: <a href="${href}">Installa FFA Expensify Bundle (Versione ${version})</a>`,
+                installBundleConfirm: 'Ho installato il pacchetto',
+                setupContacts: 'Configura utente e contatti',
+                setupContactsBullet1:
+                    'Crea sia un Utente che un Contatto per te se non esistono già in Certinia, assicurandoti che l’email corrisponda alla tua email principale in Expensify.',
+                setupContactsBullet2:
+                    'Crea contatti per ogni dipendente che invierà note spese e per ogni approvatore di report. Assicurati che l’indirizzo email di ciascun contatto corrisponda all’indirizzo email dell’account Expensify del dipendente.',
+                setupContactsBullet3: 'Imposta i controlli di autorizzazione per il tuo utente per ogni contatto/risorsa.',
+                setupContactsConfirm: 'Ho configurato l’utente e i contatti',
+                oauth: 'Accedi tramite Salesforce',
+                oauthDescription: 'Per completare la configurazione, dovrai accedere tramite Salesforce e Certinia.\n\nUsa il pulsante qui sotto per continuare.',
+                connectButton: 'Connetti a Certinia',
+            },
+        },
         netsuite: {
             subsidiary: 'Filiale',
             subsidiarySelectDescription: 'Scegli la consociata in NetSuite da cui desideri importare i dati.',
@@ -5345,6 +5382,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     duplicateColumns: (duplicateColumn: string) => `Ops! Hai associato un singolo campo ("${duplicateColumn}") a più colonne. Controlla e riprova.`,
                 },
                 fileImportDescription: "Un'opzione manuale se la tua banca non può inviare un feed.",
+                duplicateFeedModal: {title: 'Feed carta già collegato', prompt: 'Non puoi aggiungere due volte lo stesso feed della carta allo stesso spazio di lavoro.'},
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Ultimo giorno del mese',
@@ -6004,7 +6042,19 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 `Stai per creare e condividere ${newWorkspaceName ?? ''} con ${totalMembers ?? 0} membri dello spazio di lavoro originale.`,
             error: 'Si è verificato un errore durante la duplicazione del tuo nuovo workspace. Riprova.',
         },
-        copyPolicySettings: {error: 'Si è verificato un errore durante la copia delle impostazioni dello spazio di lavoro. Riprova.'},
+        copyPolicySettings: {
+            error: 'Si è verificato un errore durante la copia delle impostazioni dello spazio di lavoro. Riprova.',
+            title: 'Copia impostazioni',
+            selectWorkspaces: 'Seleziona gli spazi di lavoro',
+            description: 'Scegli gli spazi di lavoro a cui vuoi copiare le impostazioni, poi seleziona le impostazioni che desideri copiare.',
+            searchPlaceholder: 'Cerca spazio di lavoro',
+            selectFeatures: 'Seleziona le funzionalità da copiare',
+            whichFeatures: 'Seleziona le impostazioni da sovrascrivere nei tuoi workspace esistenti.',
+            workflowsWithoutMembersConfirm: 'Continua senza membri',
+            workflowsWithoutMembersPrompt: 'La copia dei workflow senza membri non copierà i workflow di approvazione. Le impostazioni di invio e pagamento verranno comunque copiate.',
+            accountingMismatch: ({part}: {part: string}) =>
+                `Puoi copiare ${part} solo se tutti gli spazi di lavoro usano lo stesso sistema di contabilità e la stessa connessione aziendale.`,
+        },
         emptyWorkspace: {
             title: 'Non hai nessuna area di lavoro',
             subtitle: 'Tieni traccia delle ricevute, rimborsa le spese, gestisci i viaggi, invia le fatture e altro ancora.',
@@ -6082,12 +6132,13 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             approvers: 'Approvatori',
             auditors: 'Revisori',
             emptyRoleFilter: {title: 'Nessun membro corrisponde a questo filtro', subtitle: 'Invita un membro o modifica il filtro qui sopra.'},
-            configureGustoSync: 'Configura la sincronizzazione con Gusto.',
-            syncWithGusto: 'Sincronizza con Gusto',
+            configureHRSync: (providerName: string) => `Configura la sincronizzazione di ${providerName}.`,
+            syncWithHR: (providerName: string) => `Sincronizza con ${providerName}`,
         },
         card: {
             getStartedIssuing: 'Inizia emettendo la tua prima carta virtuale o fisica.',
             issueCard: 'Emetti carta',
+            chooseRule: 'Scegli una regola',
             issueNewCard: {
                 whoNeedsCard: 'Chi ha bisogno di una carta?',
                 inviteNewMember: 'Invita nuovo membro',
@@ -6129,22 +6180,27 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 enterValidDate: 'Inserisci una data valida',
                 expirationDate: 'Data di scadenza',
                 limitAmount: 'Importo del limite',
-                setExpiryOptions: 'Imposta opzioni di scadenza',
-                setExpiryDate: 'Imposta data di scadenza',
-                setExpiryDateDescription: 'La carta scadrà come indicato sulla carta',
+                setCardRules: 'Imposta regole carta',
+                addSpendRule: 'Aggiungi regola di spesa',
+                addExpirationDate: 'Aggiungi data di scadenza',
+                addExpirationDateDescription: 'Se non viene impostata una data specifica, la carta scadrà in base alla data di scadenza già presente sulla carta',
                 amount: 'Importo',
+                copyExisting: 'Copia esistente',
+                createNew: 'Crea nuovo',
+                spendRulesEmptyStateTitle: 'Nessuna regola tra cui scegliere',
+                spendRulesEmptyStateSubtitle: 'Non hai ancora creato nessuna regola. Puoi crearne una dalla schermata precedente.',
             },
             deactivateCardModal: {
                 deactivate: 'Disattiva',
                 deactivateCard: 'Disattiva carta',
                 deactivateConfirmation: 'La disattivazione di questa carta rifiuterà tutte le transazioni future e non può essere annullata.',
             },
+            searchRules: 'Trova regola di spesa',
         },
         accounting: {
             settings: 'impostazioni',
             title: 'Connessioni',
-            subtitle:
-                'Connetti il tuo sistema contabile per codificare le transazioni con il tuo piano dei conti, abbinare automaticamente i pagamenti e mantenere le tue finanze sincronizzate.',
+            subtitle: 'Collega il tuo software di contabilità per una sincronizzazione automatica.',
             qbo: 'QuickBooks Online',
             qbd: 'QuickBooks Desktop',
             xero: 'Xero',
@@ -6482,7 +6538,13 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             errors: {
                 rateNameRequired: 'Il nome della tariffa è obbligatorio',
                 existingRateName: 'Esiste già una tariffa distanza con questo nome',
+                nameRequired: 'Il nome è obbligatorio',
+                startDateMustBeBeforeEndDate: 'La data di inizio deve essere precedente alla data di fine',
+                amountRequired: "L'importo è obbligatorio",
             },
+            amountPerUnit: (unit: string) => `Importo per ${unit}`,
+            startDate: 'Data di inizio',
+            endDate: 'Data di fine',
         },
         editor: {
             descriptionInputLabel: 'Descrizione',
@@ -6609,6 +6671,12 @@ Vuoi davvero esportarli di nuovo?`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>La nostra integrazione con QuickBooks Desktop è disponibile solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per utente al mese.` : `per membro attivo al mese.`}</muted-text>`,
             },
+            [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
+                title: 'Certinia',
+                description: `Approfitta della sincronizzazione automatizzata e riduci le registrazioni manuali con l’integrazione Expensify + Certinia. Allinea dimensioni di codifica delle spese e sincronizzazione fiscale alla tua configurazione Certinia per una maggiore visibilità finanziaria.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>La nostra integrazione con Certinia è disponibile solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per utente al mese.` : `per membro attivo al mese.`}</muted-text>`,
+            },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Approvazioni avanzate',
                 description: `Se desideri aggiungere altri livelli di approvazione al processo – o semplicemente assicurarti che le spese più elevate ricevano un ulteriore controllo – ci pensiamo noi. Le approvazioni avanzate ti aiutano a impostare i controlli giusti a ogni livello, così mantieni la spesa del tuo team sotto controllo.`,
@@ -6703,8 +6771,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 perActiveMember: 'per membro attivo al mese.',
                 perMember: 'per utente al mese.',
             },
-            note: (subscriptionLink: string) =>
-                `<muted-text>Effettua l’upgrade per accedere a questa funzione oppure <a href="${subscriptionLink}">scopri di più</a> sui nostri piani e prezzi.</muted-text>`,
+            note: (subscriptionLink: string) => `<muted-text><a href="${subscriptionLink}">Scopri di più</a> sui nostri piani e prezzi.</muted-text>`,
             upgradeToUnlock: 'Sblocca questa funzionalità',
             completed: {
                 headline: `Hai aggiornato il tuo spazio di lavoro!`,
@@ -6920,6 +6987,11 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Vai su [altre funzionalità](${moreFeaturesLink}) e abilita ${featureName} per sbloccare questa funzione.`,
             },
+            agentsPromoBanner: {
+                title: 'Non vedi la regola che ti serve? Aggiungi un agente',
+                subtitle: 'Aggiungi regole complesse e riduci le approvazioni manuali con agenti personalizzati.',
+                cta: 'Prova ora',
+            },
             merchantRules: {
                 title: 'Esercente',
                 subtitle: 'Imposta le regole per l’esercente in modo che le spese arrivino già codificate correttamente e richiedano meno correzioni.',
@@ -7130,12 +7202,16 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         hr: {
             title: 'Risorse umane',
             connections: 'Connessioni',
+            connectionsSubtitle:
+                'Collega il tuo sistema HR per sincronizzare i dati dei dipendenti, abbinare automaticamente i rimborsi alle persone giuste e mantenere le spese del tuo team accurate senza lavoro manuale.',
             subtitle: 'Collega gli strumenti HR e mantieni sincronizzate le approvazioni dei dipendenti.',
             connect: 'Connetti',
             syncNow: 'Sincronizza ora',
             disconnect: 'Disconnetti',
             disconnectTitle: (providerName: string) => `Disconnetti ${providerName}`,
             disconnectPrompt: (providerName: string) => `Sei sicuro di voler disconnettere ${providerName}?`,
+            alreadyConnectedTitle: 'Impossibile connettersi a più piattaforme HR',
+            alreadyConnectedPrompt: 'Devi disconnettere la tua attuale piattaforma HR prima di collegarne un’altra.',
             lastSync: (relativeDate: string) => `Ultima sincronizzazione ${relativeDate}`,
             syncError: (providerName: string) => `Impossibile connettersi a ${providerName}`,
             connectionDescription: (providerName: string) => `Collega ${providerName} per mantenere sincronizzate le approvazioni dei dipendenti con il tuo spazio di lavoro.`,
@@ -7178,23 +7254,26 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     }
                 }
             },
+            syncResults: {
+                title: (provider: string) => `Sincronizzazione ${provider} completata`,
+                successTitle: (provider: string) => `Connessione ${provider} sincronizzata correttamente!`,
+                added: 'Aggiunto',
+                removed: 'Rimosso',
+                skipped: 'Saltato',
+                employeeCount: () => ({
+                    one: '1 dipendente',
+                    other: (count: number) => `${count} dipendenti`,
+                }),
+            },
             gusto: {
                 title: 'Gusto',
-                syncResults: {
-                    title: 'Risultati sincronizzazione Gusto',
-                    successTitle: 'Connessione a Gusto sincronizzata con successo!',
-                    added: 'Aggiunto',
-                    removed: 'Rimosso',
-                    skipped: 'Saltato',
-                    employeeCount: () => ({
-                        one: '1 dipendente',
-                        other: (count: number) => `${count} dipendenti`,
-                    }),
-                },
             },
             zenefits: {
                 title: 'TriNet',
             },
+            syncingModalTitle: 'La tua connessione è in sincronizzazione',
+            syncingModalDescription: "La prima connessione può richiedere un po' di tempo. Ti verrà notificato qualsiasi errore.",
+            syncing: 'Sincronizzazione dipendenti',
         },
     },
     getAssistancePage: {
@@ -8263,6 +8342,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         selectAllFeatures: 'Seleziona tutte le funzionalità',
         selectAllTransactions: 'Seleziona tutte le transazioni',
         selectAllItems: 'Seleziona tutti gli elementi',
+        openActionsMenu: 'Apri menu azioni',
         selectAllCategories: 'Seleziona tutte le categorie',
         selectAllDistanceRates: 'Seleziona tutte le tariffe chilometriche',
         selectAllTags: 'Seleziona tutti i tag',
@@ -9010,7 +9090,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         copilotDelegatedAccess: 'Copilot: Accesso delegato',
         copilotDelegatedAccessDescription: 'Consenti agli altri membri di accedere al tuo account.',
         learnMoreAboutDelegatedAccess: "Scopri di più sull'accesso delegato",
-        addCopilot: 'Aggiungi copilota',
+        addCopilot: 'Aggiungi un copilota',
         membersCanAccessYourAccount: 'Questi membri possono accedere al tuo account:',
         youCanAccessTheseAccounts: 'Puoi accedere a questi account:',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {

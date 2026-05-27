@@ -1,6 +1,6 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {FlatList, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -32,6 +32,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOutstandingBalanceGuard from '@hooks/useOutstandingBalanceGuard';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
+import usePermissions from '@hooks/usePermissions';
 import usePoliciesWithCardFeedErrors from '@hooks/usePoliciesWithCardFeedErrors';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
@@ -135,7 +136,7 @@ function isUserReimburserForPolicy(policies: Record<string, PolicyType | undefin
 }
 
 function WorkspacesListPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'FallbackWorkspaceAvatar']);
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Plus', 'Star', 'Trashcan', 'Transfer', 'FallbackWorkspaceAvatar']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'Plus', 'FallbackWorkspaceAvatar']);
@@ -157,6 +158,7 @@ function WorkspacesListPage() {
     const route = useRoute<PlatformStackRouteProp<WorkspaceNavigatorParamList, typeof SCREENS.WORKSPACES_LIST>>();
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE);
+    const {isBetaEnabled} = usePermissions();
     const {isRestrictedToPreferredPolicy, preferredPolicyID, isRestrictedPolicyCreation} = usePreferredPolicy();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: reimbursementAccountErrorSelector});
@@ -355,6 +357,24 @@ function WorkspacesListPage() {
         );
     };
 
+    const copySettingsEligibleTargets = useMemo(() => {
+        const adminNonPersonal: string[] = [];
+        const corporateOnly: string[] = [];
+        if (!policies) {
+            return {adminNonPersonal, corporateOnly};
+        }
+        for (const policy of Object.values(policies)) {
+            if (!policy || policy.type === CONST.POLICY.TYPE.PERSONAL || !isPolicyAdmin(policy, session?.email) || isPendingDeletePolicy(policy)) {
+                continue;
+            }
+            adminNonPersonal.push(policy.id);
+            if (policy.type === CONST.POLICY.TYPE.CORPORATE) {
+                corporateOnly.push(policy.id);
+            }
+        }
+        return {adminNonPersonal, corporateOnly};
+    }, [policies, session?.email]);
+
     /**
      * Gets the menu item for each workspace
      */
@@ -395,10 +415,21 @@ function WorkspacesListPage() {
 
         if (isAdmin) {
             threeDotsMenuItems.push({
-                icon: icons.Copy,
+                icon: icons.Plus,
                 text: translate('workspace.common.duplicateWorkspace'),
                 onSelected: () => (item.policyID ? Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE.getRoute(item.policyID)) : undefined),
             });
+            const isSourceCorporate = item.type === CONST.POLICY.TYPE.CORPORATE;
+            const candidates = isSourceCorporate ? copySettingsEligibleTargets.corporateOnly : copySettingsEligibleTargets.adminNonPersonal;
+            const hasEligibleCopyTarget = candidates.length > 1 || (candidates.length === 1 && candidates.at(0) !== item.policyID);
+
+            if (hasEligibleCopyTarget && isBetaEnabled(CONST.BETAS.BULK_EDIT_WORKSPACES)) {
+                threeDotsMenuItems.push({
+                    icon: icons.Copy,
+                    text: translate('workspace.copyPolicySettings.title'),
+                    onSelected: () => (item.policyID ? Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS.getRoute(item.policyID)) : undefined),
+                });
+            }
         }
 
         if (!isDefault && !item?.isJoinRequestPending && !isRestrictedToPreferredPolicy) {
@@ -652,7 +683,7 @@ function WorkspacesListPage() {
     const listHeaderComponent = (
         <>
             {isLessThanMediumScreen && <View style={styles.mt3} />}
-            {workspaces.length > CONST.SEARCH_ITEM_LIMIT && (
+            {workspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT && (
                 <SearchBar
                     label={translate('workspace.common.findWorkspace')}
                     inputValue={inputValue}
