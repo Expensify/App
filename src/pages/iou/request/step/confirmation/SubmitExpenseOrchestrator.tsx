@@ -175,7 +175,7 @@ function SubmitExpenseOrchestrator({
             isReportPreInserted: isPreInserted && Navigation.getPreInsertedFullscreenRouteName() === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
             isFromGlobalCreate,
             canDismissFromSearch,
-            isSplitRequest: iouType === CONST.IOU.TYPE.SPLIT,
+            navigatesToDestinationReport: iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK,
             destinationReportID,
             isReportInRHP: isReportOpenInRHP(rootState),
             isReportTopmostSplit: isReportTopmostSplitNavigator(),
@@ -219,7 +219,8 @@ function SubmitExpenseOrchestrator({
 
     const handleDismissModalFastPath = (listOfParticipants: Participant[]) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_MODAL, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
-        reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID});
+        const shouldPreserveSearchWithPlaceholder = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK) && isSearchTopmostFullScreenRoute();
+        reserveDeferredWriteChannel(shouldPreserveSearchWithPlaceholder ? CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH : CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID});
 
         const runAfterDismiss = () => {
             createTransaction(listOfParticipants, false, false);
@@ -264,6 +265,37 @@ function SubmitExpenseOrchestrator({
                 if (!isSameType) {
                     Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: searchType})}), {forceReplace: true});
                 }
+            },
+        });
+    };
+
+    const handleDismissToReport = (listOfParticipants: Participant[]) => {
+        if (!destinationReportID) {
+            // Tracking already started in onSubmit; just override the fast path label.
+            Log.warn('[SubmitExpenseOrchestrator] handleDismissToReport reached without destinationReportID - falling back to default submit');
+            setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
+            // Matches the handleDefaultSubmit pattern: first rAF yields the JS
+            // thread so the current render cycle completes, second rAF delays
+            // unblocking the confirm button until the transaction creation has
+            // committed to Onyx and a fresh render is queued. The double-rAF
+            // is intentionally the same approach used in handleDefaultSubmit so
+            // this fallback behaves identically to the standard submit path.
+            requestAnimationFrame(() => {
+                createTransaction(listOfParticipants);
+                requestAnimationFrame(() => {
+                    setIsConfirming(false);
+                });
+            });
+            return;
+        }
+
+        setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_TO_REPORT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
+        setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, destinationReportID);
+
+        Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(destinationReportID), {
+            afterTransition: () => {
+                createTransaction(listOfParticipants, false, false);
+                setIsConfirming(false);
             },
         });
     };
@@ -350,6 +382,7 @@ function SubmitExpenseOrchestrator({
             [SUBMIT_HANDLER.SEARCH_PRE_INSERT]: () => handleSearchPreInsert(listOfParticipants),
             [SUBMIT_HANDLER.REPORT_PRE_INSERT]: () => handleReportPreInsert(listOfParticipants),
             [SUBMIT_HANDLER.DISMISS_MODAL]: () => handleDismissModalFastPath(listOfParticipants),
+            [SUBMIT_HANDLER.DISMISS_TO_REPORT]: () => handleDismissToReport(listOfParticipants),
             [SUBMIT_HANDLER.REPORT_IN_RHP_DISMISS]: () => handleReportInRHPDismiss(listOfParticipants),
             [SUBMIT_HANDLER.SEARCH_DISMISS]: () => handleSearchDismiss(listOfParticipants),
             [SUBMIT_HANDLER.DEFAULT]: () => handleDefaultSubmit(listOfParticipants),

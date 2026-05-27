@@ -22,7 +22,7 @@ import ReportActionAvatars from '@components/ReportActionAvatars';
 import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import {useSearchActionsContext} from '@components/Search/SearchContext';
+import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import {SUPER_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider/WIDE_RIGHT_MODALS';
 import useActivePolicy from '@hooks/useActivePolicy';
 import useAncestors from '@hooks/useAncestors';
@@ -108,7 +108,7 @@ import {
     shouldDisableRename as shouldDisableRenameUtil,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
-import {isDemoTransaction} from '@libs/TransactionUtils';
+import {getOriginalTransactionWithSplitInfo, isDemoTransaction} from '@libs/TransactionUtils';
 import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoneyRequest';
 import {deleteTrackExpense, getNavigationUrlAfterTrackExpenseDelete} from '@userActions/IOU/TrackExpense';
 import {
@@ -164,7 +164,21 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const activePolicy = useActivePolicy();
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Users', 'Gear', 'Send', 'Folder', 'UserPlus', 'Pencil', 'Checkmark', 'Building', 'Exit', 'Bug', 'Camera', 'Trashcan']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'Users',
+        'Gear',
+        'Send',
+        'Folder',
+        'UserPlus',
+        'Pencil',
+        'Checkmark',
+        'Building',
+        'Exit',
+        'Bug',
+        'Camera',
+        'Trashcan',
+        'ArrowSplit',
+    ]);
     const backTo = route.params.backTo;
 
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -183,7 +197,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
     const {reportActions} = usePaginatedReportActions(report.reportID);
     const [reportActionsForOriginalReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`);
 
-    const {removeTransaction} = useSearchActionsContext();
+    const {removeTransaction} = useSearchSelectionActions();
 
     const transactionThreadReportID = useMemo(() => getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline), [reportActions, isOffline, report, chatReport]);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -309,14 +323,22 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
     const canDeleteRequest = isActionOwner && (canDeleteTransaction(moneyRequestReport, isMoneyRequestReportArchived) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
     const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
+    const [iouOriginalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransaction?.comment?.originalTransactionID)}`);
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(iouTransactionID ? [iouTransactionID] : []);
-    const {deleteTransactions} = useDeleteTransactions({
+    const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({
         report: parentReport,
         reportActions: requestParentReportAction ? [requestParentReportAction] : [],
         policy,
     });
     const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransaction);
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && isCardTransactionCanBeDeleted) || isDemoTransaction(iouTransaction);
+    const shouldShowEditSplitOnDeleteAction = iouTransactionID ? shouldOpenSplitExpenseEditFlowOnDelete([iouTransactionID]) : false;
+    let deleteMenuItemTitle = translate('reportActionContextMenu.deleteAction', {action: requestParentReportAction});
+    if (shouldShowEditSplitOnDeleteAction) {
+        deleteMenuItemTitle = translate('iou.editSplits');
+    } else if (caseID === CASES.DEFAULT) {
+        deleteMenuItemTitle = translate('common.delete');
+    }
     const reportAttributes = useReportAttributes();
     const isWorkspaceChat = useMemo(() => isWorkspaceChatUtil(report?.chatType ?? ''), [report?.chatType]);
 
@@ -533,7 +555,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
                 icon: expensifyIcons.Pencil,
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
-                action: () => navigateToPrivateNotes(report, currentUserPersonalDetails.accountID, backTo),
+                action: () => navigateToPrivateNotes(report, currentUserPersonalDetails.accountID),
                 brickRoadIndicator: hasErrorInPrivateNotes(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             });
         }
@@ -607,7 +629,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
         isSelfDM,
         isArchivedRoom,
         isGroupChat,
-        expensifyIcons,
         isDefaultRoom,
         isChatThread,
         isPolicyEmployee,
@@ -627,9 +648,21 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
         shouldShowGoToWorkspace,
         shouldShowLeaveButton,
         isDebugModeEnabled,
+        expensifyIcons.Users,
+        expensifyIcons.Gear,
+        expensifyIcons.Send,
+        expensifyIcons.Folder,
+        expensifyIcons.UserPlus,
+        expensifyIcons.Pencil,
+        expensifyIcons.Checkmark,
+        expensifyIcons.Building,
+        expensifyIcons.Exit,
+        expensifyIcons.Bug,
+        styles.ph2,
         shouldOpenRoomMembersPage,
         backTo,
         parentReportAction,
+        reportActionsForOriginalReportID,
         iouTransactionID,
         moneyRequestReport?.reportID,
         currentUserPersonalDetails.accountID,
@@ -645,13 +678,11 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
         introSelected,
         draftTransactionIDs,
         activePolicy,
-        parentReport,
-        reportActionsForOriginalReportID,
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
         iouTransaction,
-        styles.ph2,
+        parentReport,
         delegateEmail,
     ]);
 
@@ -832,15 +863,13 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
                     shouldCheckActionAllowedOnPress={false}
                     description={translate('task.title')}
                     onPress={
-                        shouldShowEditableTitleField
+                        shouldShowEditableTitleField && report.policyID
                             ? () => {
-                                  let policyID = report.policyID;
-
-                                  if (!policyID) {
-                                      policyID = '';
+                                  if (!report?.policyID) {
+                                      return;
                                   }
 
-                                  Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, policyID, CONST.REPORT_FIELD_TITLE_FIELD_ID, backTo));
+                                  Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EDIT_REPORT_FIELD.getRoute(report.policyID, CONST.REPORT_FIELD_TITLE_FIELD_ID)));
                               }
                             : undefined
                     }
@@ -870,8 +899,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
         }
 
         const isTrackExpense = isTrackExpenseAction(requestParentReportAction);
+        const {isExpenseSplit: isSelfDMExpenseSplit} = getOriginalTransactionWithSplitInfo(iouTransaction, iouOriginalTransaction);
 
-        if (isTrackExpense) {
+        if (isTrackExpense && !isSelfDMExpenseSplit) {
             deleteTrackExpense({
                 chatReportID: moneyRequestReport?.reportID,
                 chatReport: moneyRequestReport,
@@ -889,12 +919,17 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
                 currentUserEmail: currentUserPersonalDetails.email ?? '',
             });
         } else if (iouTransactionID) {
-            deleteTransactions([iouTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined, isSingleTransactionView);
+            const deleteResult = deleteTransactions([iouTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined, isSingleTransactionView);
+            if (deleteResult.action === 'redirected') {
+                return;
+            }
             removeTransaction(iouTransactionID);
         }
     }, [
         caseID,
         requestParentReportAction,
+        iouTransaction,
+        iouOriginalTransaction,
         iouTransactionID,
         report,
         parentReport,
@@ -903,6 +938,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
         currentUserPersonalDetails.email,
         hasOutstandingChildTask,
         parentReportAction,
+        conciergeReportID,
+        delegateEmail,
         ancestors,
         moneyRequestReport,
         iouReport,
@@ -915,8 +952,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
         allTransactionViolations,
         deleteTransactions,
         removeTransaction,
-        conciergeReportID,
-        delegateEmail,
     ]);
 
     // Where to navigate back to after deleting the transaction and its report.
@@ -999,7 +1034,13 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
         if (action !== ModalActions.CONFIRM) {
             return;
         }
+        const shouldOpenSplitExpenseEditFlow = iouTransactionID ? shouldOpenSplitExpenseEditFlowOnDelete([iouTransactionID]) : false;
         Navigation.setNavigationActionToMicrotaskQueue(() => {
+            if (shouldOpenSplitExpenseEditFlow) {
+                deleteTransaction();
+                return;
+            }
+
             navigateToTargetUrl();
             // Delay deletion until the RHP close animation finishes to prevent a brief
             // "Not Found" flash inside the animating-out panel on slower devices.
@@ -1007,7 +1048,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
                 deleteTransaction();
             });
         });
-    }, [showConfirmModal, translate, caseID, navigateToTargetUrl, deleteTransaction]);
+    }, [showConfirmModal, translate, caseID, iouTransactionID, shouldOpenSplitExpenseEditFlowOnDelete, navigateToTargetUrl, deleteTransaction]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
 
@@ -1040,7 +1081,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
                                     characterLimit={100}
                                     shouldCheckActionAllowedOnPress={false}
                                     description={translate('reportDescriptionPage.roomDescription')}
-                                    onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID, Navigation.getActiveRoute()))}
+                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DESCRIPTION.path))}
                                 />
                             </MentionReportContext.Provider>
                         </OfflineWithFeedback>
@@ -1089,9 +1130,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
                     {shouldShowDeleteButton && (
                         <MenuItem
                             key={CONST.REPORT_DETAILS_MENU_ITEM.DELETE}
-                            icon={expensifyIcons.Trashcan}
-                            title={caseID === CASES.DEFAULT ? translate('common.delete') : translate('reportActionContextMenu.deleteAction', {action: requestParentReportAction})}
-                            onPress={showDeleteModal}
+                            icon={shouldShowEditSplitOnDeleteAction ? expensifyIcons.ArrowSplit : expensifyIcons.Trashcan}
+                            title={deleteMenuItemTitle}
+                            onPress={shouldShowEditSplitOnDeleteAction ? deleteTransaction : showDeleteModal}
                         />
                     )}
                 </ScrollView>
