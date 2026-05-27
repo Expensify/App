@@ -63,7 +63,14 @@ import type {SortableColumnName} from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, getTableMinWidth, hasFlexColumn, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {transactionHasRBR} from '@libs/TransactionPreviewUtils';
-import {getTransactionPendingAction, isTransactionPendingDelete, shouldShowExpenseBreakdown} from '@libs/TransactionUtils';
+import {
+    getTransactionPendingAction,
+    isTransactionPendingDelete,
+    isViolationDismissed,
+    mergeProhibitedViolations,
+    shouldShowExpenseBreakdown,
+    shouldShowViolation,
+} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import isReportOpenInSuperWideRHP from '@navigation/helpers/isReportOpenInSuperWideRHP';
 import Navigation from '@navigation/Navigation';
@@ -85,6 +92,37 @@ import MoneyRequestReportTransactionItem from './MoneyRequestReportTransactionIt
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 
 const PENDING_EXPENSE_REASON_ATTRIBUTES = {context: 'MoneyRequestReportTransactionList.PendingExpensePlaceholder'} as const;
+
+const EMPTY_VIOLATIONS: OnyxTypes.TransactionViolations = [];
+
+/**
+ * Mirrors `useTransactionViolations`' filter logic but as a pure call site invoked once per
+ * rendered row at the parent. Returns the stable EMPTY_VIOLATIONS reference for the common
+ * no-violations case so the row's prop identity stays stable across recycles.
+ */
+function filterTransactionViolations(
+    transaction: TransactionWithOptionalHighlight,
+    allViolations: Record<string, OnyxTypes.TransactionViolations | undefined> | undefined,
+    email: string,
+    accountID: number,
+    report: OnyxTypes.Report,
+    policy: OnyxTypes.Policy | undefined,
+): OnyxTypes.TransactionViolations {
+    if (!allViolations) {
+        return EMPTY_VIOLATIONS;
+    }
+    const raw = allViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
+    if (!raw || raw.length === 0) {
+        return EMPTY_VIOLATIONS;
+    }
+    const filtered = raw.filter(
+        (violation) => !isViolationDismissed(transaction, violation, email, accountID, report, policy) && shouldShowViolation(report, policy, violation.name, email, true, transaction),
+    );
+    if (filtered.length === 0) {
+        return EMPTY_VIOLATIONS;
+    }
+    return mergeProhibitedViolations(filtered);
+}
 
 type MoneyRequestReportTransactionListProps = {
     /** The money request report containing the transactions */
@@ -618,6 +656,14 @@ function MoneyRequestReportTransactionList({
         <MoneyRequestReportTransactionItem
             key={transaction.transactionID}
             transaction={transaction}
+            violations={filterTransactionViolations(
+                transaction,
+                allTransactionViolations,
+                currentUserDetails?.email ?? '',
+                currentUserDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                report,
+                policy ?? undefined,
+            )}
             shouldBeHighlighted={highlightedTransactionIDs.has(transaction.transactionID)}
             columns={columnsToShow}
             report={report}

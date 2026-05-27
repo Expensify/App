@@ -15,19 +15,21 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionInlineEdit from '@hooks/useTransactionInlineEdit';
-import useTransactionViolations from '@hooks/useTransactionViolations';
 import ControlSelection from '@libs/ControlSelection';
 import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
 import {hasFlexColumn} from '@libs/SearchUIUtils';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {CardList, Policy, Report} from '@src/types/onyx';
+import type {CardList, Policy, Report, TransactionViolations} from '@src/types/onyx';
 import type {TransactionWithOptionalHighlight} from './MoneyRequestReportTransactionList';
 
 type MoneyRequestReportTransactionItemProps = {
     /** The transaction that is being displayed */
     transaction: TransactionWithOptionalHighlight;
+
+    /** Pre-filtered violations for this transaction. Computed once at the parent so each row doesn't subscribe to Onyx individually. */
+    violations: TransactionViolations;
 
     /** Report to which the transaction belongs */
     report: Report;
@@ -83,6 +85,7 @@ type MoneyRequestReportTransactionItemProps = {
 
 function MoneyRequestReportTransactionItem({
     transaction,
+    violations,
     report,
     policy,
     isSelectionModeEnabled,
@@ -112,8 +115,6 @@ function MoneyRequestReportTransactionItem({
     const theme = useTheme();
     const isPendingDelete = isTransactionPendingDelete(transaction);
     const pendingAction = getTransactionPendingAction(transaction);
-    // Filter violations based on user visibility and dismissal state at the row level.
-    const filteredViolations = useTransactionViolations(transaction.transactionID);
 
     const {
         canEditDate,
@@ -197,7 +198,7 @@ function MoneyRequestReportTransactionItem({
                 {({hovered}) => (
                     <TransactionItemRow
                         transactionItem={transaction}
-                        violations={filteredViolations}
+                        violations={violations}
                         report={report}
                         policy={policy}
                         isSelected={isSelected}
