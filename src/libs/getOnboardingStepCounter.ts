@@ -1,9 +1,8 @@
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {StepCounterParams} from '@src/languages/params';
-import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import getOnboardingRouteFromScreen from './Navigation/helpers/getOnboardingRouteFromScreen';
 
 type OnboardingScreen = ValueOf<typeof SCREENS.ONBOARDING>;
 
@@ -137,19 +136,7 @@ function getOnboardingStepCounter(page: OnboardingScreen, context: OnboardingFlo
     };
 }
 
-const onboardingScreenRoutes: Partial<Record<OnboardingScreen, (backTo?: string) => Route>> = {
-    [ONBOARDING.WORK_EMAIL]: (backTo) => ROUTES.ONBOARDING_WORK_EMAIL.getRoute(backTo),
-    [ONBOARDING.WORK_EMAIL_VALIDATION]: (backTo) => ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute(backTo),
-    [ONBOARDING.PRIVATE_DOMAIN]: (backTo) => ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(backTo),
-    [ONBOARDING.PERSONAL_DETAILS]: (backTo) => ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(backTo),
-    [ONBOARDING.WORKSPACES]: (backTo) => ROUTES.ONBOARDING_WORKSPACES.getRoute(backTo),
-    [ONBOARDING.PURPOSE]: (backTo) => ROUTES.ONBOARDING_PURPOSE.getRoute(backTo),
-    [ONBOARDING.EMPLOYEES]: (backTo) => ROUTES.ONBOARDING_EMPLOYEES.getRoute(backTo),
-    [ONBOARDING.ACCOUNTING]: (backTo) => ROUTES.ONBOARDING_ACCOUNTING.getRoute(backTo),
-    [ONBOARDING.INTERESTED_FEATURES]: (backTo) => ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute(undefined, backTo),
-};
-
-function getPreviousOnboardingRoute(page: OnboardingScreen, context: OnboardingFlowContext, backTo?: string): Route | undefined {
+function getPreviousOnboardingRoute(page: OnboardingScreen, context: OnboardingFlowContext, backTo?: string): string | undefined {
     const flow = getOnboardingFlow(context);
     if (!flow) {
         return undefined;
@@ -161,8 +148,12 @@ function getPreviousOnboardingRoute(page: OnboardingScreen, context: OnboardingF
         return undefined;
     }
 
-    const getRoute = onboardingScreenRoutes[flow[index - 1]];
-    return getRoute?.(backTo);
+    const previousScreen = flow.at(index - 1);
+    if (!previousScreen) {
+        return undefined;
+    }
+
+    return getOnboardingRouteFromScreen(previousScreen, backTo);
 }
 
 export {getOnboardingFlow, getOnboardingStepCounter, getPreviousOnboardingRoute};
