@@ -643,7 +643,7 @@ function hasValidModifiedAmount(transaction: OnyxEntry<Transaction> | null): boo
  * so `amount`, `modifiedAmount` and `convertedAmount` are negated to match the expense-report convention.
  * Absent converted values are not added so they keep being derived from the amount.
  */
-function getExpenseReportSignedTransaction(transaction: Transaction): Transaction {
+function getNegatedAmountTransaction(transaction: Transaction): Transaction {
     return {
         ...transaction,
         amount: -transaction.amount,
@@ -3007,7 +3007,7 @@ export {
     hasPendingRTERViolation,
     hasAnyPendingRTERViolation,
     hasValidModifiedAmount,
-    getExpenseReportSignedTransaction,
+    getNegatedAmountTransaction,
     allHavePendingRTERViolation,
     hasPendingUI,
     getWaypointIndex,

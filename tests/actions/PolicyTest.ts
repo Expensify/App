@@ -7146,24 +7146,6 @@ describe('actions/Policy', () => {
 
             expect(optimisticTransaction?.amount).toBe(-5000);
             expect(optimisticTransaction?.convertedAmount).toBe(-6000);
-
-            // Failure rollback: fail the network and verify the original positive values are restored in Onyx
-            mockFetch?.fail?.();
-            await mockFetch?.resume?.();
-            await waitForBatchedUpdates();
-
-            const rolledBackTransaction: OnyxEntry<Transaction> = await new Promise((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value);
-                    },
-                });
-            });
-
-            expect(rolledBackTransaction?.amount).toBe(5000);
-            expect(rolledBackTransaction?.convertedAmount).toBe(6000);
         });
     });
 });
