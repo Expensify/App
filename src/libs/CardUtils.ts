@@ -150,12 +150,13 @@ function isExpensifyCard(card?: Card) {
 }
 
 /**
- * Checks if the card supports PIN management features.
+ * Checks if the card is on the UK/EU Expensify card program (feedCountry GB).
+ * The UK/EU program is the only one that supports PIN management features and
+ * requires Strong Customer Authentication (SCA) for revealing card details.
  * @param card - The card to check.
  * @returns boolean
  */
-function supportsPINManagementFeatures(card: Card | undefined): boolean {
-    //  Use of PINs is based on card program. UK/EU (feedCountry GB) are the only program currently that supports these features.
+function isUkEuExpensifyCard(card: Card | undefined): boolean {
     return isExpensifyCard(card) && card?.nameValuePairs?.feedCountry === CONST.COUNTRY.GB;
 }
 
@@ -1810,7 +1811,7 @@ export {
     getAssignedCardSortKey,
     getDefaultExpensifyCardLimitType,
     isExpensifyCard,
-    supportsPINManagementFeatures,
+    isUkEuExpensifyCard,
     isOfflinePINMarket,
     getDomainCards,
     formatCardExpiration,

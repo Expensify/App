@@ -12,11 +12,12 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import {taxSliceSelector} from './selectors';
+import useTransactionSelector from './useTransactionSelector';
 
 type TaxFieldsProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyForMovingExpenses: OnyxEntry<OnyxTypes.Policy>;
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
     iouCurrencyCode: string | undefined;
     canModifyTaxFields: boolean;
     didConfirm: boolean;
@@ -27,17 +28,21 @@ type TaxFieldsProps = {
     formError: string;
 };
 
-function TaxFields({policy, policyForMovingExpenses, transaction, iouCurrencyCode, canModifyTaxFields, didConfirm, transactionID, action, iouType, reportID, formError}: TaxFieldsProps) {
+function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyTaxFields, didConfirm, transactionID, action, iouType, reportID, formError}: TaxFieldsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
 
+    const taxSlice = useTransactionSelector(transactionID, taxSliceSelector);
+
+    const transactionForHelpers = taxSlice as OnyxEntry<OnyxTypes.Transaction>;
+
     const shouldDisplayTaxRateError = formError === 'violations.taxOutOfPolicy';
     const isMovingCurrentTransactionFromTrackExpense = isMovingTransactionFromTrackExpense(action);
     const taxRates = policy?.taxRates ?? (isMovingCurrentTransactionFromTrackExpense ? policyForMovingExpenses?.taxRates : null);
-    const taxAmount = getTaxAmount(transaction, false);
+    const taxAmount = getTaxAmount(transactionForHelpers, false);
     const formattedTaxAmount = convertToDisplayString(taxAmount, iouCurrencyCode);
-    const taxRateTitle = getTaxRateTitle(policy, transaction, isMovingCurrentTransactionFromTrackExpense, policyForMovingExpenses);
+    const taxRateTitle = getTaxRateTitle(policy, transactionForHelpers, isMovingCurrentTransactionFromTrackExpense, policyForMovingExpenses);
 
     return (
         <>
