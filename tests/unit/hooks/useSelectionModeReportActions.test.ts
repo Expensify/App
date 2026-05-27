@@ -254,6 +254,7 @@ const mockOpenReportSubmitToPopover = jest.fn();
 jest.mock('@components/ReportSubmitToPopoverAnchor', () => ({
     __esModule: true,
     ReportSubmitToPopoverAnchor: ({children}: {children: React.ReactNode}) => children,
+    ReportSubmitToPopoverHost: ({children}: {children: React.ReactNode}) => children,
     ReportSubmitToPopoverRoot: ({children}: {children: React.ReactNode}) => children,
     ReportSubmitToPopoverMeasurableAnchor: ({children}: {children: React.ReactNode}) => children,
     useOpenReportSubmitToPopover: () => mockOpenReportSubmitToPopover,

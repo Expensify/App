@@ -1,4 +1,5 @@
 import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
+import type {RefObject} from 'react';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
@@ -32,9 +33,11 @@ type UseReportSubmitToPopoverParams = {
     reportID: string | undefined;
     onSubmitSuccess?: () => void;
     anchorAlignment?: AnchorAlignment;
+    /** When provided, resolves the anchor at open time (used by the shared Search host). */
+    getAnchorRef?: () => RefObject<View | null> | null;
 };
 
-function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT}: UseReportSubmitToPopoverParams) {
+function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT, getAnchorRef}: UseReportSubmitToPopoverParams) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     // Bottom-docked Modal path only; aligns with Popover path that omits modal shell padding chrome
@@ -71,7 +74,8 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
                 return;
             }
             oneShotOnSubmitSuccessRef.current = options?.onSubmitSuccess;
-            calculatePopoverPosition(anchorRef, anchorAlignment).then((pos) => {
+            const anchorToMeasure = getAnchorRef?.() ?? anchorRef;
+            calculatePopoverPosition(anchorToMeasure, anchorAlignment).then((pos) => {
                 setAnchorPosition({
                     horizontal: pos.horizontal,
                     vertical: pos.vertical,
@@ -79,7 +83,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
                 setIsVisible(true);
             });
         },
-        [calculatePopoverPosition, reportID, willAlertModalBecomeVisible, anchorAlignment],
+        [calculatePopoverPosition, reportID, willAlertModalBecomeVisible, anchorAlignment, getAnchorRef],
     );
 
     const reportSubmitToPopover = useMemo(
@@ -91,15 +95,19 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
                 anchorPosition={anchorPosition}
                 popoverDimensions={popoverDimensions}
                 anchorAlignment={anchorAlignment}
-                innerContainerStyle={isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DROPDOWN_WIDTH}}
+                innerContainerStyle={[isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DROPDOWN_WIDTH}, {minHeight: popoverDimensions.minHeight}]}
                 restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
                 shouldSwitchPositionIfOverflow
                 shouldEnableNewFocusManagement
                 shouldSkipRemeasurement
                 shouldDisplayBelowModals
-                shouldUseModalPaddingStyle={!isSmallScreenWidth}
+                shouldUseModalPaddingStyle
+                shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
             >
-                <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flex1]}>
+                <View
+                    collapsable={false}
+                    style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, styles.pt4]}
+                >
                     <ReportSubmitToContent
                         report={report}
                         policy={policy}
@@ -114,7 +122,8 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
         [
             StyleUtils,
             styles.w100,
-            styles.flex1,
+            styles.flexColumn,
+            styles.pt4,
             isSmallScreenWidth,
             isVisible,
             closeReportSubmitToPopover,

@@ -11,7 +11,7 @@ import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import ReportPDFDownloadModal from '@components/ReportPDFDownloadModal';
-import {ReportSubmitToPopoverAnchor} from '@components/ReportSubmitToPopoverAnchor';
+import {ReportSubmitToPopoverMeasurableAnchor, ReportSubmitToPopoverRoot} from '@components/ReportSubmitToPopoverAnchor';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -53,9 +53,11 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     }, [selectedTransactions, selectedReports]);
 
     return (
-        <ReportSubmitToPopoverAnchor reportID={anchorReportID}>
-            <SearchBulkActionsButtonInner queryJSON={queryJSON} />
-        </ReportSubmitToPopoverAnchor>
+        <ReportSubmitToPopoverRoot reportID={anchorReportID}>
+            <ReportSubmitToPopoverMeasurableAnchor>
+                <SearchBulkActionsButtonInner queryJSON={queryJSON} />
+            </ReportSubmitToPopoverMeasurableAnchor>
+        </ReportSubmitToPopoverRoot>
     );
 }
 

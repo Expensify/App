@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import Animated from 'react-native-reanimated';
+import {ReportSubmitToPopoverHost} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {SearchParams} from '@components/Search/types';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
@@ -158,37 +159,39 @@ function SearchPage({route}: SearchPageProps) {
     });
 
     return (
-        <Animated.View style={[styles.flex1]}>
-            {shouldUseNarrowLayout ? (
-                <SearchPageNarrow
-                    queryJSON={currentSearchQueryJSON}
-                    metadata={metadata}
-                    searchResults={searchResults}
-                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                    footerData={footerData}
-                    shouldShowFooter={shouldShowFooter}
-                    onSortPressedCallback={onSortPressedCallback}
-                    searchOverlayContent={searchOverlayContent}
-                    onSearchContentReady={onSearchContentReady}
-                    hasFilterBars={hasFilterBars}
-                    isOverlayActive={isOverlayActive}
-                />
-            ) : (
-                <SearchPageWide
-                    queryJSON={currentSearchQueryJSON}
-                    searchResults={searchResults}
-                    searchRequestResponseStatusCode={searchRequestResponseStatusCode}
-                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                    footerData={footerData}
-                    handleSearchAction={handleSearchAction}
-                    onSortPressedCallback={onSortPressedCallback}
-                    route={route}
-                    shouldShowFooter={shouldShowFooter}
-                    searchOverlayContent={searchOverlayContent}
-                    onSearchContentReady={onSearchContentReady}
-                />
-            )}
-        </Animated.View>
+        <ReportSubmitToPopoverHost>
+            <Animated.View style={[styles.flex1]}>
+                {shouldUseNarrowLayout ? (
+                    <SearchPageNarrow
+                        queryJSON={currentSearchQueryJSON}
+                        metadata={metadata}
+                        searchResults={searchResults}
+                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                        footerData={footerData}
+                        shouldShowFooter={shouldShowFooter}
+                        onSortPressedCallback={onSortPressedCallback}
+                        searchOverlayContent={searchOverlayContent}
+                        onSearchContentReady={onSearchContentReady}
+                        hasFilterBars={hasFilterBars}
+                        isOverlayActive={isOverlayActive}
+                    />
+                ) : (
+                    <SearchPageWide
+                        queryJSON={currentSearchQueryJSON}
+                        searchResults={searchResults}
+                        searchRequestResponseStatusCode={searchRequestResponseStatusCode}
+                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                        footerData={footerData}
+                        handleSearchAction={handleSearchAction}
+                        onSortPressedCallback={onSortPressedCallback}
+                        route={route}
+                        shouldShowFooter={shouldShowFooter}
+                        searchOverlayContent={searchOverlayContent}
+                        onSearchContentReady={onSearchContentReady}
+                    />
+                )}
+            </Animated.View>
+        </ReportSubmitToPopoverHost>
     );
 }
 
