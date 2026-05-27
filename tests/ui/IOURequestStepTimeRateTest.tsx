@@ -29,6 +29,7 @@ jest.mock('@react-navigation/native', () => {
         getState: jest.fn(() => ({})),
     };
     return {
+        ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
         createNavigationContainerRef: jest.fn(() => mockRef),
         useIsFocused: () => true,
         useNavigation: () => ({

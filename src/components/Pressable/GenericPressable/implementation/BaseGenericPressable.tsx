@@ -1,5 +1,5 @@
 import {NavigationRouteContext} from '@react-navigation/native';
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {Pressable} from 'react-native';
@@ -14,9 +14,6 @@ import HapticFeedback from '@libs/HapticFeedback';
 import mergeRefs from '@libs/mergeRefs';
 import {notifyPressedTrigger, registerPressable} from '@libs/NavigationFocusReturn';
 import CONST from '@src/CONST';
-
-const FALLBACK_ROUTE_CONTEXT = createContext<{key?: string} | undefined>(undefined);
-const ROUTE_CONTEXT = NavigationRouteContext ?? FALLBACK_ROUTE_CONTEXT;
 
 function GenericPressable({
     children,
@@ -57,7 +54,7 @@ function GenericPressable({
     const isRoleButton = [rest.accessibilityRole, rest.role].includes(CONST.ROLE.BUTTON);
     const internalRef = useRef<View | null>(null);
     const composedRef = useMemo(() => mergeRefs(ref, internalRef), [ref]);
-    const routeKey = useContext(ROUTE_CONTEXT)?.key ?? null;
+    const routeKey = useContext(NavigationRouteContext)?.key ?? null;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- `||` is intentional: `BaseListItem` passes `id={keyForList ?? ''}` so empty-string ids must fall through.
     const focusIdentifier = rest.id || rest.nativeID || rest.testID || rest.accessibilityLabel || undefined;
 
