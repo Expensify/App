@@ -33,11 +33,12 @@ type WorkspaceMemberRowData = TableData & {
 type WorkspaceMembersTableProps = {
     ref?: React.Ref<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey, string>> | undefined;
     members: WorkspaceMemberRowData[];
+    isPolicyAdmin: boolean;
     shouldShowCustomField1Column: boolean;
     shouldShowCustomField2Column: boolean;
 };
 
-export default function WorkspaceMembersTable({ref, shouldShowCustomField1Column, shouldShowCustomField2Column, members}: WorkspaceMembersTableProps) {
+export default function WorkspaceMembersTable({ref, isPolicyAdmin, shouldShowCustomField1Column, shouldShowCustomField2Column, members}: WorkspaceMembersTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -118,7 +119,7 @@ export default function WorkspaceMembersTable({ref, shouldShowCustomField1Column
         <Table
             ref={ref}
             data={members}
-            selectionEnabled
+            selectionEnabled={isPolicyAdmin}
             columns={workspaceMembersColumns}
             renderItem={renderTableItem}
             compareItems={compareTableItems}

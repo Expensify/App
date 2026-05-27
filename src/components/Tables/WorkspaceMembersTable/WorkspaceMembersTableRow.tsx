@@ -56,14 +56,16 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
         >
             {(hovered) => (
                 <>
-                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
                         <ReportActionAvatars
                             size={avatarSize}
                             accountIDs={[item.accountID]}
                             fallbackDisplayName={item.name ?? item.email}
                             secondaryAvatarContainerStyle={getSecondaryAvatarContainerStyle(!!hovered)}
                         />
+                        <Text numberOfLines={1}>{item.name}</Text>
                     </View>
+
                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}></View>
 
                     {shouldShowCustomField1Column && (

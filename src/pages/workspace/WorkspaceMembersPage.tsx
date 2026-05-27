@@ -1007,51 +1007,10 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
                     <WorkspaceMembersTable
                         members={data}
+                        isPolicyAdmin={isPolicyAdmin}
                         shouldShowCustomField1Column={shouldShowCustomField1Column}
                         shouldShowCustomField2Column={shouldShowCustomField2Column}
                     />
-
-                    {/* <SelectionListWithModal
-                        data={filteredData}
-                        ref={selectionListRef}
-                        ListItem={TableListItem}
-                        onSelectRow={openMemberDetails}
-                        selectedItems={selectedEmployees}
-                        canSelectMultiple={canSelectMultiple}
-                        selectAllAccessibilityLabel={translate('accessibilityHints.selectAllMembers')}
-                        turnOnSelectionModeOnLongPress={isPolicyAdmin}
-                        onSelectAll={displayedFilteredData.length > 0 ? () => toggleAllUsers(displayedFilteredData) : undefined}
-                        style={{
-                            listItemTitleContainerStyles: shouldUseNarrowLayout ? undefined : styles.pr3,
-                            contentContainerStyle: shouldShowRoleFilterEmptyState ? styles.flexGrow1 : undefined,
-                            listFooterContentStyle: shouldShowRoleFilterEmptyState ? styles.flex1 : undefined,
-                        }}
-                        onTurnOnSelectionMode={(item) => item && toggleUser(item.login)}
-                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                        onSelectionButtonPress={(item) => toggleUser(item.login)}
-                        shouldSingleExecuteRowSelect={!isPolicyAdmin}
-                        customListHeader={getCustomListHeader()}
-                        customListHeaderContent={headerContent}
-                        textInputOptions={textInputOptions}
-                        shouldShowLoadingPlaceholder={isLoading}
-                        onDismissError={dismissError}
-                        shouldShowListEmptyContent={false}
-                        showScrollIndicator={false}
-                        shouldUseUserSkeletonView
-                        shouldHeaderBeInsideList
-                        shouldShowRightCaret
-                        listFooterContent={
-                            shouldShowRoleFilterEmptyState ? (
-                                <GenericEmptyStateComponent
-                                    headerMedia={illustrations.EmptyShelves}
-                                    headerContentStyles={styles.emptyShelvesIllustration}
-                                    title={translate('workspace.people.emptyRoleFilter.title')}
-                                    subtitle={translate('workspace.people.emptyRoleFilter.subtitle')}
-                                    headerStyles={styles.emptyStateCardIllustrationContainer}
-                                />
-                            ) : undefined
-                        }
-                    /> */}
                 </>
             )}
         </WorkspacePageWithSections>
