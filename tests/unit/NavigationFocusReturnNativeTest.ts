@@ -95,6 +95,8 @@ const {
     teardownNavigationFocusReturn,
     handleStateChange,
     notifyPressedTrigger,
+    notifyPushParamsForward,
+    notifyPushParamsBackward,
     cancelPendingFocusRestore,
     skipNextFocusRestore,
     isFocusRestoreInProgress,
@@ -107,6 +109,8 @@ const {
     teardownNavigationFocusReturn: () => void;
     handleStateChange: (state: unknown) => void;
     notifyPressedTrigger: (node: unknown) => void;
+    notifyPushParamsForward: (routeKey: string, prevParams: unknown) => void;
+    notifyPushParamsBackward: (routeKey: string, targetParams: unknown) => void;
     cancelPendingFocusRestore: () => void;
     skipNextFocusRestore: () => void;
     isFocusRestoreInProgress: () => boolean;
@@ -424,6 +428,44 @@ describe('setup / teardown', () => {
         );
         expect(getTriggerMapSizeForTests()).toBe(1);
         teardownNavigationFocusReturn();
+        expect(getTriggerMapSizeForTests()).toBe(0);
+    });
+});
+
+describe('PUSH_PARAMS — same-route param change', () => {
+    const ROUTE_KEY = 'Search_Root-K1';
+
+    it('captures against the compound key on forward, restores on backward', () => {
+        const trigger = fakeView('search-tab-expense');
+        setLastPressedTriggerForTests(trigger);
+
+        notifyPushParamsForward(ROUTE_KEY, {q: 'old'});
+        expect(getTriggerMapSizeForTests()).toBe(1);
+
+        notifyPushParamsBackward(ROUTE_KEY, {q: 'old'});
+        flushTransitions();
+        jest.runAllTimers();
+        expect(mockFireFocusEvent).toHaveBeenCalledWith(trigger);
+    });
+
+    it('does NOT restore when the back targets a different params hash than the captured one', () => {
+        const trigger = fakeView('search-tab-expense');
+        setLastPressedTriggerForTests(trigger);
+
+        notifyPushParamsForward(ROUTE_KEY, {q: 'old'});
+        notifyPushParamsBackward(ROUTE_KEY, {q: 'unrelated'});
+        flushTransitions();
+        jest.runAllTimers();
+        expect(mockFireFocusEvent).not.toHaveBeenCalled();
+    });
+
+    it('drops compound entries when the route is removed from the tree', () => {
+        setLastPressedTriggerForTests(fakeView('search-tab-expense'));
+        notifyPushParamsForward(ROUTE_KEY, {q: 'old'});
+        expect(getTriggerMapSizeForTests()).toBe(1);
+
+        handleStateChange(stackState(0, [{key: ROUTE_KEY, name: 'Search'}]));
+        handleStateChange(stackState(0, [{key: 'OtherRoot', name: 'Other'}]));
         expect(getTriggerMapSizeForTests()).toBe(0);
     });
 });

@@ -6,6 +6,7 @@ import findNodeHandle from '@src/utils/findNodeHandle';
 import Accessibility from './Accessibility';
 import fireFocusEvent from './Accessibility/fireFocusEvent';
 import {notifyBackButtonMounted, scheduleForwardAutoFocus} from './Accessibility/forwardAutoFocus';
+import compoundParamsKey, {COMPOUND_KEY_DELIMITER} from './compoundParamsKey';
 import navigationRef from './Navigation/navigationRef';
 // eslint-disable-next-line no-restricted-imports -- focus-return is a sibling primitive to TransitionTracker; the exact transitionEnd signal is what we need to avoid focus-restore races with the OS.
 import TransitionTracker from './Navigation/TransitionTracker';
@@ -148,6 +149,13 @@ function handleStateChange(newState: NavigationState | undefined): void {
 
     for (const key of removedKeys) {
         triggerMap.delete(key);
+        // Map iteration is safe under in-loop delete.
+        const compoundPrefix = `${key}${COMPOUND_KEY_DELIMITER}`;
+        for (const mapKey of triggerMap.keys()) {
+            if (mapKey.startsWith(compoundPrefix)) {
+                triggerMap.delete(mapKey);
+            }
+        }
     }
     prevState = newState;
 }
@@ -187,11 +195,15 @@ function skipNextFocusRestore(): void {
     skipNextRestore = true;
 }
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
-// Web-only stubs (PUSH_PARAMS, list restore-in-progress flag, AUTO-skip guard).
-function notifyPushParamsForward(_routeKey: string, _prevParams: unknown): void {}
-function notifyPushParamsBackward(_routeKey: string, _targetParams: unknown): void {}
-/* eslint-enable @typescript-eslint/no-unused-vars */
+/** PUSH_PARAMS changes route params without changing the focused key, so `diffNavigationState` sees it as `noop`; capture/restore against the compound key (route + params) directly. */
+function notifyPushParamsForward(routeKey: string, prevParams: unknown): void {
+    cancelPendingRestore();
+    captureTriggerForRoute(compoundParamsKey(routeKey, prevParams));
+}
+
+function notifyPushParamsBackward(routeKey: string, targetParams: unknown): void {
+    scheduleRestore(compoundParamsKey(routeKey, targetParams));
+}
 
 function cancelPendingFocusRestore(): void {
     cancelPendingRestore();
