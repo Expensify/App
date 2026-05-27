@@ -1,5 +1,4 @@
 import {delegateEmailSelector} from '@selectors/Account';
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
@@ -22,7 +21,7 @@ import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
-import {hasViolations as hasViolationsReportUtils, shouldBlockSubmitDueToPreventSelfApproval, shouldBlockSubmitDueToStrictPolicyRules, shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {hasViolations as hasViolationsReportUtils, shouldBlockSubmitDueToPreventSelfApproval, shouldBlockSubmitDueToStrictPolicyRules} from '@libs/ReportUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
@@ -59,7 +58,6 @@ type SubmitPrimaryActionContentProps = {
     currentSearchResults: SearchResults | undefined;
     shouldCalculateTotals: boolean;
     allTransactionViolations: OnyxCollection<TransactionViolations>;
-    isTrackIntentUser: boolean;
 };
 
 function SubmitPrimaryActionContent({
@@ -88,7 +86,6 @@ function SubmitPrimaryActionContent({
     currentSearchResults,
     shouldCalculateTotals,
     allTransactionViolations,
-    isTrackIntentUser,
 }: SubmitPrimaryActionContentProps) {
     const {translate} = useLocalize();
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
@@ -99,12 +96,6 @@ function SubmitPrimaryActionContent({
     const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
 
     const {showConfirmModal} = useConfirmModal();
-
-    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
-        policy,
-        report: moneyRequestReport,
-        isTrackIntentUser,
-    });
 
     const handleSubmit = () => {
         if (!moneyRequestReport || shouldBlockSubmit) {
@@ -151,8 +142,7 @@ function SubmitPrimaryActionContent({
     return (
         <AnimatedSubmitButton
             success
-            text={shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit')}
-            isMarkAsDone={shouldUseMarkAsDoneCopy}
+            text={translate('common.submit')}
             onPress={handleSubmit}
             isSubmittingAnimationRunning={isSubmittingAnimationRunning}
             onAnimationFinish={stopAnimation}
@@ -180,8 +170,6 @@ function SubmitPrimaryAction({reportID}: SubmitPrimaryActionProps) {
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
-
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
@@ -243,7 +231,6 @@ function SubmitPrimaryAction({reportID}: SubmitPrimaryActionProps) {
                 currentSearchResults={currentSearchResults}
                 shouldCalculateTotals={shouldCalculateTotals}
                 allTransactionViolations={allTransactionViolations}
-                isTrackIntentUser={isTrackIntentUser ?? false}
             />
         </ReportSubmitToPopoverAnchor>
     );

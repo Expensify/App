@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account';
-import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import truncate from 'lodash/truncate';
 import React, {useContext} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -15,7 +15,6 @@ import MoneyReportHeaderKYCDropdown from '@components/MoneyReportHeaderKYCDropdo
 import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsContext';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import {ReportSubmitToPopoverAnchor} from '@components/ReportSubmitToPopoverAnchor';
 import BulkDuplicateHandler from '@components/Search/BulkDuplicateHandler';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
@@ -54,7 +53,6 @@ import {
     hasViolations as hasViolationsReportUtils,
     isInvoiceReport as isInvoiceReportUtil,
     isIOUReport as isIOUReportUtil,
-    shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
@@ -75,7 +73,7 @@ type MoneyReportHeaderSelectionDropdownProps = {
     wrapperStyle?: StyleProp<ViewStyle>;
 };
 
-function MoneyReportHeaderSelectionDropdownContent({reportID, primaryAction, isReportInSearch, wrapperStyle}: MoneyReportHeaderSelectionDropdownProps) {
+function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportInSearch, wrapperStyle}: MoneyReportHeaderSelectionDropdownProps) {
     const route = useRoute();
     const {startAnimation, startApprovedAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
     const {openHoldMenu: openHoldMenuAsync, openRejectModal} = useMoneyReportHeaderModals();
@@ -382,15 +380,7 @@ function MoneyReportHeaderSelectionDropdownContent({reportID, primaryAction, isR
         });
     };
 
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
-        policy,
-        report: moneyRequestReport,
-        isTrackIntentUser,
-    });
     const allExpensesSelected = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === nonPendingDeleteTransactions.length;
-    const submitButtonText = shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit');
-    const approveButtonText = shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('iou.approve');
 
     // Ref writes below are inside onSelected callbacks that only fire on user interaction, never during render.
 
@@ -398,7 +388,7 @@ function MoneyReportHeaderSelectionDropdownContent({reportID, primaryAction, isR
         ...(hasSubmitAction && !shouldBlockSubmit
             ? [
                   {
-                      text: submitButtonText,
+                      text: translate('common.submit'),
                       icon: expensifyIcons.Send,
                       value: CONST.REPORT.PRIMARY_ACTIONS.SUBMIT,
                       onSelected: () => handleSubmitReport(true),
@@ -408,7 +398,7 @@ function MoneyReportHeaderSelectionDropdownContent({reportID, primaryAction, isR
         ...(hasApproveAction && !isBlockSubmitDueToPreventSelfApproval
             ? [
                   {
-                      text: approveButtonText,
+                      text: translate('iou.approve'),
                       icon: expensifyIcons.ThumbsUp,
                       value: CONST.REPORT.PRIMARY_ACTIONS.APPROVE,
                       onSelected: () => confirmApproval(true),
@@ -544,14 +534,6 @@ function MoneyReportHeaderSelectionDropdownContent({reportID, primaryAction, isR
                 wrapperStyle={wrapperStyle}
             />
         </>
-    );
-}
-
-function MoneyReportHeaderSelectionDropdown(props: MoneyReportHeaderSelectionDropdownProps) {
-    return (
-        <ReportSubmitToPopoverAnchor reportID={props.reportID}>
-            <MoneyReportHeaderSelectionDropdownContent {...props} />
-        </ReportSubmitToPopoverAnchor>
     );
 }
 
