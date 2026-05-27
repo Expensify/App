@@ -1,6 +1,7 @@
 import {useRoute} from '@react-navigation/core';
 import React, {useContext} from 'react';
 import {View} from 'react-native';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectedFilterContent from '@components/Search/FilterDropdowns/AdvancedFilters/SelectedFilterContent';
@@ -10,10 +11,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchAdvancedFiltersParamList} from '@libs/Navigation/types';
-import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
+import {FILTER_VIEW_MAP, SearchFilter} from '@libs/SearchUIUtils';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {SearchAdvancedFiltersActionContext, SearchAdvancedFiltersContext} from '../SearchAdvancedFiltersProvider';
+
+function isFilterKeyValid(filterKey: string): filterKey is SearchFilter['key'] {
+    return filterKey in FILTER_VIEW_MAP;
+}
 
 function SearchAdvancedFiltersContentBase() {
     const route = useRoute<PlatformStackRouteProp<SearchAdvancedFiltersParamList, typeof SCREENS.SEARCH.ADVANCED_FILTERS_CONTENT_RHP>>();
@@ -25,6 +30,8 @@ function SearchAdvancedFiltersContentBase() {
     const {currentDraftFilters} = useContext(SearchAdvancedFiltersContext);
     const {setDraftFilters} = useContext(SearchAdvancedFiltersActionContext);
 
+    const validFilterKey = isFilterKeyValid(filterKey) ? filterKey : undefined;
+
     return (
         <ScreenWrapper
             testID="SearchAdvancedFiltersPage"
@@ -32,19 +39,25 @@ function SearchAdvancedFiltersContentBase() {
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
         >
-            <HeaderWithBackButton title={translate(FILTER_VIEW_MAP[filterKey].labelKey)} />
-            <View style={[styles.filterContentContainer]}>
-                <SelectedFilterContent
-                    values={currentDraftFilters}
-                    filterKey={filterKey}
-                    policyIDQuery={currentSearchQueryJSON?.policyID}
-                    autoFocus
-                    onChange={(newValues) => {
-                        setDraftFilters((prevValues) => ({...prevValues, ...newValues}));
-                        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
-                    }}
-                />
-            </View>
+            {validFilterKey ? (
+                <>
+                    <HeaderWithBackButton title={translate(FILTER_VIEW_MAP[validFilterKey].labelKey)} />
+                    <View style={[styles.filterContentContainer]}>
+                        <SelectedFilterContent
+                            values={currentDraftFilters}
+                            filterKey={validFilterKey}
+                            policyIDQuery={currentSearchQueryJSON?.policyID}
+                            autoFocus
+                            onChange={(newValues) => {
+                                setDraftFilters((prevValues) => ({...prevValues, ...newValues}));
+                                Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+                            }}
+                        />
+                    </View>
+                </>
+            ) : (
+                <FullPageNotFoundView shouldShow />
+            )}
         </ScreenWrapper>
     );
 }
