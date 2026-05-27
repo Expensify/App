@@ -1460,6 +1460,57 @@ describe('OptionsListUtils', () => {
             expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({reportID: '14'})]));
         });
 
+        it('should include policy expense chats when current user has hidden notification preference', () => {
+            const reportID = '1455140530846320';
+            const workspaceExpenseChat: SearchOption<Report> = {
+                item: {
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    currency: 'USD',
+                    errorFields: {},
+                    lastActionType: 'CREATED',
+                    lastReadTime: '2025-03-21 07:25:46.279',
+                    lastVisibleActionCreated: '2024-12-15 21:13:24.317',
+                    lastVisibleActionLastModified: '2024-12-15 21:13:24.317',
+                    ownerAccountID: 1,
+                    permissions: ['read', 'write'],
+                    participants: {
+                        [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+                        1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                    policyID: '52A5ABD88FBBD18F',
+                    policyName: "A's Workspace",
+                    reportID,
+                    reportName: "A's Workspace chat",
+                    type: 'chat',
+                    writeCapability: 'all',
+                },
+                text: "A's Workspace chat",
+                alternateText: "A's Workspace",
+                allReportErrors: {},
+                subtitle: "A's Workspace",
+                participantsList: [],
+                reportID,
+                keyForList: reportID,
+                isDefaultRoom: true,
+                isChatRoom: true,
+                policyID: '52A5ABD88FBBD18F',
+                lastMessageText: '',
+                lastVisibleActionCreated: '2024-12-15 21:13:24.317',
+                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+            };
+
+            const results = getValidOptions({reports: [workspaceExpenseChat], personalDetails: []}, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
+                includeRecentReports: true,
+                includeMultipleParticipantReports: true,
+                includeOwnedWorkspaceChats: true,
+                excludeHidden: true,
+                sortedActions: undefined,
+            });
+
+            expect(results.recentReports).toHaveLength(1);
+            expect(results.recentReports.at(0)?.reportID).toBe(reportID);
+        });
+
         it('should use personalDetails config for workspace chat lookups when shouldSeparateWorkspaceChat is true', () => {
             // Given a set of reports with workspace rooms and a custom personalDetails collection
             const customPersonalDetails: PersonalDetailsList = {
