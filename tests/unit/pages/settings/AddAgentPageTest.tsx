@@ -244,10 +244,12 @@ describe('AddAgentPage', () => {
             expect(mockNavigate).not.toHaveBeenCalled();
         });
 
-        it('defers navigation when policyID + workflowApproverEmail are set — waits for CREATE_AGENT to produce a real email before navigating to Edit Approval Workflow', () => {
-            // The Edit page can only seed an approver with the real server-assigned email, so the
-            // page stays mounted with a loading spinner on submit and a useEffect handles the
-            // hop to the editor once the new agent appears in agentPrompts + personalDetailsList.
+        it('navigates to Edit Approval Workflow with the optimistic accountID seed when policyID + workflowApproverEmail are set', () => {
+            // The Edit page seeds approver[0] from the optimistic personal detail keyed by the
+            // optimistic accountID, so we can hop directly to the editor without waiting for
+            // CREATE_AGENT to resolve. The server-echoed `optimisticAgentAccountIDMapping`
+            // (and a prompt-match fallback) reconciles the seed to the real email once the
+            // response lands.
             render(
                 <AddAgentPage
                     route={makeRoute({policyID: 'POL_42', workflowApproverEmail: 'manager@example.com'})}
@@ -257,8 +259,9 @@ describe('AddAgentPage', () => {
 
             mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
 
-            expect(mockGoBack).not.toHaveBeenCalled();
-            expect(mockNavigate).not.toHaveBeenCalledWith(expect.stringContaining('workflows/approvals'));
+            expect(mockGoBack).toHaveBeenCalledTimes(1);
+            expect(mockNavigate).toHaveBeenCalledWith(expect.stringContaining('workspaces/POL_42/workflows/approvals/manager%40example.com/edit'));
+            expect(mockNavigate).toHaveBeenCalledWith(expect.stringContaining('seedApproverAccountID=-123456'));
         });
     });
 });
