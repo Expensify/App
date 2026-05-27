@@ -1,8 +1,6 @@
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -55,7 +53,6 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
     const isChatRoom = isChatRoomReportUtils(report);
     const isSelfDM = isSelfDMReportUtils(report);
@@ -66,7 +63,6 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true, true, reportMetadata);
     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs, betas, isReportArchived, isRestrictedToPreferredPolicy);
     const policyName = getPolicyName({report});
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const filteredOptions = moneyRequestOptions.filter(
         (
@@ -125,8 +121,6 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         reportDetailsLink,
         shouldShowUsePlusButtonText,
         additionalText,
-        isTrackIntentUser: !!isTrackIntentUser,
-        currentUserAccountID,
     });
 
     return (
