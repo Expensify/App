@@ -28,6 +28,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {freezeCard, unfreezeCard} from '@libs/actions/Card';
 import {resetValidateActionCodeSent} from '@libs/actions/User';
@@ -98,6 +99,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const cardList = useNonPersonalCardList();
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${cardList?.[cardID]?.fundID}`);
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {executeScenario} = useMultifactorAuthentication();
@@ -305,6 +307,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                             medium
                             text={translate('workspace.common.viewTransactions')}
                             icon={expensifyIcons.MoneySearch}
+                            iconFill={theme.icon}
                             onPress={navigateToTransactions}
                             innerStyles={styles.ph2}
                             style={styles.w100}
@@ -348,6 +351,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                     <CardDetailsActionButton
                                         text={translate('cardPage.freezeCard')}
                                         icon={expensifyIcons.FreezeCard}
+                                        iconFill={theme.icon}
                                         onPress={handleFreezePress}
                                         isDisabled={isOffline}
                                         style={styles.flexShrink0}
@@ -356,6 +360,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                 <CardDetailsActionButton
                                     text={translate('workspace.common.viewTransactions')}
                                     icon={expensifyIcons.MoneySearch}
+                                    iconFill={theme.icon}
                                     onPress={navigateToTransactions}
                                     style={styles.flexShrink0}
                                 />
