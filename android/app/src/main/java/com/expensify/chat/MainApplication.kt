@@ -81,7 +81,6 @@ class MainApplication : MultiDexApplication(), ReactApplication {
             System.err.println("Error initializing Nitro `AutoPrefetcher`")
         }
 
-
         loadReactNative(this)
 
         // Force the app to LTR mode.
