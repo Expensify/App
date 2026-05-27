@@ -172,7 +172,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
                         description={translate('workspace.card.issueNewCard.expirationDate')}
                         title={expirationDateTitle}
                         shouldShowRightIcon
-                        onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.EXPIRY_OPTIONS)}
+                        onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.SPEND_RULES)}
                     />
                 )}
                 <MenuItemWithTopDescription

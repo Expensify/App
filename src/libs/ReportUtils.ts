@@ -6129,7 +6129,7 @@ function getParentNavigationSubtitle(
 /**
  * Navigate to the details page of a given report
  */
-function navigateToDetailsPage(report: OnyxEntry<Report>, backTo?: string) {
+function navigateToDetailsPage(report: OnyxEntry<Report>) {
     const isSelfDMReport = isSelfDM(report);
     const isOneOnOneChatReport = isOneOnOneChat(report);
     const participantAccountID = getParticipantsAccountIDsForDisplay(report);
@@ -6140,14 +6140,14 @@ function navigateToDetailsPage(report: OnyxEntry<Report>, backTo?: string) {
     }
 
     if (report?.reportID) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID, backTo));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path));
     }
 }
 
 /**
  * Go back to the details page of a given report
  */
-function goBackToDetailsPage(report: OnyxEntry<Report>, backTo?: string, shouldGoBackToDetailsPage = false) {
+function goBackToDetailsPage(report: OnyxEntry<Report>, backTo?: Route, shouldGoBackToDetailsPage = false) {
     const isOneOnOneChatReport = isOneOnOneChat(report);
     const participantAccountID = getParticipantsAccountIDsForDisplay(report);
 
@@ -6158,7 +6158,7 @@ function goBackToDetailsPage(report: OnyxEntry<Report>, backTo?: string, shouldG
 
     if (report?.reportID) {
         if (shouldGoBackToDetailsPage) {
-            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
+            Navigation.goBack(backTo ?? createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(report.reportID)));
         } else {
             Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID, backTo));
         }
@@ -6201,7 +6201,7 @@ function goBackFromPrivateNotes(report: OnyxEntry<Report>, accountID?: number) {
         }
 
         if (report?.reportID) {
-            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
+            Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(report.reportID)));
             return;
         }
     }
