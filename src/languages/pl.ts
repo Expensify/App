@@ -2941,7 +2941,7 @@ ${amount} dla ${merchant} - ${date}`,
         phoneOrEmail: 'Telefon lub e-mail',
         error: {
             invalidFormatEmailLogin: 'Wprowadzony adres e-mail jest nieprawidłowy. Popraw jego format i spróbuj ponownie.',
-            agentSignInBlocked: 'Nie można logować się bezpośrednio na konta agentów. Aby użyć agenta, zaloguj się na swoje konto i uzyskaj dostęp przez Copilot.',
+            agentSignInBlocked: 'Na konta agenta nie można logować się bezpośrednio. Żeby korzystać z agenta, zaloguj się na własne konto i uzyskaj do niego dostęp przez Copilota.',
         },
         cannotGetAccountDetails: 'Nie można pobrać szczegółów konta. Spróbuj zalogować się ponownie.',
         loginForm: 'Formularz logowania',
