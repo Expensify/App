@@ -8,7 +8,7 @@ import {useCallback, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports -- Need original useOnyx to avoid reading partial Search snapshot policy data.
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {TransactionInlineEditParams} from '@libs/actions/TransactionInlineEdit';
 import {
     editTransactionAmountInline,
@@ -124,7 +124,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     const originalTransactionID = transaction?.comment?.originalTransactionID;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(originalTransactionID)}`);
 
-    const {hasSelectedTransactions} = useSearchStateContext();
+    const {hasSelectedTransactions} = useSearchSelectionContext();
 
     const isPerDiem = isPerDiemRequest(transaction);
     const {shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiem);
