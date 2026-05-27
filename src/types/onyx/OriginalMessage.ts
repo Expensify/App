@@ -827,6 +827,9 @@ type OriginalMessageSpendRuleChangeLog = {
         /** Display name shown when the rule covers a single card */
         displayName?: string;
     }>;
+
+    /** Currency of the spend rule */
+    currency?: string;
 };
 
 /** Model of `join policy` report action */
