@@ -7,8 +7,8 @@ import Log from '@libs/Log';
 import {getCredentials} from '@libs/Network/NetworkStore';
 import {checkIfShouldUseNewPartnerName} from '@libs/SessionUtils';
 import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 import type Credentials from '@src/types/onyx/Credentials';
-import {AUTH_TOKEN_KEY} from '@src/types/onyx/Session';
 import pkg from '../../../package.json';
 
 const CONTENT_TYPE_HEADER = 'Content-Type';
@@ -57,8 +57,8 @@ function registerPrefetchTokenRefresh(): void {
         responseType: 'json',
         mappings: [
             {
-                jsonPath: AUTH_TOKEN_KEY,
-                header: AUTH_TOKEN_KEY,
+                jsonPath: CONST.HTTP_HEADER_NAMES.AUTH_TOKEN,
+                header: CONST.HTTP_HEADER_NAMES.AUTH_TOKEN,
                 valueTemplate: '{{value}}',
             },
         ],

@@ -1,8 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type * as OnyxCommon from './OnyxCommon';
-
-const AUTH_TOKEN_KEY = 'authToken' as const;
+import type {Errors} from './OnyxCommon';
 
 /** Possible states of the automatic authentication after user clicks on a magic link */
 type AutoAuthState = ValueOf<typeof CONST.AUTO_AUTH_STATE>;
@@ -13,7 +11,7 @@ type Session = {
     email?: string;
 
     /** Currently logged in user authToken */
-    [AUTH_TOKEN_KEY]?: string;
+    [CONST.HTTP_HEADER_NAMES.AUTH_TOKEN]?: string;
 
     /** Currently logged in user authToken type */
     authTokenType?: ValueOf<typeof CONST.AUTH_TOKEN_TYPES>;
@@ -34,7 +32,7 @@ type Session = {
     autoAuthState?: AutoAuthState;
 
     /** Server side errors keyed by microtime */
-    errors?: OnyxCommon.Errors;
+    errors?: Errors;
 
     /** User signed in with short lived token */
     signedInWithShortLivedAuthToken?: boolean;
@@ -56,6 +54,5 @@ type Session = {
 };
 
 export default Session;
-export {AUTH_TOKEN_KEY};
 
 export type {AutoAuthState};
