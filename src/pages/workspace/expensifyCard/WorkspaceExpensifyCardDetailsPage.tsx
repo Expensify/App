@@ -120,6 +120,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const remainingLimitHint = remainingLimitHintTranslationKey ? translate(remainingLimitHintTranslationKey, formattedAvailableSpendAmount) : undefined;
     const isAdmin = isPolicyAdmin(policy, session?.email);
     const isDeactivated = card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED;
+    const isCardOpen = card?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
 
     const fetchCardDetails = useCallback(() => {
         openCardDetailsPage(Number(cardID));
@@ -316,7 +317,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                     )}
                     {(!isCardFrozen(card) || !canManageCardFreeze) && (
                         <CardDetailsActionButtons>
-                            {canManageCardFreeze && !isDeactivated && !isCardFrozen(card) && (
+                            {canManageCardFreeze && isCardOpen && !isCardFrozen(card) && (
                                 <CardDetailsActionButton
                                     text={translate('cardPage.freezeCard')}
                                     icon={expensifyIcons.FreezeCard}
