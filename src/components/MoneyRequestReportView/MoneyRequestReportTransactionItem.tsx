@@ -81,6 +81,14 @@ type MoneyRequestReportTransactionItemProps = {
     shouldScrollHorizontally?: boolean;
 };
 
+type MoneyRequestReportTransactionItemBodyProps = MoneyRequestReportTransactionItemProps & {
+    /** Inline-edit values from `useTransactionInlineEdit`. Undefined on narrow layouts where the hook is skipped. */
+    inlineEdit?: InlineEditValues;
+
+    /** Highlight animation style, computed by the parent so its state survives the narrow↔wide swap on resize. */
+    animatedHighlightStyle: ReturnType<typeof useAnimatedHighlightStyle>;
+};
+
 function MoneyRequestReportTransactionItemBody({
     transaction,
     report,
@@ -101,7 +109,8 @@ function MoneyRequestReportTransactionItemBody({
     isLastItem = false,
     shouldScrollHorizontally = false,
     inlineEdit,
-}: MoneyRequestReportTransactionItemProps & {inlineEdit?: InlineEditValues}) {
+    animatedHighlightStyle,
+}: MoneyRequestReportTransactionItemBodyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -110,7 +119,6 @@ function MoneyRequestReportTransactionItemBody({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
-    const theme = useTheme();
     const isPendingDelete = isTransactionPendingDelete(transaction);
     const pendingAction = getTransactionPendingAction(transaction);
     // Filter violations based on user visibility and dismissal state at the row level.
@@ -132,14 +140,6 @@ function MoneyRequestReportTransactionItemBody({
             scrollToNewTransaction?.(pageY);
         });
     }, [scrollToNewTransaction, shouldBeHighlighted]);
-
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: shouldUseNarrowLayout ? variables.componentBorderRadius : 0,
-        shouldHighlight: shouldBeHighlighted,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: theme.highlightBG,
-        shouldApplyOtherStyles: !shouldUseNarrowLayout,
-    });
 
     return (
         <OfflineWithFeedback
@@ -229,7 +229,7 @@ function MoneyRequestReportTransactionItemBody({
 
 type InlineEditValues = ReturnType<typeof useTransactionInlineEdit>;
 
-function MoneyRequestReportTransactionItemWithInlineEdit(props: MoneyRequestReportTransactionItemProps) {
+function MoneyRequestReportTransactionItemWithInlineEdit(props: Omit<MoneyRequestReportTransactionItemBodyProps, 'inlineEdit'>) {
     const inlineEdit = useTransactionInlineEdit({transactionID: props.transaction.transactionID});
 
     return (
@@ -243,14 +243,35 @@ function MoneyRequestReportTransactionItemWithInlineEdit(props: MoneyRequestRepo
 function MoneyRequestReportTransactionItem(props: MoneyRequestReportTransactionItemProps) {
     const {isMediumScreenWidth} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
+    const theme = useTheme();
     // Mirrors the layout check inside TransactionItemRow so the narrow body never pays for useTransactionInlineEdit.
     const isNarrowLayout = shouldUseNarrowLayout || (isMediumScreenWidth && !props.shouldScrollHorizontally);
 
+    // Hoisted out of the body so the highlight animation timeline survives the narrow↔wide
+    // component-type swap caused by browser resize.
+    const animatedHighlightStyle = useAnimatedHighlightStyle({
+        borderRadius: shouldUseNarrowLayout ? variables.componentBorderRadius : 0,
+        shouldHighlight: props.shouldBeHighlighted,
+        highlightColor: theme.messageHighlightBG,
+        backgroundColor: theme.highlightBG,
+        shouldApplyOtherStyles: !shouldUseNarrowLayout,
+    });
+
     if (isNarrowLayout) {
-        return <MoneyRequestReportTransactionItemBody {...props} />;
+        return (
+            <MoneyRequestReportTransactionItemBody
+                {...props}
+                animatedHighlightStyle={animatedHighlightStyle}
+            />
+        );
     }
 
-    return <MoneyRequestReportTransactionItemWithInlineEdit {...props} />;
+    return (
+        <MoneyRequestReportTransactionItemWithInlineEdit
+            {...props}
+            animatedHighlightStyle={animatedHighlightStyle}
+        />
+    );
 }
 
 export default MoneyRequestReportTransactionItem;
