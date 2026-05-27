@@ -206,6 +206,7 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
             }
 
             const errors: {policyID?: string; roomName?: string} = {};
+            const validationPolicyID = isLocked ? policyID : values.policyID;
 
             if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
                 // We error if the user doesn't enter a room name or left blank
@@ -216,7 +217,7 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
             } else if (isReservedRoomName(values.roomName)) {
                 // Certain names are reserved for default rooms and should not be used for policy rooms.
                 addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameReservedError', values.roomName));
-            } else if (isExistingRoomName(values.roomName, reports, values.policyID)) {
+            } else if (isExistingRoomName(values.roomName, reports, validationPolicyID)) {
                 // Certain names are reserved for default rooms and should not be used for policy rooms.
                 addErrorMessage(errors, 'roomName', translate('newRoomPage.roomAlreadyExistsError'));
             } else if (values.roomName.length > CONST.TITLE_CHARACTER_LIMIT) {
