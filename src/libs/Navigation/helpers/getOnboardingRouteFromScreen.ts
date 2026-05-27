@@ -1,7 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import {normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
 import {getUrlWithParams} from '@libs/Url';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 
 type OnboardingScreen = ValueOf<typeof SCREENS.ONBOARDING>;
 
