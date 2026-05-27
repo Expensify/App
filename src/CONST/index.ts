@@ -666,7 +666,65 @@ const CONST = {
             VALIDATION: 'ValidationStep',
             ENABLE: 'EnableStep',
         },
+        PAGE_NAMES: {
+            COUNTRY: 'currency-and-country',
+            BANK_ACCOUNT: 'bank-info',
+            REQUESTOR: 'personal-info',
+            VERIFY_IDENTITY: 'verify-identity',
+            COMPANY: 'company',
+            BENEFICIAL_OWNERS: 'business-owner',
+            ACH_CONTRACT: 'ach-contract',
+            VALIDATION: 'validation',
+            ENABLE: 'enable',
+        },
         STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
+        BANK_INFO_STEP: {
+            SUB_PAGE_NAMES: {
+                MANUAL: 'manual',
+                PLAID: 'plaid',
+            },
+        },
+        PERSONAL_INFO_STEP: {
+            SUB_PAGE_NAMES: {
+                FULL_NAME: 'full-name',
+                DATE_OF_BIRTH: 'date-of-birth',
+                SSN: 'ssn',
+                ADDRESS: 'address',
+                CONFIRMATION: 'confirmation',
+            },
+        },
+        BUSINESS_INFO_STEP: {
+            SUB_PAGE_NAMES: {
+                NAME: 'name',
+                TAX_ID: 'tax-id',
+                WEBSITE: 'website',
+                PHONE: 'phone',
+                ADDRESS: 'address',
+                TYPE: 'type',
+                INCORPORATION_DATE: 'start-date',
+                INCORPORATION_STATE: 'state',
+                INCORPORATION_CODE: 'code',
+                CONFIRMATION: 'confirmation',
+            },
+        },
+        BENEFICIAL_OWNERS_STEP: {
+            SUB_PAGE_NAMES: {
+                IS_USER_UBO: 'is-user-ubo',
+                IS_ANYONE_ELSE_UBO: 'is-anyone-else-ubo',
+                ARE_THERE_MORE_UBOS: 'are-there-more-ubos',
+                UBOS_LIST: 'ubos-list',
+                LEGAL_NAME: 'legal-name',
+                DATE_OF_BIRTH: 'date-of-birth',
+                SSN: 'ssn',
+                ADDRESS: 'address',
+                CONFIRMATION: 'confirmation',
+            },
+        },
+        COMPLETE_VERIFICATION_STEP: {
+            SUB_PAGE_NAMES: {
+                CONFIRM_AGREEMENTS: 'confirm-agreements',
+            },
+        },
         SUBSTEP: {
             MANUAL: 'manual',
             PLAID: 'plaid',
@@ -925,6 +983,7 @@ const CONST = {
         GUSTO: 'gustoNewDot',
         ZENEFITS: 'zenefitsNewDot',
         BULK_EDIT: 'bulkEdit',
+        BULK_EDIT_WORKSPACES: 'bulkEditWorkspaces',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
         SUBMIT_2026: 'submit2026',
         DATE_BOUND_MILEAGE_RATE: 'dateBoundMileageRate',
@@ -1837,7 +1896,6 @@ const CONST = {
         MESSAGE_KEY: {
             WAITING_TO_ADD_TRANSACTIONS: 'waitingToAddTransactions',
             WAITING_TO_SUBMIT: 'waitingToSubmit',
-            WAITING_TO_MARK_AS_DONE: 'waitingToMarkAsDone',
             NO_FURTHER_ACTION: 'noFurtherAction',
             WAITING_FOR_SUBMITTER_ACCOUNT: 'waitingForSubmitterAccount',
             WAITING_FOR_AUTOMATIC_SUBMIT: 'waitingForAutomaticSubmit',
