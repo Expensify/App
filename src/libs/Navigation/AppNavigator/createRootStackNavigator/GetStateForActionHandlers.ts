@@ -401,9 +401,16 @@ function handleReplaceFullscreenUnderRHP(
             if (action.payload.collapseTabToLeaf) {
                 // Replace the tab's nested stack with the leaf only, so the RHP dismiss animation
                 // reveals just the destination — no seeded sidebar flashing underneath.
+                // Also tag the leaf with `_noEnterAnimation`: navigators that opt in (e.g. WorkspaceNavigator)
+                // read this param synchronously when computing screenOptions, so the screen mounts with
+                // animation: 'none' on its FIRST render. This avoids the race seen with an event-emitter
+                // suppression where the navigation state change committed before the setState toggling the
+                // animation option, and iOS native-stack played a deferred SLIDE_FROM_RIGHT after the
+                // RHP dismiss — briefly revealing the collapsed-away list.
                 const leafRoute = newNestedRoutes?.at(-1);
                 if (leafRoute && focusedTargetTab.state) {
-                    mergedNestedState = {...focusedTargetTab.state, routes: [leafRoute], index: 0};
+                    const taggedLeaf = {...leafRoute, params: {...(leafRoute.params as Record<string, unknown> | undefined), _noEnterAnimation: true}};
+                    mergedNestedState = {...focusedTargetTab.state, routes: [taggedLeaf], index: 0};
                 }
             } else {
                 // Prepend the existing sidebar/root route (e.g. Inbox) to the incoming state when

@@ -1082,13 +1082,6 @@ function preInsertFullscreenUnderRHP(route: Route, options?: {collapseTabToLeaf?
     preInsertedFullscreenRouteName = targetRouteName;
 
     DeviceEventEmitter.emit(CONST.MODAL_EVENTS.DISABLE_RHP_ANIMATION);
-
-    // Suppress the destination tab's nested enter animation so the deferred slide that iOS
-    // native-stack would otherwise play after the RHP dismiss doesn't briefly reveal the
-    // collapsed-away sidebar/list. Auto-clears after one transitionEnd in the listening navigator.
-    if (options?.collapseTabToLeaf && targetRouteName === NAVIGATORS.WORKSPACE_NAVIGATOR) {
-        DeviceEventEmitter.emit(CONST.MODAL_EVENTS.DISABLE_WORKSPACE_SPLIT_ENTER_ANIMATION);
-    }
 }
 
 function getIsFullscreenPreInsertedUnderRHP() {

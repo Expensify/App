@@ -8958,7 +8958,6 @@ const CONST = {
     MODAL_EVENTS: {
         DISABLE_RHP_ANIMATION: 'disableRHPAnimation',
         RESTORE_RHP_ANIMATION: 'restoreRHPAnimation',
-        DISABLE_WORKSPACE_SPLIT_ENTER_ANIMATION: 'disableWorkspaceSplitEnterAnimation',
     },
 
     LIST_BEHAVIOR: {

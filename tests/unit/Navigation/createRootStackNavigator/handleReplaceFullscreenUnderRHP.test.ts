@@ -127,6 +127,9 @@ describe('handleReplaceFullscreenUnderRHP — tab merge behaviour', () => {
         expect(workspaceNavInnerRoutes).toHaveLength(1);
         expect(workspaceNavInnerRoutes?.at(0)?.name).toBe(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
         expect((workspaceNav?.state as NavigationState | undefined)?.index).toBe(0);
+        // Leaf is tagged with `_noEnterAnimation` so navigators that opt in (WorkspaceNavigator) read it
+        // synchronously when computing screenOptions and skip the SLIDE_FROM_RIGHT entry animation.
+        expect(workspaceNavInnerRoutes?.at(0)?.params).toEqual({policyID: 'NEW', _noEnterAnimation: true});
     });
 
     it('with collapseTabToLeaf=true: collapses even when the existing nested stack already has WORKSPACE_SPLIT_NAVIGATOR at index 0 (no sandwich)', () => {
@@ -143,7 +146,7 @@ describe('handleReplaceFullscreenUnderRHP — tab merge behaviour', () => {
 
         expect(workspaceNavInnerRoutes).toHaveLength(1);
         expect(workspaceNavInnerRoutes?.at(0)?.name).toBe(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
-        expect(workspaceNavInnerRoutes?.at(0)?.params).toEqual({policyID: 'NEW'});
+        expect(workspaceNavInnerRoutes?.at(0)?.params).toEqual({policyID: 'NEW', _noEnterAnimation: true});
     });
 
     it('with collapseTabToLeaf=false (default): keeps the existing sidebar prepend behaviour so back navigation lands on it', () => {
