@@ -7705,9 +7705,12 @@ ${reportName}
             `${fieldType}レポートフィールド「${fieldName}」を追加しました${defaultValue ? ` デフォルト値「${defaultValue}」付き` : ''}`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} の法人カード購入要件`,
         expensifyCardRule: {
-            actionVerb: {block: 'ブロック済み', allow: '許可されています'},
-            amountOperator: {over: '終了', under: '以下のいずれかの意味に応じて使い分けますが、一般的なUI文脈では「以下」となることが多いです。'},
-            amountFilter: ({operator, amount}: {operator: string; amount: string}) => `金額 ${operator} ${amount}`,
+            actionVerb: {block: 'ブロック済み', allow: '許可済み'},
+            amountOperator: {
+                over: '以上',
+                under: '以下のいずれかの意味に応じてお使いください：  \n- 位置・場所：「〜の下」→「under」＝「〜の下」  \n- 条件・範囲：「〜のもとで／〜以下」→「under 18」＝「18歳未満」',
+            },
+            amountFilter: ({operator, amount}: {operator: string; amount: string}) => `金額が ${amount} を${operator}`,
             theCard: 'カード',
             multipleCards: ({count}: {count: number}) => `${count} 枚のカード`,
             addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
@@ -7715,25 +7718,25 @@ ${reportName}
                 if (filters !== '') {
                     text += ` ${filters}`;
                 }
-                text += `${cards} に対して`;
+                text += `（${cards}）で`;
                 return text;
             },
             removeRule: ({cards}: {cards: string}) => `${cards} から支出ルールを削除しました`,
             restrictionVerb: {block: 'ブロック', allow: 'のみ許可'},
             update: {
-                modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) => `${cards} の支出ルールを ${fromAction} から ${toAction} に変更しました`,
-                appliedToAdditionalCards: ({count}: {count: number}) => `${count} 枚の追加カードに支出ルールを適用しました`,
-                phraseVerb: {added: '追加しました', removed: '削除しました', changed: '変更しました', set: '設定', applied: '適用済み'},
-                bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective}な加盟店「${value}」` : `加盟店「${value}」`),
+                modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) => `${cards} の利用ルールを ${fromAction} から ${toAction} に変更しました`,
+                appliedToAdditionalCards: ({count}: {count: number}) => `追加で ${count} 枚のカードに支出ルールを適用しました`,
+                phraseVerb: {added: '追加しました', removed: '削除済み', changed: '変更しました', set: '設定', applied: '適用済み'},
+                bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective}なマーチャント「${value}」` : `加盟店「${value}」`),
                 bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
-                    adjective !== '' ? `${adjective} のマーチャントを「${oldValue}」から「${newValue}」に変更しました` : `加盟店を「${oldValue}」から「${newValue}」に変更しました`,
+                    adjective !== '' ? `${oldValue} から ${newValue} へ${adjective}加盟店を変更しました` : `加盟店を「${oldValue}」から「${newValue}」に変更しました`,
                 bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective}な支出カテゴリ「${value}」` : `支出カテゴリ「${value}」`),
                 bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `${adjective}支出カテゴリを「${oldValue}」から「${newValue}」に変更しました` : `支出カテゴリを「${oldValue}」から「${newValue}」に変更しました`,
                 bodyMaxAmount: '最大金額',
                 bodyMaxAmountSet: ({value}: {value: string}) => `最大金額を${value}に設定`,
                 bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `最大金額を${oldValue}から${newValue}に変更しました`,
-                bodyAppliedToAdditionalCards: ({count}: {count: number}) => `${count} 枚の追加カードに支出ルールを適用します`,
+                bodyAppliedToAdditionalCards: ({count}: {count: number}) => `${count}枚の追加カードに支出ルールを適用します`,
                 bodyRemovedFromCards: ({cards}: {cards: string}) => `${cards} からの支出ルール`,
                 composeOnCards: ({content, cards}: {content: string; cards: string}) => `${cards} 上の ${content}`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${cards} からの ${content}`,

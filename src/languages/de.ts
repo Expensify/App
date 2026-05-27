@@ -7826,22 +7826,22 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 return text;
             },
             removeRule: ({cards}: {cards: string}) => `Ausgaberegel von ${cards} entfernt`,
-            restrictionVerb: {block: 'Block', allow: 'nur erlauben'},
+            restrictionVerb: {block: 'Block', allow: 'nur zulassen'},
             update: {
-                modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) => `Ausgaberegel von ${fromAction} auf ${toAction} auf ${cards} geändert`,
+                modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) => `Ausgaberegel von ${fromAction} zu ${toAction} auf ${cards} geändert`,
                 appliedToAdditionalCards: ({count}: {count: number}) => `Ausgaberegel auf ${count} weitere Karten angewendet`,
-                phraseVerb: {added: 'hinzugefügt', removed: 'entfernt', changed: 'geändert', set: 'festlegen', applied: 'angewendet'},
-                bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} Händler '${value}'` : `Händler: '${value}'`),
+                phraseVerb: {added: 'hinzugefügt', removed: 'entfernt', changed: 'geändert', set: 'festlegen', applied: 'Angewendet'},
+                bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} Händler: „${value}“` : `Händler: „${value}“`),
                 bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
-                    adjective !== '' ? `${adjective} Händler von „${oldValue}“ in „${newValue}“` : `Händler von „${oldValue}“ zu „${newValue}“`,
+                    adjective !== '' ? `${adjective} Händler von „${oldValue}“ in „${newValue}“ geändert` : `Händler von „${oldValue}“ zu „${newValue}“`,
                 bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) =>
                     adjective !== '' ? `${adjective} Ausgabenkategorie „${value}“` : `Ausgabenkategorie „${value}“`,
                 bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
-                    adjective !== '' ? `${adjective} Ausgabenkategorie von „${oldValue}“ in „${newValue}“` : `Ausgabenkategorie von „${oldValue}“ zu „${newValue}“`,
-                bodyMaxAmount: 'Maximalbetrag',
-                bodyMaxAmountSet: ({value}: {value: string}) => `Maximalbetrag von ${value}`,
+                    adjective !== '' ? `Ausgabenkategorie (${adjective}) von „${oldValue}“ in „${newValue}“ geändert` : `Ausgabenkategorie von „${oldValue}“ zu „${newValue}“`,
+                bodyMaxAmount: 'Höchstbetrag',
+                bodyMaxAmountSet: ({value}: {value: string}) => `Maximalbetrag bis ${value}`,
                 bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `Maximalbetrag von ${oldValue} auf ${newValue}`,
-                bodyAppliedToAdditionalCards: ({count}: {count: number}) => `Ausgabenregel auf ${count} zusätzliche Karten`,
+                bodyAppliedToAdditionalCards: ({count}: {count: number}) => `Ausgabenregel für ${count} zusätzliche Karten`,
                 bodyRemovedFromCards: ({cards}: {cards: string}) => `Ausgaberegel von ${cards}`,
                 composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} auf ${cards}`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} von ${cards}`,

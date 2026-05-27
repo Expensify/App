@@ -7307,8 +7307,8 @@ ${amount} para ${merchant} - ${date}`,
             `cambió el día de cierre del período de estado de cuenta de la fuente de tarjetas "${feedName}"${newValue ? ` a "${newValue}"` : ''}${previousValue ? ` (previamente "${previousValue}")` : ''}`,
         expensifyCardRule: {
             actionVerb: {block: 'bloqueado', allow: 'permitido'},
-            amountOperator: {over: 'encima', under: 'debajo'},
-            amountFilter: ({operator, amount}: {operator: string; amount: string}) => `importes ${operator} ${amount}`,
+            amountOperator: {over: 'más de', under: 'debajo'},
+            amountFilter: ({operator, amount}: {operator: string; amount: string}) => `cantidades ${operator} ${amount}`,
             theCard: 'la tarjeta',
             multipleCards: ({count}: {count: number}) => `${count} tarjetas`,
             addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
@@ -7324,16 +7324,16 @@ ${amount} para ${merchant} - ${date}`,
             update: {
                 modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) => `cambió la regla de gasto de ${fromAction} a ${toAction} en ${cards}`,
                 appliedToAdditionalCards: ({count}: {count: number}) => `aplicó la regla de gasto a ${count} tarjetas adicionales`,
-                phraseVerb: {added: 'añadió', removed: 'eliminado', changed: 'cambió', set: 'establecer', applied: 'aplicado'},
-                bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `Comercio ${adjective} «${value}»` : `comercio «${value}»`),
+                phraseVerb: {added: 'añadido', removed: 'eliminado', changed: 'cambió', set: 'establecer', applied: 'aplicado'},
+                bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} comercio «${value}»` : `comercio «${value}»`),
                 bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
-                    adjective !== '' ? `comercio ${adjective} de '${oldValue}' a '${newValue}'` : `comercio de '${oldValue}' a '${newValue}'`,
+                    adjective !== '' ? `${adjective} del comerciante de '${oldValue}' a '${newValue}'` : `comercio de '${oldValue}' a '${newValue}'`,
                 bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) =>
                     adjective !== '' ? `Categoría de gasto ${adjective} «${value}»` : `categoría de gasto «${value}»`,
                 bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
-                    adjective !== '' ? `Categoría de gasto ${adjective} de '${oldValue}' a '${newValue}'` : `categoría de gasto de «${oldValue}» a «${newValue}»`,
+                    adjective !== '' ? `Categoría de gasto ${adjective} de '${oldValue}' a '${newValue}'` : `categoría de gasto de '${oldValue}' a '${newValue}'`,
                 bodyMaxAmount: 'importe máximo',
-                bodyMaxAmountSet: ({value}: {value: string}) => `importe máximo de ${value}`,
+                bodyMaxAmountSet: ({value}: {value: string}) => `importe máximo hasta ${value}`,
                 bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `importe máximo de ${oldValue} a ${newValue}`,
                 bodyAppliedToAdditionalCards: ({count}: {count: number}) => `regla de gasto para ${count} tarjetas adicionales`,
                 bodyRemovedFromCards: ({cards}: {cards: string}) => `regla de gasto de ${cards}`,

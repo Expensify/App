@@ -7784,22 +7784,22 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 text += `op ${cards}`;
                 return text;
             },
-            removeRule: ({cards}: {cards: string}) => `uitgavenregel verwijderd van ${cards}`,
+            removeRule: ({cards}: {cards: string}) => `besteedregel verwijderd van ${cards}`,
             restrictionVerb: {block: 'blokkeren', allow: 'alleen toestaan'},
             update: {
                 modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) =>
-                    `heeft bestedingsregel op ${cards} gewijzigd van ${fromAction} naar ${toAction}`,
+                    `heeft bestedingsregel gewijzigd van ${fromAction} naar ${toAction} op ${cards}`,
                 appliedToAdditionalCards: ({count}: {count: number}) => `uitgavenregel toegepast op ${count} extra kaarten`,
                 phraseVerb: {added: 'toegevoegd', removed: 'verwijderd', changed: 'gewijzigd', set: 'instellen', applied: 'toegepast'},
-                bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} handelaar ‘${value}’` : `handelaar '${value}'`),
+                bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} handelaar '${value}'` : `handelaar '${value}'`),
                 bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
-                    adjective !== '' ? `${adjective} handelaar gewijzigd van '${oldValue}' naar '${newValue}'` : `handelaar van '${oldValue}' naar '${newValue}'`,
+                    adjective !== '' ? `${adjective} verkoper gewijzigd van '${oldValue}' naar '${newValue}'` : `handelaar van '${oldValue}' naar '${newValue}'`,
                 bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) =>
                     adjective !== '' ? `${adjective} uitgavencategorie '${value}'` : `uitgavencategorie ‘${value}’`,
                 bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `${adjective} uitgavencategorie van '${oldValue}' naar '${newValue}'` : `uitgavencategorie van '${oldValue}' naar '${newValue}'`,
-                bodyMaxAmount: 'max. bedrag',
-                bodyMaxAmountSet: ({value}: {value: string}) => `maximaal bedrag tot ${value}`,
+                bodyMaxAmount: 'maximum bedrag',
+                bodyMaxAmountSet: ({value}: {value: string}) => `maximumbedrag tot ${value}`,
                 bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `maximumbedrag van ${oldValue} naar ${newValue}`,
                 bodyAppliedToAdditionalCards: ({count}: {count: number}) => `bestedingsregel naar ${count} extra kaarten`,
                 bodyRemovedFromCards: ({cards}: {cards: string}) => `bestedingsregel van ${cards}`,
