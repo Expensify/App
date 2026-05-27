@@ -1009,8 +1009,8 @@ const translations = {
                 personalSubtitle: 'Wallet',
             },
             enterSignerInfo: {
-                title: 'Enter signer info',
-                subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Account ${bankAccountLastFour}`,
+                title: 'Signer info needed',
+                subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bank account ${bankAccountLastFour}`,
             },
         },
         freeTrialSection: {

@@ -959,7 +959,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'Geldbörse',
             },
-            enterSignerInfo: {title: 'Unterzeichnerdaten eingeben', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Konto ${bankAccountLastFour}`},
+            enterSignerInfo: {title: 'Unterzeichnerdaten erforderlich', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bankkonto ${bankAccountLastFour}`},
         },
         announcements: 'Ankündigungen',
         discoverSection: {
