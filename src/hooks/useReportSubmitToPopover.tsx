@@ -95,7 +95,10 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
                 anchorPosition={anchorPosition}
                 popoverDimensions={popoverDimensions}
                 anchorAlignment={anchorAlignment}
-                innerContainerStyle={[isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DROPDOWN_WIDTH}, {minHeight: popoverDimensions.minHeight}]}
+                innerContainerStyle={{
+                    ...(isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DROPDOWN_WIDTH}),
+                    minHeight: popoverDimensions.minHeight,
+                }}
                 restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
                 shouldSwitchPositionIfOverflow
                 shouldEnableNewFocusManagement
