@@ -43,6 +43,9 @@ jobs:
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        with:
+          # Important: `pull_request_target` should never checkout the PR head.
+          ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.base.sha || github.sha }}
 
       - name: Check contributor authorization
         id: gate
