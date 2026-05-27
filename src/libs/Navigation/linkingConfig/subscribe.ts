@@ -5,6 +5,7 @@ import continuePlaidOAuth from '@libs/continuePlaidOAuth';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 
 const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener) => {
@@ -31,6 +32,17 @@ const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener
             continuePlaidOAuth(url);
             return;
         }
+        // Skip forwarding URLs while TabNavigator is mounting — its child
+        // router hasn't run useNavigationBuilder yet, so React Navigation
+        // can't handle nested NAVIGATE actions and throws an unhandled-action
+        // error. Protected-screen deep links will be handled separately by
+        // openReportFromDeepLink via waitForProtectedRoutes().
+        const state = navigationRef.current?.getRootState();
+        const tabRoute = state?.routes?.find((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+        if (tabRoute && tabRoute.state?.stale !== false) {
+            return;
+        }
+
         listener(url);
     });
     return () => subscription.remove();
