@@ -36,7 +36,12 @@ function flushCallbacks(): void {
     pendingCallbacks = [];
     for (const callback of callbacks) {
         try {
-            callback();
+            const result = callback();
+            if (result instanceof Promise) {
+                result.catch((error) => {
+                    Log.warn('[TransitionTracker] A pending async callback threw an error', {error});
+                });
+            }
         } catch (error) {
             Log.warn('[TransitionTracker] A pending callback threw an error', {error});
         }
