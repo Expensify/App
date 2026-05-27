@@ -23,7 +23,6 @@ public class ExpensifyAppPackage implements ReactPackage {
 
         modules.add(new ShareActionHandlerModule(reactContext));
         modules.add(new AppStateTrackerModule(reactContext));
-        modules.add(new AccessibilityFocusModule(reactContext));
 
         return modules;
     }

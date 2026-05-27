@@ -22,7 +22,7 @@ function collectRouteKeys(state: AnyState, out = new Set<string>()): Set<string>
 
 function diffNavigationState(prev: AnyState, next: NavigationState): {action: DiffAction; removedKeys: string[]} {
     const newFocusedKey = findFocusedRoute(next)?.key;
-    const prevFocusedKey = prev ? findFocusedRoute(prev as NavigationState)?.key : undefined;
+    const prevFocusedKey = prev ? findFocusedRoute(prev)?.key : undefined;
 
     const prevKeys = collectRouteKeys(prev);
     const newKeys = collectRouteKeys(next);

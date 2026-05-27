@@ -259,6 +259,9 @@ describe('handleStateChange — backward', () => {
         handleStateChange(forward);
         handleStateChange(back);
         flushTransitions();
+
+        // Web/iOS scheduleRefocus resolves to a no-op under jsdom, so we expect exactly one fire here.
+        // The Android race-mitigation re-fire lives in scheduleRefocus/index.android.ts.
         expect(mockFireFocusEvent).toHaveBeenCalledTimes(1);
         expect(mockFireFocusEvent).toHaveBeenCalledWith(view);
     });

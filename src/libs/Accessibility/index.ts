@@ -17,7 +17,9 @@ function warmCache<T>(label: string, fetch: () => Promise<T>, apply: (value: T) 
 
 let cachedScreenReaderValue = false;
 
-// Warm the cache at module load so the sync read is meaningful before any hook subscribes.
+/*
+ * Warm the cache at module load so the sync read is meaningful before any hook subscribes.
+ */
 warmCache('screen-reader', isScreenReaderEnabled, (enabled) => {
     cachedScreenReaderValue = enabled;
 });

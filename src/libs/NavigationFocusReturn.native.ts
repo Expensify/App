@@ -5,6 +5,7 @@ import type {View} from 'react-native';
 import findNodeHandle from '@src/utils/findNodeHandle';
 import Accessibility from './Accessibility';
 import fireFocusEvent from './Accessibility/fireFocusEvent';
+import scheduleRefocus from './Accessibility/scheduleRefocus';
 import compoundParamsKey, {COMPOUND_KEY_DELIMITER} from './compoundParamsKey';
 import navigationRef from './Navigation/navigationRef';
 // eslint-disable-next-line no-restricted-imports -- focus-return is a sibling primitive to TransitionTracker; the exact transitionEnd signal is what we need to avoid focus-restore races with the OS.
@@ -14,7 +15,7 @@ import {diffNavigationState} from './navigationStateDiff';
 type TriggerEntry = {ref: RefObject<View | null>};
 
 const TRIGGER_MAP_MAX = 64;
-// A press long before a delayed nav (timer / deeplink / async redirect) shouldn't be captured as that nav's trigger.
+// Drop stale presses so a delayed nav (timer / deeplink / async redirect) doesn't capture an unrelated trigger.
 const PRESS_TRIGGER_TTL_MS = 3_000;
 
 let lastPressedTrigger: View | null = null;
@@ -57,17 +58,18 @@ function captureTriggerForRoute(routeKey: string): void {
     setTriggerEntry(routeKey, {ref});
 }
 
-function restoreTriggerForRoute(routeKey: string): void {
+function restoreTriggerForRoute(routeKey: string): View | null {
     const entry = triggerMap.get(routeKey);
     if (!entry) {
-        return;
+        return null;
     }
     const view = entry.ref.current;
     // Truthy ref can still point to a detached View; findNodeHandle returns null then.
     if (!view || findNodeHandle(view) == null) {
-        return;
+        return null;
     }
     fireFocusEvent(view);
+    return view;
 }
 
 function cancelPendingRestore(): void {
@@ -78,14 +80,19 @@ function cancelPendingRestore(): void {
 function scheduleRestore(routeKey: string): void {
     cancelPendingRestore();
     let cancelled = false;
+    let refocusHandle: {cancel: () => void} | null = null;
     const handle = TransitionTracker.runAfterTransitions({
         callback: () => {
             if (cancelled) {
                 return;
             }
-            restoreTriggerForRoute(routeKey);
+            const view = restoreTriggerForRoute(routeKey);
             triggerMap.delete(routeKey);
-            pendingRestore = null;
+            if (!view) {
+                pendingRestore = null;
+                return;
+            }
+            refocusHandle = scheduleRefocus(view);
         },
     });
 
@@ -93,6 +100,7 @@ function scheduleRestore(routeKey: string): void {
         cancel: () => {
             cancelled = true;
             handle.cancel();
+            refocusHandle?.cancel();
         },
     };
 }
@@ -181,10 +189,12 @@ function cancelPendingFocusRestore(): void {
     cancelPendingRestore();
 }
 
+/** Web-only invariant; native returns false. */
 function isFocusRestoreInProgress(): boolean {
     return false;
 }
 
+/** Web-only invariant; native returns false. */
 function shouldSkipAutoFocusDueToExistingFocus(): boolean {
     return false;
 }
