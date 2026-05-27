@@ -38,6 +38,7 @@ function SubmitPrimaryAction({reportID}: SubmitPrimaryActionProps) {
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -94,6 +95,7 @@ function SubmitPrimaryAction({reportID}: SubmitPrimaryActionProps) {
                 hasViolations,
                 isASAPSubmitBetaEnabled,
                 expenseReportCurrentNextStepDeprecated: nextStep,
+                betas,
                 userBillingGracePeriodEnds,
                 amountOwed,
                 onSubmitted: startSubmittingAnimation,

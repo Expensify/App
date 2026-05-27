@@ -34,6 +34,7 @@ function SubmitActionButton({iouReportID, isSubmittingAnimationRunning, stopAnim
 
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReportID}`);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -75,6 +76,7 @@ function SubmitActionButton({iouReportID, isSubmittingAnimationRunning, stopAnim
                         hasViolations,
                         isASAPSubmitBetaEnabled,
                         expenseReportCurrentNextStepDeprecated: iouReportNextStep,
+                        betas,
                         userBillingGracePeriodEnds,
                         amountOwed,
                         onSubmitted: startSubmittingAnimation,

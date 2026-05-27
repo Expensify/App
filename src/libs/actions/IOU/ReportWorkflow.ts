@@ -33,6 +33,7 @@ import {
     getReportOrDraftReport,
     getReportTransactions,
     hasHeldExpenses as hasHeldExpensesReportUtils,
+    hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
     hasOnlyNonReimbursableTransactions,
     hasOutstandingChildRequest,
     isArchivedReport,
@@ -99,6 +100,7 @@ type SubmitReportFunctionParams = {
     hasViolations: boolean;
     isASAPSubmitBetaEnabled: boolean;
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    betas?: OnyxEntry<OnyxTypes.Beta[]>;
     userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
     onSubmitted?: () => void;
@@ -246,6 +248,7 @@ function canSubmitReport(
 ) {
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, allViolations, currentUserEmailParam, currentUserAccountID, report, policy);
     const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(transactions, allViolations, currentUserEmailParam, currentUserAccountID, report, policy);
     const hasScanFailTransactions = transactions.length > 0 && transactions.every((t) => isScanningTransaction(t));
@@ -262,6 +265,7 @@ function canSubmitReport(
         !isReportArchived &&
         !hasAnySubmissionBlockingViolations &&
         !hasSmartScanFailedWithMissingFields(transactions, report) &&
+        !hasOnlyHeldExpenses &&
         transactions.length > 0
     );
 }
@@ -1283,6 +1287,7 @@ function submitReport({
     hasViolations,
     isASAPSubmitBetaEnabled,
     expenseReportCurrentNextStepDeprecated,
+    betas = [],
     userBillingGracePeriodEnds,
     amountOwed,
     onSubmitted,
@@ -1302,8 +1307,13 @@ function submitReport({
     const parentReport = getReportOrDraftReport(expenseReport.parentReportID);
     const managerID = getSubmitReportManagerAccountID(policy, expenseReport);
     const isCurrentUserManager = currentUserAccountIDParam === managerID;
+    const reportTransactions = getReportTransactions(expenseReport.reportID);
+    const hasHeldExpenses = hasHeldExpensesReportUtils(reportTransactions);
+    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(reportTransactions);
+    const hasMixedHeldExpenses = hasHeldExpenses && !hasOnlyHeldExpenses;
+    const submittingTotal = hasMixedHeldExpenses && expenseReport.unheldTotal !== undefined ? expenseReport.unheldTotal : (expenseReport?.total ?? 0);
     const optimisticSubmittedReportAction = buildOptimisticSubmittedReportAction(
-        expenseReport?.total ?? 0,
+        submittingTotal,
         expenseReport.currency ?? '',
         expenseReport.reportID,
         adminAccountID,
@@ -1542,10 +1552,44 @@ function submitReport({
         });
     }
 
+    let optimisticHoldReportID;
+    let optimisticHoldActionID;
+    let optimisticHoldReportExpenseActionIDs;
+    let optimisticReportActionCopyIDs;
+    let optimisticCreatedReportForUnapprovedTransactionsActionID;
+    if (hasMixedHeldExpenses) {
+        const chatReport = getReportOrDraftReport(expenseReport.chatReportID);
+        if (chatReport) {
+            const originalCreated = getReportOriginalCreationTimestamp(expenseReport);
+            const holdReportOnyxData = getReportFromHoldRequestsOnyxData({
+                chatReport,
+                iouReport: expenseReport,
+                recipient: {accountID: expenseReport.ownerAccountID},
+                policy,
+                createdTimestamp: originalCreated,
+                betas,
+                isApprovalFlow: false,
+            });
+            optimisticData.push(...holdReportOnyxData.optimisticData);
+            successData.push(...holdReportOnyxData.successData);
+            failureData.push(...holdReportOnyxData.failureData);
+            optimisticHoldReportID = holdReportOnyxData.optimisticHoldReportID;
+            optimisticHoldActionID = holdReportOnyxData.optimisticHoldActionID;
+            optimisticCreatedReportForUnapprovedTransactionsActionID = holdReportOnyxData.optimisticCreatedReportForUnapprovedTransactionsActionID;
+            optimisticHoldReportExpenseActionIDs = JSON.stringify(holdReportOnyxData.optimisticHoldReportExpenseActionIDs);
+            optimisticReportActionCopyIDs = JSON.stringify(holdReportOnyxData.optimisticReportActionCopyIDs);
+        }
+    }
+
     const parameters: SubmitReportParams = {
         reportID: expenseReport.reportID,
         managerAccountID: managerID,
         reportActionID: optimisticSubmittedReportAction.reportActionID,
+        optimisticHoldReportID,
+        optimisticHoldActionID,
+        optimisticHoldReportExpenseActionIDs,
+        optimisticReportActionCopyIDs,
+        optimisticCreatedReportForUnapprovedTransactionsActionID,
     };
 
     onSubmitted?.();

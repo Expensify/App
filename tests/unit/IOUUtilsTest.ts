@@ -547,6 +547,42 @@ describe('canSubmitReport', () => {
         expect(canSubmitReport(expenseReport, fakePolicy, [], undefined, false, '', currentUserAccountID)).toBe(false);
     });
 
+    test('Return false when all report transactions are held', async () => {
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+        const fakePolicy: Policy = {
+            ...createRandomPolicy(6),
+            ownerAccountID: currentUserAccountID,
+            areRulesEnabled: true,
+            preventSelfApproval: false,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+            harvesting: {
+                enabled: false,
+            },
+        };
+        const expenseReport: Report = {
+            ...createRandomReport(6, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            managerID: currentUserAccountID,
+            ownerAccountID: currentUserAccountID,
+            policyID: fakePolicy.id,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        const heldTransaction: Transaction = {
+            ...createRandomTransaction(1),
+            category: '',
+            tag: '',
+            created: testDate,
+            reportID: expenseReport.reportID,
+            comment: {
+                hold: 'holdActionID',
+            },
+        };
+
+        expect(canSubmitReport(expenseReport, fakePolicy, [heldTransaction], undefined, false, '', currentUserAccountID)).toBe(false);
+    });
+
     it('returns false if the report is archived', async () => {
         const policy: Policy = {
             ...createRandomPolicy(7),
