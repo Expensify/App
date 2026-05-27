@@ -504,7 +504,7 @@ async function handleConflictActions<TKey extends OnyxKey>(conflictAction: Confl
     }
 }
 
-function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>): Promise<void> {
+async function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>): Promise<void> {
     const currentRequests = getAllPersistedRequests();
     Log.info('[SequentialQueue] push() called', false, {
         command: newRequest.command,
@@ -514,19 +514,10 @@ function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>): Promise<void
         isSequentialQueueRunning,
     });
 
-    // Save the request to the persisted queue. The in-memory update inside save()
-    // happens synchronously, so flush() below will see the new request immediately.
-    // The returned promise resolves when disk persistence completes.
     let persistencePromise: Promise<void>;
 
     if (newRequest.checkAndFixConflictingRequest) {
-        const requests = currentRequests;
-        Log.info('[SequentialQueue] Checking for conflicts', false, {
-            command: newRequest.command,
-            existingRequestsCount: requests.length,
-        });
-
-        const {conflictAction} = newRequest.checkAndFixConflictingRequest(requests as Array<OnyxRequest<TKey>>);
+        const {conflictAction} = newRequest.checkAndFixConflictingRequest(currentRequests as Array<OnyxRequest<TKey>>);
         Log.info('[SequentialQueue] Conflict action determined', false, {
             command: newRequest.command,
             conflictType: conflictAction.type,
@@ -537,41 +528,30 @@ function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>): Promise<void
         delete newRequest.checkAndFixConflictingRequest;
         persistencePromise = handleConflictActions(conflictAction, newRequest);
     } else {
-        Log.info('[SequentialQueue] No conflict action. Adding request to Persisted Requests', false, {
-            command: newRequest.command,
-        });
-        // Add request to Persisted Requests so that it can be retried if it fails
         persistencePromise = savePersistedRequest(newRequest);
     }
 
-    // If we are offline we don't need to trigger the queue to empty as it will happen when we come back online
+    // Block until the Onyx disk commit lands so a process kill between here and the XHR
+    // still leaves the request recoverable from storage on next launch.
+    await persistencePromise;
+
     if (isOfflineNetwork()) {
         Log.info('[SequentialQueue] Request persisted but not flushing — we are offline', false, {
             command: newRequest.command,
             queueLength: getAllPersistedRequests().length,
         });
-        return persistencePromise;
+        return;
     }
 
-    // If the queue is running this request will run once it has finished processing the current batch
     if (isSequentialQueueRunning) {
         Log.info('[SequentialQueue] Queue is running. Will flush when the current request is finished.', false, {
             command: newRequest.command,
         });
-        isReadyPromise.then(() => {
-            Log.info('[SequentialQueue] isReadyPromise resolved, flushing queue', false, {
-                command: newRequest.command,
-            });
-            flush(true);
-        });
-        return persistencePromise;
+        isReadyPromise.then(() => flush(true));
+        return;
     }
 
-    Log.info('[SequentialQueue] Queue is not running. Flushing the queue.', false, {
-        command: newRequest.command,
-    });
     flush(true);
-    return persistencePromise;
 }
 
 function getCurrentRequest(): Promise<void> {
