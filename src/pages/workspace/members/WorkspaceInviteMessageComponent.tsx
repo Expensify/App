@@ -68,7 +68,6 @@ function WorkspaceInviteMessageComponent({
     const {translate, formatPhoneNumber} = useLocalize();
     const [formData, formDataResult] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT);
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
     const filteredReportActions = useAllPolicyExpenseChatReportActions();
 
     const [welcomeNote, setWelcomeNote] = useState<string>();

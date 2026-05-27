@@ -164,6 +164,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             currentUserPersonalDetails.accountID,
             currentUserPersonalDetails.displayName,
             currentUserPersonalDetails.avatar,
+            currentUserPersonalDetails.email,
         ],
     );
 
