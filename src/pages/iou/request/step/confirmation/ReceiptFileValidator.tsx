@@ -57,6 +57,12 @@ function ReceiptFileValidator({
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
     // skip this in case user is moving the transaction as the receipt path will be valid in that case
     useEffect(() => {
+        // Skip validation while an upstream writer is finalizing receipts. When
+        // isReceiptReady flips true, this effect re-runs and validates from scratch.
+        if (!isReceiptReady) {
+            return;
+        }
+
         let ignore = false;
         let newReceiptFiles: Record<string, Receipt> = {};
         let isScanFilesCanBeRead = true;
@@ -68,12 +74,6 @@ function ReceiptFileValidator({
                 const itemReceiptPath = item.receipt?.source;
                 const itemReceiptType = item.receipt?.type;
                 const isLocalFile = isLocalFileFileUtils(itemReceiptPath);
-
-                // Skip validation while an upstream writer is finalizing receipts. When
-                // isReceiptReady flips true, this effect re-runs and validates from scratch.
-                if (!isReceiptReady) {
-                    return Promise.resolve();
-                }
 
                 if (!isLocalFile) {
                     if (item.receipt) {
