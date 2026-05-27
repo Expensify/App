@@ -32,7 +32,7 @@ Gusto syncs all employees to **one** Expensify workspace. If your company uses m
 
 ## How to connect Gusto to Expensify
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces**.
 2. Click the name of the workspace you want to connect to Gusto.
 3. In the left menu, select **HR**.
 4. Next to **Gusto**, click **Connect**.
