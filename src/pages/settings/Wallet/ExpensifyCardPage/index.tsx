@@ -334,7 +334,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                             title={translate('cardPage.suspiciousBannerTitle')}
                             description={translate('cardPage.suspiciousBannerDescription')}
                         />
-
                         <Button
                             style={[styles.mh5, styles.mb5]}
                             text={translate('cardPage.reviewTransaction')}
@@ -561,6 +560,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                             ))}
                         {shouldShowSpendRulesSummary && (
                             <MenuItemWithTopDescription
+                                interactive={false}
                                 description={translate('cardPage.spendRules')}
                                 descriptionTextStyle={[styles.fontSizeLabel]}
                                 titleComponent={spendRulesTitleComponent}
@@ -577,7 +577,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                             title={translate('cardPage.reportFraud')}
                                             titleStyle={styles.walletCardMenuItem}
                                             icon={expensifyIcons.Flag}
-                                            shouldShowRightIcon
                                             onPress={() => {
                                                 if (isAccountLocked) {
                                                     showLockedAccountModal();
@@ -598,7 +597,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                             title={translate('cardPage.reportTravelFraud')}
                                             titleStyle={styles.walletCardMenuItem}
                                             icon={expensifyIcons.Flag}
-                                            shouldShowRightIcon
                                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)))}
                                         />
                                     ))}
@@ -606,7 +604,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                     <MenuItem
                                         title={translate('reportCardLostOrDamaged.screenTitle')}
                                         icon={expensifyIcons.Flag}
-                                        shouldShowRightIcon
                                         onPress={() => {
                                             if (isAccountLocked) {
                                                 showLockedAccountModal();
