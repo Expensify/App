@@ -17,7 +17,7 @@ import Log from './Log';
 import {setLoadTestParameters} from './Network/LoadTestState';
 import PREFETCH_QUERIES from './PrefetchQueries';
 import prepareRequestPayload from './prepareRequestPayload';
-import registerPrefetchTokenRefresh from './registerPrefetchTokenRefresh/index.native';
+import registerPrefetchTokenRefresh from './registerPrefetchTokenRefresh';
 import markAppStartupNetworkRequestEnd from './telemetry/markAppStartupNetworkRequestEnd';
 
 let shouldFailAllRequests = false;
