@@ -1,7 +1,7 @@
 ---
 title: Understanding the Copilot Function
 description: Safely delegate tasks to a Copilot without sharing your login information.
-keywords: [Expensify Classic, Copilot, copilot access, delegate access, expense management, full access, submit only access, account delegation, share account, behalf of, proxy access]
+keywords: [Expensify Classic, Copilot, copilot access, delegate access, expense management, full access, submit only access, account delegation, share account, behalf of, proxy access, delegate, assistant, manage someone else's account, shared access, account access, executive assistant, accountant]
 internalScope: Applies to all members. Covers how to delegate a CoPilot and navigate between accounts as a CoPilot. Does not cover taking account actions once access is delegated. 
 ---
 
@@ -69,4 +69,18 @@ To ensure the receipt is sent to the correct account, email it to **receipts@exp
 ## Can a Copilot add another Copilot to an account?
 
 No, only the account owner can assign additional Copilots.
+
+---
+
+# Copilot vs. Vacation Delegate
+
+| | Copilot | Vacation Delegate |
+|---|---|---|
+| **Purpose** | Ongoing shared access to your account | Temporary approval coverage while you're away |
+| **Duration** | Permanent until removed | Temporary -- removed when you return |
+| **What they can do** | Submit expenses, approve reports, manage settings | Approve reports redirected to them |
+| **Access level options** | Full Access or Submit Only Access | N/A |
+| **Best for** | Executive assistants, accountants, or anyone who regularly helps manage your expenses | Covering approvals during vacation or leave |
+
+If you need someone to **temporarily handle approvals** while you're out of office, see [Delegate When Out of Office](https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Delegate-when-out-of-office) instead.
 

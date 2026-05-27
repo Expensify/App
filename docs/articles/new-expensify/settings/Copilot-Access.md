@@ -1,10 +1,15 @@
 ---
 title: Copilot Access
 description: How to add a Copilot or act as a Copilot for delegated account access
-keywords: [New Expensify, copilot, copilot access, delegated access, switch accounts, expense management, account assistant, view user account, expense forwarding, full access, limited access, account delegation, share account, behalf of, proxy access]
+keywords: [New Expensify, copilot, copilot access, delegated access, switch accounts, expense management, account assistant, view user account, expense forwarding, full access, limited access, account delegation, share account, behalf of, proxy access, delegate, assistant, manage someone else's account, shared access, account access, executive assistant, accountant]
 ---
 
 You can assign someone access to your Expensify account as a **Copilot**. A Copilot can help manage expenses, review reports, and access your settings without sharing your login details.
+
+**Common use cases:**
+- An **executive assistant** managing expenses on behalf of an executive
+- An **accountant** reviewing and approving reports for a client or colleague
+- A **team lead** helping a direct report with expense submissions
 
 ---
 
@@ -93,4 +98,20 @@ Actions taken by a Copilot are clearly labeled as performed “on behalf of” t
 ## Can I Have Multiple Copilots?
 
 Yes! You can add as many Copilots as you like. (You just need to wait one minute between additions.)
+
+---
+
+# Copilot vs. Vacation Delegate
+
+Not sure whether you need a **Copilot** or a **Vacation Delegate**? Here's a quick comparison:
+
+| | Copilot | Vacation Delegate |
+|---|---|---|
+| **Purpose** | Ongoing shared access to your account | Temporary approval coverage while you're away |
+| **Duration** | Permanent until removed | Temporary -- removed when you return |
+| **What they can do** | View expenses, submit reports, manage settings, and more | Approve reports redirected to them |
+| **Access level options** | Full Access or Limited Access | N/A |
+| **Best for** | Executive assistants, accountants, or anyone who regularly helps manage your expenses | Covering approvals during vacation or leave |
+
+If you need someone to **temporarily handle approvals** while you're out of office, see [Delegate When Out of Office](https://help.expensify.com/articles/new-expensify/settings/Delegate-when-out-of-office) instead.
 

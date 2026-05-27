@@ -1,7 +1,7 @@
 ---
 title: Delegate When Out of Office
 description: Assign a vacation delegate to act on your behalf or on behalf of another employee
-keywords: [Expensify Classic, delegate approvals, out-of-office approver, vacation, out of office, approval delegation, temporary delegate, vacation delegate, copilot vs delegate]
+keywords: [Expensify Classic, delegate approvals, out-of-office approver, vacation, out of office, approval delegation, temporary delegate, vacation delegate, copilot vs delegate, copilot, shared access, proxy, behalf of]
 ---
 
 When you're out of the office or on vacation, you can assign a **Vacation Delegate** to manage your reports while you're away. Domain Admins can also assign delegates for other members of their domain. 
@@ -50,4 +50,8 @@ If your Vacation Delegate also needs to reimburse reports on your behalf while y
 ## What if my Vacation Delegate is also on vacation?
 
 Your delegate can also pick their own Vacation Delegate. This way, expense reports continue to get approved even if multiple members are away at the same time.
+
+## I need someone to permanently manage my expenses, not just approvals while I'm away. What should I use?
+
+A Vacation Delegate is designed for **temporary** approval coverage. If you need someone to have **ongoing access** to your account -- for example, an executive assistant or accountant who regularly manages your expenses -- use a [Copilot](https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Assign-or-remove-a-Copilot) instead.
 
