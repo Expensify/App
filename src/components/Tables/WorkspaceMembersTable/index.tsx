@@ -3,7 +3,6 @@ import React from 'react';
 import Table, {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -40,7 +39,6 @@ type WorkspaceMembersTableProps = {
 };
 
 export default function WorkspaceMembersTable({ref, isPolicyAdmin, shouldShowCustomField1Column, shouldShowCustomField2Column, members, onRowSelectionChange}: WorkspaceMembersTableProps) {
-    const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
@@ -130,6 +128,7 @@ export default function WorkspaceMembersTable({ref, isPolicyAdmin, shouldShowCus
             data={members}
             selectionEnabled={isPolicyAdmin}
             columns={workspaceMembersColumns}
+            title={translate('common.members')}
             renderItem={renderTableItem}
             compareItems={compareTableItems}
             isItemInSearch={isTableItemInSearch}
