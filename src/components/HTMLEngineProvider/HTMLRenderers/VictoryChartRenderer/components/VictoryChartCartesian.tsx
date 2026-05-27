@@ -1,9 +1,9 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {CartesianChart} from 'victory-native';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import {VictoryChartRenderArgsProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartRenderArgsContext';
+import {useVictoryChartScale} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartScaleContext';
 import type {VictoryChartScaleValue} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartScaleContext';
-import {DEFAULT_SCALE} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartScaleContext';
 import getYKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getYKey';
 import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import parseDomainPadding from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseDomainPadding';
@@ -11,13 +11,19 @@ import VictoryChartLabels from './VictoryChartLabels';
 import VictoryChartLegend from './VictoryChartLegend';
 import VictoryChartSeries from './VictoryChartSeries';
 
-function computeScale(canvasSize: {width: number; height: number}, designWidth?: number, designHeight?: number): VictoryChartScaleValue {
-    if (!designWidth || !designHeight || canvasSize.width <= 0 || canvasSize.height <= 0) {
-        return DEFAULT_SCALE;
+type SidedNumber = number | {left?: number; right?: number; top?: number; bottom?: number};
+
+function scalePadding(value: SidedNumber | undefined, scale: VictoryChartScaleValue): SidedNumber | undefined {
+    if (value === undefined) {
+        return undefined;
+    }
+    const s = Math.min(scale.x, scale.y);
+    if (typeof value === 'number') {
+        return {left: value, right: value, top: Math.round(value * s), bottom: value};
     }
     return {
-        x: Math.min(canvasSize.width / designWidth, 1),
-        y: Math.min(canvasSize.height / designHeight, 1),
+        ...value,
+        top: value.top !== undefined ? Math.round(value.top * s) : undefined,
     };
 }
 
@@ -26,9 +32,11 @@ function computeScale(canvasSize: {width: number; height: number}, designWidth?:
  * Labels and legend overlays are handled internally via `renderOutside`.
  */
 function VictoryChartCartesian() {
-    const {data, xKey, yKeys, xAxis, yAxis, tnode, labelItems, legendItems, chartContentStyles} = useVictoryChartContext();
-    const designWidth = typeof chartContentStyles.width === 'number' ? chartContentStyles.width : undefined;
-    const designHeight = typeof chartContentStyles.height === 'number' ? chartContentStyles.height : undefined;
+    const {data, xKey, yKeys, xAxis, yAxis, tnode, labelItems, legendItems} = useVictoryChartContext();
+    const scale = useVictoryChartScale();
+
+    const rawPadding = parseAttribute(tnode.attributes.padding) as SidedNumber | undefined;
+    const padding = useMemo(() => scalePadding(rawPadding, scale), [rawPadding, scale]);
 
     return (
         <CartesianChart
@@ -39,22 +47,19 @@ function VictoryChartCartesian() {
             yAxis={yAxis}
             domain={parseAttribute(tnode.attributes.domain)}
             domainPadding={parseDomainPadding(tnode.attributes.domainpadding)}
-            padding={parseAttribute(tnode.attributes.padding)}
-            renderOutside={(renderArgs) => {
-                const scale = computeScale(renderArgs.canvasSize, designWidth, designHeight);
-                return (
-                    <VictoryChartRenderArgsProvider value={renderArgs}>
-                        <VictoryChartLabels
-                            labelItems={labelItems}
-                            scale={scale}
-                        />
-                        <VictoryChartLegend
-                            legendItems={legendItems}
-                            scale={scale}
-                        />
-                    </VictoryChartRenderArgsProvider>
-                );
-            }}
+            padding={padding}
+            renderOutside={(renderArgs) => (
+                <VictoryChartRenderArgsProvider value={renderArgs}>
+                    <VictoryChartLabels
+                        labelItems={labelItems}
+                        scale={scale}
+                    />
+                    <VictoryChartLegend
+                        legendItems={legendItems}
+                        scale={scale}
+                    />
+                </VictoryChartRenderArgsProvider>
+            )}
         >
             {(renderArgs) => (
                 <VictoryChartRenderArgsProvider value={renderArgs}>
