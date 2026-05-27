@@ -15,6 +15,10 @@ function openAgentsPage() {
     read(READ_COMMANDS.OPEN_AGENTS_PAGE, null);
 }
 
+function openProfilePage() {
+    read(READ_COMMANDS.OPEN_PROFILE_PAGE, null);
+}
+
 function createAgent(
     firstName: string | undefined,
     prompt: string,
