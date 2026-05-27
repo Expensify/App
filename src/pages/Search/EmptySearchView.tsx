@@ -390,8 +390,10 @@ function EmptySearchViewContent({
             case CONST.SEARCH.DATA_TYPES.INVOICE: {
                 const userCanSendInvoice = canSendInvoice(allPolicies, currentUserPersonalDetails.login);
                 let subtitleKey: TranslationPaths = 'search.searchResults.emptyInvoiceResults.subtitle';
-                if (!userCanSendInvoice) {
+                if (!userCanSendInvoice && hasSeenTour) {
                     subtitleKey = 'search.searchResults.emptyInvoiceResults.subtitleCannotSend';
+                } else if (!userCanSendInvoice) {
+                    subtitleKey = 'search.searchResults.emptyInvoiceResults.subtitleCannotSendWithTestDrive';
                 } else if (hasSeenTour) {
                     subtitleKey = 'search.searchResults.emptyInvoiceResults.subtitleWithOnlyCreateButton';
                 }
