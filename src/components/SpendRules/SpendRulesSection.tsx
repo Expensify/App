@@ -5,6 +5,7 @@ import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import SearchBar from '@components/SearchBar';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -141,6 +142,14 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
             isCentralPane
             subtitleMuted
         >
+            {cardRules.length > CONST.STANDARD_LIST_ITEM_LIMIT && (
+                <SearchBar
+                    label={translate('workspace.card.searchRules')}
+                    inputValue={inputValue}
+                    onChangeText={setInputValue}
+                    shouldShowEmptyState={!isLoadingCardRules && filteredCardRules.length === 0}
+                />
+            )}
             <MenuItem
                 wrapperStyle={[styles.borderedContentCard, styles.mt6, styles.ph4, styles.pv4]}
                 titleComponent={menuItemBody}
