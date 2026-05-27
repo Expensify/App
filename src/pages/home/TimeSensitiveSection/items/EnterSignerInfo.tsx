@@ -19,7 +19,7 @@ type EnterSignerInfoProps = {
 
 function EnterSignerInfo({policyID, bankAccountID, bankAccountLastFour}: EnterSignerInfoProps) {
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['UserCheck']);
+    const icons = useMemoizedLazyExpensifyIcons(['Bank']);
 
     const handleCtaPress = () => {
         Navigation.navigate(ROUTES.BANK_ACCOUNT_ENTER_SIGNER_INFO.getRoute(policyID, bankAccountID, false));
@@ -27,9 +27,9 @@ function EnterSignerInfo({policyID, bankAccountID, bankAccountLastFour}: EnterSi
 
     return (
         <BaseWidgetItem
-            icon={icons.UserCheck}
-            iconBackgroundColor={colors.tangerine100}
-            iconFill={colors.tangerine500}
+            icon={icons.Bank}
+            iconBackgroundColor={colors.green100}
+            iconFill={colors.green500}
             title={translate('homePage.timeSensitiveSection.enterSignerInfo.title')}
             subtitle={translate('homePage.timeSensitiveSection.enterSignerInfo.subtitle', {bankAccountLastFour})}
             ctaText={translate('homePage.forYouSection.begin')}
