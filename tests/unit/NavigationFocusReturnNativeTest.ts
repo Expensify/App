@@ -558,6 +558,41 @@ describe('pressable registry — identifier-based fallback', () => {
         expect(mockFireFocusEvent).toHaveBeenCalledWith(liveView);
     });
 
+    it('stores two same-route entries under distinct identifiers — duplicate-label rows do NOT collide when distinct ids exist', () => {
+        const rowAEdit = fakeRef(fakeView('edit-a'));
+        const rowBEdit = fakeRef(fakeView('edit-b'));
+        registerPressable('A', 'base-list-item-natu26+305', rowAEdit);
+        registerPressable('A', 'base-list-item-natu26+306', rowBEdit);
+        expect(getRegistrySizeForTests()).toBe(2);
+    });
+
+    it('fallback resolves the captured identifier even when other same-label registry entries exist for the route', () => {
+        // Simulate two rows with the same accessibilityLabel "Edit" but distinct ids (the per-pressable disambiguation we get for free via the fallback chain).
+        const pressedRef = fakeRef(fakeView('edit-on-row-A'));
+        const otherRef = fakeRef(fakeView('edit-on-row-B'));
+        setLastPressedTriggerRefForTests(pressedRef, 'base-list-item-natu26+305');
+
+        handleStateChange(stackState(0, [{key: 'A', name: 'WorkspaceMembers'}]));
+        handleStateChange(
+            stackState(1, [
+                {key: 'A', name: 'WorkspaceMembers'},
+                {key: 'B', name: 'MemberDetails'},
+            ]),
+        );
+
+        // Detach + re-register under both ids. Only the pressed-row's identifier should resolve.
+        pressedRef.current = null;
+        const liveA = fakeView('edit-on-row-A-remount');
+        registerPressable('A', 'base-list-item-natu26+305', fakeRef(liveA));
+        registerPressable('A', 'base-list-item-natu26+306', otherRef);
+
+        handleStateChange(stackState(0, [{key: 'A', name: 'WorkspaceMembers'}]));
+        flushTransitions();
+
+        expect(mockFireFocusEvent).toHaveBeenCalledWith(liveA);
+        expect(mockFireFocusEvent).not.toHaveBeenCalledWith(otherRef.current);
+    });
+
     it('clears the registry for a route key when that route is removed from the navigation tree', () => {
         registerPressable('B', 'Member-Row', fakeRef(fakeView('row')));
         expect(getRegistrySizeForTests()).toBe(1);

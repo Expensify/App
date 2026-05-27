@@ -55,9 +55,9 @@ function GenericPressable({
     const internalRef = useRef<View | null>(null);
     const composedRef = useMemo(() => mergeRefs(ref, internalRef), [ref]);
     const routeKey = useContext(NavigationRouteContext)?.key ?? null;
-    const focusIdentifier = rest.accessibilityLabel ?? undefined;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- `||` is intentional: `BaseListItem` passes `id={keyForList ?? ''}` so empty-string ids must fall through.
+    const focusIdentifier = rest.id || rest.nativeID || rest.testID || rest.accessibilityLabel || undefined;
 
-    // Survives react-native-screens detach/reattach: each remount re-registers the live ref under the same identifier.
     useEffect(() => {
         if (!routeKey || !focusIdentifier) {
             return;
