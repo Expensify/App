@@ -6,6 +6,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import WorkspaceMembersTableFilters from './WorkspaceMembersTableFilters';
 import WorkspaceMembersTableRow from './WorkspaceMembersTableRow';
 
 type WorkspaceMembersTableColumnKey = 'member' | 'role' | 'actions' | 'customField1' | 'customField2';
@@ -134,7 +135,7 @@ export default function WorkspaceMembersTable({ref, isPolicyAdmin, shouldShowCus
             isItemInSearch={isTableItemInSearch}
             onRowSelectionChange={onRowSelectionChange}
         >
-            {members.length > CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.people.findMember')} />}
+            <WorkspaceMembersTableFilters memberCount={members.length} />
             <Table.Header />
             <Table.Body />
         </Table>
