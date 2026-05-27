@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -47,8 +47,10 @@ const PHONE_LOGIN = '+15555550100@expensify.sms';
 const EMAIL_LOGIN = 'test@expensify.com';
 
 async function setCredentialsLogin(login: string) {
-    await Onyx.set(ONYXKEYS.CREDENTIALS, {login});
-    await Onyx.set(ONYXKEYS.ACCOUNT, {});
+    await act(async () => {
+        await Onyx.set(ONYXKEYS.CREDENTIALS, {login});
+        await Onyx.set(ONYXKEYS.ACCOUNT, {});
+    });
     await waitForBatchedUpdatesWithAct();
 }
 
@@ -69,7 +71,10 @@ describe('SignUpWelcomeForm', () => {
 
     afterEach(async () => {
         signUpUserSpy.mockRestore();
-        await Onyx.clear();
+        await act(async () => {
+            await Onyx.clear();
+        });
+        await waitForBatchedUpdatesWithAct();
     });
 
     it('shows marketing consent checkbox when login is a phone number', async () => {
