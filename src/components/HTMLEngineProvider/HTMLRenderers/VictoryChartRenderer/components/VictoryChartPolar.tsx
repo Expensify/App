@@ -1,14 +1,25 @@
-import {useEffect} from 'react';
-import Log from '@libs/Log';
+import React from 'react';
+import {Pie, PolarChart} from 'victory-native';
+import {COLOR_KEY, LABEL_KEY, VALUE_KEY, X_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
+import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
+import VictoryChartPie from './VictoryChartPie';
 
 /**
  * Renders the PolarChart with data drawn from context.
  */
 function VictoryChartPolar() {
-    useEffect(() => Log.warn('Trying to render unsupported polar charts'), []);
+    const {data} = useVictoryChartContext();
 
-    // Support for polar chars will be added in a follow up https://github.com/Expensify/App/issues/90546
-    return null;
+    return (
+        <PolarChart
+            data={Object.values(data)}
+            labelKey={LABEL_KEY}
+            valueKey={VALUE_KEY}
+            colorKey={COLOR_KEY}
+        >
+            <VictoryChartPie />
+        </PolarChart>
+    );
 }
 
 VictoryChartPolar.displayName = 'VictoryChartPolar';

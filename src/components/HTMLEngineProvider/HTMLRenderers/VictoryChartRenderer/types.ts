@@ -3,7 +3,7 @@ import type {ComponentProps} from 'react';
 import type {CustomRendererProps, TBlock, TNode} from 'react-native-render-html';
 import type {ValueOf} from 'type-fest';
 import type {CartesianChart} from 'victory-native';
-import type {CHART_TYPE, X_KEY, Y_KEY_PREFIX} from './constants';
+import type {CHART_TYPE, COLOR_KEY, LABEL_KEY, VALUE_KEY, X_KEY, Y_KEY_PREFIX} from './constants';
 
 type VictoryChartRendererProps = CustomRendererProps<TBlock>;
 
@@ -52,6 +52,12 @@ type YKey = `${typeof Y_KEY_PREFIX}${string}`;
 type CartesianChartData = {
     [X_KEY]: string | number;
     [key: `${YKey}`]: number;
+};
+
+type PolarChartData = {
+    [LABEL_KEY]: string | number;
+    [VALUE_KEY]: number;
+    [COLOR_KEY]: Color;
 };
 
 type LabelItem = {
@@ -116,7 +122,7 @@ type CartesianChartProps = ComponentProps<typeof CartesianChart<CartesianChartDa
 
 /** Fully merged result of walking the HTML tnode tree. */
 type ProcessNodeResult = {
-    data: Record<string, CartesianChartData>;
+    data: Record<string, CartesianChartData> | Record<string, PolarChartData>;
     xKey: XKey;
     yKeys: YKey[];
     xAxis: CartesianChartProps['xAxis'];
@@ -154,5 +160,6 @@ export type {
     ProcessNodeResult,
     PartialProcessNodeResult,
     NodeParser,
+    PolarChartData,
     ChartType,
 };
