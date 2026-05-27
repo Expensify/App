@@ -1,17 +1,18 @@
 ---
 title: Split Expenses 
-description: Learn how to create and submit expenses to a workspace or individual using SmartScan, manual entry, or distance tracking in Expensify.
-keywords: [New Expensify, split expenses, split by percentage, split by day, split evenly, edit split, revert split, expense allocation, SmartScan, mileage, distance expense, validation rules, remove split, modify split]
-internalScope: Audience is submitters, approvers and admins. Covers how to split, edit, and revert expenses in New Expensify using the Split feature. Does not cover Classic behavior.
+description: Learn how to split expenses in Expensify, including unreported expenses, by amount, percentage, or day.
+keywords: [New Expensify, split expenses, split by percentage, split by day, split evenly, edit split, revert split, expense allocation, unreported expenses, split unreported, distance expense, validation rules, remove split, modify split]
+internalScope: Audience is submitters, approvers and admins. Covers how to split, edit, and revert expenses in New Expensify using the Split feature, including unreported expenses. Does not cover Classic behavior.
 ---
 
 # How to split, edit, and revert expenses in New Expensify
 
-Expensify makes it easy to split expenses by dividing a single transaction across multiple expense details like categories, tags, and dates. You can split evenly, by percentage, or by day, helping you stay accurate and compliant with workspace rules.
+Expensify makes it easy to split expenses by dividing a single transaction across multiple expense details like categories, tags, and dates. You can split evenly, by percentage, or by day, helping you stay accurate and compliant with workspace rules. You can split both unreported expenses and expenses already on a report.
 
 
 ## Who can split expenses
 
+- **Any member** can split their own unreported expenses
 - **Submitters** can split any posted, editable expense they've created
 - **Approvers** can split expenses assigned to them for approval
 - **Admins** can split any expense that hasn't been fully approved
@@ -104,6 +105,10 @@ The expense will return to the regular editing view with the last remaining valu
 ---
 
 # FAQ
+
+## Can I split an unreported expense?
+
+Yes. You can split unreported expenses that haven’t been added to a report yet. Open the expense and tap **More > Split** to get started.
 
 ## Why can’t I edit a split?
 
