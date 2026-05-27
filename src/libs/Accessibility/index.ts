@@ -1,19 +1,26 @@
 import {useCallback, useState, useSyncExternalStore} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {AccessibilityInfo} from 'react-native';
+import Log from '@libs/Log';
 import isScreenReaderEnabled from './isScreenReaderEnabled';
 import moveAccessibilityFocus from './moveAccessibilityFocus';
 
 type HitSlop = {x: number; y: number};
 
+function warmCache<T>(label: string, fetch: () => Promise<T>, apply: (value: T) => void): void {
+    fetch()
+        .then(apply)
+        .catch((error: unknown) => {
+            Log.warn(`[Accessibility] Failed to warm ${label} cache`, {error});
+        });
+}
+
 let cachedScreenReaderValue = false;
 
 // Warm the cache at module load so the sync read is meaningful before any hook subscribes.
-isScreenReaderEnabled()
-    .then((enabled) => {
-        cachedScreenReaderValue = enabled;
-    })
-    .catch(() => {});
+warmCache('screen-reader', isScreenReaderEnabled, (enabled) => {
+    cachedScreenReaderValue = enabled;
+});
 
 function subscribeScreenReader(callback: () => void) {
     const subscription = AccessibilityInfo.addEventListener('screenReaderChanged', (enabled) => {
@@ -21,12 +28,10 @@ function subscribeScreenReader(callback: () => void) {
         callback();
     });
 
-    isScreenReaderEnabled()
-        .then((enabled) => {
-            cachedScreenReaderValue = enabled;
-            callback();
-        })
-        .catch(() => {});
+    warmCache('screen-reader', isScreenReaderEnabled, (enabled) => {
+        cachedScreenReaderValue = enabled;
+        callback();
+    });
 
     return () => subscription?.remove();
 }
@@ -49,12 +54,14 @@ function subscribeReduceMotion(callback: () => void) {
         callback();
     });
 
-    AccessibilityInfo.isReduceMotionEnabled()
-        .then((enabled) => {
+    warmCache(
+        'reduce-motion',
+        () => AccessibilityInfo.isReduceMotionEnabled(),
+        (enabled) => {
             cachedReduceMotionValue = enabled;
             callback();
-        })
-        .catch(() => {});
+        },
+    );
 
     return () => subscription?.remove();
 }

@@ -17,8 +17,11 @@ type TriggerEntry = {ref: RefObject<View | null>};
 const TRIGGER_MAP_MAX = 64;
 // The first focus event can lose to the OS's own window-change auto-focus; a delayed second call lands after the OS settles.
 const RESTORE_RETRY_MS = 300;
+// A press long before a delayed nav (timer / deeplink / async redirect) shouldn't be captured as that nav's trigger.
+const PRESS_TRIGGER_TTL_MS = 3_000;
 
 let lastPressedTrigger: View | null = null;
+let lastPressedTriggerAt = 0;
 const triggerMap = new Map<string, TriggerEntry>();
 let prevState: NavigationState | undefined;
 let pendingRestore: {cancel: () => void} | null = null;
@@ -43,13 +46,14 @@ function notifyPressedTrigger(node: View | null): void {
         return;
     }
     lastPressedTrigger = node;
+    lastPressedTriggerAt = node ? Date.now() : 0;
 }
 
 function captureTriggerForRoute(routeKey: string): void {
     if (!Accessibility.isScreenReaderEnabledSync()) {
         return;
     }
-    if (!lastPressedTrigger) {
+    if (!lastPressedTrigger || Date.now() - lastPressedTriggerAt > PRESS_TRIGGER_TTL_MS) {
         return;
     }
     const ref: RefObject<View | null> = {current: lastPressedTrigger};
@@ -171,6 +175,7 @@ function teardownNavigationFocusReturn(): void {
     prevState = undefined;
     triggerMap.clear();
     lastPressedTrigger = null;
+    lastPressedTriggerAt = 0;
     skipNextRestore = false;
     stateUnsubscribe?.();
     stateUnsubscribe = null;
@@ -200,17 +205,12 @@ function shouldSkipAutoFocusDueToExistingFocus(): boolean {
 }
 
 function resetForTests(): void {
-    cancelPendingRestore();
-    prevState = undefined;
-    triggerMap.clear();
-    lastPressedTrigger = null;
-    skipNextRestore = false;
-    stateUnsubscribe?.();
-    stateUnsubscribe = null;
+    teardownNavigationFocusReturn();
 }
 
 function setLastPressedTriggerForTests(node: View | null): void {
     lastPressedTrigger = node;
+    lastPressedTriggerAt = node ? Date.now() : 0;
 }
 
 function getTriggerMapSizeForTests(): number {
