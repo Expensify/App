@@ -46,7 +46,10 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
     callback: (value) => {
-        if (!value) {
+        // Skip the initial fire when no policies have been loaded yet — `sendPoliciesContext`
+        // is a telemetry call and shouldn't emit a "no policies" event on startup. Onyx no
+        // longer suppresses initial-empty fires at the connect-wrapper level; the guard moved here.
+        if (!value || Object.keys(value).length === 0) {
             return;
         }
         policies = value;
@@ -58,7 +61,9 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (value) => {
-        if (!value) {
+        // Skip the initial fire when no reports have been loaded yet — `sendReportsCountTag`
+        // is a telemetry call and shouldn't emit a "0 reports" event on startup.
+        if (!value || Object.keys(value).length === 0) {
             return;
         }
         sendReportsCountTag(Object.keys(value).length);

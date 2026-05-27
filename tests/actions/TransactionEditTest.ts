@@ -67,7 +67,7 @@ describe('actions/TransactionEdit', () => {
 
                 const backups = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}`);
 
-                expect(backups).toBeUndefined();
+                expect(backups).toEqual({});
             });
         });
 
@@ -127,7 +127,7 @@ describe('actions/TransactionEdit', () => {
 
                 const transactions = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}`);
 
-                expect(transactions).toBeUndefined();
+                expect(transactions).toEqual({});
             });
         });
     });
