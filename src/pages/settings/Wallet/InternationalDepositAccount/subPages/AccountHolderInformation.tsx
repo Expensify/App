@@ -93,14 +93,14 @@ function AccountHolderInformation({isEditing, onNext, formValues, fieldsMap}: Cu
                 {Object.values(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS] ?? {})
                     .sort((a, b) => CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.indexOf(a.id) - CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.indexOf(b.id))
                     .map((field, index) => {
-                        const InputComponent = getInputComponent(field);
+                        const inputComponent = getInputComponent(field);
                         return (
                             <View
                                 style={getStyle(field, index)}
                                 key={field.id}
                             >
                                 <InputWrapper
-                                    InputComponent={InputComponent}
+                                    InputComponent={inputComponent}
                                     inputID={field.id}
                                     defaultValue={formValues[field.id]}
                                     label={field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`)}
@@ -121,7 +121,7 @@ function AccountHolderInformation({isEditing, onNext, formValues, fieldsMap}: Cu
                                         lng: '',
                                     }}
                                     forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                                    {...getTextInputAutocorrectProps(InputComponent)}
+                                    {...(inputComponent === TextInput ? getTextInputAutocorrectProps(TextInput) : {})}
                                 />
                             </View>
                         );
