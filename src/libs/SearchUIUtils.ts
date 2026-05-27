@@ -141,7 +141,6 @@ import {
     getMoneyRequestSpendBreakdown,
     getPersonalDetailsForAccountID,
     getPolicyName,
-    getReimbursableTotal,
     getReportOrDraftReport,
     getReportStatusTranslation,
     getSearchReportName,
@@ -593,6 +592,7 @@ type GetSectionsParams = {
     isActionLoadingSet?: ReadonlySet<string>;
     isOffline?: boolean;
     cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>;
+    cardList?: OnyxEntry<OnyxTypes.CardList>;
     customCardNames?: Record<number, string>;
     allTransactionViolations?: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     visibleReportActionsData?: OnyxTypes.VisibleReportActionsDerivedValue;
@@ -2909,6 +2909,36 @@ function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: SearchFi
     return buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
 }
 
+function buildEmptyTagGroupQuery(queryJSON: SearchQueryJSON): SearchQueryJSON | undefined {
+    const newFlatFilters = queryJSON.flatFilters.reduce<QueryFilters>((filters, filter) => {
+        if (filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
+            return filters;
+        }
+
+        if (filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
+            const remainingHasFilters = filter.filters.filter((item) => item.value !== CONST.SEARCH.HAS_VALUES.TAG);
+            if (remainingHasFilters.length > 0) {
+                filters.push({...filter, filters: remainingHasFilters});
+            }
+            return filters;
+        }
+
+        filters.push(filter);
+        return filters;
+    }, []);
+    newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: CONST.SEARCH.HAS_VALUES.TAG}]});
+    const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+    return buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
+}
+
+function buildTagGroupQuery(queryJSON: SearchQueryJSON, tag: string): SearchQueryJSON | undefined {
+    if (!tag || tag === CONST.SEARCH.TAG_EMPTY_VALUE || tag === CONST.SEARCH.TAG_UNTAGGED_VALUE) {
+        return buildEmptyTagGroupQuery(queryJSON);
+    }
+
+    return buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, tag);
+}
+
 function getActiveGroupSearchHashes(data: OnyxTypes.SearchResults['data'] | undefined, queryJSON: Readonly<SearchQueryJSON> | undefined): number[] {
     if (!data || !queryJSON?.groupBy) {
         return [];
@@ -2970,11 +3000,7 @@ function getActiveGroupSearchHashes(data: OnyxTypes.SearchResults['data'] | unde
             case CONST.SEARCH.GROUP_BY.TAG: {
                 const tagGroup = group as SearchTagGroup;
                 if (tagGroup.tag !== undefined) {
-                    transactionsQueryJSON = buildSpecificGroupQuery(
-                        queryJSON,
-                        CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
-                        tagGroup.tag === '' || tagGroup.tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : tagGroup.tag,
-                    );
+                    transactionsQueryJSON = buildTagGroupQuery(queryJSON, tagGroup.tag);
                 }
                 break;
             }
@@ -3086,6 +3112,7 @@ function getCardSections(
     translate: LocalizedTranslate,
     cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>,
     customCardNames?: Record<number, string>,
+    cardList?: OnyxEntry<OnyxTypes.CardList>,
 ): [TransactionCardGroupListItemType[], number, boolean] {
     const cardSections: Record<string, TransactionCardGroupListItemType> = {};
     const cardDescriptionByCardID = new Map<number, string>();
@@ -3129,7 +3156,18 @@ function getCardSections(
                 ...personalDetails,
                 ...cardGroup,
                 formattedCardName,
-                formattedFeedName: getFeedNameForDisplay(translate, cardGroup.bank as OnyxTypes.CompanyCardFeed, cardFeeds, undefined, true, cardGroup?.feedCountry),
+                formattedFeedName: getFeedNameForDisplay(
+                    translate,
+                    cardGroup.bank as OnyxTypes.CompanyCardFeed,
+                    cardFeeds,
+                    cardList?.[cardGroup.cardID]?.fundID
+                        ? cardFeeds?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${cardList[cardGroup.cardID].fundID}`]?.settings?.companyCardNicknames?.[
+                              cardGroup.bank as OnyxTypes.CompanyCardFeed
+                          ]
+                        : undefined,
+                    true,
+                    cardGroup?.feedCountry,
+                ),
                 keyForList: key,
             };
         }
@@ -3274,18 +3312,11 @@ function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: Search
         if (isGroupEntry(key)) {
             const tagGroup = data[key] as SearchTagGroup;
 
-            const transactionsQueryJSON =
-                queryJSON && tagGroup.tag !== undefined
-                    ? buildSpecificGroupQuery(
-                          queryJSON,
-                          CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
-                          tagGroup.tag === '' || tagGroup.tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : tagGroup.tag,
-                      )
-                    : undefined;
+            const transactionsQueryJSON = queryJSON && tagGroup.tag !== undefined ? buildTagGroupQuery(queryJSON, tagGroup.tag) : undefined;
 
             // Format the tag name - use translated "No tag" for empty values so it sorts alphabetically
             const rawTag = tagGroup.tag;
-            const isEmptyTag = !rawTag || rawTag === CONST.SEARCH.TAG_EMPTY_VALUE || rawTag === '(untagged)';
+            const isEmptyTag = !rawTag || rawTag === CONST.SEARCH.TAG_EMPTY_VALUE || rawTag === CONST.SEARCH.TAG_UNTAGGED_VALUE;
             const formattedTag = isEmptyTag ? translate('search.noTag') : getCommaSeparatedTagNameWithSanitizedColons(rawTag);
 
             tagSections[key] = {
@@ -3473,6 +3504,7 @@ function getSections({
     isActionLoadingSet,
     isOffline,
     cardFeeds,
+    cardList,
     customCardNames,
     allTransactionViolations,
     visibleReportActionsData,
@@ -3519,7 +3551,7 @@ function getSections({
             case CONST.SEARCH.GROUP_BY.FROM:
                 return getMemberSections(data, queryJSON, formatPhoneNumber);
             case CONST.SEARCH.GROUP_BY.CARD:
-                return getCardSections(data, queryJSON, translate, cardFeeds, customCardNames);
+                return getCardSections(data, queryJSON, translate, cardFeeds, customCardNames, cardList);
             case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
                 return getWithdrawalIDSections(data, queryJSON);
             case CONST.SEARCH.GROUP_BY.CATEGORY:
@@ -3893,8 +3925,18 @@ function getSortedReportData(
 
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL) {
         return data.sort((a, b) => {
-            const aValue = getReimbursableTotal(a);
-            const bValue = getReimbursableTotal(b);
+            const aTotal = a.total;
+            const bTotal = b.total;
+
+            const aNonReimbursableTotal = a.nonReimbursableTotal;
+            const bNonReimbursableTotal = b.nonReimbursableTotal;
+
+            if (aTotal == null || bTotal == null || aNonReimbursableTotal == null || bNonReimbursableTotal == null) {
+                return 0;
+            }
+
+            const aValue = aTotal - aNonReimbursableTotal;
+            const bValue = bTotal - bNonReimbursableTotal;
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
         });
     }
