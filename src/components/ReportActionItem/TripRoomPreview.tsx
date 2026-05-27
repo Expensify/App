@@ -210,17 +210,7 @@ function TripRoomPreview({
                         {reservationsData.length > 0 && (
                             <FlatList
                                 data={reservationsData}
-                                style={[
-                                    styles.borderRadiusComponentLarge,
-                                    styles.p4,
-                                    styles.flexGrow0,
-                                    {
-                                        backgroundColor: theme.cardBG,
-                                        borderWidth: 1,
-                                        borderColor: theme.borderLight,
-                                        boxShadow: theme.shadowLight,
-                                    },
-                                ]}
+                                style={[styles.borderRadiusComponentLarge, styles.p4, styles.flexGrow0, {backgroundColor: theme.cardBG}]}
                                 contentContainerStyle={styles.gap4}
                                 renderItem={renderItem}
                             />

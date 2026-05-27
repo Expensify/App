@@ -717,7 +717,7 @@ const staticStyles = (theme: ThemeColors) =>
          * Do not apply for the active/selected state, those already have their own styling.
          */
         navigationTabBarItemHovered: {
-            backgroundColor: theme.hoverComponentBG,
+            backgroundColor: theme.sidebarHover,
         },
 
         leftNavigationTabBarContainer: {
@@ -1900,11 +1900,11 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         sidebarLinkHover: {
-            backgroundColor: theme.hoverComponentBG,
+            backgroundColor: theme.sidebarHover,
         },
 
         sidebarLinkActive: {
-            backgroundColor: theme.activeComponentBG,
+            backgroundColor: theme.activeNavItem,
             textDecorationLine: 'none',
         },
 
@@ -2535,10 +2535,8 @@ const staticStyles = (theme: ThemeColors) =>
 
         searchTableWrapper: {
             marginHorizontal: 20,
-            borderWidth: 1,
-            borderColor: theme.borderLight,
+            marginBottom: 20,
             borderRadius: variables.componentBorderRadius,
-            boxShadow: theme.shadowLight,
             overflow: 'hidden',
         },
 
@@ -2888,10 +2886,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         borderedContentCardLarge: {
-            borderWidth: 1,
-            borderColor: theme.borderLight,
             borderRadius: variables.componentBorderRadiusLarge,
-            boxShadow: theme.shadowLight,
         },
 
         sectionMenuItemTopDescription: {
@@ -3519,7 +3514,7 @@ const staticStyles = (theme: ThemeColors) =>
         searchListHeaderTableStyle: {
             backgroundColor: theme.cardBG,
             borderBottomWidth: 1,
-            borderColor: theme.borderLight,
+            borderColor: theme.border,
             minHeight: 36,
             paddingBottom: 8,
         },
@@ -3752,9 +3747,6 @@ const staticStyles = (theme: ThemeColors) =>
         cardSectionContainer: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusLarge,
-            borderWidth: 1,
-            borderColor: theme.borderLight,
-            boxShadow: theme.shadowLight,
             width: 'auto',
             textAlign: 'left',
             overflow: 'hidden',
@@ -3765,9 +3757,6 @@ const staticStyles = (theme: ThemeColors) =>
         widgetContainer: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusLarge,
-            borderWidth: 1,
-            borderColor: theme.borderLight,
-            boxShadow: theme.shadowLight,
             overflow: 'hidden',
         },
 
@@ -5063,9 +5052,6 @@ const staticStyles = (theme: ThemeColors) =>
         workspaceSectionMoreFeaturesItem: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusNormal,
-            borderWidth: 1,
-            borderColor: theme.borderLight,
-            boxShadow: theme.shadowLight,
             paddingHorizontal: 16,
             paddingVertical: 20,
             minWidth: 350,

@@ -15,7 +15,6 @@ type ThemeColors = {
     highlightBG: Color;
     messageHighlightBG: Color;
     border: Color;
-    borderLight: Color;
     borderLighter: Color;
     borderFocus: Color;
     icon: Color;
@@ -57,6 +56,7 @@ type ThemeColors = {
     componentBG: Color;
     hoverComponentBG: Color;
     activeComponentBG: Color;
+    activeNavItem: Color;
     signInSidebar: Color;
     sidebar: Color;
     sidebarHover: Color;

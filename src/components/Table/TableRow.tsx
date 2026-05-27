@@ -62,9 +62,9 @@ export default function TableRow({
     const isInteractive = interactive && !isLoading;
 
     const tableRowPressableStyles = [
-        styles.mh5,
+        shouldUseNarrowTableLayout && styles.mh5,
         styles.flexRow,
-        styles.highlightBG,
+        {backgroundColor: theme.cardBG},
         styles.overflowHidden,
         styles.alignItemsCenter,
         isInteractive && styles.userSelectNone,

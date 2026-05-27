@@ -188,9 +188,9 @@ function WorkspaceCompanyCardsTable({
     const keyExtractor = (item: WorkspaceCompanyCardTableItemData, index: number) => `${item.cardName}_${index}`;
 
     const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
-        addBottomSafeAreaPadding: true,
-        addOfflineIndicatorBottomSafeAreaPadding: true,
-        style: styles.pb4,
+        addBottomSafeAreaPadding: shouldUseNarrowTableLayout,
+        addOfflineIndicatorBottomSafeAreaPadding: shouldUseNarrowTableLayout,
+        style: shouldUseNarrowTableLayout ? styles.pb4 : undefined,
     });
 
     const compareItems: CompareItemsCallback<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey> = (a, b, activeSorting) => {
@@ -379,7 +379,7 @@ function WorkspaceCompanyCardsTable({
             ListHeaderComponent={shouldUseNarrowTableLayout ? ListHeader : undefined}
             ListEmptyComponent={isLoadingCards ? LoadingComponent : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />}
         >
-            {!shouldUseNarrowTableLayout && ListHeader}
+            {!shouldUseNarrowTableLayout && headerButtonsComponent}
 
             {(isLoading || isFeedPending || isNoFeed) && !feedErrorKey && (
                 <ScrollView>
@@ -424,7 +424,14 @@ function WorkspaceCompanyCardsTable({
                 </ScrollView>
             )}
 
-            {showCards && <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />}
+            {!shouldUseNarrowTableLayout && showCards && (
+                <View style={[styles.searchTableWrapper, styles.flexShrink1]}>
+                    {!isLoadingFeed && !isFeedPending && <Table.Header />}
+                    <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />
+                </View>
+            )}
+
+            {shouldUseNarrowTableLayout && showCards && <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />}
         </Table>
     );
 }

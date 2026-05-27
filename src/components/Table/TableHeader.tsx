@@ -67,8 +67,8 @@ function TableHeader<T, ColumnKey extends string = string>({style, shouldHideHea
             style={[
                 styles.pv2,
                 styles.ph3,
-                styles.mh5,
-                styles.highlightBG,
+                shouldUseNarrowTableLayout && styles.mh5,
+                {backgroundColor: theme.cardBG},
                 styles.borderBottom,
                 styles.tableTopRadius,
                 // Flexbox fallback for browsers / native devices wider than 1024px which don't support grid
