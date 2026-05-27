@@ -374,6 +374,7 @@ const CONST = {
 
     AUTH_METHOD: {
         SAML: 'saml',
+        SHORT_LIVED_AUTH_TOKEN: 'shortLivedAuthToken',
     },
 
     AVATAR_MAX_ATTACHMENT_SIZE: 6291456,
@@ -924,6 +925,7 @@ const CONST = {
         GUSTO: 'gustoNewDot',
         ZENEFITS: 'zenefitsNewDot',
         BULK_EDIT: 'bulkEdit',
+        BULK_EDIT_WORKSPACES: 'bulkEditWorkspaces',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
         SUBMIT_2026: 'submit2026',
         DATE_BOUND_MILEAGE_RATE: 'dateBoundMileageRate',
@@ -8244,6 +8246,7 @@ const CONST = {
             RANGE_PREFIX: 'reportFieldRange-',
         },
         TAG_EMPTY_VALUE: 'none',
+        TAG_UNTAGGED_VALUE: '(untagged)',
         CATEGORY_EMPTY_VALUE: 'none',
         CATEGORY_DEFAULT_VALUE: 'Uncategorized',
         MERCHANT_EMPTY_VALUE: 'none',
@@ -9016,6 +9019,8 @@ const CONST = {
         HAS_FILTER_NEGATION: 'hasFilterNegation',
     },
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
+    AGENTS_WORKFLOWS_BANNER: 'agentsWorkflowsBanner',
+    AGENTS_RULES_BANNER: 'agentsRulesBanner',
     SMART_BANNER_HEIGHT: 152,
 
     NAVIGATION_TESTS: {
@@ -9155,6 +9160,13 @@ const CONST = {
     SENTRY_LABEL: {
         BILLING_BANNER: {
             RIGHT_ICON: 'BillingBanner-RightIcon',
+        },
+        AGENTS_WORKFLOWS_BANNER: {
+            DISMISS: 'AgentsWorkflowsBanner-Dismiss',
+        },
+        AGENTS_RULES_BANNER: {
+            CTA: 'AgentsRulesBanner-CTA',
+            DISMISS: 'AgentsRulesBanner-Dismiss',
         },
         NAVIGATION_TAB_BAR: {
             EXPENSIFY_LOGO: 'NavigationTabBar-ExpensifyLogo',

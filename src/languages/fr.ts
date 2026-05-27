@@ -857,7 +857,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Votre espace',
         welcomeToRoom: (roomName: string) => `Bienvenue dans ${roomName} !`,
         usePlusButton: (additionalText: string) => `Utilisez le bouton + pour ${additionalText} une dépense.`,
-        askConcierge: 'Ceci est votre chat avec Concierge, votre agent IA personnel. Je peux faire presque tout, essayez-moi !',
+        askConcierge: 'Concierge peut répondre aux questions, mettre à jour les dépenses, et plus encore.',
         conciergeSupport: 'Votre agent IA personnel',
         create: 'créer',
         iouTypes: {
@@ -2586,6 +2586,8 @@ ${amount} pour ${merchant} - ${date}`,
         addApprovalTip: 'Ce workflow par défaut s’applique à tous les membres, sauf si un workflow plus spécifique existe.',
         approver: 'Approbateur',
         addApprovalsDescription: 'Exiger une approbation supplémentaire avant d’autoriser un paiement.',
+        automateApprovalsWithAgentsTitle: 'Automatisez les approbations avec des agents',
+        automateApprovalsWithAgentsSubtitle: 'Ajoutez l’agent ci-dessous au flux de travail pour automatiser les approbations.',
         makeOrTrackPaymentsTitle: 'Paiements',
         makeOrTrackPaymentsDescription: 'Ajoutez un payeur autorisé pour les paiements effectués dans Expensify ou suivez les paiements effectués ailleurs.',
         customApprovalWorkflowEnabled:
@@ -6079,6 +6081,13 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             selectWorkspaces: 'Sélectionner des espaces de travail',
             description: 'Choisissez les espaces de travail vers lesquels vous souhaitez copier les paramètres, puis sélectionnez les paramètres que vous souhaitez copier.',
             searchPlaceholder: 'Rechercher des espaces de travail',
+            selectFeatures: 'Sélectionner les fonctionnalités à copier',
+            whichFeatures: 'Sélectionnez les paramètres à écraser sur vos espaces de travail existants.',
+            workflowsWithoutMembersConfirm: 'Continuer sans membres',
+            workflowsWithoutMembersPrompt:
+                'La copie d’espaces de travail sans membres ne copiera pas les workflows d’approbation. Les paramètres de soumission et de paiement seront néanmoins copiés.',
+            accountingMismatch: ({part}: {part: string}) =>
+                `Vous ne pouvez copier ${part} que si tous les espaces de travail utilisent le même système de comptabilité et la même connexion d’entreprise.`,
         },
         emptyWorkspace: {
             title: 'Vous n’avez aucun espace de travail',
@@ -6219,8 +6228,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
         accounting: {
             settings: 'paramètres',
             title: 'Connexions',
-            subtitle:
-                'Connectez votre système comptable pour imputer les opérations à votre plan comptable, faire correspondre automatiquement les paiements et garder vos finances synchronisées.',
+            subtitle: 'Connectez votre logiciel de comptabilité pour une synchronisation automatique.',
             qbo: 'QuickBooks Online',
             qbd: 'QuickBooks Desktop',
             xero: 'Xero',
@@ -7012,6 +7020,11 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Allez dans [plus de fonctionnalités](${moreFeaturesLink}) et activez ${featureName} pour déverrouiller cette fonctionnalité.`,
             },
+            agentsPromoBanner: {
+                title: 'Vous ne voyez pas la règle dont vous avez besoin ? Ajoutez un agent',
+                subtitle: 'Ajoutez des règles complexes et réduisez les approbations manuelles grâce à des agents personnalisés.',
+                cta: 'Essayer',
+            },
             merchantRules: {
                 title: 'Commerçant',
                 subtitle: 'Définissez les règles de commerçant pour que les dépenses arrivent correctement codées et nécessitent moins de nettoyage.',
@@ -7222,6 +7235,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         hr: {
             title: 'RH',
             connections: 'Connexions',
+            connectionsSubtitle:
+                'Connectez votre système RH pour synchroniser les données des employé·es, faire correspondre automatiquement les remboursements aux bonnes personnes et garder les dépenses de votre équipe exactes, sans travail manuel.',
             subtitle: 'Connectez vos outils RH et gardez les approbations des employés synchronisées.',
             connect: 'Connecter',
             syncNow: 'Synchroniser maintenant',
