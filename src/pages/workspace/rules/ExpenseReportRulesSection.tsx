@@ -95,7 +95,8 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                         title={convertToDisplayString(policy?.autoApproval?.limit ?? CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS, policy?.outputCurrency ?? CONST.CURRENCY.USD)}
                         shouldShowRightIcon={canWriteApprovals}
                         style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
-                        onPress={canWriteApprovals ? () => Navigation.navigate(ROUTES.RULES_AUTO_APPROVE_REPORTS_UNDER.getRoute(policyID)) : undefined}
+                        onPress={() => Navigation.navigate(ROUTES.RULES_AUTO_APPROVE_REPORTS_UNDER.getRoute(policyID))}
+                        interactive={canWriteApprovals}
                     />
                 </OfflineWithFeedback>,
                 <OfflineWithFeedback
@@ -109,7 +110,8 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                         title={`${Math.round((policy?.autoApproval?.auditRate ?? CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE) * 100)}%`}
                         shouldShowRightIcon={canWriteApprovals}
                         style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
-                        onPress={canWriteApprovals ? () => Navigation.navigate(ROUTES.RULES_RANDOM_REPORT_AUDIT.getRoute(policyID)) : undefined}
+                        onPress={() => Navigation.navigate(ROUTES.RULES_RANDOM_REPORT_AUDIT.getRoute(policyID))}
+                        interactive={canWriteApprovals}
                     />
                 </OfflineWithFeedback>,
             ],
@@ -150,7 +152,8 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                         title={convertToDisplayString(policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_LIMIT_DEFAULT_CENTS, policy?.outputCurrency ?? CONST.CURRENCY.USD)}
                         shouldShowRightIcon={canWritePayments}
                         style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
-                        onPress={canWritePayments ? () => Navigation.navigate(ROUTES.RULES_AUTO_PAY_REPORTS_UNDER.getRoute(policyID)) : undefined}
+                        onPress={() => Navigation.navigate(ROUTES.RULES_AUTO_PAY_REPORTS_UNDER.getRoute(policyID))}
+                        interactive={canWritePayments}
                     />
                 </OfflineWithFeedback>,
             ],

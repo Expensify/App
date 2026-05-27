@@ -350,7 +350,8 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                 <MenuItemWithTopDescription
                     description={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.settlementAccountLabel')}
                     title={settlementAccountNumber}
-                    onPress={canWriteMoreFeatures ? () => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID)) : undefined}
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID))}
+                    interactive={canWriteMoreFeatures}
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
                     titleStyle={settlementAccountNumber ? styles.textNormalThemeText : styles.colorMuted}
                     descriptionTextStyle={styles.textLabelSupportingNormal}
@@ -368,7 +369,8 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                 <MenuItemWithTopDescription
                     description={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.settlementFrequencyLabel')}
                     title={localizedFrequency}
-                    onPress={canWriteMoreFeatures ? () => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_FREQUENCY.getRoute(policyID)) : undefined}
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_FREQUENCY.getRoute(policyID))}
+                    interactive={canWriteMoreFeatures}
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
                     titleStyle={styles.textNormalThemeText}
                     descriptionTextStyle={styles.textLabelSupportingNormal}
@@ -386,7 +388,8 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                 <MenuItemWithTopDescription
                     description={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.monthlySpendLimitLabel')}
                     title={formattedMonthlyLimit}
-                    onPress={canWriteMoreFeatures ? () => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_MONTHLY_LIMIT.getRoute(policyID)) : undefined}
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_MONTHLY_LIMIT.getRoute(policyID))}
+                    interactive={canWriteMoreFeatures}
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
                     titleStyle={styles.textNormalThemeText}
                     descriptionTextStyle={styles.textLabelSupportingNormal}

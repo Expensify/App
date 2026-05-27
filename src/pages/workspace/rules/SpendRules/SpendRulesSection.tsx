@@ -185,8 +185,9 @@ function SpendRulesSection({policyID, canWriteRules}: SpendRulesSectionProps) {
                 titleComponent={menuItemBody}
                 accessibilityLabel={`${descriptionLabel}. ${blockLabel} ${defaultRuleTitle}`}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
-                onPress={canWriteRules ? showBuiltInProtectionModal : undefined}
+                onPress={showBuiltInProtectionModal}
                 shouldShowRightIcon={canWriteRules}
+                interactive={canWriteRules}
             />
             {isSpendRulesListLoading ? (
                 <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.mt5, styles.mb3]}>
@@ -241,7 +242,8 @@ function SpendRulesSection({policyID, canWriteRules}: SpendRulesSectionProps) {
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
                             shouldShowRightIcon={canWriteRules}
                             disabled={rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                            onPress={canWriteRules ? () => Navigation.navigate(ROUTES.RULES_SPEND_EDIT.getRoute(policyID, rule.ruleID)) : undefined}
+                            onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_EDIT.getRoute(policyID, rule.ruleID))}
+                            interactive={canWriteRules}
                         />
                     </OfflineWithFeedback>
                 ))

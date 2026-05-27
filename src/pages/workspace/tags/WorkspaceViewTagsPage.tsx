@@ -450,7 +450,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     <MenuItemWithTopDescription
                         title={getCleanedTagName(currentPolicyTag.name)}
                         description={translate(`workspace.tags.customTagName`)}
-                        onPress={canWriteTags ? navigateToEditTag : undefined}
+                        onPress={navigateToEditTag}
                         shouldShowRightIcon={canWriteTags}
                         interactive={canWriteTags}
                     />

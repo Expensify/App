@@ -173,7 +173,8 @@ function MerchantRulesSection({policyID, canWriteRules}: MerchantRulesSectionPro
                                         descriptionTextStyle={[styles.textNormalThemeText, {lineHeight: variables.fontSizeNormalHeight}]}
                                         titleStyle={[styles.textLabelSupporting, styles.fontSizeLabel]}
                                         shouldShowRightIcon={canWriteRules}
-                                        onPress={canWriteRules ? () => Navigation.navigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, rule.ruleID)) : undefined}
+                                        onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, rule.ruleID))}
+                                        interactive={canWriteRules}
                                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_ITEM}
                                         disabled={rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                                     />

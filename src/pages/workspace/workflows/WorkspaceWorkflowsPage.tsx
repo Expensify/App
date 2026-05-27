@@ -392,7 +392,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         title={getAutoReportingFrequencyDisplayNames(translate)[getCorrectedAutoReportingFrequency(policy) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]}
                         titleStyle={styles.textNormalThemeText}
                         descriptionTextStyle={styles.textLabelSupportingNormal}
-                        onPress={canWriteWorkflows ? onPressAutoReportingFrequency : undefined}
+                        onPress={onPressAutoReportingFrequency}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.AUTO_REPORTING_FREQUENCY}
                         // Instant submit is the equivalent of delayed submissions being turned off, so we show the feature as disabled if the frequency is instant
                         description={translate('common.frequency')}
@@ -687,7 +687,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                     titleStyle={styles.textNormalThemeText}
                                     descriptionTextStyle={styles.textLabelSupportingNormal}
                                     description={translate('workflowsPayerPage.payer')}
-                                    onPress={canWritePayments ? () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_PAYER.getRoute(route.params.policyID)) : undefined}
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_PAYER.getRoute(route.params.policyID))}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.AUTHORIZED_PAYER}
                                     shouldShowRightIcon={canWritePayments}
                                     interactive={canWritePayments}

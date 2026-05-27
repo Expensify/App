@@ -42,7 +42,8 @@ function WorkspaceInvoicingDetailsSection({policyID, canWriteMoreFeatures}: Work
                 title={policy?.invoice?.companyName}
                 description={translate('workspace.invoices.companyName')}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.INVOICES.COMPANY_NAME}
-                onPress={canWriteMoreFeatures ? () => Navigation.navigate(ROUTES.WORKSPACE_INVOICES_COMPANY_NAME.getRoute(policyID)) : undefined}
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES_COMPANY_NAME.getRoute(policyID))}
+                interactive={canWriteMoreFeatures}
                 style={horizontalPadding}
             />
             <MenuItemWithTopDescription
@@ -51,7 +52,8 @@ function WorkspaceInvoicingDetailsSection({policyID, canWriteMoreFeatures}: Work
                 title={policy?.invoice?.companyWebsite}
                 description={translate('workspace.invoices.companyWebsite')}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.INVOICES.COMPANY_WEBSITE}
-                onPress={canWriteMoreFeatures ? () => Navigation.navigate(ROUTES.WORKSPACE_INVOICES_COMPANY_WEBSITE.getRoute(policyID)) : undefined}
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES_COMPANY_WEBSITE.getRoute(policyID))}
+                interactive={canWriteMoreFeatures}
                 style={horizontalPadding}
             />
         </Section>

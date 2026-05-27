@@ -209,7 +209,8 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             title={customCardNames?.[cardID] ?? getDefaultCardName(cardholder?.firstName)}
                             shouldShowRightIcon={canWriteCompanyCards}
                             brickRoadIndicator={card?.nameValuePairs?.errorFields?.cardTitle ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            onPress={canWriteCompanyCards ? () => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EDIT_CARD_NAME.getRoute(policyID, cardID, feedName)) : undefined}
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EDIT_CARD_NAME.getRoute(policyID, cardID, feedName))}
+                            interactive={canWriteCompanyCards}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.CARD_NAME}
                         />
                     </OfflineWithFeedback>
@@ -236,7 +237,8 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                 description={exportMenuItem.description}
                                 title={exportMenuItem.title}
                                 shouldShowRightIcon={canWriteCompanyCards}
-                                onPress={canWriteCompanyCards ? () => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(policyID, cardID, feedName, backTo)) : undefined}
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(policyID, cardID, feedName, backTo))}
+                                interactive={canWriteCompanyCards}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.CARD_EXPORT}
                             />
                         </OfflineWithFeedback>
@@ -252,9 +254,8 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             title={card?.scrapeMinDate ? format(parseISO(card.scrapeMinDate), CONST.DATE.FNS_FORMAT_STRING) : ''}
                             shouldShowRightIcon={canWriteCompanyCards}
                             brickRoadIndicator={card?.errorFields?.scrapeMinDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            onPress={
-                                canWriteCompanyCards ? () => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EDIT_TRANSACTION_START_DATE.getRoute(policyID, cardID, feedName)) : undefined
-                            }
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EDIT_TRANSACTION_START_DATE.getRoute(policyID, cardID, feedName))}
+                            interactive={canWriteCompanyCards}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.TRANSACTION_START_DATE}
                         />
                     </OfflineWithFeedback>

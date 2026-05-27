@@ -36,7 +36,8 @@ function WorkspaceTimeTrackingDefaultRateSection({policyID, canWriteMoreFeatures
                     shouldShowRightIcon={canWriteMoreFeatures}
                     title={policy ? convertToDisplayString(getDefaultTimeTrackingRate(policy), policy?.outputCurrency) : ''}
                     description={translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}
-                    onPress={canWriteMoreFeatures ? () => Navigation.navigate(ROUTES.WORKSPACE_TIME_TRACKING_DEFAULT_RATE.getRoute(policyID)) : undefined}
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TIME_TRACKING_DEFAULT_RATE.getRoute(policyID))}
+                    interactive={canWriteMoreFeatures}
                     style={styles.sectionMenuItemTopDescription}
                 />
             </OfflineWithFeedback>

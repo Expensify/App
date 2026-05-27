@@ -150,7 +150,8 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures}: HRP
                         style={[styles.sectionMenuItemTopDescription, styles.mt2]}
                         shouldShowRightIcon={canWriteMoreFeatures}
                         brickRoadIndicator={card.config?.errorFields?.approvalMode ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        onPress={canWriteMoreFeatures ? () => Navigation.navigate(approvalModeRoute) : undefined}
+                        onPress={() => Navigation.navigate(approvalModeRoute)}
+                        interactive={canWriteMoreFeatures}
                     />
                 </OfflineWithFeedback>
             )}
@@ -166,7 +167,8 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures}: HRP
                         style={styles.sectionMenuItemTopDescription}
                         shouldShowRightIcon={canWriteMoreFeatures}
                         brickRoadIndicator={card.config?.errorFields?.finalApprover ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        onPress={canWriteMoreFeatures ? () => Navigation.navigate(finalApproverRoute) : undefined}
+                        onPress={() => Navigation.navigate(finalApproverRoute)}
+                        interactive={canWriteMoreFeatures}
                     />
                 </OfflineWithFeedback>
             )}

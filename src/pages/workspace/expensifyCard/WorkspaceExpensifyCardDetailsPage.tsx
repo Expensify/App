@@ -340,7 +340,8 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             description={translate('workspace.card.issueNewCard.cardName')}
                             title={card?.nameValuePairs?.cardTitle}
                             shouldShowRightIcon={canWriteExpensifyCard}
-                            onPress={canWriteExpensifyCard ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_NAME.path)) : undefined}
+                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_NAME.path))}
+                            interactive={canWriteExpensifyCard}
                         />
                     </OfflineWithFeedback>
                     <MenuItemWithTopDescription
@@ -363,7 +364,8 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             description={translate('workspace.card.issueNewCard.limitType')}
                             title={translationForLimitType ? translate(translationForLimitType) : ''}
                             shouldShowRightIcon={canWriteExpensifyCard}
-                            onPress={canWriteExpensifyCard ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT_TYPE.path)) : undefined}
+                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT_TYPE.path))}
+                            interactive={canWriteExpensifyCard}
                             hintText={getCardHintText(card?.nameValuePairs?.validFrom, card?.nameValuePairs?.validThru, cardholder?.timezone?.selected, translate)}
                         />
                     </OfflineWithFeedback>
@@ -372,7 +374,8 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             description={translate('workspace.expensifyCard.cardLimit')}
                             title={formattedLimit}
                             shouldShowRightIcon={canWriteExpensifyCard}
-                            onPress={canWriteExpensifyCard ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT.path)) : undefined}
+                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT.path))}
+                            interactive={canWriteExpensifyCard}
                         />
                     </OfflineWithFeedback>
                     <View style={styles.mt6}>
@@ -381,7 +384,8 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                                 description={translate('cardPage.spendRules')}
                                 descriptionTextStyle={[styles.fontSizeLabel]}
                                 titleComponent={spendRulesTitleComponent}
-                                onPress={canWriteExpensifyCard ? navigateToSpendRules : undefined}
+                                onPress={navigateToSpendRules}
+                                interactive={canWriteExpensifyCard}
                                 accessibilityLabel={spendRulesSummary.join('. ')}
                             />
                         )}
