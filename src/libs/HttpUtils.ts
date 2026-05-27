@@ -1,3 +1,4 @@
+import type {fetch as nitroFetch} from 'react-native-nitro-fetch';
 import {prefetchOnAppStart} from 'react-native-nitro-fetch';
 import type {OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -14,9 +15,9 @@ import {getCommandURL} from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
 import Log from './Log';
 import {setLoadTestParameters} from './Network/LoadTestState';
-import {PREFETCH_HEADER_KEY} from './PrefetchQueries';
+import PREFETCH_QUERIES from './PrefetchQueries';
 import prepareRequestPayload from './prepareRequestPayload';
-import registerPrefetchTokenRefresh from './registerPrefetchTokenRefresh';
+import registerPrefetchTokenRefresh from './registerPrefetchTokenRefresh/index.native';
 import markAppStartupNetworkRequestEnd from './telemetry/markAppStartupNetworkRequestEnd';
 
 let shouldFailAllRequests = false;
@@ -70,14 +71,26 @@ function processHTTPRequest<TKey extends OnyxKey>(
     abortSignal: AbortSignal | undefined = undefined,
 ): Promise<Response<TKey>> {
     const startTime = new Date().valueOf();
-    const shouldPrefetchOnAppStart = !!headers[PREFETCH_HEADER_KEY];
 
-    const fetchParams: Parameters<typeof fetch>[1] = {
+    const command = url.match(APICommandRegex)?.[1];
+
+    // Prefetch the request on next app start if the prefetch key is present in the headers
+    // This allows to fetch the request natively before the JS bundle is loaded. Once the request with this prefetch key is made, it will already be cached and served from the cache.
+    const prefetchKey = command && PREFETCH_QUERIES.has(command) ? command : undefined;
+
+    const prefetchHeaders = prefetchKey
+        ? {
+              ...headers,
+              prefetchKey,
+          }
+        : headers;
+
+    const fetchParams: NonNullable<Parameters<typeof nitroFetch>[1]> = {
         // We hook requests to the same Controller signal, so we can cancel them all at once
         signal: abortSignal,
         method,
         body,
-        headers,
+        headers: prefetchHeaders,
         // On Web fetch already defaults to 'omit' for credentials, but it seems that this is not the case for the ReactNative implementation
         // so to avoid sending cookies with the request we set it to 'omit' explicitly
         // this avoids us sending specially the expensifyWeb cookie, which makes a CSRF token required
@@ -85,11 +98,7 @@ function processHTTPRequest<TKey extends OnyxKey>(
         credentials: 'omit',
     };
 
-    const command = url.match(APICommandRegex)?.[1];
-
-    // Prefetch the request on next app start if the prefetch key is present in the headers
-    // This allows to fetch the request natively before the JS bundle is loaded. Once the request with this prefetch key is made, it will already be cached and served from the cache.
-    if (shouldPrefetchOnAppStart) {
+    if (prefetchKey) {
         registerPrefetchTokenRefresh();
         prefetchOnAppStart(url, fetchParams)
             .then(() => {})

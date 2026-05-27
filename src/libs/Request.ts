@@ -5,7 +5,6 @@ import HttpUtils from './HttpUtils';
 import type Middleware from './Middleware/types';
 import enhanceParameters from './Network/enhanceParameters';
 import {hasReadRequiredDataFromStorage} from './Network/NetworkStore';
-import {PREFETCH_HEADER_KEY, PREFETCH_QUERIES} from './PrefetchQueries';
 
 let middlewares: Middleware[] = [];
 
@@ -17,14 +16,6 @@ function makeXHR<TKey extends OnyxKey>(request: Request<TKey>): Promise<Response
 }
 
 function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isFromSequentialQueue = false): Promise<Response<TKey> | void> {
-    const prefetchKey = PREFETCH_QUERIES.has(request.command) ? request.command : undefined;
-
-    if (prefetchKey) {
-        const headers = request.headers ?? {};
-        headers[PREFETCH_HEADER_KEY] = prefetchKey;
-        request.headers = headers;
-    }
-
     let result = makeXHR(request);
     for (const middleware of middlewares) {
         result = middleware(result, request, isFromSequentialQueue);
