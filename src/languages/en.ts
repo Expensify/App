@@ -971,7 +971,7 @@ const translations = {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Fix ${cardName} personal card connection` : 'Fix personal card connection'),
                 subtitle: 'Wallet',
             },
-            fixAccountingConnection: {
+            fixPolicyConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Fix ${integrationName} connection`,
                 defaultSubtitle: 'Workspace',
                 subtitle: ({policyName}: {policyName: string}) => policyName,

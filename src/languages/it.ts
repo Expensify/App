@@ -946,7 +946,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 defaultSubtitle: 'Area di lavoro',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Carte aziendali`,
             },
-            fixAccountingConnection: {
+            fixPolicyConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Correggi connessione ${integrationName}`,
                 defaultSubtitle: 'Area di lavoro',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Contabilità`,
