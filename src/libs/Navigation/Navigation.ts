@@ -37,6 +37,7 @@ import {isFullScreenName, isOnboardingFlowName, isSplitNavigatorName} from './he
 import isReportOpenInRHP from './helpers/isReportOpenInRHP';
 import isReportTopmostSplitNavigator from './helpers/isReportTopmostSplitNavigator';
 import isSideModalNavigator from './helpers/isSideModalNavigator';
+import isTabNavigatorReady from './helpers/isTabNavigatorReady';
 import linkTo from './helpers/linkTo';
 import getMinimalAction from './helpers/linkTo/getMinimalAction';
 import type {LinkToOptions} from './helpers/linkTo/types';
@@ -707,8 +708,7 @@ function navContainsProtectedRoutes(state: State | undefined): boolean {
     // useNavigationBuilder and produced a non-stale nested state), otherwise a
     // deferred NAVIGATE targeting a screen inside TabNavigator will be dispatched
     // before any child router is registered to handle it.
-    const tabRoute = state.routes?.find((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
-    return tabRoute?.state?.stale === false;
+    return isTabNavigatorReady(state);
 }
 
 /**

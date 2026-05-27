@@ -2,10 +2,10 @@ import type {LinkingOptions} from '@react-navigation/native';
 import {findFocusedRoute} from '@react-navigation/native';
 import {Linking} from 'react-native';
 import continuePlaidOAuth from '@libs/continuePlaidOAuth';
+import isTabNavigatorReady from '@libs/Navigation/helpers/isTabNavigatorReady';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 
 const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener) => {
@@ -38,8 +38,7 @@ const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener
         // error. Protected-screen deep links will be handled separately by
         // openReportFromDeepLink via waitForProtectedRoutes().
         const state = navigationRef.current?.getRootState();
-        const tabRoute = state?.routes?.find((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
-        if (tabRoute && tabRoute.state?.stale !== false) {
+        if (!isTabNavigatorReady(state)) {
             return;
         }
 
