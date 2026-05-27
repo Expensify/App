@@ -402,7 +402,7 @@ type AddAttachmentWithCommentParams = {
 
 const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
 // map of reportID to all reportActions for that report
-const allReportActions: OnyxCollection<ReportActions> = {};
+let allReportActions: OnyxCollection<ReportActions> = {};
 const STALE_DM_RECOVERY_TARGET_TTL_MS = 30000;
 const staleDMRecoveryTargetBySourceReportID: Record<string, string> = {};
 const staleDMRecoverySourceByTargetReportID: Record<string, string> = {};
@@ -453,12 +453,19 @@ function clearStaleDMRecoveryTargetByTargetReportID(targetReportID: string) {
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    callback: (actions, key) => {
-        if (!key || !actions) {
+    callback: (snapshot) => {
+        if (!snapshot) {
+            allReportActions = {};
             return;
         }
-        const reportID = CollectionUtils.extractCollectionItemID(key);
-        allReportActions[reportID] = actions;
+        // Rebuild the rawID-keyed view from the prefixed-key snapshot. Each value
+        // shares its reference with the snapshot, so downstream consumers still
+        // benefit from structural-sharing ref-stability for unchanged members.
+        const next: OnyxCollection<ReportActions> = {};
+        for (const [k, v] of Object.entries(snapshot as unknown as Record<string, ReportActions | undefined>)) {
+            next[CollectionUtils.extractCollectionItemID(k as `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`)] = v;
+        }
+        allReportActions = next;
     },
 });
 
