@@ -64,6 +64,11 @@ function createAgent(
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`,
             value: null,
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING,
+            value: {[optimisticAccountID]: null},
+        },
     ];
 
     const failureData: AnyOnyxUpdate[] = [
@@ -80,6 +85,11 @@ function createAgent(
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 errors: getMicroSecondOnyxErrorWithTranslationKey('agentsPage.error.genericAdd'),
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING,
+            value: {[optimisticAccountID]: null},
         },
     ];
 
@@ -115,7 +125,11 @@ function createAgent(
         });
     }
 
-    write(WRITE_COMMANDS.CREATE_AGENT, {firstName, prompt, customExpensifyAvatarID, file, policyID}, {optimisticData, successData, failureData});
+    write(
+        WRITE_COMMANDS.CREATE_AGENT,
+        {firstName, prompt, customExpensifyAvatarID, file, policyID, optimisticAccountID: String(optimisticAccountID)},
+        {optimisticData, successData, failureData},
+    );
 
     return {optimisticAccountID, avatarURI};
 }

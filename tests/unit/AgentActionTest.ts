@@ -37,13 +37,13 @@ describe('createAgent', () => {
     it('calls write with CREATE_AGENT command and provided params', () => {
         createAgent('My Agent', 'Reject gambling expenses.');
 
-        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, {firstName: 'My Agent', prompt: 'Reject gambling expenses.'}, expect.any(Object));
+        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, expect.objectContaining({firstName: 'My Agent', prompt: 'Reject gambling expenses.'}), expect.any(Object));
     });
 
     it('passes undefined firstName through unchanged', () => {
         createAgent(undefined, 'Some prompt');
 
-        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, {firstName: undefined, prompt: 'Some prompt'}, expect.any(Object));
+        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, expect.objectContaining({firstName: undefined, prompt: 'Some prompt'}), expect.any(Object));
     });
 
     it('optimistic personal detail entry has a negative account ID', () => {
@@ -97,14 +97,18 @@ describe('createAgent', () => {
     it('passes customExpensifyAvatarID to write params when provided', () => {
         createAgent('Bot', 'My prompt', 'bot-avatar--blue');
 
-        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, {firstName: 'Bot', prompt: 'My prompt', customExpensifyAvatarID: 'bot-avatar--blue'}, expect.any(Object));
+        expect(mockWrite).toHaveBeenCalledWith(
+            WRITE_COMMANDS.CREATE_AGENT,
+            expect.objectContaining({firstName: 'Bot', prompt: 'My prompt', customExpensifyAvatarID: 'bot-avatar--blue'}),
+            expect.any(Object),
+        );
     });
 
     it('passes file to write params when provided', () => {
         const mockFile = {uri: 'file://photo.jpg', name: 'photo.jpg'} as unknown as File;
         createAgent('Bot', 'My prompt', undefined, mockFile, 'file://photo.jpg');
 
-        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, {firstName: 'Bot', prompt: 'My prompt', file: mockFile}, expect.any(Object));
+        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, expect.objectContaining({firstName: 'Bot', prompt: 'My prompt', file: mockFile}), expect.any(Object));
     });
 
     it('uploads file in the CREATE_AGENT call itself — no separate UPDATE_AGENT_AVATAR write', () => {
@@ -231,6 +235,24 @@ describe('createAgent', () => {
 
         expect((personalDetailRollback?.value as Record<string, unknown>)[accountID]).toBeNull();
         expect(promptRollback?.value).toBeNull();
+    });
+
+    it('passes the optimistic accountID through to the server so it can echo a real-ID mapping', () => {
+        const result = createAgent('Bot', 'My prompt');
+
+        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, expect.objectContaining({optimisticAccountID: String(result.optimisticAccountID)}), expect.any(Object));
+    });
+
+    it('success and failure data clear the optimistic→real ID mapping entry', () => {
+        const result = createAgent('Bot', 'My prompt');
+        const {successData, failureData} = getWriteOptions();
+        const optID = String(result.optimisticAccountID);
+
+        const successMappingUpdate = successData.find((u) => u.key === ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING);
+        const failureMappingUpdate = failureData.find((u) => u.key === ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING);
+
+        expect((successMappingUpdate?.value as Record<string, unknown>)[optID]).toBeNull();
+        expect((failureMappingUpdate?.value as Record<string, unknown>)[optID]).toBeNull();
     });
 
     it('failure data preserves optimistic personal detail and merges errors onto the prompt entry', () => {

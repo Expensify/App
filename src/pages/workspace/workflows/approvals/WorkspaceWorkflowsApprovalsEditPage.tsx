@@ -41,6 +41,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const [agentPrompts] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT);
+    const [optimisticAgentAccountIDMapping] = useOnyx(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [initialApprovalWorkflow, setInitialApprovalWorkflow] = useState<ApprovalWorkflow | undefined>();
     const formRef = useRef<ScrollView>(null);
@@ -236,12 +237,13 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
     // Reconcile a pending (optimistic) seeded approver with the real personal detail once
     // CREATE_AGENT resolves. The optimistic personal detail is deleted in `createAgent`'s
     // successData and a new one with a positive accountID + real login is added by the
-    // server response. We identify the resolved agent via the `SHARED_NVP_AGENT_PROMPT`
-    // collection: the optimistic entry at the negative accountID is wiped by successData and a
-    // new entry keyed by the real accountID appears with the same `prompt` text. Matching on
-    // prompt (captured in `capturedPendingAgentPromptsRef` while the optimistic entry was
-    // still live) gives a stable identifier — unlike displayName, which can collide when two
-    // members share a name.
+    // server response. The server also echoes a `{optimisticID: realID}` mapping in
+    // `OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING` — the primary resolution path — so we can look up
+    // the real accountID without guessing. Prompt matching stays as a cross-tab fallback:
+    // the mapping write only lands on the originating tab's Onyx, so a different tab still
+    // needs the prompt heuristic to reconcile (with the caveat that it's ambiguous when two
+    // agents share the same prompt text — captured in `capturedPendingAgentPromptsRef` while
+    // the optimistic entry was still live).
     useEffect(() => {
         if (!approvalWorkflow || !policy?.employeeList || !personalDetails || !agentPrompts) {
             return;
@@ -250,28 +252,42 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         if (!pendingApprover?.accountID) {
             return;
         }
-        const capturedPrompt = capturedPendingAgentPromptsRef.current.get(pendingApprover.accountID);
-        if (!capturedPrompt) {
-            return;
-        }
 
-        const optimisticPromptKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${pendingApprover.accountID}`;
         const knownApproverEmails = new Set(approvalWorkflow.approvers.map((approver) => approver?.email).filter((email): email is string => !!email));
         let resolvedPersonalDetail: PersonalDetails | undefined;
-        for (const [promptKey, promptValue] of Object.entries(agentPrompts)) {
-            if (promptKey === optimisticPromptKey || !promptValue || promptValue.prompt !== capturedPrompt) {
-                continue;
+        const mappedRealAccountID = optimisticAgentAccountIDMapping?.[pendingApprover.accountID];
+        if (mappedRealAccountID) {
+            const mappedDetail = personalDetails[mappedRealAccountID];
+            if (mappedDetail?.login && policy.employeeList?.[mappedDetail.login] && !knownApproverEmails.has(mappedDetail.login)) {
+                resolvedPersonalDetail = mappedDetail;
             }
-            const candidateAccountID = Number(promptKey.slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length));
-            if (!Number.isFinite(candidateAccountID) || candidateAccountID <= 0) {
-                continue;
+        }
+        if (!resolvedPersonalDetail) {
+            const capturedPrompt = capturedPendingAgentPromptsRef.current.get(pendingApprover.accountID);
+            if (!capturedPrompt) {
+                return;
             }
-            const candidateDetail = personalDetails[candidateAccountID];
-            if (!candidateDetail?.login || !policy.employeeList?.[candidateDetail.login] || knownApproverEmails.has(candidateDetail.login)) {
-                continue;
+            // When several agents share the same prompt text, the loop can match multiple
+            // candidates. Pick the highest positive accountID — the server assigns IDs
+            // monotonically, so the freshest agent (the one CREATE_AGENT just produced) is the
+            // largest. Older agents with the same default prompt get skipped.
+            const optimisticPromptKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${pendingApprover.accountID}`;
+            let bestCandidateAccountID = -Infinity;
+            for (const [promptKey, promptValue] of Object.entries(agentPrompts)) {
+                if (promptKey === optimisticPromptKey || !promptValue || promptValue.prompt !== capturedPrompt) {
+                    continue;
+                }
+                const candidateAccountID = Number(promptKey.slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length));
+                if (!Number.isFinite(candidateAccountID) || candidateAccountID <= 0 || candidateAccountID <= bestCandidateAccountID) {
+                    continue;
+                }
+                const candidateDetail = personalDetails[candidateAccountID];
+                if (!candidateDetail?.login || !policy.employeeList?.[candidateDetail.login] || knownApproverEmails.has(candidateDetail.login)) {
+                    continue;
+                }
+                resolvedPersonalDetail = candidateDetail;
+                bestCandidateAccountID = candidateAccountID;
             }
-            resolvedPersonalDetail = candidateDetail;
-            break;
         }
         if (!resolvedPersonalDetail?.login) {
             return;
@@ -309,7 +325,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                   ]
                 : approvalWorkflow.members;
         setApprovalWorkflow({...approvalWorkflow, approvers: upgradedApprovers, members: upgradedMembers});
-    }, [approvalWorkflow, policy?.employeeList, personalDetails, agentPrompts]);
+    }, [approvalWorkflow, policy?.employeeList, personalDetails, agentPrompts, optimisticAgentAccountIDMapping]);
 
     const submitButtonContainerStyles = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, style: [styles.mb5, styles.mh5]});
 

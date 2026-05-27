@@ -152,6 +152,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const isUserReimburser = policy?.achAccount?.reimburser !== undefined && account?.primaryLogin !== undefined && policy?.achAccount?.reimburser === account?.primaryLogin;
     const [deferredAgentWorkflowSaves] = useOnyx(ONYXKEYS.DEFERRED_AGENT_WORKFLOW_SAVES);
     const [agentPrompts] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT);
+    const [optimisticAgentAccountIDMapping] = useOnyx(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING);
     const {
         approvalWorkflows: rawApprovalWorkflows,
         availableMembers,
@@ -239,14 +240,23 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             }
             // Prefer the live personal detail at the optimistic accountID — when CREATE_AGENT
             // resolves, the optimistic detail is replaced by a real one keyed on the new
-            // accountID, so we fall back to finding the resolved agent via the
-            // `SHARED_NVP_AGENT_PROMPT` collection: the optimistic entry is wiped by successData
-            // and a new entry keyed on the real accountID appears with the same prompt text
-            // captured at save time in `deferredEntry.pendingAgentPrompt`. Matching on prompt
-            // gives a stable identifier across the rename — displayName can collide between
-            // workspace members and would bind the workflow to the wrong member.
+            // accountID. The server echoes a `{optimisticID: realID}` mapping in the response's
+            // onyxData (`OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING`), so the primary resolution is a
+            // direct lookup of the real accountID, then read the email off the personal detail.
+            // We keep a prompt-match fallback so cross-tab scenarios (where the mapping write
+            // landed only on the originating tab) still reconcile — but prompt matching is
+            // ambiguous when multiple agents share the same prompt text, so the mapping wins
+            // whenever it's present.
             let resolvedEmail = personalDetails[deferredEntry.pendingAgentAccountID]?.login;
             let resolvedAccountID: number | undefined = deferredEntry.pendingAgentAccountID;
+            const mappedRealAccountID = optimisticAgentAccountIDMapping?.[deferredEntry.pendingAgentAccountID];
+            if (!resolvedEmail && mappedRealAccountID) {
+                const mappedDetail = personalDetails[mappedRealAccountID];
+                if (mappedDetail?.login && policy.employeeList?.[mappedDetail.login]) {
+                    resolvedEmail = mappedDetail.login;
+                    resolvedAccountID = mappedDetail.accountID ?? mappedRealAccountID;
+                }
+            }
             if (!resolvedEmail && deferredEntry.pendingAgentPrompt && agentPrompts && policy.employeeList) {
                 const optimisticPromptKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${deferredEntry.pendingAgentAccountID}`;
                 const knownEmails = new Set(
@@ -254,12 +264,17 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         .filter((approver) => approver?.email && approver.accountID !== deferredEntry.pendingAgentAccountID)
                         .map((approver) => approver?.email),
                 );
+                // Several agents can share the same prompt text. Pick the highest positive
+                // accountID — server assigns IDs monotonically, so the freshest agent is the
+                // largest, which avoids resolving the pending approver to a pre-existing agent
+                // that happens to use the same default prompt.
+                let bestCandidateAccountID = -Infinity;
                 for (const [promptKey, promptValue] of Object.entries(agentPrompts)) {
                     if (promptKey === optimisticPromptKey || !promptValue || promptValue.prompt !== deferredEntry.pendingAgentPrompt) {
                         continue;
                     }
                     const candidateAccountID = Number(promptKey.slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length));
-                    if (!Number.isFinite(candidateAccountID) || candidateAccountID <= 0) {
+                    if (!Number.isFinite(candidateAccountID) || candidateAccountID <= 0 || candidateAccountID <= bestCandidateAccountID) {
                         continue;
                     }
                     const candidateDetail = personalDetails[candidateAccountID];
@@ -268,7 +283,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                     }
                     resolvedEmail = candidateDetail.login;
                     resolvedAccountID = candidateDetail.accountID ?? candidateAccountID;
-                    break;
+                    bestCandidateAccountID = candidateAccountID;
                 }
             }
             if (!resolvedEmail) {
@@ -323,7 +338,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             updateApprovalWorkflow(upgradedWorkflow, membersToRemove, approversToRemove, policy);
             clearDeferredAgentWorkflowSave(deferredEntry.policyID, deferredEntry.firstApproverEmail);
         }
-    }, [deferredAgentWorkflowSaves, policy, personalDetails, route.params.policyID, agentPrompts]);
+    }, [deferredAgentWorkflowSaves, policy, personalDetails, route.params.policyID, agentPrompts, optimisticAgentAccountIDMapping]);
     const canAccessSubmit2026Features = canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled);
     const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true).length > 0;
 
