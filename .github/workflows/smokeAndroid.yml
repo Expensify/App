@@ -32,7 +32,7 @@ jobs:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 35
     env:
-      AGENT_DEVICE_VERSION: "0.14.7"
+      AGENT_DEVICE_VERSION: "0.15.2"
 
     steps:
       - name: Checkout
