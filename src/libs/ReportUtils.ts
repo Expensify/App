@@ -9032,7 +9032,18 @@ function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEnt
     const lastMentionedTime = report.lastMentionedTime ?? '';
 
     // If the user was mentioned and the comment got deleted the lastMentionedTime will be more recent than the lastVisibleActionCreated
-    return lastReadTime < (lastVisibleActionCreated ?? '') || lastReadTime < lastMentionedTime;
+    const isUnreadFromTimestamp = lastReadTime < (lastVisibleActionCreated ?? '') || lastReadTime < lastMentionedTime;
+
+    // A report whose last action was authored by the current user should never be marked
+    // as unread for them (unless there is an unread mention). This covers optimistic-update
+    // paths that set lastReadTime behind lastVisibleActionCreated — e.g. RejectMoneyRequest
+    // deliberately sets lastReadTime = created - 1ms, and UpdateMoneyRequest server responses
+    // can advance lastVisibleActionCreated past the optimistic lastReadTime.
+    if (isUnreadFromTimestamp && report.lastActorAccountID === deprecatedCurrentUserAccountID && !(lastReadTime < lastMentionedTime)) {
+        return false;
+    }
+
+    return isUnreadFromTimestamp;
 }
 
 function isIOUOwnedByCurrentUser(report: OnyxEntry<Report>, allReportsDict?: OnyxCollection<Report>): boolean {

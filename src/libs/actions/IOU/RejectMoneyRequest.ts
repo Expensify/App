@@ -829,7 +829,9 @@ function prepareRejectMoneyRequestData(
         });
     }
 
-    const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(optimisticRejectReportAction.created, 1);
+    // Use the action's created time directly (not -1ms) so lastReadTime >= lastVisibleActionCreated,
+    // preventing the rejection action from incorrectly marking the report as unread for its author.
+    const lastReadTime = optimisticRejectReportAction.created;
     // Add optimistic data for all reports
     for (const {reportID: targetReportID, lastVisibleActionCreated} of reportsToUpdate) {
         optimisticData.push({
