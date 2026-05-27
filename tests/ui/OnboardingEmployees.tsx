@@ -117,6 +117,8 @@ describe('OnboardingEmployees Page', () => {
             expect(screen.queryByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.MICRO}`))).not.toBeOnTheScreen();
             expect(screen.queryByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.SMALL}`))).not.toBeOnTheScreen();
             expect(screen.queryByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL}`))).not.toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.MEDIUM}`))).not.toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.LARGE}`))).not.toBeOnTheScreen();
         });
 
         unmount();
