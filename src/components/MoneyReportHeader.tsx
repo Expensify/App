@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -84,7 +84,27 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     // expenses the user was browsing. The carousel itself handles routing to either the parent report (for
     // other one-tx parents) or the transaction thread (for multi-tx parents).
     const singleTransactionID = transactions.length === 1 ? transactions.at(0)?.transactionID : undefined;
-    const shouldShowTransactionNavigation = !!singleTransactionID && !!activeTransactionIDs?.includes(singleTransactionID);
+
+    // For multi-tx parents we don't have a single transaction to anchor on, but if the parent was
+    // navigated to from a broader carousel (the no-thread fallback in MoneyRequestReportTransactionsNavigation
+    // passes `anchorTransactionID`), use that transaction as the carousel anchor so the user can keep
+    // paging the broader list. Falls back to the first of this report's transactions found in the active
+    // list, so the carousel still renders even without an explicit hint.
+    const anchorTransactionIDFromRoute = (route.params as {anchorTransactionID?: string} | undefined)?.anchorTransactionID;
+    const multiTxAnchorTransactionID = useMemo(() => {
+        if (singleTransactionID) {
+            return undefined;
+        }
+        if (anchorTransactionIDFromRoute && transactions.some((t) => t.transactionID === anchorTransactionIDFromRoute) && activeTransactionIDs?.includes(anchorTransactionIDFromRoute)) {
+            return anchorTransactionIDFromRoute;
+        }
+        if (!activeTransactionIDs) {
+            return undefined;
+        }
+        return transactions.find((t) => activeTransactionIDs.includes(t.transactionID))?.transactionID;
+    }, [singleTransactionID, anchorTransactionIDFromRoute, transactions, activeTransactionIDs]);
+    const carouselAnchorTransactionID = singleTransactionID ?? multiTxAnchorTransactionID;
+    const shouldShowTransactionNavigation = !!carouselAnchorTransactionID && !!activeTransactionIDs?.includes(carouselAnchorTransactionID);
 
     const styles = useThemeStyles();
 
@@ -144,9 +164,9 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                 openParentReportInCurrentTab
             >
                 {isReportInSearch &&
-                    (shouldShowTransactionNavigation && singleTransactionID ? (
+                    (shouldShowTransactionNavigation && carouselAnchorTransactionID ? (
                         <MoneyRequestReportTransactionsNavigation
-                            currentTransactionID={singleTransactionID}
+                            currentTransactionID={carouselAnchorTransactionID}
                             shouldDisplayNarrowVersion={!shouldShowHeaderButtonsInHeaderRow}
                         />
                     ) : (

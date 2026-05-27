@@ -6,11 +6,10 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import PrevNextButtons from '@components/PrevNextButtons';
 import Text from '@components/Text';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
+import {setOptimisticTransactionThread} from '@libs/actions/Report';
 import {clearActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -44,9 +43,6 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [transactionIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {markReportIDAsExpense} = useWideRHPActions();
 
     const currentTransactionIndex = transactionIDsList.findIndex((id) => id === currentTransactionID);
@@ -152,28 +148,34 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         const nextThreadReportID = nextParentReportAction?.childReportID;
         const navigationParams = {reportID: nextThreadReportID, reportActionID: undefined, backTo};
 
+        // No existing transaction thread for this IOU action. Do NOT create one optimistically here:
+        // the carousel uses Navigation.setParams (mutating the modal's params + remounting via key),
+        // which races with the in-flight OpenReport call. The server doesn't recognize the synthetic
+        // optimistic reportID, the local report is wiped, and ReportNavigateAwayHandler bounces the
+        // user to ROUTES.REPORT_WITH_ID (Inbox/parent). Instead, fall back to navigating to the next
+        // transaction's parent report. We pass anchorTransactionID so MoneyReportHeader can keep the
+        // transaction carousel anchored on the user's intended next transaction.
+        if (!nextThreadReportID && nextTransaction?.reportID) {
+            const targetReportID = nextTransaction.reportID;
+            markReportIDAsExpense(targetReportID);
+            requestAnimationFrame(() => Navigation.setParams({reportID: targetReportID, reportActionID: undefined, anchorTransactionID: nextTransactionID, backTo}));
+            return;
+        }
+
         if (nextThreadReportID) {
             markReportIDAsExpense(nextThreadReportID);
         }
         // We know that the next thread report exists, it just wasn't fetched to Onyx yet, so we set it optimistically.
+        // Important: use nextTransactionParentReport (the NEXT transaction's own parent), NOT parentReport
+        // (the CURRENT transaction's parent). Passing wrong linkage causes the OpenReport response to wipe
+        // the optimistic data, which trips useReportWasDeleted → ReportNavigateAwayHandler → Inbox/parent redirect.
         if (!nextThreadReport && nextThreadReportID) {
-            setOptimisticTransactionThread(nextThreadReportID, parentReport?.reportID, nextParentReportAction?.reportActionID, parentReport?.policyID);
+            setOptimisticTransactionThread(nextThreadReportID, nextTransactionParentReport?.reportID, nextParentReportAction?.reportActionID, nextTransactionParentReport?.policyID);
         }
-        // The transaction thread doesn't exist yet, so we should create it
-        if (!nextThreadReportID) {
-            const transactionThreadReport = createTransactionThreadReport({
-                introSelected,
-                currentUserLogin: currentUserEmail ?? '',
-                currentUserAccountID,
-                betas,
-                iouReport: parentReport,
-                iouReportAction: nextParentReportAction,
-                transaction: nextTransaction,
-            });
-            navigationParams.reportID = transactionThreadReport?.reportID;
-        }
-        // Wait for the next frame to ensure Onyx has processed the optimistic data updates from setOptimisticTransactionThread or createTransactionThreadReport before navigating
-        requestAnimationFrame(() => Navigation.setParams(navigationParams));
+        // Wait for the next frame to ensure Onyx has processed the optimistic data updates from setOptimisticTransactionThread before navigating
+        requestAnimationFrame(() => {
+            Navigation.setParams(navigationParams);
+        });
     };
 
     const onPrevious = (e: GestureResponderEvent | KeyboardEvent | undefined) => {
@@ -191,27 +193,23 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         const prevThreadReportID = prevParentReportAction?.childReportID;
         const navigationParams = {reportID: prevThreadReportID, reportActionID: undefined, backTo};
 
+        // See onNext for the rationale behind this fallback.
+        if (!prevThreadReportID && prevTransaction?.reportID) {
+            const targetReportID = prevTransaction.reportID;
+            markReportIDAsExpense(targetReportID);
+            requestAnimationFrame(() => Navigation.setParams({reportID: targetReportID, reportActionID: undefined, anchorTransactionID: prevTransactionID, backTo}));
+            return;
+        }
+
         if (prevThreadReportID) {
             markReportIDAsExpense(prevThreadReportID);
         }
-        // We know that the previous thread report exists, it just wasn't fetched to Onyx yet, so we set it optimistically.
+        // See onNext for the rationale: use prevTransactionParentReport (the PREV transaction's own parent)
+        // instead of parentReport (the CURRENT transaction's parent) so the optimistic linkage matches the server.
         if (!prevThreadReport && prevThreadReportID) {
-            setOptimisticTransactionThread(prevThreadReportID, parentReport?.reportID, prevParentReportAction?.reportActionID, parentReport?.policyID);
+            setOptimisticTransactionThread(prevThreadReportID, prevTransactionParentReport?.reportID, prevParentReportAction?.reportActionID, prevTransactionParentReport?.policyID);
         }
-        // The transaction thread doesn't exist yet, so we should create it
-        if (!prevThreadReportID) {
-            const transactionThreadReport = createTransactionThreadReport({
-                introSelected,
-                currentUserLogin: currentUserEmail ?? '',
-                currentUserAccountID,
-                betas,
-                iouReport: parentReport,
-                iouReportAction: prevParentReportAction,
-                transaction: prevTransaction,
-            });
-            navigationParams.reportID = transactionThreadReport?.reportID;
-        }
-        // Wait for the next frame to ensure Onyx has processed the optimistic data updates from setOptimisticTransactionThread or createTransactionThreadReport before navigating
+        // Wait for the next frame to ensure Onyx has processed the optimistic data updates from setOptimisticTransactionThread before navigating
         requestAnimationFrame(() => Navigation.setParams(navigationParams));
     };
 

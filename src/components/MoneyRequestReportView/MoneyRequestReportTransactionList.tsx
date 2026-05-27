@@ -394,6 +394,12 @@ function MoneyRequestReportTransactionList({
     // the effect only re-fires when the actual content changes.
     const visualOrderTransactionIDsKey = useMemo(() => visualOrderTransactionIDs.join(','), [visualOrderTransactionIDs]);
 
+    // Subscribe so the effect closure captures the latest active list. Used to detect when this report's
+    // transactions are a strict subset of a broader carousel (e.g. the user landed here from the flat
+    // Spend > Expenses carousel via the no-thread fallback in MoneyRequestReportTransactionsNavigation)
+    // and skip overwriting in that case.
+    const [latestActiveTransactionIDs] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
+
     useEffect(() => {
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
         if (focusedRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
@@ -405,11 +411,22 @@ function MoneyRequestReportTransactionList({
         if (visualOrderTransactionIDs.length < 2) {
             return;
         }
+        // Same reasoning for multi-tx parents: if the existing carousel already contains every transaction
+        // from this report (i.e. is a strict superset), we arrived here from a broader carousel — likely
+        // via the no-thread fallback in MoneyRequestReportTransactionsNavigation. Overwriting would shrink
+        // the active list to just this report and the user would lose their place in the broader carousel.
+        if (
+            latestActiveTransactionIDs &&
+            latestActiveTransactionIDs.length > visualOrderTransactionIDs.length &&
+            visualOrderTransactionIDs.every((id) => latestActiveTransactionIDs.includes(id))
+        ) {
+            return;
+        }
         setActiveTransactionIDs(visualOrderTransactionIDs);
         return () => {
             clearActiveTransactionIDs();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- visualOrderTransactionIDsKey is a primitive proxy for the array to avoid re-firing on referential-only changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- visualOrderTransactionIDsKey is a primitive proxy for the array, and we intentionally don't depend on latestActiveTransactionIDs to avoid re-firing when the carousel changes elsewhere
     }, [visualOrderTransactionIDsKey]);
 
     const groupSelectionState = useMemo(() => {
