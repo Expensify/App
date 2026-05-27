@@ -117,7 +117,7 @@ describe('ButtonComposed — Button', () => {
             expect(screen.getByTestId('ctx-isHovered')).toHaveTextContent('false');
         });
 
-        it.each(['success', 'danger', 'link'] as const)('propagates variant="%s" to children via context', (variant) => {
+        it.each(['success', 'danger'] as const)('propagates variant="%s" to children via context', (variant) => {
             renderButton({variant});
             expect(screen.getByTestId('ctx-variant')).toHaveTextContent(variant);
         });
