@@ -54,7 +54,7 @@ function MultiSelect<T extends string>({
     searchPlaceholder,
     selectionListTextInputStyle,
     selectionListStyle,
-    autoFocus = true,
+    autoFocus,
     footer,
     onChange,
 }: MultiSelectProps<T>) {
