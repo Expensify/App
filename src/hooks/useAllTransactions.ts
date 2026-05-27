@@ -31,12 +31,10 @@ function useAllTransactions() {
                 {} as Record<string, OnyxEntry<Transaction>>,
             );
 
-        const mergedTransactions = {
+        return {
             ...filteredSearchTransactions,
             ...allTransactionsCollection,
         };
-
-        return mergedTransactions;
     }, [currentSearchResults?.data, allTransactionsCollection]);
 
     return allTransactions;
