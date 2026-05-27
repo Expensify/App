@@ -108,6 +108,15 @@ function WorkspaceHRPage({
         setActiveHRFlow({setupLink, key: Math.random()});
     };
 
+    const handleReconnect = (setupLink: string | undefined) => {
+        if (!setupLink) {
+            return;
+        }
+
+        // eslint-disable-next-line react-hooks/purity -- random key forces remount on every press, even for the same provider
+        setActiveHRFlow({setupLink, key: Math.random()});
+    };
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
@@ -152,6 +161,7 @@ function WorkspaceHRPage({
                                         card={card}
                                         policy={policy}
                                         handleConnect={() => handleConnect(card.setupLink)}
+                                        onReconnect={() => handleReconnect(card.setupLink)}
                                     />
                                 ))}
                                 {connectedCards.length === 0 &&
@@ -161,6 +171,7 @@ function WorkspaceHRPage({
                                             card={card}
                                             policy={policy}
                                             handleConnect={() => handleConnect(card.setupLink)}
+                                            onReconnect={() => handleReconnect(card.setupLink)}
                                         />
                                     ))}
                             </View>
@@ -178,6 +189,7 @@ function WorkspaceHRPage({
                                             card={card}
                                             policy={policy}
                                             handleConnect={() => handleConnect(card.setupLink)}
+                                            onReconnect={() => handleReconnect(card.setupLink)}
                                         />
                                     ))}
                                 </CollapsibleSection>

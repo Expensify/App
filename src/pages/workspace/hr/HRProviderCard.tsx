@@ -6,6 +6,8 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -30,9 +32,12 @@ type HRProviderCardProps = {
 
     /** Callback invoked when the user taps the "Connect" button for an unconnected provider. */
     handleConnect: () => void;
+
+    /** Callback invoked when the user taps "Reconnect" on a connected provider with an auth error. */
+    onReconnect: () => void;
 };
 
-function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
+function HRProviderCard({card, policy, handleConnect, onReconnect}: HRProviderCardProps) {
     const {translate, datetimeToRelative} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -46,12 +51,24 @@ function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
     let connectionDescription: string | undefined;
     if (card.isSyncInProgress) {
         connectionDescription = card.syncStageInProgress ? translate('workspace.hr.syncStageName', {stage: card.syncStageInProgress}) : translate('workspace.hr.syncing');
-    } else if (card.successfulDate && !card.hasError) {
+    } else if (card.successfulDate && !card.hasError && !card.hasAuthenticationError) {
         connectionDescription = translate('workspace.hr.lastSync', datetimeToRelative(card.successfulDate));
     }
 
-    let lastSyncErrorMessage: string | undefined;
-    if (card.hasError) {
+    let lastSyncErrorMessage: string | React.ReactNode | undefined;
+    if (card.hasAuthenticationError) {
+        lastSyncErrorMessage = (
+            <Text style={styles.formError}>
+                {translate('workspace.hr.authenticationError', card.displayName)}{' '}
+                <TextLink
+                    style={[styles.link, styles.fontSizeLabel]}
+                    onPress={onReconnect}
+                >
+                    {translate('workspace.hr.reconnect')}
+                </TextLink>
+            </Text>
+        );
+    } else if (card.hasError) {
         const genericError = translate('workspace.hr.syncError', card.displayName);
         lastSyncErrorMessage = card.lastSyncErrorMessage ? `${genericError} ("${card.lastSyncErrorMessage}")` : genericError;
     }
