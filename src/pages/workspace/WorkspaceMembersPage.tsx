@@ -298,49 +298,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         removeUsers();
     }, [confirmModalPrompt, removeUsers, selectedEmployees.length, showConfirmModal, translate]);
 
-    /**
-     * Add user from the selectedEmployees list
-     */
-    const addUser = useCallback(
-        (login: string) => {
-            setSelectedEmployees((prevSelected) => [...prevSelected, login]);
-        },
-        [setSelectedEmployees],
-    );
-
-    /**
-     * Remove user from the selectedEmployees list
-     */
-    const removeUser = useCallback(
-        (login: string) => {
-            setSelectedEmployees((prevSelected) => prevSelected.filter((email) => email !== login));
-        },
-        [setSelectedEmployees],
-    );
-
-    /**
-     * Toggle user from the selectedEmployees list
-     */
-    const toggleUser = useCallback(
-        (login: string, pendingAction?: PendingAction) => {
-            if (login === policy?.owner && login !== currentUserPersonalDetails.login) {
-                return;
-            }
-
-            if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                return;
-            }
-
-            // Add or remove the user if the checkbox is enabled
-            if (selectedEmployees.includes(login)) {
-                removeUser(login);
-            } else {
-                addUser(login);
-            }
-        },
-        [policy?.owner, currentUserPersonalDetails.login, selectedEmployees, removeUser, addUser],
-    );
-
     /** Opens the member details page */
     const openMemberDetails = (accountID: number) => {
         if (!isPolicyAdmin || !isPaidGroupPolicy(policy)) {
@@ -424,7 +381,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             const login = details.login ?? '';
             const memberEmail = formatPhoneNumber(login);
             const memberName = formatPhoneNumber(getDisplayNameOrDefault(details));
-            const accessibilityLabel = [memberName, memberEmail, role].filter(Boolean).join(', ');
 
             return {
                 keyForList: accountID.toString(),
@@ -473,7 +429,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         const results = tokenizedSearch([memberOption], searchQuery, (option) => [option.text ?? '', option.alternateText ?? '']);
         return results.length > 0;
     }, []);
+
     const sortMembers = useCallback((memberOptions: MemberOption[]) => sortAlphabetically(memberOptions, 'text', localeCompare), [localeCompare]);
+
     const roleFilterOptions: WorkspaceMemberFilterOption[] = [
         {text: translate('workspace.people.allMembers'), value: WORKSPACE_MEMBER_FILTER_VALUES.ALL},
         {text: translate('workspace.people.admins'), value: WORKSPACE_MEMBER_FILTER_VALUES.ADMINS},
@@ -553,12 +511,14 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         isOffline && data?.some((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
     const shouldShowSearchBar = memberCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const prevMemberCount = usePrevious(memberCount);
+
     useEffect(() => {
         if (prevMemberCount < CONST.STANDARD_LIST_ITEM_LIMIT || memberCount >= CONST.STANDARD_LIST_ITEM_LIMIT) {
             return;
         }
         setInputValue('');
     }, [memberCount, prevMemberCount, setInputValue]);
+
     const debouncedFilteredData = useDebouncedValue(filteredData, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
     const isFilteringMembers = filteredData?.length < debouncedFilteredData?.length;
     const displayedFilteredData = isFilteringMembers ? debouncedFilteredData : filteredData;
@@ -634,51 +594,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         onClearSelection: () => tableRef.current?.clearSelection(),
         onNavigationCallBack: () => Navigation.goBack(),
     });
-
-    const getCustomListHeader = () => {
-        if (hasNoDisplayedMembers) {
-            return null;
-        }
-
-        // Show custom field columns only on wide screens for control policies when members have data
-        if (shouldShowAnyCustomFieldColumn) {
-            const header = (
-                <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, canSelectMultiple && styles.pl3]}>
-                    <View style={[styles.flex1, StyleUtils.getPaddingRight(variables.w52 + variables.w12)]}>
-                        <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.member')}</Text>
-                    </View>
-                    {shouldShowCustomField1Column && (
-                        <View style={[styles.flex1, styles.pr3]}>
-                            <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('workspace.common.customField1')}</Text>
-                        </View>
-                    )}
-                    {shouldShowCustomField2Column && (
-                        <View style={[styles.flex1, styles.pr3]}>
-                            <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('workspace.common.customField2')}</Text>
-                        </View>
-                    )}
-                    <View style={[StyleUtils.getMinimumWidth(variables.w72), styles.mr6, styles.pl2]}>
-                        <Text style={[styles.textMicroSupporting, styles.textAlignCenter]}>{translate('common.role')}</Text>
-                    </View>
-                </View>
-            );
-
-            if (canSelectMultiple) {
-                return header;
-            }
-            return <View style={[styles.ph9, styles.pv3, styles.pb5]}>{header}</View>;
-        }
-
-        // Fall back to 2-column layout for narrow screens or non-control policies
-        return (
-            <CustomListHeader
-                canSelectMultiple={canSelectMultiple}
-                leftHeaderText={translate('common.member')}
-                rightHeaderText={translate('common.role')}
-                shouldShowRightCaret
-            />
-        );
-    };
 
     const changeUserRole = (role: ValueOf<typeof CONST.POLICY.ROLE>) => {
         const loginsToUpdate = selectedEmployees.filter((login) => {
