@@ -443,8 +443,6 @@ const ViolationsUtils = {
 
         // Inactive vendor violation, gated behind the `vendorMatching` beta. The transaction's
         // vendor is never cleared here — admins need to see what was set so they can re-pick.
-        // Guard on `allBetas !== undefined`: treating undefined as "feature off" during the
-        // Onyx-subscription startup window would strip valid server-set violations.
         if (allBetas !== undefined) {
             const isVendorMatchingBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.VENDOR_MATCHING, allBetas);
             const hasInactiveVendorViolation = newTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.INACTIVE_VENDOR);
