@@ -1,4 +1,5 @@
 import {delegateEmailSelector} from '@selectors/Account';
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
@@ -12,7 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
-import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {hasViolations as hasViolationsReportUtils, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
@@ -41,6 +42,7 @@ type SubmitActionButtonContentProps = {
     isSubmittingAnimationRunning: boolean;
     stopAnimation: () => void;
     startSubmittingAnimation: () => void;
+    isTrackIntentUser: boolean;
 };
 
 function SubmitActionButtonContent({
@@ -63,6 +65,7 @@ function SubmitActionButtonContent({
     isSubmittingAnimationRunning,
     stopAnimation,
     startSubmittingAnimation,
+    isTrackIntentUser,
 }: SubmitActionButtonContentProps) {
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
@@ -73,11 +76,16 @@ function SubmitActionButtonContent({
     };
 
     const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
-
+    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+        isTrackIntentUser,
+        report: iouReport,
+        policy,
+    });
     return (
         <AnimatedSubmitButton
             success
-            text={translate('common.submit')}
+            text={shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit')}
+            isMarkAsDone={shouldUseMarkAsDoneCopy}
             onPress={() => {
                 if (hasOnlyPendingCardTransactions(transactions)) {
                     showPendingCardTransactionsBlockModal(showConfirmModal, translate);
@@ -133,6 +141,7 @@ function SubmitActionButton({iouReportID, isSubmittingAnimationRunning, stopAnim
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const {isOffline} = useNetwork();
     const reportTransactionsCollection = useReportTransactionsCollection(iouReportID);
     const transactions = Object.values(reportTransactionsCollection ?? {}).filter(
@@ -168,6 +177,7 @@ function SubmitActionButton({iouReportID, isSubmittingAnimationRunning, stopAnim
                 isSubmittingAnimationRunning={isSubmittingAnimationRunning}
                 stopAnimation={stopAnimation}
                 startSubmittingAnimation={startSubmittingAnimation}
+                isTrackIntentUser={isTrackIntentUser}
             />
         </ReportSubmitToPopoverAnchor>
     );

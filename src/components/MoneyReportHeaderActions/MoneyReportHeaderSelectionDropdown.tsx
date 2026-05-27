@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 import truncate from 'lodash/truncate';
 import React, {useContext} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -54,6 +54,7 @@ import {
     hasViolations as hasViolationsReportUtils,
     isInvoiceReport as isInvoiceReportUtil,
     isIOUReport as isIOUReportUtil,
+    shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
@@ -381,7 +382,15 @@ function MoneyReportHeaderSelectionDropdownContent({reportID, primaryAction, isR
         });
     };
 
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+        policy,
+        report: moneyRequestReport,
+        isTrackIntentUser,
+    });
     const allExpensesSelected = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === nonPendingDeleteTransactions.length;
+    const submitButtonText = shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit');
+    const approveButtonText = shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('iou.approve');
 
     // Ref writes below are inside onSelected callbacks that only fire on user interaction, never during render.
 
@@ -389,7 +398,7 @@ function MoneyReportHeaderSelectionDropdownContent({reportID, primaryAction, isR
         ...(hasSubmitAction && !shouldBlockSubmit
             ? [
                   {
-                      text: translate('common.submit'),
+                      text: submitButtonText,
                       icon: expensifyIcons.Send,
                       value: CONST.REPORT.PRIMARY_ACTIONS.SUBMIT,
                       onSelected: () => handleSubmitReport(true),
@@ -399,7 +408,7 @@ function MoneyReportHeaderSelectionDropdownContent({reportID, primaryAction, isR
         ...(hasApproveAction && !isBlockSubmitDueToPreventSelfApproval
             ? [
                   {
-                      text: translate('iou.approve'),
+                      text: approveButtonText,
                       icon: expensifyIcons.ThumbsUp,
                       value: CONST.REPORT.PRIMARY_ACTIONS.APPROVE,
                       onSelected: () => confirmApproval(true),
