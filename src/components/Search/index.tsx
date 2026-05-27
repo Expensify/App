@@ -191,6 +191,8 @@ function mapEmptyReportToSelectedEntry(item: TransactionReportGroupListItemType 
         ];
     }
 
+    const currency = item.currency ?? '';
+
     return [
         item.keyForList ?? '',
         {
@@ -206,8 +208,9 @@ function mapEmptyReportToSelectedEntry(item: TransactionReportGroupListItemType 
             action: CONST.SEARCH.ACTION_TYPES.VIEW,
             reportID: item.reportID,
             policyID: item.policyID ?? CONST.POLICY.ID_FAKE,
-            amount: 0,
-            currency: '',
+            amount: item.total ?? 0,
+            currency,
+            ...(currency ? {groupCurrency: currency} : {}),
         },
     ];
 }
@@ -1044,26 +1047,13 @@ function Search({
                     outstandingReportsByPolicyID,
                 );
 
-                // When all transactions in a group are individually selected, register the group key so export treats it as a grouped selection.
+                // Tag individual transactions with their parent group key so export filtering can derive the group when needed.
                 if (areItemsGrouped) {
                     const parentGroup = (filteredData as TransactionGroupListItemType[]).find((group) =>
                         group.transactions.some((transaction) => transaction.keyForList === item.keyForList),
                     );
-                    const groupKey = parentGroup?.keyForList;
-                    if (groupKey) {
-                        const selectableTransactions = parentGroup.transactions.filter((transaction) => !isTransactionPendingDelete(transaction));
-                        const allSelected = selectableTransactions.every((transaction) => updatedTransactions[transaction.keyForList]?.isSelected);
-                        if (allSelected) {
-                            updatedTransactions[groupKey] = mapEmptyReportToSelectedEntry(parentGroup)[1];
-                            for (const transaction of selectableTransactions) {
-                                if (!updatedTransactions[transaction.keyForList]) {
-                                    continue;
-                                }
-                                updatedTransactions[transaction.keyForList] = {...updatedTransactions[transaction.keyForList], groupKey};
-                            }
-                        } else {
-                            delete updatedTransactions[groupKey];
-                        }
+                    if (parentGroup?.keyForList && updatedTransactions[item.keyForList]) {
+                        updatedTransactions[item.keyForList] = {...updatedTransactions[item.keyForList], groupKey: parentGroup.keyForList};
                     }
                 }
 
