@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceMemberRoleList from '@components/WorkspaceMemberRoleList';
 import type {ListItemType} from '@components/WorkspaceMemberRoleList';
+import useRedirectSubmitWorkspaceFeatureUpgrade from '@hooks/useRedirectSubmitWorkspaceFeatureUpgrade';
 import {updateWorkspaceMembersRole} from '@libs/actions/Policy/Member';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -26,6 +27,11 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
     const policyID = route.params.policyID;
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const member = policy?.employeeList?.[memberLogin];
+    useRedirectSubmitWorkspaceFeatureUpgrade({
+        policy,
+        backTo: ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID),
+        upgradeFeatureAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias,
+    });
 
     const changeRole = ({value}: ListItemType) => {
         if (value === member?.role) {

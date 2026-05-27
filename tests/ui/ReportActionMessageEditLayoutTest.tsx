@@ -159,8 +159,6 @@ function MessageEditLayoutHost({layout}: {layout: LayoutMode}) {
                     action={commentAction}
                     reportID={defaultReport.reportID}
                     originalReportID={defaultReport.reportID}
-                    index={0}
-                    isGroupPolicyReport={false}
                 />
             )}
         </ReportScreenProviders>
