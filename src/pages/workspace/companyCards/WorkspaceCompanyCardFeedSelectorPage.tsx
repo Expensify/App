@@ -134,7 +134,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                 Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, feed.value));
                 return;
             }
-            Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD.getRoute(Navigation.getActiveRoute()));
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_ADD_WORK_EMAIL.getRoute(policyID, feed.value));
             return;
         }
         if (!feed.fundID) {
