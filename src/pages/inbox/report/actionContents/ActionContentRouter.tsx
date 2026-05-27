@@ -290,6 +290,7 @@ function ActionContentRouter({
                 parentReportID={report?.parentReportID}
                 parentReportActionID={report?.parentReportActionID}
                 actionReportID={action.reportID}
+                action={action}
             />
         );
     }
