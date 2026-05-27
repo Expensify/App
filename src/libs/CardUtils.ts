@@ -1673,7 +1673,14 @@ function getDisplayableExpensifyCards(cardList: CardList | undefined): Card[] {
 
     const activeCards = filterAllInactiveCards(cardList);
     const activeExpensifyCards = Object.values(activeCards).filter(
-        (card) => isExpensifyCard(card) && !isExpiredCard(card) && card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH && !isTravelCard(card) && !isCardWithCustomZeroLimit(card),
+        (card) =>
+            isExpensifyCard(card) &&
+            !isExpiredCard(card) &&
+            card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH &&
+            !isTravelCard(card) &&
+            !isCardWithCustomZeroLimit(card) &&
+            !isCardPendingIssue(card) &&
+            !isCardPendingActivate(card),
     );
 
     const sortedCards = lodashSortBy(activeExpensifyCards, getAssignedCardSortKey);
@@ -1880,6 +1887,7 @@ export {
     getPersonalBankCardDetailsImage,
     isCardPendingIssue,
     isCardPendingActivate,
+    isCardPendingReplace,
     isCardWithCustomZeroLimit,
     hasPendingExpensifyCardAction,
     isExpensifyCardPendingAction,
