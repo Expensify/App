@@ -102,9 +102,9 @@ function useConciergeSidePanelReportActions({
         if (!showConciergeGreeting) {
             return undefined;
         }
-        const created = isConciergeMainDM ? (sessionStartTime ?? DateUtils.getDBTime()) : (report?.lastReadTime ?? DateUtils.getDBTime());
+        const created = report?.lastReadTime ?? DateUtils.getDBTime();
         return buildConciergeGreetingReportAction({reportID: report?.reportID, greetingText, created});
-    }, [showConciergeGreeting, report?.reportID, report?.lastReadTime, sessionStartTime, greetingText, isConciergeMainDM]);
+    }, [showConciergeGreeting, report?.reportID, report?.lastReadTime, greetingText]);
 
     // Side panel only: find the first user message in the current session.
     // Used to filter actions so that only messages from the first user message
