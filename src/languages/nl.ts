@@ -124,6 +124,7 @@ const translations: TranslationDeepObject<typeof en> = {
             approve: 'Goedkeuren',
             pay: 'Betalen',
             fix: 'Oplossen',
+            task: 'Taak',
         },
         success: 'Gelukt',
         group: 'Groep',
@@ -852,7 +853,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Jouw ruimte',
         welcomeToRoom: (roomName: string) => `Welkom bij ${roomName}!`,
         usePlusButton: (additionalText: string) => `Gebruik de +-knop om een uitgave te ${additionalText}.`,
-        askConcierge: 'Dit is je chat met Concierge, je persoonlijke AI-agent. Ik kan bijna alles, probeer het maar!',
+        askConcierge: 'Concierge kan vragen beantwoorden, uitgaven bijwerken en meer.',
         conciergeSupport: 'Jouw persoonlijke AI-agent',
         create: 'maken',
         iouTypes: {
@@ -2570,6 +2571,8 @@ ${amount} voor ${merchant} - ${date}`,
         addApprovalTip: 'Deze standaardworkflow is van toepassing op alle leden, tenzij er een specifiekere workflow bestaat.',
         approver: 'Fiatteur',
         addApprovalsDescription: 'Extra goedkeuring vereisen voordat je een betaling autoriseert.',
+        automateApprovalsWithAgentsTitle: 'Automatiseer goedkeuringen met agents',
+        automateApprovalsWithAgentsSubtitle: 'Voeg hieronder een agent toe aan de workflow om goedkeuringen te automatiseren.',
         makeOrTrackPaymentsTitle: 'Betalingen',
         makeOrTrackPaymentsDescription: 'Voeg een gemachtigde betaler toe voor betalingen die in Expensify worden gedaan of volg betalingen die elders zijn gedaan.',
         customApprovalWorkflowEnabled:
@@ -2964,7 +2967,7 @@ ${amount} voor ${merchant} - ${date}`,
         peopleYouMayKnow: 'Mensen die je misschien kent zijn hier al! Verifieer je e-mailadres om je bij hen aan te sluiten.',
         workspaceYouMayJoin: (domain: string, email: string) => `Iemand van ${domain} heeft al een workspace gemaakt. Voer de magische code in die is verzonden naar ${email}.`,
         joinAWorkspace: 'Lid worden van een workspace',
-        listOfWorkspaces: 'Hier is de lijst met werkruimtes waaraan je kunt deelnemen. Geen zorgen, je kunt je er altijd later nog bij aansluiten als je dat liever hebt.',
+        listOfWorkspaces: 'Hier is de lijst met werkruimtes waartoe je je kunt aansluiten.',
         skipForNow: 'Voorlopig overslaan',
         workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} lid${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         whereYouWork: 'Waar werk je?',
@@ -6024,6 +6027,11 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             selectWorkspaces: 'Selecteer werkruimtes',
             description: 'Kies de werkruimtes waarnaar je instellingen wilt kopiëren en selecteer daarna de instellingen die je wilt kopiëren.',
             searchPlaceholder: 'Werkruimtes zoeken',
+            selectFeatures: 'Selecteer functies om te kopiëren',
+            whichFeatures: 'Selecteer de instellingen die je wilt overschrijven in je bestaande werkruimtes.',
+            workflowsWithoutMembersConfirm: 'Doorgaan zonder leden',
+            workflowsWithoutMembersPrompt: 'Workflows kopiëren zonder leden kopieert geen goedkeuringsworkflows. Instellingen voor indienen en betalen worden nog steeds gekopieerd.',
+            accountingMismatch: ({part}: {part: string}) => `Je kunt ${part} alleen kopiëren als alle werkruimtes hetzelfde boekhoudsysteem en dezelfde bedrijfsverbinding gebruiken.`,
         },
         emptyWorkspace: {
             title: 'Je hebt geen werkruimtes',
@@ -6170,8 +6178,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
         accounting: {
             settings: 'instellingen',
             title: 'Verbindingen',
-            subtitle:
-                'Maak verbinding met je boekhoudsysteem om transacties te coderen met je grootboekrekeningen, betalingen automatisch te matchen en je financiën gesynchroniseerd te houden.',
+            subtitle: 'Verbind je boekhoudsoftware voor een automatische synchronisatie.',
             qbo: 'QuickBooks Online',
             qbd: 'QuickBooks Desktop',
             xero: 'Xero',
@@ -6742,8 +6749,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 perActiveMember: 'per actieve deelnemer per maand.',
                 perMember: 'per lid per maand.',
             },
-            note: (subscriptionLink: string) =>
-                `<muted-text>Upgrade om toegang te krijgen tot deze functie, of <a href="${subscriptionLink}">lees meer</a> over onze abonnementen en prijzen.</muted-text>`,
+            note: (subscriptionLink: string) => `<muted-text><a href="${subscriptionLink}">Lees meer</a> over onze abonnementen en prijzen.</muted-text>`,
             upgradeToUnlock: 'Deze functie ontgrendelen',
             completed: {
                 headline: `Je hebt je workspace geüpgraded!`,
@@ -6957,6 +6963,11 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Ga naar [meer functies](${moreFeaturesLink}) en schakel ${featureName} in om deze functie te ontgrendelen.`,
             },
+            agentsPromoBanner: {
+                title: 'Zie je de regel die je nodig hebt niet? Voeg een agent toe',
+                subtitle: 'Voeg complexe regels toe en verminder handmatige goedkeuringen met aangepaste agents.',
+                cta: 'Probeer het uit',
+            },
             merchantRules: {
                 title: 'Handelaar',
                 subtitle: 'Stel de leveranciersregels in zodat onkosten correct gecodeerd binnenkomen en er minder nabewerking nodig is.',
@@ -7165,6 +7176,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         hr: {
             title: 'HR',
             connections: 'Verbindingen',
+            connectionsSubtitle:
+                'Verbind met je HR-systeem om werknemersgegevens te synchroniseren, terugbetalingen automatisch aan de juiste personen te koppelen en de uitgaven van je team nauwkeurig te houden zonder handmatig werk.',
             subtitle: 'Koppel HR-tools en houd goedkeuringen van medewerkers gesynchroniseerd.',
             connect: 'Verbinden',
             syncNow: 'Nu synchroniseren',
@@ -7824,7 +7837,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
     search: {
         resultsAreLimited: 'Zoekresultaten zijn beperkt.',
         viewResults: 'Resultaten bekijken',
-        applyFilters: 'Filters toepassen',
         appliedFilters: 'Toegepaste filters',
         resetFilters: 'Filters resetten',
         searchResults: {
@@ -7934,12 +7946,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             amount: {
                 lessThan: (amount?: string) => `Minder dan ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Groter dan ${amount ?? ''}`,
-                between: (greaterThan?: string, lessThan?: string) => {
-                    if (greaterThan && lessThan) {
-                        return `Tussen ${greaterThan} en ${lessThan}`;
-                    }
-                    return 'Tussen';
-                },
+                between: (greaterThan: string, lessThan: string) => `Tussen ${greaterThan} en ${lessThan}`,
                 equalTo: (amount?: string) => `Gelijk aan ${amount ?? ''}`,
             },
             card: {
@@ -9050,7 +9057,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         copilotDelegatedAccess: 'Copilot: Gedelegeerde toegang',
         copilotDelegatedAccessDescription: 'Sta andere leden toe toegang te krijgen tot je account.',
         learnMoreAboutDelegatedAccess: 'Meer informatie over gedelegeerde toegang',
-        addCopilot: 'Copiloot toevoegen',
+        addCopilot: 'Co-piloot toevoegen',
         membersCanAccessYourAccount: 'Deze leden hebben toegang tot je account:',
         youCanAccessTheseAccounts: 'Je hebt toegang tot deze accounts:',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {

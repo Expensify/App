@@ -17,7 +17,7 @@ const PROTECTED_SCREENS = {
 const SCREENS = {
     ...PROTECTED_SCREENS,
     REPORT: 'Report',
-    PROFILE_AVATAR: 'ProfileAvatar',
+    DYNAMIC_PROFILE_AVATAR: 'Dynamic_Profile_Avatar',
     WORKSPACE_AVATAR: 'WorkspaceAvatar',
     WORKSPACE_DOCUMENT: 'WorkspaceDocument',
     REPORT_AVATAR: 'ReportAvatar',
@@ -516,7 +516,7 @@ const SCREENS = {
     },
 
     NEW_REPORT_WORKSPACE_SELECTION: {
-        ROOT: 'NewReportWorkspaceSelection_Root',
+        DYNAMIC_ROOT: 'Dynamic_NewReportWorkspaceSelection_Root',
     },
 
     SET_DEFAULT_WORKSPACE: 'SetDefaultWorkspace',
@@ -920,7 +920,7 @@ const SCREENS = {
 
     EDIT_REQUEST: {
         CURRENCY: 'EditRequest_Currency',
-        REPORT_FIELD: 'EditRequest_ReportField',
+        DYNAMIC_REPORT_FIELD: 'Dynamic_EditRequest_ReportField',
     },
 
     NEW_CHAT: {
@@ -983,7 +983,7 @@ const SCREENS = {
     WALLET_STATEMENT_ROOT: 'WalletStatement_Root',
     SIGN_IN_ROOT: 'SignIn_Root',
     DETAILS_ROOT: 'Details_Root',
-    PROFILE_ROOT: 'Profile_Root',
+    DYNAMIC_PROFILE: 'Dynamic_Profile_Root',
     AUTO_SUBMIT_ROOT: 'AutoSubmit_Modal_Root',
     DYNAMIC_CHANGE_POLICY_EDUCATIONAL_ROOT: 'DynamicChangePolicyEducational_Root',
     REPORT_DESCRIPTION_ROOT: 'Report_Description_Root',
