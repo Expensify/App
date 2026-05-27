@@ -1,9 +1,9 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {getOriginalMessage, isClosedAction} from '@libs/ReportActionsUtils';
-import {getPolicyIDsWithEmptyReportsForAccount, isOpenExpenseReport} from '@libs/ReportUtils';
+import {canShowReportRecipientLocalTime, getPolicyIDsWithEmptyReportsForAccount, isOpenExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {Report, ReportActions, Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, Report, ReportActions, Transaction} from '@src/types/onyx';
 import {getLastClosedReportAction} from './ReportAction';
 
 type OpenExpenseReportIDMap = Record<string, true>;
@@ -55,4 +55,16 @@ function openExpenseReportIDsSelector(reports: OnyxCollection<Report>): OpenExpe
     return openExpenseReportIDMap;
 }
 
-export {getArchiveReason, getReportChatType, getReportOwnerAccountID, getReportPolicyID, policyIDsWithEmptyReportsSelector, openExpenseReportIDsSelector};
+function canShowReportRecipientLocalTimeSelector(report: OnyxEntry<Report>, accountID: number) {
+    return (personalDetailsList: OnyxEntry<PersonalDetailsList>) => canShowReportRecipientLocalTime(personalDetailsList, report, accountID);
+}
+
+export {
+    getArchiveReason,
+    getReportChatType,
+    getReportOwnerAccountID,
+    getReportPolicyID,
+    policyIDsWithEmptyReportsSelector,
+    openExpenseReportIDsSelector,
+    canShowReportRecipientLocalTimeSelector,
+};
