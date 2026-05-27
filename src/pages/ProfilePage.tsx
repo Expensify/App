@@ -1,6 +1,6 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {Str} from 'expensify-common';
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -10,6 +10,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import type {PromotedAction} from '@components/PromotedActionsBar';
@@ -17,12 +18,14 @@ import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBa
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -52,6 +55,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
@@ -87,6 +91,8 @@ function ProfilePage({route}: ProfilePageProps) {
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
+    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const {isOffline} = useNetwork();
     const guideCalendarLink = account?.guideDetails?.calendarLink ?? '';
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bug', 'Pencil', 'Phone', 'UserPlus']);
@@ -100,6 +106,26 @@ function ProfilePage({route}: ProfilePageProps) {
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
+
+    const showGpsInProgressModal = useCallback(
+        async (switchAccount: () => ReturnType<typeof connect>) => {
+            const result = await showConfirmModal({
+                title: translate('gps.switchAccountWarningTripInProgress.title'),
+                prompt: translate('gps.switchAccountWarningTripInProgress.prompt'),
+                confirmText: translate('gps.switchAccountWarningTripInProgress.confirm'),
+                cancelText: translate('common.cancel'),
+            });
+
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+
+            await stopGpsTrip(false, getGpsPoints(gpsDraftDetails), true);
+            switchAccount();
+        },
+        [gpsDraftDetails, showConfirmModal, translate],
+    );
 
     const isValidAccountID = isValidAccountRoute(accountID);
     const loginParams = route.params?.login;
@@ -300,7 +326,12 @@ function ProfilePage({route}: ProfilePageProps) {
                                     if (isOffline || isActingAsDelegate) {
                                         return;
                                     }
-                                    connect({email: login, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID});
+                                    const switchAction = () => connect({email: login, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID});
+                                    if (isTrackingGPS) {
+                                        showGpsInProgressModal(switchAction);
+                                        return;
+                                    }
+                                    switchAction();
                                 })}
                             />
                         )}
