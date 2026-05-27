@@ -7,7 +7,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {search} from '@libs/actions/Search';
 import {getDisplayableExpensifyCards} from '@libs/CardUtils';
-import {arePaymentsEnabled, isGroupPolicy, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {arePaymentsEnabled, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
@@ -38,31 +38,32 @@ type YourSpendCardRow = {
 type YourSpendApplicability = {
     isApprovalApplicable: boolean;
     isPaymentApplicable: boolean;
-    // Sorted IDs of the user's group policies (Team/Corporate/Submit — anything that
-    // isn't a personal workspace). Used to scope the "Awaiting approval" query to
-    // reports owned by the user on a real workspace, which excludes IOU reports
-    // (no policyID) and personal-policy expenses. Sorted so the resulting search-query
-    // hash stays stable across unrelated `policies` updates (e.g. Onyx key insertion-order
+    // Sorted IDs of the user's paid group policies (Team/Corporate). Used to scope
+    // the "Awaiting approval" query to reports owned by the user on a real workspace,
+    // which excludes IOU reports (no policyID) and personal-policy expenses. Submit
+    // workspaces are intentionally excluded here — to be revisited once we've confirmed
+    // the UX makes sense for them. Sorted so the resulting search-query hash stays
+    // stable across unrelated `policies` updates (e.g. Onyx key insertion-order
     // shuffles), keeping subscribers on the same snapshot key.
-    groupPolicyIDs: string[];
+    paidGroupPolicyIDs: string[];
 };
 
 function getYourSpendApplicability(policies: OnyxCollection<Policy> | undefined): YourSpendApplicability {
-    const groupPolicyIDs: string[] = [];
+    const paidGroupPolicyIDs: string[] = [];
     let isPaymentApplicable = false;
     for (const policy of Object.values(policies ?? {})) {
-        if (policy?.id && isGroupPolicy(policy)) {
-            groupPolicyIDs.push(policy.id);
-        }
-        if (isPaidGroupPolicy(policy) && arePaymentsEnabled(policy ?? undefined)) {
-            isPaymentApplicable = true;
+        if (policy?.id && isPaidGroupPolicy(policy)) {
+            paidGroupPolicyIDs.push(policy.id);
+            if (arePaymentsEnabled(policy ?? undefined)) {
+                isPaymentApplicable = true;
+            }
         }
     }
-    groupPolicyIDs.sort();
+    paidGroupPolicyIDs.sort();
     return {
-        isApprovalApplicable: groupPolicyIDs.length > 0,
+        isApprovalApplicable: paidGroupPolicyIDs.length > 0,
         isPaymentApplicable,
-        groupPolicyIDs,
+        paidGroupPolicyIDs,
     };
 }
 
@@ -105,9 +106,9 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
-    const {isApprovalApplicable, isPaymentApplicable, groupPolicyIDs} = getYourSpendApplicability(policies);
+    const {isApprovalApplicable, isPaymentApplicable, paidGroupPolicyIDs} = getYourSpendApplicability(policies);
 
-    const awaitingApprovalQuery = buildAwaitingApprovalQuery(accountID, groupPolicyIDs);
+    const awaitingApprovalQuery = buildAwaitingApprovalQuery(accountID, paidGroupPolicyIDs);
     const repaidLast30DaysQuery = buildRepaidLast30DaysQuery(accountID);
 
     const approvalQueryJSON = buildSearchQueryJSON(awaitingApprovalQuery);
@@ -282,10 +283,10 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const paymentTotals: YourSpendRowTotals = shouldUseCachedPayment && cachedPaymentReady ? cachedPaymentReady : paymentTotalsRaw;
 
     // Stable key that changes whenever approval/payment applicability flips OR
-    // the set of group-policy workspaces changes (which changes the policyID
+    // the set of paid-group workspaces changes (which changes the policyID
     // filter and therefore the snapshot key the row subscribes to). Used to
     // re-fire the search effect when the user joins/leaves a workspace.
-    const applicabilityKey = `${isApprovalApplicable ? 1 : 0}${isPaymentApplicable ? 1 : 0}|${groupPolicyIDs.join(',')}`;
+    const applicabilityKey = `${isApprovalApplicable ? 1 : 0}${isPaymentApplicable ? 1 : 0}|${paidGroupPolicyIDs.join(',')}`;
 
     const fireSearches = useEffectEvent(() => {
         if (isOffline) {

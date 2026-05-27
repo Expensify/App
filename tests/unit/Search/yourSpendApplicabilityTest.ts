@@ -100,19 +100,19 @@ describe('arePaymentsEnabled (payment row applicability)', () => {
 });
 
 describe('getYourSpendApplicability', () => {
-    it('returns empty groupPolicyIDs and isApprovalApplicable=false for no policies', () => {
+    it('returns empty paidGroupPolicyIDs and isApprovalApplicable=false for no policies', () => {
         const result = getYourSpendApplicability(undefined);
-        expect(result.groupPolicyIDs).toEqual([]);
+        expect(result.paidGroupPolicyIDs).toEqual([]);
         expect(result.isApprovalApplicable).toBe(false);
     });
 
-    it('returns empty groupPolicyIDs and isApprovalApplicable=false for an empty collection', () => {
+    it('returns empty paidGroupPolicyIDs and isApprovalApplicable=false for an empty collection', () => {
         const result = getYourSpendApplicability({});
-        expect(result.groupPolicyIDs).toEqual([]);
+        expect(result.paidGroupPolicyIDs).toEqual([]);
         expect(result.isApprovalApplicable).toBe(false);
     });
 
-    it('includes IDs of group policies (Team/Corporate/Submit) and excludes personal policies', () => {
+    it('includes IDs of paid group policies (Team/Corporate) and excludes personal and submit policies', () => {
         const corporate = makePolicy({id: 'b_corp', type: CONST.POLICY.TYPE.CORPORATE});
         const personal = makePolicy({id: 'c_personal', type: CONST.POLICY.TYPE.PERSONAL});
         const submit = makePolicy({id: 'd_submit', type: CONST.POLICY.TYPE.SUBMIT});
@@ -120,13 +120,13 @@ describe('getYourSpendApplicability', () => {
 
         const result = getYourSpendApplicability(policiesCollection([corporate, personal, submit, team]));
 
-        // Personal excluded; everything else (Team/Corporate/Submit) included and sorted.
-        expect(result.groupPolicyIDs).toEqual(['a_team', 'b_corp', 'd_submit']);
+        // Only paid group (Team/Corporate) policies are included; Personal and Submit are excluded.
+        expect(result.paidGroupPolicyIDs).toEqual(['a_team', 'b_corp']);
         expect(result.isApprovalApplicable).toBe(true);
     });
 
-    it('includes group policies regardless of approvalMode (BASIC, ADVANCED, OPTIONAL, unset)', () => {
-        // The widget no longer requires an approval workflow — any group policy counts.
+    it('includes paid group policies regardless of approvalMode (BASIC, ADVANCED, OPTIONAL, unset)', () => {
+        // The widget no longer requires an approval workflow — any paid group policy counts.
         // OPTIONAL-approval reports won't usually be OUTSTANDING in practice (auto-closed),
         // but if they are, they should still surface here.
         const optional = makePolicy({id: 'optional', type: CONST.POLICY.TYPE.TEAM, approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL});
@@ -134,32 +134,32 @@ describe('getYourSpendApplicability', () => {
 
         const result = getYourSpendApplicability(policiesCollection([optional, unset]));
 
-        expect(result.groupPolicyIDs).toEqual(['optional', 'unset']);
+        expect(result.paidGroupPolicyIDs).toEqual(['optional', 'unset']);
         expect(result.isApprovalApplicable).toBe(true);
     });
 
-    it('returns groupPolicyIDs sorted ascending regardless of input order', () => {
+    it('returns paidGroupPolicyIDs sorted ascending regardless of input order', () => {
         const p1 = makePolicy({id: 'z_policy', type: CONST.POLICY.TYPE.CORPORATE});
         const p2 = makePolicy({id: 'a_policy', type: CONST.POLICY.TYPE.TEAM});
-        const p3 = makePolicy({id: 'm_policy', type: CONST.POLICY.TYPE.SUBMIT});
+        const p3 = makePolicy({id: 'm_policy', type: CONST.POLICY.TYPE.CORPORATE});
 
         const result = getYourSpendApplicability(policiesCollection([p1, p2, p3]));
 
-        expect(result.groupPolicyIDs).toEqual(['a_policy', 'm_policy', 'z_policy']);
+        expect(result.paidGroupPolicyIDs).toEqual(['a_policy', 'm_policy', 'z_policy']);
     });
 
-    it('reports isPaymentApplicable independently of groupPolicyIDs', () => {
-        // A SUBMIT policy is a group policy (so groupPolicyIDs contains it) but not a paid
-        // group policy, so isPaymentApplicable stays false.
-        const submit = makePolicy({
-            id: 'submit_only',
-            type: CONST.POLICY.TYPE.SUBMIT,
-            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+    it('reports isPaymentApplicable independently of paidGroupPolicyIDs', () => {
+        // A TEAM policy with REIMBURSEMENT_NO contributes to paidGroupPolicyIDs (it's a paid
+        // group policy) but not to isPaymentApplicable (no payments enabled).
+        const teamNoPayments = makePolicy({
+            id: 'team_no_payments',
+            type: CONST.POLICY.TYPE.TEAM,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
         });
 
-        const result = getYourSpendApplicability(policiesCollection([submit]));
+        const result = getYourSpendApplicability(policiesCollection([teamNoPayments]));
 
-        expect(result.groupPolicyIDs).toEqual(['submit_only']);
+        expect(result.paidGroupPolicyIDs).toEqual(['team_no_payments']);
         expect(result.isApprovalApplicable).toBe(true);
         expect(result.isPaymentApplicable).toBe(false);
     });
