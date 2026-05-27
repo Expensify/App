@@ -6,7 +6,7 @@ name: Codex review
 # wrapped in explicit delimiters in the prompt.
 on:
   pull_request_target:
-    types: [ready_for_review]
+    types: [opened, ready_for_review]
   issue_comment:
     types: [created]
 
@@ -24,6 +24,7 @@ jobs:
         (
           github.event_name == 'pull_request_target'
           && !contains(github.event.pull_request.title, 'Revert')
+          && github.event.pull_request.draft == false
         )
         || (
           github.event_name == 'issue_comment'
