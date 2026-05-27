@@ -109,8 +109,11 @@ const translations = {
         selectMultiple: 'Select multiple',
         saveChanges: 'Save changes',
         submit: 'Submit',
+        markAsDone: 'Mark as done',
         // @context Status label meaning an item has already been sent or submitted (e.g., a form or report). Not the action “to submit.”
         submitted: 'Submitted',
+        // @context Status label meaning an item has been marked as done (track-intent users). Not the action “to mark as done.”
+        markedAsDoneStatus: 'Marked as done',
         rotate: 'Rotate',
         zoom: 'Zoom',
         password: 'Password',
@@ -126,6 +129,7 @@ const translations = {
             approve: 'Approve',
             pay: 'Pay',
             fix: 'Fix',
+            task: 'Task',
         },
         // @context Used in confirmation or result messages indicating that an action completed successfully, not the abstract noun “success.”
         success: 'Success',
@@ -875,6 +879,7 @@ const translations = {
         beginningOfChatHistory: (users: string) => `This chat is with ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName: string, submitterDisplayName: string) =>
             `This is where <strong>${submitterDisplayName}</strong> will submit expenses to <strong>${workspaceName}</strong>. Just use the + button.`,
+        beginningOfChatHistoryPolicyExpenseChatTrack: "This is where you'll track expenses.",
         beginningOfChatHistorySelfDM: 'This is your personal space. Use it for notes, tasks, drafts, and reminders.',
         beginningOfChatHistorySystemDM: "Welcome! Let's get you set up.",
         chatWithAccountManager: 'Chat with your account manager here',
@@ -883,7 +888,7 @@ const translations = {
         yourSpace: 'Your space',
         welcomeToRoom: (roomName: string) => `Welcome to ${roomName}!`,
         usePlusButton: (additionalText: string) => ` Use the + button to ${additionalText} an expense.`,
-        askConcierge: 'This is your chat with Concierge, your personal AI agent. I can do almost anything, try me!',
+        askConcierge: 'Concierge can answer questions, update expenses, and more.',
         conciergeSupport: 'Your personal AI agent',
         create: 'create',
         iouTypes: {
@@ -1027,6 +1032,7 @@ const translations = {
             repaidLast30Days: 'Repaid in the last 30 days',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Recent transactions • ${lastFour}`,
         },
+        seeMore: ({count}: {count: number}) => `See ${count} more`,
         announcements: 'Announcements',
         discoverSection: {
             title: 'Discover',
@@ -1393,6 +1399,7 @@ const translations = {
         sendInvoice: (amount: string) => `Send ${amount} invoice`,
         expenseAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         submitted: (memo?: string) => `submitted${memo ? `, saying ${memo}` : ''}`,
+        markedAsDone: (memo?: string) => `marked as done${memo ? `, saying ${memo}` : ''}`,
         automaticallySubmitted: `submitted via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">delay submissions</a>`,
         queuedToSubmitViaDEW: 'queued to submit via custom approval workflow',
         failedToAutoSubmitViaDEW: (reason: string) => `failed to submit the report via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">delay submissions</a>. ${reason}`,
@@ -1834,6 +1841,22 @@ const translations = {
                         return `Waiting for <strong>${actor}</strong> to submit expenses.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `Waiting for an admin to submit expenses.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Waiting for <strong>you</strong> to mark this as done.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Waiting for <strong>${actor}</strong> to mark this as done.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Waiting for an admin to mark this as done.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (
@@ -2295,7 +2318,7 @@ const translations = {
     deviceManagementPage: {
         title: 'Device management',
         description:
-            'Manage all the devices that you have logged into with your Expensify Account. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Learn more</a>',
+            'Manage all the devices that you have logged into with your Expensify Account. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Learn more</a>.',
         revoke: 'Revoke',
         unknownDevice: 'Unknown Device',
     },
@@ -2307,14 +2330,16 @@ const translations = {
         explainProcessToRemove: 'To disable two-factor authentication (2FA), please enter a valid code from your authentication app.',
         explainProcessToRemoveWithRecovery: 'To disable two-factor authentication (2FA), please enter a valid recovery code.',
         disabled: 'Two-factor authentication is now disabled',
+        downloadCodes: 'Download codes',
         noAuthenticatorApp: 'You’ll no longer require an authenticator app to log into Expensify.',
         stepCodes: 'Recovery codes',
-        keepCodesSafe: 'Keep these recovery codes safe!',
+        keepCodesSafe: 'Keep these codes safe!',
         codesLoseAccess: dedent(`
             If you lose access to your authenticator app and don't have these codes, you'll lose access to your account.
 
-            Note: Setting up two-factor authentication will log you out of all other active sessions.
+            <strong>Note</strong>: Setting up two-factor authentication will log you out of all other active sessions.
         `),
+        screenshotTip: 'Tip: Screenshot this to save it to your photo library',
         errorStepCodes: 'Please copy or download codes before continuing',
         stepVerify: 'Verify',
         scanCode: 'Scan the QR code using your',
@@ -2326,6 +2351,7 @@ const translations = {
         enabled: 'Two-factor authentication enabled',
         congrats: 'Congrats! Now you’ve got that extra security.',
         copy: 'Copy',
+        copyCodes: 'Copy codes',
         disable: 'Disable',
         enableTwoFactorAuth: 'Enable two-factor authentication',
         pleaseEnableTwoFactorAuth: 'Please enable two-factor authentication.',
@@ -2629,6 +2655,8 @@ const translations = {
         addApprovalTip: 'This default workflow applies to all members, unless a more specific workflow exists.',
         approver: 'Approver',
         addApprovalsDescription: 'Require additional approval before authorizing a payment.',
+        automateApprovalsWithAgentsTitle: 'Automate approvals with agents',
+        automateApprovalsWithAgentsSubtitle: 'Add agent below to workflow to automate approvals.',
         configureViaHR: ({provider}: {provider: string}) => `Configure via ${provider}.`,
         hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `Approvals are managed by your ${provider} integration. To update your approval workflow, head to your ${provider} connection settings.`,
@@ -2752,6 +2780,7 @@ const translations = {
     reportFraudConfirmationPage: {
         title: 'Card fraud reported',
         description: 'We’ve permanently deactivated your existing card. When you go back to view your card details, you’ll have a new virtual card available.',
+        descriptionCardNotReplaced: 'Your card was permanently deactivated. Please contact an admin to issue a new card.',
         buttonText: 'Got it, thanks!',
     },
     activateCardPage: {
@@ -3033,7 +3062,7 @@ const translations = {
         peopleYouMayKnow: 'People you may know are already here! Verify your email to join them.',
         workspaceYouMayJoin: (domain: string, email: string) => `Someone from ${domain} has already created a workspace. Please enter the magic code sent to ${email}.`,
         joinAWorkspace: 'Join a workspace',
-        listOfWorkspaces: "Here's the list of workspaces you can join. Don't worry, you can always join them later if you prefer.",
+        listOfWorkspaces: "Here's the list of workspaces you can join.",
         skipForNow: 'Skip for now',
         workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} member${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         whereYouWork: 'Where do you work?',
@@ -3405,7 +3434,6 @@ const translations = {
         enterPhoneNumber: "What's your phone number?",
         personalDetails: 'Personal details',
         privateDataMessage: 'These details are used for travel and payments. They are never shown on your public profile.',
-        basicDetails: 'Basic details',
         legalName: 'Legal name',
         legalFirstName: 'Legal first name',
         legalLastName: 'Legal last name',
@@ -3603,7 +3631,7 @@ const translations = {
             noBankAccountSelected: 'Please choose an account',
             taxID: 'Please enter a valid tax ID number',
             website: 'Please enter a valid website',
-            zipCode: `Please enter a valid ZIP code using the format: ${COMMON_CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
+            zipCode: `Please enter a valid ZIP code using the format: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
             phoneNumber: 'Please enter a valid phone number',
             email: 'Please enter a valid email address',
             companyName: 'Please enter a valid business name',
@@ -5389,6 +5417,10 @@ const translations = {
                     confirmText: 'Report issue',
                     cancelText: 'Skip',
                 },
+                duplicateFeedModal: {
+                    title: 'Card feed already connected',
+                    prompt: "You can't add the same card feed to the same workspace twice.",
+                },
                 csvColumns: {
                     cardNumber: 'Card number',
                     postedDate: 'Date',
@@ -6072,6 +6104,11 @@ const translations = {
             selectWorkspaces: 'Select workspaces',
             description: 'Choose the workspaces you want to copy settings to, then select the settings you’d like to copy.',
             searchPlaceholder: 'Search workspaces',
+            selectFeatures: 'Select features to copy',
+            whichFeatures: 'Select the settings to overwrite on your existing workspaces.',
+            workflowsWithoutMembersConfirm: 'Continue without members',
+            workflowsWithoutMembersPrompt: 'Copying Workflows without Members will not copy approval workflows. Submission and payment settings will still be copied.',
+            accountingMismatch: ({part}: {part: string}) => `You can only copy ${part} if all workspaces use the same accounting system and company connection.`,
         },
         emptyWorkspace: {
             title: 'No workspaces yet',
@@ -6214,7 +6251,7 @@ const translations = {
         accounting: {
             settings: 'settings',
             title: 'Connections',
-            subtitle: 'Connect to your accounting system to code transactions with your chart of accounts, auto-match payments, and keep your finances in sync.',
+            subtitle: 'Connect your accounting software for an automatic sync.',
             qbo: 'QuickBooks Online',
             qbd: 'QuickBooks Desktop',
             xero: 'Xero',
@@ -6481,6 +6518,8 @@ const translations = {
         hr: {
             title: 'HR',
             connections: 'Connections',
+            connectionsSubtitle:
+                "Connect to your HR system to sync employee data, auto-match reimbursements to the right people, and keep your team's expenses accurate without the manual work.",
             subtitle: 'Connect HR tools and keep employee approvals in sync.',
             connect: 'Connect',
             syncNow: 'Sync now',
@@ -6902,7 +6941,7 @@ const translations = {
                 perActiveMember: 'per active member per month.',
                 perMember: 'per member per month.',
             },
-            note: (subscriptionLink: string) => `<muted-text>Upgrade to access this feature, or <a href="${subscriptionLink}">learn more</a> about our plans and pricing.</muted-text>`,
+            note: (subscriptionLink: string) => `<muted-text><a href="${subscriptionLink}">Learn more</a> about our plans and pricing.</muted-text>`,
             upgradeToUnlock: 'Unlock this feature',
             completed: {
                 headline: `You've upgraded your workspace!`,
@@ -7055,6 +7094,11 @@ const translations = {
                 autoPayReportsUnderDescription: 'Fully compliant expense reports under this amount will be automatically paid.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Add ${featureName} to unlock this feature.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) => `Go to [more features](${moreFeaturesLink}) and enable ${featureName} to unlock this feature.`,
+            },
+            agentsPromoBanner: {
+                title: 'Don’t see the rule you need? Add an agent',
+                subtitle: 'Add complex rules and reduce manual approvals with custom agents.',
+                cta: 'Try it out',
             },
             merchantRules: {
                 title: 'Merchant',
@@ -9077,7 +9121,7 @@ const translations = {
         copilotDelegatedAccess: 'Copilot: Delegated access',
         copilotDelegatedAccessDescription: 'Allow other members to access your account.',
         learnMoreAboutDelegatedAccess: 'Learn more about delegated access',
-        addCopilot: 'Add a copilot to your account',
+        addCopilot: 'Add a copilot',
         membersCanAccessYourAccount: 'These members can access your account:',
         youCanAccessTheseAccounts: 'You can access these accounts:',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {

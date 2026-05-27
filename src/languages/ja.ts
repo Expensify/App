@@ -108,7 +108,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: '複数選択',
         saveChanges: '変更を保存',
         submit: '送信',
+        markAsDone: '完了にする',
         submitted: '送信済み',
+        markedAsDoneStatus: '完了済み',
         rotate: '回転',
         zoom: 'ズーム',
         password: 'パスワード',
@@ -124,6 +126,7 @@ const translations: TranslationDeepObject<typeof en> = {
             approve: '承認する',
             pay: '支払う',
             fix: '修正',
+            task: 'タスク',
         },
         success: '成功しました',
         group: 'グループ',
@@ -832,6 +835,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistory: (users: string) => `このチャットの相手は${users}です。`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName: string, submitterDisplayName: string) =>
             `ここは<strong>${submitterDisplayName}</strong>さんが<strong>${workspaceName}</strong>に経費精算を提出する場所です。+ボタンを押すだけでOKです。`,
+        beginningOfChatHistoryPolicyExpenseChatTrack: 'ここは経費を管理する場所です',
         beginningOfChatHistorySelfDM: 'ここはあなたの個人スペースです。メモ、タスク、下書き、リマインダーに活用してください。',
         beginningOfChatHistorySystemDM: 'ようこそ！設定を始めましょう。',
         chatWithAccountManager: 'ここでアカウントマネージャーとチャットする',
@@ -840,7 +844,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'あなたのスペース',
         welcomeToRoom: (roomName: string) => `${roomName} へようこそ！`,
         usePlusButton: (additionalText: string) => `+ ボタンを使って経費を${additionalText}します。`,
-        askConcierge: 'こちらはあなた専属のAIエージェント、Conciergeとのチャットです。ほぼ何でもできますので、お試しください！',
+        askConcierge: 'Concierge は、質問にお答えしたり、経費を更新したり、さまざまなことができます。',
         conciergeSupport: 'あなた専用のAIエージェント',
         create: '作成',
         iouTypes: {
@@ -1028,6 +1032,7 @@ const translations: TranslationDeepObject<typeof en> = {
             repaidLast30Days: '過去30日間に返済済み',
             recentTransactions: ({lastFour}: {lastFour: string}) => `最近の取引 • ${lastFour}`,
         },
+        seeMore: ({count}: {count: number}) => `さらに${count}件表示`,
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -1322,6 +1327,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sendInvoice: (amount: string) => `${amount} の請求書を送信`,
         expenseAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? `${comment}用` : ''}`,
         submitted: (memo?: string) => `送信済み${memo ? `、メモ: ${memo}` : ''}`,
+        markedAsDone: (memo) => `完了としてマークしました${memo ? `（メモ：${memo}）` : ''}`,
         automaticallySubmitted: `<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">提出の延期</a> 経由で提出されました`,
         queuedToSubmitViaDEW: 'カスタム承認ワークフローで提出待ち',
         queuedToApproveViaDEW: 'カスタム承認ワークフローで承認待ちに設定されました',
@@ -1759,6 +1765,21 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `<strong>${actor}</strong> が経費を提出するのを待機しています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `管理者が経費を送信するのを待っています。`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `<strong>あなた</strong>が完了にするのを待っています。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `<strong>${actor}</strong>が完了にするのを待っています。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `管理者が完了にするのを待っています。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (
@@ -2200,7 +2221,7 @@ const translations: TranslationDeepObject<typeof en> = {
     deviceManagementPage: {
         title: 'デバイス管理',
         description:
-            'Expensify アカウントでログインしているすべてのデバイスを管理できます。<a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">詳しくはこちら</a>',
+            'Expensify アカウントでログインしているすべてのデバイスを管理できます。<a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">詳しくはこちら</a>.',
         revoke: '取り消す',
         unknownDevice: '不明なデバイス',
     },
@@ -2214,11 +2235,11 @@ const translations: TranslationDeepObject<typeof en> = {
         disabled: '二要素認証は現在無効になっています',
         noAuthenticatorApp: '今後、Expensify にログインする際に認証アプリは不要になります。',
         stepCodes: 'リカバリーコード',
-        keepCodesSafe: 'これらのリカバリーコードを安全に保管してください！',
+        keepCodesSafe: 'これらのコードを安全に保管してください。',
         codesLoseAccess: dedent(`
-            認証アプリへのアクセスを失い、これらのコードも持っていない場合は、アカウントにアクセスできなくなります。
+            認証アプリへのアクセスを失い、これらのコードも持っていない場合は、お客さまのアカウントへのアクセスもできなくなります。
 
-            注: 二要素認証を設定すると、他のすべてのアクティブなセッションからログアウトされます。
+            <strong>注意</strong>：二要素認証を設定すると、他のすべてのアクティブなセッションからログアウトされます。
         `),
         errorStepCodes: '続行する前にコードをコピーまたはダウンロードしてください',
         stepVerify: '確認',
@@ -2247,6 +2268,9 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyOldDeviceDescription: '現在使用している認証アプリに表示されている6桁のコードを入力して、アクセスできることを確認してください。',
         verifyNewDeviceTitle: '新しいデバイスを設定',
         verifyNewDeviceDescription: '新しいデバイスでQRコードをスキャンし、表示されたコードを入力して設定を完了してください。',
+        downloadCodes: 'コードをダウンロード',
+        screenshotTip: 'ヒント：スクリーンショットを撮ってフォトライブラリに保存しましょう',
+        copyCodes: 'コードをコピー',
     },
     recoveryCodeForm: {
         error: {
@@ -2544,6 +2568,8 @@ ${date} の ${merchant} への ${amount}`,
         addApprovalTip: 'より詳細なワークフローが存在する場合を除き、このデフォルトのワークフローがすべてのメンバーに適用されます。',
         approver: '承認者',
         addApprovalsDescription: '支払いを承認する前に、追加の承認を必須にする。',
+        automateApprovalsWithAgentsTitle: '代理を使って承認を自動化する',
+        automateApprovalsWithAgentsSubtitle: '承認を自動化するには、以下のエージェントをワークフローに追加してください。',
         makeOrTrackPaymentsTitle: '支払',
         makeOrTrackPaymentsDescription: 'Expensifyでの支払いに対する承認済み支払者を追加するか、他の場所で行われた支払いを記録します。',
         customApprovalWorkflowEnabled:
@@ -2665,6 +2691,7 @@ ${date} の ${merchant} への ${amount}`,
     reportFraudConfirmationPage: {
         title: 'カード不正利用を報告済み',
         description: '既存のカードは永久に無効化しました。カードの詳細画面に戻ると、新しいバーチャルカードが利用可能になっています。',
+        descriptionCardNotReplaced: 'カードは完全に無効化されました。新しいカードを発行するには管理者に連絡してください。',
         buttonText: '了解しました、ありがとうございます！',
     },
     activateCardPage: {
@@ -2935,7 +2962,7 @@ ${date} の ${merchant} への ${amount}`,
         peopleYouMayKnow: '知り合いがすでにここに参加しています！一緒に参加するには、メールアドレスを確認してください。',
         workspaceYouMayJoin: (domain: string, email: string) => `${domain} のユーザーがすでにワークスペースを作成しています。${email} に送信されたマジックコードを入力してください。`,
         joinAWorkspace: 'ワークスペースに参加',
-        listOfWorkspaces: '参加できるワークスペースの一覧です。今参加しなくても、後からいつでも参加できます。',
+        listOfWorkspaces: '参加できるワークスペースの一覧です。',
         skipForNow: '今はスキップ',
         workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount}人のメンバー${employeeCount > 1 ? 's' : ''}・${policyOwner}`,
         whereYouWork: '勤務先はどこですか？',
@@ -3295,7 +3322,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         enterPhoneNumber: '電話番号は何ですか？',
         personalDetails: '個人情報',
         privateDataMessage: 'これらの詳細は出張と支払いに使用されます。公開プロフィールに表示されることは決してありません。',
-        basicDetails: '基本情報',
         legalName: '法的氏名',
         legalFirstName: '法的な名',
         legalLastName: '法的な姓',
@@ -3487,7 +3513,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             noBankAccountSelected: 'アカウントを選択してください',
             taxID: '有効な納税者番号を入力してください',
             website: '有効なウェブサイトを入力してください',
-            zipCode: `有効なZIPコードを、次の形式で入力してください: ${COMMON_CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
+            zipCode: `有効なZIPコードを、次の形式で入力してください: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
             phoneNumber: '有効な電話番号を入力してください',
             email: '有効なメールアドレスを入力してください',
             companyName: '有効な会社名を入力してください',
@@ -5325,6 +5351,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     duplicateColumns: (duplicateColumn: string) => `おっと！1 つのフィールド（"${duplicateColumn}"）を複数の列にマッピングしています。確認して、もう一度お試しください。`,
                 },
                 fileImportDescription: '銀行からフィードを送信できない場合の手動オプションです。',
+                duplicateFeedModal: {title: 'カードフィードはすでに接続されています', prompt: '同じカードフィードを同じワークスペースに二重に追加することはできません。'},
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: '月末最終日',
@@ -5972,6 +5999,11 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             selectWorkspaces: 'ワークスペースを選択',
             description: '設定をコピーしたいワークスペースを選択し、その後、コピーしたい設定を選びます。',
             searchPlaceholder: 'ワークスペースを検索',
+            selectFeatures: 'コピーする機能を選択します',
+            whichFeatures: '既存のワークスペースで上書きする設定を選択します。',
+            workflowsWithoutMembersConfirm: 'メンバーなしで続行',
+            workflowsWithoutMembersPrompt: 'メンバーのいないワークフローをコピーしても、承認ワークフローはコピーされません。申請および支払い設定は引き続きコピーされます。',
+            accountingMismatch: ({part}: {part: string}) => `すべてのワークスペースが同じ会計システムと会社接続を使用している場合にのみ、${part} をコピーできます。`,
         },
         emptyWorkspace: {
             title: 'ワークスペースがありません',
@@ -6111,7 +6143,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
         accounting: {
             settings: '設定',
             title: '接続',
-            subtitle: '会計システムに接続して勘定科目で取引を仕訳し、支払いを自動照合し、財務情報を常に同期させましょう。',
+            subtitle: '会計ソフトを接続して、自動同期を行いましょう。',
             qbo: 'QuickBooks Online',
             qbd: 'QuickBooks Desktop',
             xero: 'Xero',
@@ -6678,8 +6710,7 @@ ${reportName}
                 perActiveMember: 'アクティブメンバー1人あたり月額',
                 perMember: 'メンバー1人あたり月額',
             },
-            note: (subscriptionLink: string) =>
-                `<muted-text>この機能を利用するにはアップグレードするか、プランと料金の詳細は<a href="${subscriptionLink}">こちら</a>をご覧ください。</muted-text>`,
+            note: (subscriptionLink: string) => `<muted-text>プランと料金については<a href="${subscriptionLink}">詳しく見る</a>をご覧ください。</muted-text>`,
             upgradeToUnlock: 'この機能を有効にする',
             completed: {
                 headline: `ワークスペースをアップグレードしました！`,
@@ -6890,6 +6921,11 @@ ${reportName}
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `[その他の機能](${moreFeaturesLink})に移動し、${featureName} を有効にしてこの機能を利用できるようにしてください。`,
             },
+            agentsPromoBanner: {
+                title: '必要なルールが見つかりませんか？エージェントを追加してください',
+                subtitle: '複雑なルールを追加し、カスタムエージェントで手動承認を減らしましょう。',
+                cta: 'お試しください',
+            },
             merchantRules: {
                 title: '加盟店',
                 subtitle: '経費が正しくコード化され、後処理が最小限で済むように、取引先ルールを設定しましょう。',
@@ -7097,6 +7133,7 @@ ${reportName}
         hr: {
             title: '人事',
             connections: '接続',
+            connectionsSubtitle: '人事システムと連携して従業員データを同期し、精算を自動で正しい担当者に紐づけることで、手作業なしでチームの経費を正確に管理できます。',
             subtitle: '人事ツールを連携して、従業員の承認を常に同期させます。',
             connect: '接続',
             syncNow: '今すぐ同期',
