@@ -34,15 +34,17 @@ function TaxValuePicker({policyID, value, errorText, rightLabel, onInputChange, 
         onInputChange?.(value);
     }, [value, onInputChange]);
 
+    const handlePress = (event: GestureResponderEvent | KeyboardEvent) => {
+        onPress?.(event);
+        Navigation.navigate(ROUTES.WORKSPACE_TAX_CREATE_VALUE.getRoute(policyID));
+    };
+
     return (
         <MenuItemWithTopDescription
             shouldShowRightIcon
             title={value ? getTaxValueWithPercentage(value) : ''}
             description={translate('workspace.taxes.value')}
-            onPress={(event) => {
-                onPress?.(event);
-                Navigation.navigate(ROUTES.WORKSPACE_TAX_CREATE_VALUE.getRoute(policyID));
-            }}
+            onPress={handlePress}
             brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
             rightLabel={rightLabel}
             errorText={errorText}
