@@ -5,7 +5,7 @@ import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 
 // ── Mocks ──────────────────────────────────────────────────────────────────────
@@ -15,9 +15,9 @@ jest.mock('@hooks/useLocalize', () => () => ({translate: jest.fn((key: string) =
 jest.mock('@hooks/useOnyx', () => jest.fn());
 const mockUseOnyx = useOnyx as jest.MockedFunction<typeof useOnyx>;
 
-jest.mock('@hooks/useHasEmptyReportsForPolicy', () => jest.fn(() => false));
+jest.mock('@hooks/useShouldShowEmptyReportConfirmation', () => jest.fn(() => false));
 
-const mockUseHasEmptyReportsForPolicy = require('@hooks/useHasEmptyReportsForPolicy') as jest.Mock;
+const mockUseShouldShowEmptyReportConfirmation = require('@hooks/useShouldShowEmptyReportConfirmation') as jest.Mock;
 
 const mockOpenCreateReportConfirmation = jest.fn();
 jest.mock('@hooks/useCreateEmptyReportConfirmation', () =>
@@ -45,6 +45,7 @@ jest.mock('@libs/interceptAnonymousUser', () => jest.fn((cb: () => void) => cb()
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
+    getActiveRoute: jest.fn(() => ''),
 }));
 
 const reportIDCounter = {value: 100};
@@ -91,7 +92,7 @@ describe('useCreateReport', () => {
         jest.clearAllMocks();
         reportIDCounter.value = 100;
         mockShouldRestrictUserBillableActions.mockReturnValue(false);
-        mockUseHasEmptyReportsForPolicy.mockReturnValue(false);
+        mockUseShouldShowEmptyReportConfirmation.mockReturnValue(false);
         setupUseOnyx();
     });
 
@@ -135,7 +136,7 @@ describe('useCreateReport', () => {
                 result.current.createReport();
             });
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+            expect(Navigation.navigate).toHaveBeenCalledWith(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
             expect(onCreateReport).not.toHaveBeenCalled();
         });
 
@@ -161,7 +162,7 @@ describe('useCreateReport', () => {
                 result.current.createReport();
             });
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+            expect(Navigation.navigate).toHaveBeenCalledWith(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
         });
 
         it('navigates to workspace selector when default is personal and there are 2+ non-personal workspaces', () => {
@@ -188,7 +189,7 @@ describe('useCreateReport', () => {
                 result.current.createReport();
             });
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+            expect(Navigation.navigate).toHaveBeenCalledWith(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
             expect(onCreateReport).not.toHaveBeenCalled();
         });
 
@@ -212,7 +213,7 @@ describe('useCreateReport', () => {
                 result.current.createReport();
             });
 
-            expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+            expect(Navigation.navigate).not.toHaveBeenCalledWith(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
             expect(onCreateReport).toHaveBeenCalledWith(false);
         });
 
@@ -240,7 +241,7 @@ describe('useCreateReport', () => {
                 result.current.createReport();
             });
 
-            expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+            expect(Navigation.navigate).not.toHaveBeenCalledWith(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
             expect(onCreateReport).toHaveBeenCalledWith(false);
         });
     });
@@ -266,7 +267,7 @@ describe('useCreateReport', () => {
         });
 
         it('opens empty report confirmation when policy has empty reports', () => {
-            mockUseHasEmptyReportsForPolicy.mockReturnValue(true);
+            mockUseShouldShowEmptyReportConfirmation.mockReturnValue(true);
             const onCreateReport = jest.fn();
             const policies = [makePaidPolicy()];
 
@@ -357,7 +358,7 @@ describe('useCreateReport', () => {
 
     describe('empty report confirmation dismissed', () => {
         it('calls onCreateReport directly when confirmation was previously dismissed', () => {
-            mockUseHasEmptyReportsForPolicy.mockReturnValue(true);
+            mockUseShouldShowEmptyReportConfirmation.mockReturnValue(false);
             setupUseOnyx({
                 [ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED]: true,
             });

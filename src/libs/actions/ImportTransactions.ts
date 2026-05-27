@@ -11,9 +11,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardList} from '@src/types/onyx';
 import type ImportedSpreadsheet from '@src/types/onyx/ImportedSpreadsheet';
-import type {ImportTransactionSettings} from '@src/types/onyx/ImportedSpreadsheet';
+import type {ImportFinalModal, ImportTransactionSettings} from '@src/types/onyx/ImportedSpreadsheet';
 import type {SavedCSVColumnLayoutData} from '@src/types/onyx/SavedCSVColumnLayout';
 import type Transaction from '@src/types/onyx/Transaction';
+import {getImportFailedFinalModal, getImportFinalModalID, getImportFinalModalOnyxData, waitForImportFinalModal} from './ImportSpreadsheet';
 
 type TransactionFromCSV = {
     transactionID: string;
@@ -313,7 +314,7 @@ function buildOptimisticTransactions(transactionList: TransactionFromCSV[], card
  * @param existingCardID - Optional cardID to add transactions to an existing card instead of creating a new one
  * @param previouslySavedLayout - Optional previous saved layout to restore on failure
  */
-function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet, existingCardID?: number, previouslySavedLayout?: SavedCSVColumnLayoutData) {
+async function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet, existingCardID?: number, previouslySavedLayout?: SavedCSVColumnLayoutData): Promise<ImportFinalModal> {
     const settings = spreadsheet.importTransactionSettings ?? {};
     const {cardDisplayName = 'Imported Card', currency = CONST.CURRENCY.USD, isReimbursable = true, flipAmountSign = false} = settings;
 
@@ -321,15 +322,10 @@ function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet, existingCar
     const transactionList = buildTransactionListFromSpreadsheet(spreadsheet, settings);
 
     if (transactionList.length === 0) {
-        Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {
-            shouldFinalModalBeOpened: true,
-            importFinalModal: {
-                titleKey: 'spreadsheet.importFailedTitle' as const,
-                promptKey: 'spreadsheet.invalidFileMessage' as const,
-                promptKeyParams: undefined,
-            },
-        });
-        return;
+        return {
+            titleKey: 'spreadsheet.importFailedTitle',
+            promptKey: 'spreadsheet.invalidFileMessage',
+        };
     }
 
     // Use existing cardID if provided, otherwise create a new optimistic card
@@ -360,12 +356,19 @@ function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet, existingCar
         columnMappings: JSON.stringify(columnLayout),
     };
 
-    const optimisticData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.CARD_LIST | typeof ONYXKEYS.IMPORTED_SPREADSHEET | typeof ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST>
-    > = [];
+    const importFinalModal: ImportFinalModal = {
+        titleKey: 'spreadsheet.importSuccessfulTitle',
+        promptKey: 'spreadsheet.importTransactionsSuccessfulDescription',
+        promptKeyParams: {transactions: transactionList.length},
+    };
+    const importFinalModalID = getImportFinalModalID();
+    const importFinalModalResult = waitForImportFinalModal(importFinalModalID);
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.CARD_LIST | typeof ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST>> = [];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IMPORTED_SPREADSHEET>> = [getImportFinalModalOnyxData(importFinalModalID, importFinalModal)];
     const failureData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.CARD_LIST | typeof ONYXKEYS.IMPORTED_SPREADSHEET | typeof ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST>
-    > = [];
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.CARD_LIST | typeof ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST | typeof ONYXKEYS.IMPORTED_SPREADSHEET>
+    > = [getImportFinalModalOnyxData(importFinalModalID, getImportFailedFinalModal())];
 
     // Only add card to optimistic data if we're creating a new card
     if (!isAddingToExistingCard && optimisticCard) {
@@ -405,19 +408,6 @@ function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet, existingCar
         value: {[cardID]: columnLayout},
     });
 
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: ONYXKEYS.IMPORTED_SPREADSHEET,
-        value: {
-            shouldFinalModalBeOpened: true,
-            importFinalModal: {
-                titleKey: 'spreadsheet.importSuccessfulTitle' as const,
-                promptKey: 'spreadsheet.importTransactionsSuccessfulDescription' as const,
-                promptKeyParams: {transactions: transactionList.length},
-            },
-        },
-    });
-
     // Only add card cleanup to failure data if we created a new card
     if (!isAddingToExistingCard) {
         failureData.push({
@@ -429,19 +419,6 @@ function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet, existingCar
         });
     }
 
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: ONYXKEYS.IMPORTED_SPREADSHEET,
-        value: {
-            shouldFinalModalBeOpened: true,
-            importFinalModal: {
-                titleKey: 'spreadsheet.importFailedTitle' as const,
-                promptKey: 'spreadsheet.importFailedDescription' as const,
-                promptKeyParams: undefined,
-            },
-        },
-    });
-
     // Restore the previous saved layout on failure, or null if none existed
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -451,10 +428,17 @@ function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet, existingCar
         },
     });
 
-    API.write(WRITE_COMMANDS.IMPORT_CSV_TRANSACTIONS, params, {
-        optimisticData,
-        failureData,
-    });
+    try {
+        await API.write(WRITE_COMMANDS.IMPORT_CSV_TRANSACTIONS, params, {
+            optimisticData,
+            successData,
+            failureData,
+        });
+        return await importFinalModalResult.promise;
+    } catch {
+        importFinalModalResult.cancel();
+        return getImportFailedFinalModal();
+    }
 }
 
 export {getColumnIndexes, buildColumnLayout, buildTransactionListFromSpreadsheet};

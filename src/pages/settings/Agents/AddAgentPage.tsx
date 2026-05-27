@@ -122,7 +122,7 @@ function AddAgentPage() {
                             size={CONST.AVATAR_SIZE.X_LARGE}
                             avatarStyle={avatarStyle}
                             editIcon={expensifyIcons.Pencil}
-                            editIconStyle={styles.profilePageAvatar}
+                            editIconStyle={styles.smallEditIconAccount}
                             sentryLabel={CONST.SENTRY_LABEL.ADD_AGENT_PAGE.AVATAR}
                         />
                     </View>
