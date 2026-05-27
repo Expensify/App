@@ -1474,7 +1474,7 @@ function issueExpensifyCard(
     if (cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL) {
         API.write(
             WRITE_COMMANDS.CREATE_EXPENSIFY_CARD,
-            {...parameters, feedCountry},
+            {...parameters, feedCountry, policyID},
             {
                 optimisticData,
                 successData,
