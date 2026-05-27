@@ -12,7 +12,7 @@ If you previously used Expensify Classic, many of the workflows you already know
 This guide explains where familiar features and workflows now live so you can get comfortable navigating New Expensify more confidently.
 
 If you'd like a guided walkthrough of the New Expensify experience, explore the interactive product tours:
-- [Launch the New Expensify interactive tour for web](https://expensify.storylane.io/share/v9dr1rjqsd9)
+- [Launch the New Expensify interactive tour for web](https://expensify.storylane.io/share/v9dr1rjqsd9y)
 - [Launch the New Expensify interactive tour for mobile](https://expensify.storylane.io/share/qbbob6zvapqo)
 
 You can find additional training resources in [How to Access Expensify Training](/articles/new-expensify/getting-started/How-to-Access-Expensify-Training).

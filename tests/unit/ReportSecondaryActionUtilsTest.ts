@@ -2132,6 +2132,7 @@ describe('getSecondaryAction', () => {
             reportAction: undefined,
             originalTransaction: {} as Transaction,
             policy,
+
             archivedReportsIDSet: new Set<string>(),
         });
 
@@ -3196,6 +3197,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 reportAction: undefined,
                 originalTransaction: {} as Transaction,
                 policy,
+
                 archivedReportsIDSet: new Set<string>(),
             }),
         ).toEqual(result);
@@ -3226,6 +3228,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: actionR14932,
             originalTransaction: {} as Transaction,
             policy,
+
             archivedReportsIDSet: new Set<string>(),
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(true);
@@ -3253,6 +3256,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: {} as Transaction,
             policy,
             transactionThreadReport,
+
             archivedReportsIDSet: new Set<string>(),
         });
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
@@ -3268,6 +3272,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: {} as Transaction,
             policy,
             transactionThreadReport,
+
             archivedReportsIDSet: new Set<string>(),
         });
         expect(result2).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
@@ -3294,6 +3299,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: undefined,
             originalTransaction: {} as Transaction,
             policy,
+
             archivedReportsIDSet: new Set<string>(),
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
@@ -3353,6 +3359,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: undefined,
             originalTransaction,
             policy,
+
             archivedReportsIDSet: new Set<string>(),
         });
 
@@ -3452,8 +3459,74 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: actionR14932,
             originalTransaction: {} as Transaction,
             policy,
+
             archivedReportsIDSet: new Set<string>(),
         });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
+    });
+
+    it('includes the SPLIT option after the other split half was deleted', async () => {
+        // Given an open expense report owned by the current user
+        const report = {
+            reportID: REPORT_ID,
+            policyID: POLICY_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        } as unknown as Report;
+
+        // And a surviving split child that still references the original (its sibling was unreported then deleted)
+        const survivingSplit = {
+            transactionID: 'SURVIVING_SPLIT',
+            status: CONST.TRANSACTION.STATUS.POSTED,
+            amount: 50,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+            reportID: REPORT_ID,
+            comment: {originalTransactionID: 'ORIGINAL_TRANSACTION', source: CONST.IOU.TYPE.SPLIT},
+        } as unknown as Transaction;
+
+        // And the original ("parent") expense transaction still existing, hidden on the split report
+        const originalTransaction = {
+            transactionID: 'ORIGINAL_TRANSACTION',
+            amount: 100,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+            reportID: CONST.REPORT.SPLIT_REPORT_ID,
+            comment: {},
+        } as unknown as Transaction;
+
+        // And the current user is a member of the policy
+        const policy = {
+            id: POLICY_ID,
+            type: CONST.POLICY.TYPE.TEAM,
+            isPolicyExpenseChatEnabled: true,
+            employeeList: {
+                [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
+                [ADMIN_EMAIL]: {email: ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
+            },
+            role: CONST.POLICY.ROLE.ADMIN,
+        } as unknown as Policy;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        // When the secondary transaction-thread actions are computed
+        const result = getSecondaryTransactionThreadActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            parentReport: report,
+            reportTransaction: survivingSplit,
+            reportAction: actionR14932,
+            originalTransaction,
+            policy,
+
+            archivedReportsIDSet: new Set<string>(),
+        });
+
+        // Then the SPLIT option is available
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
     });
 
@@ -3497,6 +3570,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: actionR14932,
             originalTransaction: {} as Transaction,
             policy,
+
             archivedReportsIDSet: new Set<string>(),
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
@@ -3543,6 +3617,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: actionR14932,
             originalTransaction: {} as Transaction,
             policy,
+
             archivedReportsIDSet: new Set<string>(),
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
@@ -3593,6 +3668,104 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: actionR14932,
             originalTransaction: {} as Transaction,
             policy,
+
+            archivedReportsIDSet: new Set<string>(),
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
+    });
+
+    it('includes the SPLIT option when parentReport is a selfDM report (unreported expense)', () => {
+        const selfDMReport = {
+            reportID: REPORT_ID,
+            chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+        } as unknown as Report;
+
+        const transaction = {
+            transactionID: 'TRANSACTION_ID',
+            status: CONST.TRANSACTION.STATUS.POSTED,
+            amount: 10,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+        } as unknown as Transaction;
+
+        const policy = {} as unknown as Policy;
+
+        const result = getSecondaryTransactionThreadActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            parentReport: selfDMReport,
+            reportTransaction: transaction,
+            reportAction: actionR14932,
+            originalTransaction: {} as Transaction,
+            policy,
+
+            archivedReportsIDSet: new Set<string>(),
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
+    });
+
+    it('includes the SPLIT option when grandParentReport is a selfDM report (transaction thread inside selfDM)', () => {
+        // parentReport is a transaction thread (not selfDM, not expense report)
+        const transactionThreadReport = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.IOU,
+        } as unknown as Report;
+
+        const selfDMReport = {
+            reportID: 999,
+            chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+        } as unknown as Report;
+
+        const transaction = {
+            transactionID: 'TRANSACTION_ID',
+            status: CONST.TRANSACTION.STATUS.POSTED,
+            amount: 10,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+        } as unknown as Transaction;
+
+        const policy = {} as unknown as Policy;
+
+        const result = getSecondaryTransactionThreadActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            parentReport: transactionThreadReport,
+            reportTransaction: transaction,
+            reportAction: actionR14932,
+            originalTransaction: {} as Transaction,
+            policy,
+            grandParentReport: selfDMReport,
+
+            archivedReportsIDSet: new Set<string>(),
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
+    });
+
+    it('does not include the SPLIT option when parentReport is not selfDM and not an expense report', () => {
+        const nonExpenseReport = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.IOU,
+        } as unknown as Report;
+
+        const transaction = {
+            transactionID: 'TRANSACTION_ID',
+            status: CONST.TRANSACTION.STATUS.POSTED,
+            amount: 10,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+        } as unknown as Transaction;
+
+        const policy = {} as unknown as Policy;
+
+        const result = getSecondaryTransactionThreadActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            parentReport: nonExpenseReport,
+            reportTransaction: transaction,
+            reportAction: actionR14932,
+            originalTransaction: {} as Transaction,
+            policy,
+
             archivedReportsIDSet: new Set<string>(),
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
@@ -3622,6 +3795,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: {} as Transaction,
             policy,
             isChatReportArchived: false,
+
             archivedReportsIDSet: new Set<string>(),
         });
         expect(result).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
@@ -3651,6 +3825,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: {} as Transaction,
             policy,
             isChatReportArchived: false,
+
             archivedReportsIDSet: new Set<string>(),
         });
         expect(result).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);

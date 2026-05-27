@@ -27,7 +27,6 @@ function DebugReportActionPreview({reportAction, reportID}: DebugReportActionPre
                 parentReportAction={undefined}
                 displayAsGroup={false}
                 shouldDisplayNewMarker={false}
-                index={0}
                 isFirstVisibleReportAction={false}
                 shouldDisplayContextMenu={false}
                 personalDetails={personalDetails}
