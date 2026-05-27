@@ -15,7 +15,6 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
@@ -169,7 +168,7 @@ export default function TableRow({
             return;
         }
 
-        turnOnMobileSelectionMode();
+        tableMethods.setIsMobileSelectionModalVisible(true);
     };
 
     return (

@@ -23,14 +23,22 @@ type SelectionMethods = {
 
     /** Clear all of the currently selected rows in the table */
     clearSelection: () => void;
+
+    /** Set whether or not the mobile selection modal is visible */
+    setIsMobileSelectionModalVisible: Dispatch<SetStateAction<boolean>>;
 };
 
-type UseSelectionResult<DataType extends TableData> = MiddlewareHookResult<DataType, SelectionMethods, TableRow<DataType>>;
+type UseSelectionResult<DataType extends TableData> = MiddlewareHookResult<DataType, SelectionMethods, TableRow<DataType>> & {
+    /** Whether or not the mobile selection modal is visible */
+    isMobileSelectionModalVisible: boolean;
+};
 
 export default function useSelection<DataType extends TableData>({data, onRowSelectionChange}: UseSelectionProps<DataType>): UseSelectionResult<DataType> {
     const lastSelectedRowKeyRef = useRef<string | null>(null);
     const lastSelectedRowIsSelectedRef = useRef<boolean>(false);
+
     const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
+    const [isMobileSelectionModalVisible, setIsMobileSelectionModalVisible] = useState(false);
 
     const selectableKeys = data.filter((item) => !item.disabled).map((item) => item.keyForList);
 
@@ -164,11 +172,13 @@ export default function useSelection<DataType extends TableData>({data, onRowSel
 
     return {
         middleware,
+        isMobileSelectionModalVisible,
         methods: {
             handleSelectAll,
             handleMultipleRowSelection,
             handleSingleRowSelection,
             clearSelection,
+            setIsMobileSelectionModalVisible,
         },
     };
 }
