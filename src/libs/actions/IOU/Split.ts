@@ -1,6 +1,4 @@
 import {fastMerge} from 'expensify-common';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -318,10 +316,11 @@ function splitBill({
             onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
         },
     );
-    InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-
     if (shouldHandleNavigation) {
+        TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
         dismissModalAndOpenReportInInboxTab(existingSplitChatReportID);
+    } else {
+        removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
     }
 
     notifyNewAction(splitData.chatReportID, undefined, true);
@@ -427,10 +426,11 @@ function splitBillAndOpenReport({
             onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
         },
     );
-    InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-
     if (shouldHandleNavigation) {
+        TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
         dismissModalAndOpenReportInInboxTab(splitData.chatReportID);
+    } else {
+        removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
     }
     notifyNewAction(splitData.chatReportID, undefined, true);
 }
@@ -1139,7 +1139,7 @@ function completeSplitBill(
 
     playSound(SOUNDS.DONE);
     API.write(WRITE_COMMANDS.COMPLETE_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
-    InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
+    TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
     dismissModalAndOpenReportInInboxTab(chatReportID);
     notifyNewAction(chatReportID, undefined, true);
 }
