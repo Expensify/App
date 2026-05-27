@@ -62,6 +62,7 @@ After selecting your preferred itinerary in Expensify Travel, follow the steps b
 7. Copy the CVV.
 8. Return to checkout and enter the CVV to complete the booking.
 
+[Learn how to book a hotel, flight, rental car or rail ticket with Expensify travel](https://help.expensify.com/travel/hubs/booking-travel/)
 ---
 
 ## What happens after you book travel
