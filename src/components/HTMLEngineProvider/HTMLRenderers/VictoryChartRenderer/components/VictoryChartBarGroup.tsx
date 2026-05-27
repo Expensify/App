@@ -52,6 +52,6 @@ function VictoryChartBarGroup({tnode, isHorizontal}: VictoryChartBarGroupProps) 
     );
 }
 
-VictoryChartBarGroup.displayName = 'VictoryCharBarGroup';
+VictoryChartBarGroup.displayName = 'VictoryChartBarGroup';
 
 export default VictoryChartBarGroup;
