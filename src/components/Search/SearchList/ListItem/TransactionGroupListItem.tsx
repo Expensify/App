@@ -205,7 +205,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
-        backgroundColor: isItemSelected ? theme.activeComponentBG : theme.highlightBG,
+        backgroundColor: isItemSelected ? theme.activeComponentBG : theme.appBG,
         shouldApplyOtherStyles: false,
     });
 
@@ -215,7 +215,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
             ...styles.tableRowHeight,
             borderRadius: 0,
             paddingVertical: variables.tableGroupRowPaddingVertical,
-            ...(isLastItem ? styles.tableBottomRadius : {}),
         },
         isItemSelected && styles.activeComponentBG,
     ];
@@ -539,11 +538,11 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 ]}
                 onFocus={onFocus}
                 wrapperStyle={[
-                    styles.mh5,
+                    !isLargeScreenWidth && styles.mh5,
                     animatedHighlightStyle,
                     styles.userSelectNone,
                     isLargeScreenWidth
-                        ? [StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItem, isItemSelected), isLastItem && styles.overflowHidden]
+                        ? StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItem, isItemSelected)
                         : [
                               isFirstItem && [styles.tableTopRadius, styles.overflowHidden],
                               isLastItem && [styles.tableBottomRadius, styles.overflowHidden],

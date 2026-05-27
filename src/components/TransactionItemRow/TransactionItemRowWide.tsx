@@ -573,7 +573,7 @@ function TransactionItemRowWide({
     return (
         <>
             <View
-                style={[styles.expenseWidgetRadius, styles.flex1, styles.gap2, bgActiveStyles, styles.mw100, style]}
+                style={[styles.expenseWidgetRadius, styles.flex1, styles.gap2, bgActiveStyles, styles.mw100, styles.ph5, style]}
                 testID="transaction-item-row"
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
@@ -634,7 +634,7 @@ function TransactionItemRowWide({
             </View>
             {!!shouldShowBottomBorder && (
                 <View style={bgActiveStyles}>
-                    <View style={styles.ph3}>
+                    <View style={styles.ph5}>
                         <View style={[StyleUtils.getSelectedBorderBottomStyle(isSelected)]} />
                     </View>
                 </View>

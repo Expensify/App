@@ -1,3 +1,4 @@
+import type {ReactNode} from 'react';
 import React, {useCallback} from 'react';
 import type {GestureResponderEvent, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -52,6 +53,9 @@ type BadgeProps = {
 
     /** Whether to use XXSmall icon size */
     shouldUseXXSmallIcon?: boolean;
+
+    /** Custom children to render inside the badge's Text. Takes precedence over `text` for the label content. */
+    children?: ReactNode;
 };
 
 function Badge({
@@ -69,6 +73,7 @@ function Badge({
     iconStyles = [],
     style,
     shouldUseXXSmallIcon = false,
+    children,
 }: BadgeProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -92,7 +97,7 @@ function Badge({
         [styles.defaultBadge, styles.condensedBadge, styles.alignSelfCenter, styles.ml2, StyleUtils, success, error, environment, badgeStyles, isCondensed, isStrong],
     );
 
-    if (!text && !icon) {
+    if (!text && !icon && !children) {
         return null;
     }
 
@@ -115,7 +120,7 @@ function Badge({
                     />
                 </View>
             )}
-            {!!text && (
+            {(!!text || !!children) && (
                 <Text
                     style={[
                         styles.badgeText,
@@ -131,7 +136,7 @@ function Badge({
                     ]}
                     numberOfLines={1}
                 >
-                    {text}
+                    {children ?? text}
                 </Text>
             )}
         </Wrapper>

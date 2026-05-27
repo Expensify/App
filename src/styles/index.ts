@@ -2624,6 +2624,10 @@ const staticStyles = (theme: ThemeColors) =>
             borderBottomRightRadius: variables.componentBorderRadius,
         },
 
+        searchTableWrapper: {
+            overflow: 'hidden',
+        },
+
         tableRowHeightCompact: {
             minHeight: variables.tableRowHeightCompact,
         },
@@ -3595,9 +3599,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         searchListHeaderTableStyle: {
-            backgroundColor: theme.highlightBG,
-            borderTopLeftRadius: variables.componentBorderRadius,
-            borderTopRightRadius: variables.componentBorderRadius,
+            backgroundColor: theme.appBG,
             borderBottomWidth: 1,
             borderColor: theme.border,
             minHeight: 36,
@@ -4910,7 +4912,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         listTableHeaderCompact: {
             paddingVertical: 8,
-            paddingHorizontal: 12,
+            paddingHorizontal: 20,
         },
 
         tableHeaderIconSpacing: {

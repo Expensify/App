@@ -2,6 +2,7 @@ import type {NavigationState, PartialState} from '@react-navigation/routers';
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useSearchRouterActions} from '@components/Search/SearchRouter/SearchRouterContext';
@@ -129,6 +130,12 @@ function GlobalNavBar() {
                                 height={16}
                             />
                             <Text style={[styles.buttonText, styles.buttonMediumText, {color: hovered ? theme.text : theme.textSupporting}]}>Find anything...</Text>
+                            <Badge
+                                isCondensed
+                                badgeStyles={{marginLeft: 4}}
+                            >
+                                <Text style={{fontWeight: 'normal', color: theme.textSupporting, fontSize: variables.fontSizeExtraSmall}}>⌘</Text>K
+                            </Badge>
                         </>
                     )}
                 </PressableWithFeedback>

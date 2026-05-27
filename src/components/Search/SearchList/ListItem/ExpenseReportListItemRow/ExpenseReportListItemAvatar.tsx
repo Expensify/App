@@ -21,8 +21,7 @@ function ExpenseReportListItemAvatar({item, showTooltip, isHovered = false, isFo
     const theme = useTheme();
 
     const finalAvatarBorderColor =
-        StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, isFocused || isHovered, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
-        theme.highlightBG;
+        StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, isFocused || isHovered, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.appBG;
 
     return (
         <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR), styles.alignItemsStretch]}>

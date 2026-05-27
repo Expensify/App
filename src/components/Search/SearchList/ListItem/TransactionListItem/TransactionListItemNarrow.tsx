@@ -75,7 +75,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
         borderRadius: 0,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
-        backgroundColor: item.isSelected ? theme.activeComponentBG : theme.highlightBG,
+        backgroundColor: item.isSelected ? theme.activeComponentBG : theme.appBG,
         shouldApplyOtherStyles: true,
     });
 

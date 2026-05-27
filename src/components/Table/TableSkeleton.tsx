@@ -55,5 +55,5 @@ export default function TableSkeleton({renderSkeletonItem, reasonAttributes, row
         </View>
     ));
 
-    return <View style={[styles.m5, styles.tableBottomRadius, styles.overflowHidden, styles.tableTopRadius, styles.highlightBG]}>{rows}</View>;
+    return <View style={[styles.m5, styles.overflowHidden, styles.appBG]}>{rows}</View>;
 }

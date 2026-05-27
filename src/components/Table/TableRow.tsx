@@ -62,15 +62,15 @@ export default function TableRow({
     const isInteractive = interactive && !isLoading;
 
     const tableRowPressableStyles = [
-        styles.mh5,
+        shouldUseNarrowTableLayout && styles.mh5,
         styles.flexRow,
-        styles.highlightBG,
+        styles.appBG,
         styles.alignItemsCenter,
         isInteractive && styles.userSelectNone,
-        shouldUseNarrowTableLayout ? styles.ph4 : styles.ph3,
+        shouldUseNarrowTableLayout ? styles.ph4 : styles.ph5,
         shouldUseNarrowTableLayout && !isLoading && styles.pv4,
         !shouldUseNarrowTableLayout && !isLoading && styles.pv2,
-        isLastRow ? styles.tableBottomRadius : styles.borderBottom,
+        !isLastRow && styles.borderBottom,
         shouldUseNarrowTableLayout ? styles.tableRowHeightCompact : styles.tableRowHeight,
     ];
 

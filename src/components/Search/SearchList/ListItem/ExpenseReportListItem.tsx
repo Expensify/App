@@ -224,7 +224,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
         () => [
             styles.selectionListPressableItemWrapper,
             isLargeScreenWidth && styles.pv3,
-            isLargeScreenWidth && styles.ph3,
+            isLargeScreenWidth && styles.ph5,
             // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
             styles.bgTransparent,
             item.isSelected && styles.activeComponentBG,
@@ -250,7 +250,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
         borderRadius: 0,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
-        backgroundColor: item.isSelected ? theme.activeComponentBG : theme.highlightBG,
+        backgroundColor: item.isSelected ? theme.activeComponentBG : theme.appBG,
         shouldApplyOtherStyles: !isLargeScreenWidth,
     });
 
@@ -328,10 +328,9 @@ function ExpenseReportListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[
-                styles.mh5,
+                !isLargeScreenWidth && styles.mh5,
                 animatedHighlightStyle,
                 isPendingDelete && styles.cursorDisabled,
-                isLargeScreenWidth && isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
                 !isLargeScreenWidth && isFirstItem && styles.tableTopRadius,
                 !isLargeScreenWidth && isLastItem && styles.tableBottomRadius,
                 !isLargeScreenWidth && !isLastItem && StyleUtils.getSelectedBorderBottomStyle(item.isSelected),

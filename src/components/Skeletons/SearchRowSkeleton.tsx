@@ -68,7 +68,7 @@ function SearchRowSkeleton({
             <View style={[styles.flex1, containerStyle]}>
                 <ItemListSkeletonView
                     itemViewHeight={100}
-                    itemViewStyle={[styles.highlightBG, styles.mr0]}
+                    itemViewStyle={[styles.appBG, styles.mr0]}
                     itemContainerStyle={styles.borderBottom}
                     style={[styles.mh5, styles.overflowHidden, isLoadMore && styles.tableBottomRadius, !isLoadMore && styles.tableTopRadius]}
                     gradientOpacityEnabled={gradientOpacityEnabled}
@@ -133,10 +133,10 @@ function SearchRowSkeleton({
                 fixedNumItems={fixedNumItems}
                 gradientOpacityEnabled={gradientOpacityEnabled}
                 onLayout={onLayout}
-                itemViewStyle={[styles.highlightBG, styles.mr0]}
+                itemViewStyle={[styles.appBG, styles.mr0]}
                 itemViewHeight={variables.tableRowHeight}
                 itemContainerStyle={styles.borderBottom}
-                style={[styles.mh5, styles.overflowHidden, isLoadMore && styles.tableBottomRadius, !isLoadMore && styles.tableTopRadius]}
+                style={[styles.overflowHidden]}
                 renderSkeletonItem={() => (
                     <>
                         <SkeletonRect

@@ -40,7 +40,7 @@ function TaskListItem<TItem extends ListItem>({
     const listItemPressableStyle = [
         styles.selectionListPressableItemWrapper,
         styles.pv3,
-        styles.ph3,
+        styles.ph5,
         // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
         styles.bgTransparent,
         item.isSelected && styles.activeComponentBG,
@@ -58,7 +58,7 @@ function TaskListItem<TItem extends ListItem>({
         borderRadius: StyleUtils.getSearchTableHighlightBorderRadius(isLargeScreenWidth),
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
-        backgroundColor: theme.highlightBG,
+        backgroundColor: theme.appBG,
         shouldApplyOtherStyles: !isLargeScreenWidth,
     });
 
@@ -81,7 +81,7 @@ function TaskListItem<TItem extends ListItem>({
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
-            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle, isLargeScreenWidth && isLastItem && [styles.tableBottomRadius, styles.overflowHidden]]}
+            pressableWrapperStyle={[!isLargeScreenWidth && styles.mh5, animatedHighlightStyle]}
             forwardedFSClass={fsClass}
         >
             <TaskListItemRow

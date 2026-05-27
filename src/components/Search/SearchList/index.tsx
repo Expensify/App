@@ -505,14 +505,15 @@ function SearchList({
     const tableHeaderVisible = canSelectMultiple || !!SearchTableHeader;
     const selectAllButtonVisible = canSelectMultiple && !SearchTableHeader;
     const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === totalItems && hasLoadedAllTransactions;
+    const isTableLayout = isLargeScreenWidth && !!SearchTableHeader;
 
-    const content = (
-        <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
+    const headerAndList = (
+        <>
             {tableHeaderVisible && (
                 <View
                     style={[
                         styles.searchListHeaderContainerStyle,
-                        isLargeScreenWidth ? [styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, styles.mh5] : styles.listTableHeader,
+                        isLargeScreenWidth ? [styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, !isTableLayout && styles.mh5] : styles.listTableHeader,
                     ]}
                 >
                     {canSelectMultiple && (
@@ -568,6 +569,12 @@ function SearchList({
                 isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                 nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
             />
+        </>
+    );
+
+    const content = (
+        <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
+            {isTableLayout ? <View style={[styles.searchTableWrapper, styles.flexShrink1]}>{headerAndList}</View> : headerAndList}
             <Modal
                 isVisible={isModalVisible}
                 type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
