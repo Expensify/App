@@ -1,10 +1,11 @@
 import type {NavigationState} from '@react-navigation/native';
 import type {RefObject} from 'react';
-import {AccessibilityInfo} from 'react-native';
 import type {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports -- .native.ts only; the rule guards web bundles from pulling the native stub.
 import findNodeHandle from '@src/utils/findNodeHandle';
 import Accessibility from './Accessibility';
+import fireFocusEvent from './Accessibility/fireFocusEvent';
+import {notifyBackButtonMounted, scheduleForwardAutoFocus} from './Accessibility/forwardAutoFocus';
 import navigationRef from './Navigation/navigationRef';
 // eslint-disable-next-line no-restricted-imports -- focus-return is a sibling primitive to TransitionTracker; the exact transitionEnd signal is what we need to avoid focus-restore races with the OS.
 import TransitionTracker from './Navigation/TransitionTracker';
@@ -60,12 +61,11 @@ function captureTriggerForRoute(routeKey: string): void {
     setTriggerEntry(routeKey, {ref});
 }
 
-function fireFocusEvent(view: View): boolean {
-    // Truthy ref can still point to a detached View; findNodeHandle returns null then.
+function tryFireFocusEvent(view: View): boolean {
     if (findNodeHandle(view) == null) {
         return false;
     }
-    AccessibilityInfo.sendAccessibilityEvent(view, 'focus');
+    fireFocusEvent(view);
     return true;
 }
 
@@ -78,7 +78,7 @@ function restoreTriggerForRoute(routeKey: string): View | null {
     if (!view) {
         return null;
     }
-    return fireFocusEvent(view) ? view : null;
+    return tryFireFocusEvent(view) ? view : null;
 }
 
 function cancelPendingRestore(): void {
@@ -104,7 +104,7 @@ function scheduleRestore(routeKey: string): void {
                 if (cancelled) {
                     return;
                 }
-                fireFocusEvent(view);
+                tryFireFocusEvent(view);
                 triggerMap.delete(routeKey);
                 pendingRestore = null;
             }, RESTORE_RETRY_MS);
@@ -133,6 +133,7 @@ function handleStateChange(newState: NavigationState | undefined): void {
         cancelPendingRestore();
         captureTriggerForRoute(action.captureKey);
         lastPressedTrigger = null;
+        scheduleForwardAutoFocus();
     } else if (action.type === 'backward') {
         if (skipNextRestore) {
             skipNextRestore = false;
@@ -226,6 +227,7 @@ export {
     notifyPushParamsBackward,
     cancelPendingFocusRestore,
     skipNextFocusRestore,
+    notifyBackButtonMounted,
     isFocusRestoreInProgress,
     shouldSkipAutoFocusDueToExistingFocus,
     resetForTests,

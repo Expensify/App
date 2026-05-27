@@ -11,6 +11,7 @@ type NavState = {
     history: unknown[];
 };
 
+const mockFireFocusEvent = jest.fn();
 const mockSendAccessibilityEvent = jest.fn();
 let mockScreenReaderEnabled = true;
 
@@ -21,6 +22,13 @@ jest.mock('../../src/libs/Accessibility', () => ({
         isScreenReaderEnabledSync: () => mockScreenReaderEnabled,
         useScreenReaderStatus: () => mockScreenReaderEnabled,
         useReducedMotion: () => false,
+    },
+}));
+
+jest.mock('../../src/libs/Accessibility/fireFocusEvent', () => ({
+    __esModule: true,
+    default: (view: unknown): void => {
+        mockFireFocusEvent(view);
     },
 }));
 
@@ -138,6 +146,7 @@ function fakeView(label = 'view'): {label: string} {
 beforeEach(() => {
     jest.useFakeTimers();
     mockSendAccessibilityEvent.mockClear();
+    mockFireFocusEvent.mockClear();
     mockScreenReaderEnabled = true;
     mockStateListeners = [];
     mockNavigationRefState = undefined;
@@ -246,12 +255,12 @@ describe('handleStateChange — backward', () => {
         handleStateChange(forward);
         handleStateChange(back);
         flushTransitions();
-        expect(mockSendAccessibilityEvent).toHaveBeenCalledTimes(1);
-        expect(mockSendAccessibilityEvent).toHaveBeenNthCalledWith(1, view, 'focus');
+        expect(mockFireFocusEvent).toHaveBeenCalledTimes(1);
+        expect(mockFireFocusEvent).toHaveBeenNthCalledWith(1, view);
 
         jest.runAllTimers();
-        expect(mockSendAccessibilityEvent).toHaveBeenCalledTimes(2);
-        expect(mockSendAccessibilityEvent).toHaveBeenNthCalledWith(2, view, 'focus');
+        expect(mockFireFocusEvent).toHaveBeenCalledTimes(2);
+        expect(mockFireFocusEvent).toHaveBeenNthCalledWith(2, view);
     });
 
     it('does NOT restore when skipNextFocusRestore was called before goBack (form-submit path)', () => {
@@ -270,7 +279,7 @@ describe('handleStateChange — backward', () => {
         handleStateChange(back);
         flushTransitions();
 
-        expect(mockSendAccessibilityEvent).not.toHaveBeenCalled();
+        expect(mockFireFocusEvent).not.toHaveBeenCalled();
     });
 
     it('does NOT call sendAccessibilityEvent when no trigger was staged before the forward navigation', () => {
@@ -286,7 +295,7 @@ describe('handleStateChange — backward', () => {
         handleStateChange(back);
         flushTransitions();
 
-        expect(mockSendAccessibilityEvent).not.toHaveBeenCalled();
+        expect(mockFireFocusEvent).not.toHaveBeenCalled();
     });
 
     it('does NOT call sendAccessibilityEvent when the captured view has been detached (parent screen replaced)', () => {
@@ -304,7 +313,7 @@ describe('handleStateChange — backward', () => {
         handleStateChange(back);
         flushTransitions();
 
-        expect(mockSendAccessibilityEvent).not.toHaveBeenCalled();
+        expect(mockFireFocusEvent).not.toHaveBeenCalled();
     });
 
     it('cleans the trigger entry from the map after a successful restore', () => {
@@ -357,7 +366,7 @@ describe('handleStateChange — lateral & cleanup', () => {
         handleStateChange(lateralAfter);
 
         flushTransitions();
-        expect(mockSendAccessibilityEvent).not.toHaveBeenCalled();
+        expect(mockFireFocusEvent).not.toHaveBeenCalled();
     });
 
     it('drops trigger entries for routes removed from the stack', () => {
@@ -391,7 +400,7 @@ describe('handleStateChange — lateral & cleanup', () => {
         cancelPendingFocusRestore();
         flushTransitions();
 
-        expect(mockSendAccessibilityEvent).not.toHaveBeenCalled();
+        expect(mockFireFocusEvent).not.toHaveBeenCalled();
     });
 });
 

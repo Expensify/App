@@ -1,7 +1,8 @@
 import type {NavigationState} from '@react-navigation/native';
 // eslint-disable-next-line no-restricted-imports -- idiomatic defer primitive past navigation transitions.
 import {InteractionManager} from 'react-native';
-import type {View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports -- type-only; mirrors PressableRef's cross-platform union for the back-button-mounted callback signature.
+import type {Text as RNText, View} from 'react-native';
 import compoundParamsKey, {COMPOUND_KEY_DELIMITER} from './compoundParamsKey';
 import FOCUSABLE_SELECTOR from './focusableSelector';
 import hasFocusableAttributes from './focusGuards';
@@ -102,6 +103,10 @@ function skipNextFocusRestore(): void {
 /** Native-only. Web captures via `focusin`; no-op here so the import resolves cross-platform. */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function notifyPressedTrigger(_node: View | null): void {}
+
+/** Native-only. Web doesn't need it — browser handles window-state focus on its own. */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function notifyBackButtonMounted(_node: View | RNText | null): void {}
 
 /** True only while restoreTriggerForRoute is in its .focus() call. Lists use it to tell the restore apart from a real keyboard Tab, which also has no sourceCapabilities. */
 function isFocusRestoreInProgress(): boolean {
@@ -482,6 +487,7 @@ export {
     cancelPendingFocusRestore,
     skipNextFocusRestore,
     notifyPressedTrigger,
+    notifyBackButtonMounted,
     isFocusRestoreInProgress,
     compoundParamsKey,
     shouldSkipAutoFocusDueToExistingFocus,
