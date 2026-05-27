@@ -157,7 +157,7 @@ function useComposerSubmit(reportID: string) {
     };
 
     const submitDraftAndClearComposer = () => {
-        if (isSendDisabled || !debouncedCommentMaxLengthValidation?.flush()) {
+        if (isSendDisabled || debouncedCommentMaxLengthValidation?.flush() === false) {
             return;
         }
 
