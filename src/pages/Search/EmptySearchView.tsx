@@ -35,6 +35,7 @@ import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetails, Policy, Report, Transaction} from '@src/types/onyx';
@@ -388,19 +389,17 @@ function EmptySearchViewContent({
             // We want to display the default nothing to show message if there is any filter applied.
             case CONST.SEARCH.DATA_TYPES.INVOICE: {
                 const userCanSendInvoice = canSendInvoice(allPolicies, currentUserPersonalDetails.login);
+                let subtitleKey: TranslationPaths = 'search.searchResults.emptyInvoiceResults.subtitle';
+                if (!userCanSendInvoice) {
+                    subtitleKey = 'search.searchResults.emptyInvoiceResults.subtitleCannotSend';
+                } else if (hasSeenTour) {
+                    subtitleKey = 'search.searchResults.emptyInvoiceResults.subtitleWithOnlyCreateButton';
+                }
                 if (!content && !hasResults) {
                     content = {
                         ...defaultViewItemHeader.folder,
                         title: translate('search.searchResults.emptyInvoiceResults.title'),
-                        subtitle: translate(
-                            // Nested ternary selects among three subtitle variants based on invoice permission and tour status
-                            // eslint-disable-next-line no-nested-ternary
-                            !userCanSendInvoice
-                                ? 'search.searchResults.emptyInvoiceResults.subtitleCannotSend'
-                                : hasSeenTour
-                                  ? 'search.searchResults.emptyInvoiceResults.subtitleWithOnlyCreateButton'
-                                  : 'search.searchResults.emptyInvoiceResults.subtitle',
-                        ),
+                        subtitle: translate(subtitleKey),
                         buttons: [
                             ...(!hasSeenTour
                                 ? [
