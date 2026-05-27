@@ -304,13 +304,15 @@ describe('getApprovalModeLabel', () => {
 });
 
 describe('getHRCards', () => {
-    it('returns no cards when no betas are enabled', () => {
+    it('returns only the Gusto card when no betas are enabled', () => {
         const cards = getHRCards(makeGetHRCardsParams({isBetaEnabled: noBetasEnabled}));
-        expect(cards).toHaveLength(0);
+        expect(cards).toHaveLength(1);
+        expect(cards?.at(0)?.key).toBe('gusto');
+        expect(cards?.at(0)?.connectionName).toBe(GUSTO);
     });
 
-    it('returns Gusto and Zenefits cards when their betas are enabled', () => {
-        const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.GUSTO || beta === CONST.BETAS.ZENEFITS;
+    it('returns Gusto and Zenefits cards when the Zenefits beta is enabled', () => {
+        const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.ZENEFITS;
         const cards = getHRCards(makeGetHRCardsParams({isBetaEnabled}));
 
         expect(cards).toHaveLength(2);
@@ -332,8 +334,7 @@ describe('getHRCards', () => {
     });
 
     it('sets correct routes for Gusto cards', () => {
-        const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.GUSTO;
-        const cards = getHRCards(makeGetHRCardsParams({isBetaEnabled}));
+        const cards = getHRCards(makeGetHRCardsParams({isBetaEnabled: noBetasEnabled}));
 
         expect(cards?.at(0)?.approvalModeRoute).toBe(ROUTES.WORKSPACE_HR_GUSTO_APPROVAL_MODE.getRoute(POLICY_ID));
         expect(cards?.at(0)?.finalApproverRoute).toBe(ROUTES.WORKSPACE_HR_GUSTO_FINAL_APPROVER.getRoute(POLICY_ID));
@@ -367,8 +368,7 @@ describe('getHRCards', () => {
                 },
             } as unknown as Policy['connections'],
         });
-        const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.GUSTO;
-        const cards = getHRCards(makeGetHRCardsParams({policy, isBetaEnabled}));
+        const cards = getHRCards(makeGetHRCardsParams({policy, isBetaEnabled: noBetasEnabled}));
 
         expect(cards?.at(0)?.isConnected).toBe(true);
         expect(cards?.at(0)?.config).toBeDefined();
@@ -466,7 +466,7 @@ describe('getHRCards', () => {
     it('uses provider icons from params for static providers', () => {
         const gustoIcon = {testId: 'gusto'} as unknown as IconAsset;
         const trinetIcon = {testId: 'zenefits'} as unknown as IconAsset;
-        const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.GUSTO || beta === CONST.BETAS.ZENEFITS;
+        const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.ZENEFITS;
         const cards = getHRCards(makeGetHRCardsParams({gustoIcon, trinetIcon, isBetaEnabled}));
 
         expect(cards?.at(0)?.icon).toBe(gustoIcon);
