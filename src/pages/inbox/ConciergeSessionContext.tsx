@@ -2,9 +2,10 @@ import React, {createContext, useCallback, useContext, useMemo, useState} from '
 import type {PropsWithChildren} from 'react';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import DateUtils from '@libs/DateUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 type ConciergeSessionStateContextType = {
     sessionStartTime: string | null;
@@ -42,8 +43,6 @@ const ConciergeSessionActionsContext = createContext<ConciergeSessionActionsCont
 function ConciergeSessionProvider({children}: PropsWithChildren) {
     const {currentReportID} = useCurrentReportIDState();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-
     const isConciergeMainDM = !!currentReportID && currentReportID === conciergeReportID;
 
     const [sessionStartTime, setSessionStartTime] = useState<string | null>(null);
@@ -62,12 +61,12 @@ function ConciergeSessionProvider({children}: PropsWithChildren) {
     if (prevIsConciergeMainDM !== isConciergeMainDM) {
         setPrevIsConciergeMainDM(isConciergeMainDM);
         if (!isConciergeMainDM) {
-            // On small screens the LHN is a separate screen, so leaving Concierge
-            // always means the user navigated away — clear unconditionally.
-            // On wider screens the LHN sits beside the chat, so only clear when
-            // the user actually opens a different report.
-            const shouldClear = shouldUseNarrowLayout || (!!currentReportID && currentReportID !== conciergeReportID);
-            if (shouldClear) {
+            // Only clear the session when navigating to a report or the
+            // chat list (LHN). Preserve for non-report pages like Settings
+            // (Claim Offer → /settings/subscription).
+            const activeRoute = Navigation.getActiveRoute();
+            const isReportOrInbox = activeRoute.startsWith('/r/') || activeRoute === `/${ROUTES.INBOX}`;
+            if (isReportOrInbox) {
                 setSessionStartTime(null);
                 setShowFullHistory(false);
             }
