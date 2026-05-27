@@ -1,7 +1,7 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import type {OnyxCollection} from 'react-native-onyx';
-import {useSearchActionsContext} from '@components/Search/SearchContext';
+import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SelectedReports} from '@components/Search/types';
 import {bulkDuplicateReports} from '@libs/actions/IOU/Duplicate';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
@@ -22,7 +22,7 @@ type UseBulkDuplicateReportActionParams = {
 
 function useBulkDuplicateReportAction({selectedReports, allReports, searchData}: UseBulkDuplicateReportActionParams) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {clearSelectedTransactions} = useSearchActionsContext();
+    const {clearSelectedTransactions} = useSearchSelectionActions();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);

@@ -160,7 +160,6 @@ function MessageEditLayoutHost({layout}: {layout: LayoutMode}) {
                     reportID={defaultReport.reportID}
                     originalReportID={defaultReport.reportID}
                     index={0}
-                    isGroupPolicyReport={false}
                 />
             )}
         </ReportScreenProviders>

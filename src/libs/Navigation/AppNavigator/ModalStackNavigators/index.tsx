@@ -265,11 +265,11 @@ const SplitDetailsModalStackNavigator = createModalStackNavigator<SplitDetailsNa
 });
 
 const ProfileModalStackNavigator = createModalStackNavigator<ProfileNavigatorParamList>({
-    [SCREENS.PROFILE_ROOT]: () => require<ReactComponentModule>('../../../../pages/ProfilePage').default,
+    [SCREENS.DYNAMIC_PROFILE]: () => require<ReactComponentModule>('../../../../pages/ProfilePage').default,
 });
 
 const NewReportWorkspaceSelectionModalStackNavigator = createModalStackNavigator<NewReportWorkspaceSelectionNavigatorParamList>({
-    [SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT]: () => require<ReactComponentModule>('../../../../pages/NewReportWorkspaceSelectionPage').default,
+    [SCREENS.NEW_REPORT_WORKSPACE_SELECTION.DYNAMIC_ROOT]: () => require<ReactComponentModule>('../../../../pages/DynamicNewReportWorkspaceSelectionPage').default,
 });
 
 const ReportDetailsModalStackNavigator = createModalStackNavigator<ReportDetailsNavigatorParamList>({
@@ -428,12 +428,6 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PROFILE.DATE_OF_BIRTH]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/DateOfBirthPage').default),
     [SCREENS.SETTINGS.PROFILE.PHONE_NUMBER]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/PhoneNumberPage').default),
     [SCREENS.SETTINGS.PROFILE.ADDRESS]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/PersonalAddressPage').default),
-    [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS]: withAgentAccessDenied(
-        () => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/PrivatePersonalDetailsPage').default,
-    ),
-    [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: withAgentAccessDenied(
-        () => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/PrivatePersonalDetailsConfirmMagicCodePage').default,
-    ),
     [SCREENS.SETTINGS.PROFILE.DYNAMIC_ADDRESS_COUNTRY]: withAgentAccessDenied(
         () => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/DynamicCountrySelectionPage').default,
     ),
@@ -1138,7 +1132,7 @@ const FlagCommentStackNavigator = createModalStackNavigator<FlagCommentNavigator
 });
 
 const EditRequestStackNavigator = createModalStackNavigator<EditRequestNavigatorParamList>({
-    [SCREENS.EDIT_REQUEST.REPORT_FIELD]: () => require<ReactComponentModule>('../../../../pages/EditReportFieldPage').default,
+    [SCREENS.EDIT_REQUEST.DYNAMIC_REPORT_FIELD]: () => require<ReactComponentModule>('../../../../pages/DynamicEditReportFieldPage').default,
 });
 
 const PrivateNotesModalStackNavigator = createModalStackNavigator<PrivateNotesNavigatorParamList>({
