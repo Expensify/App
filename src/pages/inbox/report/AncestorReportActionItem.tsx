@@ -41,9 +41,6 @@ type AncestorReportActionItemProps = {
     /** Account ID of the current user */
     currentUserAccountID: number;
 
-    /** Position index of the report action in the overall report FlatList view */
-    index: number;
-
     /** Model of onboarding */
     introSelected: OnyxEntry<IntroSelected>;
 
@@ -78,7 +75,6 @@ function AncestorReportActionItem({
     conciergePersonalDetail,
     conciergeReportID,
     currentUserAccountID,
-    index,
     introSelected,
     isFirstVisibleReportAction,
     isReportArchived,
@@ -156,7 +152,6 @@ function AncestorReportActionItem({
                 transactionThreadReport={transactionThreadReport}
                 displayAsGroup={false}
                 shouldDisplayNewMarker={shouldDisplayNewMarker}
-                index={index}
                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                 isThreadReportParentAction
