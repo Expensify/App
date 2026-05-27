@@ -355,9 +355,29 @@ describe('useYourSpendData — cardRows', () => {
 // query builder integration
 
 describe('useYourSpendData — query builder integration', () => {
-    it('calls buildAwaitingApprovalQuery with the current user accountID', () => {
+    it('calls buildAwaitingApprovalQuery with the current user accountID and an empty policyIDs list when no policy has an approval flow', () => {
+        mockedHasApprovalFlow.mockReturnValue(false);
         renderHook(() => useYourSpendData());
-        expect(buildAwaitingApprovalQuery).toHaveBeenCalledWith(ACCOUNT_ID);
+        expect(buildAwaitingApprovalQuery).toHaveBeenCalledWith(ACCOUNT_ID, []);
+    });
+
+    it('passes the sorted IDs of approval-flow policies into buildAwaitingApprovalQuery', () => {
+        const policyA = makeCorporatePolicy({id: 'a_policy'});
+        const policyZ = makeCorporatePolicy({id: 'z_policy'});
+        // Reverse insertion order: the hook should still pass them sorted ascending.
+        setupPolicies([policyZ, policyA]);
+        mockedHasApprovalFlow.mockReturnValue(true);
+        renderHook(() => useYourSpendData());
+        expect(buildAwaitingApprovalQuery).toHaveBeenCalledWith(ACCOUNT_ID, ['a_policy', 'z_policy']);
+    });
+
+    it('excludes policies that do not pass hasApprovalFlow from the policyIDs list', () => {
+        const approvedPolicy = makeCorporatePolicy({id: 'approved'});
+        const skippedPolicy = makeCorporatePolicy({id: 'skipped'});
+        setupPolicies([approvedPolicy, skippedPolicy]);
+        mockedHasApprovalFlow.mockImplementation((p) => p?.id === 'approved');
+        renderHook(() => useYourSpendData());
+        expect(buildAwaitingApprovalQuery).toHaveBeenCalledWith(ACCOUNT_ID, ['approved']);
     });
 
     it('calls buildRepaidLast30DaysQuery with the current user accountID', () => {

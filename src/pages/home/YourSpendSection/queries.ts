@@ -11,12 +11,16 @@ function get30DaysAgoDateString(): string {
     return `${year}-${month}-${day}`;
 }
 
-function buildAwaitingApprovalQuery(accountID: number): string {
+function buildAwaitingApprovalQuery(accountID: number, policyIDs: string[]): string {
     return buildQueryStringFromFilterFormValues({
         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
         status: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
         from: [String(accountID)],
         reimbursable: CONST.SEARCH.BOOLEAN.YES,
+        // Scope to workspaces with an approval flow so IOU reports (no policyID)
+        // and personal/optional-approval workspaces (excluded from the list) don't
+        // inflate the count.
+        ...(policyIDs.length > 0 ? {[FILTER_KEYS.POLICY_ID]: policyIDs} : {}),
     });
 }
 

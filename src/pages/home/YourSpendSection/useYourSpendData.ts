@@ -38,13 +38,29 @@ type YourSpendCardRow = {
 type YourSpendApplicability = {
     isApprovalApplicable: boolean;
     isPaymentApplicable: boolean;
+    // Sorted IDs of policies that pass `hasApprovalFlow`. The sort keeps the resulting
+    // search-query hash stable across unrelated `policies` updates (e.g. Onyx key
+    // insertion-order shuffles), so subscribers don't churn between snapshot keys.
+    approvalPolicyIDs: string[];
 };
 
 function getYourSpendApplicability(policies: OnyxCollection<Policy> | undefined): YourSpendApplicability {
-    const policyList = Object.values(policies ?? {});
-    const isApprovalApplicable = policyList.some((policy) => hasApprovalFlow(policy));
-    const isPaymentApplicable = policyList.some((policy) => isPaidGroupPolicy(policy) && arePaymentsEnabled(policy ?? undefined));
-    return {isApprovalApplicable, isPaymentApplicable};
+    const approvalPolicyIDs: string[] = [];
+    let isPaymentApplicable = false;
+    for (const policy of Object.values(policies ?? {})) {
+        if (policy?.id && hasApprovalFlow(policy)) {
+            approvalPolicyIDs.push(policy.id);
+        }
+        if (isPaidGroupPolicy(policy) && arePaymentsEnabled(policy ?? undefined)) {
+            isPaymentApplicable = true;
+        }
+    }
+    approvalPolicyIDs.sort();
+    return {
+        isApprovalApplicable: approvalPolicyIDs.length > 0,
+        isPaymentApplicable,
+        approvalPolicyIDs,
+    };
 }
 
 type YourSpendRowTotals = {
@@ -83,18 +99,19 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
 
-    const awaitingApprovalQuery = buildAwaitingApprovalQuery(accountID);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+
+    const {isApprovalApplicable, isPaymentApplicable, approvalPolicyIDs} = getYourSpendApplicability(policies);
+
+    const awaitingApprovalQuery = buildAwaitingApprovalQuery(accountID, approvalPolicyIDs);
     const repaidLast30DaysQuery = buildRepaidLast30DaysQuery(accountID);
 
     const approvalQueryJSON = buildSearchQueryJSON(awaitingApprovalQuery);
     const paymentQueryJSON = buildSearchQueryJSON(repaidLast30DaysQuery);
 
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [approvalSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${approvalQueryJSON?.hash}`);
     const [paymentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${paymentQueryJSON?.hash}`);
-
-    const {isApprovalApplicable, isPaymentApplicable} = getYourSpendApplicability(policies);
 
     // Memo anchor. The compiler does not auto-cache this call, so without the
     // `useMemo` every downstream value derived from `displayableCards` would
@@ -261,9 +278,11 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const approvalTotals: YourSpendRowTotals = shouldUseCachedApproval && cachedApprovalReady ? cachedApprovalReady : approvalTotalsRaw;
     const paymentTotals: YourSpendRowTotals = shouldUseCachedPayment && cachedPaymentReady ? cachedPaymentReady : paymentTotalsRaw;
 
-    // Stable key that changes whenever approval/payment applicability flips, so
-    // the search-firing effect re-runs.
-    const applicabilityKey = `${isApprovalApplicable ? 1 : 0}${isPaymentApplicable ? 1 : 0}`;
+    // Stable key that changes whenever approval/payment applicability flips OR
+    // the set of approval-flow workspaces changes (which changes the policyID
+    // filter and therefore the snapshot key the row subscribes to). Used to
+    // re-fire the search effect when the user joins/leaves a workspace.
+    const applicabilityKey = `${isApprovalApplicable ? 1 : 0}${isPaymentApplicable ? 1 : 0}|${approvalPolicyIDs.join(',')}`;
 
     const fireSearches = useEffectEvent(() => {
         if (isOffline) {
