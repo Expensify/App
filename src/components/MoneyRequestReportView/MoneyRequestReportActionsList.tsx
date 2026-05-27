@@ -274,7 +274,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
         isBackfillingRef.current = true;
         prevBackfillCursorRef.current = cursor;
-        const handle = InteractionManager.runAfterInteractions(() => getOlderActions(reportID, cursor));
+        const handle = TransitionTracker.runAfterTransitions({callback: () => getOlderActions(reportID, cursor)});
 
         return () => handle.cancel();
     }, [
