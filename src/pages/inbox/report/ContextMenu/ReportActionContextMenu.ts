@@ -58,6 +58,9 @@ type ReportActionContextMenu = {
     hideContextMenu: HideContextMenu;
     showDeleteModal: (reportID: string, reportAction: OnyxEntry<ReportAction>, shouldSetModalVisibility?: boolean, onConfirm?: OnConfirm, onCancel?: OnCancel) => void;
     hideDeleteModal: () => void;
+    showHoldEducationalModal: (onConfirm: () => void) => void;
+    showRejectEducationalModal: (onConfirm: () => void) => void;
+    handleHoldEducationalModal: (performHold: () => void) => void;
     isActiveReportAction: (accountID: string | number) => boolean;
     instanceIDRef: RefObject<string>;
     runAndResetOnPopoverHide: () => void;
@@ -189,5 +192,39 @@ function clearActiveReportAction() {
     return contextMenuRef.current.clearActiveReportAction();
 }
 
-export {contextMenuRef, showContextMenu, hideContextMenu, isActiveReportAction, clearActiveReportAction, showDeleteModal, hideDeleteModal, registerEnsureContextMenuMounted};
+function showHoldEducationalModal(onConfirm: () => void) {
+    if (!contextMenuRef.current) {
+        return;
+    }
+    contextMenuRef.current.showHoldEducationalModal(onConfirm);
+}
+
+function showRejectEducationalModal(onConfirm: () => void) {
+    if (!contextMenuRef.current) {
+        return;
+    }
+    contextMenuRef.current.showRejectEducationalModal(onConfirm);
+}
+
+function handleHoldEducationalModal(performHold: () => void) {
+    if (!contextMenuRef.current) {
+        performHold();
+        return;
+    }
+    contextMenuRef.current.handleHoldEducationalModal(performHold);
+}
+
+export {
+    contextMenuRef,
+    showContextMenu,
+    hideContextMenu,
+    isActiveReportAction,
+    clearActiveReportAction,
+    showDeleteModal,
+    hideDeleteModal,
+    showHoldEducationalModal,
+    showRejectEducationalModal,
+    handleHoldEducationalModal,
+    registerEnsureContextMenuMounted,
+};
 export type {ContextMenuType, ReportActionContextMenu, ContextMenuAnchor};
