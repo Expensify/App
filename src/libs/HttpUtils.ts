@@ -152,10 +152,10 @@ function processHTTPRequest<TKey extends OnyxKey>(
             }
 
             // Per-command messages indicating the resource already exists on the server (e.g. retry after a successful first attempt).
-            if (response.jsonCode === CONST.JSON_CODE.BAD_REQUEST && response.message && ALREADY_CREATED_MESSAGES.has(response.message)) {
+            if (response.jsonCode === CONST.JSON_CODE.EXP_ERROR && response.message && ALREADY_CREATED_MESSAGES.has(response.message)) {
                 throw new HttpsError({
                     message: CONST.ERROR.ALREADY_CREATED,
-                    status: CONST.JSON_CODE.BAD_REQUEST.toString(),
+                    status: CONST.JSON_CODE.EXP_ERROR.toString(),
                     title: response.message,
                 });
             }
