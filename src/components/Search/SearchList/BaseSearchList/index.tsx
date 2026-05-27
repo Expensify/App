@@ -2,7 +2,6 @@ import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {GestureResponderEvent, NativeSyntheticEvent} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Animated from 'react-native-reanimated';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
@@ -16,7 +15,7 @@ import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/Keyboar
 import {isFocusRestoreInProgress} from '@libs/NavigationFocusReturn';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Modal} from '@src/types/onyx';
+import {isModalActiveSelector} from '@src/selectors/Modal';
 import type BaseSearchListProps from './types';
 
 const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<SearchListItem>);
@@ -46,8 +45,7 @@ function BaseSearchList({
     const isFocused = useIsFocused();
     const {focusedCellId, isEditingCell} = useEditingCellState();
 
-    const modalVisibilitySelector = (modal: OnyxEntry<Modal>) => modal?.isVisible;
-    const [isModalVisible] = useOnyx(ONYXKEYS.MODAL, {selector: modalVisibilitySelector});
+    const [isModalVisible] = useOnyx(ONYXKEYS.MODAL, {selector: isModalActiveSelector});
 
     const setHasKeyBeenPressed = useCallback(() => {
         if (hasKeyBeenPressed.current) {
