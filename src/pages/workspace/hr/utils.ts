@@ -1,6 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import {hasSynchronizationErrorMessage, isConnectionInProgress} from '@libs/actions/connections';
+import {hasSynchronizationErrorMessage, isAuthenticationError, isConnectionInProgress} from '@libs/actions/connections';
 import getGustoSetupLink from '@libs/actions/connections/Gusto';
 import getMergeHRSetupLink from '@libs/actions/connections/MergeHR';
 import getZenefitsSetupLink from '@libs/actions/connections/Zenefits';
@@ -50,6 +50,9 @@ type HRCardDescriptor = {
     /** Whether the last sync resulted in an error. */
     hasError: boolean;
 
+    /** Whether the last sync failed due to an authentication error. */
+    hasAuthenticationError: boolean;
+
     /** Human-readable error message from the last failed sync attempt. */
     lastSyncErrorMessage?: string;
 
@@ -92,10 +95,14 @@ type GetHRCardStateParams = {
 function getMergeHRSyncState(policy: OnyxEntry<Policy>) {
     const lastSync = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]?.lastSync;
     const isSyncInProgress = lastSync?.syncStatus === CONST.MERGE_HR.SYNC_STATUS.SYNCING;
+    const hasAuthenticationError = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR);
+    const hasFailedSync = lastSync?.syncStatus === CONST.MERGE_HR.SYNC_STATUS.FAILED;
+
     return {
         isSyncInProgress,
         isInitialSyncInProgress: isSyncInProgress && lastSync?.syncType === CONST.MERGE_HR.SYNC_TYPE.INITIAL,
-        hasError: lastSync?.syncStatus === CONST.MERGE_HR.SYNC_STATUS.FAILED,
+        hasAuthenticationError,
+        hasError: hasFailedSync && !hasAuthenticationError,
         syncStageInProgress: undefined,
         successfulDate: lastSync?.successfulDate,
     };
@@ -113,6 +120,7 @@ function getHRSyncState(
     return {
         isSyncInProgress,
         isInitialSyncInProgress: undefined,
+        hasAuthenticationError: false,
         hasError: hasSynchronizationErrorMessage(policy, connectionName, isSyncInProgress),
         syncStageInProgress: isSyncInProgress && syncProgress?.stageInProgress ? syncProgress.stageInProgress : undefined,
         successfulDate: getIntegrationLastSuccessfulDate(getLocalDateFromDatetime, connection, syncProgress),
@@ -261,7 +269,7 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
 
     if (isBetaEnabled(CONST.BETAS.MERGE_HR)) {
         const mergeConnectionName = CONST.POLICY.CONNECTIONS.NAME.MERGE_HR;
-        const disconnectedState = {isConnected: false, isSyncInProgress: false, isInitialSyncInProgress: false, hasError: false} as const;
+        const disconnectedState = {isConnected: false, isSyncInProgress: false, isInitialSyncInProgress: false, hasError: false, hasAuthenticationError: false} as const;
 
         for (const [slug, providerEntry] of Object.entries(MERGE_HR_PROVIDERS) as Array<[MergeHRProviderSlug, (typeof MERGE_HR_PROVIDERS)[MergeHRProviderSlug]]>) {
             const state = getHRCardState({policy, connectionName: mergeConnectionName, connectionSyncProgress, getLocalDateFromDatetime, mergeSlug: slug});
