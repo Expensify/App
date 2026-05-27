@@ -11,7 +11,7 @@ import {getOriginalMessage, isActionOfType} from './ReportActionsUtils';
 
 function getSpendRuleFallbackReportActionText(reportAction: OnyxEntry<ReportAction>): string {
     const message = Array.isArray(reportAction?.message) ? reportAction?.message.at(0) : reportAction?.message;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing - We intentionally use || here because empty strings from stripFollowupListFromHtml should also fall through to the text fallback
     const text = stripFollowupListFromHtml(message?.html) || (message?.text ?? '');
     return text ? Parser.htmlToText(text) : '';
 }
