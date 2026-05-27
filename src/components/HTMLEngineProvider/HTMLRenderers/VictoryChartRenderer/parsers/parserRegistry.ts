@@ -1,5 +1,6 @@
 import type {NodeParser} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import parseVictoryAxisNode from './victoryAxisParser';
+import parseVictoryChartNode from './victoryChartParser';
 import parseVictoryLabelNode from './victoryLabelParser';
 import parseVictoryLegendNode from './victoryLegendParser';
 import parseVictorySeriesNode from './victorySeriesParser';
@@ -9,6 +10,7 @@ import parseVictorySeriesNode from './victorySeriesParser';
  * To support a new VictoryChart tag, add a new entry here and create the parser file.
  */
 const PARSER_REGISTRY: Partial<Record<string, NodeParser>> = {
+    victorychart: parseVictoryChartNode,
     victorybar: parseVictorySeriesNode,
     victoryline: parseVictorySeriesNode,
     victoryaxis: parseVictoryAxisNode,

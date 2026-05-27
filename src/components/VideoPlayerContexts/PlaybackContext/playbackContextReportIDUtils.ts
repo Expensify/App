@@ -27,7 +27,7 @@ const normalizeReportID = (reportID: ProtectedCurrentRouteReportID) => {
 };
 
 type SearchRoute = Omit<Route<string>, 'key'> | undefined;
-type RouteWithReportIDInParams<T> = T & {params: ReportDetailsNavigatorParamList[typeof SCREENS.REPORT_DETAILS.ROOT]};
+type RouteWithReportIDInParams<T> = T & {params: ReportDetailsNavigatorParamList[typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT]};
 
 const getCurrentRouteReportID: (url: string) => string | ProtectedCurrentRouteReportID = (url): string | typeof NO_REPORT_ID_IN_PARAMS | typeof NO_REPORT_ID => {
     const route = Navigation.getActiveRouteWithoutParams() as ActiveRoute;
