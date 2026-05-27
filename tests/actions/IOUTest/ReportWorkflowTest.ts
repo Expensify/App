@@ -2010,13 +2010,14 @@ describe('actions/IOU/ReportWorkflow', () => {
         it('optimistically clears iouReportID and restores the prior value on failure', async () => {
             const chatReportID = '100';
             const expenseReportID = '200';
-            const previousIouReportID = '999';
 
-            // Seed the chat report in Onyx so getReportOrDraftReport can find it
+            // Seed the chat report in Onyx so getReportOrDraftReport can find it.
+            // The chat's iouReportID must match the expense report being unapproved
+            // for the guard to allow the clear.
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {
                 ...createRandomReport(0, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 reportID: chatReportID,
-                iouReportID: previousIouReportID,
+                iouReportID: expenseReportID,
             });
             await waitForBatchedUpdates();
 
@@ -2042,10 +2043,47 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(optimisticChatUpdate).toBeDefined();
             expect((optimisticChatUpdate?.value as Record<string, unknown>)?.iouReportID).toBeNull();
 
-            // Verify failure data restores the chat's original iouReportID, not the expense report ID
+            // Verify failure data restores the chat's original iouReportID
             const failureChatUpdate = (onyxData.failureData ?? []).find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
             expect(failureChatUpdate).toBeDefined();
-            expect((failureChatUpdate?.value as Record<string, unknown>)?.iouReportID).toBe(previousIouReportID);
+            expect((failureChatUpdate?.value as Record<string, unknown>)?.iouReportID).toBe(expenseReportID);
+        });
+
+        it('does not clear iouReportID when chat already points to a different report', async () => {
+            const chatReportID = '100';
+            const expenseReportID = '200';
+            const differentReportID = '999';
+
+            // Seed the chat report with an iouReportID that points to a different report
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {
+                ...createRandomReport(0, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: chatReportID,
+                iouReportID: differentReportID,
+            });
+            await waitForBatchedUpdates();
+
+            const expenseReport: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: expenseReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: 10000,
+                currency: CONST.CURRENCY.USD,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                chatReportID,
+                isCancelledIOU: true,
+            };
+
+            unapproveExpenseReport(expenseReport, {} as Policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, false, undefined, undefined);
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
+            const calls = (API.write as jest.Mock).mock.calls;
+            const [, , onyxData] = calls.at(-1) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT>];
+
+            // No optimistic update should target the chat report since its iouReportID doesn't match
+            const optimisticChatUpdate = (onyxData.optimisticData ?? []).find(
+                (update: {key: string; value?: unknown}) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}` && (update.value as Record<string, unknown>)?.iouReportID === null,
+            );
+            expect(optimisticChatUpdate).toBeUndefined();
         });
 
         it('does not add parent chat updates when isCancelledIOU is false', () => {

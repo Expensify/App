@@ -1169,7 +1169,7 @@ function unapproveExpenseReport(
     // iouReportID so the next expense from the FAB creates a fresh report instead of
     // appending to the cancelled-and-unapproved one. This mirrors submitReport's cleanup.
     const chatReport = expenseReport.chatReportID ? getReportOrDraftReport(expenseReport.chatReportID) : undefined;
-    if (chatReport && expenseReport.isCancelledIOU) {
+    if (chatReport && expenseReport.isCancelledIOU && chatReport.iouReportID === expenseReport.reportID) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
@@ -1230,7 +1230,7 @@ function unapproveExpenseReport(
         },
     ];
 
-    if (chatReport && expenseReport.isCancelledIOU) {
+    if (chatReport && expenseReport.isCancelledIOU && chatReport.iouReportID === expenseReport.reportID) {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
