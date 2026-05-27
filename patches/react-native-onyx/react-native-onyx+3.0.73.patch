@@ -48,7 +48,7 @@ index 87d163f..1971cd2 100644
  };
  exports.default = OnyxUtils;
 diff --git a/node_modules/react-native-onyx/dist/storage/providers/SQLiteProvider.js b/node_modules/react-native-onyx/dist/storage/providers/SQLiteProvider.js
-index 2a5ebe5..42240bc 100644
+index 2a5ebe5..6b7f123 100644
 --- a/node_modules/react-native-onyx/dist/storage/providers/SQLiteProvider.js
 +++ b/node_modules/react-native-onyx/dist/storage/providers/SQLiteProvider.js
 @@ -7,6 +7,35 @@ const react_native_nitro_sqlite_1 = require("react-native-nitro-sqlite");
@@ -122,7 +122,7 @@ index 2a5ebe5..42240bc 100644
              patchQueryArguments.push([key, changeWithoutMarkers]);
              const patches = replaceNullPatches !== null && replaceNullPatches !== void 0 ? replaceNullPatches : [];
              if (patches.length > 0) {
-@@ -147,8 +176,41 @@ const provider = {
+@@ -147,8 +176,48 @@ const provider = {
          }
          return provider.store.executeAsync('SELECT record_key, valueJSON FROM keyvaluepairs;').then(({ rows }) => {
              // eslint-disable-next-line no-underscore-dangle
@@ -160,6 +160,13 @@ index 2a5ebe5..42240bc 100644
 +                globalThis.__onyxInitialParse = __stats;
 +                if (typeof globalThis.__onOnyxInitialParse === 'function') {
 +                    try { globalThis.__onOnyxInitialParse(__stats); } catch (e) { /* swallow */ }
++                }
++                // Native-parser benchmark hook — app code installs `__benchmarkOnyxNativeParse` to
++                // re-parse the same JSON strings with a non-Hermes parser (e.g. simdjson via
++                // react-native-fast-json) and forward end-to-end timings to Sentry. Fired once,
++                // immediately after Hermes parse, on the same raw row data still resident in memory.
++                if (typeof globalThis.__benchmarkOnyxNativeParse === 'function') {
++                    try { globalThis.__benchmarkOnyxNativeParse(rawRows); } catch (e) { /* swallow */ }
 +                }
 +            }
 +            return result;

@@ -84,6 +84,17 @@ declare var __onyxStringifyStats: OnyxStringifyStats | undefined;
 // eslint-disable-next-line no-var, no-underscore-dangle, @typescript-eslint/naming-convention
 declare var __onyxStringifyActive: boolean | undefined;
 
+// Benchmark for https://github.com/Expensify/App/issues/89652 — head-to-head native parser.
+// The patched SQLiteProvider invokes `__benchmarkOnyxNativeParse` once, right after Hermes
+// finishes the initial bulk parse, with the same raw rows still resident in memory. App
+// code re-parses them with `react-native-fast-json` (simdjson via Nitro/JSI) end-to-end and
+// forwards timings to Sentry under `onyx_initial_parse_native_ms`.
+// `record_key` and `valueJSON` match the underlying SQLite column names exactly, so we suppress the naming-convention rule.
+// eslint-disable-next-line @typescript-eslint/naming-convention
+type OnyxRawRow = {record_key: string; valueJSON: string};
+// eslint-disable-next-line no-var, no-underscore-dangle, @typescript-eslint/naming-convention
+declare var __benchmarkOnyxNativeParse: ((rawRows: OnyxRawRow[]) => void) | undefined;
+
 // Define ArrayBuffer.transfer as its a relatively new API and not yet present in all environments
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 interface ArrayBuffer {

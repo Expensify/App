@@ -29,7 +29,7 @@ function flushOnyxStringifyStats(): void {
         const kb = (stats.totalBytes / 1024).toFixed(1);
         // eslint-disable-next-line no-console
         console.log(
-            `[Onyx] startup JSON.stringify: ${stats.totalMs.toFixed(1)} ms / ${stats.callCount} calls / ${kb} KB ` + `(slowest call: ${stats.maxMs.toFixed(1)} ms / ${stats.maxBytes} bytes)`,
+            `[Onyx] startup JSON.stringify: ${stats.totalMs.toFixed(1)} ms / ${stats.callCount} calls / ${kb} KB (slowest call: ${stats.maxMs.toFixed(1)} ms / ${stats.maxBytes} bytes)`,
         );
     }
 

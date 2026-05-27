@@ -1987,6 +1987,7 @@ const CONST = {
         CONTEXT_MEMORY: 'Memory',
         CONTEXT_POLICIES: 'Policies',
         CONTEXT_ONYX_INITIAL_PARSE: 'OnyxInitialParse',
+        CONTEXT_ONYX_INITIAL_PARSE_NATIVE: 'OnyxInitialParseNative',
         CONTEXT_ONYX_STRINGIFY: 'OnyxStartupStringify',
         // Breadcrumb names
         BREADCRUMB_CATEGORY_MEMORY: 'system.memory',
@@ -1998,6 +1999,7 @@ const CONST = {
         BREADCRUMB_CATEGORY_SCRIPT_LOAD: 'script.load',
         BREADCRUMB_CATEGORY_ONYX_INIT: 'onyx.init',
         MEASUREMENT_ONYX_INITIAL_PARSE_MS: 'onyx_initial_parse_ms',
+        MEASUREMENT_ONYX_INITIAL_PARSE_NATIVE_MS: 'onyx_initial_parse_native_ms',
         MEASUREMENT_ONYX_STRINGIFY_MS: 'onyx_startup_stringify_ms',
         BREADCRUMB_MEMORY_PERIODIC: 'Periodic memory check',
         BREADCRUMB_MEMORY_FOREGROUND: 'App foreground - memory check',
