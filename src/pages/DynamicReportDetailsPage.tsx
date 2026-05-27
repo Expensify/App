@@ -109,7 +109,7 @@ import {
     shouldDisableRename as shouldDisableRenameUtil,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
-import {isDemoTransaction} from '@libs/TransactionUtils';
+import {getOriginalTransactionWithSplitInfo, isDemoTransaction} from '@libs/TransactionUtils';
 import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoneyRequest';
 import {deleteTrackExpense, getNavigationUrlAfterTrackExpenseDelete} from '@userActions/IOU/TrackExpense';
 import {
@@ -324,6 +324,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const canDeleteRequest = isActionOwner && (canDeleteTransaction(moneyRequestReport, isMoneyRequestReportArchived) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
     const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
+    const [iouOriginalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransaction?.comment?.originalTransactionID)}`);
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(iouTransactionID ? [iouTransactionID] : []);
     const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({
         report: parentReport,
@@ -629,7 +630,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         isSelfDM,
         isArchivedRoom,
         isGroupChat,
-        expensifyIcons,
         isDefaultRoom,
         isChatThread,
         isPolicyEmployee,
@@ -649,9 +649,21 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         shouldShowGoToWorkspace,
         shouldShowLeaveButton,
         isDebugModeEnabled,
+        expensifyIcons.Users,
+        expensifyIcons.Gear,
+        expensifyIcons.Send,
+        expensifyIcons.Folder,
+        expensifyIcons.UserPlus,
+        expensifyIcons.Pencil,
+        expensifyIcons.Checkmark,
+        expensifyIcons.Building,
+        expensifyIcons.Exit,
+        expensifyIcons.Bug,
+        styles.ph2,
         shouldOpenRoomMembersPage,
         navigateBackFromReportDetailsPath,
         parentReportAction,
+        reportActionsForOriginalReportID,
         iouTransactionID,
         moneyRequestReport?.reportID,
         currentUserPersonalDetails.accountID,
@@ -667,13 +679,11 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         introSelected,
         draftTransactionIDs,
         activePolicy,
-        parentReport,
-        reportActionsForOriginalReportID,
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
         iouTransaction,
-        styles.ph2,
+        parentReport,
         delegateEmail,
     ]);
 
@@ -890,8 +900,9 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         }
 
         const isTrackExpense = isTrackExpenseAction(requestParentReportAction);
+        const {isExpenseSplit: isSelfDMExpenseSplit} = getOriginalTransactionWithSplitInfo(iouTransaction, iouOriginalTransaction);
 
-        if (isTrackExpense) {
+        if (isTrackExpense && !isSelfDMExpenseSplit) {
             deleteTrackExpense({
                 chatReportID: moneyRequestReport?.reportID,
                 chatReport: moneyRequestReport,
@@ -918,6 +929,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     }, [
         caseID,
         requestParentReportAction,
+        iouTransaction,
+        iouOriginalTransaction,
         iouTransactionID,
         report,
         parentReport,
@@ -926,6 +939,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         currentUserPersonalDetails.email,
         hasOutstandingChildTask,
         parentReportAction,
+        conciergeReportID,
+        delegateEmail,
         ancestors,
         moneyRequestReport,
         iouReport,
@@ -938,8 +953,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         allTransactionViolations,
         deleteTransactions,
         removeTransaction,
-        conciergeReportID,
-        delegateEmail,
     ]);
 
     // Where to navigate back to after deleting the transaction and its report.
