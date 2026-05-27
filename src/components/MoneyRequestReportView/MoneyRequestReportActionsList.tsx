@@ -218,6 +218,8 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const scrollingVerticalTopOffset = useRef(0);
     const wrapperViewRef = useRef<View>(null);
     const readActionSkipped = useRef(false);
+    const stickToBottomRef = useRef(false);
+    const stickToBottomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
     const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated;
     const userActiveSince = useRef<string>(DateUtils.getDBTime());
@@ -611,6 +613,16 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const scrollToBottomAndMarkReportAsRead = useCallback(() => {
         setIsFloatingMessageCounterVisible(false);
 
+        stickToBottomRef.current = true;
+        if (stickToBottomTimeoutRef.current) {
+            clearTimeout(stickToBottomTimeoutRef.current);
+        }
+        // Safety net: stop pinning after deferred content has had time to settle, so a much later
+        // unrelated layout change doesn't yank the user back down.
+        stickToBottomTimeoutRef.current = setTimeout(() => {
+            stickToBottomRef.current = false;
+        }, 2000);
+
         if (!hasNewestReportAction) {
             openReport({reportID, introSelected, betas});
             reportScrollManager.scrollToEnd();
@@ -621,6 +633,30 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         readActionSkipped.current = false;
         readNewestAction(reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
     }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, reportID, reportLoadingState?.hasOnceLoadedReportActions, introSelected, betas]);
+
+    useEffect(() => {
+        return () => {
+            if (!stickToBottomTimeoutRef.current) {
+                return;
+            }
+            clearTimeout(stickToBottomTimeoutRef.current);
+        };
+    }, []);
+
+    const onListContentSizeChange = () => {
+        if (!stickToBottomRef.current) {
+            return;
+        }
+        reportScrollManager.scrollToEnd();
+    };
+
+    const onListScrollBeginDrag = () => {
+        stickToBottomRef.current = false;
+        if (stickToBottomTimeoutRef.current) {
+            clearTimeout(stickToBottomTimeoutRef.current);
+            stickToBottomTimeoutRef.current = null;
+        }
+    };
 
     const scrollToNewTransaction = useCallback(
         (pageY: number) => {
@@ -711,6 +747,8 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                                 accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                                 onLayout={recordTimeToMeasureItemLayout}
                                 onScroll={trackVerticalScrolling}
+                                onScrollBeginDrag={onListScrollBeginDrag}
+                                onContentSizeChange={onListContentSizeChange}
                                 onViewableItemsChanged={onViewableItemsChanged}
                                 onEndReached={onEndReached}
                                 onStartReached={onStartReached}
@@ -738,6 +776,8 @@ type MoneyRequestReportUnifiedListProps = {
     accessibilityLabel: string;
     onLayout: () => void;
     onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+    onScrollBeginDrag: () => void;
+    onContentSizeChange: () => void;
     onViewableItemsChanged: (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => void;
     onEndReached: () => void;
     onStartReached: () => void;
@@ -758,6 +798,8 @@ function MoneyRequestReportUnifiedList({
     accessibilityLabel,
     onLayout,
     onScroll,
+    onScrollBeginDrag,
+    onContentSizeChange,
     onViewableItemsChanged,
     onEndReached,
     onStartReached,
@@ -817,6 +859,9 @@ function MoneyRequestReportUnifiedList({
                 keyExtractor={unifiedListKeyExtractor}
                 getItemType={unifiedListItemType}
                 initialScrollIndex={initialScrollIndex}
+                maintainVisibleContentPosition={{
+                    autoscrollToBottomThreshold: 0,
+                }}
                 onViewableItemsChanged={onViewableItemsChangedAdjusted}
                 onLayout={onLayout}
                 onEndReached={onEndReached}
@@ -832,6 +877,8 @@ function MoneyRequestReportUnifiedList({
                 }
                 keyboardShouldPersistTaps="handled"
                 onScroll={onScroll}
+                onScrollBeginDrag={onScrollBeginDrag}
+                onContentSizeChange={onContentSizeChange}
                 contentContainerStyle={contentContainerStyle}
                 ListEmptyComponent={!isOffline && isLoadingInitialActions ? <ReportActionsListLoadingSkeleton reasonAttributes={skeletonReasonAttributes} /> : undefined}
             />
