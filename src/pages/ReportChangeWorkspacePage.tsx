@@ -113,9 +113,9 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                     parentReport,
                     policy,
                     currentUser: {
-                        accountID: session?.accountID,
+                        accountID: currentUserPersonalDetails.accountID,
                         displayName: currentUserPersonalDetails.displayName,
-                        email: session?.email,
+                        email: currentUserPersonalDetails.email,
                         avatar: currentUserPersonalDetails.avatar,
                     },
                     hasViolationsParam: hasViolations,

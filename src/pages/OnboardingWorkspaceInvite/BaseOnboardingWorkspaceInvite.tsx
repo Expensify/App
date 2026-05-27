@@ -184,7 +184,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             {
                 accountID: currentUserPersonalDetails.accountID,
                 displayName: currentUserPersonalDetails.displayName,
-                email: session?.email,
+                email: currentUserPersonalDetails.email,
                 avatar: currentUserPersonalDetails.avatar,
             },
             undefined,

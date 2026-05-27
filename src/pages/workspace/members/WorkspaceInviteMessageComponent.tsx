@@ -164,7 +164,7 @@ function WorkspaceInviteMessageComponent({
             {
                 accountID: currentUserPersonalDetails?.accountID,
                 displayName: currentUserPersonalDetails?.displayName,
-                email: session?.email,
+                email: currentUserPersonalDetails.email,
                 avatar: currentUserPersonalDetails?.avatar,
             },
             shouldShowApproverRow ? validatedApprover : undefined,

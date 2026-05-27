@@ -2108,7 +2108,7 @@ function convertBulkTrackedExpensesToIOU({
 
 function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
     const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, currentUser} = trackedExpenseParams;
-    const {accountID: currentUserAccountID = CONST.DEFAULT_NUMBER_ID} = currentUser;
+    const {accountID: currentUserAccountID} = currentUser;
     const {optimisticData, successData, failureData} = onyxData ?? {};
     const {transactionID} = transactionParams;
     const {isDraftPolicy} = policyParams;
@@ -2181,7 +2181,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         currentUser,
         reportActionsList,
     } = trackedExpenseParams;
-    const {accountID: currentUserAccountID = CONST.DEFAULT_NUMBER_ID} = currentUser;
+    const {accountID: currentUserAccountID} = currentUser;
 
     const policyID = policyParams?.policyID;
     const chatReportID = reportInformation?.chatReportID;
@@ -2334,7 +2334,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         previousOdometerDraft,
         reportActionsList,
     } = params;
-    const {accountID: currentUserAccountIDParam = CONST.DEFAULT_NUMBER_ID, email: currentUserEmailParam = ''} = currentUser;
+    const {accountID: currentUserAccountIDParam, email: currentUserEmailParam = ''} = currentUser;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
     const {policy, policyCategories, policyTagList} = policyData;
     const parsedComment = getParsedComment(transactionData.comment ?? '');
