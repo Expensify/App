@@ -144,6 +144,12 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         return achData?.currentStep ?? CONST.BANK_ACCOUNT.STEP.COUNTRY;
     };
     const currentStep = getInitialCurrentStep();
+    const prevCurrentStep = usePrevious(currentStep);
+    const prevSubStep = usePrevious(achData?.subStep);
+    // Treat the very first effect run as a step transition. usePrevious in this codebase initializes
+    // its ref with the current value, so prev/current would match on mount and stale errors from
+    // a prior session (e.g. after a page reload while on the Plaid sub-step) would not be cleared.
+    const isFirstRenderRef = useRef(true);
     const [USDBankAccountStep, setUSDBankAccountStep] = useState<string | null>(subStepParam ?? null);
     const [isNonUSDSetup, setIsNonUSDSetup] = useState(policy ? isNonUSDWorkspace : achData?.currency !== CONST.CURRENCY.USD || reimbursementAccountDraft?.currency !== CONST.CURRENCY.USD);
 
@@ -311,11 +317,18 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
 
             const currentStepRouteParam = getStepToOpenFromRouteParams(route, hasConfirmedUSDCurrency);
             if (currentStepRouteParam === currentStep) {
-                // If the user is connecting online with plaid, reset any bank account errors so we don't persist old data from a potential previous connection
-                if (currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && achData?.subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
+                // If the user is connecting online with plaid, reset any bank account errors so we don't persist old data from a potential previous connection.
+                // Only clear when entering the Plaid sub-step (step transition) — clearing on every isLoading toggle would wipe fresh backend errors
+                // the instant they arrive (e.g. duplicate bank account error after re-selecting the same Plaid account).
+                const justEnteredPlaidStep =
+                    currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT &&
+                    achData?.subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID &&
+                    (isFirstRenderRef.current || prevCurrentStep !== currentStep || prevSubStep !== achData?.subStep);
+                if (justEnteredPlaidStep) {
                     hideBankAccountErrors();
                 }
 
+                isFirstRenderRef.current = false;
                 // The route is showing the correct step, no need to update the route param or clear errors.
                 return;
             }
@@ -338,6 +351,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             if (stepToOpen && !isNonUSDSetup) {
                 navigation.setParams({stepToOpen});
             }
+
+            isFirstRenderRef.current = false;
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [
