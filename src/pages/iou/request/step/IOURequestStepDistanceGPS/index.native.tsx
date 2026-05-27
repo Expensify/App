@@ -189,14 +189,14 @@ function IOURequestStepDistanceGPS({
             let cancelled = false;
 
             const intervalId = setInterval(() => {
-                if (cancelled) {
-                    return;
-                }
-
                 // We do not check foreground location permissions here because
                 // it's already checked in DistanceMapView to get initial user's location
                 getCurrentPositionAsync()
                     .then((params) => {
+                        if (cancelled) {
+                            return;
+                        }
+
                         const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
                         setUserLocation(currentCoords);
                     })
