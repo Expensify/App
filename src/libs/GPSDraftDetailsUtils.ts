@@ -164,6 +164,43 @@ function isTripStopped(gpsDraftDetails: GpsDraftDetails | undefined): boolean {
     return !gpsDraftDetails?.isTracking && getTotalGpsTripPoints(gpsDraftDetails) > 0;
 }
 
+/**
+ * Decodes GPS coordinates stored by the backend as a base64-encoded binary blob.
+ * Each point occupies 16 bytes: float64 latitude (little-endian) followed by float64 longitude (little-endian).
+ * This matches the PHP encoding in TransactionUtils::encodeGpsCoordinates() which uses pack('dd', lat, lng).
+ */
+function decodeGpsCoordinates(base64Blob: string): Array<{lat: number; lng: number}> {
+    const binaryString = atob(base64Blob);
+    const arrayBuffer = new ArrayBuffer(binaryString.length);
+    const uint8Array = new Uint8Array(arrayBuffer);
+    for (let i = 0; i < binaryString.length; i++) {
+        uint8Array[i] = binaryString.charCodeAt(i);
+    }
+    const view = new DataView(arrayBuffer);
+    const points: Array<{lat: number; lng: number}> = [];
+    for (let i = 0; i < uint8Array.byteLength; i += 16) {
+        points.push({
+            lat: view.getFloat64(i, true),
+            lng: view.getFloat64(i + 8, true),
+        });
+    }
+    return points;
+}
+
+function getRoutesFromEncodedGpsCoordinates(encodedGpsCoordinates: string, distanceInMeters?: number | null): Routes {
+    const coordinates = decodeGpsCoordinates(encodedGpsCoordinates).map(({lat, lng}) => [lng, lat]);
+
+    return {
+        route0: {
+            distance: distanceInMeters ?? null,
+            geometry: {
+                type: 'LineString',
+                coordinates,
+            },
+        },
+    };
+}
+
 function getGpsPoints(gpsDraftDetails: GpsDraftDetails | undefined): GPSPoint[][] {
     return gpsDraftDetails?.gpsPoints ?? [[]];
 }
@@ -177,8 +214,10 @@ function getLastGpsPoint(gpsDraftDetails: GpsDraftDetails | undefined): GPSPoint
 }
 
 export {
+    decodeGpsCoordinates,
     getGPSRoutes,
     getGPSWaypoints,
+    getRoutesFromEncodedGpsCoordinates,
     stopGpsTrip,
     getGPSConvertedDistance,
     getStringifiedGPSCoordinates,

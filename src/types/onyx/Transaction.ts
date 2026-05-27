@@ -137,6 +137,9 @@ type Comment = {
 
     /** Odometer end image (File object with uri on web, URI string on native) */
     odometerEndImage?: FileObject | string;
+
+    /** Base64-encoded binary GPS coordinates (16 bytes per point: float64 lat LE + float64 lng LE) */
+    encodedGpsCoordinates?: string;
 };
 
 /** Model of transaction custom unit */

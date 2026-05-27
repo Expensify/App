@@ -8,7 +8,7 @@ import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getArrayDepth from '@libs/getArrayDepth';
-import {getWaypointIndex} from '@libs/TransactionUtils';
+import {getTransactionRoutes, getWaypointIndex} from '@libs/TransactionUtils';
 import {init as initMapboxToken, stop as stopMapboxToken} from '@userActions/MapboxToken';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,7 +37,7 @@ type ConfirmedRouteProps = {
 
 function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = true, requireRouteToDisplayMap = false, interactive}: ConfirmedRouteProps) {
     const {isOffline} = useNetwork();
-    const {route0: route} = transaction?.routes ?? {};
+    const {route0: route} = getTransactionRoutes(transaction) ?? {};
     const waypoints = transaction?.comment?.waypoints ?? {};
     const coordinates = route?.geometry?.coordinates ?? [];
     const styles = useThemeStyles();

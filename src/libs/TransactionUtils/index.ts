@@ -17,6 +17,7 @@ import {getCategoryDefaultTaxRate, isCategoryMissing} from '@libs/CategoryUtils'
 import {convertToBackendAmount, getCurrencyDecimals, getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import {getRoutesFromEncodedGpsCoordinates} from '@libs/GPSDraftDetailsUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
@@ -1835,10 +1836,27 @@ function hasPendingUI(transaction: OnyxEntry<Transaction>, transactionViolations
 }
 
 /**
+ * Returns transaction routes, falling back to decoding encodedGpsCoordinates when routes are absent.
+ */
+function getTransactionRoutes(transaction: OnyxEntry<Transaction>): Routes | undefined {
+    if (transaction?.routes) {
+        return transaction.routes;
+    }
+
+    if (transaction?.comment?.encodedGpsCoordinates) {
+        const unit = transaction.comment?.customUnit?.distanceUnit;
+        const distanceInMeters = unit ? getDistanceInMeters(transaction, unit) : null;
+        return getRoutesFromEncodedGpsCoordinates(transaction.comment.encodedGpsCoordinates, distanceInMeters);
+    }
+
+    return undefined;
+}
+
+/**
  * Check if the transaction has a defined route
  */
 function hasRoute(transaction: OnyxEntry<Transaction>, isDistanceRequestType?: boolean): boolean {
-    return !!transaction?.routes?.route0?.geometry?.coordinates || (!!isDistanceRequestType && transaction?.comment?.customUnit?.quantity !== undefined);
+    return !!getTransactionRoutes(transaction)?.route0?.geometry?.coordinates || (!!isDistanceRequestType && transaction?.comment?.customUnit?.quantity !== undefined);
 }
 
 function waypointHasValidAddress(waypoint: RecentWaypoint | Waypoint): boolean {
@@ -2988,6 +3006,7 @@ export {
     hasReceipt,
     hasEReceipt,
     hasRoute,
+    getTransactionRoutes,
     isReceiptBeingScanned,
     didReceiptScanSucceed,
     getValidWaypoints,
