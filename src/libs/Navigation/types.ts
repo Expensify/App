@@ -1274,10 +1274,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_FREQUENCY]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.EXPENSIFY_CARD_ADD_WORK_EMAIL]: {
-        policyID: string;
-        fundID: number;
-    };
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_SELECTION]: {
         policyID: string;
     };
@@ -1332,10 +1328,6 @@ type SettingsNavigatorParamList = {
 
         /** Present when verifying before a feed refresh; absent when verifying before adding a new feed */
         feed?: CompanyCardFeedWithDomainID;
-    };
-    [SCREENS.WORKSPACE.COMPANY_CARD_ADD_WORK_EMAIL]: {
-        policyID: string;
-        feed: CompanyCardFeedWithDomainID;
     };
     [SCREENS.WORKSPACE.COMPANY_CARD_VERIFY_WORK_EMAIL]: {
         policyID: string;
