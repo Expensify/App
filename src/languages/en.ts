@@ -7523,7 +7523,10 @@ const translations = {
             },
             amountFilter: ({operator, amount}: {operator: string; amount: string}) => `amounts ${operator} ${amount}`,
             theCard: 'the card',
-            multipleCards: ({count}: {count: number}) => `${count} cards`,
+            multipleCards: ({count}: {count: number}) => ({
+                one: '1 card',
+                other: `${count} cards`,
+            }),
             addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
                 let text = verb;
                 if (filters !== '') {
@@ -7539,7 +7542,10 @@ const translations = {
             },
             update: {
                 modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) => `changed spend rule from ${fromAction} to ${toAction} on ${cards}`,
-                appliedToAdditionalCards: ({count}: {count: number}) => `applied spend rule to ${count} additional cards`,
+                appliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: 'applied spend rule to 1 additional card',
+                    other: `applied spend rule to ${count} additional cards`,
+                }),
                 phraseVerb: {
                     added: 'added',
                     removed: 'removed',
@@ -7556,7 +7562,10 @@ const translations = {
                 bodyMaxAmount: 'max amount',
                 bodyMaxAmountSet: ({value}: {value: string}) => `max amount to ${value}`,
                 bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `max amount from ${oldValue} to ${newValue}`,
-                bodyAppliedToAdditionalCards: ({count}: {count: number}) => `spend rule to ${count} additional cards`,
+                bodyAppliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: 'spend rule to 1 additional card',
+                    other: `spend rule to ${count} additional cards`,
+                }),
                 bodyRemovedFromCards: ({cards}: {cards: string}) => `spend rule from ${cards}`,
                 composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} on ${cards}`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} from ${cards}`,
