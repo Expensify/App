@@ -14,11 +14,9 @@ import {
     buildSearchQueryJSON,
     buildSearchQueryString,
     buildUserReadableQueryString,
-    getAdvancedFiltersToReset,
     getDateRangeDisplayValueFromFormValue,
     getDisplayQueryFiltersForKey,
     getFilterDisplayValue,
-    getKeywordQueryWithCurrentSearchContext,
     getQueryWithUpdatedValues,
     getRangeBoundariesFromFormValue,
     serializeQueryJSONForBackend,
@@ -252,6 +250,31 @@ describe('SearchQueryUtils', () => {
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
             expect(result).toEqual('type:expense category:equipment,consulting,none,Uncategorized');
+        });
+
+        test('serializes No Tag filter as missing tag query', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                tag: [CONST.SEARCH.TAG_EMPTY_VALUE],
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense -has:tag');
+            expect(result).not.toContain('tag:none');
+        });
+
+        test('serializes real tag values as tag filters', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                tag: ['Engineering'],
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense tag:Engineering');
         });
 
         test('empty filter values', () => {
@@ -1195,6 +1218,39 @@ describe('SearchQueryUtils', () => {
             const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
 
             expect(result['reportFieldRange-start-date']).toBeUndefined();
+        });
+
+        test('hydrates missing tag query as No Tag filter', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense -has:tag');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+
+            expect(result).toEqual({
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                tag: [CONST.SEARCH.TAG_EMPTY_VALUE],
+            });
+        });
+
+        test('hydrates missing tag query while preserving other has filters', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense has:receipt -has:tag');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+
+            expect(result).toEqual({
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                has: [CONST.SEARCH.HAS_VALUES.RECEIPT],
+                tag: [CONST.SEARCH.TAG_EMPTY_VALUE],
+            });
         });
 
         describe('view parameter', () => {
@@ -2905,125 +2961,6 @@ describe('SearchQueryUtils', () => {
             const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'food'}];
             const serialized = JSON.parse(serializeQueryJSONForBackend({filters: undefined, rawFilterList})) as {rawFilterList: typeof rawFilterList};
             expect(serialized.rawFilterList.at(0)?.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
-        });
-    });
-
-    describe('getKeywordQueryWithCurrentSearchContext', () => {
-        it('should prepend current search context to keyword-only input', () => {
-            const currentQueryJSON = buildSearchQueryJSON('type:trip status:outstanding') as SearchQueryJSON;
-
-            const result = getKeywordQueryWithCurrentSearchContext('hello', currentQueryJSON);
-            expect(result).toContain('hello');
-            expect(result).toContain('type:trip');
-            expect(result).toContain('status:outstanding');
-        });
-
-        it('should return query unchanged when it contains explicit filters', () => {
-            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all') as SearchQueryJSON;
-
-            const result = getKeywordQueryWithCurrentSearchContext('type:expense hello', currentQueryJSON);
-            expect(result).toBe('type:expense hello');
-        });
-
-        it('should return query unchanged when it contains only explicit filters without keywords', () => {
-            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all') as SearchQueryJSON;
-
-            const result = getKeywordQueryWithCurrentSearchContext('type:expense status:open', currentQueryJSON);
-            expect(result).toBe('type:expense status:open');
-        });
-
-        it('should return empty query unchanged', () => {
-            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all') as SearchQueryJSON;
-
-            const result = getKeywordQueryWithCurrentSearchContext('', currentQueryJSON);
-            expect(result).toBe('');
-        });
-
-        it('should strip existing keyword filters from current context before prepending', () => {
-            const currentQueryJSON = buildSearchQueryJSON('type:expense status:all existing') as SearchQueryJSON;
-
-            const result = getKeywordQueryWithCurrentSearchContext('new-keyword', currentQueryJSON);
-            expect(result).toContain('new-keyword');
-            expect(result).not.toContain('existing');
-        });
-
-        it('should handle multi-word keyword input', () => {
-            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all') as SearchQueryJSON;
-
-            const result = getKeywordQueryWithCurrentSearchContext('hello world', currentQueryJSON);
-            expect(result).toContain('hello world');
-            expect(result).toContain('type:trip');
-        });
-    });
-
-    describe('getAdvancedFiltersToReset', () => {
-        it('should return an empty object when input is empty', () => {
-            const result = getAdvancedFiltersToReset({});
-            expect(result).toEqual({});
-        });
-
-        it('should reset status to ALL when it has a non-ALL value', () => {
-            const form: Partial<SearchAdvancedFiltersForm> = {
-                status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
-            };
-            const result = getAdvancedFiltersToReset(form);
-            expect(result).toEqual({
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
-            });
-        });
-
-        it('should not include status in reset when it is already ALL', () => {
-            const form: Partial<SearchAdvancedFiltersForm> = {
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
-            };
-            const result = getAdvancedFiltersToReset(form);
-            expect(result.status).toBeUndefined();
-        });
-
-        it('should reset type to EXPENSE when it has a non-EXPENSE value', () => {
-            const form: Partial<SearchAdvancedFiltersForm> = {
-                type: CONST.SEARCH.DATA_TYPES.CHAT,
-            };
-            const result = getAdvancedFiltersToReset(form);
-            expect(result).toEqual({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            });
-        });
-
-        it('should not include type in reset when it is already EXPENSE', () => {
-            const form: Partial<SearchAdvancedFiltersForm> = {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            };
-            const result = getAdvancedFiltersToReset(form);
-            expect(result.type).toBeUndefined();
-        });
-
-        it('should reset other filter keys to undefined', () => {
-            const form: Partial<SearchAdvancedFiltersForm> = {
-                merchant: 'Marriott',
-                currency: ['USD', 'EUR'],
-                dateAfter: '2024-01-01',
-                keyword: 'hotel',
-            };
-            const result = getAdvancedFiltersToReset(form);
-            expect(result).toEqual({
-                merchant: undefined,
-                currency: undefined,
-                dateAfter: undefined,
-                keyword: undefined,
-            });
-        });
-
-        it('should exclude columns from being reset', () => {
-            const form: Partial<SearchAdvancedFiltersForm> = {
-                columns: [CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE.DATE, CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE.MERCHANT],
-                merchant: 'test',
-            };
-            const result = getAdvancedFiltersToReset(form);
-            expect(result.columns).toBeUndefined();
-            expect(result).toEqual({
-                merchant: undefined,
-            });
         });
     });
 });

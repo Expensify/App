@@ -109,8 +109,11 @@ const translations = {
         selectMultiple: 'Select multiple',
         saveChanges: 'Save changes',
         submit: 'Submit',
+        markAsDone: 'Mark as done',
         // @context Status label meaning an item has already been sent or submitted (e.g., a form or report). Not the action “to submit.”
         submitted: 'Submitted',
+        // @context Status label meaning an item has been marked as done (track-intent users). Not the action “to mark as done.”
+        markedAsDoneStatus: 'Marked as done',
         rotate: 'Rotate',
         zoom: 'Zoom',
         password: 'Password',
@@ -876,6 +879,7 @@ const translations = {
         beginningOfChatHistory: (users: string) => `This chat is with ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName: string, submitterDisplayName: string) =>
             `This is where <strong>${submitterDisplayName}</strong> will submit expenses to <strong>${workspaceName}</strong>. Just use the + button.`,
+        beginningOfChatHistoryPolicyExpenseChatTrack: "This is where you'll track expenses.",
         beginningOfChatHistorySelfDM: 'This is your personal space. Use it for notes, tasks, drafts, and reminders.',
         beginningOfChatHistorySystemDM: "Welcome! Let's get you set up.",
         chatWithAccountManager: 'Chat with your account manager here',
@@ -884,7 +888,7 @@ const translations = {
         yourSpace: 'Your space',
         welcomeToRoom: (roomName: string) => `Welcome to ${roomName}!`,
         usePlusButton: (additionalText: string) => ` Use the + button to ${additionalText} an expense.`,
-        askConcierge: 'This is your chat with Concierge, your personal AI agent. I can do almost anything, try me!',
+        askConcierge: 'Concierge can answer questions, update expenses, and more.',
         conciergeSupport: 'Your personal AI agent',
         create: 'create',
         iouTypes: {
@@ -1395,6 +1399,7 @@ const translations = {
         sendInvoice: (amount: string) => `Send ${amount} invoice`,
         expenseAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         submitted: (memo?: string) => `submitted${memo ? `, saying ${memo}` : ''}`,
+        markedAsDone: (memo?: string) => `marked as done${memo ? `, saying ${memo}` : ''}`,
         automaticallySubmitted: `submitted via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">delay submissions</a>`,
         queuedToSubmitViaDEW: 'queued to submit via custom approval workflow',
         failedToAutoSubmitViaDEW: (reason: string) => `failed to submit the report via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">delay submissions</a>. ${reason}`,
@@ -1836,6 +1841,22 @@ const translations = {
                         return `Waiting for <strong>${actor}</strong> to submit expenses.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `Waiting for an admin to submit expenses.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Waiting for <strong>you</strong> to mark this as done.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Waiting for <strong>${actor}</strong> to mark this as done.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Waiting for an admin to mark this as done.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (
@@ -2634,6 +2655,8 @@ const translations = {
         addApprovalTip: 'This default workflow applies to all members, unless a more specific workflow exists.',
         approver: 'Approver',
         addApprovalsDescription: 'Require additional approval before authorizing a payment.',
+        automateApprovalsWithAgentsTitle: 'Automate approvals with agents',
+        automateApprovalsWithAgentsSubtitle: 'Add agent below to workflow to automate approvals.',
         configureViaHR: ({provider}: {provider: string}) => `Configure via ${provider}.`,
         hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `Approvals are managed by your ${provider} integration. To update your approval workflow, head to your ${provider} connection settings.`,
@@ -6089,6 +6112,11 @@ const translations = {
             selectWorkspaces: 'Select workspaces',
             description: 'Choose the workspaces you want to copy settings to, then select the settings you’d like to copy.',
             searchPlaceholder: 'Search workspaces',
+            selectFeatures: 'Select features to copy',
+            whichFeatures: 'Select the settings to overwrite on your existing workspaces.',
+            workflowsWithoutMembersConfirm: 'Continue without members',
+            workflowsWithoutMembersPrompt: 'Copying Workflows without Members will not copy approval workflows. Submission and payment settings will still be copied.',
+            accountingMismatch: ({part}: {part: string}) => `You can only copy ${part} if all workspaces use the same accounting system and company connection.`,
         },
         emptyWorkspace: {
             title: 'No workspaces yet',
@@ -6231,7 +6259,7 @@ const translations = {
         accounting: {
             settings: 'settings',
             title: 'Connections',
-            subtitle: 'Connect to your accounting system to code transactions with your chart of accounts, auto-match payments, and keep your finances in sync.',
+            subtitle: 'Connect your accounting software for an automatic sync.',
             qbo: 'QuickBooks Online',
             qbd: 'QuickBooks Desktop',
             xero: 'Xero',
@@ -6318,7 +6346,6 @@ const translations = {
                     CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'this accounting integration'
                 }? This will remove any existing accounting connections.`,
             enterCredentials: 'Enter your credentials',
-            updateCredentials: 'Update credentials',
             claimOffer: {
                 badgeText: 'Offer available!',
                 xero: {
@@ -6499,6 +6526,8 @@ const translations = {
         hr: {
             title: 'HR',
             connections: 'Connections',
+            connectionsSubtitle:
+                "Connect to your HR system to sync employee data, auto-match reimbursements to the right people, and keep your team's expenses accurate without the manual work.",
             subtitle: 'Connect HR tools and keep employee approvals in sync.',
             connect: 'Connect',
             syncNow: 'Sync now',
@@ -7073,6 +7102,11 @@ const translations = {
                 autoPayReportsUnderDescription: 'Fully compliant expense reports under this amount will be automatically paid.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Add ${featureName} to unlock this feature.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) => `Go to [more features](${moreFeaturesLink}) and enable ${featureName} to unlock this feature.`,
+            },
+            agentsPromoBanner: {
+                title: 'Don’t see the rule you need? Add an agent',
+                subtitle: 'Add complex rules and reduce manual approvals with custom agents.',
+                cta: 'Try it out',
             },
             merchantRules: {
                 title: 'Merchant',
@@ -7889,7 +7923,6 @@ const translations = {
         },
         resultsAreLimited: 'Search results are limited.',
         viewResults: 'View results',
-        applyFilters: 'Apply filters',
         appliedFilters: 'Applied filters',
         resetFilters: 'Reset filters',
         searchResults: {
@@ -8002,12 +8035,7 @@ const translations = {
             amount: {
                 lessThan: (amount?: string) => `Less than ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Greater than ${amount ?? ''}`,
-                between: (greaterThan?: string, lessThan?: string) => {
-                    if (greaterThan && lessThan) {
-                        return `Between ${greaterThan} and ${lessThan}`;
-                    }
-                    return 'Between';
-                },
+                between: (greaterThan: string, lessThan: string) => `Between ${greaterThan} and ${lessThan}`,
                 equalTo: (amount?: string) => `Equal to ${amount ?? ''}`,
             },
             card: {
@@ -9101,7 +9129,7 @@ const translations = {
         copilotDelegatedAccess: 'Copilot: Delegated access',
         copilotDelegatedAccessDescription: 'Allow other members to access your account.',
         learnMoreAboutDelegatedAccess: 'Learn more about delegated access',
-        addCopilot: 'Add a copilot to your account',
+        addCopilot: 'Add a copilot',
         membersCanAccessYourAccount: 'These members can access your account:',
         youCanAccessTheseAccounts: 'You can access these accounts:',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
