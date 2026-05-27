@@ -15,7 +15,7 @@ import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isControlPolicy, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
+import {isControlPolicy as isControlPolicyUtil, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,18 +37,24 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
 
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
     const {containsHeader = true} = spreadsheet ?? {};
+    const isControlPolicy = isControlPolicyUtil(policy);
 
     const columnRoles: ColumnRole[] = [
         {text: translate('common.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
         {text: translate('common.email'), value: CONST.CSV_IMPORT_COLUMNS.EMAIL, isRequired: true},
         {text: translate('common.role'), value: CONST.CSV_IMPORT_COLUMNS.ROLE},
-        {text: translate('common.submitTo'), value: CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO},
-        {text: translate('common.forwardTo'), value: CONST.CSV_IMPORT_COLUMNS.APPROVE_TO},
-        {text: translate('workspace.common.customField1'), value: CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_1},
-        {text: translate('workspace.common.customField2'), value: CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_2},
-        {text: translate('common.approvalLimit'), value: CONST.CSV_IMPORT_COLUMNS.REPORT_THRESHOLD},
-        {text: translate('common.overLimitForwardTo'), value: CONST.CSV_IMPORT_COLUMNS.APPROVE_TO_ALTERNATE},
     ];
+
+    if (isControlPolicy) {
+        columnRoles.push(
+            {text: translate('common.submitTo'), value: CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO},
+            {text: translate('common.forwardTo'), value: CONST.CSV_IMPORT_COLUMNS.APPROVE_TO},
+            {text: translate('workspace.common.customField1'), value: CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_1},
+            {text: translate('workspace.common.customField2'), value: CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_2},
+            {text: translate('common.approvalLimit'), value: CONST.CSV_IMPORT_COLUMNS.REPORT_THRESHOLD},
+            {text: translate('common.overLimitForwardTo'), value: CONST.CSV_IMPORT_COLUMNS.APPROVE_TO_ALTERNATE},
+        );
+    }
 
     const requiredColumns = columnRoles.filter((role) => role.isRequired).map((role) => role);
 
@@ -100,7 +106,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                 ?.at(membersRolesColumn)
                 ?.some((role, index) => (containsHeader ? spreadsheet?.data?.at(membersRolesColumn)?.at(index + 1) : (role ?? '')) === CONST.POLICY.ROLE.AUDITOR);
 
-        if (hasAuditorRole && !isControlPolicy(policy)) {
+        if (hasAuditorRole && !isControlPolicy) {
             Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.auditor.alias, Navigation.getActiveRoute()));
             return;
         }

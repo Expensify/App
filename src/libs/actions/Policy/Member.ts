@@ -1009,8 +1009,10 @@ async function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMem
     const importFinalModal = getImportMembersFinalModal(added, updated);
 
     const shouldUpdateApprovalMode = members.some((member) => !!member.submitsTo || !!member.forwardsTo) && isControlPolicy(policy);
+    
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
     if (shouldUpdateApprovalMode) {
-        onyxData.successData?.push({
+        successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
@@ -1039,7 +1041,7 @@ async function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMem
         // We need the server result immediately so the initiating page can show the final confirmation modal
         // without storing transient modal state in Onyx.
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_MEMBERS_SPREADSHEET, parameters);
+        const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_MEMBERS_SPREADSHEET, parameters, {successData});
         return response?.jsonCode === CONST.JSON_CODE.SUCCESS ? importFinalModal : getImportFailedFinalModal();
     } catch {
         return getImportFailedFinalModal();
