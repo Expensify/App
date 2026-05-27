@@ -249,7 +249,7 @@ describe('PolicyUtils', () => {
         const memberLogin = 'member@test.com';
         const buildPolicy = (role: Policy['role']): Policy =>
             ({
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                 role,
                 employeeList: {
                     [memberLogin]: {
