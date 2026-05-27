@@ -5414,8 +5414,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         emptyStateSamlIllustration: {
-            width: 218,
-            height: 190,
+            width: 183,
+            height: 160,
         },
 
         agentsPageEmptyStateIllustration: {
