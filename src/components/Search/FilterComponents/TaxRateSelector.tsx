@@ -4,17 +4,16 @@ import useOnyx from '@hooks/useOnyx';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {filterPolicyIDSelector} from '@src/selectors/Search';
 import type {Policy} from '@src/types/onyx';
 import MultiSelect from './MultiSelect';
 
 type TaxRateSelectorProps = SearchFilterSelectionListProps & {
     value: string[] | undefined;
+    policyIDs: string[] | undefined;
     onChange: (taxRates: string[]) => void;
 };
 
-function TaxRateSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: TaxRateSelectorProps) {
-    const [policyIDs] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: filterPolicyIDSelector});
+function TaxRateSelector({value = [], policyIDs = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: TaxRateSelectorProps) {
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const allTaxRates = getAllTaxRates(policies);

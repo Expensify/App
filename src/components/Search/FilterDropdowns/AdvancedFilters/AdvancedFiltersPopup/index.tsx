@@ -32,6 +32,8 @@ function AdvancedFiltersPopup({queryJSON}: AdvancedFiltersPopupProps) {
             <View style={[styles.flexRow, StyleUtils.getHeight(Math.min(windowHeight, CONST.ADVANCED_FILTERS_POPOVER_HEIGHT))]}>
                 <SearchAdvancedFilterList
                     style={[styles.typeFiltersPopupContainer]}
+                    type={searchAdvancedFiltersForm?.type}
+                    policyID={searchAdvancedFiltersForm?.policyID}
                     selectedFilter={selectedFilter}
                     onHoverIn={setSelectedFilter}
                     onFocus={setSelectedFilter}

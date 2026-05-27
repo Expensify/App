@@ -6,20 +6,18 @@ import useOnyx from '@hooks/useOnyx';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {filterPolicyIDSelector} from '@src/selectors/Search';
 import type {PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
-import getEmptyArray from '@src/types/utils/getEmptyArray';
 import MultiSelect from './MultiSelect';
 
 type CategorySelectorProps = SearchFilterSelectionListProps & {
     value: string[] | undefined;
+    policyIDs: string[] | undefined;
     onChange: (categories: string[]) => void;
 };
 
-function CategorySelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: CategorySelectorProps) {
+function CategorySelector({value = [], policyIDs = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: CategorySelectorProps) {
     const {translate} = useLocalize();
-    const [policyIDs = getEmptyArray<string>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: filterPolicyIDSelector});
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
     const selectedCategoriesItems = value.map((category) => {

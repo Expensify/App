@@ -10,7 +10,7 @@ import ScrollView from '@components/ScrollView';
 import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterKey} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
-import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
+import useAdvancedSearchFilters, {advancedSearchPoliciesSelector, useAdvancedSearchFiltersWorkspaces} from '@hooks/useAdvancedSearchFilters';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -23,7 +23,7 @@ import {createCardFeedKey, getCardFeedKey, getCardFeedNamesWithType, getFeedCoun
 import {getCardDescription} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
-import {getCleanedTagName} from '@libs/PolicyUtils';
+import {getAllTaxRates, getCleanedTagName} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
     buildCannedSearchQuery,
@@ -40,6 +40,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {filterCardsHiddenFromSearch} from '@src/selectors/Card';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import {AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {CardList, PersonalDetailsList, Policy, Report, ReportAttributesDerivedValue, WorkspaceCardsList} from '@src/types/onyx';
@@ -601,11 +602,16 @@ function AdvancedSearchFilters() {
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: advancedSearchPoliciesSelector});
     const [searchAdvancedFilters = getEmptyObject<SearchAdvancedFiltersForm>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [searchCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: filterCardsHiddenFromSearch});
     const personalDetails = usePersonalDetails();
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
-    const {currentType, typeFiltersKeys, workspaces, taxRates, searchCards, policies} = useAdvancedSearchFilters();
+    const typeFiltersKeys = useAdvancedSearchFilters(searchAdvancedFilters.type, searchAdvancedFilters.policyID);
+    const currentType = searchAdvancedFilters.type;
+    const {workspaces} = useAdvancedSearchFiltersWorkspaces(policies);
+    const taxRates = getAllTaxRates(policies);
 
     const queryString = useMemo(() => {
         const currentQueryJSON = getCurrentSearchQueryJSON();

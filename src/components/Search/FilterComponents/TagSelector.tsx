@@ -7,20 +7,18 @@ import {getCleanedTagName, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import passthroughPolicyTagListSelector from '@src/selectors/PolicyTagList';
-import {filterPolicyIDSelector} from '@src/selectors/Search';
 import type {PolicyTagLists} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
-import getEmptyArray from '@src/types/utils/getEmptyArray';
 import MultiSelect from './MultiSelect';
 
 type TagSelectorProps = SearchFilterSelectionListProps & {
     value: string[] | undefined;
+    policyIDs: string[] | undefined;
     onChange: (tags: string[]) => void;
 };
 
-function TagSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: TagSelectorProps) {
+function TagSelector({value = [], policyIDs = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: TagSelectorProps) {
     const {translate} = useLocalize();
-    const [policyIDs = getEmptyArray<string>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: filterPolicyIDSelector});
     const [allPolicyTagLists = getEmptyObject<NonNullable<OnyxCollection<PolicyTagLists>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
 
     const selectedPoliciesTagLists = Object.keys(allPolicyTagLists ?? {})

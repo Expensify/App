@@ -15,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
 import {FILTER_VIEW_MAP, type SearchFilter} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 type ItemCallback = (filter: SearchFilter['key']) => void;
 type FilterItemCallbacks = {
@@ -24,6 +25,8 @@ type FilterItemCallbacks = {
 };
 
 type SearchAdvancedFilterListProps = FilterItemCallbacks & {
+    type: SearchDataTypes | undefined;
+    policyID: string[] | undefined;
     selectedFilter?: SearchFilter['key'];
     style?: StyleProp<ViewStyle>;
     contentContainerStyle?: StyleProp<ViewStyle>;
@@ -86,9 +89,9 @@ function FilterItem({filterKey, isSelected, onPress, onHoverIn, onFocus}: Filter
     );
 }
 
-function SearchAdvancedFilterList({selectedFilter, style, contentContainerStyle, onHoverIn, onFocus, onPress}: SearchAdvancedFilterListProps) {
+function SearchAdvancedFilterList({type, policyID, selectedFilter, style, contentContainerStyle, onHoverIn, onFocus, onPress}: SearchAdvancedFilterListProps) {
     const styles = useThemeStyles();
-    const {typeFiltersKeys} = useAdvancedSearchFilters();
+    const typeFiltersKeys = useAdvancedSearchFilters(type, policyID);
 
     return (
         <ScrollView

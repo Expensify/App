@@ -12,7 +12,7 @@ import {SearchAdvancedFiltersActionContext, SearchAdvancedFiltersContext} from '
 function SearchAdvancedFiltersBase() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldShowResetFilters} = useContext(SearchAdvancedFiltersContext);
+    const {currentDraftFilters, shouldShowResetFilters} = useContext(SearchAdvancedFiltersContext);
     const {applyFilters, resetFilters} = useContext(SearchAdvancedFiltersActionContext);
 
     return (
@@ -25,6 +25,8 @@ function SearchAdvancedFiltersBase() {
             <HeaderWithBackButton title={translate('search.filtersHeader')} />
             <SearchAdvancedFilterList
                 contentContainerStyle={[styles.pb5]}
+                type={currentDraftFilters.type}
+                policyID={currentDraftFilters.policyID}
                 onPress={(filterKey) => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS_CONTENT.getRoute(filterKey))}
             />
             {shouldShowResetFilters && (

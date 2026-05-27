@@ -107,6 +107,8 @@ function FilterPopup({filterKey, searchAdvancedFiltersForm, queryJSON, closeOver
         <CommonPopup
             filterKey={filterKey}
             value={searchAdvancedFiltersForm[filterKey]}
+            type={searchAdvancedFiltersForm.type}
+            policyIDs={searchAdvancedFiltersForm.policyID}
             label={label}
             policyIDQuery={queryJSON.policyID}
             closeOverlay={closeOverlay}
