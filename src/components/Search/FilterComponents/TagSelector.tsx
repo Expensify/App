@@ -4,6 +4,7 @@ import type {SearchFilterSelectionListProps} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {getCleanedTagName, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
+import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import passthroughPolicyTagListSelector from '@src/selectors/PolicyTagList';
@@ -18,7 +19,7 @@ type TagSelectorProps = SearchFilterSelectionListProps & {
 };
 
 function TagSelector({value = [], policyIDs = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: TagSelectorProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const [allPolicyTagLists = getEmptyObject<NonNullable<OnyxCollection<PolicyTagLists>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
 
     const selectedPoliciesTagLists = Object.keys(allPolicyTagLists ?? {})
@@ -38,7 +39,11 @@ function TagSelector({value = [], policyIDs = [], selectionListTextInputStyle, s
             uniqueTagNames.add(tag);
         }
     }
-    tagItems.push(...Array.from(uniqueTagNames).map((tagName) => ({text: getCleanedTagName(tagName), value: tagName})));
+    tagItems.push(
+        ...Array.from(uniqueTagNames)
+            .map((tagName) => ({text: getCleanedTagName(tagName), value: tagName}))
+            .toSorted((a, b) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString(), localeCompare)),
+    );
 
     const selectedTagsItems = value.map((tag) => {
         if (tag === CONST.SEARCH.TAG_EMPTY_VALUE) {

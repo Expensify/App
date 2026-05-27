@@ -32,7 +32,7 @@ const STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL: Record<string, string> = {
 
 function ExportedToSelector({value = [], policyIDs = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: ExportedToSelectorProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -129,11 +129,12 @@ function ExportedToSelector({value = [], policyIDs = [], selectionListTextInputS
         return [...connectedIntegrationPickerItems, ...standardAndIntegrationCustomTemplatePickerItems];
     })();
     const selectedExportedTo = exportedToPickerOptions.filter((option) => value.includes(option.value));
+    const sortedExportedToPickerOptions = exportedToPickerOptions.toSorted((a, b) => localeCompare(a.value.toString(), b.value.toString()));
 
     return (
         <MultiSelect
             value={selectedExportedTo}
-            items={exportedToPickerOptions}
+            items={sortedExportedToPickerOptions}
             isSearchable={exportedToPickerOptions.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
             autoFocus={autoFocus}
             selectionListTextInputStyle={selectionListTextInputStyle}

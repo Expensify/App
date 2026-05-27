@@ -4,6 +4,7 @@ import type {SearchFilterSelectionListProps} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
+import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyCategories, PolicyCategory} from '@src/types/onyx';
@@ -17,7 +18,7 @@ type CategorySelectorProps = SearchFilterSelectionListProps & {
 };
 
 function CategorySelector({value = [], policyIDs = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: CategorySelectorProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
     const selectedCategoriesItems = value.map((category) => {
@@ -68,7 +69,8 @@ function CategorySelector({value = [], policyIDs = [], selectionListTextInputSty
             .map((categoryName) => {
                 const decodedCategoryName = getDecodedCategoryName(categoryName);
                 return {text: decodedCategoryName, value: categoryName};
-            }),
+            })
+            .toSorted((a, b) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString(), localeCompare)),
     );
 
     return (
