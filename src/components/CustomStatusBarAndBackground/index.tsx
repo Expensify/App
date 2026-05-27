@@ -70,6 +70,10 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
     // This callback is triggered every time the route changes or the theme changes
     const updateStatusBarStyle = useCallback(
         (listenerID?: number) => {
+            if (closingReactNativeApp) {
+                return;
+            }
+
             // Check if this function is either called through the current navigation listener
             // react-navigation library has a bug internally, where it can't keep track of the listeners, therefore, sometimes when the useEffect would re-render and we run navigationRef.removeListener the listener isn't removed and we end up with two or more listeners.
             // https://github.com/Expensify/App/issues/34154#issuecomment-1898519399
@@ -146,6 +150,7 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
             isRootStatusBarEnabled,
             statusBarStyle,
             statusBarAnimation,
+            closingReactNativeApp,
         ],
     );
 

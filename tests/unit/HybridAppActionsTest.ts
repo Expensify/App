@@ -27,6 +27,11 @@ describe('HybridApp actions', () => {
     const {closeReactNativeApp} = require('@libs/actions/HybridApp') as HybridAppActionsModule;
     let closeNativeAppSpy: jest.SpiedFunction<HybridAppModuleWithClose['closeReactNativeApp']>;
 
+    const closeAndWait = async (params: Parameters<HybridAppActionsModule['closeReactNativeApp']>[0]) => {
+        closeReactNativeApp(params);
+        await waitForBatchedUpdatesWithAct();
+    };
+
     beforeEach(async () => {
         jest.clearAllMocks();
         closeNativeAppSpy = jest.spyOn(HybridAppModule, 'closeReactNativeApp').mockImplementation(() => {});
@@ -86,7 +91,7 @@ describe('HybridApp actions', () => {
         await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
         await waitForBatchedUpdatesWithAct();
 
-        closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false});
+        await closeAndWait({shouldSetNVP: true, isTrackingGPS: false});
 
         expect(Navigation.clearPreloadedRoutes).toHaveBeenCalled();
         expect(closeNativeAppSpy).toHaveBeenCalledWith({shouldSetNVP: true});
@@ -96,7 +101,7 @@ describe('HybridApp actions', () => {
         await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
         await waitForBatchedUpdatesWithAct();
 
-        closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false, shouldIgnoreTryNewDotLoading: true});
+        await closeAndWait({shouldSetNVP: true, isTrackingGPS: false, shouldIgnoreTryNewDotLoading: true});
 
         expect(Navigation.clearPreloadedRoutes).toHaveBeenCalled();
         expect(closeNativeAppSpy).toHaveBeenCalledWith({shouldSetNVP: true});
@@ -137,7 +142,7 @@ describe('HybridApp actions', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false});
+        await closeAndWait({shouldSetNVP: true, isTrackingGPS: false});
         expect(closeNativeAppSpy).toHaveBeenCalledWith({shouldSetNVP: true});
 
         jest.clearAllMocks();
@@ -145,7 +150,7 @@ describe('HybridApp actions', () => {
         await Onyx.clear([ONYXKEYS.IS_LOADING_APP]);
         await waitForBatchedUpdatesWithAct();
 
-        closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false});
+        await closeAndWait({shouldSetNVP: true, isTrackingGPS: false});
         expect(closeNativeAppSpy).not.toHaveBeenCalled();
 
         await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
@@ -153,7 +158,7 @@ describe('HybridApp actions', () => {
         await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
         await waitForBatchedUpdatesWithAct();
 
-        closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false});
+        await closeAndWait({shouldSetNVP: true, isTrackingGPS: false});
         expect(closeNativeAppSpy).toHaveBeenCalledWith({shouldSetNVP: true});
     });
 
@@ -172,7 +177,7 @@ describe('HybridApp actions', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false});
+        await closeAndWait({shouldSetNVP: true, isTrackingGPS: false});
         expect(closeNativeAppSpy).toHaveBeenCalledWith({shouldSetNVP: true});
 
         jest.clearAllMocks();
@@ -183,7 +188,7 @@ describe('HybridApp actions', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false});
+        await closeAndWait({shouldSetNVP: true, isTrackingGPS: false});
         expect(closeNativeAppSpy).not.toHaveBeenCalled();
 
         await Onyx.set(ONYXKEYS.NVP_TRY_NEW_DOT, {
@@ -193,7 +198,7 @@ describe('HybridApp actions', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false});
+        await closeAndWait({shouldSetNVP: true, isTrackingGPS: false});
         expect(closeNativeAppSpy).toHaveBeenCalledWith({shouldSetNVP: true});
     });
 
@@ -218,7 +223,7 @@ describe('HybridApp actions', () => {
 
         // closeReactNativeApp should still work because the initial session load
         // must not blank the already-populated currentTryNewDot
-        closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false});
+        await closeAndWait({shouldSetNVP: true, isTrackingGPS: false});
         expect(closeNativeAppSpy).toHaveBeenCalledWith({shouldSetNVP: true});
     });
 
@@ -237,7 +242,7 @@ describe('HybridApp actions', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false});
+        await closeAndWait({shouldSetNVP: true, isTrackingGPS: false});
         expect(closeNativeAppSpy).toHaveBeenCalledWith({shouldSetNVP: true});
 
         jest.clearAllMocks();
@@ -247,12 +252,12 @@ describe('HybridApp actions', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false});
+        await closeAndWait({shouldSetNVP: true, isTrackingGPS: false});
         expect(closeNativeAppSpy).toHaveBeenCalledWith({shouldSetNVP: true});
     });
 
-    it('preserves shouldSetNVP false exits for existing non-force-mobile flows', () => {
-        closeReactNativeApp({shouldSetNVP: false, isTrackingGPS: false});
+    it('preserves shouldSetNVP false exits for existing non-force-mobile flows', async () => {
+        await closeAndWait({shouldSetNVP: false, isTrackingGPS: false});
 
         expect(Navigation.clearPreloadedRoutes).toHaveBeenCalled();
         expect(closeNativeAppSpy).toHaveBeenCalledWith({shouldSetNVP: false});

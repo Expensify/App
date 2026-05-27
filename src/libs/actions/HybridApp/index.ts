@@ -1,6 +1,7 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {isLockedToNewApp, shouldBlockOldAppExit} from '@libs/TryNewDotUtils';
 import {setIsGPSInProgressModalOpen} from '@userActions/isGPSInProgressModalOpen';
@@ -109,13 +110,22 @@ function closeReactNativeApp({shouldSetNVP, isTrackingGPS, shouldIgnoreTryNewDot
         return;
     }
 
-    Navigation.clearPreloadedRoutes();
-    if (CONFIG.IS_HYBRID_APP) {
-        Onyx.merge(ONYXKEYS.HYBRID_APP, {closingReactNativeApp: true});
-    }
+    const closingPromise = CONFIG.IS_HYBRID_APP ? Onyx.merge(ONYXKEYS.HYBRID_APP, {closingReactNativeApp: true}) : Promise.resolve();
 
-    // eslint-disable-next-line no-restricted-properties
-    HybridAppModule.closeReactNativeApp({shouldSetNVP});
+    closingPromise
+        .then(() => {
+            requestAnimationFrame(() => {
+                Navigation.clearPreloadedRoutes();
+                // eslint-disable-next-line no-restricted-properties
+                HybridAppModule.closeReactNativeApp({shouldSetNVP});
+            });
+        })
+        .catch((error) => {
+            Log.warn('[HybridApp] Failed to merge closingReactNativeApp before close', {error});
+            Navigation.clearPreloadedRoutes();
+            // eslint-disable-next-line no-restricted-properties
+            HybridAppModule.closeReactNativeApp({shouldSetNVP});
+        });
 }
 
 /*
