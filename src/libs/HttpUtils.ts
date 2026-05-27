@@ -100,11 +100,9 @@ function processHTTPRequest<TKey extends OnyxKey>(
 
     if (prefetchKey) {
         registerPrefetchTokenRefresh();
-        prefetchOnAppStart(url, fetchParams)
-            .then(() => {})
-            .catch((error) => {
-                Log.warn(`[HttpUtils] prefetchOnAppStart failed for ${command})`, {error, fetchParams, url});
-            });
+        prefetchOnAppStart(url, fetchParams).catch((error) => {
+            Log.warn(`[HttpUtils] prefetchOnAppStart failed for ${command})`, {error, fetchParams, url});
+        });
     }
 
     return fetch(url, fetchParams)
