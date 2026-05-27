@@ -4,6 +4,7 @@ import Table, {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableD
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import WorkspaceMembersTableRow from './WorkspaceMembersTableRow';
@@ -44,14 +45,14 @@ export default function WorkspaceMembersTable({ref, shouldShowCustomField1Column
 
     const workspaceMembersColumns: Array<TableColumn<WorkspaceMembersTableColumnKey>> = [
         {
-            sortable: true,
             key: 'member',
-            label: translate('common.members'),
+            label: translate('common.member'),
+            sortable: true,
         },
         {
-            sortable: true,
             key: 'role',
             label: translate('common.role'),
+            sortable: true,
         },
         ...(shouldShowCustomField1Column
             ? [
@@ -72,9 +73,10 @@ export default function WorkspaceMembersTable({ref, shouldShowCustomField1Column
               ]
             : []),
         {
-            sortable: false,
-            key: 'actions',
             label: '',
+            key: 'actions',
+            width: variables.tableCaretColumnWidth,
+            sortable: false,
         },
     ];
 
@@ -116,6 +118,7 @@ export default function WorkspaceMembersTable({ref, shouldShowCustomField1Column
         <Table
             ref={ref}
             data={members}
+            selectionEnabled
             columns={workspaceMembersColumns}
             renderItem={renderTableItem}
             compareItems={compareTableItems}
