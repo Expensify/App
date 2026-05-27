@@ -12,7 +12,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -23,6 +23,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import colors from '@styles/theme/colors';
+import variables from '@styles/variables';
 import {openExternalLink} from '@userActions/Link';
 import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -56,7 +57,6 @@ type MenuItem = WithSentryLabel & {
 
 function AboutPage() {
     const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Link', 'Keyboard', 'Eye', 'MoneyBag', 'Bug']);
-    const illustrations = useMemoizedLazyIllustrations(['PalmTree']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View>(null);
@@ -160,17 +160,24 @@ function AboutPage() {
             shouldShowOfflineIndicatorInWideScreen
             testID="AboutPage"
         >
-            <HeaderWithBackButton
-                title={translate('initialSettingsPage.about')}
-                shouldShowBackButton={shouldUseNarrowLayout}
-                shouldDisplaySearchRouter
-                shouldDisplayHelpButton
-                onBackButtonPress={Navigation.goBack}
-                icon={illustrations.PalmTree}
-                shouldUseHeadlineHeader
-            />
+            <View style={{width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center'}}>
+                <HeaderWithBackButton
+                    title={translate('initialSettingsPage.about')}
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldDisplaySearchRouter
+                    shouldDisplayHelpButton
+                    onBackButtonPress={Navigation.goBack}
+                    shouldUseHeadlineHeader
+                />
+            </View>
             <ScrollView contentContainerStyle={styles.pt3}>
-                <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <View
+                    style={[
+                        styles.flex1,
+                        shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection,
+                        {width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center', paddingHorizontal: 20},
+                    ]}
+                >
                     <Section
                         title={translate('footer.aboutExpensify')}
                         subtitle={translate('initialSettingsPage.aboutPage.description')}
@@ -180,6 +187,7 @@ function AboutPage() {
                         illustrationBackgroundColor={colors.yellow600}
                         titleStyles={styles.accountSettingsSectionTitle}
                         overlayContent={overlayContent}
+                        containerStyles={{marginHorizontal: 0}}
                         {...aboutIllustration}
                     >
                         <View style={[styles.flex1, styles.mt5]}>

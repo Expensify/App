@@ -15,7 +15,7 @@ import useClearSelectedDomainMembersOnMoveComplete from '@hooks/useClearSelected
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
 import useDomainGroupFilter from '@hooks/useDomainGroupFilter';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -43,7 +43,6 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const {domainAccountID} = route.params;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['Profile']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Gear', 'DotIndicator', 'RemoveMembers', 'Download', 'Transfer']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
@@ -286,7 +285,6 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 getCustomListHeader={getCustomListHeader}
                 searchPlaceholder={translate('domain.members.findMember')}
                 onSelectRow={(item) => Navigation.navigate(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, item.accountID))}
-                headerIcon={illustrations.Profile}
                 getCustomRowProps={getCustomRowProps}
                 headerContent={getHeaderButtons()}
                 selectedMembers={selectedMembers}

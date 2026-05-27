@@ -13,7 +13,7 @@ import type {ListItem} from '@components/SelectionList/ListItem/types';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import Text from '@components/Text';
 import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -49,7 +49,6 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['Members']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
@@ -151,7 +150,6 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
                 <HeaderWithBackButton
                     title={translate('domain.groups.title')}
                     onBackButtonPress={Navigation.popToSidebar}
-                    icon={illustrations.Members}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader
                 >

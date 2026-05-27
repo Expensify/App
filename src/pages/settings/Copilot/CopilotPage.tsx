@@ -38,6 +38,7 @@ import {useIsAgentAccount} from '@libs/SessionUtils';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import type {AnchorPosition} from '@styles/index';
 import colors from '@styles/theme/colors';
+import variables from '@styles/variables';
 import {close as modalClose} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -429,19 +430,28 @@ function CopilotPage() {
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <>
-                    <HeaderWithBackButton
-                        title={translate('delegate.copilot')}
-                        shouldShowBackButton={shouldUseNarrowLayout}
-                        onBackButtonPress={Navigation.goBack}
-                        icon={illustrations.Members}
-                        shouldUseHeadlineHeader
-                        shouldDisplaySearchRouter
-                        shouldDisplayHelpButton
-                    />
+                    <View style={{width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center'}}>
+                        <HeaderWithBackButton
+                            title={translate('delegate.copilot')}
+                            shouldShowBackButton={shouldUseNarrowLayout}
+                            onBackButtonPress={Navigation.goBack}
+                            shouldUseHeadlineHeader
+                            shouldDisplaySearchRouter
+                            shouldDisplayHelpButton
+                        />
+                    </View>
                     <ScrollView contentContainerStyle={styles.pt3}>
-                        <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection, safeAreaPaddingBottomStyle]}>
+                        <View
+                            style={[
+                                styles.flex1,
+                                shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection,
+                                safeAreaPaddingBottomStyle,
+                                {width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center', paddingHorizontal: 20},
+                            ]}
+                        >
                             <Section
                                 title={translate('delegate.copilotDelegatedAccess')}
+                                containerStyles={{marginHorizontal: 0}}
                                 renderSubtitle={() => (
                                     <Text style={[styles.textNormal, styles.colorMuted, styles.mt2]}>
                                         {translate('delegate.copilotDelegatedAccessDescription')}{' '}

@@ -6,7 +6,7 @@ import Button from '@components/Button';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
@@ -31,7 +31,6 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const illustrations = useMemoizedLazyIllustrations(['UserShield']);
     const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Plus', 'DotIndicator']);
 
     const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
@@ -104,7 +103,6 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             accountIDs={adminAccountIDs ?? []}
             headerTitle={translate('domain.admins.title')}
             searchPlaceholder={translate('domain.admins.findAdmin')}
-            headerIcon={illustrations.UserShield}
             headerContent={headerContent}
             getCustomListHeader={getCustomListHeader}
             getCustomRightElement={getCustomRightElement}

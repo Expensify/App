@@ -29,9 +29,12 @@ type NavigationTabBarAvatarProps = {
 
     /** Override for the outer pressable wrapper style. Defaults to flex:1 for the LHN tab cell. */
     wrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Whether to apply the LHN tab-cell hover background on hover. */
+    shouldShowHoverBackground?: boolean;
 };
 
-function NavigationTabBarAvatar({onPress, isSelected = false, style, shouldShowLabel = true, wrapperStyle}: NavigationTabBarAvatarProps) {
+function NavigationTabBarAvatar({onPress, isSelected = false, style, shouldShowLabel = true, wrapperStyle, shouldShowHoverBackground = true}: NavigationTabBarAvatarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -84,7 +87,7 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style, shouldShowL
             wrapperStyle={wrapperStyle ?? styles.flex1}
             accessibilityState={accountAccessibilityState}
             aria-selected={accountAccessibilityState.selected}
-            style={({hovered}) => [style, !shouldUseNarrowLayout && hovered && styles.navigationTabBarItemHovered]}
+            style={({hovered}) => [style, shouldShowHoverBackground && !shouldUseNarrowLayout && hovered && styles.navigationTabBarItemHovered]}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.ACCOUNT}
         >
             {({hovered}) => (

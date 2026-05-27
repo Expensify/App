@@ -23,12 +23,12 @@ import Navigation from '@libs/Navigation/Navigation';
 import {canEditWorkspaceSettings, canMemberRead, isPendingDeletePolicy, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
 import type {PolicyFeature} from '@libs/PolicyUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
@@ -72,13 +72,6 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         /** Policy values needed in the component */
         policy: OnyxEntry<Policy>;
 
-        /**
-         * Icon displayed on the left of the title.
-         * If it is passed, the new styling is applied to the component:
-         * taller header on desktop and different font of the title.
-         * */
-        icon?: IconAsset;
-
         /** Content to be added to the header */
         headerContent?: ReactNode;
 
@@ -101,6 +94,9 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
 
         /** Whether to use the maxHeight (true) or use the 100% of the height (false) */
         shouldEnableMaxHeight?: boolean;
+
+        /** Center the header and content inside a max-width container (for pages without wide content). */
+        shouldCenterContent?: boolean;
     };
 
 function fetchData(policyID: string | undefined, skipVBBACal?: boolean) {
@@ -115,7 +111,6 @@ function WorkspacePageWithSections({
     backButtonRoute,
     children = () => null,
     footer = null,
-    icon = undefined,
     headerText,
     policy,
     policyDraft,
@@ -139,6 +134,7 @@ function WorkspacePageWithSections({
     shouldUseHeadlineHeader = true,
     addBottomSafeAreaPadding = false,
     modals,
+    shouldCenterContent = false,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID;
@@ -236,18 +232,19 @@ function WorkspacePageWithSections({
                 shouldForceFullScreen
                 shouldDisplaySearchRouter
             >
-                <HeaderWithBackButton
-                    title={headerText}
-                    onBackButtonPress={handleOnBackButtonPress}
-                    shouldShowBackButton={shouldUseNarrowLayout || shouldShowBackButton}
-                    icon={icon ?? undefined}
-                    shouldShowThreeDotsButton={shouldShowThreeDotsButton}
-                    threeDotsMenuItems={threeDotsMenuItems}
-                    shouldUseHeadlineHeader={shouldUseHeadlineHeader}
-                    shouldDisplayHelpButton
-                >
-                    {headerContent}
-                </HeaderWithBackButton>
+                <View style={shouldCenterContent ? {width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center'} : undefined}>
+                    <HeaderWithBackButton
+                        title={headerText}
+                        onBackButtonPress={handleOnBackButtonPress}
+                        shouldShowBackButton={shouldUseNarrowLayout || shouldShowBackButton}
+                        shouldShowThreeDotsButton={shouldShowThreeDotsButton}
+                        threeDotsMenuItems={threeDotsMenuItems}
+                        shouldUseHeadlineHeader={shouldUseHeadlineHeader}
+                        shouldDisplayHelpButton
+                    >
+                        {headerContent}
+                    </HeaderWithBackButton>
+                </View>
                 {!isOffline && (isLoading || firstRender.current) && shouldShowLoading && isFocused ? (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>
                         <ActivityIndicator
@@ -269,7 +266,9 @@ function WorkspacePageWithSections({
                                 addBottomSafeAreaPadding={addBottomSafeAreaPadding}
                                 style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
                             >
-                                <View style={[styles.w100, styles.flex1]}>{content}</View>
+                                <View style={[styles.w100, styles.flex1, shouldCenterContent && {maxWidth: variables.cardMaxWidth, alignSelf: 'center', paddingHorizontal: 20}]}>
+                                    {content}
+                                </View>
                             </ScrollViewWithContext>
                         ) : (
                             content

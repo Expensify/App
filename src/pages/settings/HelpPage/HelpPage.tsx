@@ -19,6 +19,7 @@ import {navigateToAndOpenReportWithAccountIDs} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import colors from '@styles/theme/colors';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
@@ -123,17 +124,24 @@ function HelpPage() {
             shouldShowOfflineIndicatorInWideScreen
             testID="HelpPage"
         >
-            <HeaderWithBackButton
-                title={translate('common.help')}
-                icon={illustrations.LifeRing}
-                shouldUseHeadlineHeader
-                shouldShowBackButton={shouldUseNarrowLayout}
-                shouldDisplaySearchRouter
-                shouldDisplayHelpButton
-                onBackButtonPress={Navigation.goBack}
-            />
+            <View style={{width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center'}}>
+                <HeaderWithBackButton
+                    title={translate('common.help')}
+                    shouldUseHeadlineHeader
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldDisplaySearchRouter
+                    shouldDisplayHelpButton
+                    onBackButtonPress={Navigation.goBack}
+                />
+            </View>
             <ScrollView contentContainerStyle={styles.pt3}>
-                <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <View
+                    style={[
+                        styles.flex1,
+                        shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection,
+                        {width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center', paddingHorizontal: 20},
+                    ]}
+                >
                     <Section
                         title={translate('initialSettingsPage.helpPage.title')}
                         subtitle={translate('initialSettingsPage.helpPage.description')}
@@ -144,6 +152,7 @@ function HelpPage() {
                         illustrationBackgroundColor={colors.ice800}
                         illustration={illustrations.TopiaryDollarSign}
                         illustrationStyle={styles.helpStaticIllustration}
+                        containerStyles={{marginHorizontal: 0}}
                     >
                         <View style={[styles.flex1, styles.mt5]}>
                             <MenuItemList

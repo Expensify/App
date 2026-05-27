@@ -8,8 +8,6 @@ import AvatarSkeleton from '@components/AvatarSkeleton';
 import Button from '@components/Button';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
-import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import MenuItemGroup from '@components/MenuItemGroup';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -18,7 +16,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
-import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -34,6 +32,7 @@ import {getDisplayNameOrDefault, getFormattedAddress} from '@libs/PersonalDetail
 import {useIsAgentAccount} from '@libs/SessionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getContactMethodsOptions, getLoginListBrickRoadIndicator} from '@libs/UserUtils';
+import variables from '@styles/variables';
 import {clearAgentAvatarUpdateError} from '@userActions/Agent';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -69,7 +68,6 @@ function ProfilePage() {
     const isAgentAccount = useIsAgentAccount();
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
     const avatarStyle = [styles.avatarXLarge, styles.alignSelfStart];
-    const {asset: Profile} = useMemoizedLazyAsset(() => loadIllustration('Profile' as IllustrationName));
     const icons = useMemoizedLazyExpensifyIcons(['QrCode']);
 
     const contactMethodBrickRoadIndicator = getLoginListBrickRoadIndicator(loginList, currentUserPersonalDetails?.email);
@@ -195,28 +193,35 @@ function ProfilePage() {
             testID="ProfilePage"
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButton
-                title={translate('common.profile')}
-                onBackButtonPress={() => {
-                    if (route.params?.backTo) {
-                        Navigation.goBack(route.params?.backTo);
-                        return;
-                    }
-                    Navigation.goBack();
-                }}
-                shouldShowBackButton={shouldUseNarrowLayout}
-                shouldDisplaySearchRouter
-                shouldDisplayHelpButton
-                icon={Profile}
-                shouldUseHeadlineHeader
-            />
+            <View style={{width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center'}}>
+                <HeaderWithBackButton
+                    title={translate('common.profile')}
+                    onBackButtonPress={() => {
+                        if (route.params?.backTo) {
+                            Navigation.goBack(route.params?.backTo);
+                            return;
+                        }
+                        Navigation.goBack();
+                    }}
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldDisplaySearchRouter
+                    shouldDisplayHelpButton
+                    shouldUseHeadlineHeader
+                />
+            </View>
             <ScrollView
                 style={styles.pt3}
                 contentContainerStyle={safeAreaPaddingBottomStyle}
                 scrollEnabled={scrollEnabled}
             >
                 <MenuItemGroup>
-                    <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <View
+                        style={[
+                            styles.flex1,
+                            shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection,
+                            {width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center', paddingHorizontal: 20},
+                        ]}
+                    >
                         <Section
                             title={translate('profilePage.publicSection.title')}
                             subtitle={translate('profilePage.publicSection.subtitle')}
@@ -224,6 +229,7 @@ function ProfilePage() {
                             subtitleMuted
                             childrenStyles={styles.pt5}
                             titleStyles={styles.accountSettingsSectionTitle}
+                            containerStyles={{marginHorizontal: 0}}
                         >
                             <View style={[styles.pt3, styles.pb6, styles.alignSelfStart, styles.w100]}>
                                 {isEmptyObject(currentUserPersonalDetails) || accountID === -1 || !avatarURL ? (
@@ -294,6 +300,7 @@ function ProfilePage() {
                                 subtitleMuted
                                 childrenStyles={styles.pt3}
                                 titleStyles={styles.accountSettingsSectionTitle}
+                                containerStyles={{marginHorizontal: 0}}
                             >
                                 {isLoadingApp ? (
                                     <View style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]}>

@@ -203,6 +203,7 @@ function QuickCreationActionsBar() {
         <View style={[styles.flexRow, styles.gap2, styles.pt1, styles.pb5]}>
             <Button
                 small
+                success
                 icon={icons.ReceiptPlus}
                 text={translate('common.expense')}
                 onPress={handleExpense}

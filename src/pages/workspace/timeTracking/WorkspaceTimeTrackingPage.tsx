@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -22,7 +21,6 @@ function WorkspaceTimeTrackingPage({route}: WorkspaceTimeTrackingPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.moreFeatures.timeTracking.title');
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['Clock']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
@@ -36,7 +34,6 @@ function WorkspaceTimeTrackingPage({route}: WorkspaceTimeTrackingPageProps) {
                 headerText={translate('workspace.moreFeatures.timeTracking.title')}
                 shouldShowOfflineIndicatorInWideScreen
                 route={route}
-                icon={illustrations.Clock}
                 addBottomSafeAreaPadding
                 shouldEnableMaxHeight={false}
             >

@@ -1,12 +1,16 @@
 import type {NavigationState, PartialState} from '@react-navigation/routers';
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
-import Button from '@components/Button';
+import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Icon from '@components/Icon';
+import {PressableWithFeedback} from '@components/Pressable';
 import {useSearchRouterActions} from '@components/Search/SearchRouter/SearchRouterContext';
 import startSearchPageVisibleSpan from '@components/Search/SearchRouter/startSearchPageVisibleSpan';
+import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useSidePanelActions from '@hooks/useSidePanelActions';
+import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
@@ -57,8 +61,6 @@ function isOnSettings(state: NavigationState | PartialState<NavigationState> | u
     return isOnSettings(route.state);
 }
 
-const GHOST_INNER_STYLE = {backgroundColor: 'transparent'};
-
 function GlobalNavBar() {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -67,9 +69,12 @@ function GlobalNavBar() {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass', 'Sparkles']);
     const {openSearchRouter} = useSearchRouterActions();
     const {openSidePanel} = useSidePanelActions();
-
-    const ghostHoverStyle = {backgroundColor: theme.hoverComponentBG};
-    const ghostTextStyle = {color: theme.textSupporting};
+    const {shouldHideSidePanel} = useSidePanelState();
+    const conciergeOpacity = useSharedValue(shouldHideSidePanel ? 1 : 0);
+    useEffect(() => {
+        conciergeOpacity.set(withTiming(shouldHideSidePanel ? 1 : 0, {duration: 200}));
+    }, [shouldHideSidePanel, conciergeOpacity]);
+    const conciergeAnimatedStyle = useAnimatedStyle(() => ({opacity: conciergeOpacity.get()}));
 
     const onSearchPress = useCallback(() => {
         callFunctionIfActionIsAllowed(() => {
@@ -107,33 +112,57 @@ function GlobalNavBar() {
             }}
             testID="GlobalNavBar"
         >
-            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pl3, styles.pr5]}>
-                <Button
-                    small
-                    icon={expensifyIcons.MagnifyingGlass}
-                    text="Find anything..."
-                    innerStyles={GHOST_INNER_STYLE}
-                    hoverStyles={ghostHoverStyle}
-                    textStyles={ghostTextStyle}
-                    iconFill={theme.textSupporting}
+            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pl2, styles.pr5]}>
+                <PressableWithFeedback
+                    accessibilityLabel="Find anything..."
+                    role={CONST.ROLE.BUTTON}
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.ph3, {height: 40, borderRadius: variables.buttonBorderRadius}]}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.SEARCH_BUTTON}
                     onPress={onSearchPress}
-                />
+                >
+                    {({hovered}) => (
+                        <>
+                            <Icon
+                                src={expensifyIcons.MagnifyingGlass}
+                                fill={theme.textSupporting}
+                                width={16}
+                                height={16}
+                            />
+                            <Text style={[styles.buttonText, styles.buttonMediumText, {color: hovered ? theme.text : theme.textSupporting}]}>Find anything...</Text>
+                        </>
+                    )}
+                </PressableWithFeedback>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                    <Button
-                        small
-                        icon={expensifyIcons.Sparkles}
-                        text="Ask Concierge"
-                        innerStyles={GHOST_INNER_STYLE}
-                        hoverStyles={ghostHoverStyle}
-                        textStyles={ghostTextStyle}
-                        iconFill={theme.textSupporting}
-                        onPress={openSidePanel}
-                    />
+                    <Animated.View
+                        style={conciergeAnimatedStyle}
+                        pointerEvents={shouldHideSidePanel ? 'auto' : 'none'}
+                    >
+                        <PressableWithFeedback
+                            accessibilityLabel="Ask Concierge"
+                            role={CONST.ROLE.BUTTON}
+                            style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.ph3, {height: 40, borderRadius: variables.buttonBorderRadius}]}
+                            sentryLabel={CONST.SENTRY_LABEL.SIDE_PANEL.HELP}
+                            onPress={openSidePanel}
+                        >
+                            {({hovered}) => (
+                                <>
+                                    <Icon
+                                        src={expensifyIcons.Sparkles}
+                                        fill={theme.textSupporting}
+                                        width={16}
+                                        height={16}
+                                    />
+                                    <Text style={[styles.buttonText, styles.buttonMediumText, {color: hovered ? theme.text : theme.textSupporting}]}>Ask Concierge</Text>
+                                </>
+                            )}
+                        </PressableWithFeedback>
+                    </Animated.View>
                     <NavigationTabBarAvatar
                         isSelected={isAccountSelected}
                         onPress={onAccountPress}
                         shouldShowLabel={false}
                         wrapperStyle={styles.alignItemsCenter}
+                        shouldShowHoverBackground={false}
                     />
                 </View>
             </View>

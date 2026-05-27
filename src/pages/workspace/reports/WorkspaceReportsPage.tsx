@@ -17,7 +17,7 @@ import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -37,6 +37,7 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import variables from '@styles/variables';
 import {openPolicyReportFieldsPage} from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -77,7 +78,6 @@ function WorkspaceReportFieldsPage({
     const currentConnectionName = getCurrentConnectionName(policy);
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
 
-    const illustrations = useMemoizedLazyIllustrations(['ReportReceipt']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
 
     const onDisabledOrganizeSwitchPress = () => {
@@ -208,14 +208,15 @@ function WorkspaceReportFieldsPage({
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
-                <HeaderWithBackButton
-                    icon={illustrations.ReportReceipt}
-                    title={translate('common.reports')}
-                    shouldUseHeadlineHeader
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldDisplayHelpButton
-                    onBackButtonPress={Navigation.goBack}
-                />
+                <View style={{width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center'}}>
+                    <HeaderWithBackButton
+                        title={translate('common.reports')}
+                        shouldUseHeadlineHeader
+                        shouldShowBackButton={shouldUseNarrowLayout}
+                        shouldDisplayHelpButton
+                        onBackButtonPress={Navigation.goBack}
+                    />
+                </View>
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -224,12 +225,19 @@ function WorkspaceReportFieldsPage({
                     />
                 )}
                 {!isLoading && (
-                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <ScrollView
+                        contentContainerStyle={[
+                            styles.flexGrow1,
+                            styles.mt3,
+                            shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection,
+                            {maxWidth: variables.cardMaxWidth, alignSelf: 'center', paddingHorizontal: 20, width: '100%'},
+                        ]}
+                    >
                         <Section
                             isCentralPane
                             renderTitle={renderReportTitle}
                             renderSubtitle={renderReportSubtitle}
-                            containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
+                            containerStyles={[shouldUseNarrowLayout ? styles.p5 : styles.p8, {marginHorizontal: 0}]}
                         >
                             <OfflineWithFeedback
                                 pendingAction={reportTitlePendingFields.defaultValue ?? policy?.pendingAction}
@@ -272,7 +280,7 @@ function WorkspaceReportFieldsPage({
                         </Section>
                         <Section
                             isCentralPane
-                            containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
+                            containerStyles={[shouldUseNarrowLayout ? styles.p5 : styles.p8, {marginHorizontal: 0}]}
                         >
                             <ToggleSettingOptionRow
                                 pendingAction={policy?.pendingFields?.areReportFieldsEnabled}

@@ -229,6 +229,7 @@ function CardSection() {
             titleStyles={styles.textStrong}
             subtitleMuted
             banner={BillingBanner}
+            containerStyles={{marginHorizontal: 0}}
         >
             <View style={[styles.mt8, styles.mb3, styles.flexRow]}>
                 {!isEmptyObject(defaultCard?.accountData) && (

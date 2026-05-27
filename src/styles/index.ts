@@ -1837,6 +1837,7 @@ const staticStyles = (theme: ThemeColors) =>
         topBarLabel: {
             color: theme.text,
             fontSize: variables.fontSizeXLarge,
+            lineHeight: 28,
             ...headlineFont,
         },
 

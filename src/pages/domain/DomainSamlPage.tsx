@@ -22,6 +22,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {DomainSplitNavigatorParamList} from '@libs/Navigation/types';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import colors from '@styles/theme/colors';
+import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -92,20 +93,26 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                 shouldForceFullScreen
                 shouldDisplaySearchRouter
             >
-                <HeaderWithBackButton
-                    title={translate('domain.saml')}
-                    onBackButtonPress={Navigation.goBack}
-                    icon={illustrations.LockClosed}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldDisplayHelpButton
-                />
+                <View style={{width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center'}}>
+                    <HeaderWithBackButton
+                        title={translate('domain.saml')}
+                        onBackButtonPress={Navigation.goBack}
+                        shouldShowBackButton={shouldUseNarrowLayout}
+                        shouldDisplayHelpButton
+                    />
+                </View>
 
                 <ScrollView
                     keyboardShouldPersistTaps="handled"
                     addBottomSafeAreaPadding
                     style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
                 >
-                    <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
+                    <View
+                        style={[
+                            shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection,
+                            {width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center', paddingHorizontal: 20},
+                        ]}
+                    >
                         {domain?.validated && domainName ? (
                             <>
                                 <Section
@@ -114,6 +121,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                                     isCentralPane
                                     titleStyles={styles.accountSettingsSectionTitle}
                                     childrenStyles={[styles.gap6, styles.pt6]}
+                                    containerStyles={{marginHorizontal: 0}}
                                 >
                                     <SamlLoginSectionContent
                                         accountID={domainAccountID}
@@ -132,6 +140,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                                         isCentralPane
                                         titleStyles={styles.accountSettingsSectionTitle}
                                         childrenStyles={[styles.gap6, styles.pt6]}
+                                        containerStyles={{marginHorizontal: 0}}
                                     >
                                         <SamlConfigurationDetailsSectionContent
                                             accountID={domainAccountID}
@@ -161,6 +170,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                                 illustrationStyle={styles.emptyStateSamlIllustration}
                                 illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter, styles.cardSectionIllustrationContainer]}
                                 titleStyles={styles.textHeadlineH1}
+                                containerStyles={{marginHorizontal: 0}}
                             />
                         )}
                     </View>

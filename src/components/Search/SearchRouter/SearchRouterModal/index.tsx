@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {Dimensions} from 'react-native';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import Modal from '@components/Modal';
@@ -6,7 +6,9 @@ import ScreenWrapperContainer from '@components/ScreenWrapper/ScreenWrapperConta
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
 import {useSearchRouterActions, useSearchRouterState} from '@components/Search/SearchRouter/SearchRouterContext';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isMobileIOS} from '@libs/Browser';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 const isMobileWebIOS = isMobileIOS();
@@ -15,6 +17,8 @@ function SearchRouterModal() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isSearchRouterDisplayed} = useSearchRouterState();
     const {closeSearchRouter} = useSearchRouterActions();
+    const {windowWidth} = useWindowDimensions();
+    const popoverAnchorPosition = useMemo(() => ({top: 80, left: Math.max(0, (windowWidth - variables.searchRouterPopoverWidth) / 2)}), [windowWidth]);
 
     // On mWeb Safari, the input caret stuck for a moment while the modal is animating. So, we hide the caret until the animation is done.
     const [shouldHideInputCaret, setShouldHideInputCaret] = useState(isMobileWebIOS);
@@ -36,13 +40,14 @@ function SearchRouterModal() {
         <Modal
             type={modalType}
             isVisible={isSearchRouterDisplayed}
-            popoverAnchorPosition={{right: 6, top: 6}}
+            popoverAnchorPosition={popoverAnchorPosition}
             fullscreen
             swipeDirection={shouldUseNarrowLayout ? CONST.SWIPE_DIRECTION.RIGHT : undefined}
             onClose={closeSearchRouter}
             onModalHide={() => setShouldHideInputCaret(isMobileWebIOS)}
             onModalShow={() => setShouldHideInputCaret(false)}
             shouldApplySidePanelOffset={!shouldUseNarrowLayout}
+            shouldForceBackdrop={!shouldUseNarrowLayout}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapperContainer

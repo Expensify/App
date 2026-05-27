@@ -11,7 +11,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
@@ -23,6 +23,7 @@ import {openSecuritySettingsPage} from '@libs/actions/Delegate';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasDeviceManagementError} from '@libs/UserUtils';
 import colors from '@styles/theme/colors';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,7 +44,6 @@ type BaseMenuItemType = WithSentryLabel & {
 
 function SecuritySettingsPage() {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowCollapse', 'ClosedSign', 'Fingerprint', 'Monitor', 'Shield', 'UserLock']);
-    const illustrations = useMemoizedLazyIllustrations(['LockClosed']);
     const securitySettingsIllustration = useSecuritySettingsSectionIllustration();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -194,17 +194,24 @@ function SecuritySettingsPage() {
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButton
-                title={translate('initialSettingsPage.security')}
-                shouldShowBackButton={shouldUseNarrowLayout}
-                onBackButtonPress={Navigation.goBack}
-                icon={illustrations.LockClosed}
-                shouldUseHeadlineHeader
-                shouldDisplaySearchRouter
-                shouldDisplayHelpButton
-            />
+            <View style={{width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center'}}>
+                <HeaderWithBackButton
+                    title={translate('initialSettingsPage.security')}
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                    onBackButtonPress={Navigation.goBack}
+                    shouldUseHeadlineHeader
+                    shouldDisplaySearchRouter
+                    shouldDisplayHelpButton
+                />
+            </View>
             <ScrollView contentContainerStyle={styles.pt3}>
-                <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <View
+                    style={[
+                        styles.flex1,
+                        shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection,
+                        {width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center', paddingHorizontal: 20},
+                    ]}
+                >
                     <Section
                         title={translate('securityPage.title')}
                         subtitle={translate('securityPage.subtitle')}
@@ -214,6 +221,7 @@ function SecuritySettingsPage() {
                         illustrationBackgroundColor={colors.ice500}
                         titleStyles={styles.accountSettingsSectionTitle}
                         childrenStyles={styles.pt5}
+                        containerStyles={{marginHorizontal: 0}}
                         {...securitySettingsIllustration}
                     >
                         <MenuItemList

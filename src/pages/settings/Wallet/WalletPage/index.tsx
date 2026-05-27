@@ -47,6 +47,7 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import {getFirstPageName} from '@pages/settings/Wallet/UpdatePersonalBankAccountPage';
+import variables from '@styles/variables';
 import {
     deletePaymentBankAccount,
     openPersonalBankAccountSetupView,
@@ -431,14 +432,15 @@ function WalletPage() {
     const alertTextStyle = [styles.inlineSystemMessage, styles.flexShrink1];
     const alertViewStyle = [styles.flexRow, styles.alignItemsCenter, styles.w100];
     const headerWithBackButton = (
-        <HeaderWithBackButton
-            title={translate('common.wallet')}
-            icon={illustrations.MoneyIntoWallet}
-            shouldUseHeadlineHeader
-            shouldShowBackButton={shouldUseNarrowLayout}
-            shouldDisplaySearchRouter
-            shouldDisplayHelpButton
-        />
+        <View style={{width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center'}}>
+            <HeaderWithBackButton
+                title={translate('common.wallet')}
+                shouldUseHeadlineHeader
+                shouldShowBackButton={shouldUseNarrowLayout}
+                shouldDisplaySearchRouter
+                shouldDisplayHelpButton
+            />
+        </View>
     );
 
     const bottomMountItem = useMemo(
@@ -684,7 +686,13 @@ function WalletPage() {
         >
             {headerWithBackButton}
             <ScrollView style={styles.pt3}>
-                <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <View
+                    style={[
+                        styles.flex1,
+                        shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection,
+                        {width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center', paddingHorizontal: 20},
+                    ]}
+                >
                     <OfflineWithFeedback
                         style={styles.flex1}
                         contentContainerStyle={styles.flex1}
@@ -700,6 +708,7 @@ function WalletPage() {
                             titleStyles={styles.accountSettingsSectionTitle}
                             illustrationContainerStyle={styles.cardSectionIllustrationContainer}
                             illustrationBackgroundColor="#411103"
+                            containerStyles={{marginHorizontal: 0}}
                             {...walletIllustration}
                         >
                             <PaymentMethodList
@@ -719,6 +728,7 @@ function WalletPage() {
                             isCentralPane
                             subtitleMuted
                             titleStyles={styles.accountSettingsSectionTitle}
+                            containerStyles={{marginHorizontal: 0}}
                         >
                             <>
                                 <PaymentMethodList
@@ -774,6 +784,7 @@ function WalletPage() {
                                 subtitleMuted
                                 titleStyles={styles.accountSettingsSectionTitle}
                                 childrenStyles={shouldShowLoadingSpinner ? styles.mt7 : styles.mt5}
+                                containerStyles={{marginHorizontal: 0}}
                             >
                                 <>
                                     {shouldShowLoadingSpinner && (

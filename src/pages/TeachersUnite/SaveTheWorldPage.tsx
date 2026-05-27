@@ -12,7 +12,6 @@ import Section from '@components/Section';
 import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDocumentTitle from '@hooks/useDocumentTitle';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -22,6 +21,7 @@ import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCardForSubscriptionBilling} from '@libs/SubscriptionUtils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import variables from '@styles/variables';
 import {openSaveTheWorldPage, updatePersonalKarma} from '@userActions/Subscription';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -39,7 +39,6 @@ function SaveTheWorldPage() {
     const theme = useTheme();
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const illustrations = useMemoizedLazyIllustrations(['TeachersUnite']);
     const [personalOffsetsEnabled = false] = useOnyx(ONYXKEYS.NVP_PERSONAL_OFFSETS);
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
@@ -137,17 +136,24 @@ function SaveTheWorldPage() {
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButton
-                title={translate('sidebarScreen.saveTheWorld')}
-                shouldShowBackButton={shouldUseNarrowLayout}
-                shouldDisplaySearchRouter
-                shouldDisplayHelpButton
-                onBackButtonPress={Navigation.goBack}
-                icon={illustrations.TeachersUnite}
-                shouldUseHeadlineHeader
-            />
+            <View style={{width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center'}}>
+                <HeaderWithBackButton
+                    title={translate('sidebarScreen.saveTheWorld')}
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldDisplaySearchRouter
+                    shouldDisplayHelpButton
+                    onBackButtonPress={Navigation.goBack}
+                    shouldUseHeadlineHeader
+                />
+            </View>
             <ScrollView contentContainerStyle={styles.pt3}>
-                <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <View
+                    style={[
+                        styles.flex1,
+                        shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection,
+                        {width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center', paddingHorizontal: 20},
+                    ]}
+                >
                     <Section
                         title={translate('teachersUnitePage.teachersUnite')}
                         subtitle={translate('teachersUnitePage.joinExpensifyOrg')}
@@ -157,6 +163,7 @@ function SaveTheWorldPage() {
                         illustrationBackgroundColor={theme.PAGE_THEMES[SCREENS.SAVE_THE_WORLD.ROOT].backgroundColor}
                         titleStyles={styles.accountSettingsSectionTitle}
                         childrenStyles={styles.pt5}
+                        containerStyles={{marginHorizontal: 0}}
                         {...saveTheWorldIllustration}
                     >
                         <MenuItemList
@@ -175,6 +182,7 @@ function SaveTheWorldPage() {
                         )}
                         isCentralPane
                         titleStyles={styles.accountSettingsSectionTitle}
+                        containerStyles={{marginHorizontal: 0}}
                     >
                         <ToggleSettingOptionRow
                             title={personalKarmaTitle}

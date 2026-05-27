@@ -151,7 +151,7 @@ function HeaderWithBackButton({
             <Header
                 title={title}
                 subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
-                textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2]}
+                textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.topBarLabel]}
                 subTitleLink={subTitleLink}
                 numberOfTitleLines={1}
                 isScreenHeader
@@ -171,7 +171,7 @@ function HeaderWithBackButton({
         styles.headerProgressBar,
         styles.headerProgressBarContainer,
         styles.headerProgressBarFill,
-        styles.textHeadlineH2,
+        styles.topBarLabel,
         subtitle,
         title,
         titleColor,

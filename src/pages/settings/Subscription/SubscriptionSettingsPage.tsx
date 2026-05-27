@@ -5,7 +5,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useDocumentTitle from '@hooks/useDocumentTitle';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -16,6 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import CardSection from './CardSection/CardSection';
@@ -29,7 +29,6 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const subscriptionPlan = useSubscriptionPlan();
-    const illustrations = useMemoizedLazyIllustrations(['CreditCardsNew']);
     useDocumentTitle(translate('workspace.common.subscription'));
     useEffect(() => {
         openSubscriptionPage();
@@ -59,23 +58,30 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
             testID="SubscriptionSettingsPage"
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButton
-                title={translate('workspace.common.subscription')}
-                onBackButtonPress={() => {
-                    if (backTo) {
-                        Navigation.goBack(backTo);
-                        return;
-                    }
-                    Navigation.goBack();
-                }}
-                shouldShowBackButton={shouldUseNarrowLayout}
-                shouldDisplaySearchRouter
-                shouldDisplayHelpButton
-                icon={illustrations.CreditCardsNew}
-                shouldUseHeadlineHeader
-            />
+            <View style={{width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center'}}>
+                <HeaderWithBackButton
+                    title={translate('workspace.common.subscription')}
+                    onBackButtonPress={() => {
+                        if (backTo) {
+                            Navigation.goBack(backTo);
+                            return;
+                        }
+                        Navigation.goBack();
+                    }}
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldDisplaySearchRouter
+                    shouldDisplayHelpButton
+                    shouldUseHeadlineHeader
+                />
+            </View>
             <ScrollView style={styles.pt3}>
-                <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <View
+                    style={[
+                        styles.flex1,
+                        shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection,
+                        {width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center', paddingHorizontal: 20},
+                    ]}
+                >
                     <CardSection />
                     <SubscriptionPlan />
                 </View>

@@ -68,6 +68,7 @@ function BaseModal({
     shouldApplySidePanelOffset = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
     hasBackdrop,
     backdropOpacity,
+    shouldForceBackdrop = false,
     shouldDisableBottomSafeAreaPadding = false,
     shouldIgnoreBackHandlerDuringTransition = false,
     forwardedFSClass = CONST.FULLSTORY.CLASS.UNMASK,
@@ -309,7 +310,7 @@ function BaseModal({
     const shouldSuppressRightDockedBackdrop =
         type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && !isSmallScreenWidth && (isInNarrowPane || isInNarrowPaneModal) && !shouldKeepRightDockedBackdropInNarrowPane;
     const backdropOpacityAdjusted =
-        hideBackdrop || shouldSuppressRightDockedBackdrop // right_docked modals shouldn't add backdrops when opened in same-width RHP
+        !shouldForceBackdrop && (hideBackdrop || shouldSuppressRightDockedBackdrop) // right_docked modals shouldn't add backdrops when opened in same-width RHP
             ? 0
             : backdropOpacity;
 

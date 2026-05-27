@@ -3,7 +3,6 @@ import DecisionModal from '@components/DecisionModal';
 import WorkspaceCompanyCardsTable from '@components/Tables/WorkspaceCompanyCardsTable';
 import useAssignCard from '@hooks/useAssignCard';
 import useCompanyCards from '@hooks/useCompanyCards';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
@@ -25,7 +24,6 @@ type WorkspaceCompanyCardsPageProps = PlatformStackScreenProps<WorkspaceSplitNav
 function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const policyID = route.params.policyID;
     const {translate} = useLocalize();
-    const memoizedIllustrations = useMemoizedLazyIllustrations(['CompanyCard']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const policy = usePolicy(policyID);
@@ -40,6 +38,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
         bankName,
         isFeedPending,
         isFeedAdded,
+        isNoFeed,
         onyxMetadata: {cardListMetadata},
     } = companyCards;
 
@@ -94,12 +93,12 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
         >
             <WorkspacePageWithSections
-                icon={memoizedIllustrations.CompanyCard}
                 headerText={translate('workspace.common.companyCards')}
                 route={route}
                 shouldShowOfflineIndicatorInWideScreen
                 showLoadingAsFirstRender={false}
                 addBottomSafeAreaPadding
+                shouldCenterContent={isNoFeed && !isLoading}
             >
                 <WorkspaceCompanyCardsTable
                     policyID={policyID}
