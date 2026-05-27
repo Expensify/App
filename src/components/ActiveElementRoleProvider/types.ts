@@ -1,5 +1,6 @@
 type ActiveElementRoleContextValue = {
     role: string | null;
+    isProgrammatic: boolean;
 };
 
 type ActiveElementRoleProps = {

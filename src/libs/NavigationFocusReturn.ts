@@ -45,6 +45,7 @@ function setTriggerEntry(routeKey: string, entry: TriggerEntry): void {
 let prevState: NavigationState | undefined;
 let pendingRestore: {cancel: () => void} | null = null;
 let isRestoringFocus = false;
+let nextRestoreIsProgrammatic = false;
 let focusinHandler: ((e: FocusEvent) => void) | null = null;
 let mouseActivationHandler: ((e: MouseEvent) => void) | null = null;
 let stateUnsubscribe: (() => void) | null = null;
@@ -93,6 +94,17 @@ function notifyPushParamsForward(routeKey: string, prevParams: unknown): void {
 
 function notifyPushParamsBackward(routeKey: string, targetParams: unknown): void {
     scheduleRestore(compoundParamsKey(routeKey, targetParams));
+}
+
+/** Marks the next backward restore as programmatic — the restored element gets `data-programmatic-focus` so role-based consumers (Button enter-shortcut suppression) treat the restore as system-driven. Call before a form-submit `goBack`. One-shot; cleared on consume/cancel/teardown. */
+function markNextRestoreAsProgrammatic(): void {
+    nextRestoreIsProgrammatic = true;
+}
+
+function consumeProgrammaticFlag(): boolean {
+    const v = nextRestoreIsProgrammatic;
+    nextRestoreIsProgrammatic = false;
+    return v;
 }
 
 /** Native-only. Web captures via `focusin`; no-op here so the import resolves cross-platform. */
@@ -230,10 +242,11 @@ function restoreTriggerForRoute(routeKey: string): boolean {
     }
 
     const focusOptions: FocusOptions = {preventScroll: true, focusVisible: getHadTabNavigation()};
+    const shouldMarkProgrammatic = consumeProgrammaticFlag();
     for (const candidate of candidates) {
         const before = document.activeElement;
         isRestoringFocus = true;
-        const unmarkProgrammaticFocus = markProgrammaticFocus(candidate);
+        const unmarkProgrammaticFocus = shouldMarkProgrammatic ? markProgrammaticFocus(candidate) : null;
         try {
             candidate.focus(focusOptions);
         } finally {
@@ -253,7 +266,7 @@ function restoreTriggerForRoute(routeKey: string): boolean {
             scheduleReturnHoldRelease();
             return true;
         }
-        unmarkProgrammaticFocus();
+        unmarkProgrammaticFocus?.();
     }
 
     // Silent no-op (transient display:none / visibility:hidden ancestor) — leave the entry for scheduleRestore to retry; release the cycle so AUTO/INITIAL aren't blocked during the window.
@@ -426,6 +439,7 @@ function teardownNavigationFocusReturn(): void {
     lastInteractiveElement = null;
     lastMouseTrigger = null;
     lastMouseTriggerAt = 0;
+    nextRestoreIsProgrammatic = false;
     if (typeof document !== 'undefined') {
         if (focusinHandler) {
             document.removeEventListener('focusin', focusinHandler, true);
@@ -453,6 +467,7 @@ function resetForTests(): void {
     lastMouseTrigger = null;
     lastMouseTriggerAt = 0;
     lastRestoreTarget = null;
+    nextRestoreIsProgrammatic = false;
 }
 
 function setLastInteractiveElementForTests(element: HTMLElement | null): void {
@@ -475,6 +490,7 @@ export {
     notifyPushParamsForward,
     notifyPushParamsBackward,
     cancelPendingFocusRestore,
+    markNextRestoreAsProgrammatic,
     notifyPressedTrigger,
     registerPressable,
     isFocusRestoreInProgress,

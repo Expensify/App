@@ -2,8 +2,8 @@
  * @jest-environment jsdom
  */
 /* eslint-disable import/extensions */
-const {getRoleForActive} = require<{
-    getRoleForActive: (el: Element | null) => string | null;
+const {getActiveElementInfo} = require<{
+    getActiveElementInfo: (el: Element | null) => {role: string | null; isProgrammatic: boolean};
 }>('../../src/components/ActiveElementRoleProvider/index.tsx');
 /* eslint-enable import/extensions */
 
@@ -15,30 +15,30 @@ function withRole(el: Element, role: string | null): Element {
     return el;
 }
 
-describe('getRoleForActive', () => {
+describe('getActiveElementInfo', () => {
     afterEach(() => {
         document.body.innerHTML = '';
     });
 
-    it('returns null for a null element', () => {
-        expect(getRoleForActive(null)).toBeNull();
+    it('returns null role + isProgrammatic=false for a null element', () => {
+        expect(getActiveElementInfo(null)).toEqual({role: null, isProgrammatic: false});
     });
 
-    it('returns the element role when no programmatic-focus marker is present', () => {
-        expect(getRoleForActive(withRole(document.createElement('div'), 'button'))).toBe('button');
+    it('returns the element role + isProgrammatic=false when no programmatic-focus marker is present', () => {
+        expect(getActiveElementInfo(withRole(document.createElement('div'), 'button'))).toEqual({role: 'button', isProgrammatic: false});
     });
 
-    it('returns null when the element carries `data-programmatic-focus="true"` — Button.shouldDisableEnterShortcut therefore stays inactive after a restore (#90838 regression guard)', () => {
+    it('reports isProgrammatic=true (preserving the real role) when `data-programmatic-focus="true"` — `useActiveElementRole` filters this to null for `Button.shouldDisableEnterShortcut` (#90838 regression guard)', () => {
         const el = withRole(document.createElement('div'), 'button');
         el.setAttribute('data-programmatic-focus', 'true');
-        expect(getRoleForActive(el)).toBeNull();
+        expect(getActiveElementInfo(el)).toEqual({role: 'button', isProgrammatic: true});
     });
 
-    it('returns the element role once the marker is removed (post-blur)', () => {
+    it('flips isProgrammatic back to false once the marker is removed (post-blur)', () => {
         const el = withRole(document.createElement('div'), 'button');
         el.setAttribute('data-programmatic-focus', 'true');
-        expect(getRoleForActive(el)).toBeNull();
+        expect(getActiveElementInfo(el).isProgrammatic).toBe(true);
         el.removeAttribute('data-programmatic-focus');
-        expect(getRoleForActive(el)).toBe('button');
+        expect(getActiveElementInfo(el)).toEqual({role: 'button', isProgrammatic: false});
     });
 });

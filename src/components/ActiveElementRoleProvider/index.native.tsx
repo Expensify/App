@@ -1,19 +1,12 @@
 import React from 'react';
 import type {ActiveElementRoleContextValue, ActiveElementRoleProps} from './types';
 
-const ActiveElementRoleContext = React.createContext<ActiveElementRoleContextValue>({
-    role: null,
-});
+const EMPTY: ActiveElementRoleContextValue = {role: null, isProgrammatic: false};
+
+const ActiveElementRoleContext = React.createContext<ActiveElementRoleContextValue>(EMPTY);
 
 function ActiveElementRoleProvider({children}: ActiveElementRoleProps) {
-    const value = React.useMemo(
-        () => ({
-            role: null,
-        }),
-        [],
-    );
-
-    return <ActiveElementRoleContext.Provider value={value}>{children}</ActiveElementRoleContext.Provider>;
+    return <ActiveElementRoleContext.Provider value={EMPTY}>{children}</ActiveElementRoleContext.Provider>;
 }
 
 export default ActiveElementRoleProvider;

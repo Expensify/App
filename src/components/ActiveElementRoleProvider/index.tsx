@@ -2,29 +2,29 @@ import React, {useEffect, useState} from 'react';
 import {PROGRAMMATIC_FOCUS_DATA_ATTRIBUTE} from '@libs/programmaticFocus';
 import type {ActiveElementRoleContextValue, ActiveElementRoleProps} from './types';
 
-const ActiveElementRoleContext = React.createContext<ActiveElementRoleContextValue>({
-    role: null,
-});
+const EMPTY: ActiveElementRoleContextValue = {role: null, isProgrammatic: false};
 
-/*
- * Suppress the role on a11y-restored elements so role-based consumers (`Button` enter-shortcut suppression) don't react to a programmatic focus.
- */
-function getRoleForActive(el: Element | null): string | null {
-    if (el?.getAttribute(PROGRAMMATIC_FOCUS_DATA_ATTRIBUTE) === 'true') {
-        return null;
+const ActiveElementRoleContext = React.createContext<ActiveElementRoleContextValue>(EMPTY);
+
+function getActiveElementInfo(el: Element | null): ActiveElementRoleContextValue {
+    if (!el) {
+        return EMPTY;
     }
-    return el?.role ?? null;
+    return {
+        role: el.role ?? null,
+        isProgrammatic: el.getAttribute(PROGRAMMATIC_FOCUS_DATA_ATTRIBUTE) === 'true',
+    };
 }
 
 function ActiveElementRoleProvider({children}: ActiveElementRoleProps) {
-    const [activeRoleRef, setRole] = useState<string | null>(() => getRoleForActive(document?.activeElement ?? null));
+    const [info, setInfo] = useState<ActiveElementRoleContextValue>(() => getActiveElementInfo(document?.activeElement ?? null));
 
     const handleFocusIn = () => {
-        setRole(getRoleForActive(document?.activeElement ?? null));
+        setInfo(getActiveElementInfo(document?.activeElement ?? null));
     };
 
     const handleFocusOut = () => {
-        setRole(null);
+        setInfo(EMPTY);
     };
 
     useEffect(() => {
@@ -37,15 +37,8 @@ function ActiveElementRoleProvider({children}: ActiveElementRoleProps) {
         };
     }, []);
 
-    const value = React.useMemo(
-        () => ({
-            role: activeRoleRef,
-        }),
-        [activeRoleRef],
-    );
-
-    return <ActiveElementRoleContext.Provider value={value}>{children}</ActiveElementRoleContext.Provider>;
+    return <ActiveElementRoleContext.Provider value={info}>{children}</ActiveElementRoleContext.Provider>;
 }
 
 export default ActiveElementRoleProvider;
-export {ActiveElementRoleContext, getRoleForActive};
+export {ActiveElementRoleContext, getActiveElementInfo};

@@ -48,6 +48,9 @@ function notifyPressedTrigger(ref: RefObject<View | null> | null, identifier?: s
     lastPressedTriggerAt = ref ? Date.now() : 0;
 }
 
+/** Web-only signal. Native uses TalkBack/VoiceOver's announcement model — there's no per-button Enter-shortcut to suppress. No-op for cross-platform signature parity. */
+function markNextRestoreAsProgrammatic(): void {}
+
 function registerPressable(routeKey: string, identifier: string, ref: RefObject<View | null>): () => void {
     let routeMap = pressableRegistry.get(routeKey);
     if (!routeMap) {
@@ -269,6 +272,7 @@ export {
     notifyPushParamsForward,
     notifyPushParamsBackward,
     cancelPendingFocusRestore,
+    markNextRestoreAsProgrammatic,
     isFocusRestoreInProgress,
     shouldSkipAutoFocusDueToExistingFocus,
     resetForTests,

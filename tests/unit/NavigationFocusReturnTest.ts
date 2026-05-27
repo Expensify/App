@@ -21,6 +21,7 @@ const {
     notifyPushParamsForward,
     notifyPushParamsBackward,
     cancelPendingFocusRestore,
+    markNextRestoreAsProgrammatic,
     isFocusRestoreInProgress,
     compoundParamsKey,
     shouldSkipAutoFocusDueToExistingFocus,
@@ -38,6 +39,7 @@ const {
     notifyPushParamsForward: (routeKey: string, prevParams: unknown) => void;
     notifyPushParamsBackward: (routeKey: string, targetParams: unknown) => void;
     cancelPendingFocusRestore: () => void;
+    markNextRestoreAsProgrammatic: () => void;
     isFocusRestoreInProgress: () => boolean;
     compoundParamsKey: (routeKey: string, params: unknown) => string;
     shouldSkipAutoFocusDueToExistingFocus: () => boolean;
@@ -1454,7 +1456,7 @@ describe('handleStateChange integration', () => {
         });
     });
 
-    it('marks the restored element with `data-programmatic-focus` so consumers (Button enter-shortcut suppression, list cursor-sync) can tell a restore apart from a user-driven Tab', () => {
+    it('marks the restored element with `data-programmatic-focus` ONLY when the form-submit path opts in via `markNextRestoreAsProgrammatic()`', () => {
         withFakeTimers(() => {
             simulateTab();
             handleStateChange(onA);
@@ -1464,10 +1466,29 @@ describe('handleStateChange integration', () => {
             handleStateChange(onAB);
             trigger.blur();
 
+            markNextRestoreAsProgrammatic();
             handleStateChange(onA);
             jest.runAllTimers();
 
             expect(trigger.getAttribute('data-programmatic-focus')).toBe('true');
+        });
+    });
+
+    it('does NOT mark the restored element on an ordinary Back navigation — focused button claims Enter shortcut normally (#90838 regression guard: only Save path opts in)', () => {
+        withFakeTimers(() => {
+            simulateTab();
+            handleStateChange(onA);
+
+            const trigger = appendButton();
+            fireFocusIn(trigger);
+            handleStateChange(onAB);
+            trigger.blur();
+
+            // No markNextRestoreAsProgrammatic() — this models the Back/Esc dismissal path.
+            handleStateChange(onA);
+            jest.runAllTimers();
+
+            expect(trigger.getAttribute('data-programmatic-focus')).toBeNull();
         });
     });
 
@@ -1481,6 +1502,7 @@ describe('handleStateChange integration', () => {
             handleStateChange(onAB);
             trigger.blur();
 
+            markNextRestoreAsProgrammatic();
             handleStateChange(onA);
             jest.runAllTimers();
             expect(trigger.getAttribute('data-programmatic-focus')).toBe('true');
@@ -1488,6 +1510,33 @@ describe('handleStateChange integration', () => {
             // User Tab moves focus away → blur fires on the restored element → marker is removed.
             trigger.blur();
             expect(trigger.getAttribute('data-programmatic-focus')).toBeNull();
+        });
+    });
+
+    it('`markNextRestoreAsProgrammatic()` is one-shot — a subsequent unmarked Back restore does NOT carry the marker', () => {
+        withFakeTimers(() => {
+            simulateTab();
+            handleStateChange(onA);
+
+            // First trip: Save path with the marker.
+            const triggerA = appendButton();
+            fireFocusIn(triggerA);
+            handleStateChange(onAB);
+            triggerA.blur();
+            markNextRestoreAsProgrammatic();
+            handleStateChange(onA);
+            jest.runAllTimers();
+            expect(triggerA.getAttribute('data-programmatic-focus')).toBe('true');
+            triggerA.blur();
+
+            // Second trip: ordinary Back, no opt-in.
+            const triggerB = appendButton();
+            fireFocusIn(triggerB);
+            handleStateChange(onAB);
+            triggerB.blur();
+            handleStateChange(onA);
+            jest.runAllTimers();
+            expect(triggerB.getAttribute('data-programmatic-focus')).toBeNull();
         });
     });
 
