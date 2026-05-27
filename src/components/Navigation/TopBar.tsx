@@ -1,6 +1,9 @@
 import React from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import Animated from 'react-native-reanimated';
+import type {AnimatedStyle} from 'react-native-reanimated';
 import LoadingBar from '@components/LoadingBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
@@ -24,11 +27,12 @@ type TopBarProps = {
     shouldShowLoadingBar?: boolean;
     cancelSearch?: () => void;
     children?: React.ReactNode;
+    breadcrumbAnimatedStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 };
 
 const authTokenTypeSelector = (session: OnyxEntry<Session>) => session && {authTokenType: session.authTokenType};
 
-function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpButton = false, cancelSearch, shouldShowLoadingBar, children}: TopBarProps) {
+function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpButton = false, cancelSearch, shouldShowLoadingBar, children, breadcrumbAnimatedStyle}: TopBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
@@ -49,7 +53,7 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
                 onTouchStart={isInLandscapeMode ? () => Keyboard.dismiss() : undefined}
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.pr2]}>
-                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                    <Animated.View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, breadcrumbAnimatedStyle]}>
                         <Text
                             numberOfLines={1}
                             style={[styles.flexShrink1, styles.topBarLabel]}
@@ -57,7 +61,7 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
                         >
                             {breadcrumbLabel}
                         </Text>
-                    </View>
+                    </Animated.View>
                 </View>
                 {children}
                 {displaySignIn && <SignInButton />}

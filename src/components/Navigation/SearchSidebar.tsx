@@ -1,15 +1,26 @@
 import type {ParamListBase} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import Animated from 'react-native-reanimated';
+import SidebarLeftIcon from '@assets/images/sidebar-left.svg';
+import SidebarRightIcon from '@assets/images/sidebar-right.svg';
+import Hoverable from '@components/Hoverable';
+import Icon from '@components/Icon';
+import {PressableWithoutFeedback} from '@components/Pressable';
 import {useSearchQueryContext, useSearchResultsActions, useSearchResultsContext} from '@components/Search/SearchContext';
+import Tooltip from '@components/Tooltip';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import SearchTypeMenuWide from '@pages/Search/SearchTypeMenuWide';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
+import {useSearchSidebarCollapse, useSearchSidebarCollapseFadeStyle, useSearchSidebarLayoutWidthStyle, useSearchSidebarToggleButtonStyle, useSearchSidebarVisualWidthStyle} from './SearchSidebarCollapseStore';
 import TopBar from './TopBar';
 
 type SearchSidebarProps = {
@@ -19,9 +30,15 @@ type SearchSidebarProps = {
 function SearchSidebar({state}: SearchSidebarProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {isOffline} = useNetwork();
     const shouldShowLoadingBarForReports = useLoadingBarVisibility();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isCollapsed, toggleSidebar, startPeek, endPeek} = useSearchSidebarCollapse();
+    const layoutSpacerStyle = useSearchSidebarLayoutWidthStyle();
+    const visualSidebarWidthStyle = useSearchSidebarVisualWidthStyle();
+    const breadcrumbAnimatedStyle = useSearchSidebarCollapseFadeStyle();
+    const toggleButtonAnimatedStyle = useSearchSidebarToggleButtonStyle();
 
     const route = state.routes.at(-1);
     const {lastSearchType, currentSearchResults} = useSearchResultsContext();
@@ -45,18 +62,49 @@ function SearchSidebar({state}: SearchSidebarProps) {
         return null;
     }
 
+    const toggleButtonLabel = translate(isCollapsed ? 'reportActionCompose.expand' : 'reportActionCompose.collapse');
+    const toggleButton = (
+        <Tooltip text={toggleButtonLabel}>
+            <Animated.View style={toggleButtonAnimatedStyle}>
+                <PressableWithoutFeedback
+                    accessibilityLabel={toggleButtonLabel}
+                    onPress={toggleSidebar}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.SIDEBAR_TOGGLE}
+                    style={[styles.p2, styles.br2]}
+                >
+                    <Icon
+                        src={isCollapsed ? SidebarRightIcon : SidebarLeftIcon}
+                        width={variables.iconSizeNormal}
+                        height={variables.iconSizeNormal}
+                        fill={theme.icon}
+                    />
+                </PressableWithoutFeedback>
+            </Animated.View>
+        </Tooltip>
+    );
+
     return (
-        <View style={styles.searchSidebar}>
-            <View style={styles.flex1}>
-                <TopBar
-                    shouldShowLoadingBar={shouldShowLoadingState || shouldShowLoadingBarForReports}
-                    breadcrumbLabel={translate('common.spend')}
-                    shouldDisplaySearch={false}
-                    shouldDisplayHelpButton={false}
-                />
-                <SearchTypeMenuWide queryJSON={currentSearchQueryJSON} />
-            </View>
-        </View>
+        <Animated.View style={[{height: '100%'}, layoutSpacerStyle]}>
+            <Hoverable
+                onHoverIn={startPeek}
+                onHoverOut={endPeek}
+            >
+                <Animated.View style={[styles.searchSidebar, {position: 'absolute', top: 0, bottom: 0, left: 0, zIndex: 1}, visualSidebarWidthStyle]}>
+                    <View style={styles.flex1}>
+                        <TopBar
+                            shouldShowLoadingBar={shouldShowLoadingState || shouldShowLoadingBarForReports}
+                            breadcrumbLabel={translate('common.spend')}
+                            breadcrumbAnimatedStyle={breadcrumbAnimatedStyle}
+                            shouldDisplaySearch={false}
+                            shouldDisplayHelpButton={false}
+                        >
+                            {toggleButton}
+                        </TopBar>
+                        <SearchTypeMenuWide queryJSON={currentSearchQueryJSON} />
+                    </View>
+                </Animated.View>
+            </Hoverable>
+        </Animated.View>
     );
 }
 
