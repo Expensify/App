@@ -1,4 +1,4 @@
-import TextInput from '@components/TextInput';
+import type TextInput from '@components/TextInput';
 
 /**
  * Returns props that suppress autocorrect, spellcheck, autocomplete, and autocapitalize
