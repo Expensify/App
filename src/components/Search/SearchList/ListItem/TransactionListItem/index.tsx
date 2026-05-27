@@ -48,7 +48,10 @@ const ANCHOR_ALIGNMENT = {
 function TransactionListItem<TItem extends ListItem>(props: TransactionListItemProps<TItem>) {
     const transactionItem = props.item as unknown as TransactionListItemType;
     return (
-        <ReportSubmitToPopoverAnchor reportID={transactionItem.reportID} anchorAlignment={ANCHOR_ALIGNMENT}>
+        <ReportSubmitToPopoverAnchor
+            reportID={transactionItem.reportID}
+            anchorAlignment={ANCHOR_ALIGNMENT}
+        >
             <TransactionListItemInner {...props} />
         </ReportSubmitToPopoverAnchor>
     );

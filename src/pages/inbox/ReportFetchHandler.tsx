@@ -137,7 +137,7 @@ function ReportFetchHandler() {
                 return;
             }
         }
-        
+
         openReport({reportID: reportIDFromRoute, introSelected, reportActionID: reportActionIDFromRoute, betas});
     });
 

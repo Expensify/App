@@ -201,9 +201,11 @@ const ANCHOR_ALIGNMENT = {
 };
 
 function ReportListItemHeader<TItem extends ListItem>(props: ReportListItemHeaderProps<TItem>) {
-
     return (
-        <ReportSubmitToPopoverAnchor reportID={props.report.reportID} anchorAlignment={ANCHOR_ALIGNMENT}>
+        <ReportSubmitToPopoverAnchor
+            reportID={props.report.reportID}
+            anchorAlignment={ANCHOR_ALIGNMENT}
+        >
             <ReportListItemHeaderInner {...props} />
         </ReportSubmitToPopoverAnchor>
     );
