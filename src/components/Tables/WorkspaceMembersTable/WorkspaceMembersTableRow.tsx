@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
+import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -46,8 +47,19 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
                 <>
                     <View></View>
                     <View></View>
-                    {shouldShowCustomField1Column && <View></View>}
-                    {shouldShowCustomField2Column && <View></View>}
+
+                    {shouldShowCustomField1Column && (
+                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                            <Text numberOfLines={1}>{item.employeeUserID}</Text>
+                        </View>
+                    )}
+
+                    {shouldShowCustomField2Column && (
+                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                            <Text numberOfLines={1}>{item.employeePayrollID}</Text>
+                        </View>
+                    )}
+
                     <Icon
                         src={icons.ArrowRight}
                         fill={theme.icon}
