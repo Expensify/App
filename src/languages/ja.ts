@@ -8506,6 +8506,7 @@ ${reportName}
         duplicatedTransaction: '重複の可能性',
         fieldRequired: 'レポートの項目は必須です',
         futureDate: '将来の日付は使用できません',
+        inactiveVendor: 'ベンダーは無効です',
         invoiceMarkup: (invoiceMarkup: number) => `${invoiceMarkup}%値上げ済み`,
         maxAge: (maxAge: number) => `日付が${maxAge}日より前です`,
         missingCategory: 'カテゴリが未選択です',

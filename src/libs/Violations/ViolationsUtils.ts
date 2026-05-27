@@ -13,10 +13,13 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import Parser from '@libs/Parser';
+import Permissions from '@libs/Permissions';
 import {
     getDistanceRateCustomUnitRate,
     getPerDiemRateCustomUnitRate,
+    getQBOVendorByID,
     getSortedTagKeys,
+    hasVendorFeature,
     isAttendeeTrackingEnabled as isAttendeeTrackingEnabledForPolicy,
     isDefaultTagName,
     isTaxTrackingEnabled,
@@ -26,11 +29,19 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import {hasValidModifiedAmount, isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CardList, Policy, PolicyCategories, PolicyTagLists, PolicyTags, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
+import type {Beta, Card, CardList, Policy, PolicyCategories, PolicyTagLists, PolicyTags, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ViolationFixParams from './types';
+
+let allBetas: OnyxEntry<Beta[]>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.BETAS,
+    callback: (value) => {
+        allBetas = value;
+    },
+});
 
 type ViolationTranslationParams = {
     violation: TransactionViolation;
@@ -430,6 +441,42 @@ const ViolationsUtils = {
                     : getTagViolationsForMultiLevelTags(updatedTransaction, newTransactionViolations, policyTagList, hasDependentTags);
         }
 
+        // Inactive vendor violation. Mirrors `categoryOutOfPolicy` / `tagOutOfPolicy` — computed
+        // entirely client-side from the policy's imported vendor list. The vendor object on the
+        // transaction is left as-is when the violation fires (or when the feature is disabled) —
+        // we never clear the user's selection just because the vendor list changed; the admin
+        // needs to see what was previously set so they can re-pick. Gated behind the
+        // `vendorMatching` beta so Web-Expensify can ship the auto-match write path
+        // independently — no production workspace sees the violation until the beta is enabled.
+        //
+        // Skip the reconcile entirely while `allBetas` is still loading (the module-level Onyx
+        // subscription populates it asynchronously). Treating undefined as "no betas" would surface
+        // as "feature off" here and silently strip a valid server-set `inactiveVendor` violation
+        // during the startup window. The next recompute settles the state once betas land.
+        if (allBetas !== undefined) {
+            const isVendorMatchingBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.VENDOR_MATCHING, allBetas);
+            const hasInactiveVendorViolation = newTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.INACTIVE_VENDOR);
+            const isVendorFeatureActive = hasVendorFeature(policy, isVendorMatchingBetaEnabled);
+            const transactionVendorID = updatedTransaction.comment?.vendor?.externalID;
+            if (!isVendorFeatureActive) {
+                // Feature off (e.g. admin switched export type away from credit/debit card) — clear any
+                // stale inactive-vendor violation.
+                if (hasInactiveVendorViolation) {
+                    newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
+                }
+            } else if (transactionVendorID) {
+                const matchedVendor = getQBOVendorByID(policy, transactionVendorID);
+                if (!matchedVendor && !hasInactiveVendorViolation) {
+                    newTransactionViolations.push({name: CONST.VIOLATIONS.INACTIVE_VENDOR, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
+                } else if (matchedVendor && hasInactiveVendorViolation) {
+                    newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
+                }
+            } else if (hasInactiveVendorViolation) {
+                // Vendor was cleared while the feature is still active — drop the now-stale violation.
+                newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
+            }
+        }
+
         const customUnitRateID = updatedTransaction?.comment?.customUnit?.customUnitRateID;
         if (customUnitRateID && customUnitRateID.length > 0 && !isSelfDM) {
             const isPerDiem = TransactionUtils.isPerDiemRequest(updatedTransaction);
@@ -740,6 +787,8 @@ const ViolationsUtils = {
                 return translate('violations.fieldRequired');
             case 'futureDate':
                 return translate('violations.futureDate');
+            case 'inactiveVendor':
+                return translate('violations.inactiveVendor');
             case 'invoiceMarkup':
                 return translate('violations.invoiceMarkup', invoiceMarkup);
             case 'maxAge':
@@ -825,12 +874,13 @@ const ViolationsUtils = {
                 return translate('violations.receiptGeneratedWithAI');
             case CONST.VIOLATIONS.NO_ROUTE:
                 return translate('violations.noRoute');
-            default:
+            default: {
                 // The interpreter should never get here because the switch cases should be exhaustive.
-                // If typescript is showing an error on the assertion below it means the switch statement is out of
-                // sync with the `ViolationNames` type, and one or the other needs to be updated.
-                // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-                return violation.name as never;
+                // If typescript is showing an error below, the switch is out of sync with the
+                // `ViolationNames` type — add the missing case (or remove the obsolete one).
+                const exhaustiveCheck: never = violation.name;
+                return exhaustiveCheck;
+            }
         }
     },
 

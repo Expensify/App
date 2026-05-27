@@ -8350,6 +8350,7 @@ ${reportName}
         duplicatedTransaction: '可能重复',
         fieldRequired: '报表字段为必填项',
         futureDate: '不允许使用未来日期',
+        inactiveVendor: '供应商不再有效',
         invoiceMarkup: (invoiceMarkup: number) => `加价 ${invoiceMarkup}%`,
         maxAge: (maxAge: number) => `日期早于 ${maxAge} 天`,
         missingCategory: '缺少类别',
