@@ -653,8 +653,8 @@ describe('ReportActionsView', () => {
 
             expect(mockReportActionsList).toHaveBeenCalled();
             const passedActions = (mockReportActionsList.mock.calls.at(0) as [{sortedVisibleReportActions: OnyxTypes.ReportAction[]}]).at(0)?.sortedVisibleReportActions;
-            // After user sends a message, the greeting should not show and all session actions appear
-            expect(passedActions?.some((a) => a.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID)).toBe(false);
+            // After user sends a message, the greeting stays visible alongside session actions
+            expect(passedActions?.some((a) => a.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID)).toBe(true);
             expect(passedActions?.some((a) => a.reportActionID === 'new-user-msg')).toBe(true);
         });
 
