@@ -464,7 +464,7 @@ describe('useYourSpendData — approval cache is keyed by query hash', () => {
         // that would let a stale-cache reuse happen if the cache weren't keyed by hash.
         mockedBuildAwaitingApprovalQuery.mockReturnValue(APPROVAL_QUERY_B);
         setupApprovalSnapshotForQuery(APPROVAL_QUERY_B, {search: {count: undefined}, data: {}} as unknown as SearchResults);
-        rerender();
+        rerender(undefined);
 
         // Should NOT be READY — the cache for hash A must not apply to hash B.
         expect(result.current.approvalRowState).not.toBe(YOUR_SPEND_ROW_STATE.READY);
