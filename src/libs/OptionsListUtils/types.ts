@@ -260,7 +260,6 @@ type Options = {
     currentUserOption: SearchOptionData | null | undefined;
     workspaceChats?: SearchOptionData[];
     selfDMChat?: SearchOptionData | undefined;
-    hasMore?: boolean;
 };
 
 type PreviewConfig = {
