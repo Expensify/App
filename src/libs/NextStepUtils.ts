@@ -1,15 +1,18 @@
 import {addMonths, format, isPast, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {IntroSelected, Policy, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type {Message} from '@src/types/onyx/ReportNextStepDeprecated';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import EmailUtils from './EmailUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
+import isTrackOnboardingChoice from './OnboardingUtils';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
 import {
@@ -22,8 +25,18 @@ import {
     isOpenExpenseReport,
     isPayer,
     shouldBlockSubmitDueToPreventSelfApproval,
+    shouldShowMarkAsDone,
 } from './ReportUtils';
 import {hasSubmissionBlockingViolations} from './TransactionUtils';
+
+let introSelected: OnyxEntry<IntroSelected>;
+// eslint-disable-next-line rulesdir/no-onyx-connect -- NextStepUtils is a pure utility called from action files that cannot use hooks
+Onyx.connect({
+    key: ONYXKEYS.NVP_INTRO_SELECTED,
+    callback: (value) => {
+        introSelected = value;
+    },
+});
 
 type BuildNextStepNewParams = {
     report: OnyxEntry<Report>;
@@ -139,7 +152,9 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             }
             if (isReopen) {
                 nextStep = {
-                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
+                    messageKey: shouldShowMarkAsDone({isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice), report, policy})
+                        ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE
+                        : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                     actorAccountID: ownerAccountID,
                 };
@@ -200,7 +215,13 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             // Manual submission
             if (hasTransactions && !policy?.harvesting?.enabled) {
                 nextStep = {
-                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
+                    messageKey: shouldShowMarkAsDone({
+                        isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice),
+                        report,
+                        policy,
+                    })
+                        ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE
+                        : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                     actorAccountID: ownerAccountID,
                 };

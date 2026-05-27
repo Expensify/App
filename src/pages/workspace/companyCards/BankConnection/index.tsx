@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useDuplicateFeedDetection from '@hooks/useDuplicateFeedDetection';
 import useImportPlaidAccounts from '@hooks/useImportPlaidAccounts';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -78,6 +79,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
     const isNewFeedHasError = !!(newFeed && cardFeeds?.[newFeed]?.errors);
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
+    const {checkForDuplicateFeed} = useDuplicateFeedDetection({policyID, isPlaid});
 
     const onOpenBankConnectionFlow = useCallback(() => {
         if (!url) {
@@ -152,6 +154,11 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
         if (isNewFeedConnected) {
             setShouldBlockWindowOpen(true);
             customWindow?.close();
+
+            if (checkForDuplicateFeed(newFeed)) {
+                return;
+            }
+
             if (newFeed) {
                 updateSelectedFeed(newFeed, policyID);
             }
@@ -186,6 +193,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
         isFeedConnectionBroken,
         updateBrokenConnection,
         isNewFeedHasError,
+        checkForDuplicateFeed,
     ]);
 
     const getContent = () => {
