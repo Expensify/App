@@ -98,47 +98,6 @@ function startOnboardingFlow(startOnboardingFlowParams: GetOnboardingInitialPath
     } as PartialState<NavigationState>);
 }
 
-function needsCompanySizeSelection(signupQualifier: Onboarding['signupQualifier'] | undefined, currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>): boolean {
-    const isVsb = signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
-    const isSmb = signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
-
-    if (!isVsb && !isSmb) {
-        return false;
-    }
-
-    if (!currentOnboardingCompanySize) {
-        return true;
-    }
-
-    // VSB users must choose 1-4 or 5-10; legacy auto-assigned MICRO is no longer valid.
-    if (isVsb && currentOnboardingCompanySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO) {
-        return true;
-    }
-
-    return false;
-}
-
-function isFreshOnboardingStart(onboardingInitialPath: string): boolean {
-    return !onboardingInitialPath || onboardingInitialPath === '/' || !onboardingInitialPath.includes('onboarding');
-}
-
-function isOnboardingStepPastEmployees(onboardingInitialPath: string): boolean {
-    return onboardingInitialPath.includes(ROUTES.ONBOARDING_ACCOUNTING.route) || onboardingInitialPath.includes(ROUTES.ONBOARDING_INTERESTED_FEATURES.route);
-}
-
-function getQualifierOnboardingPath(onboardingInitialPath: string): string {
-    const isValidOnboardingResumePath =
-        onboardingInitialPath.includes(ROUTES.ONBOARDING_EMPLOYEES.route) ||
-        onboardingInitialPath.includes(ROUTES.ONBOARDING_ACCOUNTING.route) ||
-        onboardingInitialPath.includes(ROUTES.ONBOARDING_INTERESTED_FEATURES.route);
-
-    if (isValidOnboardingResumePath) {
-        return onboardingInitialPath;
-    }
-
-    return `/${ROUTES.ONBOARDING_ACCOUNTING.route}`;
-}
-
 function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingInitialPathParamsType): string {
     const {
         isUserFromPublicDomain,
@@ -171,26 +130,17 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     }
 
     if (!isUserFromPublicDomain && hasAccessiblePolicies) {
-        const signupQualifier = currentOnboardingValues?.signupQualifier;
-        if (onboardingInitialPath && needsCompanySizeSelection(signupQualifier, currentOnboardingCompanySize) && isOnboardingStepPastEmployees(onboardingInitialPath)) {
-            return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
-        }
         if (onboardingInitialPath) {
             return onboardingInitialPath;
         }
         return `/${ROUTES.ONBOARDING_PERSONAL_DETAILS.route}`;
     }
 
-    if (isVsb || isSmb) {
-        const signupQualifier = currentOnboardingValues?.signupQualifier;
-        const shouldStartAtEmployees =
-            needsCompanySizeSelection(signupQualifier, currentOnboardingCompanySize) &&
-            (isFreshOnboardingStart(onboardingInitialPath) || isOnboardingStepPastEmployees(onboardingInitialPath));
-
-        if (shouldStartAtEmployees) {
-            return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
-        }
-        return getQualifierOnboardingPath(onboardingInitialPath);
+    if (isVsb) {
+        return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
+    }
+    if (isSmb) {
+        return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
     }
 
     if (state?.routes?.at(-1)?.name !== NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR) {
