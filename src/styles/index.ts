@@ -1748,7 +1748,7 @@ const staticStyles = (theme: ThemeColors) =>
             marginLeft: variables.sideBarWithLHBWidth,
         },
 
-        searchSidebar: {
+        sidebarContainer: {
             width: variables.sideBarWithLHBWidth,
             height: '100%',
             backgroundColor: theme.sidebar,
@@ -2083,6 +2083,11 @@ const staticStyles = (theme: ThemeColors) =>
         emptyWorkspaceListStaticIllustrationStyle: {
             width: 203,
             height: 166,
+        },
+
+        emptyDomainListStaticIllustrationStyle: {
+            width: 274,
+            height: 164,
         },
 
         appContent: {
@@ -3403,10 +3408,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         primaryMediumText: {
             fontSize: variables.iconSizeNormal,
-        },
-
-        workspaceOwnerAvatarWrapper: {
-            margin: 6,
         },
 
         workspaceOwnerSectionTitle: {
@@ -5977,8 +5978,17 @@ const staticStyles = (theme: ThemeColors) =>
         },
         domainIcon: {
             backgroundColor: theme.border,
+            padding: 5,
+            borderRadius: 8,
+            width: 28,
+            height: 28,
+        },
+        domainIconCompact: {
+            backgroundColor: theme.border,
             padding: 10,
             borderRadius: 8,
+            width: 40,
+            height: 40,
         },
         copyableTextField: {
             color: theme.textSupporting,

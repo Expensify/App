@@ -4365,6 +4365,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             travelInvoicingPayableAccount: '旅費未払金勘定',
             hr: '人事',
             rooms: 'ルーム',
+            findDomain: 'ドメインを検索',
             cardAdminAlternateText: 'ワークスペースカードを管理します。',
             peopleAdminAlternateText: 'メンバーと承認ワークフローを管理します。',
             paymentsAdminAlternateText: 'ワークフローの支払いを管理します。',
@@ -7204,6 +7205,10 @@ ${reportName}
             syncingModalTitle: '接続を同期しています',
             syncingModalDescription: '最初の接続には時間がかかる場合があります。エラーが発生した場合は通知されます。',
             syncing: '従業員を同期しています',
+        },
+        emptyDomain: {
+            title: 'ドメインでセキュリティを強化しましょう',
+            subtitle: 'ドメインのメンバーにシングルサインオンでのログインを必須にし、ワークスペースの作成を制限するなどの管理ができます。',
         },
     },
     getAssistancePage: {

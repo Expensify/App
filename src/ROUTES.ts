@@ -728,7 +728,14 @@ const ROUTES = {
     INBOX: 'inbox',
     HOME: 'home',
 
-    WORKSPACES_LIST: {route: 'workspaces', getRoute: (backTo?: string) => getUrlWithBackToParam('workspaces', backTo)},
+    WORKSPACES_LIST: {
+        route: 'workspaces',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('workspaces', backTo),
+    },
+    DOMAINS_LIST: {
+        route: 'domains',
+        getRoute: () => 'domains' as const,
+    },
     SEARCH_ROUTER: 'search-router',
     SEARCH_ROOT: {
         route: 'search',

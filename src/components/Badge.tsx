@@ -28,7 +28,7 @@ type BadgeProps = {
     pressable?: boolean;
 
     /** Text to display in the Badge */
-    text: string;
+    text?: string;
 
     /** Text to display in the Badge */
     environment?: string;

@@ -21,10 +21,7 @@ const NUMBER_OF_TOGGLES_BEFORE_RESET = 2;
 /**
  * Props for the TableHeader component.
  */
-type TableHeaderProps = ViewProps & {
-    /** Hide table header when search returns no results. */
-    shouldHideHeaderWhenEmptySearch?: boolean;
-};
+type TableHeaderProps = ViewProps;
 
 /**
  * Renders the table header row with sortable column headers.
@@ -49,18 +46,20 @@ type TableHeaderProps = ViewProps & {
  * </Table>
  * ```
  */
-function TableHeader<T, ColumnKey extends string = string>({style, shouldHideHeaderWhenEmptySearch = true, ...props}: TableHeaderProps) {
+function TableHeader<T, ColumnKey extends string = string>({style, ...props}: TableHeaderProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {columns, isEmptyResult, title, shouldUseNarrowTableLayout} = useTableContext<T, ColumnKey>();
+    const {columns, isEmptyResult, title, processedData, shouldUseNarrowTableLayout} = useTableContext<T, ColumnKey>();
 
     if (shouldUseNarrowTableLayout && !title) {
         return null;
     }
 
-    if (shouldHideHeaderWhenEmptySearch && isEmptyResult) {
+    if (isEmptyResult || !processedData.length) {
         return null;
     }
+
+    const gridTemplateColumns = columns.map((column) => (column.width ? `${column.width}px` : '1fr')).join(' ');
 
     return (
         <View
@@ -77,19 +76,21 @@ function TableHeader<T, ColumnKey extends string = string>({style, shouldHideHea
                 styles.gap3,
                 // Use Grid on web when available (will override flex if supported)
                 styles.dGrid,
-                !shouldUseNarrowTableLayout && {gridTemplateColumns: `repeat(${columns.length}, 1fr)`},
+                !shouldUseNarrowTableLayout && {gridTemplateColumns},
                 style,
             ]}
             {...props}
         >
             {shouldUseNarrowTableLayout && (
-                <Text
-                    numberOfLines={1}
-                    color={theme.textSupporting}
-                    style={[styles.lh16, styles.textMicroSupporting, styles.pr1]}
-                >
-                    {title}
-                </Text>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.tableHeaderContentHeight]}>
+                    <Text
+                        numberOfLines={1}
+                        color={theme.textSupporting}
+                        style={[styles.lh16, styles.textMicroSupporting, styles.pr1]}
+                    >
+                        {title}
+                    </Text>
+                </View>
             )}
 
             {!shouldUseNarrowTableLayout &&

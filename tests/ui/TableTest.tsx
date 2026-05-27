@@ -52,6 +52,7 @@ jest.mock('@hooks/useThemeStyles', () =>
         textNormal: {},
         colorMuted: {},
         getSelectionListPopoverHeight: jest.fn(() => ({})),
+        searchBarWidth: jest.fn(() => ({})),
         ml3: {marginLeft: 12},
     })),
 );
@@ -320,7 +321,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar />
+                    <Table.SearchBar label="" />
                     <Table.Body />
                 </Table>,
             );
@@ -338,7 +339,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar />
+                    <Table.SearchBar label="" />
                     <Table.Body />
                 </Table>,
             );
@@ -361,7 +362,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar />
+                    <Table.SearchBar label="" />
                     <Table.Body />
                 </Table>,
             );
@@ -384,7 +385,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar />
+                    <Table.SearchBar label="" />
                     <Table.Body />
                 </Table>,
             );
@@ -409,7 +410,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar />
+                    <Table.SearchBar label="" />
                     <Table.Body />
                 </Table>,
             );
@@ -435,7 +436,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar />
+                    <Table.SearchBar label="" />
                     <Table.Body />
                 </Table>,
             );
@@ -459,7 +460,7 @@ describe('Table', () => {
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
                 >
-                    <Table.SearchBar />
+                    <Table.SearchBar label="" />
                     <Table.Body />
                 </Table>,
             );
@@ -702,7 +703,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar />
+                    <Table.SearchBar label="" />
                     <Table.Body />
                 </Table>,
             );
@@ -732,7 +733,7 @@ describe('Table', () => {
                     compareItems={props.compareItems}
                     filters={filterConfig}
                 >
-                    <Table.SearchBar />
+                    <Table.SearchBar label="" />
                     <Table.FilterButtons />
                     <Table.Header />
                     <Table.Body />
@@ -755,7 +756,7 @@ describe('Table', () => {
                     isItemInSearch={props.isItemInSearch}
                 >
                     <Table.Header />
-                    <Table.SearchBar />
+                    <Table.SearchBar label="" />
                     <Table.Body />
                 </Table>,
             );
@@ -799,7 +800,7 @@ describe('Table', () => {
                     isItemInFilter={isItemInFilter}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar />
+                    <Table.SearchBar label="" />
                     <Table.Body />
                 </Table>,
             );
@@ -856,7 +857,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar />
+                    <Table.SearchBar label="" />
                     <Table.Body />
                 </Table>,
             );
@@ -880,7 +881,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar />
+                    <Table.SearchBar label="" />
                     <Table.Body />
                 </Table>,
             );

@@ -31,6 +31,9 @@ type TableColumn<ColumnKey extends string = string> = {
     /** Display label shown in the table header. */
     label: string;
 
+    /** The width of the column */
+    width?: number;
+
     /** Optional styling configuration for the column. */
     styling?: TableColumnStyling;
 };
@@ -53,7 +56,11 @@ type TableMethods<ColumnKey extends string = string, FilterKey extends string = 
  * @template ColumnKey - A string literal type representing the valid column keys.
  * @template FilterKey - A string literal type representing the valid filter keys.
  */
-type TableHandle<T, ColumnKey extends string = string, FilterKey extends string = string> = FlashListRef<T> & TableMethods<ColumnKey, FilterKey>;
+type TableHandle<T, ColumnKey extends string = string, FilterKey extends string = string> = FlashListRef<T> &
+    TableMethods<ColumnKey, FilterKey> & {
+        /** Method to get all of the processed data after filtering, searching, and sorting have been applied. */
+        getProcessedData: () => T[];
+    };
 
 /**
  * FlashList props with the 'data' prop omitted, as the Table manages data internally.

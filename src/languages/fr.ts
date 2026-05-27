@@ -4422,6 +4422,7 @@ ${amount} pour ${merchant} - ${date}`,
             travelInvoicingPayableAccount: 'Compte fournisseur déplacements',
             hr: 'RH',
             rooms: 'Salons',
+            findDomain: 'Trouver un domaine',
             cardAdminAlternateText: 'Gérer les cartes de l’espace de travail.',
             peopleAdminAlternateText: 'Gérez les membres et les workflows d’approbation.',
             paymentsAdminAlternateText: 'Gérer les paiements de workflow.',
@@ -7331,6 +7332,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             syncingModalTitle: 'Votre connexion est en cours de synchronisation',
             syncingModalDescription: 'La première connexion peut prendre un certain temps. Vous serez informé de toute erreur.',
             syncing: 'Synchronisation des employés',
+        },
+        emptyDomain: {
+            title: 'Renforcez votre sécurité avec des domaines',
+            subtitle: 'Obligez les membres de votre domaine à se connecter via l’authentification unique, restreignez la création d’espaces de travail, et plus encore.',
         },
     },
     getAssistancePage: {

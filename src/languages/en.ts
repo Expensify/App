@@ -4349,6 +4349,7 @@ const translations = {
             workflows: 'Workflows',
             workspace: 'Workspace',
             findWorkspace: 'Find workspace',
+            findDomain: 'Find domain',
             edit: 'Edit workspace',
             enabled: 'Enabled',
             disabled: 'Disabled',
@@ -6097,6 +6098,10 @@ const translations = {
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `You’re about to create and share ${newWorkspaceName ?? ''} with ${totalMembers ?? 0} members from the original workspace.`,
             error: 'An error occurred while duplicating your new workspace. Please try again.',
+        },
+        emptyDomain: {
+            title: 'Enhance your security with domains',
+            subtitle: 'Require members on your domain to log in via single sign-on, restrict workspace creation, and more.',
         },
         copyPolicySettings: {
             error: 'An error occurred while copying workspace settings. Please try again.',
