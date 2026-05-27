@@ -847,6 +847,7 @@ function getReportFromHoldRequestsOnyxData({
                 ...optimisticExpenseReport,
                 unheldTotal: 0,
                 unheldNonReimbursableTotal: 0,
+                unheldReimbursableTotal: 0,
                 ...(isProcessingReport(iouReport) && isApprovalEnabled
                     ? {
                           stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
@@ -891,6 +892,7 @@ function getReportFromHoldRequestsOnyxData({
             value: {
                 total: iouReport?.unheldTotal ?? 0,
                 nonReimbursableTotal: iouReport?.unheldNonReimbursableTotal ?? 0,
+                reimbursableTotal: iouReport?.unheldReimbursableTotal ?? 0,
             },
         });
     }
