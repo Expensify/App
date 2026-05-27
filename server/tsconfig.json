@@ -1,0 +1,7 @@
+{
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "types": ["@types/bun"]
+    },
+    "include": ["victory-chart-renderer/src", "victory-chart-renderer/tests"]
+}

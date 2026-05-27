@@ -415,6 +415,8 @@ function TransactionItemRowWide({
                             shouldUseNarrowLayout={false}
                             canEdit={canEditAmount}
                             onSave={onEditAmount}
+                            report={report}
+                            policy={policy}
                         />
                     </View>
                 );
@@ -602,7 +604,7 @@ function TransactionItemRowWide({
                     {onArrowRightPress ? (
                         <PressableWithFeedback
                             disabled={!!isDisabled}
-                            onPress={() => onArrowRightPress?.()}
+                            onPress={onArrowRightPress}
                             style={[styles.pv2, styles.justifyContentCenter, styles.alignItemsEnd]}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={CONST.ROLE.BUTTON}

@@ -47,6 +47,7 @@ import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
 // Multifactor Authentication Illustrations
 import ApprovedTransactionHand from '@assets/images/multifactorAuthentication/approved-transaction-hand.svg';
+import CardReader from '@assets/images/multifactorAuthentication/card-reader.svg';
 import DeniedTransactionHand from '@assets/images/multifactorAuthentication/denied-transaction-hand.svg';
 import EncryptionMan from '@assets/images/multifactorAuthentication/encryption-man.svg';
 import HumptyDumpty from '@assets/images/multifactorAuthentication/humpty-dumpty.svg';
@@ -143,6 +144,7 @@ import FolderOpen from '@assets/images/simple-illustrations/simple-illustration_
 import FoodTruck from '@assets/images/simple-illustrations/simple-illustration__foodtruck-tacos.svg';
 import Gears from '@assets/images/simple-illustrations/simple-illustration__gears.svg';
 import HandCard from '@assets/images/simple-illustrations/simple-illustration__handcard.svg';
+import Hashtag from '@assets/images/simple-illustrations/simple-illustration__hashtag.svg';
 import HeadSet from '@assets/images/simple-illustrations/simple-illustration__headset.svg';
 import Hourglass from '@assets/images/simple-illustrations/simple-illustration__hourglass.svg';
 import House from '@assets/images/simple-illustrations/simple-illustration__house.svg';
@@ -186,6 +188,7 @@ import Stopwatch from '@assets/images/simple-illustrations/simple-illustration__
 import SubscriptionAnnual from '@assets/images/simple-illustrations/simple-illustration__subscription-annual.svg';
 import SubscriptionPPU from '@assets/images/simple-illustrations/simple-illustration__subscription-ppu.svg';
 import Sunglasses from '@assets/images/simple-illustrations/simple-illustration__sunglasses.svg';
+import SyncUsers from '@assets/images/simple-illustrations/simple-illustration__syncusers.svg';
 import Tag from '@assets/images/simple-illustrations/simple-illustration__tag.svg';
 import Target from '@assets/images/simple-illustrations/simple-illustration__target.svg';
 import TeachersUnite from '@assets/images/simple-illustrations/simple-illustration__teachers-unite.svg';
@@ -315,6 +318,7 @@ const Illustrations = {
     CreditCardsNew,
     FolderOpen,
     HandCard,
+    Hashtag,
     InvoiceBlue,
     MagnifyingGlassMoney,
     MagnifyingGlassReceipt,
@@ -391,6 +395,7 @@ const Illustrations = {
     LockOpen,
     Mailbox,
     NewUser,
+    SyncUsers,
     ShieldYellow,
     Clock,
     Members,
@@ -420,6 +425,7 @@ const Illustrations = {
     RunOutOfTime,
     HumptyDumpty,
     EncryptionMan,
+    CardReader,
 };
 
 /**

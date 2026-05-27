@@ -4,6 +4,7 @@ import IntlStore from '@src/languages/IntlStore';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CurrencyList, Locale} from '@src/types/onyx';
+import Log from './Log';
 import {format, formatToParts} from './NumberFormatUtils';
 
 let currencyList: OnyxValues[typeof ONYXKEYS.CURRENCY_LIST] = {};
@@ -21,6 +22,46 @@ Onyx.connect({
 
 function getCurrencyList(currencies?: CurrencyList): CurrencyList {
     return currencies ?? currencyList;
+}
+
+/**
+ * Returns true when the provided value is a syntactically valid ISO 4217 currency code
+ * (exactly 3 uppercase ASCII letters).
+ */
+function isValidCurrencyCode(currencyCode: unknown): currencyCode is string {
+    return typeof currencyCode === 'string' && /^[A-Z]{3}$/.test(currencyCode);
+}
+
+// Tracks invalid currency codes already warned about so the same bad value doesn't spam the log on every render.
+const warnedInvalidCurrencyCodes = new Set<string>();
+
+/**
+ * Test-only: clears the in-memory de-dup of malformed currency codes so tests asserting on `Log.warn`
+ * are not affected by warnings emitted by earlier tests. Production code should not call this.
+ */
+function resetInvalidCurrencyWarningsForTesting() {
+    warnedInvalidCurrencyCodes.clear();
+}
+
+/**
+ * Validates a currency code and returns it unchanged if it is a valid ISO 4217 code.
+ * Whitespace and case-only variations (e.g. " usd ") are normalized rather than discarded.
+ * Returns CONST.CURRENCY.USD and logs a warning at most once per unique malformed value, to prevent Intl.NumberFormat
+ * from throwing a RangeError. See https://github.com/Expensify/App/issues/91113
+ */
+function sanitizeCurrencyCode(currencyCode: unknown): string {
+    if (isValidCurrencyCode(currencyCode)) {
+        return currencyCode;
+    }
+    const normalized = typeof currencyCode === 'string' ? currencyCode.trim().toUpperCase() : '';
+    if (isValidCurrencyCode(normalized)) {
+        return normalized;
+    }
+    if (!warnedInvalidCurrencyCodes.has(normalized)) {
+        warnedInvalidCurrencyCodes.add(normalized);
+        Log.warn('CurrencyUtils: invalid currency code, defaulting to USD', {currencyCode});
+    }
+    return CONST.CURRENCY.USD;
 }
 
 /**
@@ -51,7 +92,7 @@ function getCurrencyUnit(currency: string = CONST.CURRENCY.USD, currencies?: Cur
 function getLocalizedCurrencySymbol(locale: Locale | undefined, currencyCode: string): string | undefined {
     const parts = formatToParts(locale, 0, {
         style: 'currency',
-        currency: currencyCode,
+        currency: sanitizeCurrencyCode(currencyCode),
     });
     return parts.find((part) => part.type === 'currency')?.value;
 }
@@ -101,15 +142,9 @@ function convertToFrontendAmountAsString(amountAsInt: number | null | undefined,
  * @param currency - IOU currency
  */
 function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD, shouldUseLocalCurrencySymbol = false, currencies?: CurrencyList): string {
-    const decimals = getCurrencyDecimals(currency, currencies);
+    const currencyWithFallback = sanitizeCurrencyCode(currency);
+    const decimals = getCurrencyDecimals(currencyWithFallback, currencies);
     const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, decimals);
-    /**
-     * Fallback currency to USD if it empty string or undefined
-     */
-    let currencyWithFallback = currency;
-    if (!currency) {
-        currencyWithFallback = CONST.CURRENCY.USD;
-    }
 
     if (shouldUseLocalCurrencySymbol) {
         const currencySymbol = getCurrencySymbol(currencyWithFallback, currencies);
@@ -157,7 +192,7 @@ function convertToShortDisplayString(amountInCents = 0, currency: string = CONST
 
     return format(IntlStore.getCurrentLocale(), convertedAmount, {
         style: 'currency',
-        currency,
+        currency: sanitizeCurrencyCode(currency),
 
         // There will be no decimals displayed (e.g. $9)
         minimumFractionDigits: 0,
@@ -175,7 +210,7 @@ function convertAmountToDisplayString(amount = 0, currency: string = CONST.CURRE
     const convertedAmount = amount / 100.0;
     return format(IntlStore.getCurrentLocale(), convertedAmount, {
         style: 'currency',
-        currency,
+        currency: sanitizeCurrencyCode(currency),
         minimumFractionDigits: CONST.MIN_TAX_RATE_DECIMAL_PLACES,
         maximumFractionDigits: CONST.MAX_TAX_RATE_DECIMAL_PLACES,
     });
@@ -185,11 +220,12 @@ function convertAmountToDisplayString(amount = 0, currency: string = CONST.CURRE
  * Acts the same as `convertAmountToDisplayString` but the result string does not contain currency
  */
 function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: string = CONST.CURRENCY.USD, currencies?: CurrencyList) {
-    const decimals = getCurrencyDecimals(currency, currencies);
+    const sanitizedCurrency = sanitizeCurrencyCode(currency);
+    const decimals = getCurrencyDecimals(sanitizedCurrency, currencies);
     const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, decimals);
     return formatToParts(IntlStore.getCurrentLocale(), convertedAmount, {
         style: 'currency',
-        currency,
+        currency: sanitizedCurrency,
 
         // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
         // See: https://github.com/Expensify/PHP-Libs/pull/834
@@ -203,15 +239,10 @@ function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: 
         .join('');
 }
 
-/**
- * Checks if passed currency code is a valid currency based on currency list
- */
-function isValidCurrencyCode(currencyCode: string, currencies?: CurrencyList): boolean {
-    const currency = getCurrencyList(currencies)?.[currencyCode];
-    return !!currency;
-}
-
 export {
+    isValidCurrencyCode,
+    sanitizeCurrencyCode,
+    resetInvalidCurrencyWarningsForTesting,
     getCurrencyDecimals,
     getCurrencyUnit,
     getLocalizedCurrencySymbol,
@@ -223,6 +254,5 @@ export {
     convertAmountToDisplayString,
     convertToDisplayStringWithoutCurrency,
     convertToDisplayStringWithExplicitCurrency,
-    isValidCurrencyCode,
     convertToShortDisplayString,
 };

@@ -2,7 +2,7 @@ import {useEffect} from 'react';
 import useShouldShowRequire2FAPage from '@hooks/useShouldShowRequire2FAPage';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import findMatchingDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/findMatchingDynamicSuffix';
+import {findMatchingDynamicSuffix} from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
