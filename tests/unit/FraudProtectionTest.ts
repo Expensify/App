@@ -3,7 +3,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const mockSetAuthenticationData = jest.fn();
-const mockSetAttribute = jest.fn();
+const mockSetAttribute = jest.fn<void, unknown[]>();
 
 jest.mock('@libs/FraudProtection/GroupIBSdkBridge', () => ({
     init: jest.fn(),
