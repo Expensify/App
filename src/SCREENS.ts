@@ -526,13 +526,13 @@ const SCREENS = {
     },
 
     REPORT_DETAILS: {
-        ROOT: 'Report_Details_Root',
-        SHARE_CODE: 'Report_Details_Share_Code',
-        EXPORT: 'Report_Details_Export',
+        DYNAMIC_ROOT: 'Dynamic_Report_Details_Root',
+        DYNAMIC_SHARE_CODE: 'Dynamic_Report_Details_Share_Code',
+        DYNAMIC_EXPORT: 'Dynamic_Report_Details_Export',
     },
 
     REPORT_CHANGE_WORKSPACE: {
-        ROOT: 'ReportChangeWorkspace_Root',
+        DYNAMIC_ROOT: 'Dynamic_Report_Change_Workspace_Root',
     },
 
     WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root', OWNER_SELECTOR: 'Workspace_Confirmation_Owner_Selector', SUCCESS: 'Workspace_Confirmation_Success'},
@@ -743,10 +743,15 @@ const SCREENS = {
         COMPANY_CARD_EXPORT: 'Workspace_CompanyCard_Export',
         EXPENSIFY_CARD: 'Workspace_ExpensifyCard',
         EXPENSIFY_CARD_DETAILS: 'Workspace_ExpensifyCard_Details',
+        EXPENSIFY_CARD_ADD_WORK_EMAIL: 'Workspace_ExpensifyCard_Add_Work_Email',
         DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: 'Dynamic_Workspace_ExpensifyCard_New',
         DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE: 'Dynamic_Workspace_ExpensifyCard_IssueNew_ConfirmMagicCode',
         DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SELECT_FEED: 'Dynamic_Workspace_ExpensifyCard_Select_Feed',
-        EXPENSIFY_CARD_ADD_WORK_EMAIL: 'Workspace_ExpensifyCard_Add_Work_Email',
+        DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_SELECTION: 'Workspace_ExpensifyCard_Rule_Selection',
+        DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MERCHANTS: 'Workspace_ExpensifyCard_Rule_Merchants',
+        DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MERCHANT_EDIT: 'Workspace_ExpensifyCard_Rule_Merchant_Edit',
+        DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CATEGORY: 'Workspace_ExpensifyCard_Rule_Category',
+        DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MAX_AMOUNT: 'Workspace_ExpensifyCard_Rule_Max_Amount',
         EXPENSIFY_CARD_VERIFY_WORK_EMAIL: 'Workspace_ExpensifyCard_Verify_Work_Email',
         EXPENSIFY_CARD_BANK_ACCOUNT: 'Workspace_ExpensifyCard_BankAccount',
         EXPENSIFY_CARD_SETTINGS: 'Workspace_ExpensifyCard_Settings',
@@ -1004,7 +1009,7 @@ const SCREENS = {
     REIMBURSEMENT_ACCOUNT_USD: 'Reimbursement_Account_USD',
     REIMBURSEMENT_ACCOUNT_NON_USD: 'Reimbursement_Account_Non_USD',
     REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO: 'Reimbursement_Account_Signer_Info',
-    REFERRAL_DETAILS: 'Referral_Details',
+    DYNAMIC_REFERRAL_DETAILS: 'Dynamic_Referral_Details',
     REPORT_VERIFY_ACCOUNT: 'Report_Verify_Account',
     EXPENSE_REPORT_VERIFY_ACCOUNT: 'Expense_Report_Verify_Account',
     SHARE: {

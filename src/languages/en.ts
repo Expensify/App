@@ -6177,6 +6177,8 @@ const translations = {
         card: {
             getStartedIssuing: 'Get started by issuing your first virtual or physical card.',
             issueCard: 'Issue card',
+            chooseRule: 'Choose a rule',
+            searchRules: 'Find spend rule',
             issueNewCard: {
                 whoNeedsCard: 'Who needs a card?',
                 inviteNewMember: 'Invite new member',
@@ -6218,10 +6220,15 @@ const translations = {
                 enterValidDate: 'Enter a valid date',
                 expirationDate: 'Expiration date',
                 limitAmount: 'Limit amount',
-                setExpiryOptions: 'Set expiry options',
-                setExpiryDate: 'Set expiry date',
-                setExpiryDateDescription: 'Card will expire as listed on the card',
+                setCardRules: 'Set card rules',
+                addSpendRule: 'Add spend rule',
+                addExpirationDate: 'Add expiration date',
+                addExpirationDateDescription: 'If no specific date is set, card will expire based on the existing expiration date on the card',
                 amount: 'Amount',
+                copyExisting: 'Copy existing',
+                createNew: 'Create new',
+                spendRulesEmptyStateTitle: 'No rules to choose from',
+                spendRulesEmptyStateSubtitle: "You haven't created any rules yet. You can create one from the previous screen.",
             },
             deactivateCardModal: {
                 deactivate: 'Deactivate',
