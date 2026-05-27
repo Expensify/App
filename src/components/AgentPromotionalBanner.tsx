@@ -98,7 +98,7 @@ function AgentPromotionalBanner({title, subtitle, onDismiss, dismissSentryLabel,
                 title={titleNode}
                 subtitle={subtitle}
                 subtitleStyle={[styles.mt1, styles.textLabel]}
-                style={[styles.borderRadiusComponentLarge, styles.gap3]}
+                style={[styles.borderRadiusComponentLarge]}
                 rightIcon={expensifyIcons.Close}
                 onRightIconPress={onDismiss}
                 rightIconAccessibilityLabel={translate('common.dismiss')}
