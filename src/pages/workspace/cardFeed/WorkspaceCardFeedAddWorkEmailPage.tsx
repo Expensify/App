@@ -14,7 +14,7 @@ function WorkspaceCardFeedAddWorkEmailPage() {
     const {translate} = useLocalize();
 
     const openContactMethods = () => {
-        Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD.getRoute(Navigation.getActiveRoute()));
+        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRoute()));
     };
 
     return (
