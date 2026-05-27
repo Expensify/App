@@ -438,3 +438,35 @@ describe('useYourSpendData — search dispatch', () => {
         );
     });
 });
+
+// approval cache scoped by query hash
+
+describe('useYourSpendData — approval cache is keyed by query hash', () => {
+    // Second valid query string with a different hash, simulating the user's paid-workspace
+    // set changing (which changes the policyID filter and therefore the approval query hash).
+    const APPROVAL_QUERY_B = `type:expense status:outstanding from:${ACCOUNT_ID} reimbursable:yes policyID:other_policy`;
+
+    function setupApprovalSnapshotForQuery(query: string, results: SearchResults | undefined) {
+        const hash = buildSearchQueryJSON(query)?.hash;
+        onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`] = results;
+    }
+
+    it('does not reuse a previous-hash cached READY total after the approval query hash changes', () => {
+        mockedIsPaidGroupPolicy.mockReturnValue(true);
+
+        // Render with query A: snapshot READY with count > 0 so the cache fills.
+        mockedBuildAwaitingApprovalQuery.mockReturnValue(APPROVAL_QUERY);
+        setupApprovalSnapshotForQuery(APPROVAL_QUERY, makeSearchResultsWithCount(3));
+        const {result, rerender} = renderHook(() => useYourSpendData());
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+
+        // Switch to query B (different hash), with count missing on B's snapshot — the situation
+        // that would let a stale-cache reuse happen if the cache weren't keyed by hash.
+        mockedBuildAwaitingApprovalQuery.mockReturnValue(APPROVAL_QUERY_B);
+        setupApprovalSnapshotForQuery(APPROVAL_QUERY_B, {search: {count: undefined}, data: {}} as unknown as SearchResults);
+        rerender();
+
+        // Should NOT be READY — the cache for hash A must not apply to hash B.
+        expect(result.current.approvalRowState).not.toBe(YOUR_SPEND_ROW_STATE.READY);
+    });
+});
