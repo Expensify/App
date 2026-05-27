@@ -116,6 +116,7 @@ export default function TableRow({
     const tableRowContentStyles = [
         styles.flex1,
         styles.flexRow,
+        styles.alignItemsCenter,
         styles.alignContentCenter,
         styles.gap3,
         styles.dFlex,
