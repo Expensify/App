@@ -1,5 +1,4 @@
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import type {ComponentProps} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
