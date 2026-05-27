@@ -7,8 +7,7 @@ const ActiveElementRoleContext = React.createContext<ActiveElementRoleContextVal
 });
 
 /*
- * Suppress the role on a11y-restored elements so role-based consumers
- * (`Button` enter-shortcut suppression) don't react to a programmatic focus.
+ * Suppress the role on a11y-restored elements so role-based consumers (`Button` enter-shortcut suppression) don't react to a programmatic focus.
  */
 function getRoleForActive(el: Element | null): string | null {
     if (el?.getAttribute(PROGRAMMATIC_FOCUS_DATA_ATTRIBUTE) === 'true') {

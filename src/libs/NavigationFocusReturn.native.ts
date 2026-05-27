@@ -6,7 +6,7 @@ import fireFocusEvent from './Accessibility/fireFocusEvent';
 import scheduleRefocus from './Accessibility/scheduleRefocus';
 import compoundParamsKey, {COMPOUND_KEY_DELIMITER} from './compoundParamsKey';
 import navigationRef from './Navigation/navigationRef';
-// eslint-disable-next-line no-restricted-imports -- focus-return is a sibling primitive to TransitionTracker; the exact transitionEnd signal is what we need to avoid focus-restore races with the OS.
+// eslint-disable-next-line no-restricted-imports -- sibling primitive to TransitionTracker; needs the exact transitionEnd signal to avoid OS focus-restore races.
 import TransitionTracker from './Navigation/TransitionTracker';
 import {diffNavigationState} from './navigationStateDiff';
 
@@ -24,7 +24,9 @@ let prevState: NavigationState | undefined;
 let pendingRestore: {cancel: () => void} | null = null;
 let stateUnsubscribe: (() => void) | null = null;
 
-// Delete-then-set so a re-set moves the key to the tail and FIFO eviction drops the truly oldest.
+/*
+ * Delete-then-set so a re-set moves the key to the tail and FIFO eviction drops the truly oldest.
+ */
 function setTriggerEntry(routeKey: string, entry: TriggerEntry): void {
     triggerMap.delete(routeKey);
     triggerMap.set(routeKey, entry);
@@ -78,7 +80,9 @@ function captureTriggerForRoute(routeKey: string): void {
     setTriggerEntry(routeKey, {ref: lastPressedTriggerRef, identifier: lastPressedTriggerIdentifier ?? undefined});
 }
 
-// Fast path = captured ref still alive. Fallback = ref nulled by `react-native-screens` detach; resolve via the registry's live re-registration.
+/*
+ * Fast path = captured ref still alive. Fallback = ref nulled by `react-native-screens` detach; resolve via the registry's live re-registration.
+ */
 function restoreTriggerForRoute(routeKey: string): RefObject<View | null> | null {
     const entry = triggerMap.get(routeKey);
     if (!entry) {

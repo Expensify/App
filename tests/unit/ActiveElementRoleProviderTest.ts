@@ -7,7 +7,9 @@ const {getRoleForActive} = require<{
 }>('../../src/components/ActiveElementRoleProvider/index.tsx');
 /* eslint-enable import/extensions */
 
-// jsdom v20 doesn't reflect ARIAMixin's `role` to a property; stub it for parity with real browsers.
+/*
+ * jsdom v20 doesn't reflect ARIAMixin's `role` to a property; stub it for parity with real browsers.
+ */
 function withRole(el: Element, role: string | null): Element {
     Object.defineProperty(el, 'role', {value: role, configurable: true});
     return el;

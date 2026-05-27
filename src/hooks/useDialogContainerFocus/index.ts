@@ -3,7 +3,7 @@ import FOCUSABLE_SELECTOR from '@libs/focusableSelector';
 import hasFocusableAttributes from '@libs/focusGuards';
 import getHadTabNavigation from '@libs/hadTabNavigation';
 import isHTMLElement from '@libs/isHTMLElement';
-// eslint-disable-next-line no-restricted-imports -- dialog initial-focus is a sibling primitive to TransitionTracker; we need the exact transitionEnd signal to land focus after the RHP slide completes.
+// eslint-disable-next-line no-restricted-imports -- sibling primitive to TransitionTracker; needs the exact transitionEnd signal.
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {Priorities, tryClaim} from '@libs/ScreenFocusArbiter';
 import type UseDialogContainerFocus from './types';
