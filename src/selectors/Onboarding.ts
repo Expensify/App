@@ -72,10 +72,10 @@ function wasInvitedToNewDotSelector(introSelected: OnyxValue<typeof ONYXKEYS.NVP
  * completion flag from a single NVP_ONBOARDING read, avoiding two subscriptions
  * to the same key from callers that need both.
  */
-function guidedSetupAndTourStatusSelector(onboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>): {isSelfTourViewed: boolean; hasCompletedGuidedSetupFlow: boolean} {
+function guidedSetupAndTourStatusSelector(onboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>): {isSelfTourViewed: boolean | undefined; hasCompletedGuidedSetupFlow: boolean | undefined} {
     return {
-        isSelfTourViewed: hasSeenTourSelector(onboarding) ?? false,
-        hasCompletedGuidedSetupFlow: hasCompletedGuidedSetupFlowSelector(onboarding) ?? false,
+        isSelfTourViewed: hasSeenTourSelector(onboarding),
+        hasCompletedGuidedSetupFlow: hasCompletedGuidedSetupFlowSelector(onboarding),
     };
 }
 
