@@ -1,12 +1,13 @@
 import {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
-import Table, {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
+import {View} from 'react-native';
+import Table, {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import WorkspaceMembersTableFilters from './WorkspaceMembersTableFilters';
 import WorkspaceMembersTableRow from './WorkspaceMembersTableRow';
 
 type WorkspaceMembersTableColumnKey = 'member' | 'role' | 'actions' | 'customField1' | 'customField2';
@@ -39,7 +40,15 @@ type WorkspaceMembersTableProps = {
     onRowSelectionChange: (selectedRows: WorkspaceMemberRowData[]) => void;
 };
 
+const WORKSPACE_MEMBER_FILTER_VALUES = {
+    ALL: 'all',
+    ADMINS: 'admins',
+    APPROVERS: 'approvers',
+    AUDITORS: 'auditors',
+} as const;
+
 export default function WorkspaceMembersTable({ref, isPolicyAdmin, shouldShowCustomField1Column, shouldShowCustomField2Column, members, onRowSelectionChange}: WorkspaceMembersTableProps) {
+    const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
@@ -108,7 +117,38 @@ export default function WorkspaceMembersTable({ref, isPolicyAdmin, shouldShowCus
     };
 
     const isTableItemInSearch: IsItemInSearchCallback<WorkspaceMemberRowData> = (item, searchValue) => {
+        return [item.name, item.email, item.login].some((field) => field.toLowerCase().includes(searchValue.toLowerCase()));
+    };
+
+    const isItemInFilter: IsItemInFilterCallback<WorkspaceMemberRowData> = (item, filterValues) => {
+        if (!filterValues || filterValues.length === 0) {
+            return true;
+        }
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.ALL)) {
+            return true;
+        }
+        // TODO: Add an && that validates the user is an admin
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.ADMINS)) {
+            return true;
+        }
+        // TODO: Add an && that validates the user is an approver
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS)) {
+            return true;
+        }
         return false;
+    };
+
+    const filterConfig: FilterConfig = {
+        status: {
+            // TODO: Move these configs to a const
+            filterType: 'single-select',
+            default: WORKSPACE_MEMBER_FILTER_VALUES.ALL,
+            options: [
+                {label: translate('workspace.people.allMembers'), value: WORKSPACE_MEMBER_FILTER_VALUES.ALL},
+                {label: translate('workspace.people.admins'), value: WORKSPACE_MEMBER_FILTER_VALUES.ADMINS},
+                {label: translate('workspace.people.approvers'), value: WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS},
+            ],
+        },
     };
 
     const renderTableItem = ({item, index}: ListRenderItemInfo<WorkspaceMemberRowData>) => {
@@ -127,15 +167,21 @@ export default function WorkspaceMembersTable({ref, isPolicyAdmin, shouldShowCus
         <Table
             ref={ref}
             data={members}
+            filters={filterConfig}
             selectionEnabled={isPolicyAdmin}
             columns={workspaceMembersColumns}
             title={translate('common.members')}
             renderItem={renderTableItem}
             compareItems={compareTableItems}
+            isItemInFilter={isItemInFilter}
             isItemInSearch={isTableItemInSearch}
             onRowSelectionChange={onRowSelectionChange}
         >
-            <WorkspaceMembersTableFilters memberCount={members.length} />
+            <View style={[styles.flexRow, styles.gap2]}>
+                <Table.FilterButtons />
+                {members.length > CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.people.findMember')} />}
+            </View>
+
             <Table.Header />
             <Table.Body />
         </Table>
