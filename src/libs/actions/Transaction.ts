@@ -96,22 +96,21 @@ Onyx.connect({
     },
 });
 
-const allTransactionViolation: OnyxCollection<TransactionViolation[]> = {};
+let allTransactionViolation: OnyxCollection<TransactionViolation[]> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    callback: (transactionViolation, key) => {
-        if (!key || !transactionViolation) {
+    callback: (snapshot) => {
+        if (!snapshot) {
+            allTransactionViolation = {};
             return;
         }
-        const transactionID = CollectionUtils.extractCollectionItemID(key);
-        allTransactionViolation[transactionID] = transactionViolation;
+        // Rebuild the transactionID-keyed view from the prefixed-key snapshot.
+        const next: OnyxCollection<TransactionViolation[]> = {};
+        for (const [k, v] of Object.entries(snapshot as unknown as Record<string, TransactionViolation[] | undefined>)) {
+            next[CollectionUtils.extractCollectionItemID(k as `${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${string}`)] = v;
+        }
+        allTransactionViolation = next;
     },
-});
-
-let allTransactionViolations: TransactionViolations = [];
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    callback: (val) => (allTransactionViolations = val ?? []),
 });
 
 type SaveWaypointProps = {
@@ -1143,7 +1142,10 @@ function changeTransactionsReport({
                     optimisticData.push({
                         onyxMethod: Onyx.METHOD.SET,
                         key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
-                        value: allTransactionViolations.filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
+                        // For each duplicate, write its own violations minus the DUPLICATED_TRANSACTION marker.
+                        // Previously this read a stale `allTransactionViolations` flat-array that held only
+                        // the last-fired per-member value (latent bug, now removed alongside per-member dispatch).
+                        value: (allTransactionViolation?.[id] ?? []).filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
                     });
                 }
             }
