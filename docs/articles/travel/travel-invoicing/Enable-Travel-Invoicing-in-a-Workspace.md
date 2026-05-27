@@ -5,7 +5,7 @@ keywords: [enable travel invoicing, expensify travel invoicing setup, central tr
 internalScope: Audience is Workspace Admins. Covers enabling Travel Invoicing and initial setup. Does not cover CVV usage, accounting mappings, or exporting statements.
 ---
 
-# Enable Travel Invoicing in a Workspace
+# Enable Travel Invoicing on a Workspace
 
 Travel Invoicing lets your company pay for all employee travel through a central account instead of individual cards or reimbursements.
 
