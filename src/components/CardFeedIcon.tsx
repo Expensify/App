@@ -11,10 +11,6 @@ import PlaidCardFeedIcon from './PlaidCardFeedIcon';
 
 type CardFeedIconProps = {
     isExpensifyCardFeed?: boolean;
-    // Accepts either `CardFeedWithDomainID` (employer feeds, e.g. `vcf|123`) or the
-    // bare `CardFeedWithNumber` (personal Plaid cards, e.g. `plaid.ins_109508`).
-    // The internal `getPlaidInstitutionId` / `getCardFeedIcon` helpers already accept
-    // the wider type.
     selectedFeed?: CardFeedWithDomainID | CardFeedWithNumber | undefined;
     iconProps?: Partial<IconProps>;
     useSkeletonLoader?: boolean;
