@@ -1,9 +1,10 @@
 import {useEffect} from 'react';
-// eslint-disable-next-line no-restricted-imports -- idiomatic defer primitive past navigation transitions.
-import {InteractionManager} from 'react-native';
 import FOCUSABLE_SELECTOR from '@libs/focusableSelector';
 import hasFocusableAttributes from '@libs/focusGuards';
 import getHadTabNavigation from '@libs/hadTabNavigation';
+import isHTMLElement from '@libs/isHTMLElement';
+// eslint-disable-next-line no-restricted-imports -- dialog initial-focus is a sibling primitive to TransitionTracker; we need the exact transitionEnd signal to land focus after the RHP slide completes.
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {Priorities, tryClaim} from '@libs/ScreenFocusArbiter';
 import type UseDialogContainerFocus from './types';
 
@@ -30,26 +31,13 @@ const useDialogContainerFocus: UseDialogContainerFocus = (ref, isReady, claimIni
         if (!isReady || !claimInitialFocus?.()) {
             return;
         }
-        let cancelled = false;
-        let frameId: number;
-        // Deferred past useAutoFocusInput's InteractionManager + Promise chain.
-        const interactionHandle = InteractionManager.runAfterInteractions(() => {
-            if (cancelled) {
-                return;
-            }
-            frameId = requestAnimationFrame(() => {
-                if (cancelled) {
-                    return;
-                }
-                const container = ref.current as unknown as HTMLElement | null;
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => {
+                const container = isHTMLElement(ref.current) ? ref.current : null;
                 focusFirstInteractiveElement(container);
-            });
+            },
         });
-        return () => {
-            cancelled = true;
-            interactionHandle.cancel();
-            cancelAnimationFrame(frameId);
-        };
+        return () => handle.cancel();
     }, [isReady, ref, claimInitialFocus]);
 };
 
