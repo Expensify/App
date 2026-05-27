@@ -182,7 +182,7 @@ function AmountFilterComponent({filterKey, value, onChange}: AmountFilterCompone
         <View style={[styles.flex1, styles.justifyContentBetween, !fullscreen && styles.pv2]}>
             <ScrollView
                 keyboardShouldPersistTaps="handled"
-                // In landscape mode, when a virtual keyboard shows, the whole scroll view is shrinked and won't receive any input,
+                // In landscape mode, when the virtual keyboard appears, the entire ScrollView shrinks and no longer receives input,
                 // so we set a minimum height to have enough visibility.
                 style={[StyleUtils.getMinimumHeight(50)]}
             >
