@@ -1,4 +1,5 @@
 import type {NavigationState} from '@react-navigation/native';
+import type {RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports -- idiomatic defer primitive past navigation transitions.
 import {InteractionManager} from 'react-native';
 import type {View} from 'react-native';
@@ -101,7 +102,7 @@ function skipNextFocusRestore(): void {
 
 /** Native-only. Web captures via `focusin`; no-op here so the import resolves cross-platform. */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function notifyPressedTrigger(_node: View | null): void {}
+function notifyPressedTrigger(_ref: RefObject<View | null> | null): void {}
 
 /** True only while restoreTriggerForRoute is in its .focus() call. Lists use it to tell the restore apart from a real keyboard Tab, which also has no sourceCapabilities. */
 function isFocusRestoreInProgress(): boolean {

@@ -1485,11 +1485,6 @@ describe('handleStateChange integration', () => {
     it('skipNextFocusRestore drops the captured entry, so a later back to the same route cannot inherit the skipped trigger', () => {
         withFakeTimers(() => {
             simulateTab();
-            const onA = stackState(0, [{key: 'a', name: 'A'}]);
-            const onAB = stackState(1, [
-                {key: 'a', name: 'A'},
-                {key: 'b', name: 'B'},
-            ]);
             const onAC = stackState(1, [
                 {key: 'a', name: 'A'},
                 {key: 'c', name: 'C'},

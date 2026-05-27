@@ -34,20 +34,6 @@ jest.mock('../../src/libs/Accessibility/fireFocusEvent', () => ({
 
 AccessibilityInfo.sendAccessibilityEvent = mockSendAccessibilityEvent;
 
-// jsdom resolves the web stub (returns null). Treat fake views as attached unless they carry `detached: true`.
-jest.mock('@src/utils/findNodeHandle', () => ({
-    __esModule: true,
-    default: (view: unknown): number | null => {
-        if (view == null) {
-            return null;
-        }
-        if (typeof view === 'object' && (view as {detached?: boolean}).detached) {
-            return null;
-        }
-        return 1;
-    },
-}));
-
 type TtEntry = {cb: () => void; cancelled: boolean};
 let mockTtQueue: TtEntry[] = [];
 jest.mock('../../src/libs/Navigation/TransitionTracker', () => ({
@@ -102,13 +88,13 @@ const {
     isFocusRestoreInProgress,
     shouldSkipAutoFocusDueToExistingFocus,
     resetForTests,
-    setLastPressedTriggerForTests,
+    setLastPressedTriggerRefForTests,
     getTriggerMapSizeForTests,
 } = require<{
     setupNavigationFocusReturn: () => void;
     teardownNavigationFocusReturn: () => void;
     handleStateChange: (state: unknown) => void;
-    notifyPressedTrigger: (node: unknown) => void;
+    notifyPressedTrigger: (ref: unknown) => void;
     notifyPushParamsForward: (routeKey: string, prevParams: unknown) => void;
     notifyPushParamsBackward: (routeKey: string, targetParams: unknown) => void;
     cancelPendingFocusRestore: () => void;
@@ -116,7 +102,7 @@ const {
     isFocusRestoreInProgress: () => boolean;
     shouldSkipAutoFocusDueToExistingFocus: () => boolean;
     resetForTests: () => void;
-    setLastPressedTriggerForTests: (node: unknown) => void;
+    setLastPressedTriggerRefForTests: (ref: unknown) => void;
     getTriggerMapSizeForTests: () => number;
 }>('../../src/libs/NavigationFocusReturn.native.ts');
 /* eslint-enable import/extensions */
@@ -147,6 +133,10 @@ function fakeView(label = 'view'): {label: string} {
     return {label};
 }
 
+function fakeRef(view: unknown): {current: unknown} {
+    return {current: view};
+}
+
 beforeEach(() => {
     jest.useFakeTimers();
     mockSendAccessibilityEvent.mockClear();
@@ -165,7 +155,7 @@ afterEach(() => {
 describe('notifyPressedTrigger', () => {
     it('is a no-op when the screen reader is off — non-AT users pay zero capture cost', () => {
         mockScreenReaderEnabled = false;
-        notifyPressedTrigger(fakeView('button'));
+        notifyPressedTrigger(fakeRef(fakeView('button')));
         const prev = stackState(0, [{key: 'a', name: 'A'}]);
         const next = stackState(1, [
             {key: 'a', name: 'A'},
@@ -176,9 +166,8 @@ describe('notifyPressedTrigger', () => {
         expect(getTriggerMapSizeForTests()).toBe(0);
     });
 
-    it('stores the most recently pressed view when the screen reader is on', () => {
-        const view = fakeView('button-1');
-        notifyPressedTrigger(view);
+    it('stores the most recently pressed ref when the screen reader is on', () => {
+        notifyPressedTrigger(fakeRef(fakeView('button-1')));
         const prev = stackState(0, [{key: 'a', name: 'A'}]);
         const next = stackState(1, [
             {key: 'a', name: 'A'},
@@ -190,8 +179,8 @@ describe('notifyPressedTrigger', () => {
     });
 
     it('overwrites the staged trigger on each press so the freshest tap wins', () => {
-        notifyPressedTrigger(fakeView('button-1'));
-        notifyPressedTrigger(fakeView('button-2'));
+        notifyPressedTrigger(fakeRef(fakeView('button-1')));
+        notifyPressedTrigger(fakeRef(fakeView('button-2')));
         const prev = stackState(0, [{key: 'a', name: 'A'}]);
         const next = stackState(1, [
             {key: 'a', name: 'A'},
@@ -205,7 +194,7 @@ describe('notifyPressedTrigger', () => {
     it('drops a stale press so a much-later forward nav (deeplink, timer) does not capture an unrelated trigger', () => {
         const before = Date.now();
         jest.setSystemTime(before);
-        notifyPressedTrigger(fakeView('non-nav-toggle'));
+        notifyPressedTrigger(fakeRef(fakeView('non-nav-toggle')));
         jest.setSystemTime(before + 4_000);
         const prev = stackState(0, [{key: 'a', name: 'A'}]);
         const next = stackState(1, [
@@ -220,8 +209,7 @@ describe('notifyPressedTrigger', () => {
 
 describe('handleStateChange — forward', () => {
     it('captures the staged trigger against the outgoing route key', () => {
-        const view = fakeView('display-name');
-        setLastPressedTriggerForTests(view);
+        setLastPressedTriggerRefForTests(fakeRef(fakeView('display-name')));
         const prev = stackState(0, [{key: 'profile', name: 'Profile'}]);
         const next = stackState(1, [
             {key: 'profile', name: 'Profile'},
@@ -247,7 +235,7 @@ describe('handleStateChange — forward', () => {
 describe('handleStateChange — backward', () => {
     it('restores accessibility focus to the captured view after transitions flush', () => {
         const view = fakeView('display-name');
-        setLastPressedTriggerForTests(view);
+        setLastPressedTriggerRefForTests(fakeRef(view));
         const prev = stackState(0, [{key: 'profile', name: 'Profile'}]);
         const forward = stackState(1, [
             {key: 'profile', name: 'Profile'},
@@ -267,8 +255,7 @@ describe('handleStateChange — backward', () => {
     });
 
     it('does NOT restore when skipNextFocusRestore was called before goBack (form-submit path)', () => {
-        const view = fakeView('display-name');
-        setLastPressedTriggerForTests(view);
+        setLastPressedTriggerRefForTests(fakeRef(fakeView('display-name')));
         const prev = stackState(0, [{key: 'profile', name: 'Profile'}]);
         const forward = stackState(1, [
             {key: 'profile', name: 'Profile'},
@@ -286,8 +273,7 @@ describe('handleStateChange — backward', () => {
     });
 
     it('clears the trigger entry when skipNextFocusRestore suppresses the restore, so a later back to the same route cannot inherit the skipped trigger', () => {
-        const skippedTrigger = fakeView('display-name');
-        setLastPressedTriggerForTests(skippedTrigger);
+        setLastPressedTriggerRefForTests(fakeRef(fakeView('display-name')));
         const profile = stackState(0, [{key: 'profile', name: 'Profile'}]);
         const intoDisplayName = stackState(1, [
             {key: 'profile', name: 'Profile'},
@@ -333,9 +319,10 @@ describe('handleStateChange — backward', () => {
         expect(mockFireFocusEvent).not.toHaveBeenCalled();
     });
 
-    it('does NOT call sendAccessibilityEvent when the captured view has been detached (parent screen replaced)', () => {
-        const view = {label: 'display-name', detached: true};
-        setLastPressedTriggerForTests(view);
+    it('does NOT call sendAccessibilityEvent when the captured ref has been nulled (Pressable unmounted)', () => {
+        // The ref's `.current` going null is the ref-pass-through analog of a detached view.
+        const detachedRef = fakeRef(null);
+        setLastPressedTriggerRefForTests(detachedRef);
         const prev = stackState(0, [{key: 'profile', name: 'Profile'}]);
         const forward = stackState(1, [
             {key: 'profile', name: 'Profile'},
@@ -352,7 +339,7 @@ describe('handleStateChange — backward', () => {
     });
 
     it('cleans the trigger entry from the map after a successful restore', () => {
-        setLastPressedTriggerForTests(fakeView('display-name'));
+        setLastPressedTriggerRefForTests(fakeRef(fakeView('display-name')));
         const prev = stackState(0, [{key: 'profile', name: 'Profile'}]);
         const forward = stackState(1, [
             {key: 'profile', name: 'Profile'},
@@ -371,7 +358,7 @@ describe('handleStateChange — backward', () => {
 
 describe('handleStateChange — lateral & cleanup', () => {
     it('cancels a pending restore on a subsequent lateral tab switch', () => {
-        setLastPressedTriggerForTests(fakeView('display-name'));
+        setLastPressedTriggerRefForTests(fakeRef(fakeView('display-name')));
         const initial = stackState(0, [{key: 'profile', name: 'Profile'}]);
         const forward = stackState(1, [
             {key: 'profile', name: 'Profile'},
@@ -404,7 +391,7 @@ describe('handleStateChange — lateral & cleanup', () => {
     });
 
     it('drops trigger entries for routes removed from the stack', () => {
-        setLastPressedTriggerForTests(fakeView('row-a'));
+        setLastPressedTriggerRefForTests(fakeRef(fakeView('row-a')));
         const initial = stackState(0, [{key: 'profile', name: 'Profile'}]);
         const intoA = stackState(1, [
             {key: 'profile', name: 'Profile'},
@@ -420,7 +407,7 @@ describe('handleStateChange — lateral & cleanup', () => {
     });
 
     it('cancelPendingFocusRestore drops any queued restore', () => {
-        setLastPressedTriggerForTests(fakeView('display-name'));
+        setLastPressedTriggerRefForTests(fakeRef(fakeView('display-name')));
         const initial = stackState(0, [{key: 'profile', name: 'Profile'}]);
         const forward = stackState(1, [
             {key: 'profile', name: 'Profile'},
@@ -448,7 +435,7 @@ describe('setup / teardown', () => {
     });
 
     it('teardown clears triggerMap and the staged trigger', () => {
-        setLastPressedTriggerForTests(fakeView('row'));
+        setLastPressedTriggerRefForTests(fakeRef(fakeView('row')));
         handleStateChange(stackState(0, [{key: 'profile', name: 'Profile'}]));
         handleStateChange(
             stackState(1, [
@@ -466,20 +453,19 @@ describe('PUSH_PARAMS — same-route param change', () => {
     const ROUTE_KEY = 'Search_Root-K1';
 
     it('captures against the compound key on forward, restores on backward', () => {
-        const trigger = fakeView('search-tab-expense');
-        setLastPressedTriggerForTests(trigger);
+        const view = fakeView('search-tab-expense');
+        setLastPressedTriggerRefForTests(fakeRef(view));
 
         notifyPushParamsForward(ROUTE_KEY, {q: 'old'});
         expect(getTriggerMapSizeForTests()).toBe(1);
 
         notifyPushParamsBackward(ROUTE_KEY, {q: 'old'});
         flushTransitions();
-        expect(mockFireFocusEvent).toHaveBeenCalledWith(trigger);
+        expect(mockFireFocusEvent).toHaveBeenCalledWith(view);
     });
 
     it('does NOT restore when the back targets a different params hash than the captured one', () => {
-        const trigger = fakeView('search-tab-expense');
-        setLastPressedTriggerForTests(trigger);
+        setLastPressedTriggerRefForTests(fakeRef(fakeView('search-tab-expense')));
 
         notifyPushParamsForward(ROUTE_KEY, {q: 'old'});
         notifyPushParamsBackward(ROUTE_KEY, {q: 'unrelated'});
@@ -488,7 +474,7 @@ describe('PUSH_PARAMS — same-route param change', () => {
     });
 
     it('drops compound entries when the route is removed from the tree', () => {
-        setLastPressedTriggerForTests(fakeView('search-tab-expense'));
+        setLastPressedTriggerRefForTests(fakeRef(fakeView('search-tab-expense')));
         notifyPushParamsForward(ROUTE_KEY, {q: 'old'});
         expect(getTriggerMapSizeForTests()).toBe(1);
 

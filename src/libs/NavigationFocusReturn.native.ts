@@ -1,8 +1,6 @@
 import type {NavigationState} from '@react-navigation/native';
 import type {RefObject} from 'react';
 import type {View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports -- .native.ts only; the rule guards web bundles from pulling the native stub.
-import findNodeHandle from '@src/utils/findNodeHandle';
 import Accessibility from './Accessibility';
 import fireFocusEvent from './Accessibility/fireFocusEvent';
 import scheduleRefocus from './Accessibility/scheduleRefocus';
@@ -18,7 +16,7 @@ const TRIGGER_MAP_MAX = 64;
 // Drop stale presses so a delayed nav (timer / deeplink / async redirect) doesn't capture an unrelated trigger.
 const PRESS_TRIGGER_TTL_MS = 3_000;
 
-let lastPressedTrigger: View | null = null;
+let lastPressedTriggerRef: RefObject<View | null> | null = null;
 let lastPressedTriggerAt = 0;
 const triggerMap = new Map<string, TriggerEntry>();
 let prevState: NavigationState | undefined;
@@ -39,37 +37,36 @@ function setTriggerEntry(routeKey: string, entry: TriggerEntry): void {
     }
 }
 
-function notifyPressedTrigger(node: View | null): void {
+function notifyPressedTrigger(ref: RefObject<View | null> | null): void {
     if (!Accessibility.isScreenReaderEnabledSync()) {
         return;
     }
-    lastPressedTrigger = node;
-    lastPressedTriggerAt = node ? Date.now() : 0;
+    lastPressedTriggerRef = ref;
+    lastPressedTriggerAt = ref ? Date.now() : 0;
 }
 
 function captureTriggerForRoute(routeKey: string): void {
     if (!Accessibility.isScreenReaderEnabledSync()) {
         return;
     }
-    if (!lastPressedTrigger || Date.now() - lastPressedTriggerAt > PRESS_TRIGGER_TTL_MS) {
+    if (!lastPressedTriggerRef || Date.now() - lastPressedTriggerAt > PRESS_TRIGGER_TTL_MS) {
         return;
     }
-    const ref: RefObject<View | null> = {current: lastPressedTrigger};
-    setTriggerEntry(routeKey, {ref});
+    setTriggerEntry(routeKey, {ref: lastPressedTriggerRef});
 }
 
-function restoreTriggerForRoute(routeKey: string): View | null {
+function restoreTriggerForRoute(routeKey: string): RefObject<View | null> | null {
     const entry = triggerMap.get(routeKey);
     if (!entry) {
         return null;
     }
     const view = entry.ref.current;
-    // Truthy ref can still point to a detached View; findNodeHandle returns null then.
-    if (!view || findNodeHandle(view) == null) {
+    // `mergeRefs` nulls `.current` on Pressable unmount, so non-null here means still in React's tree.
+    if (!view) {
         return null;
     }
     fireFocusEvent(view);
-    return view;
+    return entry.ref;
 }
 
 function cancelPendingRestore(): void {
@@ -86,13 +83,13 @@ function scheduleRestore(routeKey: string): void {
             if (cancelled) {
                 return;
             }
-            const view = restoreTriggerForRoute(routeKey);
+            const ref = restoreTriggerForRoute(routeKey);
             triggerMap.delete(routeKey);
-            if (!view) {
+            if (!ref) {
                 pendingRestore = null;
                 return;
             }
-            refocusHandle = scheduleRefocus(view);
+            refocusHandle = scheduleRefocus(ref);
         },
     });
 
@@ -115,7 +112,7 @@ function handleStateChange(newState: NavigationState | undefined): void {
         skipNextRestore = false;
         cancelPendingRestore();
         captureTriggerForRoute(action.captureKey);
-        lastPressedTrigger = null;
+        lastPressedTriggerRef = null;
     } else if (action.type === 'backward') {
         if (skipNextRestore) {
             skipNextRestore = false;
@@ -164,7 +161,7 @@ function teardownNavigationFocusReturn(): void {
     cancelPendingRestore();
     prevState = undefined;
     triggerMap.clear();
-    lastPressedTrigger = null;
+    lastPressedTriggerRef = null;
     lastPressedTriggerAt = 0;
     skipNextRestore = false;
     stateUnsubscribe?.();
@@ -204,9 +201,9 @@ function resetForTests(): void {
     teardownNavigationFocusReturn();
 }
 
-function setLastPressedTriggerForTests(node: View | null): void {
-    lastPressedTrigger = node;
-    lastPressedTriggerAt = node ? Date.now() : 0;
+function setLastPressedTriggerRefForTests(ref: RefObject<View | null> | null): void {
+    lastPressedTriggerRef = ref;
+    lastPressedTriggerAt = ref ? Date.now() : 0;
 }
 
 function getTriggerMapSizeForTests(): number {
@@ -225,6 +222,6 @@ export {
     isFocusRestoreInProgress,
     shouldSkipAutoFocusDueToExistingFocus,
     resetForTests,
-    setLastPressedTriggerForTests,
+    setLastPressedTriggerRefForTests,
     getTriggerMapSizeForTests,
 };

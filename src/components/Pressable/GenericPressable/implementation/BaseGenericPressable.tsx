@@ -126,7 +126,7 @@ function GenericPressable({
                 ref.current?.blur();
                 Accessibility.moveAccessibilityFocus(nextFocusRef);
             }
-            notifyPressedTrigger(internalRef.current);
+            notifyPressedTrigger(internalRef);
             return onPress(event);
         },
         [shouldUseHapticsOnPress, onPress, nextFocusRef, ref, isDisabled, interactive],
