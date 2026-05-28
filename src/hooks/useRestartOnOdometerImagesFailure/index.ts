@@ -56,7 +56,7 @@ const useRestartOnOdometerImagesFailure = (
         const startImage = transaction.comment?.odometerStartImage;
         const endImage = transaction.comment?.odometerEndImage;
 
-        // Source images only — the stitched receipt URL is derived and OdometerReceiptStitcher regenerates it.
+        // Source images only — the stitched receipt URL is derived elsewhere from these.
         const urlsToCheck = [
             {
                 filename: typeof startImage === 'object' ? startImage?.name : undefined,

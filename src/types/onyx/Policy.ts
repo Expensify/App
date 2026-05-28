@@ -518,6 +518,9 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Default vendor of non reimbursable bill */
     nonReimbursableBillDefaultVendor: string;
 
+    /** Default vendor used as a fallback when a non-reimbursable Credit/Debit card expense has no vendor set on the expense itself. */
+    nonReimbursableCreditCardDefaultVendor?: string;
+
     /** ID of the invoice collection account */
     collectionAccountID?: string;
 
@@ -2456,4 +2459,5 @@ export type {
     MergeHRConnectionConfig,
     GustoConnectionConfig,
     ZenefitsConnectionConfig,
+    Vendor,
 };
