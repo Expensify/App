@@ -7751,7 +7751,7 @@ function clearConciergeThinkingKickoff() {
 }
 
 function setViewingPublicRoomReportID(reportID: string) {
-    Onyx.set(ONYXKEYS.VIEWING_PUBLIC_ROOM_REPORT_ID, reportID);
+    Onyx.set(ONYXKEYS.RAM_ONLY_VIEWING_PUBLIC_ROOM_REPORT_ID, reportID);
 }
 
 export type {Video, GuidedSetupData, TaskForParameters, IntroSelected, OpenReportActionParams};
