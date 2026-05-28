@@ -47,7 +47,7 @@ function CertiniaExportPage({policy}: WithPolicyConnectionsProps) {
             subscribedSettings: [CONST.CERTINIA_CONFIG.EXPORT_STATUS],
         },
         {
-            description: translate('workspace.accounting.exportDate'),
+            description: translate('workspace.certinia.exportDate.label'),
             title: exportDate ? translate(`workspace.certinia.exportDate.values.${exportDate}`) : exportConfig?.exportDate,
             onPress: !exportPath ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT_DATE.path, exportPath)),
             subscribedSettings: [CONST.CERTINIA_CONFIG.EXPORT_DATE],
@@ -62,7 +62,6 @@ function CertiniaExportPage({policy}: WithPolicyConnectionsProps) {
         {
             description: translate('workspace.certinia.exportNonReimbursable.label'),
             title: translate('workspace.certinia.payableInvoices'),
-            helperText: translate('workspace.certinia.exportNonReimbursable.helperText'),
             interactive: false,
             subscribedSettings: [CONST.CERTINIA_CONFIG.NON_REIMBURSABLE],
         },

@@ -4833,6 +4833,7 @@ ${amount} per ${merchant} - ${date}`,
                 },
             },
             exportDate: {
+                label: 'Payable invoice date',
                 values: {
                     [CONST.CERTINIA_EXPORT_DATE.LAST_EXPENSE]: 'Date of last expense',
                     [CONST.CERTINIA_EXPORT_DATE.REPORT_SUBMITTED]: 'Report submitted date',
@@ -4845,7 +4846,6 @@ ${amount} per ${merchant} - ${date}`,
             },
             exportNonReimbursable: {
                 label: 'Export non-reimbursable as',
-                helperText: 'Expenses marked as non-reimbursable will be exported as Payable Invoices made out to the default vendor.',
             },
             noVendorsFound: 'No vendors found',
             noVendorsFoundDescription: 'Please sync the connection again after vendors are added in Certinia.',
