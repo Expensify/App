@@ -835,7 +835,7 @@ describe('ReportUtils', () => {
             const messageEntries = result?.guidedSetupData.filter((d) => d.type === 'message');
             expect(messageEntries?.length).toBeGreaterThanOrEqual(1);
             expect(messageEntries?.[0]).toMatchObject({type: 'message', reportComment: 'Welcome to Expensify'});
-            // Message must NOT appear in optimisticData — it would flash before the server responds
+            // An optimistic entry would appear then vanish when the real server message replaces it.
             const optimisticActions = result?.optimisticData.filter((i) => i.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`);
             expect(optimisticActions).toHaveLength(0);
         });
