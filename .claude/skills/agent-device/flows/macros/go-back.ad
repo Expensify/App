@@ -1,4 +1,0 @@
-# @desc   Generic back navigation via the HeaderWithBackButton chevron. Works on any screen that mounts HeaderWithBackButton (Create Expense, Search, Report details, settings pages, etc.).
-# @pre    role="button" label="Back"
-# @tag    navigation
-press "role=\"button\" label=\"Back\""
