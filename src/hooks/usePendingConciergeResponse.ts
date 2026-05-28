@@ -2,7 +2,7 @@ import {useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {clearAgentZeroProcessingIndicator} from '@libs/actions/Report';
 import {applyPendingConciergeAction, clearPendingFollowupList, discardPendingConciergeAction, hidePendingFollowupList} from '@libs/actions/Report/SuggestedFollowup';
-import {MAX_AGE_MS} from '@libs/AgentZeroOptimisticStore';
+import AgentZeroOptimisticStore, {MAX_AGE_MS} from '@libs/AgentZeroOptimisticStore';
 import Log from '@libs/Log';
 import {rand64} from '@libs/NumberUtils';
 import type {ConciergeDraftEvent} from '@libs/Pusher/types';
@@ -104,7 +104,12 @@ function usePendingConciergeResponse(reportID: string | undefined) {
         }
         const html = pendingFollowupAction ? getReportActionHtml(pendingFollowupAction) : '';
         const hardClearIndicator = () => {
-            clearAgentZeroProcessingIndicator(reportID);
+            // Skip clearing agent thinking indicator when a newer agent request has kicked off.
+            const optimisticEntry = AgentZeroOptimisticStore.getEntry(reportID);
+            const hasNewerRequest = !!optimisticEntry && optimisticEntry.startedAt > pendingFollowupList.createdAt;
+            if (!hasNewerRequest) {
+                clearAgentZeroProcessingIndicator(reportID);
+            }
             clearPendingFollowupList(reportID);
         };
         if (parseFollowupsFromHtml(html)?.length) {
