@@ -123,8 +123,6 @@ function SearchPage({route}: SearchPageProps) {
         setIsSorting(false);
     }, [currentSearchResults?.isLoading, isSorting, prevIsLoading]);
 
-    const hasPendingFooterCurrencySettled = !!pendingFooterCurrency && metadata?.currency === pendingFooterCurrency && metadata?.count != null && metadata?.total != null;
-
     const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
 
     const handleSearchAction = useCallback((value: SearchParams | string) => {
@@ -208,7 +206,7 @@ function SearchPage({route}: SearchPageProps) {
         onDestinationVisible: overlayEndSubmitSpans,
     });
 
-    const isFooterTotalLoading = !!footerData.isLoading || (!!pendingFooterCurrency && !hasPendingFooterCurrencySettled);
+    const isFooterTotalLoading = !!footerData.isLoading || (!!pendingFooterCurrency && !!metadata?.isLoading);
 
     return (
         <Animated.View style={[styles.flex1]}>
