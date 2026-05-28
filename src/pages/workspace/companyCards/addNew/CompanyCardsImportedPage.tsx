@@ -114,11 +114,16 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
         const columnMappings = columnNames.map((_, index) => columnNamesByIndex.at(index) ?? CONST.CSV_IMPORT_COLUMNS.IGNORE);
 
         // Transform columns-based data to rows-based data.
+        // The backend (CCUploadScraper) treats the first row as a header and discards it,
+        // matching the OldDot wire format. Always include row 0 so the backend strips a header
+        // and not a real data row; if the source CSV has no header, prepend a synthetic one.
         const columns = spreadsheet?.data ?? [];
         const rows: string[][] = [];
         if (columns.length > 0) {
-            const startRowIndex = spreadsheet?.containsHeader ? 1 : 0;
-            for (let rowIndex = startRowIndex; rowIndex < (columns.at(0)?.length ?? 0); rowIndex++) {
+            if (!spreadsheet?.containsHeader) {
+                rows.push(columnMappings);
+            }
+            for (let rowIndex = 0; rowIndex < (columns.at(0)?.length ?? 0); rowIndex++) {
                 const row: string[] = [];
                 for (const column of columns) {
                     row.push(column.at(rowIndex) ?? '');
