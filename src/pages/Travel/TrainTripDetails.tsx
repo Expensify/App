@@ -7,7 +7,7 @@ import UserPills from '@components/UserPills';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
-import {formatAirportInfo} from '@libs/TripReservationUtils';
+import {formatTransitLocationLabel} from '@libs/TripReservationUtils';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
@@ -23,7 +23,7 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
 
     const startDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date));
     const endDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date));
-    const trainRouteDescription = `${formatAirportInfo(reservation.start)} ${translate('common.conjunctionTo')} ${formatAirportInfo(reservation.end)}`;
+    const trainRouteDescription = `${formatTransitLocationLabel(reservation.start)} ${translate('common.conjunctionTo')} ${formatTransitLocationLabel(reservation.end)}`;
     const trainDuration = DateUtils.getFormattedDurationBetweenDates(translate, new Date(reservation.start.date), new Date(reservation.end.date));
 
     const displayName = personalDetails?.displayName ?? reservation.travelerPersonalInfo?.name;
@@ -49,7 +49,7 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
                 description={translate('travel.trainDetails.departs')}
                 descriptionTextStyle={[styles.textLabelSupporting, styles.mb1]}
                 titleComponent={<Text style={[styles.textLarge, styles.textHeadlineH2]}>{startDate.hour}</Text>}
-                helperText={formatAirportInfo(reservation.start)}
+                helperText={formatTransitLocationLabel(reservation.start)}
                 helperTextStyle={[styles.pb3, styles.mtn2]}
                 interactive={false}
             />
@@ -57,7 +57,7 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
                 description={translate('travel.trainDetails.arrives')}
                 descriptionTextStyle={[styles.textLabelSupporting, styles.mb1]}
                 titleComponent={<Text style={[styles.textLarge, styles.textHeadlineH2]}>{endDate.hour}</Text>}
-                helperText={formatAirportInfo(reservation.end)}
+                helperText={formatTransitLocationLabel(reservation.end)}
                 helperTextStyle={[styles.pb3, styles.mtn2]}
                 interactive={false}
             />

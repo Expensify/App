@@ -474,10 +474,10 @@ function getReservationsFromTripReport(tripReport?: Report, transactions?: Trans
     return [];
 }
 
-function formatAirportInfo(reservationTimeDetails: ReservationTimeDetails, hideAirportCode = false): string {
+function formatTransitLocationLabel(reservationTimeDetails: ReservationTimeDetails, hideShortCode = false): string {
     const longName = reservationTimeDetails?.longName ?? '';
     const shortName = reservationTimeDetails?.shortName ?? '';
-    if (hideAirportCode || !shortName) {
+    if (hideShortCode || !shortName) {
         return longName;
     }
     return longName ? `${longName} (${shortName})` : `(${shortName})`;
@@ -563,7 +563,7 @@ export {
     getReservationsFromTripReport,
     getTripTotal,
     getReservationDetailsFromSequence,
-    formatAirportInfo,
+    formatTransitLocationLabel,
     getPNRReservationDataFromTripReport,
     getAirReservations,
     isPnrCancelled,
