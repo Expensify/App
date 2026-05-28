@@ -11,7 +11,7 @@ import initSplitExpense from '@libs/actions/SplitExpenses';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateAmount as calculateIOUAmount} from '@libs/IOUUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {isSelfDM} from '@libs/ReportUtils';
+import {isExpenseReport, isIOUReport, isSelfDM} from '@libs/ReportUtils';
 import {getActiveGroupSearchHashes} from '@libs/SearchUIUtils';
 import {
     getChildTransactions,
@@ -193,7 +193,9 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
                 const originalTransactionIouActions = getIOUActionForTransactions([transactionID], report?.reportID);
                 const iouReportID = isMoneyRequestAction(originalTransactionIouActions.at(0)) ? originalTransactionIouActions.at(0)?.reportID : undefined;
-                const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
+                const candidateIOUReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
+                // For self-DM tracks and split bills, action.reportID resolves to a chat report, not an IOU/expense report.
+                const iouReport = isIOUReport(candidateIOUReport) || isExpenseReport(candidateIOUReport) ? candidateIOUReport : undefined;
                 const splitExpensesTotal = allChildTransactions.reduce((total, childTransaction) => {
                     const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childTransaction?.reportID}`];
                     return total + initSplitExpenseItemData(childTransaction, transactionReport).amount;
@@ -274,7 +276,9 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     continue;
                 }
                 const iouReportID = isMoneyRequestAction(action) ? action?.reportID : undefined;
-                const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
+                const candidateIOUReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
+                // For self-DM tracks and split bills, action.reportID resolves to a chat report, not an IOU/expense report.
+                const iouReport = isIOUReport(candidateIOUReport) || isExpenseReport(candidateIOUReport) ? candidateIOUReport : undefined;
                 const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
                 const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${action?.childReportID}`];
                 const chatIOUReportID = chatReport?.reportID;
