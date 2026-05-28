@@ -16,6 +16,7 @@ import type {MissingPersonalDetailsParamList} from '@libs/Navigation/types';
 import {arePersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {setRevealedVirtualCardDetails} from '@libs/RevealedCardSecretsStore';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -74,16 +75,13 @@ function MissingPersonalDetailsMagicCodePage({
             if (isVirtualCard) {
                 setPersonalDetailsAndRevealExpensifyCard(values, countryCode, Number(cardID), validateCode)
                     .then((details) => {
-                        if (!details) {
-                            return;
-                        }
                         setRevealedVirtualCardDetails(cardID, details);
                         clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
                         Navigation.closeRHPFlow();
                         Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
                     })
-                    .catch(() => {
-                        setRevealCardError(getMicroSecondOnyxErrorWithTranslationKey('cardPage.cardDetailsLoadingFailure'));
+                    .catch((error: Error) => {
+                        setRevealCardError(getMicroSecondOnyxErrorWithTranslationKey(error.message as TranslationPaths));
                     });
                 return;
             }

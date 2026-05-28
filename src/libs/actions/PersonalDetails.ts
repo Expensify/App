@@ -516,42 +516,55 @@ function clearPersonalDetailsErrors() {
     });
 }
 
-function setPersonalDetailsAndRevealExpensifyCard(values: PersonalDetailsFormValues, countryCode: number, cardID: number, validateCode: string): Promise<ExpensifyCardDetails | undefined> {
-    const parameters: SetPersonalDetailsAndRevealExpensifyCardParams = {
-        ...buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode),
-        cardID,
-        validateCode,
-    };
-
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD, parameters, {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-                value: {
-                    isLoading: true,
-                },
-            },
-        ],
-        finallyData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-                value: {
-                    isLoading: false,
-                },
-            },
-        ],
-    }).then((response) => {
-        if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-            return undefined;
-        }
-        return {
-            pan: typeof response.pan === 'string' ? response.pan : '',
-            expiration: typeof response.expiration === 'string' ? response.expiration : '',
-            cvv: typeof response.cvv === 'string' ? response.cvv : '',
+function setPersonalDetailsAndRevealExpensifyCard(values: PersonalDetailsFormValues, countryCode: number, cardID: number, validateCode: string): Promise<ExpensifyCardDetails> {
+    return new Promise((resolve, reject) => {
+        const parameters: SetPersonalDetailsAndRevealExpensifyCardParams = {
+            ...buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode),
+            cardID,
+            validateCode,
         };
+
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD, parameters, {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                    value: {
+                        isLoading: true,
+                    },
+                },
+            ],
+            finallyData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                    value: {
+                        isLoading: false,
+                    },
+                },
+            ],
+        })
+            .then((response) => {
+                if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                    if (response?.jsonCode === CONST.JSON_CODE.INCORRECT_MAGIC_CODE) {
+                        reject(new Error('validateCodeForm.error.incorrectMagicCode'));
+                        return;
+                    }
+                    if (response?.jsonCode === 500) {
+                        reject(new Error('cardPage.unexpectedError'));
+                        return;
+                    }
+                    reject(new Error('cardPage.cardDetailsLoadingFailure'));
+                    return;
+                }
+                resolve({
+                    pan: typeof response.pan === 'string' ? response.pan : '',
+                    expiration: typeof response.expiration === 'string' ? response.expiration : '',
+                    cvv: typeof response.cvv === 'string' ? response.cvv : '',
+                });
+            })
+            .catch(() => reject(new Error('cardPage.cardDetailsLoadingFailure')));
     });
 }
 

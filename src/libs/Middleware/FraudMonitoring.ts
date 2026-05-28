@@ -42,6 +42,10 @@ const fraudSignalFactoryByApiCommand: Record<string, FraudSignalFactory> = {
         const panAttribute = responseData?.pan ? {key: 'hashed_card_number', value: responseData?.pan as string, shouldHash: true} : undefined;
         return {event: FRAUD_PROTECTION_EVENT.VIEW_VIRTUAL_CARD_PAN, attribute: panAttribute};
     },
+    [SIDE_EFFECT_REQUEST_COMMANDS.SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD]: (_, responseData) => {
+        const panAttribute = responseData?.pan ? {key: 'hashed_card_number', value: responseData?.pan as string, shouldHash: true} : undefined;
+        return {event: FRAUD_PROTECTION_EVENT.VIEW_VIRTUAL_CARD_PAN, attribute: panAttribute};
+    },
     [WRITE_COMMANDS.FINISH_CORPAY_BANK_ACCOUNT_ONBOARDING]: () => ({event: FRAUD_PROTECTION_EVENT.BUSINESS_BANK_ACCOUNT_SETUP}),
     [WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_MANUALLY]: () => ({event: FRAUD_PROTECTION_EVENT.BUSINESS_BANK_ACCOUNT_SETUP}),
     [WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID]: () => ({event: FRAUD_PROTECTION_EVENT.BUSINESS_BANK_ACCOUNT_SETUP}),
