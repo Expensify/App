@@ -508,6 +508,7 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Begründung einklappen',
         expandReasoning: 'Begründung erweitern',
+        enableNotifications: {prompt: 'Möchten Sie benachrichtigt werden, wenn Concierge antwortet?', cta: 'Benachrichtigen'},
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -1959,6 +1960,8 @@ const translations: TranslationDeepObject<typeof en> = {
         offline: 'Offline',
         syncing: 'Synchronisierung',
         profileAvatar: 'Profil-Avatar',
+        customInstructions: 'Benutzerdefinierte Anweisungen',
+        copilotIntoAccount: 'Copilot in Konto',
         publicSection: {
             title: 'Öffentlich',
             subtitle: 'Diese Angaben werden in deinem öffentlichen Profil angezeigt. Jede:r kann sie sehen.',
@@ -2639,6 +2642,9 @@ ${amount} für ${merchant} – ${date}`,
         hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `Genehmigungen werden über deine ${provider}-Integration verwaltet. Um deinen Genehmigungsworkflow zu aktualisieren, gehe zu deinen ${provider}-Verbindungseinstellungen.`,
         goToHRSettings: ({provider}: {provider: string}) => `Zu den ${provider}-Einstellungen gehen`,
+        approverFromProvider: ({provider}: {provider: string}) => `von ${provider}`,
+        finalApprover: 'Letzte*r Genehmigende*r',
+        manager: 'Manager',
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Sendehäufigkeit konnte nicht geändert werden. Bitte versuche es erneut oder kontaktiere den Support.',
@@ -4262,6 +4268,7 @@ ${amount} für ${merchant} – ${date}`,
             workflows: 'Workflows',
             workspace: 'Workspace',
             findWorkspace: 'Arbeitsbereich finden',
+            findRoom: 'Raum finden',
             edit: 'Arbeitsbereich bearbeiten',
             enabled: 'Aktiviert',
             disabled: 'Deaktiviert',
@@ -7923,6 +7930,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 `),
                 subtitle: 'Sende eine Rechnung oder mache eine Probefahrt mit Expensify, um mehr zu erfahren.',
                 subtitleWithOnlyCreateButton: 'Verwende die grüne Schaltfläche unten, um eine Rechnung zu senden.',
+                subtitleCannotSend: 'Du benötigst einen Arbeitsbereich mit aktiviertem Invoices, um Rechnungen zu senden.',
+                subtitleCannotSendWithTestDrive:
+                    'Du benötigst einen Arbeitsbereich mit aktiviertem Invoices, um Rechnungen zu senden. Mache eine Probefahrt mit Expensify, um mehr zu erfahren.',
             },
             emptyTripResults: {
                 title: 'Keine Reisen zum Anzeigen',

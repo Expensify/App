@@ -528,6 +528,10 @@ const translations = {
     concierge: {
         collapseReasoning: 'Collapse reasoning',
         expandReasoning: 'Expand reasoning',
+        enableNotifications: {
+            prompt: 'Want to be notified when Concierge responds?',
+            cta: 'Notify',
+        },
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -2030,6 +2034,8 @@ const translations = {
         offline: 'Offline',
         syncing: 'Syncing',
         profileAvatar: 'Profile avatar',
+        customInstructions: 'Custom instructions',
+        copilotIntoAccount: 'Copilot into account',
         publicSection: {
             title: 'Public',
             subtitle: 'These details are displayed on your public profile. Anyone can see them.',
@@ -2648,6 +2654,9 @@ const translations = {
         hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `Approvals are managed by your ${provider} integration. To update your approval workflow, head to your ${provider} connection settings.`,
         goToHRSettings: ({provider}: {provider: string}) => `Go to ${provider} settings`,
+        approverFromProvider: ({provider}: {provider: string}) => `from ${provider}`,
+        finalApprover: 'Final approver',
+        manager: 'Manager',
         makeOrTrackPaymentsTitle: 'Payments',
         makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify or track payments made elsewhere.',
         customApprovalWorkflowEnabled:
@@ -4338,6 +4347,7 @@ const translations = {
             workflows: 'Workflows',
             workspace: 'Workspace',
             findWorkspace: 'Find workspace',
+            findRoom: 'Find room',
             edit: 'Edit workspace',
             enabled: 'Enabled',
             disabled: 'Disabled',
@@ -7947,6 +7957,8 @@ const translations = {
                 `),
                 subtitle: 'Send an invoice or take a test drive of Expensify to learn more.',
                 subtitleWithOnlyCreateButton: 'Use the green button below to send an invoice.',
+                subtitleCannotSend: 'You need a workspace with Invoices enabled to send invoices.',
+                subtitleCannotSendWithTestDrive: 'You need a workspace with Invoices enabled to send invoices. Take a test drive of Expensify to learn more.',
             },
             emptyTripResults: {
                 title: 'No trips to display',

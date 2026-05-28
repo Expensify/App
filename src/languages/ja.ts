@@ -507,6 +507,10 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: '推論を折りたたむ',
         expandReasoning: '推論を展開',
+        enableNotifications: {
+            prompt: 'Conciergeから返信があったときに通知を受け取りますか？',
+            cta: '通知',
+        },
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -1937,6 +1941,8 @@ const translations: TranslationDeepObject<typeof en> = {
         offline: 'オフライン',
         syncing: '同期中',
         profileAvatar: 'プロフィールアバター',
+        customInstructions: 'カスタム指示',
+        copilotIntoAccount: 'アカウントにCopilot',
         publicSection: {
             title: '公開',
             subtitle: 'これらの詳細はあなたの公開プロフィールに表示され、誰でも閲覧できます。',
@@ -2609,6 +2615,9 @@ ${date} の ${merchant} への ${amount}`,
         hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `承認は${provider}連携によって管理されています。承認ワークフローを更新するには、${provider}接続設定に移動してください。`,
         goToHRSettings: ({provider}: {provider: string}) => `${provider}設定に移動`,
+        approverFromProvider: ({provider}: {provider: string}) => `${provider}から`,
+        finalApprover: '最終承認者',
+        manager: 'マネージャー',
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: '提出頻度を変更できませんでした。もう一度お試しいただくか、サポートまでご連絡ください。',
@@ -4217,6 +4226,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             workflows: 'ワークフロー',
             workspace: 'ワークスペース',
             findWorkspace: 'ワークスペースを探す',
+            findRoom: 'ルームを探す',
             edit: 'ワークスペースを編集',
             enabled: '有効',
             disabled: '無効',
@@ -7816,6 +7826,8 @@ ${reportName}
                 `),
                 subtitle: '請求書を送信するか、Expensify を試用してさらに詳しく知りましょう。',
                 subtitleWithOnlyCreateButton: '下の緑色のボタンを使って請求書を送信してください。',
+                subtitleCannotSend: '請求書を送信するには、Invoicesが有効なワークスペースが必要です。',
+                subtitleCannotSendWithTestDrive: '請求書を送信するには、Invoicesが有効なワークスペースが必要です。Expensify を試用してさらに詳しく知りましょう。',
             },
             emptyTripResults: {
                 title: '表示する出張はありません',
