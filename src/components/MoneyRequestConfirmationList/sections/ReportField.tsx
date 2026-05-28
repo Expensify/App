@@ -1,5 +1,5 @@
 import React from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -15,27 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
-
-type OutstandingReportsForPolicy = OnyxTypes.OutstandingReportsByPolicyIDDerivedValue[string];
-
-const createOutstandingReportsForPolicySelector = (policyID: string | undefined) => (derived: OnyxEntry<OnyxTypes.OutstandingReportsByPolicyIDDerivedValue>) =>
-    derived?.[policyID ?? CONST.DEFAULT_NUMBER_ID];
-
-const createOutstandingReportsNVPsSelector =
-    (outstandingReports: OutstandingReportsForPolicy | undefined) =>
-    (allNVPs: OnyxCollection<OnyxTypes.ReportNameValuePairs>): OnyxCollection<OnyxTypes.ReportNameValuePairs> | undefined => {
-        if (!outstandingReports || !allNVPs) {
-            return undefined;
-        }
-        const result: OnyxCollection<OnyxTypes.ReportNameValuePairs> = {};
-        for (const reportID of Object.keys(outstandingReports)) {
-            const key = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}` as const;
-            if (allNVPs[key] !== undefined) {
-                result[key] = allNVPs[key];
-            }
-        }
-        return result;
-    };
+import {createOutstandingReportsForPolicySelector, createOutstandingReportsNVPsSelector} from './selectors';
 
 type ReportFieldProps = {
     /** The selected participants */

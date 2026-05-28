@@ -14,6 +14,7 @@ import {
     willFieldBeAutomaticallyFilled,
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 
@@ -194,6 +195,7 @@ const taxSliceSelector = (t: OnyxEntry<Transaction>): TaxSlice | undefined => {
 // --- ReportField ---
 
 type ReportFieldTransactionState = {reportID: Transaction['reportID']; isFromGlobalCreate: boolean};
+type OutstandingReportsForPolicy = OnyxTypes.OutstandingReportsByPolicyIDDerivedValue[string];
 
 const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportFieldTransactionState | undefined => {
     if (!t) {
@@ -207,6 +209,25 @@ const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportF
 
 const createOutstandingReportsForPolicySelector = (policyID: string | undefined) => (derived: OnyxEntry<OnyxTypes.OutstandingReportsByPolicyIDDerivedValue>) =>
     derived?.[policyID ?? CONST.DEFAULT_NUMBER_ID];
+
+const createOutstandingReportsNVPsSelector =
+    (outstandingReports: OutstandingReportsForPolicy | undefined) =>
+    (allNVPs: OnyxCollection<OnyxTypes.ReportNameValuePairs>): OnyxCollection<OnyxTypes.ReportNameValuePairs> | undefined => {
+        if (!outstandingReports || !allNVPs) {
+            return undefined;
+        }
+        const result: OnyxCollection<OnyxTypes.ReportNameValuePairs> = {};
+        for (const report of Object.values(outstandingReports)) {
+            if (!report?.reportID) {
+                continue;
+            }
+            const key = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}` as const;
+            if (allNVPs[key] !== undefined) {
+                result[key] = allNVPs[key];
+            }
+        }
+        return result;
+    };
 
 // --- InvoiceSenderField ---
 
@@ -231,6 +252,7 @@ export {
     attendeeSliceSelector,
     categoryStateSelector,
     createCanUpdateSenderWorkspaceSelector,
+    createOutstandingReportsNVPsSelector,
     createOutstandingReportsForPolicySelector,
     createTagDisplaySelector,
     dateStateSelector,
