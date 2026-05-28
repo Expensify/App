@@ -566,6 +566,7 @@ function WorkspacesListPage() {
                     icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
                     brickRoadIndicator,
                     pendingAction: policy.pendingAction,
+                    resetLoadingSpinnerIconIndex,
                     action: (event) => navigateToWorkspace(policy.id, event),
                     dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
                 };
@@ -595,7 +596,7 @@ function WorkspacesListPage() {
         });
 
         return () => handle.cancel();
-    }, [duplicateWorkspace?.policyID, isFocused]);
+    }, [duplicateWorkspace?.policyID, isFocused, workspaceRows.length]);
 
     const headerButton = !isRestrictedPolicyCreation && !!workspaceRows.length && (
         <Button
