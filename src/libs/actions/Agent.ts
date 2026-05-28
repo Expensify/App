@@ -10,6 +10,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
+import {generateReportID} from '@libs/ReportUtils';
 
 function openAgentsPage() {
     read(READ_COMMANDS.OPEN_AGENTS_PAGE, null);
@@ -27,7 +28,7 @@ function createAgent(
     optimisticAvatarURI?: string,
     policyID?: string,
 ) {
-    const optimisticAccountID = -Math.round(Math.random() * 1000000);
+    const optimisticAccountID = generateReportID();
 
     let avatarURI: string | undefined;
     if (customExpensifyAvatarID) {
