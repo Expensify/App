@@ -1,5 +1,3 @@
-import type {MarqetaAuthTypeName} from '@libs/MultifactorAuthentication/shared/types';
-
 type SetPersonalDetailsAndRevealExpensifyCardParams = {
     cardID: number | string;
     legalFirstName: string;
@@ -13,9 +11,7 @@ type SetPersonalDetailsAndRevealExpensifyCardParams = {
     dob: string;
     addressState: string;
     addressProvince: string;
-    validateCode?: string;
-    signedChallenge?: string;
-    authenticationMethod?: MarqetaAuthTypeName;
+    validateCode: string;
 };
 
 export default SetPersonalDetailsAndRevealExpensifyCardParams;

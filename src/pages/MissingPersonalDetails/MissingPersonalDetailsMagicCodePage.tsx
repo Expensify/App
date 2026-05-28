@@ -1,5 +1,5 @@
 import {areAllExpensifyCardsShipped} from '@selectors/Card';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 import useLocalize from '@hooks/useLocalize';
@@ -9,7 +9,7 @@ import {clearDraftValues} from '@libs/actions/FormActions';
 import {clearPersonalDetailsErrors, setPersonalDetailsAndRevealExpensifyCard, updatePersonalDetailsAndShipExpensifyCards} from '@libs/actions/PersonalDetails';
 import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
 import {normalizeCountryCode} from '@libs/CountryUtils';
-import {getLatestError} from '@libs/ErrorUtils';
+import {getLatestError, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MissingPersonalDetailsParamList} from '@libs/Navigation/types';
@@ -21,6 +21,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsForm} from '@src/types/form';
 import type {CardList} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getSubPageValues} from './utils';
 
@@ -45,6 +46,7 @@ function MissingPersonalDetailsMagicCodePage({
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const privateDetailsErrors = privatePersonalDetails?.errors ?? undefined;
     const validateLoginError = getLatestError(privateDetailsErrors);
+    const [revealCardError, setRevealCardError] = useState<Errors>({});
 
     const missingDetails = arePersonalDetailsMissing(privatePersonalDetails);
 
@@ -58,6 +60,7 @@ function MissingPersonalDetailsMagicCodePage({
     }, [isVirtualCard, missingDetails, privateDetailsErrors, areAllCardsShipped]);
 
     const clearError = () => {
+        setRevealCardError({});
         if (isEmptyObject(validateLoginError) && isEmptyObject(validateCodeAction?.errorFields)) {
             return;
         }
@@ -69,15 +72,19 @@ function MissingPersonalDetailsMagicCodePage({
     const handleSubmitForm = useCallback(
         (validateCode: string) => {
             if (isVirtualCard) {
-                setPersonalDetailsAndRevealExpensifyCard(values, countryCode, Number(cardID), validateCode).then((details) => {
-                    if (!details) {
-                        return;
-                    }
-                    setRevealedVirtualCardDetails(cardID, details);
-                    clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
-                    Navigation.closeRHPFlow();
-                    Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
-                });
+                setPersonalDetailsAndRevealExpensifyCard(values, countryCode, Number(cardID), validateCode)
+                    .then((details) => {
+                        if (!details) {
+                            return;
+                        }
+                        setRevealedVirtualCardDetails(cardID, details);
+                        clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
+                        Navigation.closeRHPFlow();
+                        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
+                    })
+                    .catch(() => {
+                        setRevealCardError(getMicroSecondOnyxErrorWithTranslationKey('cardPage.cardDetailsLoadingFailure'));
+                    });
                 return;
             }
             updatePersonalDetailsAndShipExpensifyCards(values, validateCode, countryCode);
@@ -92,7 +99,7 @@ function MissingPersonalDetailsMagicCodePage({
             sendValidateCode={() => requestValidateCodeAction()}
             validateCodeActionErrorField="personalDetails"
             handleSubmitForm={handleSubmitForm}
-            validateError={validateLoginError}
+            validateError={!isEmptyObject(revealCardError) ? revealCardError : validateLoginError}
             clearError={clearError}
             onClose={() => {
                 resetValidateActionCodeSent();

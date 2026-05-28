@@ -496,6 +496,8 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                                     return;
                                                                 }
 
+                                                                resetValidateActionCodeSent();
+
                                                                 if (arePersonalDetailsMissing(privatePersonalDetails)) {
                                                                     Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(String(card.cardID)));
                                                                     return;
@@ -508,7 +510,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                                     return;
                                                                 }
 
-                                                                resetValidateActionCodeSent();
                                                                 if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL) {
                                                                     Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_CONFIRM_MAGIC_CODE.getRoute(String(card.cardID)));
                                                                     return;
