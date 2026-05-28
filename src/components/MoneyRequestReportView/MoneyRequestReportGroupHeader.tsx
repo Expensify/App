@@ -91,7 +91,7 @@ function MoneyRequestReportGroupHeader({
               styles.borderBottom,
               isSelected && {borderColor: theme.buttonHoveredBG},
           ]
-        : [styles.ph4, styles.pv3, styles.borderBottom];
+        : [styles.appBG, styles.ph5, styles.pv3, styles.borderBottom];
 
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>

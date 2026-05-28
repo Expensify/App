@@ -58,7 +58,8 @@ function TransactionListItemNarrow<TItem extends ListItem>({
 
     const pressableStyle = [
         styles.transactionListItemStyle,
-        styles.p4,
+        styles.ph5,
+        styles.pv4,
         styles.noBorderRadius,
         item.isSelected && styles.activeComponentBG,
         {...styles.flexColumn, ...styles.alignItemsStretch},
@@ -92,15 +93,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                     isDeletedTransaction && styles.cursorDefault,
                 ]}
                 onFocus={onFocus}
-                wrapperStyle={[
-                    styles.mh5,
-                    styles.flex1,
-                    animatedHighlightStyle,
-                    styles.userSelectNone,
-                    isFirstItem && styles.tableTopRadius,
-                    isLastItem && styles.tableBottomRadius,
-                    !isLastItem && StyleUtils.getSelectedBorderBottomStyle(item.isSelected),
-                ]}
+                wrapperStyle={[styles.flex1, animatedHighlightStyle, styles.userSelectNone, !isLastItem && StyleUtils.getSelectedBorderBottomStyle(item.isSelected)]}
             >
                 {() => (
                     <>

@@ -22,9 +22,10 @@ function SearchPageHeaderNarrow({queryJSON, shouldShowLoadingBar = false, isMobi
         <TopBar
             shouldShowLoadingBar={shouldShowLoadingBar}
             breadcrumbLabel={translate('common.spend')}
-            shouldDisplaySearch={false}
+            shouldDisplaySearch
             shouldDisplayHelpButton
             cancelSearch={cancelSearch}
+            shouldDisplayAccountAvatar
         />
     );
 }

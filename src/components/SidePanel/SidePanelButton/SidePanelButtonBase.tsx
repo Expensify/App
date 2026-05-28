@@ -4,6 +4,7 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelActions from '@hooks/useSidePanelActions';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
@@ -17,9 +18,10 @@ function SidePanelButtonBase({style}: SidePanelButtonProps) {
     const {translate} = useLocalize();
     const {shouldHideHelpButton} = useSidePanelState();
     const {openSidePanel} = useSidePanelActions();
-    const {ConciergeAvatar} = useMemoizedLazyExpensifyIcons(['ConciergeAvatar']);
+    const {Sparkles} = useMemoizedLazyExpensifyIcons(['Sparkles']);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    if (shouldHideHelpButton) {
+    if (shouldHideHelpButton && !shouldUseNarrowLayout) {
         return null;
     }
 
@@ -32,10 +34,10 @@ function SidePanelButtonBase({style}: SidePanelButtonProps) {
                 onPress={openSidePanel}
             >
                 <Icon
-                    src={ConciergeAvatar}
+                    src={Sparkles}
                     fill={theme.icon}
-                    width={28}
-                    height={28}
+                    width={20}
+                    height={20}
                 />
             </PressableWithoutFeedback>
         </Tooltip>

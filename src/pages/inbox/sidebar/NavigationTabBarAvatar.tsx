@@ -73,7 +73,7 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style, shouldShowL
         return (
             <ProfileAvatarWithIndicator
                 isSelected={active}
-                containerStyles={styles.tn0Half}
+                containerStyles={shouldShowLabel ? styles.tn0Half : undefined}
             />
         );
     };

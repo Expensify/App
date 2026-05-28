@@ -56,6 +56,7 @@ function BaseSidebarScreen() {
                         breadcrumbLabel={translate('common.inbox')}
                         shouldDisplaySearch={shouldUseNarrowLayout}
                         shouldDisplayHelpButton={shouldUseNarrowLayout}
+                        shouldDisplayAccountAvatar
                     />
                     <View style={[styles.flex1]}>
                         {shouldShowSkeleton ? (

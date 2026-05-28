@@ -91,7 +91,6 @@ export default function TableRow({
     }
 
     const tableRowPressableStyles = [
-        shouldUseNarrowTableLayout && styles.mh5,
         styles.appBG,
         isInteractive && styles.userSelectNone,
         !isFirstRow && styles.borderTop,
@@ -102,7 +101,7 @@ export default function TableRow({
     const tableRowContentContainerStyles = [
         styles.flex1,
         styles.gap3,
-        shouldUseNarrowTableLayout ? styles.ph4 : styles.ph5,
+        styles.ph5,
         shouldUseNarrowTableLayout && !isLoading && styles.pv4,
         !shouldUseNarrowTableLayout && !isLoading && styles.pv2,
         animatedHighlightStyle,

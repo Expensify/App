@@ -76,6 +76,7 @@ export default function WorkspaceListLayout({children, headerButton}: WorkspaceL
                     <TopBarWithLoadingBar
                         shouldDisplayHelpButton
                         breadcrumbLabel={activeTabLabel}
+                        shouldDisplayAccountAvatar
                     >
                         <View style={[styles.pr3]}>{!shouldDisplayButtonsInSeparateLine && headerButton}</View>
                     </TopBarWithLoadingBar>

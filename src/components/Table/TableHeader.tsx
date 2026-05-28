@@ -90,7 +90,6 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
             style={[
                 styles.pv2,
                 styles.ph5,
-                shouldUseNarrowTableLayout && styles.mh5,
                 styles.appBG,
                 styles.borderBottom,
                 // Flexbox fallback for browsers / native devices wider than 1024px which don't support grid

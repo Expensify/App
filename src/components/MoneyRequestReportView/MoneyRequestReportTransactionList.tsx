@@ -667,11 +667,11 @@ function MoneyRequestReportTransactionList({
           })
         : resolvedTransactions.map((transaction) => renderTransactionItem(transaction));
 
-    const narrowListWrapper = shouldUseNarrowLayout ? [styles.highlightBG, styles.tableTopRadius, styles.tableBottomRadius, styles.overflowHidden] : undefined;
+    const narrowListWrapper = shouldUseNarrowLayout ? [styles.appBG, styles.overflowHidden] : undefined;
 
     const transactionListContent = (
         <View
-            style={[shouldUseNarrowLayout && listHorizontalPadding, shouldUseNarrowLayout ? styles.pb2 : styles.pb4]}
+            style={[shouldUseNarrowLayout ? styles.pb2 : styles.pb4]}
             onLayout={onLayout}
         >
             {narrowListWrapper ? <View style={narrowListWrapper}>{transactionItems}</View> : transactionItems}

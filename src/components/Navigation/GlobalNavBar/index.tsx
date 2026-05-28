@@ -38,6 +38,21 @@ function isOnNavigatorWithLHN(state: NavigationState | PartialState<NavigationSt
     if (!state) {
         return false;
     }
+    // In tab navigators, only the focused tab is visible — so we only descend that branch.
+    // In stack-like navigators, RHP-style overlays sit on top of LHN siblings underneath, so we scan all routes.
+    if (state.type === 'tab') {
+        if (state.index === undefined) {
+            return false;
+        }
+        const route = state.routes.at(state.index);
+        if (!route) {
+            return false;
+        }
+        if (NAVIGATORS_WITH_LHN.has(route.name)) {
+            return true;
+        }
+        return isOnNavigatorWithLHN(route.state);
+    }
     return state.routes.some((route) => {
         if (NAVIGATORS_WITH_LHN.has(route.name)) {
             return true;

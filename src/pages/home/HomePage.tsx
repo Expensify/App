@@ -36,7 +36,7 @@ function HomePage() {
     const isForYouLoading = !!(isLoadingApp || isLoadingReportData);
     const receiptDropTargetRef = useRef<View>(null);
     const firstName = useCurrentUserPersonalDetails()?.firstName?.trim();
-    const breadcrumbLabel = firstName ? `Welcome, ${firstName}` : translate('common.home');
+    const breadcrumbLabel = !shouldUseNarrowLayout && firstName ? `Welcome, ${firstName}` : translate('common.home');
 
     // This hook signals that the app is ready to be opened after HomePage mounts
     // to make sure everything loads properly
@@ -56,16 +56,28 @@ function HomePage() {
                     bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.HOME} />}
                     bottomContentStyle={styles.overflowVisible}
                 >
-                    <ScrollView
-                        contentContainerStyle={styles.homePageContentContainer}
-                        addBottomSafeAreaPadding
-                    >
+                    {shouldUseNarrowLayout && (
                         <TopBar
                             breadcrumbLabel={breadcrumbLabel}
                             shouldShowLoadingBar={isForYouLoading}
                             shouldDisplayHelpButton
                             shouldRemoveHorizontalMargin
+                            shouldDisplayAccountAvatar
                         />
+                    )}
+                    <ScrollView
+                        contentContainerStyle={styles.homePageContentContainer}
+                        addBottomSafeAreaPadding
+                    >
+                        {!shouldUseNarrowLayout && (
+                            <TopBar
+                                breadcrumbLabel={breadcrumbLabel}
+                                shouldShowLoadingBar={isForYouLoading}
+                                shouldDisplayHelpButton
+                                shouldRemoveHorizontalMargin
+                                shouldDisplayAccountAvatar
+                            />
+                        )}
                         {!shouldUseNarrowLayout && (
                             <View style={styles.homePageCenteredContent}>
                                 <QuickCreationActionsBar />
