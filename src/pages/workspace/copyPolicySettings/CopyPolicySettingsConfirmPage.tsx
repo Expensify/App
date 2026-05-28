@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -41,6 +41,15 @@ function CopyPolicySettingsConfirmPage() {
     const parts = (copyPolicySettingsState?.parts ?? []) as Part[];
 
     const targetPolicies = targetPolicyIDs.map((id) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]).filter((policy) => policy !== undefined);
+
+    useEffect(() => {
+        if (!sourcePolicyID) {
+            return;
+        }
+        if (parts.length === 0 || targetPolicyIDs.length === 0) {
+            Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS.getRoute(sourcePolicyID));
+        }
+    }, [parts.length, sourcePolicyID, targetPolicyIDs.length]);
 
     const translatedParts = parts
         .map((part) => {
