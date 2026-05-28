@@ -742,11 +742,6 @@ const config = defineConfig([
                 project: path.resolve(projectRoot, 'server/tsconfig.json'),
             },
         },
-        rules: {
-            'no-restricted-imports': 'off',
-            'rulesdir/no-default-props': 'off',
-            'rulesdir/prefer-type-fest': 'off',
-        },
     },
 
     globalIgnores([

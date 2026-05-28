@@ -22,5 +22,5 @@
             "tests/*": ["../tests/*"]
         }
     },
-    "include": ["victory-chart-renderer/src", "victory-chart-renderer/__tests__", "victory-chart-renderer/stubs"]
+    "include": ["victory-chart-renderer/src", "victory-chart-renderer/tests", "victory-chart-renderer/stubs"]
 }

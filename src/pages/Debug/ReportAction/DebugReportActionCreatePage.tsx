@@ -112,7 +112,6 @@ function DebugReportActionCreatePage({
                                     parentReportAction={undefined}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                     shouldDisplayContextMenu={false}
                                     personalDetails={personalDetailsList}

@@ -122,6 +122,21 @@ type Comment = {
     /** Defines the type of liability for the transaction */
     liabilityType?: ValueOf<typeof CONST.TRANSACTION.LIABILITY_TYPE>;
 
+    /**
+     * Accounting-system vendor matched to this expense.
+     * Stored on non-reimbursable card expenses when a vendor is set either by the
+     * PHP fuzzy matcher (`isManuallySet=false`) or by the user / a merchant rule
+     * (`isManuallySet=true`). The flag prevents auto-match from overwriting a
+     * deliberate selection.
+     */
+    vendor?: {
+        /** Vendor ID in the connected accounting integration (e.g. QBO vendor ID) */
+        externalID: string;
+
+        /** `true` when set by the user or a merchant rule; `false` when set by the PHP fuzzy auto-matcher */
+        isManuallySet: boolean;
+    };
+
     /** Timestamp when auto-categorization was initiated (format: "YYYY-MM-DD HH:MM:SS") */
     pendingAutoCategorizationTime?: string;
 
