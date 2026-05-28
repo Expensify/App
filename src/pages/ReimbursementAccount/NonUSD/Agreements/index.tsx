@@ -80,6 +80,7 @@ function Agreements({onBackButtonPress, onSubmit, stepNames, currency}: NonUSDPa
             currency={currency ?? ''}
             startStepIndex={5}
             stepNames={stepNames}
+            errorMessage={Object.values(reimbursementAccount?.errors ?? {}).at(0) ?? ''}
         />
     );
 }
