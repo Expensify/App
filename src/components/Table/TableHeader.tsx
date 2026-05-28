@@ -110,6 +110,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.tableHeaderContentHeight, styles.gap3]}>
                     {!!isSelectionCheckboxVisible && (
                         <Checkbox
+                            containerStyle={styles.m0}
                             isChecked={isEverySelectableRowSelected}
                             isIndeterminate={isSelectionIndeterminate && !isEverySelectableRowSelected}
                             onPress={tableMethods.handleSelectAll}
@@ -205,7 +206,6 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
             disabled={!column.sortable}
             sentryLabel={CONST.SENTRY_LABEL.TABLE_HEADER.SORTABLE_COLUMN}
             style={tableHeaderStyles}
-            disabled={!column.sortable}
             onPress={() => toggleSorting(column.key)}
         >
             <Text

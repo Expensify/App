@@ -206,6 +206,7 @@ export default function TableRow({
                             <View style={tableRowContentStyles}>
                                 {!!isSelectionCheckboxVisible && (
                                     <Checkbox
+                                        containerStyle={styles.m0}
                                         style={styles.flex1}
                                         disabled={item.disabled}
                                         isChecked={!!item.selected}
