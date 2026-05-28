@@ -61,9 +61,12 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const isAccountingPartCompatible = areAllTargetsCompatibleForAccountingPart(sourcePolicy, targetPolicies);
 
     const memberCount = Object.keys(getMemberAccountIDsForWorkspace(sourcePolicy?.employeeList, false, false)).length;
-    const categoriesCount = Object.values(policyCategories ?? {}).filter((c) => c.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
+    const categoriesCount = Object.values(policyCategories ?? {}).filter((c) => c?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
     const totalTags = policyTags
-        ? Object.values(policyTags).reduce((sum, tagGroup) => sum + Object.values(tagGroup.tags).filter((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length, 0)
+        ? Object.values(policyTags).reduce(
+              (sum, tagGroup) => sum + Object.values(tagGroup?.tags ?? {}).filter((tag) => tag?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length,
+              0,
+          )
         : 0;
     const taxesCount = Object.values(sourcePolicy?.taxRates?.taxes ?? {}).filter((tax) => tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
     const reportFieldsCount = Object.values(getReportFieldsByPolicyID(sourcePolicyID) ?? {}).filter((field) => field.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
