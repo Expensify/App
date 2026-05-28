@@ -91,10 +91,10 @@ function stateReducer(state: MultifactorAuthenticationState, action: Action): Mu
             };
         }
         case 'CLOSE_MODAL':
-            // Force-clear isCancelConfirmVisible: the cancel-confirm dialog may still be open when
-            // CLOSE_MODAL fires (opened on an active prompt screen, then survived through the outcome
-            // screen until the user tapped "Got it"). Without this clear it would linger on top of
-            // the closing navigator.
+            // Also clear isCancelConfirmVisible. CLOSE_MODAL can close the navigator without the
+            // flow ever completing (e.g. cancel() short-circuits to CLOSE_MODAL when offline), so
+            // SET_FLOW_COMPLETE's clear path doesn't run and the cancel-confirm dialog would
+            // otherwise linger over the closing navigator.
             return {...state, isModalOpen: false, isCancelConfirmVisible: false};
         case 'RESET':
             return DEFAULT_STATE;
