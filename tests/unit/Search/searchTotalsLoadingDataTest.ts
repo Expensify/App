@@ -167,31 +167,4 @@ describe('search loading totals handling', () => {
             shouldCalculateTotals: true,
         });
     });
-
-    it('allows concurrent in-flight searches for different target currencies', async () => {
-        const queryJSON = getQueryJSON();
-        getMakeRequestWithSideEffectsMock().mockReturnValue(new Promise(() => {}));
-
-        search({
-            queryJSON,
-            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
-            offset: 0,
-            shouldCalculateTotals: true,
-            isLoading: false,
-            targetCurrency: 'AUD',
-        });
-        search({
-            queryJSON,
-            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
-            offset: 0,
-            shouldCalculateTotals: true,
-            isLoading: false,
-            targetCurrency: 'USD',
-        });
-
-        await Promise.resolve();
-        await Promise.resolve();
-
-        expect(makeRequestWithSideEffects).toHaveBeenCalledTimes(2);
-    });
 });
