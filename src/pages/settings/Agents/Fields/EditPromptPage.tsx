@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React from 'react';
 import {Platform, View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
@@ -91,7 +92,7 @@ function EditPromptPage({route}: EditPromptPageProps) {
                         label={translate('editAgentPage.instructions')}
                         accessibilityLabel={translate('editAgentPage.instructions')}
                         role={CONST.ROLE.PRESENTATION}
-                        defaultValue={agentPrompt?.prompt ?? ''}
+                        defaultValue={Str.htmlDecode(agentPrompt?.prompt ?? '')}
                         multiline
                         containerStyles={[styles.flex1]}
                         touchableInputWrapperStyle={[styles.flex1]}
