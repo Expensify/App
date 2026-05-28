@@ -141,4 +141,10 @@ describe('navigateAfterOnboarding', () => {
         navigateAfterOnboarding(true, true, '', new Set(), ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID, (testSession?.email ?? '').includes('+'));
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
     });
+
+    it('should navigate to the admin room when the inbAdminsWel variant is assigned', () => {
+        const navigate = jest.spyOn(Navigation, 'navigate');
+        navigateAfterOnboarding(false, true, '', new Set(), undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID, false, CONST.ONBOARDING_RHP_VARIANT.INB_ADMINS_WEL);
+        expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID));
+    });
 });
