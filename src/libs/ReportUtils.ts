@@ -965,6 +965,7 @@ type GetPolicyNameParams = {
     policy?: OnyxInputOrEntry<Policy>;
     policies?: Policy[];
     reports?: Report[];
+    unavailableTranslation?: string;
 };
 
 type GetReportNameParams = {
@@ -1422,8 +1423,8 @@ function getPolicyType(report: OnyxInputOrEntry<Report>, policies: OnyxCollectio
 /**
  * Get the policy name from a given report
  */
-function getPolicyName({report, returnEmptyIfNotFound = false, policy, policies, reports}: GetPolicyNameParams): string {
-    const noPolicyFound = returnEmptyIfNotFound ? '' : unavailableTranslation;
+function getPolicyName({report, returnEmptyIfNotFound = false, policy, policies, reports, unavailableTranslation: unavailableTranslationParam}: GetPolicyNameParams): string {
+    const noPolicyFound = returnEmptyIfNotFound ? '' : (unavailableTranslationParam ?? unavailableTranslation);
     const parentReport = report ? getRootParentReport({report, reports}) : undefined;
 
     if ((!report?.policyName && !parentReport?.policyName && isEmptyObject(policies) && isEmptyObject(allPolicies)) || isEmptyObject(report)) {
