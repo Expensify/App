@@ -67,6 +67,9 @@ type UseSearchSelectorConfig = {
     /** Whether to keep selected options in availableOptions instead of filtering them out */
     shouldKeepSelectedInAvailableOptions?: boolean;
 
+    /** Whether to update selected options when in single select mode and a new option is selected */
+    shouldUpdateSelectedOptionsOnSingleSelect?: boolean;
+
     /** Initial Search Phrase */
     initialSearchPhrase?: string;
 };
@@ -158,6 +161,7 @@ function usePersonalDetailSearchSelectorBase({
     recentAttendees,
     shouldAllowNameOnlyOptions = false,
     shouldKeepSelectedInAvailableOptions = false,
+    shouldUpdateSelectedOptionsOnSingleSelect = false,
     initialSearchPhrase = '',
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
     const {translate, formatPhoneNumber} = useLocalize();
@@ -237,6 +241,21 @@ function usePersonalDetailSearchSelectorBase({
     const toggleSelection = (option: OptionData) => {
         if (selectionMode === CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE) {
             onSingleSelect?.(option);
+            if (shouldUpdateSelectedOptionsOnSingleSelect) {
+                if (selectedAccountIDs.has(option.accountID.toString())) {
+                    setSelectedAccountIDs(new Set());
+                    // If the option is selected, remove it from the selected logins
+                    const isInExtraOption = extraOptions.some((extraOption) => extraOption.accountID === option.accountID);
+                    if (isInExtraOption) {
+                        setExtraOptions([]);
+                    }
+                } else {
+                    setSelectedAccountIDs(new Set([option.accountID.toString()]));
+                    if (!existingAccountIDs.has(option.accountID.toString())) {
+                        setExtraOptions([{...option, isSelected: true}]);
+                    }
+                }
+            }
             return;
         }
 
@@ -266,16 +285,16 @@ function usePersonalDetailSearchSelectorBase({
         setSelectedAccountIDs(new Set());
     };
 
-    const selectedNonExistingOptions = extraOptions.filter((option) => {
-        if (!option.isSelected) {
-            return false;
+    const selectedNonExistingOptions = (() => {
+        const filteredOptions: OptionData[] = [];
+        for (const option of extraOptions) {
+            const filteredOption = filterOption(option, debouncedSearchTerm);
+            if (filteredOption) {
+                filteredOptions.push(filteredOption);
+            }
         }
-        if (!debouncedSearchTerm) {
-            return true;
-        }
-        const searchValue = debouncedSearchTerm.trim().toLowerCase();
-        return !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
-    });
+        return filteredOptions;
+    })();
 
     return {
         searchTerm,
