@@ -2,8 +2,7 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
+import {DeviceEventEmitter, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import InvertedFlashList from '@components/FlashList/InvertedFlashList';
@@ -30,6 +29,7 @@ import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlight
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {
     getFirstVisibleReportActionID,
     getReportActionMessage,
@@ -629,13 +629,17 @@ function ReportActionsList({
             return;
         }
 
-        InteractionManager.runAfterInteractions(() => {
-            if (shouldFocusToTopOnMount) {
-                return;
-            }
-            setIsFloatingMessageCounterVisible(false);
-            reportScrollManager.scrollToBottom();
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => {
+                if (shouldFocusToTopOnMount) {
+                    return;
+                }
+                setIsFloatingMessageCounterVisible(false);
+                reportScrollManager.scrollToBottom();
+            },
+            waitForUpcomingTransition: true,
         });
+        return () => handle.cancel();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -647,8 +651,10 @@ function ReportActionsList({
         }
         const prevSorted = lastAction?.reportActionID ? prevSortedVisibleReportActionsObjects[lastAction?.reportActionID] : null;
         if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER && !prevSorted) {
-            InteractionManager.runAfterInteractions(() => {
-                reportScrollManager.scrollToBottom();
+            TransitionTracker.runAfterTransitions({
+                callback: () => {
+                    reportScrollManager.scrollToBottom();
+                },
             });
         }
     }, [lastAction?.reportActionID, lastAction?.actionName, prevSortedVisibleReportActionsObjects, reportScrollManager]);
@@ -673,8 +679,10 @@ function ReportActionsList({
         if (lastIOUActionWithError?.reportActionID === prevLastIOUActionWithError?.reportActionID) {
             return;
         }
-        InteractionManager.runAfterInteractions(() => {
-            reportScrollManager.scrollToBottom();
+        TransitionTracker.runAfterTransitions({
+            callback: () => {
+                reportScrollManager.scrollToBottom();
+            },
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastAction]);
@@ -826,7 +834,10 @@ function ReportActionsList({
         // In case of an error we want to display the header no matter what.
         if (!canShowHeader) {
             hasHeaderRendered.current = true;
-            return null;
+
+            // Empty spacer so FlashList wraps a header and ListHeaderComponentStyle (flex: 1) applies —
+            // the wrapper sits at the visual bottom of the inverted list and pins items to the visual top.
+            return shouldBeAlignedToTop ? <View /> : null;
         }
 
         return (
@@ -836,7 +847,7 @@ function ReportActionsList({
                 hasActiveDraft={hasActiveDraft}
             />
         );
-    }, [canShowHeader, hasActiveDraft, report.reportID, retryLoadNewerChatsError]);
+    }, [canShowHeader, hasActiveDraft, report.reportID, retryLoadNewerChatsError, shouldBeAlignedToTop]);
 
     const shouldShowSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 
@@ -854,7 +865,11 @@ function ReportActionsList({
             return;
         }
 
-        InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadNewerChats(false)));
+        TransitionTracker.runAfterTransitions({
+            callback: () => {
+                requestAnimationFrame(() => loadNewerChats(false));
+            },
+        });
     }, [loadNewerChats]);
 
     const onEndReached = useCallback(() => {
@@ -907,12 +922,13 @@ function ReportActionsList({
                     keyExtractor={keyExtractor}
                     drawDistance={1500}
                     renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={[styles.chatContentScrollView, shouldBeAlignedToTop && styles.justifyContentEnd]}
+                    contentContainerStyle={styles.chatContentScrollView}
                     onEndReached={onEndReached}
                     onEndReachedThreshold={0.75}
                     onStartReached={handleStartReached}
                     onStartReachedThreshold={0.75}
                     ListHeaderComponent={listHeaderComponent}
+                    ListHeaderComponentStyle={shouldBeAlignedToTop ? styles.flex1 : undefined}
                     ListFooterComponent={listFooterComponent}
                     keyboardShouldPersistTaps="handled"
                     onLayout={onLayoutInner}
