@@ -17,7 +17,7 @@ const PROTECTED_SCREENS = {
 const SCREENS = {
     ...PROTECTED_SCREENS,
     REPORT: 'Report',
-    PROFILE_AVATAR: 'ProfileAvatar',
+    DYNAMIC_PROFILE_AVATAR: 'Dynamic_Profile_Avatar',
     WORKSPACE_AVATAR: 'WorkspaceAvatar',
     WORKSPACE_DOCUMENT: 'WorkspaceDocument',
     REPORT_AVATAR: 'ReportAvatar',
@@ -149,7 +149,6 @@ const SCREENS = {
             NEW_CONTACT_METHOD: 'Settings_NewContactMethod',
             NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE: 'Settings_NewContactMethod_ConfirmMagicCode',
             CONTACT_METHOD_SET_DEFAULT_CONFIRM: 'Settings_ContactMethod_SetDefault_Confirm',
-            CONTACT_METHOD_VERIFY_ACCOUNT: 'Settings_ContactMethod_Verify_Account',
             STATUS_CLEAR_AFTER: 'Settings_Status_Clear_After',
             STATUS_CLEAR_AFTER_DATE: 'Settings_Status_Clear_After_Date',
             STATUS_CLEAR_AFTER_TIME: 'Settings_Status_Clear_After_Time',
@@ -283,9 +282,11 @@ const SCREENS = {
         },
     },
     TWO_FACTOR_AUTH: {
-        ROOT: 'Settings_TwoFactorAuth_Root',
-        VERIFY: 'Settings_TwoFactorAuth_Verify',
-        VERIFY_ACCOUNT: 'Settings_TwoFactorAuth_VerifyAccount',
+        DYNAMIC_ROOT: 'Dynamic_Settings_TwoFactorAuth_Root',
+        DYNAMIC_VERIFY: 'Dynamic_Settings_TwoFactorAuth_Verify',
+        DYNAMIC_VERIFY_ACCOUNT: 'Dynamic_Settings_TwoFactorAuth_Verify_Account',
+        DYNAMIC_SUCCESS: 'Dynamic_Settings_TwoFactorAuth_Success',
+        ENABLED: 'Settings_TwoFactorAuth_Enabled',
         SUCCESS: 'Settings_TwoFactorAuth_Success',
         DISABLED: 'Settings_TwoFactorAuth_Disabled',
         DISABLE: 'Settings_TwoFactorAuth_Disable',
@@ -515,7 +516,7 @@ const SCREENS = {
     },
 
     NEW_REPORT_WORKSPACE_SELECTION: {
-        ROOT: 'NewReportWorkspaceSelection_Root',
+        DYNAMIC_ROOT: 'Dynamic_NewReportWorkspaceSelection_Root',
     },
 
     SET_DEFAULT_WORKSPACE: 'SetDefaultWorkspace',
@@ -525,13 +526,13 @@ const SCREENS = {
     },
 
     REPORT_DETAILS: {
-        ROOT: 'Report_Details_Root',
-        SHARE_CODE: 'Report_Details_Share_Code',
-        EXPORT: 'Report_Details_Export',
+        DYNAMIC_ROOT: 'Dynamic_Report_Details_Root',
+        DYNAMIC_SHARE_CODE: 'Dynamic_Report_Details_Share_Code',
+        DYNAMIC_EXPORT: 'Dynamic_Report_Details_Export',
     },
 
     REPORT_CHANGE_WORKSPACE: {
-        ROOT: 'ReportChangeWorkspace_Root',
+        DYNAMIC_ROOT: 'Dynamic_Report_Change_Workspace_Root',
     },
 
     WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root', OWNER_SELECTOR: 'Workspace_Confirmation_Owner_Selector', SUCCESS: 'Workspace_Confirmation_Success'},
@@ -742,10 +743,15 @@ const SCREENS = {
         COMPANY_CARD_EXPORT: 'Workspace_CompanyCard_Export',
         EXPENSIFY_CARD: 'Workspace_ExpensifyCard',
         EXPENSIFY_CARD_DETAILS: 'Workspace_ExpensifyCard_Details',
+        EXPENSIFY_CARD_ADD_WORK_EMAIL: 'Workspace_ExpensifyCard_Add_Work_Email',
         DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: 'Dynamic_Workspace_ExpensifyCard_New',
         DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE: 'Dynamic_Workspace_ExpensifyCard_IssueNew_ConfirmMagicCode',
         DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SELECT_FEED: 'Dynamic_Workspace_ExpensifyCard_Select_Feed',
-        EXPENSIFY_CARD_ADD_WORK_EMAIL: 'Workspace_ExpensifyCard_Add_Work_Email',
+        DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_SELECTION: 'Workspace_ExpensifyCard_Rule_Selection',
+        DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MERCHANTS: 'Workspace_ExpensifyCard_Rule_Merchants',
+        DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MERCHANT_EDIT: 'Workspace_ExpensifyCard_Rule_Merchant_Edit',
+        DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CATEGORY: 'Workspace_ExpensifyCard_Rule_Category',
+        DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MAX_AMOUNT: 'Workspace_ExpensifyCard_Rule_Max_Amount',
         EXPENSIFY_CARD_VERIFY_WORK_EMAIL: 'Workspace_ExpensifyCard_Verify_Work_Email',
         EXPENSIFY_CARD_BANK_ACCOUNT: 'Workspace_ExpensifyCard_BankAccount',
         EXPENSIFY_CARD_SETTINGS: 'Workspace_ExpensifyCard_Settings',
@@ -914,7 +920,7 @@ const SCREENS = {
 
     EDIT_REQUEST: {
         CURRENCY: 'EditRequest_Currency',
-        REPORT_FIELD: 'EditRequest_ReportField',
+        DYNAMIC_REPORT_FIELD: 'Dynamic_EditRequest_ReportField',
     },
 
     NEW_CHAT: {
@@ -977,7 +983,7 @@ const SCREENS = {
     WALLET_STATEMENT_ROOT: 'WalletStatement_Root',
     SIGN_IN_ROOT: 'SignIn_Root',
     DETAILS_ROOT: 'Details_Root',
-    PROFILE_ROOT: 'Profile_Root',
+    DYNAMIC_PROFILE: 'Dynamic_Profile_Root',
     AUTO_SUBMIT_ROOT: 'AutoSubmit_Modal_Root',
     DYNAMIC_CHANGE_POLICY_EDUCATIONAL_ROOT: 'DynamicChangePolicyEducational_Root',
     REPORT_DESCRIPTION_ROOT: 'Report_Description_Root',
@@ -994,10 +1000,16 @@ const SCREENS = {
         DETAILS: 'RoomMember_Details',
     },
     DYNAMIC_FLAG_COMMENT: 'Dynamic_Flag_Comment',
+    DYNAMIC_TASK_TITLE: 'Dynamic_Task_Title',
+    DYNAMIC_TASK_ASSIGNEE: 'Dynamic_Task_Assignee',
+    DYNAMIC_REPORT_DESCRIPTION: 'Dynamic_Report_Description',
+    DYNAMIC_PRIVATE_NOTES_LIST: 'Dynamic_PrivateNotes_List',
+    DYNAMIC_PRIVATE_NOTES_EDIT: 'Dynamic_PrivateNotes_Edit',
     REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',
+    REIMBURSEMENT_ACCOUNT_USD: 'Reimbursement_Account_USD',
     REIMBURSEMENT_ACCOUNT_NON_USD: 'Reimbursement_Account_Non_USD',
     REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO: 'Reimbursement_Account_Signer_Info',
-    REFERRAL_DETAILS: 'Referral_Details',
+    DYNAMIC_REFERRAL_DETAILS: 'Dynamic_Referral_Details',
     REPORT_VERIFY_ACCOUNT: 'Report_Verify_Account',
     EXPENSE_REPORT_VERIFY_ACCOUNT: 'Expense_Report_Verify_Account',
     SHARE: {

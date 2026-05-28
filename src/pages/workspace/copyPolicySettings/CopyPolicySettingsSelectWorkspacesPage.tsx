@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -17,7 +17,7 @@ import {setCopyPolicySettingsData} from '@libs/actions/Policy/CopyPolicySettings
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PolicyCopySettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
@@ -45,15 +45,8 @@ function CopyPolicySettingsSelectWorkspacesPage() {
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [copyPolicySettings] = useOnyx(ONYXKEYS.COPY_POLICY_SETTINGS);
-    const [selectedTargetIDs, setSelectedTargetIDs] = useState<string[]>([]);
-
-    useEffect(() => {
-        if (!copyPolicySettings?.targetPolicyIDs) {
-            return;
-        }
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- Restore the previously selected targets from Onyx when the user navigates back to this step from a later step in the flow.
-        setSelectedTargetIDs(copyPolicySettings.targetPolicyIDs);
-    }, [copyPolicySettings?.targetPolicyIDs]);
+    const [selectedTargetIDs, setSelectedTargetIDs] = useState<string[] | null>(null);
+    const resolvedSelectedTargetIDs = selectedTargetIDs ?? copyPolicySettings?.targetPolicyIDs ?? [];
 
     const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined;
     const isSourceCorporate = sourcePolicy?.type === CONST.POLICY.TYPE.CORPORATE;
@@ -62,13 +55,7 @@ function CopyPolicySettingsSelectWorkspacesPage() {
         ? []
         : Object.values(policies)
               .filter((policy): policy is Policy => {
-                  if (!policy || policy.id === sourcePolicyID) {
-                      return false;
-                  }
-                  if (policy.type === CONST.POLICY.TYPE.PERSONAL) {
-                      return false;
-                  }
-                  if (!isPolicyAdmin(policy, currentUserEmail)) {
+                  if (!policy || policy.id === sourcePolicyID || policy.type === CONST.POLICY.TYPE.PERSONAL || isPendingDeletePolicy(policy) || !isPolicyAdmin(policy, currentUserEmail)) {
                       return false;
                   }
                   // Release 1: when copying from a Corporate workspace, only allow Corporate targets.
@@ -94,7 +81,7 @@ function CopyPolicySettingsSelectWorkspacesPage() {
     const listItems: ListItem[] = filteredPolicies.map((policy) => ({
         text: policy.title,
         keyForList: policy.id,
-        isSelected: selectedTargetIDs.includes(policy.id),
+        isSelected: resolvedSelectedTargetIDs.includes(policy.id),
         leftElement: (
             <View style={[styles.mr3]}>
                 <Avatar
@@ -113,7 +100,10 @@ function CopyPolicySettingsSelectWorkspacesPage() {
             return;
         }
         const id = item.keyForList;
-        setSelectedTargetIDs((prev) => (prev.includes(id) ? prev.filter((selectedID) => selectedID !== id) : [...prev, id]));
+        setSelectedTargetIDs((prev) => {
+            const current = prev ?? resolvedSelectedTargetIDs;
+            return current.includes(id) ? current.filter((selectedID) => selectedID !== id) : [...current, id];
+        });
     };
 
     // Scope select-all to the currently visible (filtered) rows so its behavior matches
@@ -125,12 +115,13 @@ function CopyPolicySettingsSelectWorkspacesPage() {
             return;
         }
         setSelectedTargetIDs((prev) => {
-            const areAllVisibleSelected = visibleIDs.every((id) => prev.includes(id));
+            const current = prev ?? resolvedSelectedTargetIDs;
+            const areAllVisibleSelected = visibleIDs.every((id) => current.includes(id));
             if (areAllVisibleSelected) {
                 const visibleSet = new Set(visibleIDs);
-                return prev.filter((id) => !visibleSet.has(id));
+                return current.filter((id) => !visibleSet.has(id));
             }
-            return Array.from(new Set([...prev, ...visibleIDs]));
+            return Array.from(new Set([...current, ...visibleIDs]));
         });
     };
 
@@ -138,7 +129,7 @@ function CopyPolicySettingsSelectWorkspacesPage() {
         if (!sourcePolicyID) {
             return;
         }
-        setCopyPolicySettingsData({sourcePolicyID, targetPolicyIDs: selectedTargetIDs});
+        setCopyPolicySettingsData({sourcePolicyID, targetPolicyIDs: resolvedSelectedTargetIDs});
         Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_SELECT_FEATURES.getRoute(sourcePolicyID));
     };
 
@@ -146,7 +137,7 @@ function CopyPolicySettingsSelectWorkspacesPage() {
         showButton: true,
         text: translate('common.next'),
         onConfirm,
-        isDisabled: selectedTargetIDs.length === 0,
+        isDisabled: selectedTargetIDs?.length === 0,
     };
 
     const textInputOptions: TextInputOptions = {
@@ -182,6 +173,7 @@ function CopyPolicySettingsSelectWorkspacesPage() {
                         onSelectRow={toggleItem}
                         onSelectAll={eligiblePolicies.length > 0 ? toggleAll : undefined}
                         selectionButtonPosition={CONST.SELECTION_BUTTON_POSITION.RIGHT}
+                        shouldHeaderBeInsideList
                         shouldSingleExecuteRowSelect
                         addBottomSafeAreaPadding
                         confirmButtonOptions={confirmButtonOptions}
