@@ -146,6 +146,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 currentUserPersonalDetails.accountID,
                 currentItemPolicy,
                 parentReport,
+                isProduction,
             )
         );
     };
@@ -153,7 +154,16 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const isSplitAvailable =
         report &&
         transaction &&
-        isSplitAction(currentReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.accountID, effectivePolicy, parentReport);
+        isSplitAction(
+            currentReport,
+            [transaction],
+            originalTransaction,
+            currentUserPersonalDetails.login ?? '',
+            currentUserPersonalDetails.accountID,
+            effectivePolicy,
+            parentReport,
+            isProduction,
+        );
 
     const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, undefined, effectivePolicy, true) ?? {};
     const transactionDetailsAmount = useMemo(() => {

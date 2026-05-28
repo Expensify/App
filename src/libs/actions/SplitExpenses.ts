@@ -103,12 +103,6 @@ function initSplitExpense(
 
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
 
-    // Gate the self-DM split-creation flow in production. UI entry-points (More menu, bulk actions,
-    // etc.) already hide the Split option via isSplitAction(..., isProduction), but this is the
-    // single function that actually builds the draft and navigates into the split flow — gating it
-    // here also blocks any non-UI code path or direct deep-link navigation that might reach this
-    // function. Existing split-flow pages keep working because they read the draft from Onyx and
-    // never call initSplitExpense for already-created splits.
     if (isProduction && (isSelfDM(report) || isSelfDM(parentReport))) {
         return;
     }
