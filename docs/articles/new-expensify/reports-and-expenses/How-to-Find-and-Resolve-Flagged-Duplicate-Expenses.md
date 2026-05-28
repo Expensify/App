@@ -17,9 +17,11 @@ If you have two expenses that were not automatically flagged but should be combi
 
 ---
 
-## Who Can Use Duplicate Detection
+## Who can use duplicate detection
 
-Duplicate detection is available to all members on Collect and Control plans. Both submitters and approvers can resolve flagged duplicates on Draft and Outstanding reports. 
+Duplicate detection is available to all members on Collect and Control plans. Both submitters and approvers can resolve flagged duplicates on Draft and Outstanding reports.
+
+**Note:** Duplicate warnings are not displayed on Paid or settled reports. Once a report is settled, the **Potential duplicate** banner is automatically removed from both individual expenses and the report. 
 
 ---
 
@@ -71,6 +73,10 @@ The hold is removed from the expense. Depending on your choice:
 ## Can I edit a duplicate expense after resolving it?
 
 Yes, you can edit a duplicate expense as long as it is in the Unreported, Draft or Outstanding state. 
+
+## Will duplicate warnings appear on Paid reports?
+
+No. Once a report is settled or paid, duplicate warnings are automatically removed from the report and its expenses.
 
 ## Will two SmartScanned receipts from the same day with the same amount be flagged?
 
