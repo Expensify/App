@@ -54,8 +54,8 @@ function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProvider
         Navigation.dismissModal({afterTransition: () => updateFilterQueryParams(advancedFiltersToReset)});
     };
 
-    const setDraftFilters = (values: Partial<SearchAdvancedFiltersForm>) => {
-        setValues((prevValues) => getUpdatedFilterFormValues(prevValues, values));
+    const setDraftFilters = (newValues: Partial<SearchAdvancedFiltersForm>) => {
+        setValues((prevValues) => getUpdatedFilterFormValues(prevValues, newValues));
     };
 
     const searchAdvancedFiltersValue: SearchAdvancedFiltersValue = {

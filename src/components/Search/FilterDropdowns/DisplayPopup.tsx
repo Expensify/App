@@ -19,7 +19,7 @@ import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {SearchResults} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
-import useUpdateFilterQuery from '../hooks/useUpdateFilterQuery';
+import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
 import GroupByPopup from './GroupByPopup';
 import GroupCurrencyPopup from './GroupCurrencyPopup';
 import SingleSelectPopup from './SingleSelectPopup';
