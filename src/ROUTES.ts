@@ -165,6 +165,10 @@ const DYNAMIC_ROUTES = {
         path: 'verify-bank-account',
         entryScreens: [SCREENS.REIMBURSEMENT_ACCOUNT],
     },
+    CARD_AUTHENTICATION: {
+        path: 'card-authentication',
+        entryScreens: [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD, SCREENS.SAVE_THE_WORLD.ADD_PAYMENT_CARD, SCREENS.WORKSPACE.OWNER_CHANGE_CHECK],
+    },
     OWNER_SELECTOR: {
         path: 'owner-selector',
         entryScreens: [SCREENS.WORKSPACE_CONFIRMATION.DYNAMIC_ROOT],

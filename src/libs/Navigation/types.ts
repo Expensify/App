@@ -135,6 +135,9 @@ type SettingsNavigatorParamList = {
               shouldSkipPurposeSelection?: boolean;
           }
         | undefined;
+    [SCREENS.SETTINGS.DYNAMIC_CARD_AUTHENTICATION]: {
+        policyID?: string;
+    };
     [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_REASON]: undefined;
     [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_CONFIRM]: undefined;
     [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: undefined;

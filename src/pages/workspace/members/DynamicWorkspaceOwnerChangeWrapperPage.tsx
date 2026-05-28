@@ -5,6 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import useNavigateToCardAuthenticationOnLink from '@hooks/useNavigateToCardAuthenticationOnLink';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -14,8 +15,6 @@ import shouldShowChangeWorkspaceOwnerPage from '@libs/shouldShowChangeWorkspaceO
 
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-
-import CardAuthenticationModal from '@pages/settings/Subscription/CardAuthenticationModal';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
@@ -39,6 +38,7 @@ function DynamicWorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.path);
+    useNavigateToCardAuthenticationOnLink();
     const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const policyID = route.params.policyID;
@@ -108,10 +108,6 @@ function DynamicWorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}
                             error={error}
                         />
                     )}
-                    <CardAuthenticationModal
-                        headerTitle={translate('subscription.authenticatePaymentCard')}
-                        policyID={policyID}
-                    />
                 </View>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
