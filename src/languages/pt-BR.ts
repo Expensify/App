@@ -124,6 +124,7 @@ const translations: TranslationDeepObject<typeof en> = {
             approve: 'Aprovar',
             pay: 'Pagar',
             fix: 'Corrigir',
+            task: 'Tarefa',
         },
         success: 'Concluído',
         group: 'Grupo',
@@ -505,6 +506,7 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Recolher raciocínio',
         expandReasoning: 'Expandir raciocínio',
+        enableNotifications: {prompt: 'Quer ser avisado quando o Concierge responder?', cta: 'Notificar'},
     },
     supportalNoAccess: {
         title: 'Calma aí',
@@ -852,7 +854,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Seu espaço',
         welcomeToRoom: (roomName: string) => `Bem-vindo(a) a ${roomName}!`,
         usePlusButton: (additionalText: string) => `Use o botão + para ${additionalText} uma despesa.`,
-        askConcierge: 'Este é o seu chat com o Concierge, seu agente pessoal de IA. Posso fazer quase tudo, experimente!',
+        askConcierge: 'O Concierge pode responder perguntas, atualizar despesas e muito mais.',
         conciergeSupport: 'Seu agente de IA pessoal',
         create: 'criar',
         iouTypes: {
@@ -1949,6 +1951,8 @@ const translations: TranslationDeepObject<typeof en> = {
         offline: 'Offline',
         syncing: 'Sincronizando',
         profileAvatar: 'Avatar do perfil',
+        customInstructions: 'Instruções personalizadas',
+        copilotIntoAccount: 'Copilot na conta',
         publicSection: {
             title: 'Público',
             subtitle: 'Esses detalhes são exibidos no seu perfil público. Qualquer pessoa pode vê-los.',
@@ -1956,6 +1960,14 @@ const translations: TranslationDeepObject<typeof en> = {
         privateSection: {
             title: 'Privado',
             subtitle: 'Esses detalhes são usados para viagens e pagamentos. Eles nunca são exibidos no seu perfil público.',
+        },
+        aiPromptSection: {
+            title: 'Prompt de IA',
+            subtitle: 'Escrever instruções personalizadas',
+            prompt: 'Prompt',
+            editPrompt: 'Editar prompt',
+            promptCannotBeEmpty: 'O prompt não pode ficar vazio',
+            saved: 'Salvo',
         },
     },
     securityPage: {
@@ -2564,6 +2576,8 @@ ${amount} para ${merchant} - ${date}`,
         addApprovalTip: 'Este fluxo de trabalho padrão se aplica a todos os membros, a menos que exista um fluxo de trabalho mais específico.',
         approver: 'Aprovador',
         addApprovalsDescription: 'Exigir aprovação adicional antes de autorizar um pagamento.',
+        automateApprovalsWithAgentsTitle: 'Automatize aprovações com agentes',
+        automateApprovalsWithAgentsSubtitle: 'Adicione o agente abaixo ao fluxo de trabalho para automatizar as aprovações.',
         makeOrTrackPaymentsTitle: 'Pagamentos',
         makeOrTrackPaymentsDescription: 'Adicione um pagador autorizado para pagamentos feitos no Expensify ou acompanhe pagamentos feitos em outros lugares.',
         customApprovalWorkflowEnabled:
@@ -2614,6 +2628,9 @@ ${amount} para ${merchant} - ${date}`,
         hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `As aprovações são gerenciadas pela sua integração com o ${provider}. Para atualizar seu fluxo de aprovação, vá até as configurações de conexão do ${provider}.`,
         goToHRSettings: ({provider}: {provider: string}) => `Ir para as configurações do ${provider}`,
+        approverFromProvider: ({provider}: {provider: string}) => `de ${provider}`,
+        finalApprover: 'Aprovador final',
+        manager: 'Gerente',
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Não foi possível alterar a frequência de envio. Tente novamente ou entre em contato com o suporte.',
@@ -2776,6 +2793,8 @@ ${amount} para ${merchant} - ${date}`,
         title: 'Editar agente',
         agentName: 'Nome do agente',
         instructions: 'Escrever instruções personalizadas',
+        chatWithAgent: 'Conversar com o agente',
+        copilotIntoAccount: 'Copilot na conta',
         deleteAgent: 'Excluir agente',
         deleteAgentTitle: 'Excluir agente?',
         deleteAgentMessage: 'Tem certeza de que quer excluir este agente? Essa ação não pode ser desfeita.',
@@ -4225,6 +4244,7 @@ ${amount} para ${merchant} - ${date}`,
             workflows: 'Fluxos de trabalho',
             workspace: 'Espaço de trabalho',
             findWorkspace: 'Encontrar espaço de trabalho',
+            findRoom: 'Encontrar sala',
             edit: 'Editar espaço de trabalho',
             enabled: 'Ativado',
             disabled: 'Desativado',
@@ -6024,6 +6044,11 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             selectWorkspaces: 'Selecionar espaços de trabalho',
             description: 'Escolha os espaços de trabalho para os quais você quer copiar as configurações e, em seguida, selecione quais configurações deseja copiar.',
             searchPlaceholder: 'Buscar espaços de trabalho',
+            selectFeatures: 'Selecione os recursos para copiar',
+            whichFeatures: 'Selecione as configurações que deseja sobrescrever nos seus espaços de trabalho existentes.',
+            workflowsWithoutMembersConfirm: 'Continuar sem membros',
+            workflowsWithoutMembersPrompt: 'Copiar fluxos de trabalho sem membros não copiará os fluxos de aprovação. As configurações de envio e pagamento ainda serão copiadas.',
+            accountingMismatch: ({part}: {part: string}) => `Você só pode copiar ${part} se todos os espaços de trabalho usarem o mesmo sistema contábil e a mesma conexão da empresa.`,
         },
         emptyWorkspace: {
             title: 'Você não tem nenhum workspace',
@@ -6108,6 +6133,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
         card: {
             getStartedIssuing: 'Comece emitindo seu primeiro cartão virtual ou físico.',
             issueCard: 'Emitir cartão',
+            chooseRule: 'Escolha uma regra',
             issueNewCard: {
                 whoNeedsCard: 'Quem precisa de um cartão?',
                 inviteNewMember: 'Convidar novo membro',
@@ -6149,22 +6175,27 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 enterValidDate: 'Digite uma data válida',
                 expirationDate: 'Data de validade',
                 limitAmount: 'Valor do limite',
-                setExpiryOptions: 'Definir opções de validade',
-                setExpiryDate: 'Definir data de validade',
-                setExpiryDateDescription: 'O cartão expirará conforme indicado no cartão',
+                setCardRules: 'Definir regras do cartão',
+                addSpendRule: 'Adicionar regra de gasto',
+                addExpirationDate: 'Adicionar data de validade',
+                addExpirationDateDescription: 'Se nenhuma data específica for definida, o cartão vai expirar com base na data de validade atual do cartão',
                 amount: 'Valor',
+                copyExisting: 'Copiar existente',
+                createNew: 'Criar novo',
+                spendRulesEmptyStateTitle: 'Nenhuma regra para escolher',
+                spendRulesEmptyStateSubtitle: 'Você ainda não criou nenhuma regra. Você pode criar uma na tela anterior.',
             },
             deactivateCardModal: {
                 deactivate: 'Desativar',
                 deactivateCard: 'Desativar cartão',
                 deactivateConfirmation: 'Desativar este cartão recusará todas as transações futuras e não poderá ser desfeito.',
             },
+            searchRules: 'Encontrar regra de gasto',
         },
         accounting: {
             settings: 'configurações',
             title: 'Conexões',
-            subtitle:
-                'Conecte-se ao seu sistema contábil para classificar transações com seu plano de contas, fazer a correspondência automática de pagamentos e manter suas finanças sincronizadas.',
+            subtitle: 'Conecte seu software de contabilidade para uma sincronização automática.',
             qbo: 'QuickBooks Online',
             qbd: 'QuickBooks Desktop',
             xero: 'Xero',
@@ -6248,6 +6279,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `Tem certeza de que deseja conectar ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'esta integração contábil'}? Isso removerá quaisquer conexões contábeis existentes.`,
             enterCredentials: 'Insira suas credenciais',
+            updateCredentials: 'Atualizar credenciais',
             claimOffer: {
                 badgeText: 'Oferta disponível!',
                 xero: {
@@ -6948,6 +6980,11 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Vá para [mais recursos](${moreFeaturesLink}) e ative ${featureName} para desbloquear este recurso.`,
             },
+            agentsPromoBanner: {
+                title: 'Não encontrou a regra que precisa? Adicione um agente',
+                subtitle: 'Adicione regras complexas e reduza aprovações manuais com agentes personalizados.',
+                cta: 'Experimente',
+            },
             merchantRules: {
                 title: 'Estabelecimento',
                 subtitle: 'Defina as regras de estabelecimento para que as despesas cheguem corretamente classificadas e exijam menos retrabalho.',
@@ -7157,6 +7194,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         hr: {
             title: 'RH',
             connections: 'Conexões',
+            connectionsSubtitle:
+                'Conecte-se ao seu sistema de RH para sincronizar os dados de funcionários, associar automaticamente os reembolsos às pessoas corretas e manter as despesas da sua equipe precisas, sem trabalho manual.',
             subtitle: 'Conecte ferramentas de RH e mantenha as aprovações de funcionários em sincronia.',
             connect: 'Conectar',
             syncNow: 'Sincronizar agora',
@@ -7410,6 +7449,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             }
             return `adicionou uma parte recuperável de impostos de "${newValue}" à taxa de distância "${customUnitRateName}"`;
         },
+        updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `renomeou a taxa de ${customUnitName} de "${oldValue}" para "${newValue}"`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
             return `${newValue ? 'ativado' : 'desativado'} a taxa de ${customUnitName} "${customUnitRateName}"`;
         },
@@ -7808,7 +7848,6 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
     search: {
         resultsAreLimited: 'Os resultados da pesquisa são limitados.',
         viewResults: 'Ver resultados',
-        applyFilters: 'Aplicar filtros',
         appliedFilters: 'Filtros aplicados',
         resetFilters: 'Redefinir filtros',
         searchResults: {
@@ -7833,6 +7872,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 `),
                 subtitle: 'Envie uma fatura ou faça um test drive do Expensify para saber mais.',
                 subtitleWithOnlyCreateButton: 'Use o botão verde abaixo para enviar uma fatura.',
+                subtitleCannotSend: 'Você precisa de um espaço de trabalho com Invoices habilitado para enviar faturas.',
+                subtitleCannotSendWithTestDrive: 'Você precisa de um espaço de trabalho com Invoices habilitado para enviar faturas. Faça um test drive do Expensify para saber mais.',
             },
             emptyTripResults: {
                 title: 'Nenhuma viagem para exibir',
@@ -7919,12 +7960,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             amount: {
                 lessThan: (amount?: string) => `Menos de ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Maior que ${amount ?? ''}`,
-                between: (greaterThan?: string, lessThan?: string) => {
-                    if (greaterThan && lessThan) {
-                        return `Entre ${greaterThan} e ${lessThan}`;
-                    }
-                    return 'Entre';
-                },
+                between: (greaterThan: string, lessThan: string) => `Entre ${greaterThan} e ${lessThan}`,
                 equalTo: (amount?: string) => `Igual a ${amount ?? ''}`,
             },
             card: {
@@ -8562,6 +8598,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         duplicatedTransaction: 'Possível duplicata',
         fieldRequired: 'Os campos do relatório são obrigatórios',
         futureDate: 'Data futura não permitida',
+        inactiveVendor: 'Fornecedor não é mais válido',
         invoiceMarkup: (invoiceMarkup: number) => `Reajustado em ${invoiceMarkup}%`,
         maxAge: (maxAge: number) => `Data anterior a ${maxAge} dias`,
         missingCategory: 'Categoria ausente',
@@ -9034,7 +9071,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         copilotDelegatedAccess: 'Copilot: Acesso delegado',
         copilotDelegatedAccessDescription: 'Permitir que outros membros acessem sua conta.',
         learnMoreAboutDelegatedAccess: 'Saiba mais sobre acesso delegado',
-        addCopilot: 'Adicionar copiloto',
+        addCopilot: 'Adicionar um copiloto',
         membersCanAccessYourAccount: 'Esses membros podem acessar sua conta:',
         youCanAccessTheseAccounts: 'Você pode acessar essas contas:',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
@@ -9242,6 +9279,20 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         expenseLevelExport: 'Todos os dados - nível de despesa',
         exportInProgress: 'Exportação em andamento',
         conciergeWillSend: 'O Concierge enviará o arquivo para você em breve.',
+    },
+    exportDownload: {
+        preparingTitle: 'Preparing download...',
+        preparingBody: 'You can either wait for the download to finish or Concierge can send it to you via chat.',
+        sendFromConcierge: "Send me the file when it's ready",
+        conciergeTitle: 'You bet!',
+        conciergeBody: 'Concierge will send you a message when the file is ready.',
+        goToConcierge: 'Go to Concierge',
+        dismiss: 'Dismiss',
+        readyTitle: 'Your file is ready!',
+        readyBody: "If it didn't automatically download, use the button below.",
+        downloadFile: 'Download file',
+        failedTitle: 'Export failed',
+        close: 'Close',
     },
     domain: {
         notVerified: 'Não verificado',

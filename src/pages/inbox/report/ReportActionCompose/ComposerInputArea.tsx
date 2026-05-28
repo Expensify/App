@@ -1,0 +1,46 @@
+import React from 'react';
+import {View} from 'react-native';
+import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ComposerActionButton from './ComposerActionButton';
+import ComposerBox from './ComposerBox';
+import ComposerContainer from './ComposerContainer';
+import {useComposerState} from './ComposerContext';
+import ComposerDropZone from './ComposerDropZone';
+import ComposerEmojiPicker from './ComposerEmojiPicker';
+import ComposerImportedState from './ComposerImportedState';
+import ComposerInput from './ComposerInput';
+import ComposerLocalTime from './ComposerLocalTime';
+import ComposerSendButton from './ComposerSendButton';
+
+function ComposerInputArea() {
+    const {reportID} = useComposerState();
+    const styles = useThemeStyles();
+    const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
+
+    return (
+        <View
+            testID={CONST.COMPOSER.TEST_ID.REPORT_ACTION_COMPOSE}
+            style={[isComposerFullSize && styles.chatItemFullComposeRow]}
+        >
+            <ComposerLocalTime />
+            <View style={isComposerFullSize ? styles.flex1 : {}}>
+                <ComposerContainer>
+                    <ComposerDropZone>
+                        <ComposerBox>
+                            <ComposerActionButton />
+                            <ComposerInput />
+                            <ComposerEmojiPicker />
+                            <ComposerSendButton />
+                        </ComposerBox>
+                    </ComposerDropZone>
+                </ComposerContainer>
+                <ComposerImportedState />
+            </View>
+        </View>
+    );
+}
+
+export default ComposerInputArea;
