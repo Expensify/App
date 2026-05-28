@@ -39,8 +39,8 @@ jest.mock('@libs/TransactionUtils', () => {
         return [...transactionViolations.filter((violation) => violation.name !== CONST_MOCK.VIOLATIONS.PROHIBITED_EXPENSE), mergedProhibitedViolations];
     };
 
-    const isViolationDismissed = jest.fn();
-    const shouldShowViolation = jest.fn();
+    const mockIsViolationDismissed = jest.fn();
+    const mockShouldShowViolation = jest.fn();
 
     const getVisibleTransactionViolations = (
         transaction: Transaction | undefined,
@@ -54,14 +54,14 @@ jest.mock('@libs/TransactionUtils', () => {
         mergeProhibitedViolations(
             transactionViolations.filter(
                 (violation) =>
-                    !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy) &&
-                    shouldShowViolation(iouReport, policy, violation.name, currentUserEmail, shouldShowRterForSettledReport, transaction),
+                    !mockIsViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy) &&
+                    mockShouldShowViolation(iouReport, policy, violation.name, currentUserEmail, shouldShowRterForSettledReport, transaction),
             ),
         );
 
     return {
-        isViolationDismissed,
-        shouldShowViolation,
+        isViolationDismissed: mockIsViolationDismissed,
+        shouldShowViolation: mockShouldShowViolation,
         mergeProhibitedViolations,
         getVisibleTransactionViolations,
     };
