@@ -224,6 +224,7 @@ function PaymentMethodList({
             const assignedCardsSorted = lodashSortBy(assignedCards, getAssignedCardSortKey);
             const companyCardsGrouped: PaymentMethodItem[] = [];
             const personalCardsGrouped: PaymentMethodItem[] = [];
+            const hasMissingPersonalDetails = arePersonalDetailsMissing(privatePersonalDetails);
             for (const card of assignedCardsSorted) {
                 const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                 const isUserPersonalCard = isPersonalCard(card);
@@ -381,7 +382,7 @@ function PaymentMethodList({
                     iconHeight: variables.cardIconHeight,
                     isInactive: isCardInactive(card),
                     isCardFrozen: isCardFrozen(card),
-                    shouldShowMissingPersonalDetailsAction: isExpensifyCard(card) && !!card?.nameValuePairs?.isVirtual && arePersonalDetailsMissing(privatePersonalDetails),
+                    shouldShowMissingPersonalDetailsAction: isExpensifyCard(card) && !!card?.nameValuePairs?.isVirtual && hasMissingPersonalDetails,
                 });
             }
 
