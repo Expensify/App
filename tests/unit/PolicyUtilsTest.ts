@@ -22,6 +22,8 @@ import {
     getEligibleBankAccountShareRecipients,
     getManagerAccountID,
     getPolicyEmployeeAccountIDs,
+    getQBOVendorByID,
+    getQBOVendors,
     getRateDisplayValue,
     getSubmitToAccountID,
     getTagApproverRule,
@@ -36,6 +38,7 @@ import {
     hasOnlyPersonalPolicies,
     hasOtherControlWorkspaces,
     hasPolicyWithXeroConnection,
+    hasVendorFeature,
     isPolicyMemberWithoutPendingDelete,
     shouldShowPolicy,
     sortPoliciesByName,
@@ -2997,6 +3000,180 @@ describe('PolicyUtils', () => {
                     },
                 } as Policy;
                 expect(getMergeHRFinalApprover(policy)).toBeNull();
+            });
+        });
+    });
+
+    describe('Vendor matching helpers', () => {
+        const buildQBOPolicy = (
+            exportDestination: string | undefined,
+            vendors: Array<{id: string; name: string; currency: string}> = [{id: 'v-1', name: 'Acme Co', currency: 'USD'}],
+        ): Policy =>
+            ({
+                ...createRandomPolicy(0),
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: exportDestination ? {nonReimbursableExpensesExportDestination: exportDestination} : {},
+                        data: {vendors},
+                    },
+                } as unknown as Connections,
+            }) as Policy;
+
+        describe('hasVendorFeature', () => {
+            it('returns true when beta is enabled and QBO non-reimbursable export is Credit Card', () => {
+                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), true)).toBe(true);
+            });
+
+            it('returns true when beta is enabled and QBO non-reimbursable export is Debit Card', () => {
+                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD), true)).toBe(true);
+            });
+
+            it('returns false when beta is disabled, even with Credit Card export configured', () => {
+                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), false)).toBe(false);
+            });
+
+            it('returns false when QBO non-reimbursable export is Vendor Bill', () => {
+                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL), true)).toBe(false);
+            });
+
+            it('returns false when QBO export destination is not set', () => {
+                expect(hasVendorFeature(buildQBOPolicy(undefined), true)).toBe(false);
+            });
+
+            it('returns false when no QBO connection exists on the policy', () => {
+                const policy = {...createRandomPolicy(0), connections: {}} as Policy;
+                expect(hasVendorFeature(policy, true)).toBe(false);
+            });
+
+            it('returns false when policy is undefined', () => {
+                expect(hasVendorFeature(undefined, true)).toBe(false);
+            });
+        });
+
+        describe('getQBOVendors', () => {
+            it('returns the vendor list from the QBO connection', () => {
+                const vendors = [
+                    {id: 'v-1', name: 'Acme', currency: 'USD'},
+                    {id: 'v-2', name: 'Other Co', currency: 'USD'},
+                ];
+                const policy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, vendors);
+                expect(getQBOVendors(policy)).toEqual(vendors);
+            });
+
+            it('returns an empty array when no QBO connection exists', () => {
+                const policy = {...createRandomPolicy(0), connections: {}} as Policy;
+                expect(getQBOVendors(policy)).toEqual([]);
+            });
+
+            it('returns an empty array when policy is undefined', () => {
+                expect(getQBOVendors(undefined)).toEqual([]);
+            });
+        });
+
+        describe('getQBOVendorByID', () => {
+            it('returns the matching vendor when the ID exists in the list', () => {
+                const policy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, [
+                    {id: 'v-1', name: 'Acme', currency: 'USD'},
+                    {id: 'v-2', name: 'Other Co', currency: 'USD'},
+                ]);
+                expect(getQBOVendorByID(policy, 'v-2')).toEqual({id: 'v-2', name: 'Other Co', currency: 'USD'});
+            });
+
+            it('returns undefined when the ID is not in the list (the inactive-vendor case)', () => {
+                const policy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD);
+                expect(getQBOVendorByID(policy, 'v-missing')).toBeUndefined();
+            });
+
+            it('returns undefined when no QBO connection exists', () => {
+                const policy = {...createRandomPolicy(0), connections: {}} as Policy;
+                expect(getQBOVendorByID(policy, 'v-1')).toBeUndefined();
+            });
+        });
+    });
+
+    describe('Vendor matching helpers', () => {
+        const buildQBOPolicy = (
+            exportDestination: string | undefined,
+            vendors: Array<{id: string; name: string; currency: string}> = [{id: 'v-1', name: 'Acme Co', currency: 'USD'}],
+        ): Policy =>
+            ({
+                ...createRandomPolicy(0),
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: exportDestination ? {nonReimbursableExpensesExportDestination: exportDestination} : {},
+                        data: {vendors},
+                    },
+                } as unknown as Connections,
+            }) as Policy;
+
+        describe('hasVendorFeature', () => {
+            it('returns true when beta is enabled and QBO non-reimbursable export is Credit Card', () => {
+                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), true)).toBe(true);
+            });
+
+            it('returns true when beta is enabled and QBO non-reimbursable export is Debit Card', () => {
+                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD), true)).toBe(true);
+            });
+
+            it('returns false when beta is disabled, even with Credit Card export configured', () => {
+                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), false)).toBe(false);
+            });
+
+            it('returns false when QBO non-reimbursable export is Vendor Bill', () => {
+                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL), true)).toBe(false);
+            });
+
+            it('returns false when QBO export destination is not set', () => {
+                expect(hasVendorFeature(buildQBOPolicy(undefined), true)).toBe(false);
+            });
+
+            it('returns false when no QBO connection exists on the policy', () => {
+                const policy = {...createRandomPolicy(0), connections: {}} as Policy;
+                expect(hasVendorFeature(policy, true)).toBe(false);
+            });
+
+            it('returns false when policy is undefined', () => {
+                expect(hasVendorFeature(undefined, true)).toBe(false);
+            });
+        });
+
+        describe('getQBOVendors', () => {
+            it('returns the vendor list from the QBO connection', () => {
+                const vendors = [
+                    {id: 'v-1', name: 'Acme', currency: 'USD'},
+                    {id: 'v-2', name: 'Other Co', currency: 'USD'},
+                ];
+                const policy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, vendors);
+                expect(getQBOVendors(policy)).toEqual(vendors);
+            });
+
+            it('returns an empty array when no QBO connection exists', () => {
+                const policy = {...createRandomPolicy(0), connections: {}} as Policy;
+                expect(getQBOVendors(policy)).toEqual([]);
+            });
+
+            it('returns an empty array when policy is undefined', () => {
+                expect(getQBOVendors(undefined)).toEqual([]);
+            });
+        });
+
+        describe('getQBOVendorByID', () => {
+            it('returns the matching vendor when the ID exists in the list', () => {
+                const policy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, [
+                    {id: 'v-1', name: 'Acme', currency: 'USD'},
+                    {id: 'v-2', name: 'Other Co', currency: 'USD'},
+                ]);
+                expect(getQBOVendorByID(policy, 'v-2')).toEqual({id: 'v-2', name: 'Other Co', currency: 'USD'});
+            });
+
+            it('returns undefined when the ID is not in the list (the inactive-vendor case)', () => {
+                const policy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD);
+                expect(getQBOVendorByID(policy, 'v-missing')).toBeUndefined();
+            });
+
+            it('returns undefined when no QBO connection exists', () => {
+                const policy = {...createRandomPolicy(0), connections: {}} as Policy;
+                expect(getQBOVendorByID(policy, 'v-1')).toBeUndefined();
             });
         });
     });

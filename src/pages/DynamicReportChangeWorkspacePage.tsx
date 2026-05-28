@@ -11,6 +11,7 @@ import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import useAllPolicyExpenseChatReportActions from '@hooks/useAllPolicyExpenseChatReportActions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -37,19 +38,20 @@ import {
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {DismissedProductTraining, PersonalDetailsList} from '@src/types/onyx';
 import NotFoundPage from './ErrorPage/NotFoundPage';
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
-type ReportChangeWorkspacePageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportChangeWorkspaceNavigatorParamList, typeof SCREENS.REPORT_CHANGE_WORKSPACE.ROOT>;
+type DynamicReportChangeWorkspacePageProps = WithReportOrNotFoundProps &
+    PlatformStackScreenProps<ReportChangeWorkspaceNavigatorParamList, typeof SCREENS.REPORT_CHANGE_WORKSPACE.DYNAMIC_ROOT>;
 
 const changePolicyTrainingModalDismissedSelector = (nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>): boolean =>
     !!nvpDismissedProductTraining?.[CONST.CHANGE_POLICY_TRAINING_MODAL];
 
-function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePageProps) {
+function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspacePageProps) {
     const reportID = report?.reportID;
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
@@ -80,6 +82,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const filteredReportActions = useAllPolicyExpenseChatReportActions();
+    const navigateBackFromChangeWorkspacePath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_CHANGE_WORKSPACE.path);
 
     const selectPolicy = useCallback(
         (policyID?: string) => {
@@ -91,8 +94,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                 return;
             }
-            const {backTo} = route.params;
-            Navigation.goBack(backTo);
+            Navigation.goBack(navigateBackFromChangeWorkspacePath);
             if (isIOUReport(reportID)) {
                 const invite = moveIOUReportToPolicyAndInviteSubmitter(
                     report,
@@ -143,7 +145,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             userBillingGracePeriods,
             ownerBillingGracePeriodEnd,
             amountOwed,
-            route.params,
+            navigateBackFromChangeWorkspacePath,
             reportID,
             report,
             parentReport,
@@ -194,7 +196,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
 
     return (
         <ScreenWrapper
-            testID="ReportChangeWorkspacePage"
+            testID="DynamicReportChangeWorkspacePage"
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
@@ -203,15 +205,14 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                     <HeaderWithBackButton
                         title={translate('iou.changeWorkspace')}
                         onBackButtonPress={() => {
-                            const {backTo} = route.params;
-                            Navigation.goBack(backTo);
+                            Navigation.goBack(navigateBackFromChangeWorkspacePath);
                         }}
                     />
                     {shouldShowLoadingIndicator ? (
                         <View style={[styles.flex1, styles.fullScreenLoading]}>
                             <ActivityIndicator
                                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                reasonAttributes={{context: 'ReportChangeWorkspacePage', isLoadingApp: !!isLoadingApp}}
+                                reasonAttributes={{context: 'DynamicReportChangeWorkspacePage', isLoadingApp: !!isLoadingApp}}
                             />
                         </View>
                     ) : (
@@ -231,4 +232,4 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     );
 }
 
-export default withReportOrNotFound()(ReportChangeWorkspacePage);
+export default withReportOrNotFound()(DynamicReportChangeWorkspacePage);
