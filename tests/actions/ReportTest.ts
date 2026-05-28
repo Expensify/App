@@ -3967,9 +3967,7 @@ describe('actions/Report', () => {
                 const result = Report.convertIOUReportToExpenseReport(iouReport, policy, policyID, 'expenseChat302', [transaction]);
 
                 // Then the optimistic transactions update negates amount and convertedAmount to the expense-report sign convention
-                const transactionsUpdate = result.optimisticData.find(
-                    (update) => update.onyxMethod === Onyx.METHOD.MERGE_COLLECTION && update.key === ONYXKEYS.COLLECTION.TRANSACTION,
-                );
+                const transactionsUpdate = result.optimisticData.find((update) => update.onyxMethod === Onyx.METHOD.MERGE_COLLECTION && update.key === ONYXKEYS.COLLECTION.TRANSACTION);
                 const negatedTransaction = (transactionsUpdate?.value as Record<string, OnyxTypes.Transaction> | undefined)?.[
                     `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`
                 ];
