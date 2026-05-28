@@ -66,7 +66,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
     const {translate} = useLocalize();
     const theme = useTheme();
     const isScreenReaderActive = Accessibility.useScreenReaderStatus();
-    const shouldBreakGrouping = shouldBreakAccessibilityGrouping() && isScreenReaderActive;
+    const shouldBreakGrouping = shouldBreakAccessibilityGrouping();
     const {originalReportID, anchor: contextMenuAnchorRef, shouldDisplayContextMenu = true} = useShowContextMenuState();
     const {checkIfContextMenuActive, onShowContextMenu} = useShowContextMenuActions();
     const originalMessage = getOriginalMessage(action);
@@ -106,7 +106,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
         setLocalIsTaskCompleted(isTaskCompletedFromOnyx);
     }
 
-    const isTaskCompleted = shouldBreakGrouping ? localIsTaskCompleted : isTaskCompletedFromOnyx;
+    const isTaskCompleted = shouldBreakGrouping && isScreenReaderActive ? localIsTaskCompleted : isTaskCompletedFromOnyx;
 
     const parentReportAction = useParentReportAction(taskContextReport);
     const taskAssigneeAccountID = getTaskAssigneeAccountID(taskContextReport, parentReportAction) ?? action?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -164,7 +164,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                             isChecked={isTaskCompleted}
                             disabled={!isTaskActionable}
                             onPress={callFunctionIfActionIsAllowed(() => {
-                                if (shouldBreakGrouping) {
+                                if (shouldBreakGrouping && isScreenReaderActive) {
                                     setLocalIsTaskCompleted((prev) => !prev);
                                 }
                                 if (isTaskCompleted) {
@@ -178,12 +178,18 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                         />
                     </View>
                     {shouldBreakGrouping ? (
-                        <PressableWithoutFeedback
-                            onPress={() => Navigation.navigate(getReportRouteForCurrentContext({reportID: taskReportID}))}
-                            style={[styles.flex1, styles.flexRow, styles.alignItemsStart]}
-                            role={CONST.ROLE.BUTTON}
+                        <View
+                            accessible
+                            accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={taskAccessibilityLabel}
-                            sentryLabel={CONST.SENTRY_LABEL.TASK.PREVIEW_CARD}
+                            accessibilityActions={[{name: 'activate'}]}
+                            onAccessibilityAction={(event) => {
+                                if (event.nativeEvent.actionName !== 'activate') {
+                                    return;
+                                }
+                                Navigation.navigate(getReportRouteForCurrentContext({reportID: taskReportID}));
+                            }}
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsStart]}
                         >
                             {hasAssignee && (
                                 <UserDetailsTooltip accountID={taskAssigneeAccountID}>
@@ -201,7 +207,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                             <View style={[styles.alignSelfCenter, styles.flex1]}>
                                 <RenderHTML html={getTaskHTML()} />
                             </View>
-                        </PressableWithoutFeedback>
+                        </View>
                     ) : (
                         <>
                             {hasAssignee && (

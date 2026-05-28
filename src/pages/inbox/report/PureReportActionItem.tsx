@@ -26,7 +26,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Accessibility from '@libs/Accessibility';
 import {cleanUpMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
 import {isSafari} from '@libs/Browser';
 import {isChronosOOOListAction} from '@libs/ChronosUtils';
@@ -208,8 +207,7 @@ function PureReportActionItem({
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
     const [isReportActionActive, setIsReportActionActive] = useState(!!isReportActionLinked);
 
-    const isScreenReaderActive = Accessibility.useScreenReaderStatus();
-    const shouldBreakGrouping = shouldBreakAccessibilityGrouping() && isScreenReaderActive;
+    const shouldBreakGrouping = shouldBreakAccessibilityGrouping();
     const shouldRenderViewBasedOnAction = useTableReportViewActionRenderConditionals(action);
 
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);

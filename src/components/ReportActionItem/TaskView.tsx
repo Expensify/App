@@ -11,7 +11,6 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import RenderHTML from '@components/RenderHTML';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
@@ -58,7 +57,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const isScreenReaderActive = Accessibility.useScreenReaderStatus();
-    const shouldBreakGrouping = shouldBreakAccessibilityGrouping() && isScreenReaderActive;
+    const shouldBreakGrouping = shouldBreakAccessibilityGrouping();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
@@ -97,7 +96,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
         setLocalIsCompleted(isCompletedFromOnyx);
     }
 
-    const isCompleted = shouldBreakGrouping ? localIsCompleted : isCompletedFromOnyx;
+    const isCompleted = shouldBreakGrouping && isScreenReaderActive ? localIsCompleted : isCompletedFromOnyx;
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
     const hasOutstandingChildTask = useHasOutstandingChildTask(report);
     const isTaskModifiable = canModifyTask(report, currentUserPersonalDetails.accountID, isParentReportArchived);
@@ -184,7 +183,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                         if (isActiveTaskEditRoute(report?.reportID)) {
                                                             return;
                                                         }
-                                                        if (shouldBreakGrouping) {
+                                                        if (shouldBreakGrouping && isScreenReaderActive) {
                                                             setLocalIsCompleted((prev) => !prev);
                                                         }
                                                         if (isCompleted) {
@@ -203,18 +202,18 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                     sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_CHECKBOX}
                                                 />
                                                 {shouldBreakGrouping ? (
-                                                    <PressableWithoutFeedback
-                                                        onPress={callFunctionIfActionIsAllowed(() => {
-                                                            if (isDisableInteractive) {
+                                                    <View
+                                                        accessible
+                                                        accessibilityRole={CONST.ROLE.BUTTON}
+                                                        accessibilityLabel={taskAccessibilityLabel}
+                                                        accessibilityActions={[{name: 'activate'}]}
+                                                        onAccessibilityAction={(event) => {
+                                                            if (event.nativeEvent.actionName !== 'activate' || isDisableInteractive) {
                                                                 return;
                                                             }
                                                             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_TITLE.path));
-                                                        })}
-                                                        role={CONST.ROLE.BUTTON}
-                                                        accessibilityLabel={taskAccessibilityLabel}
-                                                        disabled={isDisableInteractive}
+                                                        }}
                                                         style={[styles.flexRow, styles.flex1]}
-                                                        sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_TITLE}
                                                     >
                                                         <View style={[styles.flexRow, styles.flex1]}>
                                                             <RenderHTML html={taskTitle} />
@@ -228,7 +227,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                                 />
                                                             </View>
                                                         )}
-                                                    </PressableWithoutFeedback>
+                                                    </View>
                                                 ) : (
                                                     <>
                                                         <View style={[styles.flexRow, styles.flex1]}>
