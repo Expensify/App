@@ -245,24 +245,24 @@ function useYourSpendData(): UseYourSpendDataReturn {
     // snapshot and briefly flipping this row to HIDDEN_EMPTY between navigation
     // and the home re-fetch. Cache the last READY totals and reuse them when the
     // snapshot is loaded but its count has been wiped. A genuine `count === 0`
-    // is still treated as empty.
-    //
-    // The approval cache is keyed by the approval query hash so that joining/leaving
-    // a workspace (which changes the policyID filter and therefore the hash) drops
-    // the previous workspace set's cached total instead of flashing a stale value.
-    type CachedReady = {hash: number; totals: YourSpendRowTotals};
-    const [cachedApprovalReady, setCachedApprovalReady] = useState<CachedReady | null>(null);
+    // is still treated as empty. The approval cache is dropped whenever the query
+    // hash changes (i.e. when the user joins/leaves a workspace) so a stale total
+    // from the previous workspace set isn't reused for the new one.
+    const [cachedApprovalReady, setCachedApprovalReady] = useState<YourSpendRowTotals | null>(null);
+    const [cachedApprovalHash, setCachedApprovalHash] = useState<number | undefined>(undefined);
     const [cachedPaymentReady, setCachedPaymentReady] = useState<YourSpendRowTotals | null>(null);
 
     const approvalHash = approvalQueryJSON?.hash;
-    const cachedApprovalForCurrentHash = cachedApprovalReady && approvalHash !== undefined && cachedApprovalReady.hash === approvalHash ? cachedApprovalReady.totals : null;
+    if (cachedApprovalHash !== approvalHash) {
+        setCachedApprovalReady(null);
+        setCachedApprovalHash(approvalHash);
+    }
 
     if (
         approvalRowStateRaw === YOUR_SPEND_ROW_STATE.READY &&
-        approvalHash !== undefined &&
-        (!cachedApprovalForCurrentHash || cachedApprovalForCurrentHash.total !== approvalTotalsRaw.total || cachedApprovalForCurrentHash.currency !== approvalTotalsRaw.currency)
+        (!cachedApprovalReady || cachedApprovalReady.total !== approvalTotalsRaw.total || cachedApprovalReady.currency !== approvalTotalsRaw.currency)
     ) {
-        setCachedApprovalReady({hash: approvalHash, totals: {total: approvalTotalsRaw.total, currency: approvalTotalsRaw.currency}});
+        setCachedApprovalReady({total: approvalTotalsRaw.total, currency: approvalTotalsRaw.currency});
     }
     if (
         paymentRowStateRaw === YOUR_SPEND_ROW_STATE.READY &&
@@ -277,12 +277,12 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const paymentCountIsMissing = paymentCount === undefined || paymentCount === null;
 
     const shouldUseCachedApproval =
-        approvalRowStateRaw === YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY && approvalCountIsMissing && approvalSearchResults !== undefined && cachedApprovalForCurrentHash !== null;
+        approvalRowStateRaw === YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY && approvalCountIsMissing && approvalSearchResults !== undefined && cachedApprovalReady !== null;
     const shouldUseCachedPayment = paymentRowStateRaw === YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY && paymentCountIsMissing && paymentSearchResults !== undefined && cachedPaymentReady !== null;
 
     const approvalRowState = shouldUseCachedApproval ? YOUR_SPEND_ROW_STATE.READY : approvalRowStateRaw;
     const paymentRowState = shouldUseCachedPayment ? YOUR_SPEND_ROW_STATE.READY : paymentRowStateRaw;
-    const approvalTotals: YourSpendRowTotals = shouldUseCachedApproval && cachedApprovalForCurrentHash ? cachedApprovalForCurrentHash : approvalTotalsRaw;
+    const approvalTotals: YourSpendRowTotals = shouldUseCachedApproval && cachedApprovalReady ? cachedApprovalReady : approvalTotalsRaw;
     const paymentTotals: YourSpendRowTotals = shouldUseCachedPayment && cachedPaymentReady ? cachedPaymentReady : paymentTotalsRaw;
 
     // Re-fires the search effect when applicability flips or the user
