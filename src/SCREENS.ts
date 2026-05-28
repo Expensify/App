@@ -960,6 +960,10 @@ const SCREENS = {
         ROOT: 'MigratedUserWelcomeModal_Root',
     },
 
+    AI_FEATURES_PROMO_MODAL: {
+        ROOT: 'AIFeaturesPromoModal_Root',
+    },
+
     TEST_DRIVE_MODAL: {
         ROOT: 'TestDrive_Modal_Root',
     },

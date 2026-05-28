@@ -67,6 +67,15 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
             },
         },
 
+        [NAVIGATORS.AI_FEATURES_PROMO_MODAL_NAVIGATOR]: {
+            screens: {
+                [SCREENS.AI_FEATURES_PROMO_MODAL.ROOT]: {
+                    path: ROUTES.AI_FEATURES_PROMO_MODAL.route,
+                    exact: true,
+                },
+            },
+        },
+
         [NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.TEST_DRIVE_MODAL.ROOT]: {
