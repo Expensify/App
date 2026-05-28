@@ -14,6 +14,7 @@ import useOnyx from '@hooks/useOnyx';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import useReplayPendingWorkspaceUpgradeApproval from '@hooks/useReplayPendingWorkspaceUpgradeApproval';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
@@ -160,6 +161,23 @@ function PayActionButton({
             });
         }
     };
+
+    useReplayPendingWorkspaceUpgradeApproval({
+        expenseReport: iouReport,
+        expenseReportPolicy: policy,
+        activePolicy,
+        currentUserAccountIDParam: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+        currentUserEmailParam: currentUserEmail,
+        hasViolations,
+        isASAPSubmitBetaEnabled,
+        expenseReportCurrentNextStepDeprecated: iouReportNextStep,
+        betas,
+        userBillingGracePeriodEnds,
+        amountOwed,
+        ownerBillingGracePeriodEnd,
+        delegateEmail,
+        onApproved: startApprovedAnimation,
+    });
 
     const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
         if (!type) {

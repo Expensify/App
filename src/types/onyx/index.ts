@@ -109,6 +109,7 @@ import type {DecisionName, OriginalMessageIOU} from './OriginalMessage';
 import type Pages from './Pages';
 import type PendingConciergeResponse from './PendingConciergeResponse';
 import type {PendingContactAction} from './PendingContactAction';
+import type PendingWorkspaceUpgradeIntent from './PendingWorkspaceUpgradeIntent';
 import type PersonalBankAccount from './PersonalBankAccount';
 import type {AddNewPersonalCard, PersonalCardFeed} from './PersonalCard';
 import type {PersonalDetailsList, PersonalDetailsMetadata} from './PersonalDetails';
@@ -258,6 +259,7 @@ export type {
     PasskeyCredential,
     PasskeyTransport,
     PendingContactAction,
+    PendingWorkspaceUpgradeIntent,
     MapboxAccessToken,
     Modal,
     Network,
