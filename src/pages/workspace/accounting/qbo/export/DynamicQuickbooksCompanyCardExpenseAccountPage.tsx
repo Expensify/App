@@ -12,7 +12,7 @@ import {updateManyPolicyConnectionConfigs} from '@libs/actions/connections';
 import {getQBONonReimbursableExportAccountType} from '@libs/ConnectionUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import {areSettingsInErrorFields, getQBOVendorByID, hasVendorFeature, settingsPendingAction} from '@libs/PolicyUtils';
+import {areSettingsInErrorFields, getMatchingVendorByID, hasVendorFeature, settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -29,7 +29,7 @@ function DynamicQuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConn
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {vendors} = policy?.connections?.quickbooksOnline?.data ?? {};
     const nonReimbursableBillDefaultVendorObject = vendors?.find((vendor) => vendor.id === qboConfig?.nonReimbursableBillDefaultVendor);
-    const nonReimbursableCreditCardDefaultVendorObject = getQBOVendorByID(policy, qboConfig?.nonReimbursableCreditCardDefaultVendor);
+    const nonReimbursableCreditCardDefaultVendorObject = getMatchingVendorByID(policy, qboConfig?.nonReimbursableCreditCardDefaultVendor);
     const isVendorFeatureAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.path);
     const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(!!qboConfig?.autoCreateVendor);

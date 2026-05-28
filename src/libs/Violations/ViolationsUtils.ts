@@ -16,8 +16,8 @@ import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
 import {
     getDistanceRateCustomUnitRate,
+    getMatchingVendorByID,
     getPerDiemRateCustomUnitRate,
-    getQBOVendorByID,
     getSortedTagKeys,
     hasVendorFeature,
     isAttendeeTrackingEnabled as isAttendeeTrackingEnabledForPolicy,
@@ -455,7 +455,7 @@ const ViolationsUtils = {
                     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
                 }
             } else if (transactionVendorID) {
-                const matchedVendor = getQBOVendorByID(policy, transactionVendorID);
+                const matchedVendor = getMatchingVendorByID(policy, transactionVendorID);
                 if (!matchedVendor && !hasInactiveVendorViolation) {
                     newTransactionViolations.push({name: CONST.VIOLATIONS.INACTIVE_VENDOR, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
                 } else if (matchedVendor && hasInactiveVendorViolation) {

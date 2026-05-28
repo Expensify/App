@@ -56,9 +56,9 @@ import Parser from '@libs/Parser';
 import {
     canSubmitPerDiemExpenseFromWorkspace,
     getLengthOfTag,
+    getMatchingVendorByID,
     getPerDiemCustomUnit,
     getPolicyByCustomUnitID,
-    getQBOVendorByID,
     getTagLists,
     hasDependentTags as hasDependentTagsPolicyUtils,
     hasVendorFeature,
@@ -453,7 +453,7 @@ function MoneyRequestView({
     const shouldShowAttendees = shouldShowAttendeesTransactionUtils(iouType, policy);
 
     const transactionVendor = transaction?.comment?.vendor;
-    const transactionVendorName = getQBOVendorByID(policy, transactionVendor?.externalID)?.name ?? '';
+    const transactionVendorName = getMatchingVendorByID(policy, transactionVendor?.externalID)?.name ?? '';
     const shouldShowVendor = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING)) && !(updatedTransaction?.reimbursable ?? !!transactionReimbursable);
 
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);

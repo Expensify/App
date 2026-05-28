@@ -2001,42 +2001,67 @@ function getConnectedIntegration(policy: Policy | undefined, connectionNames: re
 }
 
 /**
- * QBO vendor feature gate. Returns true when the workspace has the `vendorMatching` beta enabled
- * AND QBO is connected with an individual card transaction non-reimbursable export type — the only
- * scope the Vendor field is shown for. Mirrors `QuickbooksOnline::hasVendorFeature` on the PHP side
- * so the App and backend agree on which workspaces see the field.
+ * Vendor matching feature gate. Returns true when the workspace has the `vendorMatching` beta
+ * enabled AND a supported accounting integration is connected with a non-reimbursable export type
+ * that scopes the vendor field. Mirrors the per-integration `hasVendorFeature` checks on the PHP
+ * side so the App and backend agree on which workspaces see the field.
+ *
+ * Supported integrations:
+ *   - QBO with non-reimbursable export = Credit Card or Debit Card (R1)
+ *   - Sage Intacct with non-reimbursable export = Credit Card Charge (R2)
  */
 function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
     if (!isVendorMatchingBetaEnabled || !policy) {
         return false;
     }
     const qboConnection = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO];
-    if (!qboConnection) {
-        return false;
+    if (qboConnection) {
+        const qboDestination = qboConnection.config?.nonReimbursableExpensesExportDestination;
+        if (qboDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD || qboDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD) {
+            return true;
+        }
     }
-    const exportDestination = qboConnection.config?.nonReimbursableExpensesExportDestination;
-    return exportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD || exportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD;
+    const intacctConnection = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT];
+    if (intacctConnection) {
+        const intacctDestination = intacctConnection.config?.export?.nonReimbursable;
+        if (intacctDestination === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /**
- * Returns the QBO vendor list imported into the workspace (empty array when QBO isn't connected or
- * the sync hasn't populated vendors yet). Source of truth for the workspace Vendors tab and the
- * vendor selector RHP.
+ * Returns the vendor list imported into the workspace from whichever connected integration scopes
+ * the vendor field for this workspace (QBO or Sage Intacct). Empty array when no integration is
+ * connected or the sync hasn't populated vendors yet. Source of truth for the vendor selector RHP
+ * and inactive-vendor lookups.
+ *
+ * The shape is normalized to `Vendor` (id + name) — Intacct's `SageIntacctDataElementWithValue`
+ * carries an extra `value` field that we drop here since the consumer only needs id/name.
  */
-function getQBOVendors(policy: OnyxEntry<Policy>): Vendor[] {
-    return policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]?.data?.vendors ?? [];
+function getMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] {
+    const qboVendors = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]?.data?.vendors;
+    if (qboVendors && qboVendors.length > 0) {
+        return qboVendors;
+    }
+    const intacctVendors = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]?.data?.vendors;
+    if (intacctVendors && intacctVendors.length > 0) {
+        return intacctVendors.map((vendor) => ({id: vendor.id, name: vendor.name, currency: '', email: ''}));
+    }
+    return [];
 }
 
 /**
- * Look up a single QBO vendor by `externalID`. Used to resolve the vendor name for display when
- * only the ID is stored on the transaction NVP. Returns undefined when the ID isn't found
- * (which happens after a vendor is deleted from QBO — see the inactive-vendor violation).
+ * Look up a single matching vendor by `externalID` across whichever integration is active.
+ * Returns undefined when the ID isn't found (the inactive-vendor violation case — see
+ * `getViolationsOnyxData`).
  */
-function getQBOVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined): Vendor | undefined {
+function getMatchingVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined): Vendor | undefined {
     if (!vendorID) {
         return undefined;
     }
-    return getQBOVendors(policy).find((vendor) => vendor.id === vendorID);
+    return getMatchingVendors(policy).find((vendor) => vendor.id === vendorID);
 }
 
 function getValidConnectedIntegration(policy: Policy | undefined, connectionNames: readonly ConnectionName[] = getAccountingConnectionNames()) {
@@ -2424,8 +2449,8 @@ export {
     getConnectedIntegration,
     getConnectedIntegrationNamesForPolicies,
     getConnectionExporters,
-    getQBOVendorByID,
-    getQBOVendors,
+    getMatchingVendorByID,
+    getMatchingVendors,
     hasVendorFeature,
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,

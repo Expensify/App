@@ -22,9 +22,9 @@ import {
     getEligibleBankAccountShareRecipients,
     getHRApprovalMode,
     getManagerAccountID,
+    getMatchingVendorByID,
+    getMatchingVendors,
     getPolicyEmployeeAccountIDs,
-    getQBOVendorByID,
-    getQBOVendors,
     getRateDisplayValue,
     getSubmitToAccountID,
     getTagApproverRule,
@@ -2981,6 +2981,20 @@ describe('PolicyUtils', () => {
                 } as unknown as Connections,
             }) as Policy;
 
+        const buildIntacctPolicy = (
+            nonReimbursable: string | undefined,
+            vendors: Array<{id: string; name: string; value: string}> = [{id: 'iv-1', name: 'Acme Intacct', value: 'iv-1'}],
+        ): Policy =>
+            ({
+                ...createRandomPolicy(0),
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                        config: nonReimbursable ? {export: {nonReimbursable}} : {export: {}},
+                        data: {vendors},
+                    },
+                } as unknown as Connections,
+            }) as Policy;
+
         describe('hasVendorFeature', () => {
             it('returns true when beta is enabled and QBO non-reimbursable export is Credit Card', () => {
                 expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), true)).toBe(true);
@@ -2990,19 +3004,31 @@ describe('PolicyUtils', () => {
                 expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD), true)).toBe(true);
             });
 
+            it('returns true when beta is enabled and Intacct non-reimbursable export is Credit Card Charge (R2)', () => {
+                expect(hasVendorFeature(buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE), true)).toBe(true);
+            });
+
             it('returns false when beta is disabled, even with Credit Card export configured', () => {
                 expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), false)).toBe(false);
+            });
+
+            it('returns false when beta is disabled, even with Intacct CC Charge export configured', () => {
+                expect(hasVendorFeature(buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE), false)).toBe(false);
             });
 
             it('returns false when QBO non-reimbursable export is Vendor Bill', () => {
                 expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL), true)).toBe(false);
             });
 
+            it('returns false when Intacct non-reimbursable export is Vendor Bill', () => {
+                expect(hasVendorFeature(buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL), true)).toBe(false);
+            });
+
             it('returns false when QBO export destination is not set', () => {
                 expect(hasVendorFeature(buildQBOPolicy(undefined), true)).toBe(false);
             });
 
-            it('returns false when no QBO connection exists on the policy', () => {
+            it('returns false when no supported connection exists on the policy', () => {
                 const policy = {...createRandomPolicy(0), connections: {}} as Policy;
                 expect(hasVendorFeature(policy, true)).toBe(false);
             });
@@ -3012,43 +3038,63 @@ describe('PolicyUtils', () => {
             });
         });
 
-        describe('getQBOVendors', () => {
-            it('returns the vendor list from the QBO connection', () => {
+        describe('getMatchingVendors', () => {
+            it('returns the QBO vendor list when QBO is connected', () => {
                 const vendors = [
                     {id: 'v-1', name: 'Acme', currency: 'USD'},
                     {id: 'v-2', name: 'Other Co', currency: 'USD'},
                 ];
                 const policy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, vendors);
-                expect(getQBOVendors(policy)).toEqual(vendors);
+                expect(getMatchingVendors(policy)).toEqual(vendors);
             });
 
-            it('returns an empty array when no QBO connection exists', () => {
+            it('returns the Intacct vendor list normalized to {id, name} when Intacct is connected (R2)', () => {
+                const intacctVendors = [
+                    {id: 'iv-1', name: 'Acme Intacct', value: 'iv-1'},
+                    {id: 'iv-2', name: 'Other Intacct', value: 'iv-2'},
+                ];
+                const policy = buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE, intacctVendors);
+                expect(getMatchingVendors(policy)).toEqual([
+                    {id: 'iv-1', name: 'Acme Intacct', currency: '', email: ''},
+                    {id: 'iv-2', name: 'Other Intacct', currency: '', email: ''},
+                ]);
+            });
+
+            it('returns an empty array when no supported connection exists', () => {
                 const policy = {...createRandomPolicy(0), connections: {}} as Policy;
-                expect(getQBOVendors(policy)).toEqual([]);
+                expect(getMatchingVendors(policy)).toEqual([]);
             });
 
             it('returns an empty array when policy is undefined', () => {
-                expect(getQBOVendors(undefined)).toEqual([]);
+                expect(getMatchingVendors(undefined)).toEqual([]);
             });
         });
 
-        describe('getQBOVendorByID', () => {
-            it('returns the matching vendor when the ID exists in the list', () => {
+        describe('getMatchingVendorByID', () => {
+            it('returns the matching QBO vendor when the ID exists in the list', () => {
                 const policy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, [
                     {id: 'v-1', name: 'Acme', currency: 'USD'},
                     {id: 'v-2', name: 'Other Co', currency: 'USD'},
                 ]);
-                expect(getQBOVendorByID(policy, 'v-2')).toEqual({id: 'v-2', name: 'Other Co', currency: 'USD'});
+                expect(getMatchingVendorByID(policy, 'v-2')).toEqual({id: 'v-2', name: 'Other Co', currency: 'USD'});
+            });
+
+            it('returns the matching Intacct vendor (normalized) when the ID exists in the list (R2)', () => {
+                const policy = buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE, [
+                    {id: 'iv-1', name: 'Acme Intacct', value: 'iv-1'},
+                    {id: 'iv-2', name: 'Other Intacct', value: 'iv-2'},
+                ]);
+                expect(getMatchingVendorByID(policy, 'iv-2')).toEqual({id: 'iv-2', name: 'Other Intacct', currency: '', email: ''});
             });
 
             it('returns undefined when the ID is not in the list (the inactive-vendor case)', () => {
                 const policy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD);
-                expect(getQBOVendorByID(policy, 'v-missing')).toBeUndefined();
+                expect(getMatchingVendorByID(policy, 'v-missing')).toBeUndefined();
             });
 
-            it('returns undefined when no QBO connection exists', () => {
+            it('returns undefined when no supported connection exists', () => {
                 const policy = {...createRandomPolicy(0), connections: {}} as Policy;
-                expect(getQBOVendorByID(policy, 'v-1')).toBeUndefined();
+                expect(getMatchingVendorByID(policy, 'v-1')).toBeUndefined();
             });
         });
     });

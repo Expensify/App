@@ -11,7 +11,7 @@ import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateMoneyRequestVendor} from '@libs/actions/IOU/UpdateMoneyRequest';
 import Navigation from '@libs/Navigation/Navigation';
-import {getQBOVendors, hasVendorFeature} from '@libs/PolicyUtils';
+import {getMatchingVendors, hasVendorFeature} from '@libs/PolicyUtils';
 import {isPerDiemRequest} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -50,7 +50,7 @@ function IOURequestStepVendor({
     });
 
     const isFeatureAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
-    const vendors = useMemo(() => getQBOVendors(policy), [policy]);
+    const vendors = useMemo(() => getMatchingVendors(policy), [policy]);
     const currentVendorID = transaction?.comment?.vendor?.externalID;
 
     const data: VendorListItem[] = useMemo(() => {
