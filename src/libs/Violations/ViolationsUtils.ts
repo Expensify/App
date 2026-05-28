@@ -748,7 +748,6 @@ const ViolationsUtils = {
             isTransactionOlderThan7Days = false,
             member,
             category,
-            formattedLimit = '',
             amount = 0,
             currency = CONST.CURRENCY.USD,
             surcharge = 0,
@@ -772,7 +771,7 @@ const ViolationsUtils = {
             case 'billableExpense':
                 return translate('violations.billableExpense');
             case 'cashExpenseWithNoReceipt':
-                return translate('violations.cashExpenseWithNoReceipt', formattedLimit);
+                return translate('violations.cashExpenseWithNoReceipt', !isEmptyObject(violation.data) ? convertToDisplayString(amount, currency) : undefined);
             case 'categoryOutOfPolicy':
                 return translate('violations.categoryOutOfPolicy');
             case 'conversionSurcharge':
@@ -811,7 +810,7 @@ const ViolationsUtils = {
             case 'nonExpensiworksExpense':
                 return translate('violations.nonExpensiworksExpense');
             case 'overAutoApprovalLimit':
-                return translate('violations.overAutoApprovalLimit', formattedLimit);
+                return translate('violations.overAutoApprovalLimit', convertToDisplayString(amount, currency));
             case 'overCategoryLimit':
                 return translate('violations.overCategoryLimit', convertToDisplayString(amount, currency));
             case 'overLimit':
@@ -819,9 +818,9 @@ const ViolationsUtils = {
             case 'overTripLimit':
                 return translate('violations.overTripLimit', convertToDisplayString(amount, currency));
             case 'overLimitAttendee':
-                return translate('violations.overLimitAttendee', formattedLimit);
+                return translate('violations.overLimitAttendee', convertToDisplayString(amount, currency));
             case 'perDayLimit':
-                return translate('violations.perDayLimit', formattedLimit);
+                return translate('violations.perDayLimit', convertToDisplayString(amount, currency));
             case 'receiptNotSmartScanned':
                 return translate('violations.receiptNotSmartScanned');
             case 'receiptRequired':
