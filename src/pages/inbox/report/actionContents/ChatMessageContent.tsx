@@ -1,3 +1,4 @@
+import {hasPendingFollowupListSkeletonSelector} from '@selectors/AgentZeroChat';
 import React from 'react';
 import {View} from 'react-native';
 import {AttachmentContext} from '@components/AttachmentContext';
@@ -5,7 +6,6 @@ import Button from '@components/Button';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -50,9 +50,9 @@ function ChatMessageContent({action, policyID, reportID, originalReportID, displ
 
     const {hasBeenFlagged} = getModerationFlagState(action);
 
-    const {isOffline} = useNetwork();
-    const [pendingFollowupList] = useOnyx(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${reportID}`);
-    const hasPendingFollowupListSkeleton = !isOffline && pendingFollowupList?.reportActionID === action.reportActionID;
+    const [hasPendingFollowupListSkeleton = false] = useOnyx(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${reportID}`, {
+        selector: hasPendingFollowupListSkeletonSelector(action.reportActionID),
+    });
 
     const messageHtml = getReportActionMessage(action)?.html;
     const mayHaveActionableButtons =

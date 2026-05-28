@@ -1,7 +1,7 @@
 import {useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {clearAgentZeroProcessingIndicator} from '@libs/actions/Report';
-import {applyPendingConciergeAction, clearPendingFollowupList, discardPendingConciergeAction} from '@libs/actions/Report/SuggestedFollowup';
+import {applyPendingConciergeAction, clearPendingFollowupList, discardPendingConciergeAction, hidePendingFollowupList} from '@libs/actions/Report/SuggestedFollowup';
 import {MAX_AGE_MS} from '@libs/AgentZeroOptimisticStore';
 import Log from '@libs/Log';
 import {rand64} from '@libs/NumberUtils';
@@ -86,10 +86,18 @@ function usePendingConciergeResponse(reportID: string | undefined) {
         wasOfflineRef.current = isOffline;
     }, [isOffline]);
 
+    // Hide the followup-list skeleton when the user is offline.
+    useEffect(() => {
+        if (!reportID || !pendingFollowupList || !!pendingFollowupList.hidden === isOffline) {
+            return;
+        }
+        hidePendingFollowupList(reportID, isOffline || null);
+    }, [reportID, isOffline, pendingFollowupList]);
+
     // Clear the pending followup-list skeleton flag as soon as the server reply
-    // (with <followup-list>) overwrites the optimistic action. A TTL fallback
-    // guards against the case where no followup-list ever arrives so the skeleton
-    // won't get stuck.
+    // (with <followup-list>) overwrites the optimistic action.
+    // A TTL fallback guards against the case where no followup-list ever arrives
+    // so the skeleton won't get stuck.
     useEffect(() => {
         if (!reportID || !pendingFollowupList) {
             return;

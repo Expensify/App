@@ -145,6 +145,16 @@ function clearPendingFollowupList(reportID: string | undefined) {
 }
 
 /**
+ * Temporarily hides the pending followup-list skeleton.
+ */
+function hidePendingFollowupList(reportID: string | undefined, hidden: boolean | null) {
+    if (!reportID) {
+        return;
+    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${reportID}`, {hidden});
+}
+
+/**
  * Applies a pending concierge response by moving it to REPORT_ACTIONS
  * and clearing the pending state.
  */
@@ -168,4 +178,4 @@ function applyPendingConciergeAction(reportID: string | undefined, reportAction:
     ]);
 }
 
-export {resolveSuggestedFollowup, discardPendingConciergeAction, applyPendingConciergeAction, clearPendingFollowupList, CONCIERGE_RESPONSE_DELAY_MS};
+export {resolveSuggestedFollowup, discardPendingConciergeAction, applyPendingConciergeAction, clearPendingFollowupList, hidePendingFollowupList, CONCIERGE_RESPONSE_DELAY_MS};

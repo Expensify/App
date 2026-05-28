@@ -5,6 +5,9 @@ type ConciergePendingFollowupList = {
 
     /** Timestamp (ms) when the pending flag was created, used for TTL cleanup */
     createdAt: number;
+
+    /** Whether the skeleton should be visually hidden (e.g., user is offline) */
+    hidden?: boolean;
 };
 
 export default ConciergePendingFollowupList;
