@@ -40,13 +40,17 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
 
     const handleCurrencyChange = useCallback(
         (item: SingleSelectItem<string> | undefined) => {
+            if (isOffline) {
+                return;
+            }
+
             const nextCurrency = item?.value ?? defaultCurrency;
             if (!nextCurrency) {
                 return;
             }
             onCurrencyChange(nextCurrency === defaultCurrency ? undefined : nextCurrency);
         },
-        [defaultCurrency, onCurrencyChange],
+        [defaultCurrency, isOffline, onCurrencyChange],
     );
 
     const renderCurrencyPopup: DropdownButtonProps['PopoverComponent'] = useCallback(
@@ -72,6 +76,7 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
                 text={convertToDisplayString(total, currency)}
                 textStyles={valueTextStyle}
                 isLoading={isTotalLoading}
+                isDisabled={isOffline}
                 small
                 shouldShowRightIcon
                 iconRight={icons.DownArrow}
@@ -80,7 +85,7 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
                 onPress={props.onPress}
             />
         ),
-        [convertToDisplayString, currency, icons.DownArrow, isTotalLoading, styles, theme, total, translate, valueTextStyle],
+        [convertToDisplayString, currency, icons.DownArrow, isOffline, isTotalLoading, styles, theme, total, translate, valueTextStyle],
     );
 
     return (
