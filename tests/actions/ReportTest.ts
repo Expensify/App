@@ -3933,58 +3933,6 @@ describe('actions/Report', () => {
                 const reportValue = reportUpdate?.value as Partial<OnyxTypes.Report> | undefined;
                 expect(reportValue?.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
             });
-
-            it('should negate convertedAmount on the optimistic transactions so the table total stays positive', async () => {
-                // Given a policy and an IOU report with a transaction that has positive converted amounts (IOU sign convention)
-                const policyID = '302';
-                const policy: OnyxTypes.Policy = {
-                    ...createRandomPolicy(Number(policyID)),
-                    id: policyID,
-                    type: CONST.POLICY.TYPE.TEAM,
-                    fieldList: {},
-                    name: 'Test Policy',
-                };
-
-                const iouReport: OnyxTypes.Report = {
-                    ...createRandomReport(3, undefined),
-                    reportID: 'iouReport302',
-                    type: CONST.REPORT.TYPE.IOU,
-                    ownerAccountID: 3,
-                    reportName: 'Original IOU Report Name',
-                    total: 5000,
-                };
-
-                const transaction: OnyxTypes.Transaction = {
-                    ...createRandomTransaction(302),
-                    transactionID: 'transaction302',
-                    reportID: iouReport.reportID,
-                    amount: 5000,
-                    modifiedAmount: '',
-                    convertedAmount: 6000,
-                };
-
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-                await waitForBatchedUpdates();
-
-                // When converting the IOU report to an expense report and applying the optimistic data to Onyx
-                const result = Report.convertIOUReportToExpenseReport(iouReport, policy, policyID, 'expenseChat302', [transaction]);
-                await Onyx.update(result.optimisticData);
-                await waitForBatchedUpdates();
-
-                // Then the stored transaction in Onyx has amount and convertedAmount negated to the expense-report sign convention
-                const optimisticTransaction: OnyxEntry<OnyxTypes.Transaction> = await new Promise((resolve) => {
-                    const connection = Onyx.connect({
-                        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-                        callback: (value) => {
-                            Onyx.disconnect(connection);
-                            resolve(value);
-                        },
-                    });
-                });
-                expect(optimisticTransaction?.amount).toBe(-5000);
-                expect(optimisticTransaction?.convertedAmount).toBe(-6000);
-            });
         });
     });
 
@@ -4122,6 +4070,7 @@ describe('actions/Report', () => {
                 reportID: iouReport.reportID,
                 amount: 5000,
                 modifiedAmount: 6000,
+                convertedAmount: 6000,
             };
 
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
@@ -4149,6 +4098,7 @@ describe('actions/Report', () => {
             });
             expect(updatedTransaction?.amount).toBe(-5000);
             expect(updatedTransaction?.modifiedAmount).toBe(-6000);
+            expect(updatedTransaction?.convertedAmount).toBe(-6000);
         });
 
         it('should convert IOU report to expense report with correct policyID when reportTransactions are provided', async () => {
