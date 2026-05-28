@@ -117,8 +117,10 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
         const columns = spreadsheet?.data ?? [];
         const rows: string[][] = [];
         if (columns.length > 0) {
-            const startRowIndex = spreadsheet?.containsHeader ? 1 : 0;
-            for (let rowIndex = startRowIndex; rowIndex < (columns.at(0)?.length ?? 0); rowIndex++) {
+            if (!spreadsheet?.containsHeader) {
+                rows.push(columnMappings);
+            }
+            for (let rowIndex = 0; rowIndex < (columns.at(0)?.length ?? 0); rowIndex++) {
                 const row: string[] = [];
                 for (const column of columns) {
                     row.push(column.at(rowIndex) ?? '');
