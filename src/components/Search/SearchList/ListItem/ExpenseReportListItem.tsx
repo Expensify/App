@@ -224,7 +224,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
         () => [
             styles.selectionListPressableItemWrapper,
             isLargeScreenWidth && styles.pv3,
-            styles.ph5,
+            isLargeScreenWidth ? styles.ph3 : styles.ph5,
             // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
             styles.bgTransparent,
             item.isSelected && styles.activeComponentBG,
@@ -328,9 +328,10 @@ function ExpenseReportListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[
+                isLargeScreenWidth && styles.mh5,
                 animatedHighlightStyle,
                 isPendingDelete && styles.cursorDisabled,
-                !isLargeScreenWidth && !isLastItem && StyleUtils.getSelectedBorderBottomStyle(item.isSelected),
+                !isLargeScreenWidth && StyleUtils.getSelectedBorderBottomStyle(item.isSelected),
             ]}
             accessible={false}
             shouldShowRightCaret={false}

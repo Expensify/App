@@ -178,6 +178,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                                     isSelected={selectedTab === NAVIGATION_TABS.INBOX}
                                     isHovered={hovered}
                                     statusIndicatorColor={inboxStatusIndicatorColor}
+                                    statusIndicatorBorderColor={theme.hoverLight}
                                 />
                             )}
                         </PressableWithFeedback>

@@ -72,6 +72,7 @@ export default function TableRow({
 
     const item = processedData.at(rowIndex);
     const isFirstRow = rowIndex === 0;
+    const isLastRow = rowIndex === processedData.length - 1;
     const isInteractive = interactive && !isLoading;
     const gridTemplateColumns = columns.map((column) => (column.width ? `${column.width}px` : '1fr'));
     const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !shouldUseNarrowLayout);
@@ -91,9 +92,11 @@ export default function TableRow({
     }
 
     const tableRowPressableStyles = [
+        !shouldUseNarrowTableLayout && styles.mh5,
         styles.appBG,
         isInteractive && styles.userSelectNone,
-        !isFirstRow && styles.borderTop,
+        !isFirstRow && [styles.borderTop, {borderColor: theme.borderLight}],
+        isLastRow && [styles.borderBottom, {borderColor: theme.borderLight}],
         item.selected && [styles.activeComponentBG, {borderColor: theme.buttonHoveredBG}],
         shouldUseNarrowTableLayout ? styles.tableRowHeightCompact : styles.tableRowHeight,
     ];
@@ -101,7 +104,7 @@ export default function TableRow({
     const tableRowContentContainerStyles = [
         styles.flex1,
         styles.gap3,
-        styles.ph5,
+        shouldUseNarrowTableLayout ? styles.ph5 : styles.ph3,
         shouldUseNarrowTableLayout && !isLoading && styles.pv4,
         !shouldUseNarrowTableLayout && !isLoading && styles.pv2,
         animatedHighlightStyle,
@@ -125,7 +128,7 @@ export default function TableRow({
         if (item.selected) {
             return styles.activeComponentBG;
         }
-        return styles.hoveredComponentBG;
+        return {backgroundColor: theme.hoverLight};
     })();
 
     const renderChildren = (state: PressableStateCallbackType) => {

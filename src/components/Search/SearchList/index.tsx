@@ -513,7 +513,7 @@ function SearchList({
                 <View
                     style={[
                         styles.searchListHeaderContainerStyle,
-                        isLargeScreenWidth ? [styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, !isTableLayout && styles.mh5] : styles.listTableHeader,
+                        isLargeScreenWidth ? [styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, styles.mh5] : styles.listTableHeader,
                     ]}
                 >
                     {canSelectMultiple && (

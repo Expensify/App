@@ -15,7 +15,9 @@ type ThemeColors = {
     highlightBG: Color;
     messageHighlightBG: Color;
     border: Color;
+    borderLight: Color;
     borderLighter: Color;
+    hoverLight: Color;
     borderFocus: Color;
     icon: Color;
     iconMenu: Color;

@@ -24,7 +24,7 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 
-const GLOBAL_NAV_BAR_HEIGHT = 48;
+const GLOBAL_NAV_BAR_HEIGHT = 52;
 
 const NAVIGATORS_WITH_LHN = new Set<string>([
     NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
@@ -183,6 +183,7 @@ function GlobalNavBar() {
                         shouldShowLabel={false}
                         wrapperStyle={styles.alignItemsCenter}
                         shouldShowHoverBackground={false}
+                        avatarSize={CONST.AVATAR_SIZE.SMALL_NORMAL}
                     />
                 </View>
             </View>
@@ -194,7 +195,7 @@ function GlobalNavBar() {
                         right: 0,
                         bottom: 0,
                         height: 1,
-                        backgroundColor: theme.border,
+                        backgroundColor: theme.borderLight,
                     }}
                 />
             )}

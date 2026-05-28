@@ -8,6 +8,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReportPrimaryAction from '@hooks/useReportPrimaryAction';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -75,6 +76,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     const transactions = Object.values(reportTransactions);
 
     const styles = useThemeStyles();
+    const theme = useTheme();
 
     const {isWideRHPDisplayedOnWideLayout, isSuperWideRHPDisplayedOnWideLayout} = useResponsiveLayoutOnWideRHP();
 
@@ -116,7 +118,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     }
 
     return (
-        <View style={[styles.pt0, styles.borderBottom]}>
+        <View style={[styles.pt0, styles.borderBottom, {borderColor: theme.borderLight}]}>
             <HeaderWithBackButton
                 shouldShowReportAvatarWithDisplay
                 shouldDisplayStatus

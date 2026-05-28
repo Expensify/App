@@ -148,7 +148,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                 isNested
                 onMouseDown={handleOnMouseDown}
                 onHoverIn={handleOnHoverIn}
-                hoverStyle={[!item.isDisabled && !shouldDisableHoverStyle && styles.hoveredComponentBG, item.isSelected && styles.activeComponentBG]}
+                hoverStyle={[!item.isDisabled && !shouldDisableHoverStyle && {backgroundColor: theme.hoverLight}, item.isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 id={item.keyForList ?? ''}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM}
@@ -158,7 +158,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                     isDeletedTransaction && styles.cursorDefault,
                 ]}
                 onFocus={onFocus}
-                wrapperStyle={[styles.flex1, animatedHighlightStyle, styles.userSelectNone]}
+                wrapperStyle={[styles.mh5, styles.flex1, animatedHighlightStyle, styles.userSelectNone]}
             >
                 {({hovered}) => (
                     <TransactionItemRow

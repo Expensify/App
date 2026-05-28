@@ -528,7 +528,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 accessibilityLabel={item.text ?? ''}
                 role={getButtonRole(true)}
                 isNested
-                hoverStyle={[!isExpanded && !item.isDisabled && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
+                hoverStyle={[!isExpanded && !item.isDisabled && {backgroundColor: theme.hoverLight}, isItemSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 onMouseDown={(e) => e.preventDefault()}
                 id={item.keyForList ?? ''}
@@ -538,11 +538,10 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 ]}
                 onFocus={onFocus}
                 wrapperStyle={[
+                    isLargeScreenWidth && styles.mh5,
                     animatedHighlightStyle,
                     styles.userSelectNone,
-                    isLargeScreenWidth
-                        ? StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItem, isItemSelected)
-                        : !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isItemSelected),
+                    isLargeScreenWidth ? StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItem, isItemSelected) : StyleUtils.getSelectedBorderBottomStyle(isItemSelected),
                 ]}
             >
                 {({hovered}) => (

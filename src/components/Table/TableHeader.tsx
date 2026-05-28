@@ -89,9 +89,11 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         <View
             style={[
                 styles.pv2,
-                styles.ph5,
+                shouldUseNarrowTableLayout ? styles.ph5 : styles.ph3,
+                !shouldUseNarrowTableLayout && styles.mh5,
                 styles.appBG,
                 styles.borderBottom,
+                {borderColor: theme.borderLight},
                 // Flexbox fallback for browsers / native devices wider than 1024px which don't support grid
                 styles.dFlex,
                 styles.flexRow,

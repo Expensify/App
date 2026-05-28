@@ -1841,27 +1841,28 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         ...(isLastItem ? styles.tableBottomRadius : {}),
     }),
 
-    getSearchTableGroupRowBorderStyle: (isFirstItem?: boolean, _isLastItem?: boolean, isSelected?: boolean): ViewStyle => ({
+    getSearchTableGroupRowBorderStyle: (isFirstItem?: boolean, isLastItem?: boolean, isSelected?: boolean): ViewStyle => ({
         borderRadius: 0,
         borderTopWidth: isFirstItem ? 0 : 1,
-        borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
+        borderBottomWidth: isLastItem ? 1 : 0,
+        borderColor: isSelected ? theme.buttonHoveredBG : theme.borderLight,
     }),
 
-    getSearchTableRowPressableStyle: (isLastItem?: boolean, isSelected?: boolean, padding?: {vertical?: number; horizontal?: number}): ViewStyle => ({
+    getSearchTableRowPressableStyle: (_isLastItem?: boolean, isSelected?: boolean, padding?: {vertical?: number; horizontal?: number}): ViewStyle => ({
         minHeight: variables.tableRowHeight,
         borderTopLeftRadius: 0,
         borderTopRightRadius: 0,
         borderBottomLeftRadius: 0,
         borderBottomRightRadius: 0,
-        borderBottomWidth: isLastItem ? 0 : 1,
-        borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
+        borderBottomWidth: 1,
+        borderColor: isSelected ? theme.buttonHoveredBG : theme.borderLight,
         ...(padding?.vertical !== undefined && {paddingVertical: padding.vertical}),
         ...(padding?.horizontal !== undefined && {paddingHorizontal: padding.horizontal}),
     }),
 
     getSelectedBorderBottomStyle: (isSelected?: boolean): ViewStyle => ({
         ...styles.borderBottom,
-        borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
+        borderColor: isSelected ? theme.buttonHoveredBG : theme.borderLight,
     }),
 
     getSearchTableHighlightBorderRadius: (isLargeScreenWidth: boolean): number => (isLargeScreenWidth ? 0 : variables.componentBorderRadius),

@@ -277,11 +277,11 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     return (
         <>
             <View
-                style={[styles.borderBottom]}
+                style={[styles.borderBottom, {borderColor: theme.borderLight}]}
                 dataSet={{dragArea: true}}
                 onTouchStart={isInLandscapeMode ? () => Keyboard.dismiss() : undefined}
             >
-                <View style={[styles.appContentHeader, styles.pr3]}>
+                <View style={[styles.appContentHeader, styles.pr5]}>
                     {isLoading ? (
                         <ReportHeaderSkeletonView
                             onBackButtonPress={onNavigationMenuButtonClicked}

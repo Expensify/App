@@ -150,7 +150,7 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
     const statusBarProps = getStatusBarProps();
 
     return (
-        <View style={[styles.pl0, styles.borderBottom]}>
+        <View style={[styles.pl0, styles.borderBottom, {borderColor: theme.borderLight}]}>
             <HeaderWithBackButton
                 shouldShowBorderBottom={false}
                 shouldShowReportAvatarWithDisplay

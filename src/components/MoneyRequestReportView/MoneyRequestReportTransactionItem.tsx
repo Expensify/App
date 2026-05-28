@@ -113,6 +113,7 @@ function MoneyRequestReportTransactionItemBody({
 }: MoneyRequestReportTransactionItemBodyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {isEditingCell} = useEditingCellState();
 
@@ -165,7 +166,7 @@ function MoneyRequestReportTransactionItemBody({
                 isNested
                 id={transaction.transactionID}
                 style={[styles.transactionListItemStyle, !shouldUseNarrowLayout ? StyleUtils.getSearchTableRowPressableStyle(isLastItem, isSelected) : styles.noBorderRadius]}
-                hoverStyle={[!isPendingDelete && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
+                hoverStyle={[!isPendingDelete && {backgroundColor: theme.hoverLight}, isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 onPressIn={() => {
                     wasEditingOnMouseDownRef.current = isEditingCell;
@@ -179,7 +180,7 @@ function MoneyRequestReportTransactionItemBody({
                 }}
                 disabled={isTransactionPendingDelete(transaction)}
                 ref={viewRef}
-                wrapperStyle={[animatedHighlightStyle, styles.userSelectNone, shouldUseNarrowLayout && !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isSelected)]}
+                wrapperStyle={[animatedHighlightStyle, styles.userSelectNone, shouldUseNarrowLayout && StyleUtils.getSelectedBorderBottomStyle(isSelected)]}
             >
                 {({hovered}) => (
                     <TransactionItemRow

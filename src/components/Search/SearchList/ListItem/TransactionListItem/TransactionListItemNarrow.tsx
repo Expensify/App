@@ -83,7 +83,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                 accessibilityLabel={item.text ?? ''}
                 role={!isDeletedTransaction ? getButtonRole(true) : 'none'}
                 isNested
-                hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, item.isSelected && styles.activeComponentBG]}
+                hoverStyle={[!item.isDisabled && {backgroundColor: theme.hoverLight}, item.isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 id={item.keyForList ?? ''}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM}
@@ -93,7 +93,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                     isDeletedTransaction && styles.cursorDefault,
                 ]}
                 onFocus={onFocus}
-                wrapperStyle={[styles.flex1, animatedHighlightStyle, styles.userSelectNone, !isLastItem && StyleUtils.getSelectedBorderBottomStyle(item.isSelected)]}
+                wrapperStyle={[styles.flex1, animatedHighlightStyle, styles.userSelectNone, StyleUtils.getSelectedBorderBottomStyle(item.isSelected)]}
             >
                 {() => (
                     <>

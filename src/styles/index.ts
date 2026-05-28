@@ -745,8 +745,8 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.navigationTabBarSize,
             justifyContent: 'space-between',
             borderRightWidth: 1,
-            borderRightColor: theme.border,
-            backgroundColor: theme.appBG,
+            borderRightColor: theme.borderLight,
+            backgroundColor: theme.hoverLight,
         },
 
         leftNavigationTabBarItem: {
@@ -1754,7 +1754,7 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.sidebar,
             justifyContent: 'space-between',
             borderRightWidth: 1,
-            borderColor: theme.border,
+            borderColor: theme.borderLight,
             overflow: 'hidden',
         },
 
@@ -2666,7 +2666,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         borderRight: {
             borderRightWidth: 1,
-            borderColor: theme.border,
+            borderColor: theme.borderLight,
         },
 
         borderLeft: {
@@ -2946,8 +2946,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         accountSettingsSectionContainer: {
-            borderBottomWidth: 1,
-            borderBottomColor: theme.border,
             ...spacing.mt0,
             ...spacing.mb0,
             ...spacing.pt0,
@@ -3603,7 +3601,7 @@ const staticStyles = (theme: ThemeColors) =>
         searchListHeaderTableStyle: {
             backgroundColor: theme.appBG,
             borderBottomWidth: 1,
-            borderColor: theme.border,
+            borderColor: theme.borderLight,
             minHeight: 36,
             paddingBottom: 8,
         },
@@ -4914,7 +4912,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         listTableHeaderCompact: {
             paddingVertical: 8,
-            paddingHorizontal: 20,
+            paddingHorizontal: 12,
         },
 
         tableHeaderIconSpacing: {
@@ -5853,7 +5851,7 @@ const staticStyles = (theme: ThemeColors) =>
             width: animatedReceiptPaneRHPWidth,
             height: '100%',
             borderRightWidth: 1,
-            borderColor: theme.border,
+            borderColor: theme.borderLight,
         },
 
         wideRHPDropZoneContainer: {

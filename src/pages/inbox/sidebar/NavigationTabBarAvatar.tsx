@@ -1,5 +1,6 @@
 import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
@@ -32,9 +33,20 @@ type NavigationTabBarAvatarProps = {
 
     /** Whether to apply the LHN tab-cell hover background on hover. */
     shouldShowHoverBackground?: boolean;
+
+    /** Avatar size (defaults to SMALL = 28). */
+    avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
 };
 
-function NavigationTabBarAvatar({onPress, isSelected = false, style, shouldShowLabel = true, wrapperStyle, shouldShowHoverBackground = true}: NavigationTabBarAvatarProps) {
+function NavigationTabBarAvatar({
+    onPress,
+    isSelected = false,
+    style,
+    shouldShowLabel = true,
+    wrapperStyle,
+    shouldShowHoverBackground = true,
+    avatarSize = CONST.AVATAR_SIZE.SMALL,
+}: NavigationTabBarAvatarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -74,6 +86,7 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style, shouldShowL
             <ProfileAvatarWithIndicator
                 isSelected={active}
                 containerStyles={shouldShowLabel ? styles.tn0Half : undefined}
+                size={avatarSize}
             />
         );
     };

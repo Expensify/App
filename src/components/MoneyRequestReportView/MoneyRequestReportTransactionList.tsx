@@ -671,7 +671,7 @@ function MoneyRequestReportTransactionList({
 
     const transactionListContent = (
         <View
-            style={[shouldUseNarrowLayout ? styles.pb2 : styles.pb4]}
+            style={[!shouldUseNarrowLayout && listHorizontalPadding, shouldUseNarrowLayout ? styles.pb2 : styles.pb4]}
             onLayout={onLayout}
         >
             {narrowListWrapper ? <View style={narrowListWrapper}>{transactionItems}</View> : transactionItems}
@@ -695,6 +695,7 @@ function MoneyRequestReportTransactionList({
                     styles.dFlex,
                     styles.flexRow,
                     isDesktopTableLayout ? styles.ph5 : styles.pl5,
+                    isDesktopTableLayout && styles.mh5,
                     !isDesktopTableLayout && styles.pr16,
                     styles.alignItemsCenter,
                     isDesktopTableLayout && styles.appBG,

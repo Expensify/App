@@ -312,7 +312,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                             accessibilityLabel={transaction.text ?? ''}
                             isNested
                             onMouseDown={(e) => e.preventDefault()}
-                            hoverStyle={[!transaction.isDisabled && styles.hoveredComponentBG, transaction.isSelected && styles.activeComponentBG]}
+                            hoverStyle={[!transaction.isDisabled && {backgroundColor: theme.hoverLight}, transaction.isSelected && styles.activeComponentBG]}
                             wrapperStyle={isDeletedOrPendingDelete ? styles.cursorDisabled : undefined}
                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                             id={transaction.transactionID}
@@ -343,7 +343,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                                     onCheckboxPress={() => onSelectionButtonPress?.(transaction as unknown as TItem)}
                                     columns={currentColumns}
                                     onButtonPress={(event) => handleButtonPress(transaction, event)}
-                                    style={[styles.noBorderRadius, isLargeScreenWidth ? [styles.ph5, styles.pv2, styles.tableRowHeight] : [styles.ph5, styles.pv4], styles.flex1]}
+                                    style={[styles.noBorderRadius, isLargeScreenWidth ? [styles.ph3, styles.pv2, styles.tableRowHeight] : [styles.ph5, styles.pv4], styles.flex1]}
                                     isReportItemChild
                                     isInSingleTransactionReport={isInSingleTransactionReport}
                                     shouldShowBottomBorder={shouldShowBottomBorder}
