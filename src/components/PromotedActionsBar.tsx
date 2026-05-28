@@ -6,12 +6,13 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {IntroSelected} from '@userActions/Report';
 import {joinRoom, navigateToAndOpenReport, navigateToAndOpenReportWithAccountIDs, togglePinnedState} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
 import type OnyxReport from '@src/types/onyx/Report';
@@ -25,7 +26,7 @@ type PromotedAction = {
 type BasePromotedActions = typeof CONST.PROMOTED_ACTIONS.PIN;
 
 type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => PromotedAction> & {
-    [CONST.PROMOTED_ACTIONS.SHARE]: (report: OnyxReport, backTo?: string) => PromotedAction;
+    [CONST.PROMOTED_ACTIONS.SHARE]: (report: OnyxReport) => PromotedAction;
 } & {
     [CONST.PROMOTED_ACTIONS.MESSAGE]: (params: {
         reportID?: string;
@@ -56,11 +57,11 @@ const PromotedActions = {
         translationKey: report.isPinned ? 'common.unPin' : 'common.pin',
         onSelected: callFunctionIfActionIsAllowed(() => togglePinnedState(report.reportID, !!report.isPinned)),
     }),
-    share: (report, backTo) => ({
+    share: () => ({
         key: CONST.PROMOTED_ACTIONS.SHARE,
         icon: 'QrCode',
         translationKey: 'common.share',
-        onSelected: () => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.getRoute(report.reportID, backTo)),
+        onSelected: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_CODE.path)),
     }),
     join: (report, currentUserAccountID) => ({
         key: CONST.PROMOTED_ACTIONS.JOIN,
