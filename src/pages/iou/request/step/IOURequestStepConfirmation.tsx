@@ -331,12 +331,16 @@ function IOURequestStepConfirmation({
             if (!activeTransactionID) {
                 return;
             }
-            setMoneyRequestParticipants(activeTransactionID, participantsList);
+            if (participantsList.at(0)?.isSelfDM) {
+                setMoneyRequestParticipantsFromReport(activeTransactionID, selfDMReport, currentUserPersonalDetails.accountID);
+            } else {
+                setMoneyRequestParticipants(activeTransactionID, participantsList);
+            }
             if (participantsList.length > 0) {
                 closeParticipantPicker();
             }
         },
-        [activeTransactionID, closeParticipantPicker],
+        [activeTransactionID, closeParticipantPicker, currentUserPersonalDetails.accountID, selfDMReport],
     );
 
     useEffect(() => {
