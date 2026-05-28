@@ -172,12 +172,6 @@ function prepareToCleanUpMoneyRequest(
                 updatedIOUReport.nonReimbursableTotal += nonReimbursableAmountDiff;
             }
 
-            if (transaction?.reimbursable && typeof updatedIOUReport.reimbursableTotal === 'number') {
-                const reimbursableAmountDiff =
-                    getAmount(transaction, true) + (transactionPendingDelete?.reduce((prev, curr) => prev + (curr?.reimbursable ? getAmount(curr, true) : 0), 0) ?? 0);
-                updatedIOUReport.reimbursableTotal += reimbursableAmountDiff;
-            }
-
             if (!isTransactionOnHold) {
                 if (typeof updatedIOUReport.unheldTotal === 'number') {
                     updatedIOUReport.unheldTotal += unheldAmountDiff;
@@ -188,12 +182,6 @@ function prepareToCleanUpMoneyRequest(
                         getAmount(transaction, true) +
                         (transactionPendingDelete?.reduce((prev, curr) => prev + (!isOnHold(curr) && !curr?.reimbursable ? getAmount(curr, true) : 0), 0) ?? 0);
                     updatedIOUReport.unheldNonReimbursableTotal += unheldNonReimbursableAmountDiff;
-                }
-
-                if (transaction?.reimbursable && typeof updatedIOUReport.unheldReimbursableTotal === 'number') {
-                    const unheldReimbursableAmountDiff =
-                        getAmount(transaction, true) + (transactionPendingDelete?.reduce((prev, curr) => prev + (!isOnHold(curr) && curr?.reimbursable ? getAmount(curr, true) : 0), 0) ?? 0);
-                    updatedIOUReport.unheldReimbursableTotal += unheldReimbursableAmountDiff;
                 }
             }
         }

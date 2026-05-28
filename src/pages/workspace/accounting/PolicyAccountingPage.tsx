@@ -166,7 +166,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                       },
                   ]
                 : []),
-            ...(!hasAuthError || isSageIntacct
+            ...(!hasAuthError
                 ? [
                       {
                           icon: icons.Sync,

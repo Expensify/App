@@ -57,6 +57,7 @@ import {
     canEditMoneyRequest,
     canEditReportAction,
     canEditReportDescription,
+    canEditReportPolicy,
     canEditReportTitle,
     canEditRoomVisibility,
     canEditWriteCapability,
@@ -91,12 +92,10 @@ import {
     getIndicatedMissingPaymentMethod,
     getIOUReportActionDisplayMessage,
     getLinkedIOUTransaction,
-    getMoneyRequestSpendBreakdown,
     getMostRecentlyVisitedReport,
     getMovedActionMessage,
     getMovedTransactionMessage,
     getNextApproverAccountID,
-    getNonHeldAndFullAmount,
     getOriginalReportID,
     getOutstandingChildRequest,
     getParentNavigationSubtitle,
@@ -105,7 +104,6 @@ import {
     getPolicyIDsWithEmptyReportsForAccount,
     getPolicyName,
     getReasonAndReportActionThatRequiresAttention,
-    getReimbursableTotal,
     getReportActionWithSmartscanError,
     getReportIDFromLink,
     getReportOrDraftReport,
@@ -116,7 +114,6 @@ import {
     getTitleFieldWithFallback,
     getTransactionDetails,
     getTransactionSortValue,
-    getUnheldReimbursableTotal,
     getUnreportedTransactionMessage,
     getViolatingReportIDForRBRInLHN,
     getWorkspaceIcon,
@@ -193,7 +190,10 @@ import type {
 import type {ErrorFields, Errors, OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ACHAccount, PolicyReportField} from '@src/types/onyx/Policy';
-import type {Participant, Participants} from '@src/types/onyx/Report';
+import type {Participant, Participants, ReportCollectionDataSet} from '@src/types/onyx/Report';
+import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
+import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
+import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';
@@ -5468,6 +5468,96 @@ describe('ReportUtils', () => {
 
             expect(canEditRequest).toEqual(false);
         });
+
+        it('should return false for the submitter after a corporate report was forwarded even when the updated workflow points submitsTo at the current manager', async () => {
+            const reportID = '89012';
+            const transactionID = '89012-transaction';
+            const policyID = '89012-policy';
+            const forwardedToAccountID = 2;
+
+            const reportPolicy: Policy = {
+                id: policyID,
+                name: 'Advanced approval policy',
+                role: CONST.POLICY.ROLE.USER,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                owner: '',
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: false,
+                employeeList: {
+                    'lagertha2@vikings.net': {
+                        email: 'lagertha2@vikings.net',
+                        role: CONST.POLICY.ROLE.USER,
+                        submitsTo: 'floki@vikings.net',
+                    },
+                },
+            };
+            const expenseReport: Report = {
+                ...createExpenseReport(Number(reportID)),
+                reportID,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: currentUserAccountID,
+                managerID: forwardedToAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            const transaction = {
+                ...createRandomTransaction(89012),
+                transactionID,
+                reportID,
+            };
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                ...createRandomReportAction(89012),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.TEXT, text: ''}],
+                previousMessage: undefined,
+                originalMessage: {
+                    IOUReportID: reportID,
+                    IOUTransactionID: transactionID,
+                    amount: 5000,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+
+            const policyCollectionDataSet: CollectionDataSet<typeof ONYXKEYS.COLLECTION.POLICY> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: reportPolicy,
+            };
+            const reportCollectionDataSet: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: expenseReport,
+            };
+            const transactionCollectionDataSet: TransactionCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+            const reportActionsCollectionDataSet: ReportActionsCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {
+                    submitted: {
+                        ...createRandomReportAction(89013),
+                        actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                        created: '2026-04-21 17:00:00',
+                    },
+                    forwarded: {
+                        ...createRandomReportAction(89014),
+                        actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                        created: '2026-04-21 17:10:00',
+                    },
+                },
+            };
+
+            await Onyx.multiSet({
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
+                [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                ...policyCollectionDataSet,
+                ...reportCollectionDataSet,
+                ...transactionCollectionDataSet,
+                ...reportActionsCollectionDataSet,
+            });
+            await waitForBatchedUpdates();
+
+            expect(canEditReportPolicy(expenseReport, reportPolicy)).toBe(false);
+            expect(canEditMoneyRequest(moneyRequestAction, transaction, false, expenseReport, reportPolicy)).toBe(false);
+        });
     });
 
     describe('canEditReportAction', () => {
@@ -9050,6 +9140,41 @@ describe('ReportUtils', () => {
             // AND include actionBadge (APPROVE) since it's a processing expense report the user can approve
             expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
             expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
+        });
+
+        it('should use allReportActionsParam when provided instead of module-level Onyx data', async () => {
+            // Given a submitted expense report with a DEW_APPROVE_FAILED action stored ONLY in the passed param (not in Onyx)
+            const report: OptionData = {
+                ...createRandomReport(70000, undefined),
+                keyForList: 'SomeKey',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            const dewApproveFailedAction: ReportAction = {
+                ...createRandomReportAction(70000),
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+                created: '2024-08-08 18:00:00.000',
+            };
+
+            // Do NOT set report actions in Onyx — only pass them via the param
+            const allReportActionsParam: OnyxCollection<ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {
+                    [dewApproveFailedAction.reportActionID]: dewApproveFailedAction,
+                },
+            };
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+
+            // Without the param, the function should NOT find DEW_APPROVE_FAILED (since it's not in Onyx)
+            const resultWithout = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            expect(resultWithout?.reason).not.toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
+
+            // With the param, the function should find DEW_APPROVE_FAILED from the passed param
+            const resultWith = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current, allReportActionsParam);
+            expect(resultWith).toHaveProperty('reason', CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
         });
 
         it('should return null for an archived report when there is a policy pending join request', async () => {
@@ -17751,166 +17876,6 @@ describe('ReportUtils', () => {
 
             expect(transactionThread).toBeUndefined();
             expect(createdActionForThread).toBeNull();
-        });
-    });
-
-    describe('getReimbursableTotal', () => {
-        it('returns 0 when the report is undefined', () => {
-            expect(getReimbursableTotal(undefined)).toBe(0);
-        });
-
-        it('returns the freshly computed reimbursableTotal when set', () => {
-            const report = {total: -1000, nonReimbursableTotal: -200, reimbursableTotal: -750};
-            expect(getReimbursableTotal(report)).toBe(-750);
-        });
-
-        it('falls back to total minus nonReimbursableTotal when reimbursableTotal is missing', () => {
-            const report = {total: -1000, nonReimbursableTotal: -200};
-            expect(getReimbursableTotal(report)).toBe(-800);
-        });
-
-        it('treats missing total and nonReimbursableTotal as 0 when reimbursableTotal is missing', () => {
-            expect(getReimbursableTotal({})).toBe(0);
-        });
-
-        it('prefers reimbursableTotal of 0 over the legacy derivation', () => {
-            const report = {total: -1000, nonReimbursableTotal: -1000, reimbursableTotal: 0};
-            expect(getReimbursableTotal(report)).toBe(0);
-        });
-    });
-
-    describe('getUnheldReimbursableTotal', () => {
-        it('returns 0 when the report is undefined', () => {
-            expect(getUnheldReimbursableTotal(undefined)).toBe(0);
-        });
-
-        it('returns the freshly computed unheldReimbursableTotal when set', () => {
-            const report = {unheldTotal: -1000, unheldNonReimbursableTotal: -200, unheldReimbursableTotal: -750};
-            expect(getUnheldReimbursableTotal(report)).toBe(-750);
-        });
-
-        it('falls back to unheldTotal minus unheldNonReimbursableTotal when unheldReimbursableTotal is missing', () => {
-            const report = {unheldTotal: -1000, unheldNonReimbursableTotal: -200};
-            expect(getUnheldReimbursableTotal(report)).toBe(-800);
-        });
-
-        it('treats missing unheldTotal and unheldNonReimbursableTotal as 0 when unheldReimbursableTotal is missing', () => {
-            expect(getUnheldReimbursableTotal({})).toBe(0);
-        });
-    });
-
-    describe('getMoneyRequestSpendBreakdown', () => {
-        it('returns zeroes when the report is empty', () => {
-            const fields = getMoneyRequestSpendBreakdown(undefined);
-            expect(fields.totalDisplaySpend).toBe(0);
-            expect(fields.reimbursableSpend).toBe(0);
-            expect(fields.nonReimbursableSpend).toBe(0);
-        });
-
-        it('uses the freshly tracked reimbursableTotal for an expense report', () => {
-            const expenseReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                total: -10000,
-                nonReimbursableTotal: -3000,
-                reimbursableTotal: -7000,
-            };
-            const fields = getMoneyRequestSpendBreakdown(expenseReport);
-            expect(fields.reimbursableSpend).toBe(7000);
-            expect(fields.nonReimbursableSpend).toBe(3000);
-            expect(fields.totalDisplaySpend).toBe(10000);
-        });
-
-        it('falls back to total minus nonReimbursableTotal when reimbursableTotal is missing', () => {
-            const expenseReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                total: -10000,
-                nonReimbursableTotal: -3000,
-            };
-            const fields = getMoneyRequestSpendBreakdown(expenseReport);
-            expect(fields.reimbursableSpend).toBe(7000);
-            expect(fields.nonReimbursableSpend).toBe(3000);
-            expect(fields.totalDisplaySpend).toBe(10000);
-        });
-
-        it('returns 0 reimbursableSpend (not -0) for an all-non-reimbursable expense report', () => {
-            const expenseReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                total: -4000,
-                nonReimbursableTotal: -4000,
-                reimbursableTotal: 0,
-            };
-            const fields = getMoneyRequestSpendBreakdown(expenseReport);
-            expect(fields.reimbursableSpend).toBe(0);
-            expect(Object.is(fields.reimbursableSpend, -0)).toBe(false);
-            expect(fields.nonReimbursableSpend).toBe(4000);
-            expect(fields.totalDisplaySpend).toBe(4000);
-        });
-
-        it('uses Math.abs for an IOU report so values are positive', () => {
-            const iouReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.IOU,
-                total: 5000,
-                nonReimbursableTotal: 0,
-                reimbursableTotal: 5000,
-            };
-            const fields = getMoneyRequestSpendBreakdown(iouReport);
-            expect(fields.reimbursableSpend).toBe(5000);
-            expect(fields.nonReimbursableSpend).toBe(0);
-            expect(fields.totalDisplaySpend).toBe(5000);
-        });
-    });
-
-    describe('getNonHeldAndFullAmount', () => {
-        it('uses the freshly tracked unheldReimbursableTotal when shouldExcludeNonReimbursables is true', () => {
-            const expenseReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                currency: CONST.CURRENCY.USD,
-                total: -10000,
-                unheldTotal: -8000,
-                nonReimbursableTotal: -3000,
-                unheldNonReimbursableTotal: -2000,
-                reimbursableTotal: -7000,
-                unheldReimbursableTotal: -6000,
-            };
-            const result = getNonHeldAndFullAmount(expenseReport, true, []);
-            expect(result.fullAmount).toContain('70.00');
-            expect(result.nonHeldAmount).toContain('60.00');
-        });
-
-        it('uses the full reimbursable plus non-reimbursable when shouldExcludeNonReimbursables is false', () => {
-            const expenseReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                currency: CONST.CURRENCY.USD,
-                total: -10000,
-                unheldTotal: -8000,
-                nonReimbursableTotal: -3000,
-                unheldNonReimbursableTotal: -2000,
-                reimbursableTotal: -7000,
-                unheldReimbursableTotal: -6000,
-            };
-            const result = getNonHeldAndFullAmount(expenseReport, false, []);
-            expect(result.fullAmount).toContain('100.00');
-            expect(result.nonHeldAmount).toContain('80.00');
-        });
-
-        it('falls back to legacy unheldTotal minus unheldNonReimbursableTotal when unheldReimbursableTotal is missing', () => {
-            const expenseReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                currency: CONST.CURRENCY.USD,
-                total: -10000,
-                unheldTotal: -8000,
-                nonReimbursableTotal: -3000,
-                unheldNonReimbursableTotal: -2000,
-            };
-            const result = getNonHeldAndFullAmount(expenseReport, true, []);
-            expect(result.nonHeldAmount).toContain('60.00');
         });
     });
 
