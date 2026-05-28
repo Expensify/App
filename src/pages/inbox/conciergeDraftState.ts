@@ -39,8 +39,9 @@ const INLINE_CODE_DELIMITER = '`';
 const BOLD_DELIMITER = '**';
 const STRIKETHROUGH_DELIMITER = '~~';
 const DRAFT_PACE_BACKLOG_CHAR_LIMIT = 80;
-const DRAFT_PACE_CATCHUP_DIVISOR = 40;
-const DRAFT_PACE_COMPLETION_DIVISOR = 4;
+const DRAFT_PACE_MIN_VISIBLE_CHARS = 2;
+const DRAFT_PACE_CATCHUP_DIVISOR = 24;
+const DRAFT_PACE_COMPLETION_DIVISOR = 12;
 
 function isInAnyRange(position: number, ranges: TextRange[]): boolean {
     return ranges.some((range) => position >= range.start && position < range.end);
@@ -234,7 +235,7 @@ function getNextVisibleConciergeDraftBodyMarkdown(currentBodyMarkdown: string, t
     const targetLength = Array.from(targetBodyMarkdown).length;
     const remainingLength = targetLength - currentLength;
     const divisor = shouldAccelerate ? DRAFT_PACE_COMPLETION_DIVISOR : DRAFT_PACE_CATCHUP_DIVISOR;
-    const step = remainingLength <= DRAFT_PACE_BACKLOG_CHAR_LIMIT && !shouldAccelerate ? 1 : Math.max(1, Math.ceil(remainingLength / divisor));
+    const step = remainingLength <= DRAFT_PACE_BACKLOG_CHAR_LIMIT && !shouldAccelerate ? DRAFT_PACE_MIN_VISIBLE_CHARS : Math.max(1, Math.ceil(remainingLength / divisor));
 
     return sliceByCodePoint(targetBodyMarkdown, currentLength + step);
 }
