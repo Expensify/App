@@ -9,7 +9,7 @@ function SearchAdvancedFiltersPage() {
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     if (!isSmallScreenWidth) {
-        return Navigation.goBack();
+        return Navigation.dismissModal();
     }
 
     return <SearchAdvancedFiltersBase />;
