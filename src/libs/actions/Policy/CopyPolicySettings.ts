@@ -293,13 +293,13 @@ function buildCopyPolicySettingsData(
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.COPY_POLICY_SETTINGS,
-        value: {currentStep: 'loading'},
+        value: {currentStep: 'loading', notificationRequestedForStep: null},
     });
 
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.COPY_POLICY_SETTINGS,
-        value: {currentStep: null},
+        value: {currentStep: null, notificationRequestedForStep: null},
     });
 
     return {optimisticData, successData, failureData};

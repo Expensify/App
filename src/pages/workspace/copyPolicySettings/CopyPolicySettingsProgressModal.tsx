@@ -1,9 +1,9 @@
-import React, {useState} from 'react';
+import React from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {clearCopyPolicySettings, requestCopyPolicySettingsNotification} from '@libs/actions/Policy/CopyPolicySettings';
+import {clearCopyPolicySettings, requestCopyPolicySettingsNotification, setCopyPolicySettingsData} from '@libs/actions/Policy/CopyPolicySettings';
 import {navigateToConciergeChat} from '@libs/actions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
@@ -20,9 +20,7 @@ function useCopyPolicySettingsProgressModal() {
     const currentStep = copyPolicySettings?.currentStep;
     const isVisible = currentStep === 'loading' || currentStep === 'complete';
 
-    // Track which currentStep the notification was requested for.
-    // Auto-resets when currentStep changes (e.g. hidden → loading again).
-    const [notificationRequestedForStep, setNotificationRequestedForStep] = useState<string | null>(null);
+    const notificationRequestedForStep = copyPolicySettings?.notificationRequestedForStep ?? null;
     const hasRequestedNotification = notificationRequestedForStep === currentStep;
 
     if (currentStep === 'loading' && !hasRequestedNotification) {
@@ -35,7 +33,7 @@ function useCopyPolicySettingsProgressModal() {
             shouldShowCancelButton: false,
             onConfirm: () => {
                 requestCopyPolicySettingsNotification();
-                setNotificationRequestedForStep(currentStep ?? null);
+                setCopyPolicySettingsData({notificationRequestedForStep: currentStep ?? null});
             },
             onCancel: () => {},
         };
@@ -51,12 +49,10 @@ function useCopyPolicySettingsProgressModal() {
             shouldShowCancelButton: true,
             onConfirm: () => {
                 clearCopyPolicySettings();
-                setNotificationRequestedForStep(null);
                 navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
             },
             onCancel: () => {
                 clearCopyPolicySettings();
-                setNotificationRequestedForStep(null);
             },
         };
     }
@@ -71,7 +67,6 @@ function useCopyPolicySettingsProgressModal() {
             shouldShowCancelButton: false,
             onConfirm: () => {
                 clearCopyPolicySettings();
-                setNotificationRequestedForStep(null);
             },
             onCancel: () => {},
         };
