@@ -152,6 +152,15 @@ type Comment = {
 
     /** Odometer end image (File object with uri on web, URI string on native) */
     odometerEndImage?: FileObject | string;
+
+    /** Spotnana trip ID, set on travel transactions and used to link the expense to its trip room */
+    tripID?: string;
+
+    /** Trip room report ID, set on travel transactions so the expense can deep-link directly to its trip room */
+    tripChatReportID?: string;
+
+    /** Trip room display name, set on travel transactions for rendering the trip room link label */
+    tripName?: string;
 };
 
 /** Model of transaction custom unit */

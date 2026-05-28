@@ -453,6 +453,10 @@ function MoneyRequestView({
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
     const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
 
+    const tripRoomReportID = transaction?.comment?.tripChatReportID;
+    const tripRoomName = transaction?.comment?.tripName;
+    const shouldShowTripRoomLink = !!tripRoomReportID && !!tripRoomName;
+
     const {getViolationsForField} = useViolations(transactionViolations ?? [], isTransactionScanning || !isPaidGroupPolicy(transactionThreadReport));
     const hasViolations = (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string): boolean =>
         getViolationsForField(field, data, policyHasDependentTags, tagValue).length > 0;
@@ -1330,6 +1334,21 @@ function MoneyRequestView({
                             copyable={!!reportCopyValue}
                         />
                     </OfflineWithFeedback>
+                )}
+                {shouldShowTripRoomLink && (
+                    <>
+                        <MenuItemWithTopDescription
+                            title={tripRoomName}
+                            description={translate('travel.trip')}
+                            style={[styles.moneyRequestMenuItem]}
+                            titleStyle={[styles.flex1, styles.textBlue]}
+                            onPress={() => {
+                                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(tripRoomReportID));
+                            }}
+                            interactive
+                        />
+                        <View style={styles.reportHorizontalRule} />
+                    </>
                 )}
                 {/* Note: "View trip details" should be always the last item */}
                 {shouldShowViewTripDetails && (
