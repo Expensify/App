@@ -8,6 +8,7 @@ import {useChartDefaultTypeface} from '@components/Charts/hooks';
 import {COLOR_KEY, LABEL_KEY, VALUE_KEY, X_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
+import parseComponent from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseComponent';
 import parseVictoryLabelNode from '../parsers/victoryLabelParser';
 import VictoryChartLabel from './VictoryChartLabel';
 
@@ -19,35 +20,17 @@ type VictoryChartPieLabelProps = {
 const RADIAN = Math.PI / 180;
 
 function VictoryChartPieLabel({tnode, slice}: VictoryChartPieLabelProps) {
-    const renderEnginer = useAmbientTRenderEngine();
-
-    if (!tnode.attributes.labelcomponent) {
-        return null;
-    }
-
-    const labelComponentTree = renderEnginer.buildTTree(tnode.attributes.labelcomponent);
-    const labelComponentNode =
-        labelComponentTree.children.at(0)?.children.at(0)?.children.at(0)?.tagName === 'victorylabel' ? labelComponentTree.children.at(0)?.children.at(0)?.children.at(0) : null;
-
-    if (!labelComponentNode) {
-        return null;
-    }
-
-    const {labelItems} = parseVictoryLabelNode(labelComponentNode);
-    const labelItem = labelItems?.at(0);
+    const renderEngine = useAmbientTRenderEngine();
+    const labelComponentNode = parseComponent(tnode.attributes.labelcomponent, renderEngine, 'victorylabel');
+    const labelItem = labelComponentNode ? parseVictoryLabelNode(labelComponentNode).labelItems?.at(0) : undefined;
 
     if (!labelItem) {
         return null;
     }
 
-    // Offset from the slice radius to help position the label
-    const labelRadius = tnode.attributes.labelradius !== undefined ? Number(parseAttribute(tnode.attributes.labelradius)) : slice.radius;
-
-    // Middle angle of the slice
-    const midAngle = (slice.startAngle + slice.endAngle) / 2;
-
-    // Center coordinates of slice
     const text = slice.label;
+    const labelRadius = tnode.attributes.labelradius !== undefined ? Number(parseAttribute(tnode.attributes.labelradius)) : slice.radius;
+    const midAngle = (slice.startAngle + slice.endAngle) / 2;
     const x = slice.center.x + labelRadius * Math.cos(-midAngle * RADIAN);
     const y = slice.center.y + labelRadius * Math.sin(midAngle * RADIAN);
 
