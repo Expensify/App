@@ -13,25 +13,29 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
     const {translate} = useLocalize();
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
-    function updateFilterQueryParams(values: Partial<SearchAdvancedFiltersForm>) {
+    function getUpdatedFilterFormValues(currentValues: Partial<SearchAdvancedFiltersForm>, newValues: Partial<SearchAdvancedFiltersForm>) {
         const updatedFilterFormValues: Partial<SearchAdvancedFiltersForm> = {
-            ...searchAdvancedFiltersForm,
-            ...values,
+            ...currentValues,
+            ...newValues,
         };
 
-        if (updatedFilterFormValues.type !== searchAdvancedFiltersForm.type) {
+        if (updatedFilterFormValues.type !== currentValues.type) {
             updatedFilterFormValues.columns = [];
             updatedFilterFormValues.status = CONST.SEARCH.STATUS.EXPENSE.ALL;
             updatedFilterFormValues.has = filterValidHasValues(updatedFilterFormValues.has, updatedFilterFormValues.type, translate);
         }
 
-        if (updatedFilterFormValues.groupBy !== searchAdvancedFiltersForm.groupBy) {
+        if (updatedFilterFormValues.groupBy !== currentValues.groupBy) {
             updatedFilterFormValues.columns = [];
         }
 
+        return updatedFilterFormValues;
+    }
+
+    function updateFilterQueryParams(values: Partial<SearchAdvancedFiltersForm>) {
         const queryString =
             buildFilterQueryWithSortDefaults(
-                updatedFilterFormValues,
+                getUpdatedFilterFormValues(searchAdvancedFiltersForm, values),
                 {view: searchAdvancedFiltersForm.view, groupBy: searchAdvancedFiltersForm.groupBy},
                 {sortBy: queryJSON?.sortBy, sortOrder: queryJSON?.sortOrder},
             ) ?? '';
@@ -42,7 +46,7 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
         Navigation.setParams({q: queryString, rawQuery: undefined});
     }
 
-    return updateFilterQueryParams;
+    return {getUpdatedFilterFormValues, updateFilterQueryParams};
 }
 
 export default useUpdateFilterQuery;

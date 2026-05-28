@@ -14,7 +14,7 @@ type SearchAdvancedFiltersValue = {
 };
 
 type SearchAdvancedFiltersActionValue = {
-    setDraftFilters: React.Dispatch<React.SetStateAction<Partial<SearchAdvancedFiltersForm>>>;
+    setDraftFilters: (values: Partial<SearchAdvancedFiltersForm>) => void;
     applyFilters: () => void;
     resetFilters: () => void;
 };
@@ -37,7 +37,7 @@ type SearchAdvancedFiltersProviderProps = {
 function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProviderProps) {
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const {currentSearchQueryJSON} = useSearchQueryContext();
-    const updateFilterQueryParams = useUpdateFilterQuery(currentSearchQueryJSON);
+    const {getUpdatedFilterFormValues, updateFilterQueryParams} = useUpdateFilterQuery(currentSearchQueryJSON);
 
     const [values, setValues] = useState<Partial<SearchAdvancedFiltersForm>>(searchAdvancedFiltersForm ?? {});
 
@@ -54,6 +54,10 @@ function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProvider
         Navigation.dismissModal({afterTransition: () => updateFilterQueryParams(advancedFiltersToReset)});
     };
 
+    const setDraftFilters = (values: Partial<SearchAdvancedFiltersForm>) => {
+        setValues((prevValues) => getUpdatedFilterFormValues(prevValues, values));
+    };
+
     const searchAdvancedFiltersValue: SearchAdvancedFiltersValue = {
         currentDraftFilters: values,
         shouldShowResetFilters: !isEmptyObject(advancedFiltersToReset),
@@ -62,7 +66,7 @@ function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProvider
     const searchAdvancedFiltersActionValue: SearchAdvancedFiltersActionValue = {
         applyFilters,
         resetFilters,
-        setDraftFilters: setValues,
+        setDraftFilters,
     };
 
     return (

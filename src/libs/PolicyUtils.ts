@@ -329,7 +329,13 @@ function getEligibleBankAccountShareRecipients(policies: OnyxCollection<Policy> 
         for (const admin of getAdminEmployees(policy)) {
             const email = admin?.email;
             // Check if the email is for the active user or an existing user in the sharees array or admins list to avoid extra iterations
-            if (!email || email === currentUserLogin || adminMap.has(email) || shareesSet.has(email)) {
+            if (
+                !email ||
+                email === currentUserLogin ||
+                adminMap.has(email) ||
+                shareesSet.has(email) ||
+                (isExpensifyTeam(email) && shouldFilterExpensifyTeam(policy.owner, currentUserLogin))
+            ) {
                 continue;
             }
             const personalDetails = getPersonalDetailByEmail(email);
@@ -360,6 +366,7 @@ function getEligibleBankAccountShareRecipients(policies: OnyxCollection<Policy> 
 function hasEligibleActiveAdminFromWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, bankAccountID: string | undefined): boolean {
     const currentBankAccount = getBankAccountFromID(Number(bankAccountID));
     const activePolicies = getActivePolicies(policies, currentUserLogin);
+    console.log('active policies', activePolicies);
     if (!activePolicies) {
         return false;
     }
@@ -367,9 +374,10 @@ function hasEligibleActiveAdminFromWorkspaces(policies: OnyxCollection<Policy> |
     const alreadySharedSharees = new Set(currentBankAccount?.accountData?.sharees ?? []);
     for (const policy of Object.values(activePolicies)) {
         const admins = getAdminEmployees(policy);
+        console.log('active policies', admins);
         for (const admin of admins) {
             const email = admin?.email;
-            if (!email || email === currentUserLogin || alreadySharedSharees.has(email)) {
+            if (!email || email === currentUserLogin || alreadySharedSharees.has(email) || (isExpensifyTeam(email) && shouldFilterExpensifyTeam(policy.owner, currentUserLogin))) {
                 continue;
             }
 

@@ -50,7 +50,7 @@ function SearchAdvancedFiltersContentBase() {
                             policyIDQuery={currentSearchQueryJSON?.policyID}
                             autoFocus
                             onChange={(newValues) => {
-                                setDraftFilters((prevValues) => ({...prevValues, ...newValues}));
+                                setDraftFilters(newValues);
                                 Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                             }}
                         />
