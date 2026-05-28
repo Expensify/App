@@ -7,9 +7,8 @@ type Emoji = {
     types?: readonly string[];
 
     /**
-     * Additional searchable names for this emoji that should rank as name matches in the suggestion trie.
+     * Additional searchable names for this emoji that should rank as name matches in the suggestions.
      * Useful for emojis whose canonical `name` is not human-readable (e.g. `+1` / `-1`),
-     * so they can also be discovered by typing readable prefixes like `thumbs_up`.
      */
     aliases?: readonly string[];
 };
