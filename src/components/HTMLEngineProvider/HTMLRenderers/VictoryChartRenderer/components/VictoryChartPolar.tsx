@@ -4,7 +4,7 @@ import {COLOR_KEY, LABEL_KEY, VALUE_KEY} from '@components/HTMLEngineProvider/HT
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getHierarchyID';
 import VictoryChartCategories from './VictoryChartCategories';
-import VictoryChartLabels from './VictoryChartLabels';
+import VictoryChartLabel from './VictoryChartLabel';
 import VictoryChartLegend from './VictoryChartLegend';
 
 /**
@@ -29,8 +29,12 @@ function VictoryChartPolar() {
                     tnode={child}
                 />
             ))}
-            <VictoryChartLabels labelItems={labelItems} />
-            <VictoryChartLegend legendItems={legendItems} />
+            {labelItems.map((labelItem) => (
+                <VictoryChartLabel {...labelItem} />
+            ))}
+            {legendItems.map((legendItem) => (
+                <VictoryChartLegend {...legendItem} />
+            ))}
         </PolarChart>
     );
 }

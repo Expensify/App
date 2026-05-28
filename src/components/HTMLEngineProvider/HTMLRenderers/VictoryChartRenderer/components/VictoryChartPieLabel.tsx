@@ -9,7 +9,7 @@ import {COLOR_KEY, LABEL_KEY, VALUE_KEY, X_KEY} from '@components/HTMLEngineProv
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import parseVictoryLabelNode from '../parsers/victoryLabelParser';
-import VictoryChartLabels from './VictoryChartLabels';
+import VictoryChartLabel from './VictoryChartLabel';
 
 type VictoryChartPieLabelProps = {
     tnode: TNode;
@@ -34,8 +34,9 @@ function VictoryChartPieLabel({tnode, slice}: VictoryChartPieLabelProps) {
     }
 
     const {labelItems} = parseVictoryLabelNode(labelComponentNode);
+    const labelItem = labelItems?.at(0);
 
-    if (!labelItems?.length) {
+    if (!labelItem) {
         return null;
     }
 
@@ -50,11 +51,11 @@ function VictoryChartPieLabel({tnode, slice}: VictoryChartPieLabelProps) {
     const x = slice.center.x + labelRadius * Math.cos(-midAngle * RADIAN);
     const y = slice.center.y + labelRadius * Math.sin(midAngle * RADIAN);
 
-    labelItems.at(0).text = text;
-    labelItems.at(0).x = x;
-    labelItems.at(0).y = y;
+    labelItem.text = text;
+    labelItem.x = x;
+    labelItem.y = y;
 
-    return <VictoryChartLabels labelItems={labelItems} />;
+    return <VictoryChartLabel {...labelItem} />;
 }
 
 VictoryChartPieLabel.displayName = 'VictoryChartPieLabel';
