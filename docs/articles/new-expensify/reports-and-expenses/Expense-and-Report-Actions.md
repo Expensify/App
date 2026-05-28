@@ -107,7 +107,6 @@ Use this guide to understand:
 | **Export** | Approved or Paid reports not yet exported | Workspace Admin | Sends report data to an accounting system |
 | **Review** | When issues are detected | All roles | Prompts required fixes before continuing |
 
-**Note:** If your workspace does not use approvals, **Submit** and **Approve** may appear as **Mark as done**.
 
 ---
 

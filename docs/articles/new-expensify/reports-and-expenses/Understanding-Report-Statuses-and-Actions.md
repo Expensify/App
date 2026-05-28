@@ -57,8 +57,6 @@ Depending on the report status and your role, the primary action button may say:
 - **Export**: Send the approved report to your accounting system.
 - **View**: No further action is required; you have view-only access.
 
-**Note:** If your workspace does not use an approval workflow, you'll see **Mark as done** instead of **Submit** and **Approve**. 
-
 ---
 
 # Special Actions
