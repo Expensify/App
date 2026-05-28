@@ -34,7 +34,7 @@ jobs:
     concurrency:
       group: codex-review-${{ github.event.pull_request.number || github.event.issue.number }}
       cancel-in-progress: true
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: read
@@ -45,7 +45,7 @@ jobs:
       ACTOR_ASSOCIATION: ${{ case(github.event_name == 'pull_request_target', github.event.pull_request.author_association, github.event.comment.author_association) }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           # Important: `pull_request_target` should never checkout the PR head.
           ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.base.sha || github.sha }}
