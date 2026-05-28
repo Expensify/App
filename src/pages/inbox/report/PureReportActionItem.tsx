@@ -102,9 +102,6 @@ type PureReportActionItemProps = {
     /** Should we display the new marker on top of the comment? */
     shouldDisplayNewMarker: boolean;
 
-    /** Position index of the report action in the overall report FlatList view */
-    index: number;
-
     /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine?: boolean;
 
@@ -158,9 +155,6 @@ type PureReportActionItemProps = {
 
     /** Whether the action is the "Created" action of a harvest-created expense report */
     isHarvestCreatedExpenseReport?: boolean;
-
-    /** Whether the user is a track intent user */
-    isTrackIntentUser?: boolean;
 };
 
 function PureReportActionItem({
@@ -169,7 +163,6 @@ function PureReportActionItem({
     transactionThreadReport,
     linkedReportActionID,
     displayAsGroup,
-    index,
     parentReportAction,
     shouldDisplayNewMarker,
     shouldHideThreadDividerLine = false,
@@ -189,7 +182,6 @@ function PureReportActionItem({
     shouldShowBorder,
     shouldHighlight = false,
     isHarvestCreatedExpenseReport = false,
-    isTrackIntentUser,
 }: PureReportActionItemProps) {
     const isConciergeGreeting = action.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID;
     const shouldDisplayContextMenuValue = shouldDisplayContextMenu && !isConciergeGreeting;
@@ -612,9 +604,7 @@ function PureReportActionItem({
                                                                 personalDetails={personalDetails}
                                                                 shouldShowBorder={shouldShowBorder}
                                                                 isOnSearch={isOnSearch}
-                                                                index={index}
                                                                 setIsPaymentMethodPopoverActive={setIsPaymentMethodPopoverActive}
-                                                                isTrackIntentUser={isTrackIntentUser ?? false}
                                                             />
                                                             {Permissions.canUseLinkPreviews() && !isHidden && (action.linkMetadata?.length ?? 0) > 0 && (
                                                                 <View style={hasDraft ? styles.chatItemReactionsDraftRight : {}}>
@@ -684,7 +674,6 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.report?.description === nextProps.report?.description &&
         isCompletedTaskReport(prevProps.report) === isCompletedTaskReport(nextProps.report) &&
         prevProps.report?.managerID === nextProps.report?.managerID &&
-        prevProps.index === nextProps.index &&
         prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine &&
         prevProps.report?.total === nextProps.report?.total &&
         prevProps.report?.nonReimbursableTotal === nextProps.report?.nonReimbursableTotal &&
