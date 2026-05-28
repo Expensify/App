@@ -17,14 +17,15 @@ function ComposerLocalTime() {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const canShowRecipientLocalTime = useReportRecipientLocalTime({report});
-    const {reportPendingAction: pendingAction} = getReportOfflinePendingActionAndErrors(report);
-
     const shouldShow = canShowRecipientLocalTime && !isComposerFullSize;
     const reportRecipientAccountID = getReportRecipientAccountIDs(report, currentUserAccountID).at(0);
     const [reportRecipient] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailByAccountIDSelector(shouldShow ? reportRecipientAccountID : undefined)});
+
     if (!shouldShow || isEmptyObject(reportRecipient) || isAgentEmail(reportRecipient?.login)) {
         return null;
     }
+
+    const {reportPendingAction: pendingAction} = getReportOfflinePendingActionAndErrors(report);
 
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
