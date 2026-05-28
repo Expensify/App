@@ -50,6 +50,9 @@ type HRCardDescriptor = {
     /** Whether the last sync resulted in an error. */
     hasError: boolean;
 
+    /** Whether the card should switch into "reconnect mode". Shows the error message and the Reconnect link. */
+    needsReconnect: boolean;
+
     /** Human-readable error message from the last failed sync attempt. */
     lastSyncErrorMessage?: string;
 
@@ -127,12 +130,15 @@ function getHRCardState({policy, connectionName, connectionSyncProgress, getLoca
     const syncState =
         connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR ? getMergeHRSyncState(policy) : getHRSyncState(policy, connectionName, connectionSyncProgress, getLocalDateFromDatetime);
 
-    const lastSyncErrorMessage = syncState.hasError ? (policy?.connections?.[connectionName]?.lastSync?.errorMessage ?? undefined) : undefined;
+    const lastSync = policy?.connections?.[connectionName]?.lastSync;
+    const lastSyncErrorMessage = syncState.hasError ? lastSync?.errorMessage : undefined;
+    const needsReconnect = !!lastSync?.isAuthenticationError;
 
     return {
         isConnected,
         ...syncState,
         lastSyncErrorMessage,
+        needsReconnect,
     };
 }
 
@@ -261,7 +267,7 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
 
     if (isBetaEnabled(CONST.BETAS.MERGE_HR)) {
         const mergeConnectionName = CONST.POLICY.CONNECTIONS.NAME.MERGE_HR;
-        const disconnectedState = {isConnected: false, isSyncInProgress: false, isInitialSyncInProgress: false, hasError: false} as const;
+        const disconnectedState = {isConnected: false, isSyncInProgress: false, isInitialSyncInProgress: false, hasError: false, needsReconnect: false} as const;
 
         for (const [slug, providerEntry] of Object.entries(MERGE_HR_PROVIDERS) as Array<[MergeHRProviderSlug, (typeof MERGE_HR_PROVIDERS)[MergeHRProviderSlug]]>) {
             const state = getHRCardState({policy, connectionName: mergeConnectionName, connectionSyncProgress, getLocalDateFromDatetime, mergeSlug: slug});

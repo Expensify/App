@@ -45,6 +45,7 @@ import {
     isPendingDeletePolicy,
     isTimeTrackingEnabled,
     shouldShowEmployeeListError,
+    shouldShowHRConnectionError,
     shouldShowSyncError,
     shouldShowTaxRateError,
 } from '@libs/PolicyUtils';
@@ -142,6 +143,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     const accountingConnectionNames = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
     const hasSyncError = shouldShowSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy), accountingConnectionNames);
+    const hasHRError = shouldShowHRConnectionError(policy, isConnectionInProgress(connectionSyncProgress, policy));
     const hasMembersError = shouldShowEmployeeListError(policy);
     const hasPolicyCategoryError = hasPolicyCategoriesError(policyCategories);
     const hasGeneralSettingsError =
@@ -276,6 +278,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 translationKey: 'workspace.common.hr',
                 icon: expensifyIcons.Users,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID)))),
+                brickRoadIndicator: hasHRError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 screenName: SCREENS.WORKSPACE.HR,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.HR,
                 highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,

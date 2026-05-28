@@ -522,7 +522,8 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, isConnecti
         shouldShowCustomUnitsError(policy) ||
         shouldShowPolicyErrorFields(policy) ||
         shouldShowSyncError(policy, isConnectionInProgress, getAccountingConnectionNames()) ||
-        shouldShowQBOReimbursableExportDestinationAccountError(policy)
+        shouldShowQBOReimbursableExportDestinationAccountError(policy) ||
+        shouldShowHRConnectionError(policy, isConnectionInProgress)
     ) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
@@ -1959,6 +1960,25 @@ function isAnyHRConnected(policy?: OnyxEntry<Policy>): boolean {
     return isGustoConnected(policy) || isZenefitsConnected(policy) || isMergeHRConnected(policy);
 }
 
+/**
+ * Checks if any HR connection on the policy is in an error state.
+ */
+function shouldShowHRConnectionError(policy: OnyxEntry<Policy>, isSyncInProgress: boolean): boolean {
+    if (!isPolicyAdmin(policy)) {
+        return false;
+    }
+    const mergeLastSync = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]?.lastSync;
+    if (mergeLastSync?.isAuthenticationError || mergeLastSync?.syncStatus === CONST.MERGE_HR.SYNC_STATUS.FAILED) {
+        return true;
+    }
+    return getHRConnectionNames().some((name) => {
+        if (policy?.connections?.[name]?.lastSync?.isAuthenticationError) {
+            return true;
+        }
+        return hasSynchronizationErrorMessage(policy, name, isSyncInProgress);
+    });
+}
+
 /** Returns true if any connected HR integration uses a read-only approval mode (basic or manager), which blocks manual workflow editing. */
 function isAnyHRReadOnlyWorkflowMode(policy?: OnyxEntry<Policy>): boolean {
     const gustoMode = policy?.connections?.gusto?.config?.approvalMode;
@@ -2594,6 +2614,7 @@ export {
     isMergeHRConnected,
     getConnectedHRProvider,
     isAnyHRConnected,
+    shouldShowHRConnectionError,
     isAnyHRReadOnlyWorkflowMode,
     getHRApprovalMode,
     isSubmitPolicy,
