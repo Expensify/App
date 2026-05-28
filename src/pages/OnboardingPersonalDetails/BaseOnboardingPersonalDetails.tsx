@@ -158,9 +158,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                     autoCreateSubmitWorkspace(firstName, lastName);
                 } catch (error) {
                     Log.warn('[BaseOnboardingPersonalDetails] Error creating submit workspace', {error});
-                } finally {
-                    setIsLoading(false);
                 }
+                setIsLoading(false);
                 return;
             }
 
