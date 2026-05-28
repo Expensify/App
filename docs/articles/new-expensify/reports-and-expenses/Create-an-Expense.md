@@ -189,7 +189,7 @@ If your company uses **Proofpoint Hosted Email Security**, you may be unable to 
 
 ## Can I attach multiple receipts to one expense?
 
-No. Only one receipt image is allowed per expense. Combine receipts into a single PDF or attach additional files to the report.
+Yes. Each expense has one primary receipt, but you can add more images by opening the expense, hovering over the receipt (or tapping it on mobile), and selecting **Add additional receipts**. Only the primary receipt is included in exports and downloaded PDFs — additional images are viewable within Expensify. For details, see [Attach and edit receipts on expenses](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Attach-and-edit-receipts-on-expenses).
 
 ## Can I edit an expense after submission?
 
