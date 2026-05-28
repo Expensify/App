@@ -6,11 +6,10 @@ import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OptionData} from '@libs/ReportUtils';
 import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
-
-const NONE_OPTION_KEY = '\x00__none__';
 
 type SearchSingleSelectionPickerItem = {
     name: string;
@@ -52,7 +51,7 @@ function SearchSingleSelectionPicker({
             ? [
                   {
                       text: translate('common.none'),
-                      keyForList: NONE_OPTION_KEY,
+                      keyForList: CONST.SEARCH.NONE_OPTION_KEY,
                       isSelected: !selectedItem?.value,
                       value: '',
                   },
@@ -151,5 +150,4 @@ function SearchSingleSelectionPicker({
 }
 
 export default SearchSingleSelectionPicker;
-export {NONE_OPTION_KEY};
 export type {SearchSingleSelectionPickerItem};
