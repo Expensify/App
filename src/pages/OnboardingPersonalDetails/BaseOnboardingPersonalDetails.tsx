@@ -154,12 +154,9 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 }
                 setIsLoading(true);
                 updateDisplayName(firstName, lastName, formatPhoneNumber, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-                try {
-                    autoCreateSubmitWorkspace(firstName, lastName);
-                } catch (error) {
-                    Log.warn('[BaseOnboardingPersonalDetails] Error creating submit workspace', {error});
-                }
-                setIsLoading(false);
+                autoCreateSubmitWorkspace(firstName, lastName).finally(() => {
+                    setIsLoading(false);
+                });
                 return;
             }
 

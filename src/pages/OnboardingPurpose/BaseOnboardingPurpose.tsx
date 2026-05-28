@@ -115,7 +115,10 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
 
                 if (choice === CONST.ONBOARDING_CHOICES.EMPLOYER && canUseSubmit2026) {
                     if (personalDetailsForm?.firstName) {
-                        autoCreateSubmitWorkspace(personalDetailsForm.firstName, personalDetailsForm.lastName ?? '');
+                        setIsLoading(true);
+                        autoCreateSubmitWorkspace(personalDetailsForm.firstName, personalDetailsForm.lastName ?? '').finally(() => {
+                            setIsLoading(false);
+                        });
                         return;
                     }
 
