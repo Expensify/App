@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useImperativeHandle, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -20,7 +20,6 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import OnboardingRefManager from '@libs/OnboardingRefManager';
 import type {TOnboardingRef} from '@libs/OnboardingRefManager';
@@ -81,7 +80,6 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
     const autoCreateTrackWorkspace = useAutoCreateTrackWorkspace();
-    const [isLoading, setIsLoading] = useState(false);
     const paddingHorizontal = onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5;
 
     const [customChoices = getEmptyArray<OnboardingPurpose>()] = useOnyx(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES);
@@ -101,11 +99,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
             wrapperStyle: [styles.purposeMenuItem],
             numberOfLinesTitle: 0,
             sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.PURPOSE_ITEM,
-            onPress: async () => {
-                if (isLoading) {
-                    return;
-                }
-
+            onPress: () => {
                 setOnboardingPurposeSelected(choice);
                 setOnboardingErrorMessage(null);
                 if (choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
@@ -115,10 +109,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
 
                 if (choice === CONST.ONBOARDING_CHOICES.EMPLOYER && canUseSubmit2026) {
                     if (personalDetailsForm?.firstName) {
-                        setIsLoading(true);
-                        autoCreateSubmitWorkspace(personalDetailsForm.firstName, personalDetailsForm.lastName ?? '').finally(() => {
-                            setIsLoading(false);
-                        });
+                        autoCreateSubmitWorkspace(personalDetailsForm.firstName, personalDetailsForm.lastName ?? '');
                         return;
                     }
 
@@ -127,29 +118,21 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                 }
 
                 if (isPrivateDomainAndHasAccessiblePolicies && personalDetailsForm?.firstName) {
-                    setIsLoading(true);
-
                     if (isTrackOnboardingChoice(choice)) {
                         autoCreateTrackWorkspace(personalDetailsForm.firstName, personalDetailsForm.lastName ?? '', choice);
                         return;
                     }
-                    try {
-                        await completeOnboarding({
-                            engagementChoice: choice,
-                            onboardingMessage: onboardingMessages[choice],
-                            firstName: personalDetailsForm.firstName,
-                            lastName: personalDetailsForm.lastName,
-                            adminsChatReportID: onboardingAdminsChatReportID ?? undefined,
-                            onboardingPolicyID,
-                            companySize: onboardingCompanySize,
-                            introSelected,
-                            isSelfTourViewed,
-                        });
-                        setIsLoading(false);
-                    } catch (error) {
-                        Log.warn('[BaseOnboardingPurpose] Error completing onboarding', {error});
-                        setIsLoading(false);
-                    }
+                    completeOnboarding({
+                        engagementChoice: choice,
+                        onboardingMessage: onboardingMessages[choice],
+                        firstName: personalDetailsForm.firstName,
+                        lastName: personalDetailsForm.lastName,
+                        adminsChatReportID: onboardingAdminsChatReportID ?? undefined,
+                        onboardingPolicyID,
+                        companySize: onboardingCompanySize,
+                        introSelected,
+                        isSelfTourViewed,
+                    });
 
                     return;
                 }

@@ -1,5 +1,5 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -24,7 +24,6 @@ import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
-import Log from '@libs/Log';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import isTrackOnboardingChoice from '@libs/OnboardingUtils';
@@ -101,56 +100,41 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
         },
     ];
 
-    const [isLoading, setIsLoading] = useState(false);
-
     const completeOnboarding = useCallback(
-        async (overrides?: {engagementChoice?: OnboardingPurpose; adminsChatReportID?: string; policyID?: string}) => {
-            if (isLoading) {
-                return;
-            }
-
+        (overrides?: {engagementChoice?: OnboardingPurpose; adminsChatReportID?: string; policyID?: string}) => {
             const engagementChoice = overrides?.engagementChoice ?? onboardingPurposeSelected;
             if (!engagementChoice) {
                 return;
             }
 
-            setIsLoading(true);
-
             const resolvedAdminsChatReportID = overrides?.adminsChatReportID ?? onboardingAdminsChatReportID;
             const resolvedPolicyID = overrides?.policyID ?? onboardingPolicyID;
 
-            try {
-                await completeOnboardingReport({
-                    engagementChoice,
-                    onboardingMessage: onboardingMessages[engagementChoice],
-                    firstName: currentUserPersonalDetails.firstName,
-                    lastName: currentUserPersonalDetails.lastName,
-                    adminsChatReportID: resolvedAdminsChatReportID,
-                    onboardingPolicyID: resolvedPolicyID,
-                    introSelected,
-                    isSelfTourViewed,
-                });
+            completeOnboardingReport({
+                engagementChoice,
+                onboardingMessage: onboardingMessages[engagementChoice],
+                firstName: currentUserPersonalDetails.firstName,
+                lastName: currentUserPersonalDetails.lastName,
+                adminsChatReportID: resolvedAdminsChatReportID,
+                onboardingPolicyID: resolvedPolicyID,
+                introSelected,
+                isSelfTourViewed,
+            });
 
-                setOnboardingAdminsChatReportID();
-                setOnboardingPolicyID();
+            setOnboardingAdminsChatReportID();
+            setOnboardingPolicyID();
 
-                navigateAfterOnboardingWithMicrotaskQueue(
-                    isSmallScreenWidth,
-                    isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
-                    conciergeChatReportID,
-                    archivedReportsIdSet,
-                    resolvedPolicyID,
-                    mergedAccountConciergeReportID,
-                    false,
-                );
-                setIsLoading(false);
-            } catch (error) {
-                Log.warn('[BaseOnboardingWorkspaceOptional] Error completing onboarding', {error});
-                setIsLoading(false);
-            }
+            navigateAfterOnboardingWithMicrotaskQueue(
+                isSmallScreenWidth,
+                isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+                conciergeChatReportID,
+                archivedReportsIdSet,
+                resolvedPolicyID,
+                mergedAccountConciergeReportID,
+                false,
+            );
         },
         [
-            isLoading,
             onboardingPurposeSelected,
             currentUserPersonalDetails.firstName,
             currentUserPersonalDetails.lastName,
@@ -167,12 +151,10 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
         ],
     );
 
-    const createWorkspaceAndCompleteOnboarding = useCallback(async () => {
-        if (!onboardingPurposeSelected || isLoading) {
+    const createWorkspaceAndCompleteOnboarding = useCallback(() => {
+        if (!onboardingPurposeSelected) {
             return;
         }
-
-        setIsLoading(true);
 
         const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
         const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
@@ -205,13 +187,12 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
               })
             : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
-        await completeOnboarding({
+        completeOnboarding({
             engagementChoice,
             adminsChatReportID,
             policyID,
         });
     }, [
-        isLoading,
         onboardingPurposeSelected,
         allPolicies,
         session?.email,
@@ -286,7 +267,6 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                         large
                         text={translate('common.skip')}
                         onPress={() => completeOnboarding()}
-                        isLoading={isLoading}
                         sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.SKIP}
                     />
                 </View>
@@ -296,7 +276,6 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                             success
                             large
                             text={translate('onboarding.workspace.createWorkspace')}
-                            isLoading={isLoading}
                             onPress={() => {
                                 setOnboardingErrorMessage(null);
                                 if (isTrackOnboardingChoice(onboardingPurposeSelected)) {
