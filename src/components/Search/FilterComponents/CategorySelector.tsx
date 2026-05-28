@@ -79,7 +79,6 @@ function CategorySelector({value = [], policyIDs = [], selectionListTextInputSty
             items={categoryItems}
             isSearchable={categoryItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
             autoFocus={autoFocus}
-            searchPlaceholder={translate('common.category')}
             selectionListTextInputStyle={selectionListTextInputStyle}
             selectionListStyle={selectionListStyle}
             footer={footer}
