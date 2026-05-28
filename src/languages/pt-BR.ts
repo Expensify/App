@@ -1950,6 +1950,8 @@ const translations: TranslationDeepObject<typeof en> = {
         offline: 'Offline',
         syncing: 'Sincronizando',
         profileAvatar: 'Avatar do perfil',
+        customInstructions: 'Instruções personalizadas',
+        copilotIntoAccount: 'Copilot na conta',
         publicSection: {
             title: 'Público',
             subtitle: 'Esses detalhes são exibidos no seu perfil público. Qualquer pessoa pode vê-los.',

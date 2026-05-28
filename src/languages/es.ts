@@ -1846,6 +1846,8 @@ const translations: TranslationDeepObject<typeof en> = {
         offline: 'Desconectado',
         syncing: 'Sincronizando',
         profileAvatar: 'Perfil avatar',
+        customInstructions: 'Instrucciones personalizadas',
+        copilotIntoAccount: 'Copilot a la cuenta',
         publicSection: {
             title: 'Público',
             subtitle: 'Estos detalles se muestran en tu perfil público, a disposición de los demás.',

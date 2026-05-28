@@ -1952,6 +1952,8 @@ const translations: TranslationDeepObject<typeof en> = {
         offline: 'Offline',
         syncing: 'Synchroniseren',
         profileAvatar: 'Profielavatar',
+        customInstructions: 'Aangepaste instructies',
+        copilotIntoAccount: 'Copilot naar account',
         publicSection: {
             title: 'Openbaar',
             subtitle: 'Deze gegevens worden weergegeven op je openbare profiel. Iedereen kan ze zien.',

@@ -2030,6 +2030,8 @@ const translations = {
         offline: 'Offline',
         syncing: 'Syncing',
         profileAvatar: 'Profile avatar',
+        customInstructions: 'Custom instructions',
+        copilotIntoAccount: 'Copilot into account',
         publicSection: {
             title: 'Public',
             subtitle: 'These details are displayed on your public profile. Anyone can see them.',
