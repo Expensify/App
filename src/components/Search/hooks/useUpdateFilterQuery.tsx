@@ -35,7 +35,7 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
     function updateFilterQueryParams(values: Partial<SearchAdvancedFiltersForm>) {
         const queryString =
             buildFilterQueryWithSortDefaults(
-                getUpdatedFilterFormValues(searchAdvancedFiltersForm, values),
+                values,
                 {view: searchAdvancedFiltersForm.view, groupBy: searchAdvancedFiltersForm.groupBy},
                 {sortBy: queryJSON?.sortBy, sortOrder: queryJSON?.sortOrder},
             ) ?? '';

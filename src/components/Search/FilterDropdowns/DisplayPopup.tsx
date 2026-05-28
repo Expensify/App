@@ -39,7 +39,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Columns']);
-    const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
+    const {getUpdatedFilterFormValues, updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
     const [searchAdvancedFilters = getEmptyObject<SearchAdvancedFiltersForm>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [selectedDisplayFilter, setSelectedDisplayFilter] = useState<
         | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT
@@ -135,7 +135,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
     }
 
     const updateFilterForm = (values: Partial<SearchAdvancedFiltersForm>) => {
-        close(() => updateFilterQueryParams(values));
+        close(() => updateFilterQueryParams(getUpdatedFilterFormValues(searchAdvancedFilters, values)));
     };
 
     const goBack = () => {
