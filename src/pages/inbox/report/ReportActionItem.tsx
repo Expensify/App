@@ -1,4 +1,3 @@
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
@@ -24,7 +23,6 @@ function ReportActionItem({action, report, draftMessage: draftMessageProp, linke
     const [stableOriginalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {selector: getStableReportSelector});
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`);
 
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const transactionsOnIOUReport = useReportTransactions(iouReport?.reportID);
     const transactionID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID;
 
@@ -52,7 +50,6 @@ function ReportActionItem({action, report, draftMessage: draftMessageProp, linke
             originalReportID={originalReportID}
             originalReport={stableOriginalReport}
             isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses(iouReport, transactionsOnIOUReport)}
-            isTrackIntentUser={isTrackIntentUser}
         />
     );
 }

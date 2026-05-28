@@ -152,9 +152,6 @@ type PureReportActionItemProps = {
 
     /** Whether the action is the "Created" action of a harvest-created expense report */
     isHarvestCreatedExpenseReport?: boolean;
-
-    /** Whether the user is a track intent user */
-    isTrackIntentUser?: boolean;
 };
 
 function PureReportActionItem({
@@ -181,7 +178,6 @@ function PureReportActionItem({
     shouldShowBorder,
     shouldHighlight = false,
     isHarvestCreatedExpenseReport = false,
-    isTrackIntentUser,
 }: PureReportActionItemProps) {
     const isConciergeGreeting = action.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID;
     const shouldDisplayContextMenuValue = shouldDisplayContextMenu && !isConciergeGreeting;
@@ -603,7 +599,6 @@ function PureReportActionItem({
                                                                 shouldShowBorder={shouldShowBorder}
                                                                 isOnSearch={isOnSearch}
                                                                 setIsPaymentMethodPopoverActive={setIsPaymentMethodPopoverActive}
-                                                                isTrackIntentUser={isTrackIntentUser ?? false}
                                                             />
                                                             {Permissions.canUseLinkPreviews() && !isHidden && (action.linkMetadata?.length ?? 0) > 0 && (
                                                                 <View style={hasDraft ? styles.chatItemReactionsDraftRight : {}}>
