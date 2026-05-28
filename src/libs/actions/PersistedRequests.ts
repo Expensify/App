@@ -61,15 +61,15 @@ Onyx.connectWithoutView({
         // Exception 2: Other browser tabs can enqueue requests. We detect these
         // by checking for requestIDs not in knownRequestIDs, and merge them in.
         if (isInitialized && val != null) {
-            const newFromOtherTabs = val.filter((r) => r.requestID != null && !knownRequestIDs.has(r.requestID));
+            const newFromOtherTabs = val.filter((r) => r.requestIndex != null && !knownRequestIDs.has(r.requestIndex));
             if (newFromOtherTabs.length > 0) {
                 Log.info('[PersistedRequests] Merging requests from other tabs', false, {
                     newCount: newFromOtherTabs.length,
                     newCommands: getCommands(newFromOtherTabs),
                 });
                 for (const r of newFromOtherTabs) {
-                    if (r.requestID != null) {
-                        knownRequestIDs.add(r.requestID);
+                    if (r.requestIndex != null) {
+                        knownRequestIDs.add(r.requestIndex);
                     }
                 }
                 persistedRequests = [...persistedRequests, ...newFromOtherTabs];
@@ -86,12 +86,12 @@ Onyx.connectWithoutView({
             if (pendingOnyxWrites === 0) {
                 const diskIDs = new Set<number>();
                 for (const r of val) {
-                    if (r.requestID != null) {
-                        diskIDs.add(r.requestID);
+                    if (r.requestIndex != null) {
+                        diskIDs.add(r.requestIndex);
                     }
                 }
                 const previousLength = persistedRequests.length;
-                persistedRequests = persistedRequests.filter((r) => r.requestID == null || diskIDs.has(r.requestID));
+                persistedRequests = persistedRequests.filter((r) => r.requestIndex == null || diskIDs.has(r.requestIndex));
                 if (persistedRequests.length !== previousLength) {
                     Log.info('[PersistedRequests] Reconciled deletions from leader tab', false, {
                         removedCount: previousLength - persistedRequests.length,
@@ -106,10 +106,10 @@ Onyx.connectWithoutView({
         const diskRequests = val ?? [];
         persistedRequests = diskRequests;
         for (const r of diskRequests) {
-            if (r.requestID == null) {
+            if (r.requestIndex == null) {
                 continue;
             }
-            knownRequestIDs.add(r.requestID);
+            knownRequestIDs.add(r.requestIndex);
         }
 
         Log.info('[PersistedRequests] DISK vs MEMORY comparison', false, {
@@ -126,8 +126,8 @@ Onyx.connectWithoutView({
                 pendingCommands: getCommands(pendingSaveOperations),
             });
             for (const r of pendingSaveOperations) {
-                if (r.requestID != null) {
-                    knownRequestIDs.add(r.requestID);
+                if (r.requestIndex != null) {
+                    knownRequestIDs.add(r.requestIndex);
                 }
             }
             const requests = [...persistedRequests, ...pendingSaveOperations];
@@ -218,8 +218,8 @@ function save<TKey extends OnyxKey>(requestToPersist: Request<TKey>): Promise<vo
     const requests = [...persistedRequests, requestToPersist];
     const previousLength = persistedRequests.length;
     persistedRequests = requests as AnyRequest[];
-    if (requestToPersist.requestID != null) {
-        knownRequestIDs.add(requestToPersist.requestID);
+    if (requestToPersist.requestIndex != null) {
+        knownRequestIDs.add(requestToPersist.requestIndex);
     }
 
     Log.info('[PersistedRequests] Request added to memory, persisting to disk', false, {
@@ -320,8 +320,8 @@ function update<TKey extends OnyxKey>(oldRequestIndex: number, newRequest: Reque
     Log.info('[PersistedRequests] Updating a request', false, {oldRequest: sanitizeLogParams(oldRequest), newRequest: sanitizeLogParams(newRequest), oldRequestIndex});
     requests.splice(oldRequestIndex, 1, newRequest as AnyRequest);
     persistedRequests = requests;
-    if (newRequest.requestID != null) {
-        knownRequestIDs.add(newRequest.requestID);
+    if (newRequest.requestIndex != null) {
+        knownRequestIDs.add(newRequest.requestIndex);
     }
     return trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests));
 }
