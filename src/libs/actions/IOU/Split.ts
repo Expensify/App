@@ -488,6 +488,8 @@ function startSplitBill({
         },
     });
 
+    splitTransaction.iouRequestType = receipt?.source ? CONST.IOU.REQUEST_TYPE.SCAN : CONST.IOU.REQUEST_TYPE.MANUAL;
+
     const filename = splitTransaction.receipt?.filename;
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat

@@ -30,9 +30,26 @@ type ApprovalWorkflowSectionProps = {
 
     /** Whether the workflow should be shown as read-only */
     isDisabled?: boolean;
+
+    /** HR provider display name, used in advanced (manager) mode to show "Manager (from {provider})" */
+    hrProviderName?: string;
+
+    /** When true, uses HR advanced (manager) mode labels: "Manager (from {provider})" then "Final approver" */
+    isHRAdvancedMode?: boolean;
+
+    /** Email of the configured final approver in HR advanced (manager) mode, used to correctly label a sole approver who is the final approver */
+    hrFinalApproverEmail?: string;
 };
 
-function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CURRENCY.USD, isDisabled = false}: ApprovalWorkflowSectionProps) {
+function ApprovalWorkflowSection({
+    approvalWorkflow,
+    onPress,
+    currency = CONST.CURRENCY.USD,
+    isDisabled = false,
+    hrProviderName,
+    isHRAdvancedMode = false,
+    hrFinalApproverEmail,
+}: ApprovalWorkflowSectionProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Lightbulb', 'Users', 'UserCheck']);
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -40,8 +57,22 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
     const {convertToDisplayString} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const approverTitle = (index: number) =>
-        approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`;
+    const approverTitle = (index: number) => {
+        if (isHRAdvancedMode) {
+            const isLast = index === approvalWorkflow.approvers.length - 1;
+            const approver = approvalWorkflow.approvers.at(index);
+            const isConfiguredFinalApprover = !!hrFinalApproverEmail && approver?.email === hrFinalApproverEmail;
+            if (isLast && isConfiguredFinalApprover) {
+                return translate('workflowsPage.finalApprover');
+            }
+            if (approvalWorkflow.approvers.length <= 1) {
+                return translate('workflowsPage.approver');
+            }
+            const fromProviderSuffix = hrProviderName ? ` (${translate('workflowsPage.approverFromProvider', {provider: hrProviderName})})` : '';
+            return `${translate('workflowsPage.manager')}${fromProviderSuffix}`;
+        }
+        return approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : translate('workflowsPage.approver');
+    };
 
     const sortedMembers = approvalWorkflow.isDefault ? [] : sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare);
 

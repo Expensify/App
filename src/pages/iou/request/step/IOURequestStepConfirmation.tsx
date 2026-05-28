@@ -5,7 +5,6 @@ import {View} from 'react-native';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
-import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -22,6 +21,7 @@ import useFilesValidation from '@hooks/useFilesValidation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOdometerReceiptStitcher from '@hooks/useOdometerReceiptStitcher';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import usePermissions from '@hooks/usePermissions';
@@ -30,7 +30,6 @@ import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
-import useRestartOnOdometerImagesFailure from '@hooks/useRestartOnOdometerImagesFailure';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -84,7 +83,6 @@ import CategoryDefaultsSetter from './confirmation/CategoryDefaultsSetter';
 import DraftWorkspaceOpener from './confirmation/DraftWorkspaceOpener';
 import ExpenseDefaultsSetter from './confirmation/ExpenseDefaultsSetter';
 import MoneyRequestInitializer from './confirmation/MoneyRequestInitializer';
-import OdometerReceiptStitcher from './confirmation/OdometerReceiptStitcher';
 import ReceiptFileValidator from './confirmation/ReceiptFileValidator';
 import SubmitExpenseOrchestrator from './confirmation/SubmitExpenseOrchestrator';
 import TelemetrySpanManager from './confirmation/TelemetrySpanManager';
@@ -123,6 +121,7 @@ function IOURequestStepConfirmation({
     const allPolicyCategories = usePolicyCategories();
 
     const [transactions] = useOptimisticDraftTransactions(initialTransaction);
+    const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${initialTransaction?.participants?.at(0)?.reportID}`);
     const hasMultipleTransactions = transactions.length > 1;
 
     // Depend on transactions.length to avoid updating transactionIDs when only the transaction details change
@@ -144,7 +143,7 @@ function IOURequestStepConfirmation({
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
 
-    const realPolicyID = getIOURequestPolicyID(initialTransaction, reportReal);
+    const realPolicyID = getIOURequestPolicyID(initialTransaction, reportReal ?? participantReport);
     const draftPolicyID = getIOURequestPolicyID(initialTransaction, reportDraft);
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${draftPolicyID}`);
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${realPolicyID}`);
@@ -224,8 +223,6 @@ function IOURequestStepConfirmation({
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
 
     const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).length && isScanRequest(transaction);
-    const [isStitchingReceipt, setIsStitchingReceipt] = useState(false);
-    const [stitchError, setStitchError] = useState('');
     const headerTitle = useMemo(() => {
         if (isCategorizingTrackExpense) {
             return translate('iou.categorize');
@@ -335,12 +332,16 @@ function IOURequestStepConfirmation({
             if (!activeTransactionID) {
                 return;
             }
-            setMoneyRequestParticipants(activeTransactionID, participantsList);
+            if (participantsList.at(0)?.isSelfDM) {
+                setMoneyRequestParticipantsFromReport(activeTransactionID, selfDMReport, currentUserPersonalDetails.accountID);
+            } else {
+                setMoneyRequestParticipants(activeTransactionID, participantsList);
+            }
             if (participantsList.length > 0) {
                 closeParticipantPicker();
             }
         },
-        [activeTransactionID, closeParticipantPicker],
+        [activeTransactionID, closeParticipantPicker, currentUserPersonalDetails.accountID, selfDMReport],
     );
 
     useEffect(() => {
@@ -392,9 +393,18 @@ function IOURequestStepConfirmation({
 
     const senderPolicyID = transaction?.participants?.find((participant) => !!participant && 'isSender' in participant && participant.isSender)?.policyID;
 
-    const odometerStartImage = transaction?.comment?.odometerStartImage;
-    const odometerEndImage = transaction?.comment?.odometerEndImage;
-    const {hasVerifiedBlobs} = useRestartOnOdometerImagesFailure(isOdometerDistanceRequest ? transaction : undefined, reportID, iouType, backToReport);
+    const {
+        hasVerifiedBlobs,
+        isReady: isOdometerReady,
+        isStitching: isStitchingReceipt,
+        error: stitchError,
+    } = useOdometerReceiptStitcher({
+        transaction,
+        isOdometerDistanceRequest,
+        reportID,
+        iouType,
+        backToReport,
+    });
 
     // PAY, SPLIT, and per-diem TRACK navigate to a specific destination report
     // (not Search) after submission. Pre-inserting the Search route would leave
@@ -758,15 +768,6 @@ function IOURequestStepConfirmation({
                 requestType={requestType}
                 isMovingTransactionFromTrackExpense={isMovingTransactionFromTrackExpense}
             />
-            <OdometerReceiptStitcher
-                isOdometerDistanceRequest={isOdometerDistanceRequest}
-                odometerStartImage={odometerStartImage}
-                odometerEndImage={odometerEndImage}
-                transaction={transaction}
-                hasVerifiedBlobs={hasVerifiedBlobs}
-                onStitchingChange={setIsStitchingReceipt}
-                onStitchError={setStitchError}
-            />
             <ReceiptFileValidator
                 transactions={transactions}
                 requestType={requestType}
@@ -778,6 +779,7 @@ function IOURequestStepConfirmation({
                 report={report}
                 participants={participants}
                 draftTransactionIDs={draftTransactionIDs}
+                isReceiptReady={!isOdometerDistanceRequest || isOdometerReady}
                 onReceiptFilesChange={setReceiptFiles}
             />
             <DragAndDropProvider isDisabled={!showReceiptEmptyState || isOdometerDistanceRequest}>
@@ -822,7 +824,6 @@ function IOURequestStepConfirmation({
                         />
                     </DragAndDropConsumer>
                     {ErrorModal}
-                    {!!stitchError && <FormHelpMessage message={stitchError} />}
                     <SubmitExpenseOrchestrator
                         createTransaction={createTransaction}
                         destinationReportID={destinationReportID}
@@ -870,6 +871,7 @@ function IOURequestStepConfirmation({
                                 policyID={policyID}
                                 isOdometerDistanceRequest={isOdometerDistanceRequest}
                                 isLoadingReceipt={isStitchingReceipt || (isOdometerDistanceRequest && !hasVerifiedBlobs)}
+                                receiptStitchError={stitchError}
                                 isPerDiemRequest={isPerDiemRequest}
                                 shouldShowSmartScanFields={shouldShowSmartScanFields}
                                 action={action}
