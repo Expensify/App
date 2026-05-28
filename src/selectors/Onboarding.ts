@@ -1,5 +1,4 @@
 import type {OnyxValue} from 'react-native-onyx';
-import isTrackOnboardingChoice from '@libs/OnboardingUtils';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -80,11 +79,4 @@ function guidedSetupAndTourStatusSelector(onboarding: OnyxValue<typeof ONYXKEYS.
     };
 }
 
-/**
- * Selector to check if the user selected a track-intent onboarding choice
- */
-function isTrackIntentUserSelector(introSelected: OnyxValue<typeof ONYXKEYS.NVP_INTRO_SELECTED>): boolean {
-    return isTrackOnboardingChoice(introSelected?.choice);
-}
-
-export {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, hasSeenTourSelector, wasInvitedToNewDotSelector, guidedSetupAndTourStatusSelector, isTrackIntentUserSelector};
+export {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, hasSeenTourSelector, wasInvitedToNewDotSelector, guidedSetupAndTourStatusSelector};
