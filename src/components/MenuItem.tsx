@@ -300,6 +300,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Should we remove the hover background color of the menu item */
         shouldRemoveHoverBackground?: boolean;
 
+        /** Use sidebar selection palette: hoverComponentBG for focused/selected, cardBG for hover */
+        shouldUseSidebarSelectionStyle?: boolean;
+
         rightIconAccountID?: number | string;
 
         iconAccountID?: number;
@@ -557,6 +560,7 @@ function MenuItem({
     shouldGreyOutWhenDisabled = true,
     shouldRemoveBackground = false,
     shouldRemoveHoverBackground = false,
+    shouldUseSidebarSelectionStyle = false,
     shouldUseDefaultCursorWhenDisabled = false,
     shouldShowLoadingSpinnerIcon = false,
     isAnonymousAction = false,
@@ -869,6 +873,8 @@ function MenuItem({
                                         ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
                                         shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
                                         isHovered && interactive && !focused && !pressed && !shouldRemoveBackground && !shouldRemoveHoverBackground && styles.hoveredComponentBG,
+                                        shouldUseSidebarSelectionStyle && focused && {backgroundColor: theme.hoverComponentBG},
+                                        shouldUseSidebarSelectionStyle && isHovered && !focused && !pressed && interactive && {backgroundColor: theme.cardBG},
                                     ] as StyleProp<ViewStyle>
                                 }
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}

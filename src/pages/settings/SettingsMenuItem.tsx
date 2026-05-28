@@ -72,6 +72,7 @@ function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocus
             iconRight={item.iconRight}
             shouldShowRightIcon={item.shouldShowRightIcon}
             shouldIconUseAutoWidthStyle
+            shouldUseSidebarSelectionStyle
         />
     );
 }

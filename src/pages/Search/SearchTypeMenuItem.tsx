@@ -10,6 +10,7 @@ import Tooltip from '@components/Tooltip';
 import TooltipSense from '@components/Tooltip/TooltipSense';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
 import variables from '@styles/variables';
@@ -39,6 +40,7 @@ type SearchTypeMenuItemProps = {
 function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: SearchTypeMenuItemProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isVisuallyCollapsed} = useSearchSidebarCollapse();
 
@@ -82,6 +84,8 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
                 styles.sectionMenuItem(shouldUseNarrowLayout),
                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || hovered, pressed, false, false, true), true),
                 hovered && !focused && !pressed && styles.hoveredComponentBG,
+                focused && {backgroundColor: theme.hoverComponentBG},
+                hovered && !focused && !pressed && {backgroundColor: theme.cardBG},
             ]}
         >
             {({hovered, pressed}) => (
