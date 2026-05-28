@@ -111,7 +111,6 @@ export type {default as UpdateHomeAddressParams} from './UpdateHomeAddressParams
 export type {default as UpdatePolicyAddressParams} from './UpdatePolicyAddressParams';
 export type {default as UpdateLegalNameParams} from './UpdateLegalNameParams';
 export type {default as UpdatePhoneNumberParams} from './UpdatePhoneNumberParams';
-export type {default as UpdatePrivatePersonalDetailsParams} from './UpdatePrivatePersonalDetailsParams';
 export type {default as UpdateNewsletterSubscriptionParams} from './UpdateNewsletterSubscriptionParams';
 export type {default as UpdatePersonalInformationForBankAccountParams} from './UpdatePersonalInformationForBankAccountParams';
 export type {default as UpdatePreferredEmojiSkinToneParams} from './UpdatePreferredEmojiSkinToneParams';
@@ -205,6 +204,7 @@ export type {default as SetReportNameParams} from './SetReportNameParams';
 export type {default as DeleteReportFieldParams} from './DeleteReportFieldParams';
 export type {default as CompleteSplitBillParams} from './CompleteSplitBillParams';
 export type {default as UpdateMoneyRequestParams} from './UpdateMoneyRequestParams';
+export type {default as UpdateMoneyRequestVendorParams} from './UpdateMoneyRequestVendorParams';
 export type {default as RequestMoneyParams} from './RequestMoneyParams';
 export type {default as SplitBillParams} from './SplitBillParams';
 export type {SplitTransactionParams, SplitTransactionSplitsParam, RevertSplitTransactionParams} from './SplitTransactionParams';
