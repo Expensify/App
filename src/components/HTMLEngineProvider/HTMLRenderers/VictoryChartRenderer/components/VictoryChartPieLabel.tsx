@@ -42,6 +42,7 @@ function VictoryChartPieLabel({tnode, slice}: VictoryChartPieLabelProps) {
     labelItem.text = text;
     labelItem.x = x;
     labelItem.y = y;
+    labelItem.textAnchor = 'middle';
 
     return <VictoryChartLabel {...labelItem} />;
 }

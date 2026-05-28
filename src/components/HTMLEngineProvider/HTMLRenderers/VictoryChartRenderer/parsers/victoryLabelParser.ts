@@ -1,5 +1,5 @@
 import type {TNode} from 'react-native-render-html';
-import type {LabelItem, PartialProcessNodeResult, RawLabelStyle} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import type {LabelItem, PartialProcessNodeResult, RawLabelStyle, TextAnchor} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 
 /**
@@ -14,6 +14,8 @@ function parseVictoryLabelNode(tnode: TNode): PartialProcessNodeResult {
         fontSize: [],
         fontWeight: [],
         lineHeight: parseAttribute<number[]>(tnode.attributes.lineheight),
+        textAnchor: parseAttribute<TextAnchor>(tnode.attributes.textanchor),
+        verticalAnchor: parseAttribute<TextAnchor>(tnode.attributes.verticalanchor),
     };
 
     const style = parseAttribute(tnode.attributes.style);

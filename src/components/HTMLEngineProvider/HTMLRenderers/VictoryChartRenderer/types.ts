@@ -60,6 +60,8 @@ type PolarChartData = {
     [COLOR_KEY]: Color;
 };
 
+type TextAnchor = 'start' | 'middle' | 'end';
+
 type LabelItem = {
     /** Position on the X-axis */
     x: number;
@@ -81,6 +83,12 @@ type LabelItem = {
 
     /** Line height (per line) */
     lineHeight?: number[];
+
+    /** Text horizontal anchor  */
+    textAnchor?: TextAnchor;
+
+    /** Text vertical anchor  */
+    verticalAnchor?: TextAnchor;
 };
 
 type LegendItemEntry = {
@@ -157,6 +165,7 @@ export type {
     YKey,
     CartesianChartData,
     CartesianChartProps,
+    TextAnchor,
     LabelItem,
     LegendItemEntry,
     LegendItem,

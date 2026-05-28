@@ -34,11 +34,6 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
                             tnode={tnode}
                             slice={slice}
                         />
-                        <Pie.Label
-                            font={boldTypeface ? Skia.Font(boldTypeface, 11) : null}
-                            color={'black'}
-                            radiusOffset={1.24}
-                        />
                     </Pie.Slice>
                 </>
             )}
