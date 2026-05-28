@@ -697,7 +697,6 @@ const SCREENS = {
             CERTINIA_DEFAULT_VENDOR: 'Policy_Accounting_Certinia_Default_Vendor',
             CERTINIA_ADVANCED: 'Policy_Accounting_Certinia_Advanced',
             CARD_RECONCILIATION: 'Policy_Accounting_Card_Reconciliation',
-            CARD_RECONCILIATION_QUICKBOOKS_DESKTOP_AUTO_SYNC: 'Policy_Accounting_Card_Reconciliation_Quickbooks_Desktop_Auto_Sync',
             CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC: 'Policy_Accounting_Card_Reconciliation_Sage_Intacct_Auto_Sync',
             DYNAMIC_RECONCILIATION_ACCOUNT_SETTINGS: 'Dynamic_Policy_Accounting_Reconciliation_Account_Settings',
         },
