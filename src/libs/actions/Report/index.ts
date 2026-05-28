@@ -6997,9 +6997,7 @@ function navigateToTrainingModal(isChangePolicyTrainingModalDismissed: boolean) 
         return;
     }
 
-    InteractionManager.runAfterInteractions(() => {
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CHANGE_POLICY_EDUCATIONAL.path));
-    });
+    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CHANGE_POLICY_EDUCATIONAL.path), {waitForTransition: true});
 }
 
 function buildOptimisticChangePolicyData(
