@@ -4347,6 +4347,7 @@ const translations = {
             workflows: 'Workflows',
             workspace: 'Workspace',
             findWorkspace: 'Find workspace',
+            findRoom: 'Find room',
             edit: 'Edit workspace',
             enabled: 'Enabled',
             disabled: 'Disabled',
