@@ -25,6 +25,7 @@ import type {Policy, Report, ReportAction, Transaction, TransactionViolations} f
 import type {SplitExpense} from '@src/types/onyx/IOU';
 import useArchivedReportsIdSet from './useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useEnvironment from './useEnvironment';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
@@ -81,6 +82,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const {isOffline} = useNetwork();
+    const {isProduction} = useEnvironment();
 
     const getSplitExpenseEditTransactionOnDelete = useCallback(
         (transactionIDs: string[]): Transaction | undefined => {
@@ -96,14 +98,17 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
 
             const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.comment?.originalTransactionID}`];
             const isSelfDMSplit = isSelfDM(report) || (!!selfDMReportID && transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
-            const hasMultipleSplits = getChildTransactions(allTransactions, originalTransaction?.transactionID).length > 1;
-            if (!shouldRedirectDeleteToSplitExpenseEdit(transaction, originalTransaction, isSelfDMSplit) || (!hasMultipleSplits && isPerDiemRequestTransactionUtils(originalTransaction))) {
+            const hasMultipleSplits = getChildTransactions(allTransactions, originalTransaction?.transactionID, isProduction).length > 1;
+            if (
+                !shouldRedirectDeleteToSplitExpenseEdit(transaction, originalTransaction, isSelfDMSplit, isProduction) ||
+                (!hasMultipleSplits && isPerDiemRequestTransactionUtils(originalTransaction))
+            ) {
                 return undefined;
             }
 
             return transaction;
         },
-        [allTransactions, report, selfDMReportID],
+        [allTransactions, report, selfDMReportID, isProduction],
     );
 
     const shouldOpenSplitExpenseEditFlowOnDelete = useCallback(
@@ -141,7 +146,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${splitExpenseEditTransaction.reportID}`];
                 const selfDMReport = isSelfDM(report) ? report : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
                 const splitExpenseEditTransactionReport = transactionReport ?? selfDMReport;
-                initSplitExpense(splitExpenseEditTransaction, policy, splitExpenseEditTransactionReport, {navigateToEditSplitExpense: true});
+                initSplitExpense(splitExpenseEditTransaction, policy, splitExpenseEditTransactionReport, {navigateToEditSplitExpense: true, isProduction});
                 return {
                     action: 'redirected',
                 };
@@ -166,6 +171,12 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
                     const originalTransactionID = transaction?.comment?.originalTransactionID;
 
+                    const isUnreportedSelfDMSplit = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+                    if (isProduction && isUnreportedSelfDMSplit) {
+                        acc.nonSplitTransactions.push(item);
+                        return acc;
+                    }
+
                     if (isExpenseSplit && originalTransactionID) {
                         acc.splitTransactionsByOriginalTransactionID[originalTransactionID] ??= [];
                         acc.splitTransactionsByOriginalTransactionID[originalTransactionID].push(item);
@@ -183,7 +194,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
 
             for (const transactionID of Object.keys(splitTransactionsByOriginalTransactionID)) {
                 const splitIDs = new Set((splitTransactionsByOriginalTransactionID[transactionID] ?? []).map((transaction) => transaction.transactionID));
-                const allChildTransactions = getChildTransactions(allTransactions, transactionID);
+                const allChildTransactions = getChildTransactions(allTransactions, transactionID, isProduction);
                 const childTransactions = allChildTransactions.filter((transaction) => !splitIDs.has(transaction?.transactionID ?? String(CONST.DEFAULT_NUMBER_ID)));
 
                 if (childTransactions.length === 0) {
@@ -266,6 +277,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     transactionReport: report,
                     expenseReport,
                     isOffline,
+                    isProduction,
                 });
             }
 
@@ -331,6 +343,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             selfDMReportID,
             getSplitExpenseEditTransactionOnDelete,
             isOffline,
+            isProduction,
         ],
     );
 

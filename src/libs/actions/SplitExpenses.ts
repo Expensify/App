@@ -115,8 +115,8 @@ function initSplitExpense(
     const originalTransactionID = transaction?.comment?.originalTransactionID;
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
-    const relatedTransactions = getChildTransactions(allTransactions, originalTransactionID);
-    const hasMultipleSplits = relatedTransactions.length > 1;
+    const relatedTransactions = getChildTransactions(allTransactions, originalTransactionID, isProduction);
+    const hasMultipleSplits = !isProduction ? relatedTransactions.length > 1 : true;
     const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
     const shouldShowSplitIndicator = isExpenseSplit && hasMultipleSplits;
 

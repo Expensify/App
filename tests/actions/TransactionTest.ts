@@ -495,6 +495,7 @@ describe('actions/Transaction', () => {
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
                     isOffline: false,
+                    isProduction: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -674,6 +675,7 @@ describe('actions/Transaction', () => {
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
                     isOffline: false,
+                    isProduction: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -867,6 +869,7 @@ describe('actions/Transaction', () => {
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
                     isOffline: false,
+                    isProduction: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -1083,6 +1086,7 @@ describe('actions/Transaction', () => {
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
                     isOffline: false,
+                    isProduction: false,
                 });
 
                 await waitForBatchedUpdates();

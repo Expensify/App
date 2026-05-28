@@ -475,7 +475,7 @@ function useSelectedTransactionsActions({
 
         const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(firstTransaction, originalTransaction);
         const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
-        const hasMultipleSplits = getChildTransactions(allTransactions, firstTransaction?.comment?.originalTransactionID).length > 1;
+        const hasMultipleSplits = getChildTransactions(allTransactions, firstTransaction?.comment?.originalTransactionID, isProduction).length > 1;
         const canSplitTransaction =
             selectedTransactionsList.length === 1 &&
             report &&

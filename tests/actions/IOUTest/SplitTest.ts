@@ -1286,6 +1286,7 @@ describe('split expense', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isProduction: false,
         });
 
         await waitForBatchedUpdates();
@@ -1792,6 +1793,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isProduction: false,
         });
 
         await waitForBatchedUpdates();
@@ -1912,6 +1914,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isProduction: false,
         });
 
         await waitForBatchedUpdates();
@@ -2044,6 +2047,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isProduction: false,
         });
 
         await waitForBatchedUpdates();
@@ -2211,6 +2215,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isProduction: false,
         });
         await waitForBatchedUpdates();
 
@@ -2272,6 +2277,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isProduction: false,
         });
         await waitForBatchedUpdates();
 
@@ -2438,6 +2444,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isProduction: false,
         });
         await waitForBatchedUpdates();
 
@@ -2546,6 +2553,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isProduction: false,
         });
         await waitForBatchedUpdates();
 
@@ -2724,6 +2732,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports1.transactionReport,
             expenseReport: reports1.expenseReport,
             isOffline: false,
+            isProduction: false,
         });
 
         await waitForBatchedUpdates();
@@ -2859,6 +2868,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports2.transactionReport,
             expenseReport: reports2.expenseReport,
             isOffline: false,
+            isProduction: false,
         });
 
         await waitForBatchedUpdates();
@@ -3045,6 +3055,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isProduction: false,
         });
         await waitForBatchedUpdates();
 
@@ -3224,6 +3235,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isProduction: false,
         });
         await waitForBatchedUpdates();
 
@@ -3417,6 +3429,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isProduction: false,
         });
         await waitForBatchedUpdates();
 
@@ -3633,6 +3646,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isProduction: false,
         });
 
         await waitForBatchedUpdates();
@@ -3818,6 +3832,7 @@ describe('updateSplitTransactions', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isProduction: false,
         });
         await waitForBatchedUpdates();
 
@@ -3951,6 +3966,7 @@ describe('updateSplitTransactions', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: true,
+            isProduction: false,
         });
         await waitForBatchedUpdates();
 
@@ -4083,6 +4099,7 @@ describe('updateSplitTransactions', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isProduction: false,
         });
         await waitForBatchedUpdates();
 
@@ -4262,6 +4279,7 @@ describe('updateSplitTransactions', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isProduction: false,
         });
 
         await waitForBatchedUpdates();
@@ -4326,6 +4344,7 @@ describe('updateSplitTransactions', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isProduction: false,
         });
 
         const updateSplitTransactionCall = writeSpy.mock.calls.find(([command]) => command === WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION);
@@ -4580,6 +4599,7 @@ describe('updateSplitTransactions', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isProduction: false,
         });
         await waitForBatchedUpdates();
 
@@ -4689,6 +4709,7 @@ describe('updateSplitTransactions', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isProduction: false,
         });
         await waitForBatchedUpdates();
 
@@ -4763,6 +4784,7 @@ describe('updateSplitTransactions', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isProduction: false,
         });
         await waitForBatchedUpdates();
 
@@ -4827,6 +4849,7 @@ describe('updateSplitTransactions', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isProduction: false,
         });
         await waitForBatchedUpdates();
 

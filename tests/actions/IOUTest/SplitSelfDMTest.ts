@@ -213,6 +213,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            isProduction: false,
         });
 
         await waitForBatchedUpdates();
@@ -300,6 +301,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            isProduction: false,
         });
 
         await waitForBatchedUpdates();
@@ -408,6 +410,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            isProduction: false,
         });
 
         await waitForBatchedUpdates();
@@ -501,6 +504,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            isProduction: false,
         });
 
         await waitForBatchedUpdates();
@@ -560,6 +564,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            isProduction: false,
         });
 
         await waitForBatchedUpdates();
@@ -650,6 +655,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            isProduction: false,
         });
 
         await waitForBatchedUpdates();

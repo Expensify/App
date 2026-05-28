@@ -97,6 +97,7 @@ type UpdateSplitTransactionsParams = {
     transactionReport: OnyxEntry<OnyxTypes.Report>;
     expenseReport: OnyxEntry<OnyxTypes.Report>;
     isOffline: boolean;
+    isProduction: boolean;
 };
 
 function updateSplitTransactions({
@@ -124,6 +125,7 @@ function updateSplitTransactions({
     transactionReport,
     expenseReport: expenseReportFromParams,
     isOffline,
+    isProduction,
 }: UpdateSplitTransactionsParams) {
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
     // For selfDM-origin splits the caller can't resolve a real `expenseReport` (the draft/source
@@ -193,8 +195,9 @@ function updateSplitTransactions({
     }
     const splitExpenses = transactionData?.splitExpenses ?? [];
 
-    // Get all children once (including orphaned)
-    const originalChildTransactions = getChildTransactions(allTransactionsList, originalTransactionID);
+    // Get all children once. `isProduction` makes this match pre-PR #84382 behavior in prod
+    // (unreported children are filtered out), keeping self-DM splits invisible end-to-end.
+    const originalChildTransactions = getChildTransactions(allTransactionsList, originalTransactionID, isProduction);
     const processedChildTransactionIDs: string[] = [];
 
     const splitExpensesTotal = transactionData?.splitExpensesTotal ?? 0;
@@ -1825,7 +1828,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     // set the navigate-back URL before the deletion to prevent the "Not Found" page.
     const splitExpenses = params.transactionData?.splitExpenses ?? [];
     const originalTransactionID = params.transactionData?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
-    const allChildTransactions = getChildTransactions(params.allTransactionsList, originalTransactionID);
+    const allChildTransactions = getChildTransactions(params.allTransactionsList, originalTransactionID, params.isProduction);
     const originalChildTransactions = allChildTransactions.filter((tx) => tx?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID);
     const hasEditableSplitExpensesLeft = splitExpenses.some((expense) => (expense.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.SUBMITTED);
     const isReverseSplitOperation =

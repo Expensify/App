@@ -666,6 +666,7 @@ function shouldShowEditSplitInDeleteAction(
     reportTransactions: Transaction[],
     reportActions: ReportAction[] | undefined,
     originalTransaction: OnyxEntry<Transaction>,
+    isProduction: boolean,
 ): boolean {
     if (reportTransactions.length !== 1) {
         return false;
@@ -677,7 +678,7 @@ function shouldShowEditSplitInDeleteAction(
     }
 
     const isSelfDMSplit = isSelfDMReportUtils(report);
-    return shouldRedirectDeleteToSplitExpenseEdit(reportTransaction, originalTransaction, isSelfDMSplit) && isDeleteAction(report, reportTransactions, reportActions);
+    return shouldRedirectDeleteToSplitExpenseEdit(reportTransaction, originalTransaction, isSelfDMSplit, isProduction) && isDeleteAction(report, reportTransactions, reportActions);
 }
 
 function isRetractAction(report: Report, policy?: Policy): boolean {
@@ -1024,7 +1025,7 @@ function getSecondaryReportActions({
 
     if (
         isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, currentUserAccountID, policy, parentReport, isProduction) &&
-        !shouldShowEditSplitInDeleteAction(report, reportTransactions, reportActions, originalTransaction)
+        !shouldShowEditSplitInDeleteAction(report, reportTransactions, reportActions, originalTransaction, isProduction ?? false)
     ) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
@@ -1154,7 +1155,7 @@ function getSecondaryTransactionThreadActions({
 
     if (
         isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, currentUserAccountID, policy, grandParentReport, isProduction) &&
-        !shouldShowEditSplitInDeleteAction(parentReport, [reportTransaction], reportAction ? [reportAction] : [], originalTransaction)
+        !shouldShowEditSplitInDeleteAction(parentReport, [reportTransaction], reportAction ? [reportAction] : [], originalTransaction, isProduction ?? false)
     ) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT);
     }
