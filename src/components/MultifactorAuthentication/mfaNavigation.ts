@@ -15,11 +15,15 @@ type MultifactorAuthenticationModalNavigatorInternalParamList = MultifactorAuthe
 const mfaNavigationRef = createNavigationContainerRef<MultifactorAuthenticationModalNavigatorInternalParamList>();
 
 let pendingNavigation: {screen: string; params?: Record<string, unknown>} | undefined;
-// True once the placeholder MFA_INITIAL_SCREEN has laid out at least once. On iOS
-// native-stack, INITIAL.onLayout fires synchronously on mount — before
-// process() reaches navigate() — so the buffer is empty when
-// handleInitialScreenLayout runs and the buffered push never fires. With this
-// flag, navigate() pushes directly when INITIAL is already laid out.
+
+/**
+ * True once the placeholder MFA_INITIAL_SCREEN has laid out at least once.
+ *
+ * On iOS native-stack, INITIAL.onLayout fires synchronously on mount — before
+ * `process()` reaches `navigate()` — so the buffer is empty when
+ * `handleInitialScreenLayout` runs and the buffered push never fires. With
+ * this flag, `navigate()` pushes directly when INITIAL is already laid out.
+ */
 let hasInitialLaidOut = false;
 
 function navigate<T extends keyof MultifactorAuthenticationModalNavigatorParamList>(
