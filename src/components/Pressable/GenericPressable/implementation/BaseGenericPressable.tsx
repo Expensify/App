@@ -59,11 +59,11 @@ function GenericPressable({
     const focusIdentifier = rest.id || rest.nativeID || rest.testID || rest.accessibilityLabel || undefined;
 
     useEffect(() => {
-        if (!routeKey || !focusIdentifier) {
+        if (!isScreenReaderActive || !routeKey || !focusIdentifier) {
             return;
         }
         return registerPressable(routeKey, focusIdentifier, internalRef);
-    }, [routeKey, focusIdentifier]);
+    }, [isScreenReaderActive, routeKey, focusIdentifier]);
 
     const isDisabled = useMemo(() => {
         let shouldBeDisabledByScreenReader = false;

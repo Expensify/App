@@ -10,7 +10,7 @@ import getHadTabNavigation from './hadTabNavigation';
 import {consumeLauncher, pickLauncher, resetLauncherStackForTests} from './LauncherStack';
 import navigationRef from './Navigation/navigationRef';
 import {collectRouteKeys, diffNavigationState} from './navigationStateDiff';
-import {markProgrammaticFocus} from './programmaticFocus';
+import {suppressActiveRole} from './programmaticFocus';
 import {isCycleIdle, Priorities, resetCycle, tryClaim} from './ScreenFocusArbiter';
 
 /** focusin tracks the last keyboard-focused element; a nav state listener captures it against the outgoing route and restores it on backward nav. */
@@ -207,7 +207,7 @@ function cancelPendingFocusRestore(): void {
     }
 }
 
-function restoreTriggerForRoute(routeKey: string): boolean {
+function restoreTriggerForRoute(routeKey: string, {suppressRole = false}: {suppressRole?: boolean} = {}): boolean {
     if (typeof document === 'undefined') {
         return false;
     }
@@ -242,11 +242,10 @@ function restoreTriggerForRoute(routeKey: string): boolean {
     }
 
     const focusOptions: FocusOptions = {preventScroll: true, focusVisible: getHadTabNavigation()};
-    const shouldMarkProgrammatic = consumeProgrammaticFlag();
     for (const candidate of candidates) {
         const before = document.activeElement;
         isRestoringFocus = true;
-        const unmarkProgrammaticFocus = shouldMarkProgrammatic ? markProgrammaticFocus(candidate) : null;
+        const unsuppressRole = suppressRole ? suppressActiveRole(candidate) : null;
         try {
             candidate.focus(focusOptions);
         } finally {
@@ -266,7 +265,7 @@ function restoreTriggerForRoute(routeKey: string): boolean {
             scheduleReturnHoldRelease();
             return true;
         }
-        unmarkProgrammaticFocus?.();
+        unsuppressRole?.();
     }
 
     // Silent no-op (transient display:none / visibility:hidden ancestor) — leave the entry for scheduleRestore to retry; release the cycle so AUTO/INITIAL aren't blocked during the window.
@@ -284,6 +283,8 @@ const RESTORE_RETRY_MS = 50;
 
 function scheduleRestore(routeKey: string): void {
     cancelPendingRestore();
+    // Consume once at schedule time so an abandoned/cancelled restore can't leak the flag into a later unrelated Back; retries below reuse the captured value.
+    const shouldSuppressRole = consumeProgrammaticFlag();
     // `cancelled` flag in case a primitive's cancel races a queued callback.
     let cancelled = false;
     let attempts = 0;
@@ -303,7 +304,7 @@ function scheduleRestore(routeKey: string): void {
                     return;
                 }
                 attempts += 1;
-                const restored = restoreTriggerForRoute(routeKey);
+                const restored = restoreTriggerForRoute(routeKey, {suppressRole: shouldSuppressRole});
                 if (restored || !triggerMap.has(routeKey)) {
                     pendingRestore = null;
                     return;
@@ -354,11 +355,14 @@ function handleStateChange(newState: NavigationState | undefined): void {
         lastInteractiveElement = null;
         lastMouseTrigger = null;
         lastMouseTriggerAt = 0;
+        // A non-backward nav after a form-submit mark means the mark is stale — drop it so it can't taint a later Back.
+        consumeProgrammaticFlag();
     } else if (action.type === 'backward') {
         scheduleRestore(action.restoreKey);
     } else if (action.type === 'lateral') {
         // Stale restore would steal focus back on sibling nav.
         cancelPendingRestore();
+        consumeProgrammaticFlag();
     }
 
     for (const key of removedKeys) {

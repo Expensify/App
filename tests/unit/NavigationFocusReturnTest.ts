@@ -31,7 +31,7 @@ const {
     diffNavigationState: (prev: unknown, next: unknown) => {action: {type: string; captureKey?: string; restoreKey?: string}; removedKeys: string[]};
     collectRouteKeys: (state: unknown) => Set<string>;
     captureTriggerForRoute: (routeKey: string) => void;
-    restoreTriggerForRoute: (routeKey: string) => boolean;
+    restoreTriggerForRoute: (routeKey: string, options?: {suppressRole?: boolean}) => boolean;
     handleStateChange: (state: unknown) => void;
     resetForTests: () => void;
     setLastInteractiveElementForTests: (element: HTMLElement | null) => void;
@@ -1456,7 +1456,7 @@ describe('handleStateChange integration', () => {
         });
     });
 
-    it('marks the restored element with `data-programmatic-focus` ONLY when the form-submit path opts in via `markNextRestoreAsProgrammatic()`', () => {
+    it('suppresses the restored element role only when the form-submit path opts in', () => {
         withFakeTimers(() => {
             simulateTab();
             handleStateChange(onA);
@@ -1470,11 +1470,11 @@ describe('handleStateChange integration', () => {
             handleStateChange(onA);
             jest.runAllTimers();
 
-            expect(trigger.getAttribute('data-programmatic-focus')).toBe('true');
+            expect(trigger.getAttribute('data-suppress-active-role')).toBe('true');
         });
     });
 
-    it('does NOT mark the restored element on an ordinary Back navigation — focused button claims Enter shortcut normally (#90838 regression guard: only Save path opts in)', () => {
+    it('does not suppress the restored element role on an ordinary Back navigation', () => {
         withFakeTimers(() => {
             simulateTab();
             handleStateChange(onA);
@@ -1488,11 +1488,11 @@ describe('handleStateChange integration', () => {
             handleStateChange(onA);
             jest.runAllTimers();
 
-            expect(trigger.getAttribute('data-programmatic-focus')).toBeNull();
+            expect(trigger.getAttribute('data-suppress-active-role')).toBeNull();
         });
     });
 
-    it("clears the `data-programmatic-focus` marker on the restored element's blur so the next user-driven focus is not misclassified", () => {
+    it("clears the role-suppression marker on the restored element's blur", () => {
         withFakeTimers(() => {
             simulateTab();
             handleStateChange(onA);
@@ -1505,15 +1505,15 @@ describe('handleStateChange integration', () => {
             markNextRestoreAsProgrammatic();
             handleStateChange(onA);
             jest.runAllTimers();
-            expect(trigger.getAttribute('data-programmatic-focus')).toBe('true');
+            expect(trigger.getAttribute('data-suppress-active-role')).toBe('true');
 
             // User Tab moves focus away → blur fires on the restored element → marker is removed.
             trigger.blur();
-            expect(trigger.getAttribute('data-programmatic-focus')).toBeNull();
+            expect(trigger.getAttribute('data-suppress-active-role')).toBeNull();
         });
     });
 
-    it('`markNextRestoreAsProgrammatic()` is one-shot — a subsequent unmarked Back restore does NOT carry the marker', () => {
+    it('consumes the opt-in once, so a later Back restore is not suppressed', () => {
         withFakeTimers(() => {
             simulateTab();
             handleStateChange(onA);
@@ -1526,7 +1526,7 @@ describe('handleStateChange integration', () => {
             markNextRestoreAsProgrammatic();
             handleStateChange(onA);
             jest.runAllTimers();
-            expect(triggerA.getAttribute('data-programmatic-focus')).toBe('true');
+            expect(triggerA.getAttribute('data-suppress-active-role')).toBe('true');
             triggerA.blur();
 
             // Second trip: ordinary Back, no opt-in.
@@ -1536,7 +1536,7 @@ describe('handleStateChange integration', () => {
             triggerB.blur();
             handleStateChange(onA);
             jest.runAllTimers();
-            expect(triggerB.getAttribute('data-programmatic-focus')).toBeNull();
+            expect(triggerB.getAttribute('data-suppress-active-role')).toBeNull();
         });
     });
 

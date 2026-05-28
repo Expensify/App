@@ -1,8 +1,8 @@
 import React, {useEffect, useState} from 'react';
-import {PROGRAMMATIC_FOCUS_DATA_ATTRIBUTE} from '@libs/programmaticFocus';
+import {SUPPRESS_ACTIVE_ROLE_DATA_ATTRIBUTE} from '@libs/programmaticFocus';
 import type {ActiveElementRoleContextValue, ActiveElementRoleProps} from './types';
 
-const EMPTY: ActiveElementRoleContextValue = {role: null, isProgrammatic: false};
+const EMPTY: ActiveElementRoleContextValue = {role: null, isRoleSuppressed: false};
 
 const ActiveElementRoleContext = React.createContext<ActiveElementRoleContextValue>(EMPTY);
 
@@ -12,7 +12,7 @@ function getActiveElementInfo(el: Element | null): ActiveElementRoleContextValue
     }
     return {
         role: el.role ?? null,
-        isProgrammatic: el.getAttribute(PROGRAMMATIC_FOCUS_DATA_ATTRIBUTE) === 'true',
+        isRoleSuppressed: el.getAttribute(SUPPRESS_ACTIVE_ROLE_DATA_ATTRIBUTE) === 'true',
     };
 }
 

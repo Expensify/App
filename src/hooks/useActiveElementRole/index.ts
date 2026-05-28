@@ -7,8 +7,8 @@ import type UseActiveElementRole from './types';
  * Role-based consumers (e.g., `Button` enter-shortcut suppression) want to react to user-driven focus only.
  */
 const useActiveElementRole: UseActiveElementRole = () => {
-    const {role, isProgrammatic} = useContext(ActiveElementRoleContext);
-    return isProgrammatic ? null : role;
+    const {role, isRoleSuppressed} = useContext(ActiveElementRoleContext);
+    return isRoleSuppressed ? null : role;
 };
 
 export default useActiveElementRole;

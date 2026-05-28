@@ -118,6 +118,8 @@ function scheduleRestore(routeKey: string): void {
     let refocusHandle: {cancel: () => void} | null = null;
     let rafHandle: number | null = null;
     const handle = TransitionTracker.runAfterTransitions({
+        // We're called from the nav state listener — the back transition may not have registered yet, so wait for it to start, then run after it ends (avoids restoring while the outgoing screen is still active).
+        waitForUpcomingTransition: true,
         callback: () => {
             if (cancelled) {
                 return;
