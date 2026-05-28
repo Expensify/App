@@ -12,9 +12,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {SingleSelectItem} from './FilterComponents/SingleSelect';
+import CurrencyPopup from './FilterDropdowns/CurrencyPopup';
 import DropdownButton from './FilterDropdowns/DropdownButton';
 import type {DropdownButtonComponentProps, DropdownButtonProps} from './FilterDropdowns/DropdownButton';
-import GroupCurrencyPopup from './FilterDropdowns/GroupCurrencyPopup';
 
 type SearchPageFooterProps = {
     count: number | undefined;
@@ -55,7 +55,7 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
 
     const renderCurrencyPopup: DropdownButtonProps['PopoverComponent'] = useCallback(
         ({closeOverlay, isExpanded}) => (
-            <GroupCurrencyPopup
+            <CurrencyPopup
                 value={currency}
                 closeOverlay={closeOverlay}
                 onChange={handleCurrencyChange}
