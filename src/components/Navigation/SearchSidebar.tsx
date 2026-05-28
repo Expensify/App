@@ -1,15 +1,25 @@
 import type {ParamListBase} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import Animated, {useAnimatedStyle} from 'react-native-reanimated';
+import SidebarLeftIcon from '@assets/images/sidebar-left.svg';
+import SidebarRightIcon from '@assets/images/sidebar-right.svg';
+import Hoverable from '@components/Hoverable';
+import Icon from '@components/Icon';
+import {PressableWithoutFeedback} from '@components/Pressable';
 import {useSearchQueryContext, useSearchResultsActions, useSearchResultsContext} from '@components/Search/SearchContext';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import SearchTypeMenuWide from '@pages/Search/SearchTypeMenuWide';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
+import {useSearchSidebarCollapse} from './SearchSidebarCollapseStore';
 import TopBar from './TopBar';
 
 type SearchSidebarProps = {
@@ -19,9 +29,11 @@ type SearchSidebarProps = {
 function SearchSidebar({state}: SearchSidebarProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {isOffline} = useNetwork();
     const shouldShowLoadingBarForReports = useLoadingBarVisibility();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {collapseProgress, peekProgress, isCollapsed, toggleSidebar, startPeek, endPeek} = useSearchSidebarCollapse();
 
     const route = state.routes.at(-1);
     const {lastSearchType, currentSearchResults} = useSearchResultsContext();
@@ -39,24 +51,83 @@ function SearchSidebar({state}: SearchSidebarProps) {
         setLastSearchType(searchType);
     }, [lastSearchType, setLastSearchType, searchType]);
 
+    // Layout spacer: tracks only collapseProgress so screen content marginLeft stays in lockstep.
+    const layoutSpacerStyle = useAnimatedStyle(() => {
+        const progress = collapseProgress.get();
+        return {
+            width: variables.searchSidebarExpandedWidth + (variables.searchSidebarCollapsedWidth - variables.searchSidebarExpandedWidth) * progress,
+        };
+    });
+
+    // Visual overlay: width grows during peek without affecting layout.
+    const overlayAnimatedStyle = useAnimatedStyle(() => {
+        const visualExpansion = 1 - collapseProgress.get() * (1 - peekProgress.get());
+        return {
+            width: variables.searchSidebarCollapsedWidth + (variables.searchSidebarExpandedWidth - variables.searchSidebarCollapsedWidth) * visualExpansion,
+        };
+    });
+
+    // Shift the chevron button left so it sits at the sidebar's horizontal center when fully collapsed.
+    // 10px = chevron's right-anchored center (sidebar - mr3 - chevronHalfWidth = 76 - 12 - 16 = 48) minus sidebar center (76/2 = 38).
+    const chevronContainerAnimatedStyle = useAnimatedStyle(() => {
+        const visualExpansion = 1 - collapseProgress.get() * (1 - peekProgress.get());
+        return {transform: [{translateX: -10 * (1 - visualExpansion)}]};
+    });
+
+    const breadcrumbAnimatedStyle = useAnimatedStyle(() => {
+        const visualExpansion = 1 - collapseProgress.get() * (1 - peekProgress.get());
+        return {
+            opacity: visualExpansion,
+            transform: [{translateX: -8 * (1 - visualExpansion)}],
+        };
+    });
+
     const shouldShowLoadingState = route?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT ? false : !isOffline && !!isSearchLoading;
 
     if (shouldUseNarrowLayout) {
         return null;
     }
 
-    return (
-        <View style={styles.sidebarContainer}>
-            <View style={styles.flex1}>
-                <TopBar
-                    shouldShowLoadingBar={shouldShowLoadingState || shouldShowLoadingBarForReports}
-                    breadcrumbLabel={translate('common.spend')}
-                    shouldDisplaySearch={false}
-                    shouldDisplayHelpButton={false}
+    const toggleButton = (
+        <Animated.View style={chevronContainerAnimatedStyle}>
+            <PressableWithoutFeedback
+                accessibilityLabel="Toggle sidebar"
+                onPress={toggleSidebar}
+                sentryLabel={CONST.SENTRY_LABEL.TOP_BAR.CANCEL_BUTTON}
+                style={[styles.p2, styles.br2]}
+            >
+                <Icon
+                    src={isCollapsed ? SidebarRightIcon : SidebarLeftIcon}
+                    width={variables.iconSizeNormal}
+                    height={variables.iconSizeNormal}
+                    fill={theme.icon}
                 />
-                <SearchTypeMenuWide queryJSON={currentSearchQueryJSON} />
-            </View>
-        </View>
+            </PressableWithoutFeedback>
+        </Animated.View>
+    );
+
+    return (
+        <Animated.View style={[{height: '100%'}, layoutSpacerStyle]}>
+            <Hoverable
+                onHoverIn={startPeek}
+                onHoverOut={endPeek}
+            >
+                <Animated.View style={[styles.searchSidebar, overlayAnimatedStyle, {position: 'absolute', top: 0, left: 0, bottom: 0, zIndex: 1}]}>
+                    <View style={styles.flex1}>
+                        <TopBar
+                            shouldShowLoadingBar={shouldShowLoadingState || shouldShowLoadingBarForReports}
+                            breadcrumbLabel={translate('common.spend')}
+                            breadcrumbAnimatedStyle={breadcrumbAnimatedStyle}
+                            shouldDisplaySearch={false}
+                            shouldDisplayHelpButton={false}
+                        >
+                            {toggleButton}
+                        </TopBar>
+                        <SearchTypeMenuWide queryJSON={currentSearchQueryJSON} />
+                    </View>
+                </Animated.View>
+            </Hoverable>
+        </Animated.View>
     );
 }
 

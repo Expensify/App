@@ -518,14 +518,14 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                             sentryLabel={CONST.SENTRY_LABEL.ACCOUNT.STATUS_PICKER}
                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS)}
                         >
-                            <View style={styles.primaryMediumIcon}>
+                            <View style={[styles.primaryMediumIcon, {width: 28, height: 28, borderRadius: 14}]}>
                                 {emojiCode ? (
                                     <Text style={styles.primaryMediumText}>{emojiCode}</Text>
                                 ) : (
                                     <Icon
                                         src={icons.Emoji}
-                                        width={variables.iconSizeNormal}
-                                        height={variables.iconSizeNormal}
+                                        width={variables.iconSizeSmall}
+                                        height={variables.iconSizeSmall}
                                         fill={theme.icon}
                                     />
                                 )}

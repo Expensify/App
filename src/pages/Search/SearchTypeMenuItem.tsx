@@ -1,9 +1,13 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
+import {collapseProgress, peekProgress, useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
+import TooltipSense from '@components/Tooltip/TooltipSense';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,10 +40,39 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isVisuallyCollapsed} = useSearchSidebarCollapse();
 
-    return (
+    const labelAnimatedStyle = useAnimatedStyle(() => {
+        const visualExpansion = 1 - collapseProgress.get() * (1 - peekProgress.get());
+        return {
+            opacity: visualExpansion,
+            transform: [{translateX: -8 * (1 - visualExpansion)}],
+        };
+    });
+
+    const collapsedBadgeProgress = useSharedValue(isVisuallyCollapsed ? 1 : 0);
+
+    useEffect(() => {
+        collapsedBadgeProgress.set(
+            withTiming(isVisuallyCollapsed ? 1 : 0, {
+                duration: isVisuallyCollapsed ? 220 : 90,
+                easing: Easing.out(Easing.cubic),
+            }),
+        );
+    }, [isVisuallyCollapsed, collapsedBadgeProgress]);
+
+    const collapsedBadgeAnimatedStyle = useAnimatedStyle(() => {
+        const progress = collapsedBadgeProgress.get();
+        return {
+            opacity: progress,
+            transform: [{scale: 0.5 + 0.5 * progress}],
+        };
+    });
+
+    const pressable = (
         <PressableWithoutFeedback
             onPress={onPress}
+            onHoverIn={isVisuallyCollapsed ? () => TooltipSense.activate() : undefined}
             accessibilityLabel={title}
             accessibilityState={{selected: focused}}
             role={CONST.ROLE.TAB}
@@ -61,27 +94,50 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
                                 height={variables.iconSizeNormal}
                                 fill={StyleUtils.getIconFillColor(getButtonState(focused || hovered, pressed, false, false, true), true, true)}
                             />
+                            {!!badgeText && (
+                                <Animated.View
+                                    style={[styles.pAbsolute, {bottom: -6, right: -8}, collapsedBadgeAnimatedStyle]}
+                                    pointerEvents="none"
+                                >
+                                    <Badge
+                                        text={badgeText}
+                                        badgeStyles={[styles.ml0]}
+                                        success
+                                        isCondensed
+                                    />
+                                </Animated.View>
+                            )}
                         </View>
                     )}
-                    <View style={[styles.justifyContentCenter, styles.flex1, styles.ml3]}>
-                        <Text
-                            style={[styles.popoverMenuText, styles.textStrong]}
-                            numberOfLines={1}
-                        >
-                            {title}
-                        </Text>
-                    </View>
-                    {!!badgeText && (
-                        <Badge
-                            text={badgeText}
-                            badgeStyles={styles.todoBadge}
-                            success
-                        />
+                    {!isVisuallyCollapsed && (
+                        <Animated.View style={[styles.justifyContentCenter, styles.flex1, styles.ml3, labelAnimatedStyle]}>
+                            <Text
+                                style={[styles.popoverMenuText, styles.textStrong]}
+                                numberOfLines={1}
+                            >
+                                {title}
+                            </Text>
+                        </Animated.View>
+                    )}
+                    {!isVisuallyCollapsed && !!badgeText && (
+                        <Animated.View style={labelAnimatedStyle}>
+                            <Badge
+                                text={badgeText}
+                                badgeStyles={styles.todoBadge}
+                                success
+                            />
+                        </Animated.View>
                     )}
                 </>
             )}
         </PressableWithoutFeedback>
     );
+
+    if (isVisuallyCollapsed) {
+        return <Tooltip text={title}>{pressable}</Tooltip>;
+    }
+
+    return pressable;
 }
 
 export default SearchTypeMenuItem;
