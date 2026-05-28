@@ -62,6 +62,14 @@ function SearchSidebar({state}: SearchSidebarProps) {
         setLastSearchType(searchType);
     }, [lastSearchType, setLastSearchType, searchType]);
 
+    useEffect(() => {
+        if (shouldUseNarrowLayout) {
+            endPeek();
+        }
+
+        return endPeek;
+    }, [endPeek, shouldUseNarrowLayout]);
+
     const shouldShowLoadingState = route?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT ? false : !isOffline && !!isSearchLoading;
 
     if (shouldUseNarrowLayout) {
