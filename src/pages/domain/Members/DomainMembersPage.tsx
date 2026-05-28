@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import {defaultSecurityGroupIDSelector, domainNameSelector, memberAccountIDsSelector, memberPendingActionSelector, selectSecurityGroupForAccount} from '@selectors/Domain';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -82,24 +82,6 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const {groupPreFilter, groupOptions, selectedGroup, handleGroupChange, dropdownLabel, groups} = useDomainGroupFilter(domainAccountID);
 
     const highlightMembers = highlightItems?.members;
-    useEffect(() => {
-        if (!isFocused || !highlightMembers?.length) {
-            return;
-        }
-
-        if (selectedGroup) {
-            handleGroupChange(groupOptions.at(0));
-            return;
-        }
-
-        const highlightedAccountID = Number(highlightMembers.at(0));
-        if (!memberIDs?.includes(highlightedAccountID)) {
-            return;
-        }
-
-        selectionListRef.current?.scrollAndHighlightItem?.(highlightMembers);
-        clearDomainHighlightItems(domainAccountID, 'members');
-    }, [highlightMembers, isFocused, selectedGroup, memberIDs, domainAccountID, groupOptions, handleGroupChange]);
 
     const groupPopoverComponent = ({closeOverlay, isExpanded}: PopoverComponentProps) => (
         <SingleSelectPopup
@@ -322,6 +304,10 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 useSelectionModeHeader={selectionModeHeader}
                 getCustomRightElement={getGroupRightElement}
                 searchBarAccessory={groupFilterDropdown}
+                highlightKeys={highlightMembers}
+                isPageFocused={isFocused}
+                onHighlightComplete={() => clearDomainHighlightItems(domainAccountID, 'members')}
+                onResetPreFilter={() => handleGroupChange(groupOptions.at(0))}
                 emptyStateTitle={translate('domain.members.emptyMembers.title')}
                 emptyStateSubtitle={translate('domain.members.emptyMembers.subtitle')}
                 turnOnSelectionModeOnLongPress

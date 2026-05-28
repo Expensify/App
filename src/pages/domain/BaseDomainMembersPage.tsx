@@ -111,6 +111,9 @@ type BaseDomainMembersPageProps = {
 
     /** Called after a successful scroll-and-highlight (e.g. to clear Onyx highlight state) */
     onHighlightComplete?: () => void;
+
+    /** Called when the highlighted item is hidden by the pre-filter (e.g. to reset a group filter) */
+    onResetPreFilter?: () => void;
 };
 
 function BaseDomainMembersPage({
@@ -139,6 +142,7 @@ function BaseDomainMembersPage({
     highlightKeys,
     isPageFocused,
     onHighlightComplete,
+    onResetPreFilter,
 }: BaseDomainMembersPageProps) {
     const {formatPhoneNumber, localeCompare, translate} = useLocalize();
     const styles = useThemeStyles();
@@ -208,12 +212,13 @@ function BaseDomainMembersPage({
         }
 
         if (!filteredData.some((item) => item.keyForList === highlightedKey)) {
+            onResetPreFilter?.();
             return;
         }
 
         selectionListRef?.current?.scrollAndHighlightItem?.(highlightKeys);
         onHighlightComplete?.();
-    }, [highlightKeys, isPageFocused, accountIDs, inputValue, filteredData, setInputValue, selectionListRef, onHighlightComplete]);
+    }, [highlightKeys, isPageFocused, accountIDs, inputValue, filteredData, setInputValue, selectionListRef, onHighlightComplete, onResetPreFilter]);
 
     const isUserToggleEnabled = setSelectedMembers && filteredData.length > 0;
 
