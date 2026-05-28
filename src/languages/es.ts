@@ -460,6 +460,10 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Contraer razonamiento',
         expandReasoning: 'Expandir razonamiento',
+        enableNotifications: {
+            prompt: '¿Quieres que te avisemos cuando Concierge responda?',
+            cta: 'Notificar',
+        },
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -4149,6 +4153,7 @@ ${amount} para ${merchant} - ${date}`,
             workflows: 'Flujos de trabajo',
             workspace: 'Espacio de trabajo',
             findWorkspace: 'Encontrar espacio de trabajo',
+            findRoom: 'Encontrar sala',
             edit: 'Editar espacio de trabajo',
             enabled: 'Activada',
             disabled: 'Desactivada',

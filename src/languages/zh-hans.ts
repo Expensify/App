@@ -503,6 +503,10 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: '收起推理',
         expandReasoning: '展开推理',
+        enableNotifications: {
+            prompt: '希望在Concierge回复时收到通知吗？',
+            cta: '通知',
+        },
     },
     supportalNoAccess: {
         title: '先别急',
@@ -4148,6 +4152,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             workflows: '工作流程',
             workspace: '工作区',
             findWorkspace: '查找工作区',
+            findRoom: '查找房间',
             edit: '编辑工作区',
             enabled: '已启用',
             disabled: '已禁用',

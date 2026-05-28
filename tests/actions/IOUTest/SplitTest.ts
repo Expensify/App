@@ -4958,6 +4958,7 @@ describe('initSplitExpense', () => {
             amount: -20000,
             currency: 'USD',
             merchant: '',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             comment: {
                 comment: 'Distance expense',
                 splitExpenses: [],
@@ -5296,6 +5297,7 @@ describe('addSplitExpenseField', () => {
             amount: -20000,
             currency: 'USD',
             merchant: '',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             comment: {
                 comment: 'Distance expense',
                 splitExpenses: [],
@@ -5319,6 +5321,7 @@ describe('addSplitExpenseField', () => {
             amount: 20000,
             currency: 'USD',
             merchant: '',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             comment: {
                 comment: 'Distance expense',
                 splitExpenses: [
@@ -5642,6 +5645,7 @@ describe('evenlyDistributeSplitExpenseAmounts', () => {
             transactionID: originalTransactionID,
             amount: -20000,
             currency: 'USD',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             comment: {
                 type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                 customUnit: {
@@ -5660,6 +5664,7 @@ describe('evenlyDistributeSplitExpenseAmounts', () => {
             amount: 20000,
             currency: 'USD',
             merchant: 'Test Merchant',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             comment: {
                 comment: 'Test comment',
                 originalTransactionID,
@@ -5792,6 +5797,7 @@ describe('updateSplitExpenseAmountField', () => {
             transactionID: originalTransactionID,
             amount: -20000,
             currency: 'USD',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             comment: {
                 type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                 customUnit: {
@@ -5810,6 +5816,7 @@ describe('updateSplitExpenseAmountField', () => {
             amount: 20000,
             currency: 'USD',
             merchant: 'Test Merchant',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             comment: {
                 comment: 'Test comment',
                 originalTransactionID,
@@ -6109,6 +6116,7 @@ describe('initDraftSplitExpenseDataForEdit', () => {
             amount: -20000,
             currency: 'USD',
             merchant: 'Original Merchant',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
             comment: {
                 comment: 'Original comment',
                 type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
@@ -6133,6 +6141,7 @@ describe('initDraftSplitExpenseDataForEdit', () => {
             amount: 20000,
             currency: 'USD',
             merchant: 'Draft Merchant',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             comment: {
                 comment: 'Draft comment',
                 originalTransactionID,
@@ -6285,6 +6294,7 @@ describe('resetSplitExpensesByDateRange', () => {
             amount: -20000,
             currency: 'USD',
             merchant: '',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             comment: {
                 comment: 'Distance expense',
                 splitExpenses: [],
@@ -6576,6 +6586,7 @@ describe('updateSplitExpenseField', () => {
             amount: -20000,
             currency: 'USD',
             merchant: '',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             comment: {
                 comment: 'Distance expense',
                 type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
@@ -6600,6 +6611,7 @@ describe('updateSplitExpenseField', () => {
             amount: 20000,
             currency: 'USD',
             merchant: '',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             comment: {
                 comment: 'Draft comment',
                 originalTransactionID,
