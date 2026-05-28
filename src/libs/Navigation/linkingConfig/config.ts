@@ -1219,6 +1219,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_REASON]: {
                             path: DYNAMIC_ROUTES.EXIT_SURVEY_REASON.path,
                         },
+                        [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_CONFIRM]: {
+                            path: DYNAMIC_ROUTES.EXIT_SURVEY_CONFIRM.path,
+                        },
                         [SCREENS.WORKSPACE.TAX_CREATE]: {
                             path: ROUTES.WORKSPACE_TAX_CREATE.route,
                         },

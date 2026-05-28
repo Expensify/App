@@ -659,6 +659,10 @@ const DYNAMIC_ROUTES = {
         path: 'exit-survey/reason',
         entryScreens: ['*'],
     },
+    EXIT_SURVEY_CONFIRM: {
+        path: 'exit-survey/confirm',
+        entryScreens: ['*'],
+    },
     REPORT_DETAILS: {
         path: 'details',
         entryScreens: [SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.SEARCH.ROOT],
