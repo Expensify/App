@@ -25,19 +25,6 @@ const keyExtractor = (item: Report) => `report_${item.reportID}`;
 const platform = getPlatform();
 const isWeb = platform === CONST.PLATFORM.WEB;
 
-/**
- * Restores the saved web scroll index only when it is still in range. The list length changes
- * constantly (archived/deleted reports, filters, priority mode, account switches), so a saved index
- * can point past the end. Returning undefined makes FlashList start at the top instead of looking up
- * data[index] === undefined and handing renderItem a missing item.
- */
-function getInitialScrollIndex(savedScrollIndex: number | undefined, dataLength: number): number | undefined {
-    if (savedScrollIndex === undefined || savedScrollIndex < 0 || savedScrollIndex >= dataLength) {
-        return undefined;
-    }
-    return savedScrollIndex;
-}
-
 function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions = false, onFirstItemRendered = () => {}}: LHNOptionsListProps) {
     const {saveScrollOffset, getScrollOffset, saveScrollIndex, getScrollIndex} = useContext(ScrollOffsetContext);
     const {isOffline} = useNetwork();
@@ -71,9 +58,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
      */
     const renderItem = useCallback(
         ({item, index}: RenderItemProps): ReactElement | null => {
-            // FlashList can momentarily hand us an undefined item while the list shrinks before the
-            // recycler rebuilds. Bail out for that transient slot instead of reading item.reportID and
-            // crashing. The rest of this callback already guards item with optional chaining.
             if (!item) {
                 return null;
             }
@@ -83,14 +67,14 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const itemOneTransactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${itemReportAttributes?.oneTransactionThreadReportID}`];
 
             let invoiceReceiverPolicyID = '-1';
-            if (item?.invoiceReceiver && 'policyID' in item.invoiceReceiver) {
+            if (item.invoiceReceiver && 'policyID' in item.invoiceReceiver) {
                 invoiceReceiverPolicyID = item.invoiceReceiver.policyID;
             }
             if (itemParentReport?.invoiceReceiver && 'policyID' in itemParentReport.invoiceReceiver) {
                 invoiceReceiverPolicyID = itemParentReport.invoiceReceiver.policyID;
             }
             const itemInvoiceReceiverPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`];
-            const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${item?.policyID}`];
+            const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
 
             return (
                 <OptionRowLHNData
@@ -161,7 +145,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         });
     }, [getScrollOffset, route]);
 
-    const initialScrollIndex = getInitialScrollIndex(isWeb ? getScrollIndex(route) : undefined, data.length);
+    const savedScrollIndex = getScrollIndex(route);
+    const initialScrollIndex = isWeb && savedScrollIndex !== undefined && savedScrollIndex >= 0 && savedScrollIndex < data.length ? savedScrollIndex : undefined;
 
     return (
         <View style={style ?? styles.flex1}>
@@ -191,4 +176,3 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 }
 
 export default memo(LHNOptionsList);
-export {getInitialScrollIndex};

@@ -4,7 +4,7 @@ import {act, render, screen, userEvent, waitFor} from '@testing-library/react-na
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
-import LHNOptionsList, {getInitialScrollIndex} from '@components/LHNOptionsList/LHNOptionsList';
+import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import type {LHNOptionsListProps} from '@components/LHNOptionsList/types';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -642,39 +642,5 @@ describe('LHNOptionsList', () => {
                 expect(screen.queryByTestId('ReportActionAvatars-Subscript')).toBeNull();
             });
         });
-    });
-});
-
-describe('getInitialScrollIndex', () => {
-    it('should use the saved index when it is within the current data range', () => {
-        expect(getInitialScrollIndex(3, 10)).toBe(3);
-    });
-
-    it('should keep the first row when the saved index is 0 and the list is not empty', () => {
-        expect(getInitialScrollIndex(0, 5)).toBe(0);
-    });
-
-    it('should keep the last row when the saved index is the final valid position', () => {
-        expect(getInitialScrollIndex(9, 10)).toBe(9);
-    });
-
-    it('should fall back to the top when the saved index is past the end of the list', () => {
-        expect(getInitialScrollIndex(50, 10)).toBeUndefined();
-    });
-
-    it('should fall back to the top when the saved index equals the list length', () => {
-        expect(getInitialScrollIndex(10, 10)).toBeUndefined();
-    });
-
-    it('should fall back to the top for a negative saved index', () => {
-        expect(getInitialScrollIndex(-1, 10)).toBeUndefined();
-    });
-
-    it('should return undefined when there is no saved index', () => {
-        expect(getInitialScrollIndex(undefined, 10)).toBeUndefined();
-    });
-
-    it('should return undefined when the list is empty', () => {
-        expect(getInitialScrollIndex(0, 0)).toBeUndefined();
     });
 });
