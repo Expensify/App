@@ -13,6 +13,7 @@ import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithA
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
 jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual('@react-navigation/native'),
     useIsFocused: jest.fn(),
     useRoute: jest.fn(),
     usePreventRemove: jest.fn(),

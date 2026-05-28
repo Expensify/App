@@ -106,6 +106,7 @@ jest.mock('@react-navigation/native', () => {
         getState: jest.fn(() => ({})),
     };
     return {
+        ...jest.requireActual('@react-navigation/native'),
         createNavigationContainerRef: jest.fn(() => mockRef),
         useIsFocused: () => true,
         useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn()}),
