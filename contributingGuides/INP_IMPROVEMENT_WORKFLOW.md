@@ -36,7 +36,8 @@ Project-specific notes:
 
 ## Workflow for improving the INP metric
 
-> **Note:** This workflow is iterative, not sequential. Steps 4-7 in particular form a tight loop. You will profile, hypothesize, change and re-profile multiple times before a single improvement is ready. The numbered order reflects how to think about the problem, not the path your investigation will literally take. **Your actions should be guided by the pursuit of INP gain rather than by following these suggestions.**
+> [!NOTE]
+> This workflow is iterative, not sequential. Steps 4-7 in particular form a tight loop. You will profile, hypothesize, change and re-profile multiple times before a single improvement is ready. The numbered order reflects how to think about the problem, not the path your investigation will literally take. **Your actions should be guided by the pursuit of INP gain rather than by following these suggestions.**
 
 ### 1. Find the interactions in the app
 
@@ -71,7 +72,8 @@ If the label is too coarse, propose splitting it into more specific labels tied 
 
 ### 3. Choose the interaction to improve
 
-> **Note:** Many interactions only feel slow under specific conditions, so you might need to identify what makes the interaction problematic from the user's perspective and recreate those conditions locally. A common pitfall is insufficient data.
+> [!NOTE]
+> Many interactions only feel slow under specific conditions, so you might need to identify what makes the interaction problematic from the user's perspective and recreate those conditions locally. A common pitfall is insufficient data.
 
 The more popular and problematic the place in the app, the greater the improvement to the overall INP score that the change will have (because the interaction accounts for a larger share of the metric).
 
@@ -131,7 +133,8 @@ Using the Flamegraph view, analyze whether any components re-render unnecessaril
 
 Using the Ranked view, diagnose the components that are most problematic in terms of rendering time. Your objective is to improve the performance of those components.
 
-> **Note:** What matters here is the outcome: anything that measurably speeds up the interaction is a valid improvement. The techniques listed below are common starting points and suggestions, not a fixed checklist.
+> [!NOTE]
+> What matters here is the outcome: anything that measurably speeds up the interaction is a valid improvement. The techniques listed below are common starting points and suggestions, not a fixed checklist.
 
 The most common ways to improve a component's performance are:
 
