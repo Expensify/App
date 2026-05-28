@@ -77,7 +77,3 @@ If Claude still cannot access your data:
 ## Can Claude Desktop edit expenses or approve reports?
 
 No. The Expensify MCP server provides read-only access to your data.
-
-## How do I revoke Claude Desktop access to Expensify?
-
-Open Claude Desktop, remove the Expensify MCP server connection, and revoke the OAuth authorization if needed.
