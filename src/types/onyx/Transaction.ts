@@ -1,7 +1,9 @@
 import type {KeysOfUnion, ValueOf} from 'type-fest';
-import type {IOURequestType, ReplaceReceipt, StartSplitBilActionParams} from '@libs/actions/IOU';
 import type {RequestMoneyInformation} from '@libs/actions/IOU/MoneyRequestBuilder';
+import type {ReplaceReceipt} from '@libs/actions/IOU/Receipt';
+import type {StartSplitBilActionParams} from '@libs/actions/IOU/Split';
 import type {CreateTrackExpenseParams} from '@libs/actions/IOU/TrackExpense';
+import type {IOURequestType} from '@src/CONST';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -120,6 +122,21 @@ type Comment = {
     /** Defines the type of liability for the transaction */
     liabilityType?: ValueOf<typeof CONST.TRANSACTION.LIABILITY_TYPE>;
 
+    /**
+     * Accounting-system vendor matched to this expense.
+     * Stored on non-reimbursable card expenses when a vendor is set either by the
+     * PHP fuzzy matcher (`isManuallySet=false`) or by the user / a merchant rule
+     * (`isManuallySet=true`). The flag prevents auto-match from overwriting a
+     * deliberate selection.
+     */
+    vendor?: {
+        /** Vendor ID in the connected accounting integration (e.g. QBO vendor ID) */
+        externalID: string;
+
+        /** `true` when set by the user or a merchant rule; `false` when set by the PHP fuzzy auto-matcher */
+        isManuallySet: boolean;
+    };
+
     /** Timestamp when auto-categorization was initiated (format: "YYYY-MM-DD HH:MM:SS") */
     pendingAutoCategorizationTime?: string;
 
@@ -235,7 +252,7 @@ type Receipt = {
     /** Collection of reservations */
     reservationList?: Reservation[];
 
-    /** Receipt is manager_mctest@expensify.com testing receipt */
+    /** Whether this is a test receipt */
     isTestReceipt?: true;
 
     /** Receipt is Test Drive testing receipt */
@@ -266,10 +283,10 @@ type ReceiptError = {
     filename: string;
 
     /** Action that caused the error */
-    action: string;
+    action?: string;
 
     /** Parameters required to retry the failed action */
-    retryParams: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
+    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
 
     /** The type of receipt error */
     error: typeof CONST.IOU.RECEIPT_ERROR;

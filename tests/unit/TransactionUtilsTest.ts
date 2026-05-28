@@ -115,6 +115,67 @@ describe('TransactionUtils', () => {
         return waitForBatchedUpdates();
     });
 
+    describe('hasSubmissionBlockingViolationInReport', () => {
+        it('returns true when another report transaction has a submission-blocking violation and the optimistic transaction only has non-blocking violations', () => {
+            const transactionWithBlockingViolation = generateTransaction({
+                transactionID: 'transaction-with-blocking-violation',
+                reportID: FAKE_OPEN_REPORT_ID,
+            });
+            const optimisticTransaction = generateTransaction({
+                transactionID: 'optimistic-transaction',
+                reportID: FAKE_OPEN_REPORT_ID,
+            });
+            const transactionViolations: OnyxCollection<TransactionViolation[]> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionWithBlockingViolation.transactionID}`]: [
+                    {
+                        name: CONST.VIOLATIONS.SMARTSCAN_FAILED,
+                        type: CONST.VIOLATION_TYPES.WARNING,
+                    },
+                ],
+            };
+            const optimisticViolations: TransactionViolation[] = [
+                {
+                    name: CONST.VIOLATIONS.MISSING_TAG,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                },
+            ];
+
+            const result = TransactionUtils.hasSubmissionBlockingViolationInReport(
+                [transactionWithBlockingViolation, optimisticTransaction],
+                transactionViolations,
+                optimisticTransaction.transactionID,
+                optimisticViolations,
+            );
+
+            expect(result).toBe(true);
+        });
+
+        it('uses optimistic violations for the updated transaction instead of stale Onyx violations', () => {
+            const optimisticTransaction = generateTransaction({
+                transactionID: 'optimistic-transaction',
+                reportID: FAKE_OPEN_REPORT_ID,
+            });
+            const transactionViolations: OnyxCollection<TransactionViolation[]> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${optimisticTransaction.transactionID}`]: [
+                    {
+                        name: CONST.VIOLATIONS.NO_ROUTE,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                    },
+                ],
+            };
+            const optimisticViolations: TransactionViolation[] = [
+                {
+                    name: CONST.VIOLATIONS.MISSING_TAG,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                },
+            ];
+
+            const result = TransactionUtils.hasSubmissionBlockingViolationInReport([optimisticTransaction], transactionViolations, optimisticTransaction.transactionID, optimisticViolations);
+
+            expect(result).toBe(false);
+        });
+    });
+
     describe('getCreated', () => {
         describe('when the transaction property "modifiedCreated" has value', () => {
             const transaction = generateTransaction({
@@ -1757,7 +1818,7 @@ describe('TransactionUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}child-1`]: childTransaction,
             };
 
-            const result = TransactionUtils.getChildTransactions(transactions, reportCollectionDataSet, originalTransactionID);
+            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID);
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.transactionID).toBe('child-1');
@@ -1778,30 +1839,10 @@ describe('TransactionUtils', () => {
             };
 
             // Report doesn't exist in reportCollectionDataSet
-            const result = TransactionUtils.getChildTransactions(transactions, reportCollectionDataSet, originalTransactionID);
+            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID);
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.transactionID).toBe('child-2');
-        });
-
-        it('should exclude orphaned transactions with reportID "0" from processing', () => {
-            const orphanedTransaction = generateTransaction({
-                transactionID: 'orphaned-1',
-                reportID: '0',
-                comment: {
-                    originalTransactionID,
-                    source: CONST.IOU.TYPE.SPLIT,
-                },
-            });
-
-            const transactions = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}orphaned-1`]: orphanedTransaction,
-            };
-
-            // Orphaned split children should be excluded from getChildTransactions for processing
-            const result = TransactionUtils.getChildTransactions(transactions, reportCollectionDataSet, originalTransactionID);
-
-            expect(result).toHaveLength(0);
         });
 
         it('should exclude transactions with pendingAction DELETE', () => {
@@ -1819,7 +1860,7 @@ describe('TransactionUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}deleting-1`]: deletingTransaction,
             };
 
-            const result = TransactionUtils.getChildTransactions(transactions, reportCollectionDataSet, originalTransactionID);
+            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID);
 
             expect(result).toHaveLength(0);
         });
@@ -1848,7 +1889,7 @@ describe('TransactionUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}non-matching-1`]: nonMatchingChild,
             };
 
-            const result = TransactionUtils.getChildTransactions(transactions, reportCollectionDataSet, originalTransactionID);
+            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID);
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.transactionID).toBe('matching-1');
@@ -1868,7 +1909,7 @@ describe('TransactionUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}orphaned-1`]: orphanedTransaction,
             };
 
-            const result = TransactionUtils.getChildTransactions(transactions, reportCollectionDataSet, originalTransactionID, true);
+            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID);
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.transactionID).toBe('orphaned-1');

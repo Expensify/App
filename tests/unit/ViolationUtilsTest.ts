@@ -1,6 +1,7 @@
 import {beforeEach} from '@jest/globals';
 import Onyx from 'react-native-onyx';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
+import Permissions from '@libs/Permissions';
 import {getTransactionViolations, hasWarningTypeViolation, isViolationDismissed} from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations, getIsViolationFixed} from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
@@ -100,6 +101,12 @@ const tagOutOfPolicyViolation = {
     showInReview: true,
 };
 
+const inactiveVendorViolation = {
+    name: CONST.VIOLATIONS.INACTIVE_VENDOR,
+    type: CONST.VIOLATION_TYPES.VIOLATION,
+    showInReview: true,
+};
+
 const smartScanFailedViolation = {
     name: CONST.VIOLATIONS.SMARTSCAN_FAILED,
     type: CONST.VIOLATION_TYPES.WARNING,
@@ -191,6 +198,31 @@ describe('getViolationsOnyxData', () => {
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
 
             expect(result.value).not.toContainEqual(customUnitOutOfPolicyViolation);
+        });
+
+        it('should keep the customUnitOutOfPolicy violation if the rate exists but is disabled', () => {
+            const customUnitRateID = 'rate_id';
+            policy.customUnits = {
+                unitId: {
+                    attributes: {unit: 'mi'},
+                    customUnitID: 'unitId',
+                    defaultCategory: 'Car',
+                    enabled: true,
+                    name: 'Distance',
+                    rates: {
+                        [customUnitRateID]: {
+                            currency: 'USD',
+                            customUnitRateID,
+                            enabled: false,
+                            name: 'Default Rate',
+                            rate: 65.5,
+                        },
+                    },
+                },
+            };
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+
+            expect(result.value).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
         });
     });
 
@@ -1272,6 +1304,98 @@ describe('getViolationsOnyxData', () => {
             const modifiedTransactionViolations = [overTripLimitViolation, ...transactionViolations];
             const result = ViolationsUtils.getViolationsOnyxData(transaction, modifiedTransactionViolations, policy, policyTags, policyCategories, false, false);
             expect(result.value).toEqual([]);
+        });
+    });
+
+    describe('inactiveVendor violation', () => {
+        let isBetaEnabledSpy: jest.SpyInstance;
+
+        const policyWithQBOVendorFeature = (vendors: Array<{id: string; name: string; currency: string}> = [{id: 'v-active', name: 'Acme Co', currency: 'USD'}]) =>
+            ({
+                requiresTag: false,
+                requiresCategory: false,
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                        data: {vendors},
+                    },
+                },
+            }) as unknown as Policy;
+
+        beforeEach(async () => {
+            // Default to beta-enabled so the four branches of the violation logic are reachable.
+            // The "beta disabled" test overrides this below.
+            isBetaEnabledSpy = jest.spyOn(Permissions, 'isBetaEnabled').mockImplementation((beta) => beta === CONST.BETAS.VENDOR_MATCHING);
+            // Seed ONYXKEYS.BETAS so the module-level `allBetas` in ViolationsUtils transitions
+            // from undefined (startup) to defined. The production code skips the reconcile block
+            // entirely when `allBetas === undefined` to avoid stripping valid server-set violations
+            // during the startup window; without seeding here the tests would never reach the
+            // branches they're trying to exercise. The actual contents don't matter — the spy on
+            // `Permissions.isBetaEnabled` decides the beta result — we just need `allBetas` defined.
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.VENDOR_MATCHING]);
+            await waitForBatchedUpdates();
+        });
+
+        afterEach(() => {
+            isBetaEnabledSpy.mockRestore();
+        });
+
+        it('adds the violation when the transaction vendor is not in the policy vendor list', () => {
+            policy = policyWithQBOVendorFeature();
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', isManuallySet: true}};
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).toEqual(expect.arrayContaining([inactiveVendorViolation]));
+        });
+
+        it('does not duplicate the violation when one is already present and the vendor is still missing', () => {
+            policy = policyWithQBOVendorFeature();
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', isManuallySet: true}};
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, [inactiveVendorViolation], policy, policyTags, policyCategories, false, false);
+            expect((result.value as TransactionViolation[]).filter((v) => v.name === CONST.VIOLATIONS.INACTIVE_VENDOR)).toHaveLength(1);
+        });
+
+        it('removes an existing violation when the vendor is restored in the policy list', () => {
+            policy = policyWithQBOVendorFeature();
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-active', isManuallySet: true}};
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, [inactiveVendorViolation], policy, policyTags, policyCategories, false, false);
+            expect(result.value).not.toContainEqual(inactiveVendorViolation);
+        });
+
+        it('removes an existing violation when the user clears the vendor while the feature is still active', () => {
+            policy = policyWithQBOVendorFeature();
+            // transaction.comment has no vendor key — represents a cleared selection
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, [inactiveVendorViolation], policy, policyTags, policyCategories, false, false);
+            expect(result.value).not.toContainEqual(inactiveVendorViolation);
+        });
+
+        it('removes an existing violation when the vendor feature is disabled (QBO export type changed)', () => {
+            policy = {
+                requiresTag: false,
+                requiresCategory: false,
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL},
+                        data: {vendors: [{id: 'v-active', name: 'Acme Co', currency: 'USD'}]},
+                    },
+                },
+            } as unknown as Policy;
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-active', isManuallySet: true}};
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, [inactiveVendorViolation], policy, policyTags, policyCategories, false, false);
+            expect(result.value).not.toContainEqual(inactiveVendorViolation);
+        });
+
+        it('does not add the violation when the feature is inactive (no QBO connection)', () => {
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-anything', isManuallySet: true}};
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).not.toContainEqual(inactiveVendorViolation);
+        });
+
+        it('does not add the violation when the vendorMatching beta is disabled, even with QBO configured', () => {
+            isBetaEnabledSpy.mockImplementation(() => false);
+            policy = policyWithQBOVendorFeature();
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', isManuallySet: true}};
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).not.toContainEqual(inactiveVendorViolation);
         });
     });
 });

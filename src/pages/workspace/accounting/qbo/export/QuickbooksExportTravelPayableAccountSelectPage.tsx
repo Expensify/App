@@ -1,6 +1,6 @@
 import React from 'react';
 import type {SelectorType} from '@components/SelectionScreen';
-import {updateConnectionConfig} from '@libs/actions/PolicyConnections';
+import {updateQuickbooksOnlineTravelInvoicingPayableAccount} from '@libs/actions/connections/QuickbooksOnline';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -12,13 +12,13 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 function QuickbooksExportTravelPayableAccountSelectPage({policy}: WithPolicyConnectionsProps) {
-    const {accountPayable} = policy?.connections?.quickbooksOnline?.data ?? {};
+    const {creditCards} = policy?.connections?.quickbooksOnline?.data ?? {};
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
 
     const policyID = policy?.id ?? String(CONST.DEFAULT_NUMBER_ID);
     const backPath = ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_CONFIGURATION.getRoute(policyID);
     const data: Array<SelectorType<string>> =
-        accountPayable?.map((account) => ({
+        creditCards?.map((account) => ({
             value: account.id,
             text: account.name,
             keyForList: account.name,
@@ -27,12 +27,7 @@ function QuickbooksExportTravelPayableAccountSelectPage({policy}: WithPolicyConn
 
     const selectAccount = (row: SelectorType<string>) => {
         if (row.value !== qboConfig?.travelInvoicingPayableAccountID) {
-            updateConnectionConfig(
-                policyID,
-                CONST.POLICY.CONNECTIONS.NAME.QBO,
-                {travelInvoicingPayableAccountID: row.value},
-                {travelInvoicingPayableAccountID: qboConfig?.travelInvoicingPayableAccountID},
-            );
+            updateQuickbooksOnlineTravelInvoicingPayableAccount(policyID, row.value, qboConfig?.travelInvoicingPayableAccountID);
         }
         Navigation.goBack(backPath);
     };
