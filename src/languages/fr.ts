@@ -6442,6 +6442,26 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                             return 'Importation des dimensions Sage Intacct';
                         case 'intacctImportTitle':
                             return 'Importation des données Sage Intacct';
+                        case 'financialForceSyncTitle':
+                            return 'Synchronisation des données Certinia';
+                        case 'financialForceSyncStep':
+                            return 'Synchronisation de la connexion Certinia';
+                        case 'financialForceSyncCategories':
+                            return 'Importation des catégories';
+                        case 'financialForceSyncTags':
+                            return 'Importation des tags';
+                        case 'financialForceSyncVendors':
+                            return 'Importation des fournisseurs';
+                        case 'financialForceSyncContacts':
+                            return 'Importation des contacts';
+                        case 'financialForceSyncCompanies':
+                            return 'Importation des entreprises';
+                        case 'financialForceSyncUsers':
+                            return 'Importation des utilisateurs';
+                        case 'financialForceSyncDimensions':
+                            return 'Importation des dimensions';
+                        case 'financialForceMarkAsReimbursed':
+                            return 'Marquage des notes de frais comme remboursées';
                         default: {
                             return `Traduction manquante pour l’étape : ${stage}`;
                         }

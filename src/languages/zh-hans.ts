@@ -6227,6 +6227,26 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                             return '导入 Sage Intacct 维度';
                         case 'intacctImportTitle':
                             return '导入 Sage Intacct 数据';
+                        case 'financialForceSyncTitle':
+                            return '正在同步 Certinia 数据';
+                        case 'financialForceSyncStep':
+                            return '正在同步 Certinia 连接';
+                        case 'financialForceSyncCategories':
+                            return '正在导入类别';
+                        case 'financialForceSyncTags':
+                            return '正在导入标签';
+                        case 'financialForceSyncVendors':
+                            return '正在导入供应商';
+                        case 'financialForceSyncContacts':
+                            return '正在导入联系人';
+                        case 'financialForceSyncCompanies':
+                            return '正在导入公司';
+                        case 'financialForceSyncUsers':
+                            return '正在导入用户';
+                        case 'financialForceSyncDimensions':
+                            return '正在导入维度';
+                        case 'financialForceMarkAsReimbursed':
+                            return '正在将报告标记为已报销';
                         default: {
                             return `缺少以下阶段的翻译：${stage}`;
                         }

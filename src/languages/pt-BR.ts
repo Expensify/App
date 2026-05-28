@@ -6389,6 +6389,26 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                             return 'Importando dimensões do Sage Intacct';
                         case 'intacctImportTitle':
                             return 'Importando dados do Sage Intacct';
+                        case 'financialForceSyncTitle':
+                            return 'Sincronizando dados do Certinia';
+                        case 'financialForceSyncStep':
+                            return 'Sincronizando conexao do Certinia';
+                        case 'financialForceSyncCategories':
+                            return 'Importando categorias';
+                        case 'financialForceSyncTags':
+                            return 'Importando tags';
+                        case 'financialForceSyncVendors':
+                            return 'Importando fornecedores';
+                        case 'financialForceSyncContacts':
+                            return 'Importando contatos';
+                        case 'financialForceSyncCompanies':
+                            return 'Importando empresas';
+                        case 'financialForceSyncUsers':
+                            return 'Importando usuarios';
+                        case 'financialForceSyncDimensions':
+                            return 'Importando dimensoes';
+                        case 'financialForceMarkAsReimbursed':
+                            return 'Marcando relatorios como reembolsados';
                         default: {
                             return `Tradução ausente para o estágio: ${stage}`;
                         }

@@ -6203,6 +6203,26 @@ ${amount} para ${merchant} - ${date}`,
                             return 'Importando dimensiones';
                         case 'intacctImportTitle':
                             return 'Importando datos desde Sage Intacct';
+                        case 'financialForceSyncTitle':
+                            return 'Sincronizando datos de Certinia';
+                        case 'financialForceSyncStep':
+                            return 'Sincronizando la conexión de Certinia';
+                        case 'financialForceSyncCategories':
+                            return 'Importando categorías';
+                        case 'financialForceSyncTags':
+                            return 'Importando etiquetas';
+                        case 'financialForceSyncVendors':
+                            return 'Importando proveedores';
+                        case 'financialForceSyncContacts':
+                            return 'Importando contactos';
+                        case 'financialForceSyncCompanies':
+                            return 'Importando empresas';
+                        case 'financialForceSyncUsers':
+                            return 'Importando usuarios';
+                        case 'financialForceSyncDimensions':
+                            return 'Importando dimensiones';
+                        case 'financialForceMarkAsReimbursed':
+                            return 'Marcando informes como reembolsados';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }

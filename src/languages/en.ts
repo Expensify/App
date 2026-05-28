@@ -6450,6 +6450,26 @@ const translations = {
                             return 'Importing Sage Intacct dimensions';
                         case 'intacctImportTitle':
                             return 'Importing Sage Intacct data';
+                        case 'financialForceSyncTitle':
+                            return 'Syncing Certinia data';
+                        case 'financialForceSyncStep':
+                            return 'Syncing Certinia connection';
+                        case 'financialForceSyncCategories':
+                            return 'Importing categories';
+                        case 'financialForceSyncTags':
+                            return 'Importing tags';
+                        case 'financialForceSyncVendors':
+                            return 'Importing vendors';
+                        case 'financialForceSyncContacts':
+                            return 'Importing contacts';
+                        case 'financialForceSyncCompanies':
+                            return 'Importing companies';
+                        case 'financialForceSyncUsers':
+                            return 'Importing users';
+                        case 'financialForceSyncDimensions':
+                            return 'Importing dimensions';
+                        case 'financialForceMarkAsReimbursed':
+                            return 'Marking reports as reimbursed';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }

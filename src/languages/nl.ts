@@ -6389,6 +6389,26 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                             return 'Sage Intacct-dimensies importeren';
                         case 'intacctImportTitle':
                             return 'Sage Intacct-gegevens importeren';
+                        case 'financialForceSyncTitle':
+                            return 'Certinia-gegevens synchroniseren';
+                        case 'financialForceSyncStep':
+                            return 'Certinia-verbinding synchroniseren';
+                        case 'financialForceSyncCategories':
+                            return 'Categorieen importeren';
+                        case 'financialForceSyncTags':
+                            return 'Tags importeren';
+                        case 'financialForceSyncVendors':
+                            return 'Leveranciers importeren';
+                        case 'financialForceSyncContacts':
+                            return 'Contacten importeren';
+                        case 'financialForceSyncCompanies':
+                            return 'Bedrijven importeren';
+                        case 'financialForceSyncUsers':
+                            return 'Gebruikers importeren';
+                        case 'financialForceSyncDimensions':
+                            return 'Dimensies importeren';
+                        case 'financialForceMarkAsReimbursed':
+                            return 'Rapporten als vergoed markeren';
                         default: {
                             return `Vertaling ontbreekt voor fase: ${stage}`;
                         }
