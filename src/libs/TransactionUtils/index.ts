@@ -2767,17 +2767,16 @@ function shouldRedirectDeleteToSplitExpenseEdit(
 ): boolean {
     const {isExpenseSplit: isExpenseSplitTransaction, originalTransaction: sourceTransaction} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
 
+    if (isProduction) {
+        return isExpenseSplitTransaction && !isExpenseUnreported(transaction ?? undefined) && !isExpenseUnreported(originalTransaction ?? undefined) && isPerDiemRequest(sourceTransaction);
+    }
+
     if (!isExpenseSplitTransaction || !isPerDiemRequest(sourceTransaction)) {
         return false;
     }
-
-    // Self-DM allow-branch (added by PR #84382) made per-diem self-DM splits redirect Delete →
-    // Edit splits. In production we skip this branch so execution falls through to the pre-PR
-    // unreported check below — i.e., per-diem self-DM splits get a regular Delete action again.
-    if (!isProduction && isSelfDMSplit) {
+    if (isSelfDMSplit) {
         return true;
     }
-
     return !isExpenseUnreported(transaction ?? undefined) && !isExpenseUnreported(originalTransaction ?? undefined);
 }
 

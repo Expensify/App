@@ -97,25 +97,27 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             }
 
             const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.comment?.originalTransactionID}`];
-            const transactionReport = allTransactions ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] : undefined;
-            const isSelfDMSplit = isSelfDM(report) || isSelfDM(transactionReport) || (!!selfDMReportID && transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
-            if (isProduction && isSelfDMSplit) {
-                return undefined;
-            }
 
-            if (!shouldRedirectDeleteToSplitExpenseEdit(transaction, originalTransaction, isSelfDMSplit, isProduction)) {
-                return undefined;
-            }
-            if (!isProduction) {
-                const hasMultipleSplits = getChildTransactions(allTransactions, originalTransaction?.transactionID, isProduction).length > 1;
-                if (!hasMultipleSplits && isPerDiemRequestTransactionUtils(originalTransaction)) {
+            if (isProduction) {
+                if (!shouldRedirectDeleteToSplitExpenseEdit(transaction, originalTransaction, false, isProduction)) {
                     return undefined;
                 }
+                return transaction;
+            }
+
+            // Current main (post-PR #84382) logic.
+            const isSelfDMSplit = isSelfDM(report) || (!!selfDMReportID && transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
+            const hasMultipleSplits = getChildTransactions(allTransactions, originalTransaction?.transactionID, isProduction).length > 1;
+            if (
+                !shouldRedirectDeleteToSplitExpenseEdit(transaction, originalTransaction, isSelfDMSplit, isProduction) ||
+                (!hasMultipleSplits && isPerDiemRequestTransactionUtils(originalTransaction))
+            ) {
+                return undefined;
             }
 
             return transaction;
         },
-        [allTransactions, allReports, report, selfDMReportID, isProduction],
+        [allTransactions, report, selfDMReportID, isProduction],
     );
 
     const shouldOpenSplitExpenseEditFlowOnDelete = useCallback(
