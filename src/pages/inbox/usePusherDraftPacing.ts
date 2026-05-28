@@ -25,7 +25,7 @@ type PusherDraftPacingRuntime = PusherDraftPaceRefs & {
     visibleSequenceRef: MutableRef<number>;
 };
 
-const PUSHER_DRAFT_PACE_INTERVAL_MS = 60;
+const PUSHER_DRAFT_PACE_INTERVAL_MS = 25;
 const PUSHER_DRAFT_EVENT_TYPES = [
     Pusher.TYPE.CONCIERGE_DRAFT_STARTED,
     Pusher.TYPE.CONCIERGE_DRAFT_UPDATED,
@@ -168,6 +168,19 @@ function startPusherDraftPace(runtime: PusherDraftPacingRuntime) {
     pusherPaceIntervalRef.current = setInterval(() => tickPacing(runtime), PUSHER_DRAFT_PACE_INTERVAL_MS);
 }
 
+function updateLatestPusherDraftTarget(runtime: PusherDraftPacingRuntime, event: ConciergeDraftEvent) {
+    const {completedPusherDraftEventRef, currentDraftRef, latestPusherDraftEventRef, visibleBodyMarkdownRef} = runtime;
+    const latestEvent = latestPusherDraftEventRef.current;
+    const activeStreamSessionID = latestEvent?.streamSessionID ?? currentDraftRef.current?.streamSessionID;
+    if (activeStreamSessionID && activeStreamSessionID !== event.streamSessionID) {
+        stopPusherDraftPace(runtime);
+        completedPusherDraftEventRef.current = null;
+        visibleBodyMarkdownRef.current = '';
+    }
+
+    latestPusherDraftEventRef.current = event;
+}
+
 function isStalePusherDraftEvent(runtime: PusherDraftPacingRuntime, event: ConciergeDraftEvent): boolean {
     const {currentDraftRef, latestPusherDraftEventRef, reportID} = runtime;
 
@@ -185,7 +198,7 @@ function isStalePusherDraftEvent(runtime: PusherDraftPacingRuntime, event: Conci
 }
 
 function handlePusherDraftEvent(runtime: PusherDraftPacingRuntime, event: ConciergeDraftEvent) {
-    const {completedPusherDraftEventRef, currentDraftRef, latestPusherDraftEventRef, visibleBodyMarkdownRef} = runtime;
+    const {completedPusherDraftEventRef, latestPusherDraftEventRef, visibleBodyMarkdownRef} = runtime;
 
     if (isStalePusherDraftEvent(runtime, event)) {
         return;
@@ -220,15 +233,7 @@ function handlePusherDraftEvent(runtime: PusherDraftPacingRuntime, event: Concie
         return;
     }
 
-    const latestEvent = latestPusherDraftEventRef.current;
-    const activeStreamSessionID = latestEvent?.streamSessionID ?? currentDraftRef.current?.streamSessionID;
-    if (activeStreamSessionID && activeStreamSessionID !== event.streamSessionID) {
-        stopPusherDraftPace(runtime);
-        completedPusherDraftEventRef.current = null;
-        visibleBodyMarkdownRef.current = '';
-    }
-
-    latestPusherDraftEventRef.current = event;
+    updateLatestPusherDraftTarget(runtime, event);
     const nextVisibleBodyMarkdown = getNextVisibleConciergeDraftBodyMarkdown(visibleBodyMarkdownRef.current, targetBodyMarkdown);
     if (nextVisibleBodyMarkdown !== visibleBodyMarkdownRef.current) {
         publishVisibleEvent(runtime, event, nextVisibleBodyMarkdown, event.status);
@@ -242,8 +247,58 @@ function handlePusherDraftEvent(runtime: PusherDraftPacingRuntime, event: Concie
 }
 
 function handlePusherDraftEvents(runtime: PusherDraftPacingRuntime, eventData: ConciergeDraftEventsEvent) {
+    let firstVisibleEvent: ConciergeDraftEvent | null = null;
+
     for (const event of eventData.events) {
-        handlePusherDraftEvent(runtime, event);
+        if (isStalePusherDraftEvent(runtime, event)) {
+            continue;
+        }
+
+        if (event.status === 'failed' || event.status === 'cleared') {
+            resetPusherDraftPace(runtime);
+            publishVisibleEvent(runtime, event, undefined, event.status);
+            return;
+        }
+
+        if (event.status === 'completed') {
+            if (event.bodyMarkdown) {
+                const completedTargetEvent = {
+                    ...event,
+                    finalRenderedHTML: undefined,
+                    status: 'updated' as const,
+                };
+                updateLatestPusherDraftTarget(runtime, completedTargetEvent);
+                firstVisibleEvent ??= completedTargetEvent;
+            }
+            runtime.completedPusherDraftEventRef.current = event;
+            continue;
+        }
+
+        const targetBodyMarkdown = event.bodyMarkdown ?? '';
+        if (!targetBodyMarkdown) {
+            continue;
+        }
+
+        updateLatestPusherDraftTarget(runtime, event);
+        firstVisibleEvent ??= event;
+    }
+
+    if (firstVisibleEvent?.bodyMarkdown) {
+        const nextVisibleBodyMarkdown = getNextVisibleConciergeDraftBodyMarkdown(runtime.visibleBodyMarkdownRef.current, firstVisibleEvent.bodyMarkdown);
+        if (nextVisibleBodyMarkdown !== runtime.visibleBodyMarkdownRef.current) {
+            publishVisibleEvent(runtime, firstVisibleEvent, nextVisibleBodyMarkdown, firstVisibleEvent.status === 'completed' ? 'updated' : firstVisibleEvent.status);
+        }
+    }
+
+    if (runtime.latestPusherDraftEventRef.current?.bodyMarkdown) {
+        startPusherDraftPace(runtime);
+        return;
+    }
+
+    const completedEvent = runtime.completedPusherDraftEventRef.current;
+    if (completedEvent) {
+        publishVisibleEvent(runtime, completedEvent, undefined, 'completed');
+        runtime.completedPusherDraftEventRef.current = null;
     }
 }
 
