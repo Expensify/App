@@ -4,6 +4,7 @@ import HeaderPageLayout from '@components/HeaderPageLayout';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import Text from '@components/Text';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -17,13 +18,13 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {ReferralDetailsNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {showContextMenu} from './inbox/report/ContextMenu/ReportActionContextMenu';
 
-type ReferralDetailsPageProps = PlatformStackScreenProps<ReferralDetailsNavigatorParamList, typeof SCREENS.REFERRAL_DETAILS>;
+type DynamicReferralDetailsPageProps = PlatformStackScreenProps<ReferralDetailsNavigatorParamList, typeof SCREENS.DYNAMIC_REFERRAL_DETAILS>;
 
-function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
+function DynamicReferralDetailsPage({route}: DynamicReferralDetailsPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Copy', 'NewWindow', 'QuestionMark']);
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -32,8 +33,8 @@ function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const popoverAnchor = useRef(null);
     const {isExecuting, singleExecution} = useSingleExecution();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REFERRAL_DETAILS.path);
     let {contentType} = route.params;
-    const {backTo} = route.params;
 
     if (!Object.values(CONST.REFERRAL_PROGRAM.CONTENT_TYPES).includes(contentType)) {
         contentType = CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND;
@@ -56,14 +57,10 @@ function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
                 />
             }
             headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentEnd]}
-            backgroundColor={theme.PAGE_THEMES[SCREENS.REFERRAL_DETAILS].backgroundColor}
-            testID="ReferralDetailsPage"
+            backgroundColor={theme.PAGE_THEMES[SCREENS.DYNAMIC_REFERRAL_DETAILS].backgroundColor}
+            testID="DynamicReferralDetailsPage"
             onBackButtonPress={() => {
-                if (backTo) {
-                    Navigation.goBack(backTo as Route);
-                    return;
-                }
-                Navigation.goBack();
+                Navigation.goBack(backPath);
             }}
         >
             <Text style={[styles.textHeadline, styles.mb2, styles.ph5]}>{contentHeader}</Text>
@@ -105,4 +102,4 @@ function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
     );
 }
 
-export default ReferralDetailsPage;
+export default DynamicReferralDetailsPage;
