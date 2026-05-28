@@ -77,7 +77,7 @@ function DynamicExitSurveyReasonPage() {
         Navigation.dismissModal();
         openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
     }, [draftResponse, translate]);
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, switchToClassic);
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, switchToClassic, {isActive: !isOffline});
 
     const formTopMarginsStyle = styles.mt3;
     const baseResponseInputContainerStyle = styles.mt3;
