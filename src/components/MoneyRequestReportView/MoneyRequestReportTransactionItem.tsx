@@ -147,15 +147,12 @@ function MoneyRequestReportTransactionItem({
         borderRadius: shouldUseNarrowLayout ? variables.componentBorderRadius : 0,
         shouldHighlight: shouldBeHighlighted,
         highlightColor: theme.messageHighlightBG,
-        backgroundColor: theme.highlightBG,
+        backgroundColor: theme.appBG,
         shouldApplyOtherStyles: !shouldUseNarrowLayout,
     });
 
     return (
-        <OfflineWithFeedback
-            pendingAction={pendingAction}
-            style={!shouldUseNarrowLayout && isLastItem && [styles.tableBottomRadius, styles.overflowHidden]}
-        >
+        <OfflineWithFeedback pendingAction={pendingAction}>
             <PressableWithFeedback
                 key={transaction.transactionID}
                 onPress={() => {
