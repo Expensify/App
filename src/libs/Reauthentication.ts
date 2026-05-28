@@ -268,7 +268,7 @@ function reauthenticate(command = ''): Promise<boolean> {
                         errorMessage,
                     });
                     setIsAuthenticating(false);
-                    Log.hmmm('[Reauthenticate] Redirecting to Sign In because Authenticate returned a non-retriable HTTP error', {
+                    Log.hmmm('[Reauthenticate] Redirecting to Sign In because Authenticate returned a non-retryable HTTP error', {
                         command,
                         error: (error as Error).message,
                         status: (error as HttpsError).status,
