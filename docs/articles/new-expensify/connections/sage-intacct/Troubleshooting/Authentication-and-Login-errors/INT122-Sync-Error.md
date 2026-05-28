@@ -75,13 +75,19 @@ If **expensify** is already listed and the error continues:
 
 ---
 
-## Retry the Sync
+## Reenter credentials and retry the sync
 
-After confirming credentials and Sender ID settings:
+After confirming credentials and Sender ID settings in Sage Intacct, reauthorize the connection in Expensify and then run a sync.
+
+While the INT122 authentication error is active, **Sync now** is hidden from the three dots **(⋮)** menu next to Sage Intacct. **Enter your credentials** is shown instead. Reenter credentials first to clear the authentication error, then **Sync now** will be available again.
 
 1. Go to **Workspaces > [Workspace Name] > Accounting**.
-2. Select **Sync Now**.
-3. Confirm the sync completes successfully.
+2. Select the three dots **(⋮)** next to the Sage Intacct connection.
+3. Select **Enter your credentials**.
+4. Enter your Sage Intacct admin credentials and complete the reauthorization.
+5. After the connection is restored, select the three dots **(⋮)** next to the Sage Intacct connection again.
+6. Select **Sync now**.
+7. Confirm the sync completes successfully.
 
 If authentication is configured correctly, the sync should complete without errors.
 

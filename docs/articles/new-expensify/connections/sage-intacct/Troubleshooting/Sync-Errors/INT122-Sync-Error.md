@@ -68,14 +68,18 @@ The Sender ID must be entered exactly as **expensify** in lowercase.
 
 ---
 
-## Reauthorize the Integration in the Workspace
+## Reauthorize the integration in the Workspace
+
+While the INT122 authentication error is active, **Sync now** is hidden from the three dots **(⋮)** menu next to Sage Intacct. **Enter your credentials** is shown instead. Reenter credentials first to clear the authentication error, then **Sync now** will be available again.
 
 1. Go to **Settings > Workspaces**.
 2. Select your Workspace.
 3. Click **Accounting**.
-4. Reenter the Sage Intacct admin credentials if prompted.
-5. Click **Save**.
-6. Click **Sync Now**.
+4. Select the three dots **(⋮)** next to the Sage Intacct connection.
+5. Select **Enter your credentials**.
+6. Enter your Sage Intacct admin credentials and complete the reauthorization.
+7. After the connection is restored, select the three dots **(⋮)** next to the Sage Intacct connection again.
+8. Select **Sync now**.
 
 If credentials and web services settings are configured correctly, the sync should complete successfully.
 
