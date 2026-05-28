@@ -16,6 +16,7 @@ import TextLink from '@components/TextLink';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNavigateToCardAuthenticationOnLink from '@hooks/useNavigateToCardAuthenticationOnLink';
 import useOnyx from '@hooks/useOnyx';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import usePrevious from '@hooks/usePrevious';
@@ -27,7 +28,6 @@ import {getMCardNumberString, getMonthFromExpirationDateString, getYearFromExpir
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCardForSubscriptionBilling} from '@libs/SubscriptionUtils';
-import CardAuthenticationModal from '@pages/settings/Subscription/CardAuthenticationModal';
 import {addSubscriptionPaymentCard, clearPaymentCardFormErrorAndSubmit} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,6 +39,7 @@ function AddPaymentCard() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const privateSubscription = usePrivateSubscription();
+    useNavigateToCardAuthenticationOnLink();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
@@ -148,7 +149,6 @@ function AddPaymentCard() {
                             }
                         />
                     </View>
-                    <CardAuthenticationModal headerTitle={translate('subscription.authenticatePaymentCard')} />
                 </DelegateNoAccessWrapper>
             </FullPageNotFoundView>
         </ScreenWrapper>

@@ -5,6 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useNavigateToCardAuthenticationOnLink from '@hooks/useNavigateToCardAuthenticationOnLink';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -12,7 +13,6 @@ import shouldShowChangeWorkspaceOwnerPage from '@libs/shouldShowChangeWorkspaceO
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import CardAuthenticationModal from '@pages/settings/Subscription/CardAuthenticationModal';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
@@ -29,6 +29,7 @@ type WorkspaceOwnerChangeWrapperPageProps = WithPolicyOnyxProps & PlatformStackS
 function WorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}: WorkspaceOwnerChangeWrapperPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    useNavigateToCardAuthenticationOnLink();
     const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const policyID = route.params.policyID;
@@ -117,10 +118,6 @@ function WorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}: Works
                             error={error}
                         />
                     )}
-                    <CardAuthenticationModal
-                        headerTitle={translate('subscription.authenticatePaymentCard')}
-                        policyID={policyID}
-                    />
                 </View>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
