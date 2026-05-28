@@ -42,6 +42,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     default: {
         isActiveRoute: jest.fn(() => false),
         navigate: jest.fn(),
+        getActiveRouteWithoutParams: jest.fn(() => ''),
         isNavigationReady: jest.fn(() => Promise.resolve()),
         setNavigationActionToMicrotaskQueue: jest.fn(() => Promise.resolve()),
     },
@@ -69,6 +70,10 @@ jest.mock('@userActions/App', () => ({
     setUpPoliciesAndNavigate: jest.fn(),
     confirmReadyToOpenApp: jest.fn(),
     setLocale: jest.fn(),
+}));
+
+jest.mock('@userActions/Agent', () => ({
+    openAgentsPage: jest.fn(),
 }));
 
 jest.mock('@userActions/Download', () => ({

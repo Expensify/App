@@ -3,6 +3,7 @@ import type {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import UserInfoAndActionButtonRow from '@components/Search/SearchList/ListItem/UserInfoAndActionButtonRow';
 import type {ListItem} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
@@ -16,7 +17,6 @@ import type {TransactionListItemNarrowProps} from './types';
 
 function TransactionListItemNarrow<TItem extends ListItem>({
     item,
-    transactionItem,
     isDeletedTransaction,
     isFocused,
     showTooltip,
@@ -37,13 +37,24 @@ function TransactionListItemNarrow<TItem extends ListItem>({
     transactionPreviewData,
     exportedReportActions,
     nonPersonalAndWorkspaceCards,
-    policyForMovingExpenses,
+    isAttendeesEnabledForMovingPolicy,
 }: TransactionListItemNarrowProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<View>(null);
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
+
+    const transactionItem = item as unknown as TransactionListItemType;
+
+    // Narrow rows don't support inline cell editing, so the press handler can skip the
+    // editing-dismissal logic that the wide variant needs.
+    const handleOnPress: React.ComponentProps<typeof PressableWithFeedback>['onPress'] = (event) => {
+        if (isDeletedTransaction && !canSelectMultiple) {
+            return;
+        }
+        onSelectRow(item, transactionPreviewData, event);
+    };
 
     const pressableStyle = [
         styles.transactionListItemStyle,
@@ -66,12 +77,11 @@ function TransactionListItemNarrow<TItem extends ListItem>({
             <PressableWithFeedback
                 ref={pressableRef}
                 onLongPress={() => onLongPressRow?.(item)}
-                onPress={isDeletedTransaction && !canSelectMultiple ? undefined : () => onSelectRow(item, transactionPreviewData)}
+                onPress={handleOnPress}
                 disabled={isDisabled && !item.isSelected}
                 accessibilityLabel={item.text ?? ''}
                 role={!isDeletedTransaction ? getButtonRole(true) : 'none'}
                 isNested
-                onMouseDown={(e) => e.preventDefault()}
                 hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, item.isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 id={item.keyForList ?? ''}
@@ -87,8 +97,8 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                     styles.flex1,
                     animatedHighlightStyle,
                     styles.userSelectNone,
-                    isFirstItem && [styles.searchTableTopRadius, styles.overflowHidden],
-                    isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden],
+                    isFirstItem && styles.tableTopRadius,
+                    isLastItem && styles.tableBottomRadius,
                     !isLastItem && StyleUtils.getSelectedBorderBottomStyle(item.isSelected),
                 ]}
             >
@@ -119,13 +129,13 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                             taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                             shouldShowCheckbox={!!canSelectMultiple}
                             checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM_CHECKBOX}
-                            style={[styles.p3, styles.pv2, styles.p0, styles.pt3, isLastItem ? styles.searchTableBottomRadius : styles.noBorderRadius]}
+                            style={[styles.p3, styles.pv2, styles.p0, styles.pt3, isLastItem ? styles.tableBottomRadius : styles.noBorderRadius]}
                             violations={transactionViolations}
-                            onArrowRightPress={isDeletedTransaction ? undefined : () => onSelectRow(item, transactionPreviewData)}
+                            onArrowRightPress={isDeletedTransaction ? undefined : (event) => onSelectRow(item, transactionPreviewData, event)}
                             isHover={false}
                             nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                             reportActions={exportedReportActions}
-                            policyForMovingExpenses={policyForMovingExpenses}
+                            isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                         />
                     </>
                 )}
