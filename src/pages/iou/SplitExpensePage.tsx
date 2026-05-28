@@ -369,7 +369,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             transactionReport: draftTransactionReport,
             expenseReport,
             isOffline,
-            isProduction,
         });
     };
 

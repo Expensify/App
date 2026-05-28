@@ -288,7 +288,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     transactionReport: report,
                     expenseReport,
                     isOffline,
-                    isProduction,
                 });
             }
 
