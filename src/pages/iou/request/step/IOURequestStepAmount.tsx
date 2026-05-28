@@ -366,6 +366,7 @@ function IOURequestStepAmount({
                             merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                             reimbursable: defaultReimbursable,
                         },
+                        existingTransaction: storedTransaction ?? transaction,
                         isASAPSubmitBetaEnabled,
                         currentUser: {accountID: currentUserAccountIDParam, email: currentUserEmailParam},
                         introSelected,
@@ -570,8 +571,8 @@ function IOURequestStepAmount({
 /**
  * Check if the participant is a P2P chat
  */
-function isParticipantP2P(participant: {accountID?: number; isPolicyExpenseChat?: boolean} | undefined): boolean {
-    return !!(participant?.accountID && !participant.isPolicyExpenseChat);
+function isParticipantP2P(participant: {accountID?: number; isPolicyExpenseChat?: boolean; isSelfDM?: boolean} | undefined): boolean {
+    return !!(participant?.accountID && !participant.isPolicyExpenseChat && !participant.isSelfDM);
 }
 
 const IOURequestStepAmountWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepAmount, true);
