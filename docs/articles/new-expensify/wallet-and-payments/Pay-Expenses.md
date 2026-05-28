@@ -83,7 +83,7 @@ You can reimburse Workspace expenses using business bank accounts in the followi
 
 ---
 
-## Why don't I see my bank account in the pay menu?
+## Why don't I see my bank account when I click Pay?
 
 Only bank accounts that match the report's currency appear as payment options. If you have a USD bank account but the report is in EUR, the USD account will not be shown. To pay the report, connect a bank account in the matching currency, or select **Mark as paid** to record a payment made outside Expensify.
 
