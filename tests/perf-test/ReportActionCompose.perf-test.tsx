@@ -110,7 +110,7 @@ test('[ReportActionCompose] should render Composer with text input interactions'
 test('[ReportActionCompose] should press create button', async () => {
     const scenario = async () => {
         // Query for the create button
-        const hintAttachmentButtonText = translateLocal('common.create');
+        const hintAttachmentButtonText = translateLocal('accessibilityHints.openActionsMenu');
         const createButton = await screen.findByLabelText(hintAttachmentButtonText);
 
         fireEvent.press(createButton, mockEvent);
