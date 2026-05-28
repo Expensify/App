@@ -21,9 +21,10 @@ function DuplicateTransactionsList({transactions, onPreviewPressed}: DuplicateTr
     const styles = useThemeStyles();
 
     const renderItem = useCallback(
-        ({item}: ListRenderItemInfo<OnyxEntry<Transaction>>) => (
+        ({item, index}: ListRenderItemInfo<OnyxEntry<Transaction>>) => (
             <DuplicateTransactionItem
                 transaction={item}
+                index={index}
                 onPreviewPressed={onPreviewPressed}
             />
         ),

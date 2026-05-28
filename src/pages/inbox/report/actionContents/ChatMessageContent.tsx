@@ -29,12 +29,13 @@ type ChatMessageContentProps = {
     originalReportID: string;
     displayAsGroup: boolean;
     draftMessage: string | undefined;
+    index: number;
     isHidden: boolean;
     updateHiddenState: (isHiddenValue: boolean) => void;
     isOnSearch: boolean;
 };
 
-function ChatMessageContent({action, policyID, reportID, originalReportID, displayAsGroup, draftMessage, isHidden, updateHiddenState, isOnSearch}: ChatMessageContentProps) {
+function ChatMessageContent({action, policyID, reportID, originalReportID, displayAsGroup, draftMessage, index, isHidden, updateHiddenState, isOnSearch}: ChatMessageContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -63,6 +64,7 @@ function ChatMessageContent({action, policyID, reportID, originalReportID, displ
                         reportID={reportID}
                         originalReportID={originalReportID}
                         policyID={policyID}
+                        index={index}
                     />
                 ) : (
                     <View style={displayAsGroup && hasBeenFlagged ? styles.blockquote : {}}>

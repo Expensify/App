@@ -116,6 +116,9 @@ type ActionContentRouterProps = {
     /** Whether the search-page UI is active */
     isOnSearch: boolean;
 
+    /** Position index of the report action in the overall report FlatList view */
+    index: number;
+
     /** Toggle whether the payment method popover is active */
     setIsPaymentMethodPopoverActive: (value: boolean) => void;
 };
@@ -138,14 +141,14 @@ function ActionContentRouter({
     personalDetails,
     shouldShowBorder,
     isOnSearch,
+    index,
     setIsPaymentMethodPopoverActive,
 }: ActionContentRouterProps): React.JSX.Element | null {
     const {translate, formatTravelDate} = useLocalize();
     const styles = useThemeStyles();
 
-    // Report that owns this action for mutations (thread / merged-list cases use originalReport). This is a stable projection (heartbeat fields stripped).
-    const actionOwnerReportStable = originalReport ?? report;
-
+    // Report that owns this action for mutations (thread / merged-list cases use originalReport).
+    const actionOwnerReport = originalReport ?? report;
     const actionOwnerReportID = originalReportID ?? reportID;
     const policyID = report?.policyID;
     const reportOwnerAccountID = report?.ownerAccountID;
@@ -378,10 +381,9 @@ function ActionContentRouter({
         return (
             <MentionWhisperContent
                 action={action}
-                actionOwnerReportStable={actionOwnerReportStable}
+                report={report}
+                originalReport={originalReport}
                 originalReportID={originalReportID}
-                parentReport={originalReport ? report : undefined}
-                policyID={policyID}
             />
         );
     }
@@ -390,7 +392,7 @@ function ActionContentRouter({
             <ReportMentionWhisperContent
                 action={action}
                 reportID={reportID}
-                actionOwnerReportStable={actionOwnerReportStable}
+                actionOwnerReport={actionOwnerReport}
             />
         );
     }
@@ -399,7 +401,7 @@ function ActionContentRouter({
             <ConfirmWhisperContent
                 action={action}
                 reportID={reportID}
-                actionOwnerReportStable={actionOwnerReportStable}
+                actionOwnerReport={actionOwnerReport}
                 originalReportID={originalReportID}
             />
         );
@@ -484,6 +486,7 @@ function ActionContentRouter({
             originalReportID={originalReportID}
             displayAsGroup={displayAsGroup}
             draftMessage={draftMessage}
+            index={index}
             isHidden={isHidden}
             updateHiddenState={updateHiddenState}
             isOnSearch={isOnSearch}
