@@ -106,7 +106,3 @@ If Claude.ai still cannot access your data:
 ## Can Claude.ai edit expenses or approve reports?
 
 No. The Expensify MCP server provides read-only access to your data.
-
-## How do I revoke Claude.ai access to Expensify?
-
-Remove the Expensify connector from Claude.ai and revoke the OAuth authorization if needed.
