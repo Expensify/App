@@ -90,7 +90,6 @@ function StatusPage() {
         return DateUtils.isTimeAtLeastOneMinuteInFuture({dateTimeString: clearAfterTime});
     }, [draftClearAfter, currentUserClearAfter]);
 
-
     const updateStatus = useCallback(
         ({emojiCode, statusText}: FormOnyxValues<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM>) => {
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
