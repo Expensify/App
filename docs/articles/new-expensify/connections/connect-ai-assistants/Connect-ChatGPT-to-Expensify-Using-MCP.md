@@ -9,6 +9,10 @@ internalScope: Audience is members using ChatGPT. Covers connecting ChatGPT to E
 
 You can connect ChatGPT to Expensify using the Expensify MCP server. Once connected, ChatGPT can search and analyze your Expensify data using natural language.
 
+Learn more about supported AI clients, permissions, and security in [Use the Expensify MCP server with AI assistants](/articles/new-expensify/connections/connect-ai-assistants/Use-the-Expensify-MCP-Server-With-AI-Assistants).
+
+---
+
 ## Who can connect ChatGPT to Expensify using MCP
 
 Any member with an Expensify account and access to ChatGPT developer mode can connect ChatGPT to Expensify using MCP.
@@ -19,6 +23,8 @@ Requirements:
 - An active Expensify account
 - Internet access for OAuth authentication
 
+---
+
 ## How to enable developer mode in ChatGPT
 
 1. Open ChatGPT.
@@ -26,6 +32,8 @@ Requirements:
 3. Select **Apps & Connectors**.
 4. Scroll to **Advanced settings**.
 5. Turn on **Developer mode**.
+
+---
 
 ## How to create the Expensify connector in ChatGPT
 
@@ -42,6 +50,8 @@ Requirements:
 6. Complete the OAuth sign-in and approval flow in your browser.
 7. Click **Approve**.
 
+---
+
 ## How to use the Expensify connector in ChatGPT conversations
 
 1. Open a new chat.
@@ -49,6 +59,8 @@ Requirements:
 3. Select **More**.
 4. Select the Expensify connector.
 5. Ask a question about your Expensify data.
+
+---
 
 ## What happens after you connect ChatGPT to Expensify using MCP
 
@@ -67,6 +79,8 @@ ChatGPT cannot:
 - Edit expenses
 - Reimburse payments
 - Manage Workspace settings
+
+---
 
 # FAQ
 
