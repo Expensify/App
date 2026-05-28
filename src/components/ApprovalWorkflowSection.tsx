@@ -31,13 +31,13 @@ type ApprovalWorkflowSectionProps = {
     /** Whether the workflow should be shown as read-only */
     isDisabled?: boolean;
 
-    /** HR provider display name, used in manager mode to show "Manager (from {provider})" */
+    /** HR provider display name, used in advanced (manager) mode to show "Manager (from {provider})" */
     hrProviderName?: string;
 
-    /** When true, uses HR manager mode labels: "Manager (from {provider})" then "Final approver" */
-    isHRManagerMode?: boolean;
+    /** When true, uses HR advanced (manager) mode labels: "Manager (from {provider})" then "Final approver" */
+    isHRAdvancedMode?: boolean;
 
-    /** Email of the configured final approver in HR manager mode, used to correctly label a sole approver who is the final approver */
+    /** Email of the configured final approver in HR advanced (manager) mode, used to correctly label a sole approver who is the final approver */
     hrFinalApproverEmail?: string;
 };
 
@@ -47,7 +47,7 @@ function ApprovalWorkflowSection({
     currency = CONST.CURRENCY.USD,
     isDisabled = false,
     hrProviderName,
-    isHRManagerMode = false,
+    isHRAdvancedMode = false,
     hrFinalApproverEmail,
 }: ApprovalWorkflowSectionProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Lightbulb', 'Users', 'UserCheck']);
@@ -58,7 +58,7 @@ function ApprovalWorkflowSection({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const approverTitle = (index: number) => {
-        if (isHRManagerMode) {
+        if (isHRAdvancedMode) {
             const isLast = index === approvalWorkflow.approvers.length - 1;
             const approver = approvalWorkflow.approvers.at(index);
             const isConfiguredFinalApprover = !!hrFinalApproverEmail && approver?.email === hrFinalApproverEmail;

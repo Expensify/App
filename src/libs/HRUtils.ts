@@ -71,7 +71,7 @@ function isAnyHRConnected(policy?: OnyxEntry<Policy>): boolean {
     return isGustoConnected(policy) || isZenefitsConnected(policy) || isMergeHRConnected(policy);
 }
 
-/** Returns true if any connected HR integration uses a read-only approval mode (basic or manager), which blocks manual workflow editing. */
+/** Returns true if any connected HR integration uses a read-only approval mode (basic or advanced (manager)), which blocks manual workflow editing. */
 function isAnyHRReadOnlyWorkflowMode(policy?: OnyxEntry<Policy>): boolean {
     const gustoMode = policy?.connections?.gusto?.config?.approvalMode;
     if (gustoMode === CONST.GUSTO.APPROVAL_MODE.BASIC || gustoMode === CONST.GUSTO.APPROVAL_MODE.MANAGER) {
@@ -108,8 +108,8 @@ function getHRApprovalMode(
     return null;
 }
 
-/** Returns true if any connected HR integration (Gusto, Zenefits, or Merge HR) is configured in manager approval mode. */
-function isHRManagerMode(policy?: OnyxEntry<Policy>): boolean {
+/** Returns true if any connected HR integration (Gusto, Zenefits, or Merge HR) is configured in advanced (manager) approval mode. */
+function isHRAdvancedMode(policy?: OnyxEntry<Policy>): boolean {
     return (
         policy?.connections?.gusto?.config?.approvalMode === CONST.GUSTO.APPROVAL_MODE.MANAGER ||
         policy?.connections?.zenefits?.config?.approvalMode === CONST.ZENEFITS.APPROVAL_MODE.MANAGER ||
@@ -117,8 +117,8 @@ function isHRManagerMode(policy?: OnyxEntry<Policy>): boolean {
     );
 }
 
-/** Returns the finalApprover from whichever HR provider (Gusto, Zenefits, or Merge HR) is currently in manager approval mode, or null if none are. */
-function getHRManagerModeFinalApprover(policy?: OnyxEntry<Policy>): string | null {
+/** Returns the finalApprover from whichever HR provider (Gusto, Zenefits, or Merge HR) is currently in advanced (manager) approval mode, or null if none are. */
+function getHRAdvancedModeFinalApprover(policy?: OnyxEntry<Policy>): string | null {
     if (policy?.connections?.gusto?.config?.approvalMode === CONST.GUSTO.APPROVAL_MODE.MANAGER) {
         return policy.connections.gusto.config.finalApprover ?? null;
     }
@@ -131,7 +131,7 @@ function getHRManagerModeFinalApprover(policy?: OnyxEntry<Policy>): string | nul
     return null;
 }
 
-/** Returns the Merge HR finalApprover when the integration is in basic or manager mode, or null otherwise. */
+/** Returns the Merge HR finalApprover when the integration is in basic or advanced (manager) mode, or null otherwise. */
 function getMergeHRFinalApprover(policy: OnyxEntry<Policy>): string | null {
     const mergeConfig = policy?.connections?.merge_hris?.config;
     if ((mergeConfig?.approvalMode === CONST.MERGE_HR.APPROVAL_MODE.BASIC || mergeConfig?.approvalMode === CONST.MERGE_HR.APPROVAL_MODE.MANAGER) && mergeConfig?.finalApprover) {
@@ -141,7 +141,7 @@ function getMergeHRFinalApprover(policy: OnyxEntry<Policy>): string | null {
     return null;
 }
 
-/** Returns the finalApprover from whichever HR provider (Gusto, Zenefits, or Merge HR) is configured in basic or manager approval mode, or null if none are. */
+/** Returns the finalApprover from whichever HR provider (Gusto, Zenefits, or Merge HR) is configured in basic or advanced (manager) approval mode, or null if none are. */
 function getHRFinalApprover(policy?: OnyxEntry<Policy>): string | null {
     const gustoMode = policy?.connections?.gusto?.config?.approvalMode;
     if ((gustoMode === CONST.GUSTO.APPROVAL_MODE.BASIC || gustoMode === CONST.GUSTO.APPROVAL_MODE.MANAGER) && policy?.connections?.gusto?.config?.finalApprover) {
@@ -162,13 +162,13 @@ export {
     getConnectedHRProvider,
     getHRApprovalMode,
     getHRConnectionNames,
+    getHRAdvancedModeFinalApprover,
     getHRFinalApprover,
-    getHRManagerModeFinalApprover,
     getMergeHRFinalApprover,
     isAnyHRConnected,
     isAnyHRReadOnlyWorkflowMode,
     isGustoConnected,
-    isHRManagerMode,
+    isHRAdvancedMode,
     isMergeHRConnected,
     isZenefitsConnected,
 };

@@ -292,7 +292,7 @@ describe('HRUtils', () => {
             expect(getMergeHRFinalApprover(policy)).toBe('boss@company.com');
         });
 
-        it('returns finalApprover when in manager mode', () => {
+        it('returns finalApprover when in advanced (manager) mode', () => {
             const policy = {
                 ...createRandomPolicy(0),
                 connections: {

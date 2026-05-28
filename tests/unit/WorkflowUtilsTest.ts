@@ -760,7 +760,7 @@ describe('WorkflowUtils', () => {
             expect(approverEmails).not.toContain('guide@expensify.com');
         });
 
-        it('Should use HR finalApprover as default approver for unassigned employees in manager mode', () => {
+        it('Should use HR finalApprover as default approver for unassigned employees in advanced (manager) mode', () => {
             const employees: PolicyEmployeeList = {
                 'unassigned@example.com': {
                     email: 'unassigned@example.com',
