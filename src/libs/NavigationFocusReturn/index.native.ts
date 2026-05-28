@@ -20,7 +20,7 @@ let lastPressedTriggerRef: RefObject<View | null> | null = null;
 let lastPressedTriggerIdentifier: string | null = null;
 let lastPressedTriggerAt = 0;
 const triggerMap = new Map<string, TriggerEntry>();
-const pressableRegistry = new Map<string, Map<string, RefObject<View | null>>>();
+const pressableRegistry = new Map<string, Map<string, Set<RefObject<View | null>>>>();
 let prevState: NavigationState | undefined;
 let pendingRestore: {cancel: () => void} | null = null;
 let skipNextRestore = false;
@@ -68,14 +68,21 @@ function registerPressable(routeKey: string, identifier: string, ref: RefObject<
         routeMap = new Map();
         pressableRegistry.set(routeKey, routeMap);
     }
-    routeMap.set(identifier, ref);
+    // Set per identifier (not last-write-wins) so a colliding identifier stays detectable — see restoreTriggerForRoute.
+    let refs = routeMap.get(identifier);
+    if (!refs) {
+        refs = new Set();
+        routeMap.set(identifier, refs);
+    }
+    refs.add(ref);
     return () => {
         const map = pressableRegistry.get(routeKey);
-        if (!map) {
+        const set = map?.get(identifier);
+        if (!map || !set) {
             return;
         }
-        // Guard against deregister-after-replace: a newer Pressable may have overwritten this identifier.
-        if (map.get(identifier) === ref) {
+        set.delete(ref);
+        if (set.size === 0) {
             map.delete(identifier);
         }
         if (map.size === 0) {
@@ -107,8 +114,10 @@ function restoreTriggerForRoute(routeKey: string): RefObject<View | null> | null
     if (!view && entry.identifier) {
         // Pressables register under the raw route key; PUSH_PARAMS restores arrive under the compound key, so strip the suffix to match.
         const rawRouteKey = routeKey.split(COMPOUND_KEY_DELIMITER).at(0) ?? routeKey;
-        const liveRef = pressableRegistry.get(rawRouteKey)?.get(entry.identifier);
-        if (liveRef?.current) {
+        const liveRefs = Array.from(pressableRegistry.get(rawRouteKey)?.get(entry.identifier) ?? []).filter((candidate) => candidate.current);
+        // A colliding label (e.g. every row's "Edit") is ambiguous — decline rather than focus the wrong row.
+        const liveRef = liveRefs.length === 1 ? liveRefs.at(0) : undefined;
+        if (liveRef) {
             ref = liveRef;
             view = liveRef.current;
         }
@@ -271,8 +280,10 @@ function getTriggerMapSizeForTests(): number {
 
 function getRegistrySizeForTests(): number {
     let total = 0;
-    for (const m of pressableRegistry.values()) {
-        total += m.size;
+    for (const routeMap of pressableRegistry.values()) {
+        for (const refs of routeMap.values()) {
+            total += refs.size;
+        }
     }
     return total;
 }

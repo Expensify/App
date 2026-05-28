@@ -116,7 +116,7 @@ function isFocusRestoreInProgress(): boolean {
 type RestorePick = {target: HTMLElement; source: 'primary' | 'fallback'};
 
 /*
- * null = nothing focusable yet (unfocusable, or detached mid-remount). Detached is NOT "gone": the caller keeps
+ * null = nothing focusable yet (mounted but not focusable, or detached mid-remount). Detached is NOT "gone": the caller keeps
  * the entry so scheduleRestore's budget can recover a remount — only that budget deletes (on success/exhaustion).
  */
 function pickRestoreTarget(entry: TriggerEntry): RestorePick | null {

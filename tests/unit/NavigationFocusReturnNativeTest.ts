@@ -535,7 +535,7 @@ describe('pressable registry — identifier-based fallback', () => {
         expect(getRegistrySizeForTests()).toBe(0);
     });
 
-    it('deregister is a no-op once another Pressable has overwritten the same identifier (remount race)', () => {
+    it('deregister removes only its own ref, so a same-identifier sibling survives (remount race)', () => {
         const deregisterOld = registerPressable('A', 'row', fakeRef(fakeView('old')));
         registerPressable('A', 'row', fakeRef(fakeView('new')));
         deregisterOld();
@@ -666,6 +666,32 @@ describe('pressable registry — identifier-based fallback', () => {
 
         expect(mockFireFocusEvent).toHaveBeenCalledWith(liveA);
         expect(mockFireFocusEvent).not.toHaveBeenCalledWith(otherRef.current);
+    });
+
+    it('declines the fallback when a colliding identifier maps to multiple live pressables (no wrong-row restore)', () => {
+        const detachedRef = fakeRef(fakeView('edit-pressed'));
+        notifyPressedTrigger(detachedRef, 'Edit');
+
+        handleStateChange(stackState(0, [{key: 'A', name: 'List'}]));
+        handleStateChange(
+            stackState(1, [
+                {key: 'A', name: 'List'},
+                {key: 'B', name: 'Detail'},
+            ]),
+        );
+
+        // Screen detaches (captured ref nulled), then remounts with several rows sharing the same "Edit" label.
+        detachedRef.current = null;
+        registerPressable('A', 'Edit', fakeRef(fakeView('row-1-edit')));
+        registerPressable('A', 'Edit', fakeRef(fakeView('row-2-edit')));
+
+        handleStateChange(stackState(0, [{key: 'A', name: 'List'}]));
+        flushTransitions();
+        jest.advanceTimersByTime(200);
+
+        // Ambiguous identifier → focus nothing rather than an arbitrary row; the entry is dropped after the budget.
+        expect(mockFireFocusEvent).not.toHaveBeenCalled();
+        expect(getTriggerMapSizeForTests()).toBe(0);
     });
 
     it('clears the registry for a route key when that route is removed from the navigation tree', () => {
