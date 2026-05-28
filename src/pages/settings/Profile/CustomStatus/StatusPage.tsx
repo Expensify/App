@@ -90,7 +90,7 @@ function StatusPage() {
         return DateUtils.isTimeAtLeastOneMinuteInFuture({dateTimeString: clearAfterTime});
     }, [draftClearAfter, currentUserClearAfter]);
 
-    const navigateBackToPreviousScreen = useCallback(() => Navigation.goBack(), []);
+
     const updateStatus = useCallback(
         ({emojiCode, statusText}: FormOnyxValues<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM>) => {
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -176,7 +176,7 @@ function StatusPage() {
         >
             <HeaderWithBackButton
                 title={translate('statusPage.status')}
-                onBackButtonPress={navigateBackToPreviousScreen}
+                onBackButtonPress={Navigation.goBack}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM}
