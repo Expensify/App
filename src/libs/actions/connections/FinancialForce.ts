@@ -190,8 +190,6 @@ function clearFinancialForceErrorField(policyID: string | undefined, fieldName: 
     });
 }
 
-
-
 function updateFinancialForceDimension1Mapping(
     policyID: string,
     mappingType: ValueOf<typeof CONST.CERTINIA_MAPPING_VALUE>,
