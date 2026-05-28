@@ -9,6 +9,10 @@ internalScope: Audience is members using Cursor. Covers connecting Cursor to Exp
 
 You can connect Cursor to Expensify using the Expensify MCP server. Once connected, Cursor can search and analyze your Expensify data using natural language.
 
+Learn more about supported AI clients, permissions, and security in [Use the Expensify MCP server with AI assistants](/articles/new-expensify/connections/connect-ai-assistants/Use-the-Expensify-MCP-Server-With-AI-Assistants).
+
+---
+
 ## Who can connect Cursor to Expensify using MCP
 
 Any member with an Expensify account and access to Cursor can connect Cursor to Expensify using MCP.
@@ -18,6 +22,8 @@ Requirements:
 - Cursor version 0.46 or later
 - An active Expensify account
 - Internet access for OAuth authentication
+
+---
 
 ## How to connect Cursor to Expensify using MCP
 
@@ -42,11 +48,7 @@ Requirements:
 8. Complete the OAuth sign-in and approval flow in your browser.
 9. Click **Approve**.
 
-<!-- SCREENSHOT:
-Suggestion: Show the Cursor MCP settings screen with the Expensify MCP server configuration.
-Location: After the JSON configuration example.
-Purpose: Helps members correctly configure Cursor.
--->
+---
 
 ## What happens after you connect Cursor to Expensify using MCP
 
@@ -66,6 +68,8 @@ Cursor cannot:
 - Reimburse payments
 - Manage Workspace settings
 
+---
+
 # FAQ
 
 ## Why can’t Cursor access my Expensify data?
@@ -83,6 +87,3 @@ If Cursor still cannot access your data:
 
 No. The Expensify MCP server provides read-only access to your data.
 
-## How do I revoke Cursor access to Expensify?
-
-Open Cursor, remove the Expensify MCP server connection, and revoke the OAuth authorization if needed.
