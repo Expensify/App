@@ -91,8 +91,10 @@ function stateReducer(state: MultifactorAuthenticationState, action: Action): Mu
             };
         }
         case 'CLOSE_MODAL':
-            // Also clear the cancel-confirm flag: an async path (e.g. handleCallback → SKIP_OUTCOME_SCREEN) can dispatch
-            // CLOSE_MODAL while the confirm modal is still visible, and the modal would linger during the close animation.
+            // Also clear the cancel-confirm flag. If the user opened the confirm modal mid-transition
+            // (e.g. tapped header back while the navigator was animating to the outcome screen), the
+            // flag would otherwise survive past CLOSE_MODAL and the confirm modal would stay stuck
+            // on screen after the transition completes. Force it shut whenever CLOSE_MODAL fires.
             return {...state, isModalOpen: false, isCancelConfirmVisible: false};
         case 'RESET':
             return DEFAULT_STATE;
