@@ -60,7 +60,6 @@ function SearchPage({route}: SearchPageProps) {
     const isCurrentFooterState = footerCurrencyState.searchHash === currentSearchHash;
     const selectedCurrency = isCurrentFooterState ? footerCurrencyState.selectedCurrency : undefined;
     const defaultFooterCurrency = isCurrentFooterState ? footerCurrencyState.defaultCurrency : undefined;
-    const pendingFooterCurrency = isCurrentFooterState ? footerCurrencyState.pendingCurrency : undefined;
 
     useConfirmReadyToOpenApp();
     useSearchPageSetup(currentSearchQueryJSON);
@@ -206,7 +205,7 @@ function SearchPage({route}: SearchPageProps) {
         onDestinationVisible: overlayEndSubmitSpans,
     });
 
-    const isFooterTotalLoading = !!footerData.isLoading || (!!pendingFooterCurrency && !!metadata?.isLoading);
+    const isFooterTotalLoading = !!footerData.isLoading || !!metadata?.isLoading;
 
     return (
         <Animated.View style={[styles.flex1]}>
