@@ -64,6 +64,7 @@ import {
     isDeletedTransaction,
     isDistanceRequest,
     isManagedCardTransaction,
+    isPending,
     isPerDiemRequest,
     isScanning,
     showPendingCardTransactionsBlockModal,
@@ -675,11 +676,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const isDeletingOnlyExpenses = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE && expenseCount > 0;
     const deleteCount = isDeletingOnlyExpenses ? expenseCount : uniqueReportCount;
+    const hasSomePendingExpenses =
+        expenseCount > 1 &&
+        selectedTransactionsKeys.some((id) => {
+            const tx = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
+            return isPending(tx);
+        });
     const deleteModalTitle = isDeletingOnlyExpenses
         ? getDeleteExpenseTitle(translate, expenseCount === 1 ? firstTransaction : undefined, expenseCount)
         : translate('iou.deleteReport', {count: deleteCount});
     const deleteModalPrompt = isDeletingOnlyExpenses
-        ? getDeleteConfirmationPrompt(translate, expenseCount === 1 ? firstTransaction : undefined, expenseCount)
+        ? getDeleteConfirmationPrompt(translate, expenseCount === 1 ? firstTransaction : undefined, expenseCount, hasSomePendingExpenses)
         : translate('iou.deleteReportConfirmation', {count: deleteCount});
 
     const handleDeleteSelectedTransactions = useCallback(async () => {

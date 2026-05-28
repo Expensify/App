@@ -1477,12 +1477,16 @@ function getDeleteExpenseTitle(translate: LocaleContextProps['translate'], trans
 
 /**
  * Returns the appropriate delete confirmation prompt for an expense.
- * Shows a BYOC-specific warning when deleting a single pending transaction,
- * since it may be re-imported once it posts.
+ * - Single pending transaction: shows a BYOC-specific warning (may be re-imported once it posts).
+ * - Multiple transactions where some are pending: warns that some may be re-imported.
+ * - Otherwise: shows the standard delete confirmation.
  */
-function getDeleteConfirmationPrompt(translate: LocaleContextProps['translate'], transaction: OnyxEntry<Transaction> | undefined, count = 1): string {
+function getDeleteConfirmationPrompt(translate: LocaleContextProps['translate'], transaction: OnyxEntry<Transaction> | undefined, count = 1, hasSomePending = false): string {
     if (count === 1 && isPending(transaction)) {
         return translate('iou.deleteConfirmationPendingBYOC');
+    }
+    if (count > 1 && hasSomePending) {
+        return translate('iou.deleteConfirmationSomePendingBYOC');
     }
     return translate('iou.deleteConfirmation', {count});
 }

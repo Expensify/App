@@ -1683,6 +1683,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleted: 'Eliminato',
         deletePendingExpense: 'Elimina spesa in attesa',
         deleteConfirmationPendingBYOC: 'Sei sicuro di voler eliminare questa spesa? È in sospeso e potremmo importarla di nuovo se viene contabilizzata.',
+        deleteConfirmationSomePendingBYOC: 'Sei sicuro di voler eliminare queste spese? Alcune sono in sospeso e potremmo importarle di nuovo se vengono contabilizzate.',
     },
     transactionMerge: {
         listPage: {

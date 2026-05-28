@@ -1624,6 +1624,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleted: '已删除',
         deletePendingExpense: '删除待处理报销',
         deleteConfirmationPendingBYOC: '您确定要删除这笔报销吗？它目前处于待处理状态，如果入账后，我们可能会再次导入。',
+        deleteConfirmationSomePendingBYOC: '您确定要删除这些报销吗？其中一些处于待处理状态，如果入账后，我们可能会再次导入。',
     },
     transactionMerge: {
         listPage: {

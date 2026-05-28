@@ -1360,6 +1360,7 @@ const translations = {
         }),
         deletePendingExpense: 'Delete pending expense',
         deleteConfirmationPendingBYOC: "Are you sure that you want to delete this expense? It's pending and we may import it again if it posts.",
+        deleteConfirmationSomePendingBYOC: 'Are you sure that you want to delete these expenses? Some of them are pending and we may import them again if they post.',
         deleteReport: () => ({
             one: 'Delete report',
             other: 'Delete reports',

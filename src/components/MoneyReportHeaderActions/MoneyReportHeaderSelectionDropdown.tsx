@@ -55,7 +55,7 @@ import {
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
-import {getDeleteConfirmationPrompt, getDeleteExpenseTitle, isTransactionPendingDelete} from '@libs/TransactionUtils';
+import {getDeleteConfirmationPrompt, getDeleteExpenseTitle, isPending, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
 import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
@@ -359,7 +359,9 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
 
     const showDeleteModal = () => {
         const singleSelectedTransaction = selectedTransactionIDs.length === 1 ? transactions.find((t) => t.transactionID === selectedTransactionIDs.at(0)) : undefined;
-        const deletePrompt = getDeleteConfirmationPrompt(translate, singleSelectedTransaction, selectedTransactionIDs.length);
+        const selectedTransactions = transactions.filter((t) => selectedTransactionIDs.includes(t.transactionID));
+        const hasSomePending = selectedTransactionIDs.length > 1 && selectedTransactions.some((t) => isPending(t));
+        const deletePrompt = getDeleteConfirmationPrompt(translate, singleSelectedTransaction, selectedTransactionIDs.length, hasSomePending);
         showConfirmModal({
             title: getDeleteExpenseTitle(translate, singleSelectedTransaction, selectedTransactionIDs.length),
             prompt: deletePrompt,

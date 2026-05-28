@@ -1641,6 +1641,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         deletePendingExpense: 'Eliminar gasto pendiente',
         deleteConfirmationPendingBYOC: '¿Seguro que quieres eliminar este gasto? Está pendiente y es posible que lo volvamos a importar si se contabiliza.',
+        deleteConfirmationSomePendingBYOC: '¿Seguro que quieres eliminar estos gastos? Algunos están pendientes y es posible que los volvamos a importar si se contabilizan.',
     },
     transactionMerge: {
         listPage: {

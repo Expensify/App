@@ -1691,6 +1691,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleted: 'Supprimé',
         deletePendingExpense: 'Supprimer la dépense en attente',
         deleteConfirmationPendingBYOC: 'Voulez-vous vraiment supprimer cette dépense ? Elle est en attente et nous pourrions l’importer à nouveau si elle est comptabilisée.',
+        deleteConfirmationSomePendingBYOC: 'Voulez-vous vraiment supprimer ces dépenses ? Certaines sont en attente et nous pourrions les importer à nouveau si elles sont comptabilisées.',
     },
     transactionMerge: {
         listPage: {

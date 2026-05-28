@@ -1676,6 +1676,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleted: 'Excluído',
         deletePendingExpense: 'Excluir despesa pendente',
         deleteConfirmationPendingBYOC: 'Tem certeza de que quer excluir esta despesa? Ela está pendente e podemos importá-la novamente se for lançada.',
+        deleteConfirmationSomePendingBYOC: 'Tem certeza de que quer excluir estas despesas? Algumas estão pendentes e podemos importá-las novamente se forem lançadas.',
     },
     transactionMerge: {
         listPage: {

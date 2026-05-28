@@ -1679,6 +1679,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleted: 'Usunięto',
         deletePendingExpense: 'Usuń oczekujący wydatek',
         deleteConfirmationPendingBYOC: 'Na pewno chcesz usunąć ten wydatek? Jest w toku i możemy go ponownie zaimportować, jeśli zostanie zaksięgowany.',
+        deleteConfirmationSomePendingBYOC: 'Na pewno chcesz usunąć te wydatki? Niektóre z nich są w toku i możemy je ponownie zaimportować, jeśli zostaną zaksięgowane.',
     },
     transactionMerge: {
         listPage: {

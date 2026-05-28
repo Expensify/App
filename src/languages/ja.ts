@@ -1663,6 +1663,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleted: '削除済み',
         deletePendingExpense: '保留中の経費を削除',
         deleteConfirmationPendingBYOC: 'この経費を削除してもよろしいですか？現在保留中のため、処理が完了すると再度取り込まれる可能性があります。',
+        deleteConfirmationSomePendingBYOC: 'これらの経費を削除してもよろしいですか？一部は保留中のため、処理が完了すると再度取り込まれる可能性があります。',
     },
     transactionMerge: {
         listPage: {

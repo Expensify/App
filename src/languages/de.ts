@@ -1685,6 +1685,8 @@ const translations: TranslationDeepObject<typeof en> = {
         deleted: 'Gelöscht',
         deletePendingExpense: 'Ausstehende Ausgabe löschen',
         deleteConfirmationPendingBYOC: 'Möchten Sie diese Ausgabe wirklich löschen? Sie ist ausstehend und wir importieren sie möglicherweise erneut, sobald sie verbucht wird.',
+        deleteConfirmationSomePendingBYOC:
+            'Möchten Sie diese Ausgaben wirklich löschen? Einige davon sind ausstehend und wir importieren sie möglicherweise erneut, sobald sie verbucht werden.',
     },
     transactionMerge: {
         listPage: {
