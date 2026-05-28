@@ -3,14 +3,14 @@ import type {RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports -- idiomatic defer primitive past navigation transitions.
 import {InteractionManager} from 'react-native';
 import type {View} from 'react-native';
-import compoundParamsKey, {COMPOUND_KEY_DELIMITER} from './compoundParamsKey';
-import FOCUSABLE_SELECTOR from './focusableSelector';
-import hasFocusableAttributes from './focusGuards';
-import getHadTabNavigation from './hadTabNavigation';
-import {consumeLauncher, pickLauncher, resetLauncherStackForTests} from './LauncherStack';
-import navigationRef from './Navigation/navigationRef';
-import {collectRouteKeys, diffNavigationState} from './navigationStateDiff';
-import {isCycleIdle, Priorities, resetCycle, tryClaim} from './ScreenFocusArbiter';
+import compoundParamsKey, {COMPOUND_KEY_DELIMITER} from '@libs/compoundParamsKey';
+import FOCUSABLE_SELECTOR from '@libs/focusableSelector';
+import hasFocusableAttributes from '@libs/focusGuards';
+import getHadTabNavigation from '@libs/hadTabNavigation';
+import {consumeLauncher, pickLauncher, resetLauncherStackForTests} from '@libs/LauncherStack';
+import navigationRef from '@libs/Navigation/navigationRef';
+import {collectRouteKeys, diffNavigationState} from '@libs/navigationStateDiff';
+import {isCycleIdle, Priorities, resetCycle, tryClaim} from '@libs/ScreenFocusArbiter';
 
 /** focusin tracks the last keyboard-focused element; a nav state listener captures it against the outgoing route and restores it on backward nav. */
 
@@ -19,14 +19,15 @@ type TriggerEntry = {primary: HTMLElement; fallback?: HTMLElement};
 
 // Bound triggerMap so forward-only PUSH_PARAMS sessions can't pin detached DOM nodes indefinitely.
 const TRIGGER_MAP_MAX = 64;
-
-let lastInteractiveElement: HTMLElement | null = null;
-// Cross-modality: mouse-click-forward → keyboard-back still needs focus returned (WCAG 2.4.3).
-let lastMouseTrigger: HTMLElement | null = null;
-let lastMouseTriggerAt = 0;
 // A click long before a timer-triggered nav shouldn't get captured as that nav's trigger.
 const MOUSE_TRIGGER_TTL_MS = 3_000;
 const triggerMap = new Map<string, TriggerEntry>();
+const MOUSE_ACTIVATION_EVENTS = ['pointerdown', 'mousedown', 'click'] as const;
+
+// Cross-modality: mouse-click-forward → keyboard-back still needs focus returned (WCAG 2.4.3).
+let lastMouseTrigger: HTMLElement | null = null;
+let lastInteractiveElement: HTMLElement | null = null;
+let lastMouseTriggerAt = 0;
 
 // Refresh insertion order on re-set so FIFO eviction doesn't drop a recently-active key.
 function setTriggerEntry(routeKey: string, entry: TriggerEntry): void {
@@ -48,9 +49,6 @@ let skipNextRestore = false;
 let focusinHandler: ((e: FocusEvent) => void) | null = null;
 let mouseActivationHandler: ((e: MouseEvent) => void) | null = null;
 let stateUnsubscribe: (() => void) | null = null;
-
-// Three events for touch/pen/legacy/drag-to-release coverage; handler is idempotent.
-const MOUSE_ACTIVATION_EVENTS = ['pointerdown', 'mousedown', 'click'] as const;
 
 function captureTriggerForRoute(routeKey: string): void {
     if (typeof document === 'undefined') {

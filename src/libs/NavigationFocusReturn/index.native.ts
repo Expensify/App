@@ -1,19 +1,20 @@
 import type {NavigationState} from '@react-navigation/native';
 import type {RefObject} from 'react';
 import type {View} from 'react-native';
-import Accessibility from './Accessibility';
-import fireFocusEvent from './Accessibility/fireFocusEvent';
-import scheduleRefocus from './Accessibility/scheduleRefocus';
-import compoundParamsKey, {COMPOUND_KEY_DELIMITER} from './compoundParamsKey';
-import navigationRef from './Navigation/navigationRef';
+import Accessibility from '@libs/Accessibility';
+import fireFocusEvent from '@libs/Accessibility/fireFocusEvent';
+import scheduleRefocus from '@libs/Accessibility/scheduleRefocus';
+import compoundParamsKey, {COMPOUND_KEY_DELIMITER} from '@libs/compoundParamsKey';
+import navigationRef from '@libs/Navigation/navigationRef';
 // eslint-disable-next-line no-restricted-imports -- sibling primitive to TransitionTracker; needs the exact transitionEnd signal to avoid OS focus-restore races.
-import TransitionTracker from './Navigation/TransitionTracker';
-import {diffNavigationState} from './navigationStateDiff';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import {diffNavigationState} from '@libs/navigationStateDiff';
 
 type TriggerEntry = {ref: RefObject<View | null>; identifier?: string};
 
 const TRIGGER_MAP_MAX = 64;
 const PRESS_TRIGGER_TTL_MS = 3_000;
+const MAX_RESTORE_FRAMES = 5;
 
 let lastPressedTriggerRef: RefObject<View | null> | null = null;
 let lastPressedTriggerIdentifier: string | null = null;
@@ -47,6 +48,13 @@ function notifyPressedTrigger(ref: RefObject<View | null> | null, identifier?: s
     lastPressedTriggerRef = ref;
     lastPressedTriggerIdentifier = identifier ?? null;
     lastPressedTriggerAt = ref ? Date.now() : 0;
+}
+
+/* Single-use: clear after capture so a later press-less forward can't reuse a stale ref within the TTL. */
+function clearStagedPress(): void {
+    lastPressedTriggerRef = null;
+    lastPressedTriggerIdentifier = null;
+    lastPressedTriggerAt = 0;
 }
 
 /** Skip the next backward restore; call before a form-submit goBack. */
@@ -97,7 +105,9 @@ function restoreTriggerForRoute(routeKey: string): RefObject<View | null> | null
     let ref: RefObject<View | null> = entry.ref;
     let view = ref.current;
     if (!view && entry.identifier) {
-        const liveRef = pressableRegistry.get(routeKey)?.get(entry.identifier);
+        // Pressables register under the raw route key; PUSH_PARAMS restores arrive under the compound key, so strip the suffix to match.
+        const rawRouteKey = routeKey.split(COMPOUND_KEY_DELIMITER).at(0) ?? routeKey;
+        const liveRef = pressableRegistry.get(rawRouteKey)?.get(entry.identifier);
         if (liveRef?.current) {
             ref = liveRef;
             view = liveRef.current;
@@ -124,28 +134,26 @@ function scheduleRestore(routeKey: string, {waitForUpcomingTransition = true}: {
         // Stack pops fire before their transition registers, so wait for it; PUSH_PARAMS emits none, so the caller opts out to avoid stalling on the 1s timeout.
         waitForUpcomingTransition,
         callback: () => {
-            if (cancelled) {
-                return;
-            }
-            const ref = restoreTriggerForRoute(routeKey);
-            if (ref) {
-                triggerMap.delete(routeKey);
-                refocusHandle = scheduleRefocus(ref);
-                return;
-            }
-            // Re-attach can lag transitionEnd by a frame; the new Pressable's mount effect will have populated the registry by next rAF.
-            rafHandle = requestAnimationFrame(() => {
+            // Keep the entry until success or budget exhaustion, so a transient re-attach miss doesn't drop it.
+            let framesLeft = MAX_RESTORE_FRAMES;
+            const attempt = () => {
                 if (cancelled) {
                     return;
                 }
-                const retryRef = restoreTriggerForRoute(routeKey);
-                triggerMap.delete(routeKey);
-                if (!retryRef) {
-                    pendingRestore = null;
+                const ref = restoreTriggerForRoute(routeKey);
+                if (ref) {
+                    triggerMap.delete(routeKey);
+                    refocusHandle = scheduleRefocus(ref);
                     return;
                 }
-                refocusHandle = scheduleRefocus(retryRef);
-            });
+                framesLeft -= 1;
+                if (framesLeft <= 0) {
+                    triggerMap.delete(routeKey);
+                    return;
+                }
+                rafHandle = requestAnimationFrame(attempt);
+            };
+            attempt();
         },
     });
 
@@ -171,8 +179,7 @@ function handleStateChange(newState: NavigationState | undefined): void {
         skipNextRestore = false;
         cancelPendingRestore();
         captureTriggerForRoute(action.captureKey);
-        lastPressedTriggerRef = null;
-        lastPressedTriggerIdentifier = null;
+        clearStagedPress();
     } else if (action.type === 'backward') {
         if (skipNextRestore) {
             skipNextRestore = false;
@@ -223,9 +230,7 @@ function teardownNavigationFocusReturn(): void {
     prevState = undefined;
     triggerMap.clear();
     pressableRegistry.clear();
-    lastPressedTriggerRef = null;
-    lastPressedTriggerIdentifier = null;
-    lastPressedTriggerAt = 0;
+    clearStagedPress();
     skipNextRestore = false;
     stateUnsubscribe?.();
     stateUnsubscribe = null;
@@ -235,6 +240,7 @@ function teardownNavigationFocusReturn(): void {
 function notifyPushParamsForward(routeKey: string, prevParams: unknown): void {
     cancelPendingRestore();
     captureTriggerForRoute(compoundParamsKey(routeKey, prevParams));
+    clearStagedPress();
 }
 
 function notifyPushParamsBackward(routeKey: string, targetParams: unknown): void {
@@ -257,12 +263,6 @@ function shouldSkipAutoFocusDueToExistingFocus(): boolean {
 
 function resetForTests(): void {
     teardownNavigationFocusReturn();
-}
-
-function setLastPressedTriggerRefForTests(ref: RefObject<View | null> | null, identifier?: string): void {
-    lastPressedTriggerRef = ref;
-    lastPressedTriggerIdentifier = identifier ?? null;
-    lastPressedTriggerAt = ref ? Date.now() : 0;
 }
 
 function getTriggerMapSizeForTests(): number {
@@ -290,7 +290,6 @@ export {
     isFocusRestoreInProgress,
     shouldSkipAutoFocusDueToExistingFocus,
     resetForTests,
-    setLastPressedTriggerRefForTests,
     getTriggerMapSizeForTests,
     getRegistrySizeForTests,
 };

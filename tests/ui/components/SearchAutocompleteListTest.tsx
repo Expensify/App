@@ -1,6 +1,7 @@
 import {act, render} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import mockReactNavigationNative from 'tests/utils/mockReactNavigationNative';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
@@ -13,7 +14,7 @@ import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithA
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
 jest.mock('@react-navigation/native', () => ({
-    ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
+    ...mockReactNavigationNative(),
     useIsFocused: jest.fn(),
     useRoute: jest.fn(),
     usePreventRemove: jest.fn(),

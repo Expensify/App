@@ -1,5 +1,6 @@
 import {render, screen} from '@testing-library/react-native';
 import React from 'react';
+import mockReactNavigationNative from 'tests/utils/mockReactNavigationNative';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import HoldReasonFormView from '@pages/iou/HoldReasonFormView';
 import {translateLocal} from '../../utils/TestHelper';
@@ -12,7 +13,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
 }));
 jest.mock('@react-navigation/native', () => ({
-    ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
+    ...mockReactNavigationNative(),
     createNavigationContainerRef: jest.fn(),
     useIsFocused: () => true,
     useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn(), goBack: jest.fn(), isFocused: () => true}),

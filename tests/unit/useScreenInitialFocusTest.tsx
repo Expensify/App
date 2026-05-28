@@ -1,4 +1,4 @@
-import {render} from '@testing-library/react-native';
+import {act, render} from '@testing-library/react-native';
 import React, {useMemo, useRef} from 'react';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 
@@ -46,6 +46,19 @@ function Inner({target}: {target: HTMLElement | null}) {
     return null;
 }
 
+function MountedHarnessWithRefObject({refObject}: {refObject: React.RefObject<HTMLElement | null>}) {
+    const contextValue = useMemo(() => ({didScreenTransitionEnd: true, isSafeAreaTopPaddingApplied: false, isSafeAreaBottomPaddingApplied: false}), []);
+    return (
+        <ScreenWrapperStatusContext.Provider value={contextValue}>
+            <InnerWithRefObject refObject={refObject} />
+        </ScreenWrapperStatusContext.Provider>
+    );
+}
+function InnerWithRefObject({refObject}: {refObject: React.RefObject<HTMLElement | null>}) {
+    useScreenInitialFocus(refObject);
+    return null;
+}
+
 function makeButton(): HTMLElement {
     const b = document.createElement('button');
     document.body.appendChild(b);
@@ -83,9 +96,11 @@ describe('useScreenInitialFocus', () => {
             />,
         );
         expect(spy).toHaveBeenCalledWith({preventScroll: true, focusVisible: true});
+        // Keyboard users must see the ring (WCAG 2.4.7), so it is not suppressed.
+        expect(button.getAttribute('data-programmatic-focus')).toBeNull();
     });
 
-    it('focuses the ref on touch-primary devices (no hover) regardless of Tab', () => {
+    it('focuses the ref on touch-primary devices (no hover) but suppresses the ring (no focusVisible, data-programmatic-focus set)', () => {
         mockHasHoverSupport = false;
         simulatePointer();
         const button = makeButton();
@@ -96,7 +111,8 @@ describe('useScreenInitialFocus', () => {
                 didScreenTransitionEnd
             />,
         );
-        expect(spy).toHaveBeenCalledWith({preventScroll: true, focusVisible: true});
+        expect(spy).toHaveBeenCalledWith({preventScroll: true});
+        expect(button.getAttribute('data-programmatic-focus')).toBe('true');
     });
 
     it('does NOT focus on desktop mouse modality (hasHoverSupport && !hadTab) — WCAG 2.4.7', () => {
@@ -179,6 +195,23 @@ describe('useScreenInitialFocus', () => {
             />,
         );
         expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('retries focus on the next frame when the target ref is not yet attached at transition end', async () => {
+        simulateTab();
+        const refObject: React.RefObject<HTMLElement | null> = {current: null};
+        const button = makeButton();
+        const spy = jest.spyOn(button, 'focus');
+        render(<MountedHarnessWithRefObject refObject={refObject} />);
+        expect(spy).not.toHaveBeenCalled();
+
+        refObject.current = button;
+        await act(async () => {
+            await new Promise<void>((resolve) => {
+                requestAnimationFrame(() => resolve());
+            });
+        });
+        expect(spy).toHaveBeenCalledWith({preventScroll: true, focusVisible: true});
     });
 
     it('is one-shot per mount — re-renders with the same ref do not re-claim', () => {

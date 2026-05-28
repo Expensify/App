@@ -45,7 +45,7 @@ const {
     shouldSkipAutoFocusDueToExistingFocus: () => boolean;
     setupNavigationFocusReturn: () => void;
     teardownNavigationFocusReturn: () => void;
-}>('../../src/libs/NavigationFocusReturn.ts');
+}>('../../src/libs/NavigationFocusReturn/index.ts');
 const {setActivePopoverLauncher, scheduleClearActivePopoverLauncher} = require<{
     setActivePopoverLauncher: (element: HTMLElement) => void;
     scheduleClearActivePopoverLauncher: (element?: HTMLElement) => void;

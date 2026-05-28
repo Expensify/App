@@ -1,5 +1,5 @@
 import {NavigationRouteContext} from '@react-navigation/native';
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useId, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {Pressable} from 'react-native';
@@ -55,11 +55,12 @@ function GenericPressable({
     const internalRef = useRef<View | null>(null);
     const composedRef = useMemo(() => mergeRefs(ref, internalRef), [ref]);
     const routeKey = useContext(NavigationRouteContext)?.key ?? null;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- `||` is intentional: `BaseListItem` passes `id={keyForList ?? ''}` so empty-string ids must fall through.
-    const focusIdentifier = rest.id || rest.nativeID || rest.testID || rest.accessibilityLabel || undefined;
+    const generatedId = useId();
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- `||` lets empty-string ids fall through to the unique generated id; accessibilityLabel is excluded since it collides within a route.
+    const focusIdentifier = rest.id || rest.nativeID || rest.testID || generatedId;
 
     useEffect(() => {
-        if (!isScreenReaderActive || !routeKey || !focusIdentifier) {
+        if (!isScreenReaderActive || !routeKey) {
             return;
         }
         return registerPressable(routeKey, focusIdentifier, internalRef);

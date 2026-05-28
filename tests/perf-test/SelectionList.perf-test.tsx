@@ -4,6 +4,7 @@ import React, {useState} from 'react';
 import type {ComponentType} from 'react';
 import type ReactNative from 'react-native';
 import {measureRenders} from 'reassure';
+import mockReactNavigationNative from 'tests/utils/mockReactNavigationNative';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -61,7 +62,7 @@ jest.mock('@react-navigation/stack', () => ({
 }));
 
 jest.mock('@react-navigation/native', () => ({
-    ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
+    ...mockReactNavigationNative(),
     useFocusEffect: () => {},
     useIsFocused: () => true,
     createNavigationContainerRef: jest.fn(),

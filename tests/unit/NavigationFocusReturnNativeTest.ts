@@ -89,7 +89,6 @@ const {
     isFocusRestoreInProgress,
     shouldSkipAutoFocusDueToExistingFocus,
     resetForTests,
-    setLastPressedTriggerRefForTests,
     getTriggerMapSizeForTests,
     getRegistrySizeForTests,
 } = require<{
@@ -105,10 +104,9 @@ const {
     isFocusRestoreInProgress: () => boolean;
     shouldSkipAutoFocusDueToExistingFocus: () => boolean;
     resetForTests: () => void;
-    setLastPressedTriggerRefForTests: (ref: unknown, identifier?: string) => void;
     getTriggerMapSizeForTests: () => number;
     getRegistrySizeForTests: () => number;
-}>('../../src/libs/NavigationFocusReturn.native.ts');
+}>('../../src/libs/NavigationFocusReturn/index.native.ts');
 /* eslint-enable import/extensions */
 
 function stackState(focused: number, routes: Array<{key: string; name: string; state?: unknown}>): NavState {
@@ -213,7 +211,7 @@ describe('notifyPressedTrigger', () => {
 
 describe('handleStateChange — forward', () => {
     it('captures the staged trigger against the outgoing route key', () => {
-        setLastPressedTriggerRefForTests(fakeRef(fakeView('display-name')));
+        notifyPressedTrigger(fakeRef(fakeView('display-name')));
         const prev = stackState(0, [{key: 'profile', name: 'Profile'}]);
         const next = stackState(1, [
             {key: 'profile', name: 'Profile'},
@@ -239,7 +237,7 @@ describe('handleStateChange — forward', () => {
 describe('handleStateChange — backward', () => {
     it('restores accessibility focus to the captured view after transitions flush', () => {
         const view = fakeView('display-name');
-        setLastPressedTriggerRefForTests(fakeRef(view));
+        notifyPressedTrigger(fakeRef(view));
         const prev = stackState(0, [{key: 'profile', name: 'Profile'}]);
         const forward = stackState(1, [
             {key: 'profile', name: 'Profile'},
@@ -259,7 +257,7 @@ describe('handleStateChange — backward', () => {
     });
 
     it('waits for the upcoming transition on a stack pop', () => {
-        setLastPressedTriggerRefForTests(fakeRef(fakeView('display-name')));
+        notifyPressedTrigger(fakeRef(fakeView('display-name')));
         handleStateChange(stackState(0, [{key: 'profile', name: 'Profile'}]));
         handleStateChange(
             stackState(1, [
@@ -273,7 +271,7 @@ describe('handleStateChange — backward', () => {
     });
 
     it('does NOT restore when skipNextFocusRestore was called before goBack (form-submit path)', () => {
-        setLastPressedTriggerRefForTests(fakeRef(fakeView('display-name')));
+        notifyPressedTrigger(fakeRef(fakeView('display-name')));
         handleStateChange(stackState(0, [{key: 'profile', name: 'Profile'}]));
         handleStateChange(
             stackState(1, [
@@ -291,7 +289,7 @@ describe('handleStateChange — backward', () => {
     });
 
     it('clears the skipped entry so a later deeplink Back to the same route cannot inherit it', () => {
-        setLastPressedTriggerRefForTests(fakeRef(fakeView('display-name')));
+        notifyPressedTrigger(fakeRef(fakeView('display-name')));
         handleStateChange(stackState(0, [{key: 'profile', name: 'Profile'}]));
         handleStateChange(
             stackState(1, [
@@ -335,7 +333,7 @@ describe('handleStateChange — backward', () => {
     it('does NOT call sendAccessibilityEvent when the captured ref has been nulled (Pressable unmounted)', () => {
         // The ref's `.current` going null is the ref-pass-through analog of a detached view.
         const detachedRef = fakeRef(null);
-        setLastPressedTriggerRefForTests(detachedRef);
+        notifyPressedTrigger(detachedRef);
         const prev = stackState(0, [{key: 'profile', name: 'Profile'}]);
         const forward = stackState(1, [
             {key: 'profile', name: 'Profile'},
@@ -352,7 +350,7 @@ describe('handleStateChange — backward', () => {
     });
 
     it('cleans the trigger entry from the map after a successful restore', () => {
-        setLastPressedTriggerRefForTests(fakeRef(fakeView('display-name')));
+        notifyPressedTrigger(fakeRef(fakeView('display-name')));
         const prev = stackState(0, [{key: 'profile', name: 'Profile'}]);
         const forward = stackState(1, [
             {key: 'profile', name: 'Profile'},
@@ -371,7 +369,7 @@ describe('handleStateChange — backward', () => {
 
 describe('handleStateChange — lateral & cleanup', () => {
     it('cancels a pending restore on a subsequent lateral tab switch', () => {
-        setLastPressedTriggerRefForTests(fakeRef(fakeView('display-name')));
+        notifyPressedTrigger(fakeRef(fakeView('display-name')));
         const initial = stackState(0, [{key: 'profile', name: 'Profile'}]);
         const forward = stackState(1, [
             {key: 'profile', name: 'Profile'},
@@ -404,7 +402,7 @@ describe('handleStateChange — lateral & cleanup', () => {
     });
 
     it('drops trigger entries for routes removed from the stack', () => {
-        setLastPressedTriggerRefForTests(fakeRef(fakeView('row-a')));
+        notifyPressedTrigger(fakeRef(fakeView('row-a')));
         const initial = stackState(0, [{key: 'profile', name: 'Profile'}]);
         const intoA = stackState(1, [
             {key: 'profile', name: 'Profile'},
@@ -420,7 +418,7 @@ describe('handleStateChange — lateral & cleanup', () => {
     });
 
     it('cancelPendingFocusRestore drops any queued restore', () => {
-        setLastPressedTriggerRefForTests(fakeRef(fakeView('display-name')));
+        notifyPressedTrigger(fakeRef(fakeView('display-name')));
         const initial = stackState(0, [{key: 'profile', name: 'Profile'}]);
         const forward = stackState(1, [
             {key: 'profile', name: 'Profile'},
@@ -448,7 +446,7 @@ describe('setup / teardown', () => {
     });
 
     it('teardown clears triggerMap and the staged trigger', () => {
-        setLastPressedTriggerRefForTests(fakeRef(fakeView('row')));
+        notifyPressedTrigger(fakeRef(fakeView('row')));
         handleStateChange(stackState(0, [{key: 'profile', name: 'Profile'}]));
         handleStateChange(
             stackState(1, [
@@ -467,7 +465,7 @@ describe('PUSH_PARAMS — same-route param change', () => {
 
     it('captures against the compound key on forward, restores on backward', () => {
         const view = fakeView('search-tab-expense');
-        setLastPressedTriggerRefForTests(fakeRef(view));
+        notifyPressedTrigger(fakeRef(view));
 
         notifyPushParamsForward(ROUTE_KEY, {q: 'old'});
         expect(getTriggerMapSizeForTests()).toBe(1);
@@ -479,8 +477,38 @@ describe('PUSH_PARAMS — same-route param change', () => {
         expect(mockFireFocusEvent).toHaveBeenCalledWith(view);
     });
 
+    it('clears the staged press after a PUSH_PARAMS forward so a later stack forward cannot reuse it', () => {
+        notifyPressedTrigger(fakeRef(fakeView('search-tab')), 'search-tab');
+        notifyPushParamsForward(ROUTE_KEY, {q: 'old'});
+
+        handleStateChange(stackState(0, [{key: 'A', name: 'A'}]));
+        handleStateChange(
+            stackState(1, [
+                {key: 'A', name: 'A'},
+                {key: 'B', name: 'B'},
+            ]),
+        );
+        handleStateChange(stackState(0, [{key: 'A', name: 'A'}]));
+        flushTransitions();
+        expect(mockFireFocusEvent).not.toHaveBeenCalled();
+    });
+
+    it('restores via the registry under the raw route key when the captured ref was nulled (compound key)', () => {
+        const detachedRef = fakeRef(fakeView('row'));
+        notifyPressedTrigger(detachedRef, 'row');
+        notifyPushParamsForward(ROUTE_KEY, {q: 'old'});
+
+        detachedRef.current = null;
+        const liveView = fakeView('row-remount');
+        registerPressable(ROUTE_KEY, 'row', fakeRef(liveView));
+
+        notifyPushParamsBackward(ROUTE_KEY, {q: 'old'});
+        flushTransitions();
+        expect(mockFireFocusEvent).toHaveBeenCalledWith(liveView);
+    });
+
     it('does NOT restore when the back targets a different params hash than the captured one', () => {
-        setLastPressedTriggerRefForTests(fakeRef(fakeView('search-tab-expense')));
+        notifyPressedTrigger(fakeRef(fakeView('search-tab-expense')));
 
         notifyPushParamsForward(ROUTE_KEY, {q: 'old'});
         notifyPushParamsBackward(ROUTE_KEY, {q: 'unrelated'});
@@ -489,7 +517,7 @@ describe('PUSH_PARAMS — same-route param change', () => {
     });
 
     it('drops compound entries when the route is removed from the tree', () => {
-        setLastPressedTriggerRefForTests(fakeRef(fakeView('search-tab-expense')));
+        notifyPressedTrigger(fakeRef(fakeView('search-tab-expense')));
         notifyPushParamsForward(ROUTE_KEY, {q: 'old'});
         expect(getTriggerMapSizeForTests()).toBe(1);
 
@@ -516,7 +544,7 @@ describe('pressable registry — identifier-based fallback', () => {
 
     it('restoreTriggerForRoute falls back to the registry when the captured ref was nulled by detach', () => {
         const detachedRef = fakeRef(fakeView('row'));
-        setLastPressedTriggerRefForTests(detachedRef, 'row');
+        notifyPressedTrigger(detachedRef, 'row');
 
         handleStateChange(stackState(0, [{key: 'A', name: 'A'}]));
         handleStateChange(
@@ -538,7 +566,7 @@ describe('pressable registry — identifier-based fallback', () => {
 
     it('rAF retry rescues focus when re-attach lags transitionEnd', () => {
         const detachedRef = fakeRef(fakeView('row'));
-        setLastPressedTriggerRefForTests(detachedRef, 'row');
+        notifyPressedTrigger(detachedRef, 'row');
 
         handleStateChange(stackState(0, [{key: 'A', name: 'A'}]));
         handleStateChange(
@@ -560,6 +588,55 @@ describe('pressable registry — identifier-based fallback', () => {
         expect(mockFireFocusEvent).toHaveBeenCalledWith(liveView);
     });
 
+    it('keeps retrying across several frames while re-attach lags, instead of giving up after one frame', () => {
+        const detachedRef = fakeRef(fakeView('row'));
+        notifyPressedTrigger(detachedRef, 'row');
+
+        handleStateChange(stackState(0, [{key: 'A', name: 'A'}]));
+        handleStateChange(
+            stackState(1, [
+                {key: 'A', name: 'A'},
+                {key: 'B', name: 'B'},
+            ]),
+        );
+
+        detachedRef.current = null;
+        handleStateChange(stackState(0, [{key: 'A', name: 'A'}]));
+        flushTransitions();
+
+        // Two frames pass with the registry still empty — a single-frame retry would already have dropped the entry.
+        jest.advanceTimersByTime(20);
+        jest.advanceTimersByTime(20);
+        expect(mockFireFocusEvent).not.toHaveBeenCalled();
+        expect(getTriggerMapSizeForTests()).toBe(1);
+
+        const liveView = fakeView('row-late-remount');
+        registerPressable('A', 'row', fakeRef(liveView));
+        jest.advanceTimersByTime(20);
+        expect(mockFireFocusEvent).toHaveBeenCalledWith(liveView);
+    });
+
+    it('gives up and clears the entry once the retry budget is exhausted', () => {
+        const detachedRef = fakeRef(fakeView('row'));
+        notifyPressedTrigger(detachedRef, 'row');
+
+        handleStateChange(stackState(0, [{key: 'A', name: 'A'}]));
+        handleStateChange(
+            stackState(1, [
+                {key: 'A', name: 'A'},
+                {key: 'B', name: 'B'},
+            ]),
+        );
+
+        detachedRef.current = null;
+        handleStateChange(stackState(0, [{key: 'A', name: 'A'}]));
+        flushTransitions();
+
+        jest.advanceTimersByTime(200);
+        expect(mockFireFocusEvent).not.toHaveBeenCalled();
+        expect(getTriggerMapSizeForTests()).toBe(0);
+    });
+
     it('stores two same-route entries under distinct identifiers — duplicate-label rows do NOT collide when distinct ids exist', () => {
         registerPressable('A', 'row-a', fakeRef(fakeView('a')));
         registerPressable('A', 'row-b', fakeRef(fakeView('b')));
@@ -569,7 +646,7 @@ describe('pressable registry — identifier-based fallback', () => {
     it('fallback resolves the captured identifier even when other same-label registry entries exist for the route', () => {
         const pressedRef = fakeRef(fakeView('a'));
         const otherRef = fakeRef(fakeView('b'));
-        setLastPressedTriggerRefForTests(pressedRef, 'row-a');
+        notifyPressedTrigger(pressedRef, 'row-a');
 
         handleStateChange(stackState(0, [{key: 'A', name: 'List'}]));
         handleStateChange(

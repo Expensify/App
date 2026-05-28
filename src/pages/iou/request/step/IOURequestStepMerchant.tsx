@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -9,6 +9,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useLocalize from '@hooks/useLocalize';
+import useNavigateBackOnSave from '@hooks/useNavigateBackOnSave';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -16,8 +17,6 @@ import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import Navigation from '@libs/Navigation/Navigation';
-import {skipNextFocusRestore} from '@libs/NavigationFocusReturn';
 import {getTransactionDetails, isExpenseRequest, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {hasReceipt} from '@libs/TransactionUtils';
 import {isInvalidMerchantValue, isValidInputLength} from '@libs/ValidationUtils';
@@ -66,7 +65,6 @@ function IOURequestStepMerchant({
     const [currentMerchant, setCurrentMerchant] = useState(initialMerchant);
     const [isSaved, setIsSaved] = useState(false);
     const [isDiscardModalVisible, setIsDiscardModalVisible] = useState(false);
-    const shouldNavigateAfterSaveRef = useRef(false);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
@@ -76,19 +74,7 @@ function IOURequestStepMerchant({
 
     const isMerchantRequired = isPolicyExpenseChat(report) || isExpenseRequest(report) || transaction?.participants?.some((participant) => !!participant.isPolicyExpenseChat);
 
-    const navigateBack = useCallback(() => {
-        Navigation.goBack(backTo);
-    }, [backTo]);
-
-    useEffect(() => {
-        if (!isSaved || !shouldNavigateAfterSaveRef.current) {
-            return;
-        }
-        shouldNavigateAfterSaveRef.current = false;
-        // Skip focus-restore on the save path so the re-focused Merchant row doesn't consume the next Enter (which should hit "Create expense"). Back/Esc still restore.
-        skipNextFocusRestore();
-        navigateBack();
-    }, [isSaved, navigateBack]);
+    const {navigateBack, armNavigateBack} = useNavigateBackOnSave(isSaved, backTo);
 
     const validate = useCallback(
         (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
@@ -119,13 +105,13 @@ function IOURequestStepMerchant({
         if (isEditingSplitBill) {
             setDraftSplitTransaction(transactionID, splitDraftTransaction, {merchant: newMerchant});
             setIsSaved(true);
-            shouldNavigateAfterSaveRef.current = true;
+            armNavigateBack();
             return;
         }
 
         if (newMerchant === merchant || (newMerchant === '' && merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)) {
             setIsSaved(true);
-            shouldNavigateAfterSaveRef.current = true;
+            armNavigateBack();
             return;
         }
         // updateMoneyRequestMerchant's optimisticData already sets merchant on TRANSACTION{id},
@@ -150,7 +136,7 @@ function IOURequestStepMerchant({
             setMoneyRequestMerchant(transactionID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, true, hasReceipt(transaction));
         }
         setIsSaved(true);
-        shouldNavigateAfterSaveRef.current = true;
+        armNavigateBack();
     };
 
     useDiscardChangesConfirmation({

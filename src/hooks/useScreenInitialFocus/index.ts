@@ -1,8 +1,8 @@
 import {useContext, useEffect, useRef} from 'react';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
+import claimInitialFocus from '@libs/claimInitialFocus';
 import hasHoverSupport from '@libs/DeviceCapabilities/hasHoverSupport';
 import getHadTabNavigation from '@libs/hadTabNavigation';
-import {Priorities, tryClaim} from '@libs/ScreenFocusArbiter';
 import type UseScreenInitialFocus from './types';
 
 /*
@@ -37,18 +37,27 @@ const useScreenInitialFocus: UseScreenInitialFocus = (ref) => {
         if (hasHoverSupport() && !getHadTabNavigation()) {
             return;
         }
-        if (document.activeElement && document.activeElement !== document.body) {
-            return;
-        }
-        const el = ref.current;
-        if (!el || !isOnScreen(el)) {
-            return;
-        }
-        if (!tryClaim(Priorities.INITIAL)) {
-            return;
-        }
-        claimedRef.current = true;
-        el.focus({preventScroll: true, focusVisible: true});
+        let rafId: number | null = null;
+        const attempt = (retry: boolean) => {
+            const el = ref.current;
+            if (!el || !isOnScreen(el)) {
+                // The target can attach a frame after the transition ends; retry once on the next frame.
+                if (retry) {
+                    rafId = requestAnimationFrame(() => attempt(false));
+                }
+                return;
+            }
+            if (claimInitialFocus(el, {focusVisible: getHadTabNavigation()})) {
+                claimedRef.current = true;
+            }
+        };
+        attempt(true);
+        return () => {
+            if (rafId === null) {
+                return;
+            }
+            cancelAnimationFrame(rafId);
+        };
     }, [status?.didScreenTransitionEnd, ref]);
 };
 

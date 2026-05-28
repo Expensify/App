@@ -1,6 +1,7 @@
 import {act, fireEvent, render, screen, within} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import mockReactNavigationNative from 'tests/utils/mockReactNavigationNative';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
@@ -106,7 +107,7 @@ jest.mock('@react-navigation/native', () => {
         getState: jest.fn(() => ({})),
     };
     return {
-        ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
+        ...mockReactNavigationNative(),
         createNavigationContainerRef: jest.fn(() => mockRef),
         useIsFocused: () => true,
         useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn()}),
