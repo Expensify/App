@@ -38,7 +38,6 @@ const CODE_BLOCK_DELIMITER = '```';
 const INLINE_CODE_DELIMITER = '`';
 const BOLD_DELIMITER = '**';
 const STRIKETHROUGH_DELIMITER = '~~';
-const DRAFT_PACE_COMPLETION_DIVISOR = 24;
 
 function isInAnyRange(position: number, ranges: TextRange[]): boolean {
     return ranges.some((range) => position >= range.start && position < range.end);
@@ -219,7 +218,7 @@ function sliceByCodePoint(text: string, length: number): string {
     return Array.from(text).slice(0, length).join('');
 }
 
-function getNextVisibleConciergeDraftBodyMarkdown(currentBodyMarkdown: string, targetBodyMarkdown: string, shouldAccelerate = false): string {
+function getNextVisibleConciergeDraftBodyMarkdown(currentBodyMarkdown: string, targetBodyMarkdown: string): string {
     if (!targetBodyMarkdown || currentBodyMarkdown === targetBodyMarkdown) {
         return currentBodyMarkdown;
     }
@@ -229,11 +228,8 @@ function getNextVisibleConciergeDraftBodyMarkdown(currentBodyMarkdown: string, t
     }
 
     const currentLength = Array.from(currentBodyMarkdown).length;
-    const targetLength = Array.from(targetBodyMarkdown).length;
-    const remainingLength = targetLength - currentLength;
-    const step = shouldAccelerate ? Math.max(1, Math.ceil(remainingLength / DRAFT_PACE_COMPLETION_DIVISOR)) : 1;
 
-    return sliceByCodePoint(targetBodyMarkdown, currentLength + step);
+    return sliceByCodePoint(targetBodyMarkdown, currentLength + 1);
 }
 
 // Module-level cache so a chat re-mount (ReportScreen unmount/remount on chat

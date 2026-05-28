@@ -25,7 +25,7 @@ type PusherDraftPacingRuntime = PusherDraftPaceRefs & {
     visibleSequenceRef: MutableRef<number>;
 };
 
-const PUSHER_DRAFT_PACE_INTERVAL_MS = 25;
+const PUSHER_DRAFT_PACE_INTERVAL_MS = 10;
 const PUSHER_DRAFT_EVENT_TYPES = [
     Pusher.TYPE.CONCIERGE_DRAFT_STARTED,
     Pusher.TYPE.CONCIERGE_DRAFT_UPDATED,
@@ -137,7 +137,7 @@ function tickPacing(runtime: PusherDraftPacingRuntime) {
     }
 
     const completedEvent = completedPusherDraftEventRef.current;
-    const nextVisibleBodyMarkdown = getNextVisibleConciergeDraftBodyMarkdown(visibleBodyMarkdownRef.current, targetBodyMarkdown, !!completedEvent);
+    const nextVisibleBodyMarkdown = getNextVisibleConciergeDraftBodyMarkdown(visibleBodyMarkdownRef.current, targetBodyMarkdown);
 
     if (nextVisibleBodyMarkdown !== visibleBodyMarkdownRef.current) {
         const status = completedEvent && nextVisibleBodyMarkdown === targetBodyMarkdown ? 'completed' : 'updated';
