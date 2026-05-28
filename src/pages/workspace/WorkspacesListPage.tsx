@@ -516,6 +516,7 @@ function WorkspacesListPage() {
                 const ownerDetails = policyOwnerAccountID && getPersonalDetailsByIDs({accountIDs: [policyOwnerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);
 
                 const pendingWorkspaceRow: WorkspaceRowData = {
+                    keyForList: policyID,
                     policyID,
                     disabled: true,
                     errors: undefined,
@@ -545,6 +546,7 @@ function WorkspacesListPage() {
                 const ownerDetails = policyOwnerAccountID && getPersonalDetailsByIDs({accountIDs: [policyOwnerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);
 
                 const workspaceRow: WorkspaceRowData = {
+                    keyForList: policy.id,
                     policyID: policy.id,
                     disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     errors: policy.errors,

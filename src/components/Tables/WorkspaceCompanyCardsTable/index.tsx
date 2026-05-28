@@ -148,18 +148,22 @@ function WorkspaceCompanyCardsTable({
         {
             key: 'member',
             label: translate('common.member'),
+            sortable: true,
         },
         {
             key: 'card',
             label: translate('workspace.companyCards.card'),
+            sortable: true,
         },
         {
             key: 'customCardName',
             label: translate('workspace.companyCards.cardName'),
+            sortable: true,
         },
         {
             key: 'actions',
             label: '',
+            sortable: false,
             styling: {
                 containerStyles: [styles.justifyContentEnd, styles.pr3],
             },
@@ -173,6 +177,7 @@ function WorkspaceCompanyCardsTable({
 
               return {
                   cardName,
+                  keyForList: `${cardName}_${assignedCard?.cardID ?? 'unassigned'}_${encryptedCardNumber}`,
                   encryptedCardNumber,
                   customCardName: assignedCard?.cardID && customCardNames?.[assignedCard.cardID] ? customCardNames?.[assignedCard.cardID] : getDefaultCardName(cardholder?.displayName ?? ''),
                   isCardDeleted: assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,

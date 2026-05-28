@@ -1,12 +1,19 @@
 import type {FlashListRef} from '@shopify/flash-list';
 import React, {useImperativeHandle, useRef} from 'react';
+import MenuItem from '@components/MenuItem';
+import Modal from '@components/Modal';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import CONST from '@src/CONST';
 import useFiltering from './middlewares/filtering';
 import useSearching from './middlewares/searching';
+import useSelection from './middlewares/selection';
 import useSorting from './middlewares/sorting';
 import TableContext from './TableContext';
 import type {TableContextValue} from './TableContext';
-import type {TableHandle, TableMethods, TableProps} from './types';
+import type {TableData, TableHandle, TableMethods, TableProps} from './types';
 
 /**
  * A composable table component that provides filtering, search, and sorting functionality.
@@ -32,12 +39,13 @@ import type {TableHandle, TableMethods, TableProps} from './types';
  * 1. **Filtering** - Applies dropdown filter selections
  * 2. **Searching** - Applies search string filtering
  * 3. **Sorting** - Sorts data by the active column
+ * 4. **Selection** - Applies row selection state & provides helpers for selection
  *
  * Each middleware transforms the data array and passes it to the next.
  *
  * ## Generic Type Parameters
  *
- * - `T` - The type of items in your data array
+ * - `DataType` - The type of items in your data array
  * - `ColumnKey` - String literal union of valid column keys (e.g., `'name' | 'date'`)
  * - `FilterKey` - String literal union of valid filter keys
  *
@@ -129,7 +137,7 @@ import type {TableHandle, TableMethods, TableProps} from './types';
  * </Table>
  * ```
  */
-function Table<T, ColumnKey extends string = string, FilterKey extends string = string>({
+function Table<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string>({
     ref,
     title,
     data = [],
@@ -140,28 +148,38 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
     isItemInSearch,
     initialSortColumn,
     children,
+    selectionEnabled,
+    onRowSelectionChange,
     ...listProps
-}: TableProps<T, ColumnKey, FilterKey>) {
+}: TableProps<DataType, ColumnKey, FilterKey>) {
+    const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
+
     if (!columns || columns.length === 0) {
         throw new Error('Table columns must be provided');
     }
 
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
-    const {middleware: filterMiddleware, currentFilters, methods: filterMethods} = useFiltering<T, FilterKey>({filters, isItemInFilter});
+    const {middleware: filterMiddleware, currentFilters, methods: filterMethods} = useFiltering<DataType, FilterKey>({filters, isItemInFilter});
+    const filteredData = filterMiddleware(data);
 
-    const {middleware: searchMiddleware, activeSearchString, methods: searchMethods} = useSearching<T>({isItemInSearch});
+    const {middleware: searchMiddleware, activeSearchString, methods: searchMethods} = useSearching<DataType>({isItemInSearch});
+    const searchedData = searchMiddleware(filteredData);
 
-    const {middleware: sortMiddleware, activeSorting, methods: sortMethods} = useSorting<T, ColumnKey>({compareItems, initialSortColumn});
+    const {middleware: sortMiddleware, activeSorting, methods: sortMethods} = useSorting<DataType, ColumnKey>({compareItems, initialSortColumn});
+    const sortedData = sortMiddleware(searchedData);
 
-    const processedData = [filterMiddleware, searchMiddleware, sortMiddleware].reduce((acc, middleware) => middleware(acc), data);
+    const {middleware: selectionMiddleware, methods: selectionMethods, isMobileSelectionModalVisible} = useSelection<DataType>({data: sortedData, onRowSelectionChange});
+    const processedData = selectionMiddleware(sortedData);
 
-    const listRef = useRef<FlashListRef<T>>(null);
+    const listRef = useRef<FlashListRef<DataType>>(null);
 
     const tableMethods: TableMethods<ColumnKey, FilterKey> = {
         ...filterMethods,
         ...sortMethods,
         ...searchMethods,
+        ...selectionMethods,
     };
 
     /**
@@ -179,9 +197,9 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
                     return () => processedData;
                 }
 
-                return listRef.current?.[property as keyof FlashListRef<T>];
+                return listRef.current?.[property as keyof FlashListRef<DataType>];
             },
-        }) as TableHandle<T, ColumnKey, FilterKey>;
+        }) as TableHandle<DataType, ColumnKey, FilterKey>;
     });
 
     const originalDataLength = data?.length ?? 0;
@@ -199,8 +217,13 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
     const hasSearchString = activeSearchString.trim().length > 0;
     const isEmptyResult = processedData.length === 0 && originalDataLength > 0 && (hasSearchString || hasActiveFilters);
 
+    const handleMobileSelectionPress = () => {
+        turnOnMobileSelectionMode();
+        tableMethods.setIsMobileSelectionModalVisible(false);
+    };
+
     // eslint-disable-next-line react/jsx-no-constructed-context-values
-    const contextValue: TableContextValue<T, ColumnKey, FilterKey> = {
+    const contextValue: TableContextValue<DataType, ColumnKey, FilterKey> = {
         title,
         listRef,
         listProps,
@@ -216,9 +239,28 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
         hasSearchString,
         isEmptyResult,
         shouldUseNarrowTableLayout,
+        selectionEnabled,
     };
 
-    return <TableContext.Provider value={contextValue as unknown as TableContextValue<unknown, string>}>{children}</TableContext.Provider>;
+    return (
+        <TableContext.Provider value={contextValue as unknown as TableContextValue<TableData, string, string>}>
+            {children}
+
+            <Modal
+                isVisible={isMobileSelectionModalVisible}
+                type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
+                onClose={() => tableMethods.setIsMobileSelectionModalVisible(false)}
+                shouldPreventScrollOnFocus
+            >
+                <MenuItem
+                    icon={icons.CheckSquare}
+                    title={translate('common.select')}
+                    onPress={handleMobileSelectionPress}
+                    pressableTestID={CONST.SELECTION_LIST_WITH_MODAL_TEST_ID}
+                />
+            </Modal>
+        </TableContext.Provider>
+    );
 }
 
 export default Table;

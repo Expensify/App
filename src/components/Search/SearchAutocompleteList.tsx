@@ -581,8 +581,8 @@ function SearchAutocompleteList({
             ListItem={SearchRouterItem}
             style={{
                 containerStyle: [styles.mh100],
-                listStyle: [styles.ph2, styles.overscrollBehaviorContain],
-                contentContainerStyle: styles.pb2,
+                listStyle: [styles.ph4, styles.overscrollBehaviorContain],
+                contentContainerStyle: styles.pb4,
                 listItemWrapperStyle: [styles.pr0, styles.pl0],
                 sectionTitleStyles: styles.mhn2,
             }}

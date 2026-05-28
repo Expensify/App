@@ -15,6 +15,7 @@ import DomainListTableRow from './DomainListTableRow';
 type DomainTableColumnKey = 'domains' | 'actions';
 
 type DomainRowData = {
+    keyForList: string;
     domainAccountID: number;
     title: string;
     isAdmin: boolean;
@@ -37,8 +38,18 @@ export default function DomainListTable({domains}: DomainListTableProps) {
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     const domainTableColumns: Array<TableColumn<DomainTableColumnKey>> = [
-        {key: 'domains', label: translate('common.domains')},
-        {key: 'actions', width: variables.domainTableActionColumnWidth, label: '', styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]}},
+        {
+            sortable: true,
+            key: 'domains',
+            label: translate('common.domains'),
+        },
+        {
+            sortable: false,
+            key: 'actions',
+            width: variables.domainTableActionColumnWidth,
+            label: '',
+            styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]},
+        },
     ];
 
     const compareTableItems: CompareItemsCallback<DomainRowData> = (item1, item2, activeSorting) => {
