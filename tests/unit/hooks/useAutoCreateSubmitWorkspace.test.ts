@@ -1,4 +1,4 @@
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
@@ -137,12 +137,14 @@ describe('useAutoCreateSubmitWorkspace', () => {
         );
     });
 
-    it('clears onboarding state after the flow completes', () => {
+    it('clears onboarding state after the flow completes', async () => {
         // Given a user completing the onboarding flow
 
-        // When autoCreateSubmitWorkspace finishes
+        // When autoCreateSubmitWorkspace finishes (await so finally block runs)
         const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
-        result.current('John', 'Doe');
+        await act(async () => {
+            await result.current('John', 'Doe');
+        });
 
         // Then the transient onboarding Onyx keys should be cleared so the onboarding
         // flow is not re-triggered on subsequent app launches
@@ -150,12 +152,14 @@ describe('useAutoCreateSubmitWorkspace', () => {
         expect(setOnboardingPolicyIDSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('navigates to the submit workspace page after completing onboarding', () => {
+    it('navigates to the submit workspace page after completing onboarding', async () => {
         // Given a user completing the EMPLOYER onboarding flow
 
-        // When autoCreateSubmitWorkspace finishes setting up the workspace
+        // When autoCreateSubmitWorkspace finishes setting up the workspace (await so finally block runs)
         const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
-        result.current('John', 'Doe');
+        await act(async () => {
+            await result.current('John', 'Doe');
+        });
 
         // Then the user should be navigated to the newly created Submit workspace
         // so they land on their workspace immediately after onboarding
@@ -251,7 +255,7 @@ describe('useAutoCreateSubmitWorkspace', () => {
         expect(completeOnboardingSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('still completes onboarding and navigates even when workspace creation is skipped', () => {
+    it('still completes onboarding and navigates even when workspace creation is skipped', async () => {
         // Given a user who cannot create a workspace due to domain restrictions
         (usePreferredPolicy as jest.Mock).mockReturnValue({
             isRestrictedToPreferredPolicy: false,
@@ -259,9 +263,11 @@ describe('useAutoCreateSubmitWorkspace', () => {
             isRestrictedPolicyCreation: true,
         });
 
-        // When the onboarding flow runs
+        // When the onboarding flow runs (await so finally block runs)
         const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
-        result.current('Jane', 'Smith');
+        await act(async () => {
+            await result.current('Jane', 'Smith');
+        });
 
         // Then onboarding should still be completed and navigation should still occur
         // because the user needs to finish onboarding regardless of workspace creation
@@ -269,6 +275,24 @@ describe('useAutoCreateSubmitWorkspace', () => {
         expect(setOnboardingAdminsChatReportIDSpy).toHaveBeenCalledTimes(1);
         expect(setOnboardingPolicyIDSpy).toHaveBeenCalledTimes(1);
         expect(navigateSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('still navigates and clears state even when completeOnboarding rejects', async () => {
+        // Given completeOnboarding failing (e.g. server error or network failure)
+        completeOnboardingSpy.mockRejectedValueOnce(new Error('Server error'));
+
+        // When the onboarding flow runs
+        const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
+        await act(async () => {
+            await result.current('John', 'Doe');
+        });
+
+        // Then the error should be swallowed and the user should still be navigated
+        // to the submit workspace page so they are not stuck on the onboarding screen
+        expect(navigateSpy).toHaveBeenCalledTimes(1);
+        expect(navigateSpy).toHaveBeenCalledWith(MOCK_POLICY_ID, expect.any(Boolean));
+        expect(setOnboardingAdminsChatReportIDSpy).toHaveBeenCalledTimes(1);
+        expect(setOnboardingPolicyIDSpy).toHaveBeenCalledTimes(1);
     });
 
     it('uses the localCurrencyCode from personal details for workspace currency', () => {
