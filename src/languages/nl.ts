@@ -9377,6 +9377,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         `),
         notAllowedMessage: (accountOwnerEmail: string) =>
             `Als <a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">copiloot</a> voor ${accountOwnerEmail} heb je geen toestemming om deze actie uit te voeren. Sorry!`,
+        removeCopilotAccess: 'Copilot-toegang verwijderen',
+        removeCopilotAccessConfirmation: 'Weet je zeker dat je je copilot-toegang tot dit account wilt verwijderen?',
         copilotAccess: 'Copilot-toegang',
     },
     debug: {

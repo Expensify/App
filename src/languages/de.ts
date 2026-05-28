@@ -9423,6 +9423,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         `),
         notAllowedMessage: (accountOwnerEmail: string) =>
             `Als <a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">Copilot</a> von ${accountOwnerEmail} hast du keine Berechtigung, diese Aktion auszuführen. Entschuldigung!`,
+        removeCopilotAccess: 'Copilot-Zugriff entfernen',
+        removeCopilotAccessConfirmation: 'Sind Sie sicher, dass Sie Ihren Copilot-Zugriff auf dieses Konto entfernen möchten?',
         copilotAccess: 'Copilot-Zugriff',
     },
     debug: {

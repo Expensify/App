@@ -9415,6 +9415,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         `),
         notAllowedMessage: (accountOwnerEmail: string) =>
             `Come <a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">copilota</a> per ${accountOwnerEmail}, non hai l'autorizzazione per eseguire questa azione. Spiacenti!`,
+        removeCopilotAccess: "Rimuovi l'accesso copilota",
+        removeCopilotAccessConfirmation: 'Sei sicuro di voler rimuovere il tuo accesso copilota a questo account?',
         copilotAccess: 'Accesso a Copilot',
     },
     debug: {
