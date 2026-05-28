@@ -93,7 +93,7 @@ function ReportFetchHandler() {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const prevIsLoadingReportData = usePrevious(isLoadingReportData);
-    const [viewingPublicRoomReportID] = useOnyx(ONYXKEYS.RAM_ONLY_VIEWING_PUBLIC_ROOM_REPORT_ID);
+    const [viewingPublicRoomReportID] = useOnyx(ONYXKEYS.VIEWING_PUBLIC_ROOM_REPORT_ID);
 
     const reportID = reportOnyx?.reportID;
     const report = reportOnyx;
