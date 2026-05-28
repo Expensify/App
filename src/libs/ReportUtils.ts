@@ -11621,6 +11621,14 @@ function prepareOnboardingOnyxData({
     }
 
     const shouldPostTasksInAdminsRoom = isPostingTasksInAdminsRoom(engagementChoice);
+    // MANAGE_TEAM signups can be assigned the inbAdminsWel RHP variant server-side at
+    // CompleteGuidedSetup time. That variant suppresses the bespoke tasks in favor of the
+    // welcome message + followup chips. We don't know the assignment until the server
+    // response arrives, so keep the wire payload (tasksForParameters) intact for non-
+    // inbAdminsWel cohorts but defer all optimistic/success/failure Onyx writes to Pusher.
+    // Pusher delivers the real task reports for non-inbAdminsWel users; inbAdminsWel users
+    // never see them, no flash, no stale optimistic state to roll back.
+    const shouldDeferOptimisticTasks = engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
     const adminsChatReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`];
     const conciergeChat =
         getChatByParticipants([CONST.ACCOUNT_ID.CONCIERGE, deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID], deprecatedAllReports, false) ??
@@ -11802,7 +11810,7 @@ function prepareOnboardingOnyxData({
         description: taskDescription ?? '',
     }));
 
-    const hasOutstandingChildTask = tasksData.some((task) => !task.completedTaskReportAction);
+    const hasOutstandingChildTask = !shouldDeferOptimisticTasks && tasksData.some((task) => !task.completedTaskReportAction);
 
     const tasksForOptimisticData = tasksData.reduce<
         Array<
@@ -11955,7 +11963,7 @@ function prepareOnboardingOnyxData({
         return acc;
     }, []);
 
-    const optimisticData: Array<TupleToUnion<typeof tasksForOptimisticData> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [...tasksForOptimisticData];
+    const optimisticData: Array<TupleToUnion<typeof tasksForOptimisticData> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = shouldDeferOptimisticTasks ? [] : [...tasksForOptimisticData];
     const skipSignOff = engagementChoice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
     const lastVisibleActionCreated = skipSignOff ? textCommentAction.created : welcomeSignOffCommentAction.created;
     optimisticData.push(
@@ -11980,7 +11988,10 @@ function prepareOnboardingOnyxData({
             },
         },
     );
-    if (message) {
+    if (message && !shouldDeferOptimisticTasks) {
+        // MANAGE_TEAM defers this optimistic guide-authored welcome message because the server
+        // may pick the inbAdminsWel variant and replace guidedSetupData with "[]", in which case
+        // no reportAction for textCommentAction ever lands and the optimistic message lingers.
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
@@ -12000,9 +12011,9 @@ function prepareOnboardingOnyxData({
 
     const successData: Array<
         TupleToUnion<typeof tasksForSuccessData> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.NVP_ONBOARDING>
-    > = [...tasksForSuccessData];
+    > = shouldDeferOptimisticTasks ? [] : [...tasksForSuccessData];
 
-    if (message) {
+    if (message && !shouldDeferOptimisticTasks) {
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
@@ -12034,7 +12045,7 @@ function prepareOnboardingOnyxData({
     const failureData: Array<
         | TupleToUnion<typeof tasksForFailureData>
         | OnyxUpdate<typeof ONYXKEYS.NVP_INTRO_SELECTED | typeof ONYXKEYS.NVP_ONBOARDING | typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>
-    > = [...tasksForFailureData];
+    > = shouldDeferOptimisticTasks ? [] : [...tasksForFailureData];
     failureData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -12194,31 +12205,37 @@ function prepareOnboardingOnyxData({
     guidedSetupData.push(...tasksForParameters);
 
     if (!skipSignOff && (!introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER)) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [welcomeSignOffCommentAction.reportActionID]: welcomeSignOffCommentAction as ReportAction,
-            },
-        });
+        // For MANAGE_TEAM we keep the sign-off in the wire payload so the server can post it
+        // for non-inbAdminsWel variants, but skip the optimistic Onyx push — otherwise the
+        // sign-off message appears immediately and lingers when the server picks inbAdminsWel
+        // and never creates it.
+        if (!shouldDeferOptimisticTasks) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+                value: {
+                    [welcomeSignOffCommentAction.reportActionID]: welcomeSignOffCommentAction as ReportAction,
+                },
+            });
 
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [welcomeSignOffCommentAction.reportActionID]: {pendingAction: null, isOptimisticAction: null},
-            },
-        });
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+                value: {
+                    [welcomeSignOffCommentAction.reportActionID]: {pendingAction: null, isOptimisticAction: null},
+                },
+            });
 
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [welcomeSignOffCommentAction.reportActionID]: {
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
-                } as ReportAction,
-            },
-        });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+                value: {
+                    [welcomeSignOffCommentAction.reportActionID]: {
+                        errors: getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
+                    } as ReportAction,
+                },
+            });
+        }
         guidedSetupData.push({type: 'message', ...welcomeSignOffMessage});
     }
 
