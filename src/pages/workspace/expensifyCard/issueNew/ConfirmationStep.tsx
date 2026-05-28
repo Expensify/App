@@ -46,9 +46,11 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const defaultFundID = useDefaultFundID(policyID);
     const {isBetaEnabled} = usePermissions();
+
     const data = issueNewCard?.data;
     const isSuccessful = issueNewCard?.isSuccessful;
     const hasApprovalError = !!policy?.errorFields?.approvalMode;
+    const isSpendRuleApplied = !!issueNewCard?.data.spendRuleEnabled;
     const isAddApprovalEnabled = policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL && !hasApprovalError;
     const shouldDisableSubmitButton = !isAddApprovalEnabled && data?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART;
     const personalDetails = usePersonalDetails();
@@ -171,6 +173,13 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
                     <MenuItemWithTopDescription
                         description={translate('workspace.card.issueNewCard.expirationDate')}
                         title={expirationDateTitle}
+                        shouldShowRightIcon
+                        onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.SPEND_RULES)}
+                    />
+                )}
+                {isSpendRuleApplied && (
+                    <MenuItemWithTopDescription
+                        description={translate('common.restrictions')}
                         shouldShowRightIcon
                         onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.SPEND_RULES)}
                     />
