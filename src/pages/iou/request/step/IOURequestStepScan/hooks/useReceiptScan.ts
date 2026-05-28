@@ -13,7 +13,9 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelfDMReport from '@hooks/useSelfDMReport';
+import useTransactionsByID from '@hooks/useTransactionsByID';
 import {getMoneyRequestParticipantOptions, handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
+import {getExistingTransactionID} from '@libs/IOUUtils';
 import {isMoneyRequestReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, getTaxValue, hasReceipt, shouldReuseInitialTransaction} from '@libs/TransactionUtils';
@@ -81,6 +83,11 @@ function useReceiptScan({
     const transactionTaxCode = (initialTransaction?.taxCode ? initialTransaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = initialTransaction?.taxAmount ?? 0;
     const transactionTaxValue = initialTransaction?.taxValue ?? getTaxValue(policy, initialTransaction, transactionTaxCode) ?? '';
+    const linkedTrackedExpenseTransactionIDs = transactions.map((txn) => getExistingTransactionID(txn?.linkedTrackedExpenseReportAction)).filter(Boolean) as string[];
+    const linkedTrackedExpenseTransactionDrafts = linkedTrackedExpenseTransactionIDs.length
+        ? (linkedTrackedExpenseTransactionIDs.map((id) => allTransactionDrafts?.[id]).filter(Boolean) as Transaction[])
+        : [];
+    const [linkedTrackedExpenseTransactions] = useTransactionsByID(linkedTrackedExpenseTransactionIDs);
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
@@ -146,6 +153,8 @@ function useReceiptScan({
             betas,
             recentWaypoints,
             allTransactionDrafts,
+            linkedTrackedExpenseTransactionDrafts,
+            linkedTrackedExpenseTransactions,
             participants,
             participantsPolicyTags,
             amountOwed,

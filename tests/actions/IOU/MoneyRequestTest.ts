@@ -304,6 +304,7 @@ describe('MoneyRequest', () => {
                 allTransactionDrafts: {
                     [draftTransaction.transactionID]: draftTransaction,
                 },
+                linkedTrackedExpenseTransactionDrafts: [draftTransaction],
             });
 
             expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
