@@ -777,37 +777,40 @@ describe('ImportTransactions', () => {
             containsHeader: true,
         } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
 
-        it('returns the failed-import modal and skips the API call when no transactions are parsed', async () => {
-            const apiWriteSpy = jest.spyOn(API, 'write');
+        let writeSpy: jest.SpyInstance;
 
+        beforeEach(() => {
+            writeSpy = jest.spyOn(API, 'write').mockRejectedValue(new Error('forced'));
+        });
+
+        afterEach(() => {
+            writeSpy.mockRestore();
+        });
+
+        it('returns the failed-import modal and skips the API call when no transactions are parsed', async () => {
             const result = await importTransactionsFromCSV({...validSpreadsheet, data: []});
 
             expect(result).toEqual({titleKey: 'spreadsheet.importFailedTitle', promptKey: 'spreadsheet.invalidFileMessage'});
-            expect(apiWriteSpy).not.toHaveBeenCalled();
+            expect(writeSpy).not.toHaveBeenCalled();
         });
 
         it('calls API.write with an optimistic card when no existingCardID is passed', async () => {
-            const apiWriteSpy = jest.spyOn(API, 'write').mockRejectedValue(new Error('forced'));
-
             await importTransactionsFromCSV(validSpreadsheet);
 
-            expect(apiWriteSpy).toHaveBeenCalledTimes(1);
-            const [command, , onyxData] = apiWriteSpy.mock.calls.at(0) ?? [];
+            expect(writeSpy).toHaveBeenCalledTimes(1);
+            const [command, , onyxData] = writeSpy.mock.calls.at(0) as [string, unknown, {optimisticData: Array<{key: string}>}];
             expect(command).toBe('ImportCSVTransactions');
-            const optimisticCardEntry = (onyxData as {optimisticData: Array<{key: string}>}).optimisticData.find((entry) => entry.key === ONYXKEYS.CARD_LIST);
-            expect(optimisticCardEntry).toBeDefined();
+            expect(onyxData.optimisticData.some((entry) => entry.key === ONYXKEYS.CARD_LIST)).toBe(true);
         });
 
         it('reuses an existingCardID without queuing an optimistic card', async () => {
-            const apiWriteSpy = jest.spyOn(API, 'write').mockRejectedValue(new Error('forced'));
             const existingCardID = 987654321;
 
             await importTransactionsFromCSV(validSpreadsheet, existingCardID);
 
-            const [, params, onyxData] = apiWriteSpy.mock.calls.at(0) ?? [];
-            expect((params as {cardID: number}).cardID).toBe(existingCardID);
-            const optimisticCardEntry = (onyxData as {optimisticData: Array<{key: string}>}).optimisticData.find((entry) => entry.key === ONYXKEYS.CARD_LIST);
-            expect(optimisticCardEntry).toBeUndefined();
+            const [, params, onyxData] = writeSpy.mock.calls.at(0) as [string, {cardID: number}, {optimisticData: Array<{key: string}>}];
+            expect(params.cardID).toBe(existingCardID);
+            expect(onyxData.optimisticData.some((entry) => entry.key === ONYXKEYS.CARD_LIST)).toBe(false);
         });
     });
 });
