@@ -35,9 +35,6 @@ type ReportActionItemParentActionProps = {
     /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine?: boolean;
 
-    /** Position index of the report parent action in the overall report FlatList view */
-    index: number;
-
     /** The id of the report */
 
     reportID: string;
@@ -69,7 +66,6 @@ function ReportActionItemParentAction({
     action,
     transactionThreadReport,
     parentReportAction,
-    index = 0,
     shouldHideThreadDividerLine = false,
     shouldDisplayReplyDivider,
     isFirstVisibleReportAction = false,
@@ -193,7 +189,6 @@ function ReportActionItemParentAction({
                                 action={ancestorReportAction}
                                 displayAsGroup={false}
                                 shouldDisplayNewMarker={ancestor.shouldDisplayNewMarker}
-                                index={index}
                                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                                 isThreadReportParentAction

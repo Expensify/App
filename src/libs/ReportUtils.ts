@@ -207,6 +207,7 @@ import {
     isDynamicExternalWorkflowApproveFailedAction,
     isDynamicExternalWorkflowSubmitFailedAction,
     isExportIntegrationAction,
+    isForwardedAction,
     isIntegrationMessageAction,
     isModifiedExpenseAction,
     isMoneyRequestAction,
@@ -2030,6 +2031,17 @@ function requiresManualSubmission(report: OnyxEntry<Report>, policy: OnyxEntry<P
     return isManualSubmitEnabled || (isOpenReport(report) && isInstantSubmitEnabled(policy) && isSubmitAndClose(policy));
 }
 
+function hasReportBeenForwardedSinceLastSubmit(report: OnyxEntry<Report>): boolean {
+    if (!report?.reportID) {
+        return false;
+    }
+
+    const reportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {});
+    const lastSubmittedAt = reportActions.filter(isSubmittedAction).reduce<string>((latest, action) => (action.created > latest ? action.created : latest), '');
+
+    return reportActions.some((action) => isForwardedAction(action) && action.created > lastSubmittedAt);
+}
+
 function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
     if (!report) {
         return false;
@@ -2038,7 +2050,7 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const submitsToAccountID = getSubmitToAccountID(getPolicy(report.policyID), report);
 
-    return isProcessingReport(report) && submitsToAccountID === report.managerID;
+    return isProcessingReport(report) && submitsToAccountID === report.managerID && !hasReportBeenForwardedSinceLastSubmit(report);
 }
 
 /**
@@ -4383,31 +4395,43 @@ function getMoneyRequestSpendBreakdown(report: OnyxInputOrEntry<Report>, searchR
 }
 
 function getBillableAndTaxTotal(report: OnyxEntry<Report>, transactions: Array<OnyxEntry<Transaction>>) {
-    let billableTotal = 0;
-    let taxTotal = 0;
     if (!isExpenseReport(report)) {
         return {
             billableTotal: 0,
             taxTotal: 0,
         };
     }
+    let billableTotal = 0;
+    let taxTotal = 0;
+    const reportCurrency = report?.currency;
+    // We only need `amount`, `taxAmount`, `currency`, and `billable` here. Calling `getTransactionDetails`
+    // would materialize the full TransactionDetails object per transaction — including formatted dates
+    // (toDate + timezone-aware format), attendees, waypoints, etc. — all of which are discarded.
     for (const transaction of transactions) {
-        if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        if (!transaction || transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             continue;
         }
-        const {amount = 0, taxAmount = 0, currency, billable} = getTransactionDetails(transaction) ?? {};
+        const billable = getBillable(transaction);
+        // `isFromExpenseReport` is provably true: the early return above guarantees the report is an expense report.
+        const isFromExpenseReport = true;
+        const taxAmount = getTaxAmount(transaction, isFromExpenseReport);
+        if (!billable && !taxAmount) {
+            continue;
+        }
+        const sameCurrency = getCurrency(transaction) === reportCurrency;
         if (billable) {
-            if (currency === report?.currency) {
-                billableTotal += amount;
+            if (sameCurrency) {
+                const isUnreported = transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+                billableTotal += getTransactionAmount(transaction, isFromExpenseReport, isUnreported);
             } else {
-                billableTotal -= transaction?.convertedAmount ?? 0;
+                billableTotal -= transaction.convertedAmount ?? 0;
             }
         }
         if (taxAmount) {
-            if (currency === report?.currency) {
+            if (sameCurrency) {
                 taxTotal += taxAmount;
             } else {
-                taxTotal -= transaction?.convertedTaxAmount ?? 0;
+                taxTotal -= transaction.convertedTaxAmount ?? 0;
             }
         }
     }
@@ -4723,7 +4747,7 @@ function canEditMoneyRequest(
     }
 
     if (reportPolicy?.type === CONST.POLICY.TYPE.CORPORATE && moneyRequestReport && isSubmitted && isCurrentUserSubmitter(moneyRequestReport)) {
-        const isForwarded = getSubmitToAccountID(reportPolicy, moneyRequestReport) !== moneyRequestReport.managerID;
+        const isForwarded = getSubmitToAccountID(reportPolicy, moneyRequestReport) !== moneyRequestReport.managerID || hasReportBeenForwardedSinceLastSubmit(moneyRequestReport);
         return !isForwarded;
     }
 
@@ -6121,7 +6145,7 @@ function getParentNavigationSubtitle(
 /**
  * Navigate to the details page of a given report
  */
-function navigateToDetailsPage(report: OnyxEntry<Report>, backTo?: string) {
+function navigateToDetailsPage(report: OnyxEntry<Report>) {
     const isSelfDMReport = isSelfDM(report);
     const isOneOnOneChatReport = isOneOnOneChat(report);
     const participantAccountID = getParticipantsAccountIDsForDisplay(report);
@@ -6132,14 +6156,14 @@ function navigateToDetailsPage(report: OnyxEntry<Report>, backTo?: string) {
     }
 
     if (report?.reportID) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID, backTo));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path));
     }
 }
 
 /**
  * Go back to the details page of a given report
  */
-function goBackToDetailsPage(report: OnyxEntry<Report>, backTo?: string, shouldGoBackToDetailsPage = false) {
+function goBackToDetailsPage(report: OnyxEntry<Report>, backTo?: Route, shouldGoBackToDetailsPage = false) {
     const isOneOnOneChatReport = isOneOnOneChat(report);
     const participantAccountID = getParticipantsAccountIDsForDisplay(report);
 
@@ -6150,7 +6174,7 @@ function goBackToDetailsPage(report: OnyxEntry<Report>, backTo?: string, shouldG
 
     if (report?.reportID) {
         if (shouldGoBackToDetailsPage) {
-            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
+            Navigation.goBack(backTo ?? createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(report.reportID)));
         } else {
             Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID, backTo));
         }
@@ -6193,7 +6217,7 @@ function goBackFromPrivateNotes(report: OnyxEntry<Report>, accountID?: number) {
         }
 
         if (report?.reportID) {
-            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
+            Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(report.reportID)));
             return;
         }
     }
@@ -13193,18 +13217,6 @@ function getLinkedIOUTransaction(reportAction: OnyxEntry<ReportAction | Optimist
     return transactionID ? transactions.find((item) => item.transactionID === transactionID) : undefined;
 }
 
-/**
- * Returns true if the "Mark as done" copy/button should be shown.
- * Aligns with backend: only shown when all four conditions are true (isTrackIntentUser, isSubmitAndClose, isSubmitter, isSubmittingToSelf).
- *
- */
-function shouldShowMarkAsDone({isTrackIntentUser, report, policy}: {isTrackIntentUser?: boolean; report: OnyxEntry<Report>; policy: OnyxEntry<Policy>}): boolean {
-    if (!isTrackIntentUser || !isSubmitAndClose(policy) || !isReportOwner(report)) {
-        return false;
-    }
-    return getNextApproverAccountID(report) === report?.ownerAccountID;
-}
-
 export {
     areAllRequestsBeingSmartScanned,
     buildConciergeGreetingReportAction,
@@ -13587,7 +13599,6 @@ export {
     getTransactionSortValue,
     isSortableColumnName,
     getLinkedIOUTransaction,
-    shouldShowMarkAsDone,
     hasHeldExpensesFromTransactions,
 };
 
