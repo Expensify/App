@@ -1189,8 +1189,32 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
-        editableCellHover: {
-            borderColor: theme.buttonHoveredBG,
+        editableCellHoverIcon: {
+            position: 'absolute',
+            right: -2,
+            top: 0,
+            bottom: 0,
+            width: 30,
+            height: 30,
+            paddingRight: 6,
+            justifyContent: 'center',
+            alignItems: 'flex-end',
+            backgroundImage: `linear-gradient(to right, ${theme.hoverComponentBG}00 0% 0%, ${theme.hoverComponentBG} 40% 100%)`,
+        },
+
+        editableCellHoverIconGradientHidden: {
+            backgroundImage: 'none',
+        },
+
+        editableCellHoverIconButton: {
+            padding: 4,
+            borderRadius: '50%',
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+
+        editableCellHoverIconButtonActive: {
+            backgroundColor: theme.buttonDefaultBG,
         },
 
         editableCellFocus: {

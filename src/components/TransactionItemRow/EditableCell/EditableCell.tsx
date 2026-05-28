@@ -1,8 +1,12 @@
-import React, {useDeferredValue, useEffect, useId} from 'react';
+import React, {useDeferredValue, useEffect, useId, useState} from 'react';
 import type {ReactNode, RefObject} from 'react';
 import {View} from 'react-native';
+import ChevronDown from '@assets/images/down.svg';
+import Hoverable from '@components/Hoverable';
+import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import {useEditingCellActions} from './EditingCellContext';
@@ -47,6 +51,8 @@ type EditableCellProps = {
  */
 function EditableCell({children, editContent, popoverContent, isEditing, canEdit, onStartEditing, anchorRef}: EditableCellProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
+    const [isIconHovered, setIsIconHovered] = useState(false);
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
     const isEditable = isLargeScreenWidth && !shouldUseNarrowLayout;
     const cellId = useId();
@@ -95,20 +101,38 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
     }
 
     return (
-        <PressableWithFeedback
-            accessibilityRole={CONST.ROLE.BUTTON}
-            accessibilityLabel="Edit cell"
-            sentryLabel={CONST.SENTRY_LABEL.TABLE.EDITABLE_CELL}
-            onPress={onStartEditing}
-            onFocus={() => setFocusedCellId(cellId)}
-            onBlur={() => setFocusedCellId(null)}
-            style={styles.editableCell}
-            wrapperStyle={styles.w100}
-            focusStyle={styles.editableCellFocus}
-            hoverStyle={styles.editableCellHover}
-        >
-            {children}
-        </PressableWithFeedback>
+        <Hoverable>
+            {(isCellHovered) => (
+                <View style={styles.editableCell}>
+                    {children}
+                    {isCellHovered && (
+                        <View
+                            style={[styles.editableCellHoverIcon, isIconHovered && styles.editableCellHoverIconGradientHidden]}
+                            pointerEvents="box-none"
+                        >
+                            <PressableWithFeedback
+                                accessibilityRole={CONST.ROLE.BUTTON}
+                                accessibilityLabel="Edit cell"
+                                sentryLabel={CONST.SENTRY_LABEL.TABLE.EDITABLE_CELL}
+                                onPress={onStartEditing}
+                                onFocus={() => setFocusedCellId(cellId)}
+                                onBlur={() => setFocusedCellId(null)}
+                                onHoverIn={() => setIsIconHovered(true)}
+                                onHoverOut={() => setIsIconHovered(false)}
+                                style={[styles.editableCellHoverIconButton, isIconHovered && styles.editableCellHoverIconButtonActive]}
+                            >
+                                <Icon
+                                    src={ChevronDown}
+                                    width={14}
+                                    height={14}
+                                    fill={theme.icon}
+                                />
+                            </PressableWithFeedback>
+                        </View>
+                    )}
+                </View>
+            )}
+        </Hoverable>
     );
 }
 
