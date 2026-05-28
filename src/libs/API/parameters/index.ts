@@ -411,6 +411,7 @@ export type {default as SetCardReconciliationBankAccountParams} from './SetCardR
 export type {default as CardDeactivateParams} from './CardDeactivateParams';
 export type {default as UpdateExpensifyCardLimitTypeParams} from './UpdateExpensifyCardLimitTypeParams';
 export type {default as RemoveDelegateParams} from './RemoveDelegateParams';
+export type {default as RemoveDelegatorParams} from './RemoveDelegatorParams';
 export type {default as SetPolicyTagApproverParams} from './SetPolicyTagApproverParams';
 export type {default as SaveSearchParams} from './SaveSearch';
 export type {default as DeleteSavedSearchParams} from './DeleteSavedSearch';

@@ -519,6 +519,7 @@ const WRITE_COMMANDS = {
     QUEUE_EXPENSIFY_CARD_FOR_BILLING: 'Domain_QueueExpensifyCardForBilling',
     ADD_DELEGATE: 'AddDelegate',
     REMOVE_DELEGATE: 'RemoveDelegate',
+    REMOVE_DELEGATOR: 'RemoveDelegator',
     UPDATE_DELEGATE_ROLE: 'UpdateDelegateRole',
     TOGGLE_CARD_CONTINUOUS_RECONCILIATION: 'ToggleCardContinuousReconciliation',
     TOGGLE_CARD_CASHBACK_TO_BILL: 'ToggleCardCashbackToBill',
@@ -1199,6 +1200,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.ADD_DELEGATE]: Parameters.AddDelegateParams;
     [WRITE_COMMANDS.UPDATE_DELEGATE_ROLE]: Parameters.UpdateDelegateRoleParams;
     [WRITE_COMMANDS.REMOVE_DELEGATE]: Parameters.RemoveDelegateParams;
+    [WRITE_COMMANDS.REMOVE_DELEGATOR]: Parameters.RemoveDelegatorParams;
     [WRITE_COMMANDS.TOGGLE_CARD_CONTINUOUS_RECONCILIATION]: Parameters.ToggleCardContinuousReconciliationParams;
     [WRITE_COMMANDS.TOGGLE_CARD_CASHBACK_TO_BILL]: Parameters.ToggleCardCashbackToBillParams;
     [WRITE_COMMANDS.SET_CARD_RECONCILIATION_BANK_ACCOUNT]: Parameters.SetCardReconciliationBankAccountParams;
