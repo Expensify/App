@@ -98,12 +98,14 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
 
             const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.comment?.originalTransactionID}`];
             const isSelfDMSplit = isSelfDM(report) || (!!selfDMReportID && transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
-            const hasMultipleSplits = getChildTransactions(allTransactions, originalTransaction?.transactionID, isProduction).length > 1;
-            if (
-                !shouldRedirectDeleteToSplitExpenseEdit(transaction, originalTransaction, isSelfDMSplit, isProduction) ||
-                (!hasMultipleSplits && isPerDiemRequestTransactionUtils(originalTransaction))
-            ) {
+            if (!shouldRedirectDeleteToSplitExpenseEdit(transaction, originalTransaction, isSelfDMSplit, isProduction)) {
                 return undefined;
+            }
+            if (!isProduction) {
+                const hasMultipleSplits = getChildTransactions(allTransactions, originalTransaction?.transactionID, isProduction).length > 1;
+                if (!hasMultipleSplits && isPerDiemRequestTransactionUtils(originalTransaction)) {
+                    return undefined;
+                }
             }
 
             return transaction;
