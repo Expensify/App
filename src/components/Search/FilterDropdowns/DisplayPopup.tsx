@@ -12,7 +12,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {close} from '@libs/actions/Modal';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildFilterQueryWithSortDefaults} from '@libs/SearchQueryUtils';
 import {getGroupBySections, getSearchColumnTranslationKey, getViewOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,6 +19,7 @@ import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {SearchResults} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import useUpdateFilterQuery from '../hooks/useUpdateFilterQuery';
 import GroupByPopup from './GroupByPopup';
 import GroupCurrencyPopup from './GroupCurrencyPopup';
 import SingleSelectPopup from './SingleSelectPopup';
@@ -39,6 +39,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Columns']);
+    const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
     const [searchAdvancedFilters = getEmptyObject<SearchAdvancedFiltersForm>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [selectedDisplayFilter, setSelectedDisplayFilter] = useState<
         | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT
@@ -134,26 +135,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
     }
 
     const updateFilterForm = (values: Partial<SearchAdvancedFiltersForm>) => {
-        const updatedFilterFormValues: Partial<SearchAdvancedFiltersForm> = {
-            ...searchAdvancedFilters,
-            ...values,
-        };
-
-        if (updatedFilterFormValues.groupBy !== searchAdvancedFilters.groupBy) {
-            updatedFilterFormValues.columns = [];
-        }
-
-        const queryString =
-            buildFilterQueryWithSortDefaults(
-                updatedFilterFormValues,
-                {view: searchAdvancedFilters.view, groupBy: searchAdvancedFilters.groupBy},
-                {sortBy: queryJSON.sortBy, sortOrder: queryJSON.sortOrder},
-            ) ?? '';
-        if (!queryString) {
-            return;
-        }
-
-        close(() => Navigation.setParams({q: queryString, rawQuery: undefined}));
+        close(() => updateFilterQueryParams(values));
     };
 
     const goBack = () => {
