@@ -9,8 +9,6 @@ import {openLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FinancialForceConnectionConfig} from '@src/types/onyx/Policy';
-import type Policy from '@src/types/onyx/Policy';
-import {syncConnection} from './index';
 
 function prepareOnyxDataForFinancialForceCodingUpdate<K extends keyof FinancialForceConnectionConfig['coding']>(
     policyID: string,
