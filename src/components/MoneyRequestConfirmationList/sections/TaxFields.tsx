@@ -26,27 +26,14 @@ type TaxFieldsProps = {
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
     reportID: string;
     formError: string;
-    isEditingSplitBill: boolean;
 };
 
-function TaxFields({
-    policy,
-    policyForMovingExpenses,
-    iouCurrencyCode,
-    canModifyTaxFields,
-    didConfirm,
-    transactionID,
-    action,
-    iouType,
-    reportID,
-    formError,
-    isEditingSplitBill,
-}: TaxFieldsProps) {
+function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyTaxFields, didConfirm, transactionID, action, iouType, reportID, formError}: TaxFieldsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
 
-    const taxSlice = useTransactionSelector(transactionID, taxSliceSelector, isEditingSplitBill);
+    const taxSlice = useTransactionSelector(transactionID, taxSliceSelector);
 
     const transactionForHelpers = taxSlice as OnyxEntry<OnyxTypes.Transaction>;
 
