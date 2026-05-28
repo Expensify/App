@@ -194,10 +194,6 @@ describe('CopyPolicySettingsProgressModal', () => {
             renderModal();
 
             act(() => {
-                lastModalProps?.onConfirm?.();
-            });
-
-            act(() => {
                 lastModalProps?.onCancel?.();
             });
 
