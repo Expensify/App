@@ -2762,7 +2762,7 @@ describe('actions/Report', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         global.fetch = TestHelper.getGlobalFetchMock();
 
-        it('should set "isOptimisticAction" to false/null for all actions in admins report after completing onboarding setup', async () => {
+        it('should not write any optimistic actions to admins report for MANAGE_TEAM (server posts via inbAdminsWel)', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
@@ -2793,11 +2793,8 @@ describe('actions/Report', () => {
                     },
                 });
             });
-            expect(reportActions).not.toBeNull();
-            expect(reportActions).not.toBeUndefined();
-            for (const action of Object.values(reportActions ?? {})) {
-                expect(action.isOptimisticAction).toBeFalsy();
-            }
+
+            expect(reportActions).toBeUndefined();
         });
 
         it('should forward selectedInterestedFeatures to the CompleteGuidedSetup API call as a JSON-encoded array', async () => {
