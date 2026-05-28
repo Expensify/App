@@ -67,8 +67,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {getStableReportSelector} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
 import FloatingMessageCounter from './FloatingMessageCounter';
+import ReportActionIndexContext from './ReportActionIndexContext';
 import ReportActionsListHeader from './ReportActionsListHeader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import {getUnreadMarkerReportAction} from './shouldDisplayNewMarkerOnReportAction';
@@ -210,6 +212,8 @@ function ReportActionsList({
     const prevIsLoadingInitialReportActions = usePrevious(reportLoadingState?.isLoadingInitialReportActions);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
     const isHarvestCreatedExpenseReportAction = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
+
+    const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {selector: getStableReportSelector});
 
     const backTo = route?.params?.backTo as string;
     const linkedReportActionID = route?.params?.reportActionID;
@@ -738,13 +742,12 @@ function ReportActionsList({
             const safeIndex = actionIndexMap.get(reportAction.reportActionID) ?? index;
 
             return (
-                <>
+                <ReportActionIndexContext.Provider value={index}>
                     <ReportActionsListItemRenderer
                         reportAction={reportAction}
                         parentReportAction={parentReportAction}
                         parentReportActionForTransactionThread={parentReportActionForTransactionThread}
-                        index={index}
-                        report={report}
+                        report={reportStable}
                         transactionThreadReport={transactionThreadReport}
                         linkedReportActionID={linkedReportActionID}
                         displayAsGroup={
@@ -759,14 +762,16 @@ function ReportActionsList({
                         personalDetails={personalDetailsList}
                         isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReportAction}
                     />
-                    <ShowPreviousMessagesButton
-                        reportID={report.reportID}
-                        actionType={reportAction.actionName}
-                        hasPreviousMessages={!!hasPreviousMessages}
-                        showFullHistory={!showHiddenHistory}
-                        onPress={onShowPreviousMessages}
-                    />
-                </>
+                    {!!reportStable?.reportID && (
+                        <ShowPreviousMessagesButton
+                            reportID={reportStable.reportID}
+                            actionType={reportAction.actionName}
+                            hasPreviousMessages={!!hasPreviousMessages}
+                            showFullHistory={!showHiddenHistory}
+                            onPress={onShowPreviousMessages}
+                        />
+                    )}
+                </ReportActionIndexContext.Provider>
             );
         },
         [
@@ -781,7 +786,7 @@ function ReportActionsList({
             personalDetailsList,
             isHarvestCreatedExpenseReportAction,
             renderedVisibleReportActions,
-            report,
+            reportStable,
             shouldHideThreadDividerLine,
             shouldUseThreadDividerLine,
             showHiddenHistory,
@@ -821,7 +826,10 @@ function ReportActionsList({
         // In case of an error we want to display the header no matter what.
         if (!canShowHeader) {
             hasHeaderRendered.current = true;
-            return null;
+
+            // Empty spacer so FlashList wraps a header and ListHeaderComponentStyle (flex: 1) applies —
+            // the wrapper sits at the visual bottom of the inverted list and pins items to the visual top.
+            return shouldBeAlignedToTop ? <View /> : null;
         }
 
         return (
@@ -831,7 +839,7 @@ function ReportActionsList({
                 hasActiveDraft={hasActiveDraft}
             />
         );
-    }, [canShowHeader, hasActiveDraft, report.reportID, retryLoadNewerChatsError]);
+    }, [canShowHeader, hasActiveDraft, report.reportID, retryLoadNewerChatsError, shouldBeAlignedToTop]);
 
     const shouldShowSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 
@@ -902,12 +910,13 @@ function ReportActionsList({
                     keyExtractor={keyExtractor}
                     drawDistance={1500}
                     renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={[styles.chatContentScrollView, shouldBeAlignedToTop && styles.justifyContentEnd]}
+                    contentContainerStyle={styles.chatContentScrollView}
                     onEndReached={onEndReached}
                     onEndReachedThreshold={0.75}
                     onStartReached={handleStartReached}
                     onStartReachedThreshold={0.75}
                     ListHeaderComponent={listHeaderComponent}
+                    ListHeaderComponentStyle={shouldBeAlignedToTop ? styles.flex1 : undefined}
                     ListFooterComponent={listFooterComponent}
                     keyboardShouldPersistTaps="handled"
                     onLayout={onLayoutInner}
