@@ -67,6 +67,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
         : 0;
     const taxesCount = Object.values(sourcePolicy?.taxRates?.taxes ?? {}).filter((tax) => tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
     const reportFieldsCount = Object.values(getReportFieldsByPolicyID(sourcePolicyID) ?? {}).filter((field) => field.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
+    const codingRulesCount = Object.values(sourcePolicy?.rules?.codingRules ?? {}).filter((rule) => rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
     const connectedIntegration = getAllValidConnectedIntegration(sourcePolicy, CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES);
     const distanceRatesCount = Object.values(getDistanceRateCustomUnit(sourcePolicy)?.rates ?? {}).filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
     const perDiemRates = getPerDiemCustomUnit(sourcePolicy)?.rates ?? {};
@@ -91,6 +92,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
         connectedIntegrationCount: connectedIntegration?.length ?? 0,
         hasWorkflowRules: !!workflows?.length,
         hasWorkspaceRules: !!rules?.length,
+        codingRulesCount,
         hasInvoiceConfiguration: !!(bankAccountList && Object.keys(bankAccountList).length) || !!invoiceCompany,
         isCollectPolicy: isCollectPolicy(sourcePolicy),
     };
@@ -150,6 +152,8 @@ function CopyPolicySettingsSelectFeaturesPage() {
                 return rules?.length
                     ? `${rules.length} ${translate('workspace.common.workspace').toLowerCase()} ${translate('workspace.common.rules').toLowerCase()}: ${rules.join(', ')}`
                     : undefined;
+            case 'codingRules':
+                return codingRulesCount > 0 ? translate('workspace.duplicateWorkspace.merchantRulesCount', {count: codingRulesCount}) : undefined;
             case 'distanceRates':
                 return distanceRatesCount > 0 ? `${distanceRatesCount} ${translate('iou.rates').toLowerCase()}` : undefined;
             case 'perDiem':

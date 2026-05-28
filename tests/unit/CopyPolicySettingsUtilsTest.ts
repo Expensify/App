@@ -148,6 +148,7 @@ describe('CopyPolicySettingsUtils', () => {
             connectedIntegrationCount: 1,
             hasWorkflowRules: true,
             hasWorkspaceRules: true,
+            codingRulesCount: 1,
             hasInvoiceConfiguration: true,
             isCollectPolicy: false,
         };
@@ -169,6 +170,12 @@ describe('CopyPolicySettingsUtils', () => {
         it('shows per diem when rates exist', () => {
             expect(isCopyPolicySettingsPartEnabledOnSource('perDiem', {...baseContext, perDiemCount: 0})).toBe(false);
             expect(isCopyPolicySettingsPartEnabledOnSource('perDiem', baseContext)).toBe(true);
+        });
+
+        it('shows merchant rules only when coding rules exist and not collect', () => {
+            expect(isCopyPolicySettingsPartEnabledOnSource('codingRules', {...baseContext, codingRulesCount: 0})).toBe(false);
+            expect(isCopyPolicySettingsPartEnabledOnSource('codingRules', {...baseContext, isCollectPolicy: true})).toBe(false);
+            expect(isCopyPolicySettingsPartEnabledOnSource('codingRules', baseContext)).toBe(true);
         });
 
         it('hides travel when the source policy does not have travel enabled', () => {
@@ -268,6 +275,7 @@ describe('CopyPolicySettingsUtils', () => {
             expect(parts).toContain('taxes');
             expect(parts).toContain('workflows');
             expect(parts).toContain('rules');
+            expect(parts).toContain('codingRules');
             expect(parts).toContain('distanceRates');
             expect(parts).toContain('perDiem');
             expect(parts).toContain('invoices');
