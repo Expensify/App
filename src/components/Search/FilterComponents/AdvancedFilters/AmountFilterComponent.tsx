@@ -23,6 +23,7 @@ const BETWEEN_MODIFIER = 'Between';
 type AmountFilterComponentProps = {
     filterKey: SearchAmountFilterKeys;
     value: SearchAmountValues;
+    autoFocus?: boolean;
     onChange: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
@@ -37,6 +38,7 @@ type AmountInputProps = {
     modifier: ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>;
     value: string;
     label: string;
+    autoFocus?: boolean;
 };
 
 function getBackendAmount(amount: string) {
@@ -47,9 +49,8 @@ function getFrontendAmount(amount: string | undefined) {
     return amount ? convertToFrontendAmountAsString(Number(amount), CONST.DEFAULT_CURRENCY_DECIMALS) : '';
 }
 
-function AmountInput({ref, filterKey, modifier, value, label}: AmountInputProps) {
+function AmountInput({ref, filterKey, modifier, value, label, autoFocus}: AmountInputProps) {
     const styles = useThemeStyles();
-    const fullscreen = useFullscreenAdvancedFilters();
     const [amount, setAmount] = useState(value);
 
     useImperativeHandle(ref, () => ({
@@ -63,7 +64,7 @@ function AmountInput({ref, filterKey, modifier, value, label}: AmountInputProps)
 
     return (
         <AmountWithoutCurrencyInput
-            ref={fullscreen ? (inputCallbackRef as (ref: BaseTextInputRef | null) => void) : undefined}
+            ref={autoFocus ? (inputCallbackRef as (ref: BaseTextInputRef | null) => void) : undefined}
             containerStyles={[styles.ph4, styles.mv2]}
             defaultValue={value}
             onInputChange={setAmount}
@@ -81,12 +82,12 @@ type AmountBetweenInputProps = {
     filterKey: SearchAmountFilterKeys;
     greaterThanValue: string;
     lessThanValue: string;
+    autoFocus?: boolean;
 };
 
-function AmountBetweenInput({ref, filterKey, greaterThanValue, lessThanValue}: AmountBetweenInputProps) {
+function AmountBetweenInput({ref, filterKey, greaterThanValue, lessThanValue, autoFocus}: AmountBetweenInputProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const fullscreen = useFullscreenAdvancedFilters();
     const [greaterThanAmount, setGreaterThanAmount] = useState(greaterThanValue);
     const [lessThanAmount, setLessThanAmount] = useState(lessThanValue);
 
@@ -106,7 +107,7 @@ function AmountBetweenInput({ref, filterKey, greaterThanValue, lessThanValue}: A
     return (
         <View style={[styles.flexRow, styles.gap1, styles.ph4, styles.mv2]}>
             <AmountWithoutCurrencyInput
-                ref={fullscreen ? (inputCallbackRef as (ref: BaseTextInputRef | null) => void) : undefined}
+                ref={autoFocus ? (inputCallbackRef as (ref: BaseTextInputRef | null) => void) : undefined}
                 containerStyles={styles.flex1}
                 defaultValue={greaterThanValue}
                 onInputChange={setGreaterThanAmount}
@@ -130,7 +131,7 @@ function AmountBetweenInput({ref, filterKey, greaterThanValue, lessThanValue}: A
     );
 }
 
-function AmountFilterComponent({filterKey, value, onChange}: AmountFilterComponentProps) {
+function AmountFilterComponent({filterKey, value, autoFocus, onChange}: AmountFilterComponentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -207,6 +208,7 @@ function AmountFilterComponent({filterKey, value, onChange}: AmountFilterCompone
                                     filterKey={filterKey}
                                     greaterThanValue={getFrontendAmount(value?.[CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN])}
                                     lessThanValue={getFrontendAmount(value?.[CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN])}
+                                    autoFocus={autoFocus}
                                 />
                             ) : (
                                 <AmountInput
@@ -215,6 +217,7 @@ function AmountFilterComponent({filterKey, value, onChange}: AmountFilterCompone
                                     modifier={config.keyForList}
                                     value={getFrontendAmount(value?.[config.keyForList])}
                                     label={label}
+                                    autoFocus={autoFocus}
                                 />
                             ))}
                     </Fragment>

@@ -143,6 +143,7 @@ function FilterContent({filterKey, values, policyIDQuery, autoFocus, onChange}: 
                     [CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN]: values?.[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`],
                     [CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN]: values?.[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`],
                 }}
+                autoFocus={autoFocus}
                 onChange={onChange}
             />
         );
