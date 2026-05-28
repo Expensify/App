@@ -4986,7 +4986,6 @@ function canEditFieldOfMoneyRequest({
 
     // Unreported transaction from OldDot can have the reportID as an empty string
     const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-    const archivedReportIDs = archivedReportsIDSet ?? buildArchivedReportsIDSet(allReportNameValuePair);
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE) {
         // The distance rate can be modified only on the distance expense reports
@@ -5005,6 +5004,8 @@ function canEditFieldOfMoneyRequest({
             }
             return true;
         }
+
+        const archivedReportIDs = archivedReportsIDSet ?? buildArchivedReportsIDSet(allReportNameValuePair);
 
         if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, archivedReportIDs)) {
             return false;
