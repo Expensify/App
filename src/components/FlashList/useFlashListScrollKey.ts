@@ -19,7 +19,7 @@ type FlashListScrollKeyProps<T> = {
 };
 
 export default function useFlashListScrollKey<T>({data, keyExtractor, initialScrollKey, onStartReached, shouldMaintainVisibleContentPosition}: FlashListScrollKeyProps<T>) {
-    const [isInitialRender, setIsInitialRender] = useState(!!initialScrollKey);
+    const [isInitialRender, setIsInitialRender] = useState(true);
     const [hasLinkingSettled, setHasLinkingSettled] = useState(!initialScrollKey);
 
     // Two-frame handoff for deep-link:
@@ -27,20 +27,9 @@ export default function useFlashListScrollKey<T>({data, keyExtractor, initialScr
     //        linked item through the data swap.
     // RAF 2: pinning has happened, disable MVCP so it doesn't cause later jumps.
     useEffect(() => {
-        if (!isInitialRender) {
+        if (!isInitialRender || !initialScrollKey) {
             return;
         }
-
-        // Without an anchor on this frame, we are not doing the deep-link slice handoff; clear the flag so a key that
-        // appears later (e.g. marking a message unread) cannot reuse the "first paint" slice path.
-        if (!initialScrollKey) {
-            // If the initial scroll key gets unset, we need to disable the initial render flag,
-            // otherwise the list will not render..
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setIsInitialRender(false);
-            return;
-        }
-
         requestAnimationFrame(() => {
             setIsInitialRender(false);
             requestAnimationFrame(() => setHasLinkingSettled(true));

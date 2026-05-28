@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
@@ -8,15 +8,20 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePendingConciergeResponse from '@hooks/usePendingConciergeResponse';
+import usePrevious from '@hooks/usePrevious';
 import useReportActionsPagination from '@hooks/useReportActionsPagination';
 import useReportActionsVisibility from '@hooks/useReportActionsVisibility';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {updateLoadingInitialReportAction} from '@libs/actions/Report';
-import {canUserPerformWriteAction, isReportTransactionThread as isReportTransactionThreadUtil, isUnread} from '@libs/ReportUtils';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
+import {getSortedReportActionsForDisplay} from '@libs/ReportActionsUtils';
+import {canUserPerformWriteAction, isReportTransactionThread as isReportTransactionThreadUtil} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
-import type ReportScreenNavigationProps from '@pages/inbox/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
+import type * as OnyxTypes from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ReportActionsList from './ReportActionsList';
 import UserTypingEventListener from './UserTypingEventListener';
@@ -30,30 +35,25 @@ type ReportActionsViewProps = {
 };
 
 function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
-    const route = useRoute<ReportScreenNavigationProps['route']>();
-    const reportActionIDFromRoute = route?.params?.reportActionID;
-
     useCopySelectionHelper();
     usePendingConciergeResponse(reportID);
+    const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const {isOffline} = useNetwork();
 
     const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
+    const reportActionID = route?.params?.reportActionID;
     const {
         reportActions,
         allReportActions,
         allReportActionIDs,
         hasOlderActions,
         hasNewerActions,
-        sortedAllReportActions,
         oldestUnreadReportAction,
-        reportActionPages,
         transactionThreadReportID,
         transactionThreadReport,
         parentReportActionForTransactionThread,
-        treatAsNoPaginationAnchor,
-        setTreatAsNoPaginationAnchor,
-    } = useReportActionsPagination(reportID, reportActionIDFromRoute);
+    } = useReportActionsPagination(reportID, reportActionID);
 
     const parentReportAction = useParentReportAction(report);
 
@@ -64,26 +64,33 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     const isReportTransactionThread = isReportTransactionThreadUtil(report);
 
     const isReportArchived = useReportIsArchived(reportID);
-    const canPerformWriteAction = !!canUserPerformWriteAction(report, isReportArchived);
+    const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
 
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const prevReportActionID = usePrevious(reportActionID);
     const reportPreviewAction = useMemo(() => getReportPreviewAction(report?.chatReportID, report?.reportID), [report?.chatReportID, report?.reportID]);
     const didLayout = useRef(false);
 
     useEffect(() => {
         didLayout.current = false;
     }, [reportID]);
+    const getTransactionThreadReportActions = useCallback(
+        (reportActions: OnyxTypes.ReportActions | undefined): OnyxTypes.ReportAction[] => {
+            return getSortedReportActionsForDisplay(reportActions, canPerformWriteAction, true, undefined, transactionThreadReportID ?? undefined);
+        },
+        [canPerformWriteAction, transactionThreadReportID],
+    );
 
     useEffect(() => {
         // When we linked to message - we do not need to wait for initial actions - they already exists
-        if (!reportActionIDFromRoute || !isOffline) {
+        if (!reportActionID || !isOffline) {
             return;
         }
         updateLoadingInitialReportAction(report?.reportID ?? reportID);
-    }, [isOffline, report?.reportID, reportID, reportActionIDFromRoute]);
+    }, [isOffline, report?.reportID, reportID, reportActionID]);
 
     // Remount the list when the deep-linked message or unread anchor changes (scroll positioning), or when the report changes.
-    const listID = [reportID, reportActionIDFromRoute, hasOnceLoadedReportActions ? undefined : oldestUnreadReportAction?.reportActionID].join(':');
+    const listID = [reportID, reportActionID, hasOnceLoadedReportActions ? undefined : oldestUnreadReportAction?.reportActionID].join(':');
 
     const {loadOlderChats, loadNewerChats} = useLoadReportActions({
         reportID,
@@ -126,7 +133,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     };
 
     // Show skeleton while loading initial report actions when data is incomplete/missing and online
-    const shouldShowSkeletonForInitialLoad = !!isLoadingInitialReportActions && (isReportDataIncomplete || isMissingReportActions) && !isOffline;
+    const shouldShowSkeletonForInitialLoad = isLoadingInitialReportActions && (isReportDataIncomplete || isMissingReportActions) && !isOffline;
 
     // Show skeleton while the app is loading and we're online
     const shouldShowSkeletonForAppLoad = isLoadingApp && !isOffline;
@@ -137,6 +144,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     // onboarding messages. The skeleton avoids flashing wrong content.
     const shouldShowSkeletonForConciergePanel = isConciergeSidePanel && !hasOnceLoadedReportActions && !isOffline;
 
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowSkeleton = shouldShowSkeletonForConciergePanel || shouldShowSkeletonForInitialLoad || shouldShowSkeletonForAppLoad;
 
     useEffect(() => {
@@ -146,23 +154,11 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
         markOpenReportEnd(report, {warm: false});
     }, [report, shouldShowSkeleton]);
 
-    const isReportUnread = isUnread(report, transactionThreadReport, isReportArchived);
+    if (isLoadingOnyxValue(reportResult) || !report) {
+        return <ReportActionsSkeletonView />;
+    }
 
-    // When opening an unread report, it is very likely that the message we will open to is not the latest,
-    // which is the only one we will have in cache.
-    const isInitiallyLoadingReport = isReportUnread && !!reportLoadingState?.isLoadingInitialReportActions && reportActions.length <= 1;
-
-    // Same for unread messages, we need to wait for the results from the OpenReport API call
-    // if the oldest unread report action is not available yet. Only applies during the *first* load
-    // for this report: after `hasOnceLoadedReportActions` is set, a later "mark as unread" must not
-    // bring back this loading gate (we are not re-opening the report from a cold cache).
-    const isUnreadMessagePageLoadingInitially = !reportActionIDFromRoute && isReportUnread && !oldestUnreadReportAction && !hasOnceLoadedReportActions;
-
-    // Once all the above conditions are met, we can consider the report ready.
-    const isReportLoading = isInitiallyLoadingReport || isUnreadMessagePageLoadingInitially;
-    const isReportReady = isOffline || !isReportLoading;
-
-    if (isLoadingOnyxValue(reportResult) || !report || !isReportReady || shouldShowSkeleton) {
+    if (shouldShowSkeleton) {
         return <ReportActionsSkeletonView />;
     }
 
@@ -183,12 +179,6 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
                 sortedVisibleReportActions={sortedVisibleReportActions}
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
-                hasNewerActions={hasNewerActions}
-                oldestUnreadReportAction={oldestUnreadReportAction}
-                sortedAllReportActionsForPagination={sortedAllReportActions ?? []}
-                reportActionPages={reportActionPages}
-                treatAsNoPaginationAnchor={treatAsNoPaginationAnchor}
-                setTreatAsNoPaginationAnchor={setTreatAsNoPaginationAnchor}
                 listID={listID}
                 showHiddenHistory={!showFullHistory}
                 hasPreviousMessages={hasPreviousMessages}
