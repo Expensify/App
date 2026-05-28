@@ -20,7 +20,13 @@ import SearchTypeMenuWide from '@pages/Search/SearchTypeMenuWide';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
-import {useSearchSidebarCollapse, useSearchSidebarCollapseFadeStyle, useSearchSidebarLayoutWidthStyle, useSearchSidebarToggleButtonStyle, useSearchSidebarVisualWidthStyle} from './SearchSidebarCollapseStore';
+import {
+    useSearchSidebarCollapse,
+    useSearchSidebarCollapseFadeStyle,
+    useSearchSidebarLayoutWidthStyle,
+    useSearchSidebarToggleButtonStyle,
+    useSearchSidebarVisualWidthStyle,
+} from './SearchSidebarCollapseStore';
 import TopBar from './TopBar';
 
 type SearchSidebarProps = {
