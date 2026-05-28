@@ -1452,6 +1452,36 @@ describe('OptionsListUtils', () => {
             expect(results.recentReports.length).toBeGreaterThan(0);
             expect(results.personalDetails.length).toBeGreaterThan(0);
         });
+
+        it('should return hasMore true when there are more options than maxElements', () => {
+            const {hasMore} = getValidOptions(
+                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {maxElements: 1},
+            );
+
+            expect(hasMore).toBe(true);
+        });
+
+        it('should return hasMore false when maxElements is larger than the total number of options', () => {
+            const {hasMore} = getValidOptions(
+                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {maxElements: 100},
+            );
+
+            expect(hasMore).toBe(false);
+        });
     });
 
     describe('getValidOptions() for chat room', () => {
