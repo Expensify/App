@@ -4,6 +4,7 @@ import type {Merge} from 'type-fest';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import PusherUtils from '@libs/PusherUtils';
+import {endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {trackExpenseApiError} from '@libs/telemetry/trackExpenseCreationError';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,6 +31,23 @@ let airshipEventsPromise = Promise.resolve();
 
 function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, response: Response<TKey>, lastUpdateID: number) {
     Log.info('[OnyxUpdateManager] Applying https update', false, {lastUpdateID});
+
+    // Perf-test instrumentation: measure local Onyx-update processing time per API response
+    // (excludes network time). Cold-cache mergeCollection batches dominate this duration during
+    // OpenApp / ReconnectApp / Search; comparing this span across branches isolates the impact
+    // of mergeCollectionWithPatches changes (cache-first ordering, multiGet pre-warm).
+    const spanId = `${CONST.TELEMETRY.SPAN_ONYX_UPDATES_APPLY_HTTPS}:${request?.command ?? 'unknown'}:${lastUpdateID}`;
+    startSpan(spanId, {
+        name: CONST.TELEMETRY.SPAN_ONYX_UPDATES_APPLY_HTTPS,
+        op: 'onyx.updates.apply.https',
+        attributes: {
+            command: String(request?.command ?? 'unknown'),
+            onyx_data_count: Array.isArray(response.onyxData) ? response.onyxData.length : 0,
+            success_data_count: Array.isArray(request?.successData) ? request.successData.length : 0,
+            failure_data_count: Array.isArray(request?.failureData) ? request.failureData.length : 0,
+        },
+    });
+
     // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
     // the UI. See https://github.com/Expensify/App/issues/12775 for more info.
     const updateHandler: (updates: Array<OnyxUpdate<TKey>>) => Promise<unknown> = request?.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? queueOnyxUpdates : Onyx.update;
@@ -75,6 +93,9 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, res
         .then(() => {
             Log.info('[OnyxUpdateManager] Done applying HTTPS update', false, {lastUpdateID});
             return Promise.resolve(response);
+        })
+        .finally(() => {
+            endSpan(spanId);
         });
 }
 

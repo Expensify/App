@@ -2146,6 +2146,7 @@ const CONST = {
             EMOJI_TRIE_BUILD: 'LocaleEmojiTrieBuild',
         },
         SPAN_ONYX_DERIVED_COMPUTE: 'OnyxDerivedCompute',
+        SPAN_ONYX_UPDATES_APPLY_HTTPS: 'OnyxUpdates.applyHTTPSOnyxUpdates',
         SPAN_NAVIGATION: {
             ROOT: 'BootsplashVisibleNavigation',
             PUSHER_INIT: 'NavigationPusherInit',
