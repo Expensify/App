@@ -1085,6 +1085,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const areFullReportsSelected = selectedTransactionReportIDs.length === selectedReportIDs.length && selectedTransactionReportIDs.every((id) => selectedReportIDs.includes(id));
             const typeInvoice = queryJSON?.type === CONST.REPORT.TYPE.INVOICE;
             const typeExpense = queryJSON?.type === CONST.REPORT.TYPE.EXPENSE;
+            const isGroupedSearch = !!getValidGroupBy(queryJSON?.groupBy);
             const isAllOneTransactionReport = Object.values(selectedTransactions).every((transaction) => transaction.isFromOneTransactionReport);
 
             const includeReportLevelExport = ((isExpenseReportType || typeInvoice) && areFullReportsSelected) || (typeExpense && !isExpenseReportType && isAllOneTransactionReport);
@@ -1213,15 +1214,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 shouldCallAfterModalHide: true,
             });
 
-            exportOptions.push({
-                text: translate('export.currentView'),
-                icon: expensifyIcons.Table,
-                onSelected: () => {
-                    handleExportCurrentView();
-                },
-                shouldCloseModalOnSelect: true,
-                shouldCallAfterModalHide: true,
-            });
+            if (!isGroupedSearch) {
+                exportOptions.push({
+                    text: translate('export.currentView'),
+                    icon: expensifyIcons.Table,
+                    onSelected: () => {
+                        handleExportCurrentView();
+                    },
+                    shouldCloseModalOnSelect: true,
+                    shouldCallAfterModalHide: true,
+                });
+            }
 
             if (!allSelectedAreDeleted) {
                 for (const template of exportTemplates) {
@@ -1702,6 +1705,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         hash,
         selectedTransactions,
         queryJSON?.type,
+        queryJSON?.groupBy,
         expensifyIcons,
         translate,
         areAllMatchingItemsSelected,
