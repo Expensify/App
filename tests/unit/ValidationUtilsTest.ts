@@ -3,6 +3,7 @@ import {TextEncoder} from 'util';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import {
+    containsHtmlTag,
     getAgeRequirementError,
     isInvalidMerchantValue,
     isRequiredFulfilled,
@@ -679,6 +680,37 @@ describe('ValidationUtils', () => {
             expect(isValidEmailWithTLD('notanemail')).toBe(false);
             expect(isValidEmailWithTLD('user@')).toBe(false);
             expect(isValidEmailWithTLD('@domain.com')).toBe(false);
+        });
+    });
+
+    describe('containsHtmlTag', () => {
+        test('flags <script> tags (the case from the agent prompt regression)', () => {
+            expect(containsHtmlTag("<script>alert('true');</script>")).toBe(true);
+            expect(containsHtmlTag("<script>alert('test');</script>")).toBe(true);
+            expect(containsHtmlTag('hello <script>alert(1)</script> world')).toBe(true);
+            expect(containsHtmlTag('<img src=x onerror=alert(1)>')).toBe(true);
+        });
+
+        test('returns false for empty / non-string-like inputs', () => {
+            expect(containsHtmlTag('')).toBe(false);
+        });
+
+        test('returns false for plain text and markdown without HTML-shaped tokens', () => {
+            expect(containsHtmlTag('Hello world')).toBe(false);
+            expect(containsHtmlTag('# Heading\n\n> blockquote\n\n- bullet')).toBe(false);
+            expect(containsHtmlTag('Use **bold** and _italic_ and `code`.')).toBe(false);
+        });
+
+        test('honours the WHITELISTED_TAGS list', () => {
+            expect(containsHtmlTag('<>')).toBe(false);
+            expect(containsHtmlTag('<->')).toBe(false);
+            expect(containsHtmlTag('<br>')).toBe(false);
+            expect(containsHtmlTag('<br/>')).toBe(false);
+        });
+
+        test('strict mode flags non-standard angle-bracket content', () => {
+            expect(containsHtmlTag('<\u2713>')).toBe(false);
+            expect(containsHtmlTag('<\u2713>', true)).toBe(true);
         });
     });
 });
