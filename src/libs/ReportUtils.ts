@@ -11647,13 +11647,8 @@ function prepareOnboardingOnyxData({
     }
 
     const shouldPostTasksInAdminsRoom = isPostingTasksInAdminsRoom(engagementChoice);
-    // MANAGE_TEAM signups can be assigned the inbAdminsWel RHP variant server-side at
-    // CompleteGuidedSetup time. That variant suppresses the bespoke tasks in favor of the
-    // welcome message + followup chips. We don't know the assignment until the server
-    // response arrives, so keep the wire payload (tasksForParameters) intact for non-
-    // inbAdminsWel cohorts but defer all optimistic/success/failure Onyx writes to Pusher.
-    // Pusher delivers the real task reports for non-inbAdminsWel users; inbAdminsWel users
-    // never see them, no flash, no stale optimistic state to roll back.
+    // The server assigns the inbAdminsWel variant at response time, so defer all optimistic Onyx
+    // writes for MANAGE_TEAM to avoid stale messages when the server picks that variant.
     const shouldDeferOptimisticTasks = engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
     const adminsChatReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`];
     const conciergeChat =
@@ -12231,10 +12226,7 @@ function prepareOnboardingOnyxData({
     guidedSetupData.push(...tasksForParameters);
 
     if (!skipSignOff && (!introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER)) {
-        // For MANAGE_TEAM we keep the sign-off in the wire payload so the server can post it
-        // for non-inbAdminsWel variants, but skip the optimistic Onyx push — otherwise the
-        // sign-off message appears immediately and lingers when the server picks inbAdminsWel
-        // and never creates it.
+        // Skip the optimistic push for MANAGE_TEAM — the server may pick inbAdminsWel and never create these messages, leaving stale state.
         if (!shouldDeferOptimisticTasks) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
