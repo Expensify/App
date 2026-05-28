@@ -1,7 +1,7 @@
 import {act, render} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import {clearCopyPolicySettings, requestCopyPolicySettingsNotification} from '@libs/actions/Policy/CopyPolicySettings';
+import {clearCopyPolicySettings, requestCopyPolicySettingsNotification, setCopyPolicySettingsData} from '@libs/actions/Policy/CopyPolicySettings';
 import {navigateToConciergeChat} from '@libs/actions/Report';
 import CopyPolicySettingsProgressModal from '@pages/workspace/copyPolicySettings/CopyPolicySettingsProgressModal';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,6 +39,7 @@ jest.mock('@components/ConfirmModal', () => {
 jest.mock('@libs/actions/Policy/CopyPolicySettings', () => ({
     clearCopyPolicySettings: jest.fn(),
     requestCopyPolicySettingsNotification: jest.fn(),
+    setCopyPolicySettingsData: jest.fn(),
 }));
 
 jest.mock('@libs/actions/Report', () => ({
@@ -51,6 +52,7 @@ jest.mock('@src/selectors/Onboarding', () => ({
 
 const mockClearCopyPolicySettings = clearCopyPolicySettings as jest.MockedFunction<typeof clearCopyPolicySettings>;
 const mockRequestNotification = requestCopyPolicySettingsNotification as jest.MockedFunction<typeof requestCopyPolicySettingsNotification>;
+const mockSetCopyPolicySettingsData = setCopyPolicySettingsData as jest.MockedFunction<typeof setCopyPolicySettingsData>;
 const mockNavigateToConcierge = navigateToConciergeChat as jest.MockedFunction<typeof navigateToConciergeChat>;
 
 function renderModal() {
@@ -144,12 +146,26 @@ describe('CopyPolicySettingsProgressModal', () => {
             await waitForBatchedUpdates();
         });
 
-        it('should show concierge notification title after requesting notification', () => {
+        it('should request notification and set currentStep to complete', () => {
             renderModal();
 
             act(() => {
                 lastModalProps?.onConfirm?.();
             });
+
+            expect(mockRequestNotification).toHaveBeenCalledTimes(1);
+            expect(mockSetCopyPolicySettingsData).toHaveBeenCalledWith({currentStep: 'complete'});
+        });
+    });
+
+    describe('concierge notification state', () => {
+        beforeEach(async () => {
+            await Onyx.merge(ONYXKEYS.COPY_POLICY_SETTINGS, {currentStep: 'complete'});
+            await waitForBatchedUpdates();
+        });
+
+        it('should show concierge notification title and description', () => {
+            renderModal();
 
             expect(lastModalProps?.title).toBe('workspace.copyPolicySettings.progress.conciergeNotificationTitle');
             expect(lastModalProps?.prompt).toBe('workspace.copyPolicySettings.progress.conciergeNotificationDescription');
@@ -158,10 +174,6 @@ describe('CopyPolicySettingsProgressModal', () => {
         it('should show go-to-concierge as confirm and dismiss as cancel', () => {
             renderModal();
 
-            act(() => {
-                lastModalProps?.onConfirm?.();
-            });
-
             expect(lastModalProps?.confirmText).toBe('common.goToConcierge');
             expect(lastModalProps?.cancelText).toBe('common.dismiss');
             expect(lastModalProps?.shouldShowCancelButton).toBe(true);
@@ -169,10 +181,6 @@ describe('CopyPolicySettingsProgressModal', () => {
 
         it('should clear state and navigate to concierge on confirm', () => {
             renderModal();
-
-            act(() => {
-                lastModalProps?.onConfirm?.();
-            });
 
             act(() => {
                 lastModalProps?.onConfirm?.();
@@ -200,7 +208,8 @@ describe('CopyPolicySettingsProgressModal', () => {
 
     describe('complete state', () => {
         beforeEach(async () => {
-            await Onyx.merge(ONYXKEYS.COPY_POLICY_SETTINGS, {currentStep: 'complete'});
+            await Onyx.merge(ONYXKEYS.COPY_POLICY_SETTINGS, {currentStep: 'loading'});
+            await Onyx.merge(ONYXKEYS.NVP_BULK_POLICY_COPY_SETTINGS, {state: 'complete'});
             await waitForBatchedUpdates();
         });
 
@@ -226,30 +235,6 @@ describe('CopyPolicySettingsProgressModal', () => {
             });
 
             expect(mockClearCopyPolicySettings).toHaveBeenCalledTimes(1);
-        });
-    });
-
-    describe('notification state reset on step change', () => {
-        it('should reset notification state when currentStep changes from loading to complete', async () => {
-            await Onyx.merge(ONYXKEYS.COPY_POLICY_SETTINGS, {currentStep: 'loading'});
-            await waitForBatchedUpdates();
-
-            const {rerender} = renderModal();
-
-            act(() => {
-                lastModalProps?.onConfirm?.();
-            });
-
-            expect(lastModalProps?.title).toBe('workspace.copyPolicySettings.progress.conciergeNotificationTitle');
-
-            await act(async () => {
-                await Onyx.merge(ONYXKEYS.COPY_POLICY_SETTINGS, {currentStep: 'complete'});
-                await waitForBatchedUpdates();
-            });
-
-            rerender(<CopyPolicySettingsProgressModal />);
-
-            expect(lastModalProps?.title).toBe('common.allSet');
         });
     });
 });
