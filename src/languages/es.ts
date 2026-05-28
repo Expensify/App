@@ -7724,6 +7724,8 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'Aún no has creado \nninguna factura',
                 subtitle: 'Envía una factura o haz una prueba por Expensify para aprender más.',
                 subtitleWithOnlyCreateButton: 'Usa el botón verde de abajo para enviar una factura.',
+                subtitleCannotSend: 'Necesitas un espacio de trabajo con Invoices habilitado para enviar facturas.',
+                subtitleCannotSendWithTestDrive: 'Necesitas un espacio de trabajo con Invoices habilitado para enviar facturas. Haz una prueba por Expensify para aprender más.',
             },
             emptyTripResults: {
                 title: 'No tienes viajes',
