@@ -180,7 +180,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
     );
 
     const clearFilters = () => {
-        updateFilterForm(getAdvancedFiltersToReset(searchAdvancedFiltersForm ?? {}));
+        updateFilterQueryParams(getAdvancedFiltersToReset(searchAdvancedFiltersForm ?? {}));
     };
 
     return {
