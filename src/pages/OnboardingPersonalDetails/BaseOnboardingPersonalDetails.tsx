@@ -45,7 +45,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const archivedReportsIdSet = useArchivedReportsIDSet();
+    const archivedReportsIDSet = useArchivedReportsIDSet();
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [conciergeChatReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -100,7 +100,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 isSmallScreenWidth,
                 isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                 conciergeChatReportID,
-                archivedReportsIdSet,
+                archivedReportsIDSet,
                 onboardingPolicyID,
                 mergedAccountConciergeReportID,
                 false,
@@ -112,7 +112,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             onboardingMessages,
             onboardingPolicyID,
             isBetaEnabled,
-            archivedReportsIdSet,
+            archivedReportsIDSet,
             isSmallScreenWidth,
             mergedAccountConciergeReportID,
             conciergeChatReportID,

@@ -52,7 +52,7 @@ function useAutoCreateTrackWorkspace() {
     const [conciergeChatReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const archivedReportsIdSet = useArchivedReportsIDSet();
+    const archivedReportsIDSet = useArchivedReportsIDSet();
     const {isBetaEnabled} = usePermissions();
     const {translate, formatPhoneNumber} = useLocalize();
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
@@ -125,7 +125,7 @@ function useAutoCreateTrackWorkspace() {
                     isSmallScreenWidth,
                     isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                     conciergeChatReportID,
-                    archivedReportsIdSet,
+                    archivedReportsIDSet,
                     newPolicyID,
                     mergedAccountConciergeReportID,
                     false,
@@ -153,7 +153,7 @@ function useAutoCreateTrackWorkspace() {
             isSmallScreenWidth,
             isBetaEnabled,
             conciergeChatReportID,
-            archivedReportsIdSet,
+            archivedReportsIDSet,
             mergedAccountConciergeReportID,
         ],
     );

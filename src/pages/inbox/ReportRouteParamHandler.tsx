@@ -22,7 +22,7 @@ function ReportRouteParamHandler() {
     const route = useRoute<ReportScreenRoute>();
     const navigation = useNavigation();
     const {isBetaEnabled} = usePermissions();
-    const archivedReportsIdSet = useArchivedReportsIDSet();
+    const archivedReportsIDSet = useArchivedReportsIDSet();
 
     useFocusEffect(() => {
         // Don't update if there is a reportID in the params already
@@ -39,7 +39,7 @@ function ReportRouteParamHandler() {
             !isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
             'openOnAdminRoom' in route.params && !!route.params.openOnAdminRoom,
             undefined,
-            archivedReportsIdSet,
+            archivedReportsIDSet,
         )?.reportID;
 
         // It's possible that reports aren't fully loaded yet

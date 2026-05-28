@@ -333,7 +333,7 @@ function Search({
 
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
-    const archivedReportsIdSet = useArchivedReportsIDSet();
+    const archivedReportsIDSet = useArchivedReportsIDSet();
 
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         selector: selectFilteredReportActions,
@@ -538,7 +538,7 @@ function Search({
             groupBy: validGroupBy,
             reportActions: exportReportActions,
             currentSearch: currentSearchKey,
-            archivedReportsIDList: archivedReportsIdSet,
+            archivedReportsIDList: archivedReportsIDSet,
             queryJSON,
             isActionLoadingSet,
             cardFeeds,
@@ -565,7 +565,7 @@ function Search({
         shouldDeferHeavySearchWork,
         searchResults,
         type,
-        archivedReportsIdSet,
+        archivedReportsIDSet,
         translate,
         formatPhoneNumber,
         accountID,
@@ -812,7 +812,7 @@ function Search({
                             transaction: transactionItem,
                             report: transactionItem.report,
                             policy: transactionItem.policy,
-                            archivedReportsIDSet: archivedReportsIdSet,
+                            archivedReportsIDSet,
                         }),
 
                         isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID]?.isSelected || isExpenseReportType,
@@ -869,7 +869,7 @@ function Search({
                         transaction: transactionItem,
                         report: transactionItem.report,
                         policy: transactionItem.policy,
-                        archivedReportsIDSet: archivedReportsIdSet,
+                        archivedReportsIDSet,
                     }),
 
                     isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID].isSelected,
@@ -1004,7 +1004,7 @@ function Search({
                     email ?? '',
                     accountID,
                     outstandingReportsByPolicyID,
-                    archivedReportsIdSet,
+                    archivedReportsIDSet,
                 );
                 setSelectedTransactions(updatedTransactions, filteredData);
                 updateSelectAllMatchingItemsState(updatedTransactions);
@@ -1077,7 +1077,7 @@ function Search({
                                 email ?? '',
                                 accountID,
                                 outstandingReportsByPolicyID,
-                                archivedReportsIdSet,
+                                archivedReportsIDSet,
                             );
                         }),
                 ),
@@ -1095,7 +1095,7 @@ function Search({
             accountID,
             outstandingReportsByPolicyID,
             searchResults?.data,
-            archivedReportsIdSet,
+            archivedReportsIDSet,
         ],
     );
 
@@ -1419,7 +1419,7 @@ function Search({
                             email ?? '',
                             accountID,
                             outstandingReportsByPolicyID,
-                            archivedReportsIdSet,
+                            archivedReportsIDSet,
                         );
                     });
             });
@@ -1439,7 +1439,7 @@ function Search({
                             email ?? '',
                             accountID,
                             outstandingReportsByPolicyID,
-                            archivedReportsIdSet,
+                            archivedReportsIDSet,
                         );
                     }),
             );
@@ -1459,7 +1459,7 @@ function Search({
         accountID,
         outstandingReportsByPolicyID,
         searchResults?.data,
-        archivedReportsIdSet,
+        archivedReportsIDSet,
     ]);
 
     const onLayout = useCallback(() => {

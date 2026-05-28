@@ -5,18 +5,18 @@ import KeyboardShortcut from '@libs/KeyboardShortcut';
 import CONST from '@src/CONST';
 
 function MarkAllMessagesAsReadHandler() {
-    const archivedReportsIdSet = useArchivedReportsIDSet();
-    const archivedReportsIdSetRef = useRef(archivedReportsIdSet);
+    const archivedReportsIDSet = useArchivedReportsIDSet();
+    const archivedReportsIDSetRef = useRef(archivedReportsIDSet);
 
     useEffect(() => {
-        archivedReportsIdSetRef.current = archivedReportsIdSet;
-    }, [archivedReportsIdSet]);
+        archivedReportsIDSetRef.current = archivedReportsIDSet;
+    }, [archivedReportsIDSet]);
 
     useEffect(() => {
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.MARK_ALL_MESSAGES_AS_READ;
         const unsubscribe = KeyboardShortcut.subscribe(
             shortcutConfig.shortcutKey,
-            () => markAllMessagesAsRead(archivedReportsIdSetRef.current),
+            () => markAllMessagesAsRead(archivedReportsIDSetRef.current),
             shortcutConfig.descriptionKey,
             shortcutConfig.modifiers,
             true,
