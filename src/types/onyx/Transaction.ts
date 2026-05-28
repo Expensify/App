@@ -138,7 +138,10 @@ type Comment = {
     /** Odometer end image (File object with uri on web, URI string on native) */
     odometerEndImage?: FileObject | string;
 
-    /** Base64-encoded binary GPS coordinates (16 bytes per point: float64 lat LE + float64 lng LE) */
+    /**
+     * Base64-encoded binary GPS2 coordinates.
+     * Magic "GPS2", uint32 LE segment count, then per segment uint32 LE point count and 16 bytes per point (float64 lat LE + float64 lng LE).
+     */
     encodedGpsCoordinates?: string;
 };
 

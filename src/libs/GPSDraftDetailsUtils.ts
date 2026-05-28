@@ -164,31 +164,68 @@ function isTripStopped(gpsDraftDetails: GpsDraftDetails | undefined): boolean {
     return !gpsDraftDetails?.isTracking && getTotalGpsTripPoints(gpsDraftDetails) > 0;
 }
 
-/**
- * Decodes GPS coordinates stored by the backend as a base64-encoded binary blob.
- * Each point occupies 16 bytes: float64 latitude (little-endian) followed by float64 longitude (little-endian).
- * This matches the PHP encoding in TransactionUtils::encodeGpsCoordinates() which uses pack('dd', lat, lng).
- */
-function decodeGpsCoordinates(base64Blob: string): Array<{lat: number; lng: number}> {
+const GPS_COORDINATES_MAGIC = 'GPS2';
+
+type DecodedGpsPoint = {lat: number; lng: number};
+type DecodedGpsSegments = DecodedGpsPoint[][];
+
+function base64ToDataView(base64Blob: string): DataView {
     const binaryString = atob(base64Blob);
     const arrayBuffer = new ArrayBuffer(binaryString.length);
     const uint8Array = new Uint8Array(arrayBuffer);
     for (let i = 0; i < binaryString.length; i++) {
         uint8Array[i] = binaryString.charCodeAt(i);
     }
-    const view = new DataView(arrayBuffer);
-    const points: Array<{lat: number; lng: number}> = [];
-    for (let i = 0; i < uint8Array.byteLength; i += 16) {
-        points.push({
-            lat: view.getFloat64(i, true),
-            lng: view.getFloat64(i + 8, true),
-        });
+    return new DataView(arrayBuffer);
+}
+
+function readMagic(view: DataView): string {
+    return String.fromCharCode(view.getUint8(0), view.getUint8(1), view.getUint8(2), view.getUint8(3));
+}
+
+function decodeGps2Coordinates(view: DataView): DecodedGpsSegments {
+    let offset = 4;
+    const segmentCount = view.getUint32(offset, true);
+    offset += 4;
+
+    const segments: DecodedGpsSegments = [];
+    for (let segmentIndex = 0; segmentIndex < segmentCount; segmentIndex++) {
+        const pointCount = view.getUint32(offset, true);
+        offset += 4;
+
+        const segment: DecodedGpsPoint[] = [];
+        for (let pointIndex = 0; pointIndex < pointCount; pointIndex++) {
+            segment.push({
+                lat: view.getFloat64(offset, true),
+                lng: view.getFloat64(offset + 8, true),
+            });
+            offset += 16;
+        }
+        segments.push(segment);
     }
-    return points;
+
+    return segments;
+}
+
+/**
+ * Decodes GPS2 coordinates stored by the backend as a base64-encoded binary blob.
+ *
+ * - 4-byte magic "GPS2"
+ * - uint32 LE segment count
+ * - Per segment: uint32 LE point count, then pointCount * 16 bytes (float64 lat LE, float64 lng LE)
+ */
+function decodeGpsCoordinates(base64Blob: string): DecodedGpsSegments {
+    const view = base64ToDataView(base64Blob);
+
+    if (view.byteLength < 8 || readMagic(view) !== GPS_COORDINATES_MAGIC) {
+        return [];
+    }
+
+    return decodeGps2Coordinates(view);
 }
 
 function getRoutesFromEncodedGpsCoordinates(encodedGpsCoordinates: string, distanceInMeters?: number | null): Routes {
-    const coordinates = decodeGpsCoordinates(encodedGpsCoordinates).map(({lat, lng}) => [lng, lat]);
+    const coordinates = decodeGpsCoordinates(encodedGpsCoordinates).map((segment) => segment.map(({lat, lng}) => [lng, lat] as [number, number]));
 
     return {
         route0: {
