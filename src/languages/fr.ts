@@ -1965,6 +1965,8 @@ const translations: TranslationDeepObject<typeof en> = {
         offline: 'Hors ligne',
         syncing: 'Synchronisation en cours',
         profileAvatar: 'Avatar de profil',
+        customInstructions: 'Instructions personnalisées',
+        copilotIntoAccount: 'Copilot dans le compte',
         publicSection: {
             title: 'Public',
             subtitle: 'Ces informations sont affichées sur votre profil public. Tout le monde peut les voir.',
@@ -7515,6 +7517,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             }
             return `a ajouté une partie de taxe récupérable de « ${newValue} » au taux de distance « ${customUnitRateName} »`;
         },
+        updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `a renommé le taux ${customUnitName} de « ${oldValue} » en « ${newValue} »`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
             return `${newValue ? 'Activé' : 'Désactivé'} le taux de ${customUnitName} « ${customUnitRateName} »`;
         },
@@ -7942,6 +7945,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 `),
                 subtitle: 'Envoyez une facture ou faites un essai d’Expensify pour en savoir plus.',
                 subtitleWithOnlyCreateButton: 'Utilisez le bouton vert ci-dessous pour envoyer une facture.',
+                subtitleCannotSend: "Vous avez besoin d'un espace de travail avec Invoices activé pour envoyer des factures.",
+                subtitleCannotSendWithTestDrive: "Vous avez besoin d'un espace de travail avec Invoices activé pour envoyer des factures. Faites un essai d'Expensify pour en savoir plus.",
             },
             emptyTripResults: {
                 title: 'Aucun voyage à afficher',
@@ -9349,6 +9354,20 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         expenseLevelExport: 'Toutes les données - niveau dépense',
         exportInProgress: 'Export en cours',
         conciergeWillSend: 'Concierge vous enverra le fichier sous peu.',
+    },
+    exportDownload: {
+        preparingTitle: 'Preparing download...',
+        preparingBody: 'You can either wait for the download to finish or Concierge can send it to you via chat.',
+        sendFromConcierge: "Send me the file when it's ready",
+        conciergeTitle: 'You bet!',
+        conciergeBody: 'Concierge will send you a message when the file is ready.',
+        goToConcierge: 'Go to Concierge',
+        dismiss: 'Dismiss',
+        readyTitle: 'Your file is ready!',
+        readyBody: "If it didn't automatically download, use the button below.",
+        downloadFile: 'Download file',
+        failedTitle: 'Export failed',
+        close: 'Close',
     },
     domain: {
         notVerified: 'Non vérifié',

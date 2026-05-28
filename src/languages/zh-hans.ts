@@ -1898,6 +1898,8 @@ const translations: TranslationDeepObject<typeof en> = {
         offline: '离线',
         syncing: '正在同步',
         profileAvatar: '个人头像',
+        customInstructions: '自定义指令',
+        copilotIntoAccount: 'Copilot 到账户',
         publicSection: {
             title: '公开',
             subtitle: '这些详细信息会显示在你的公开资料中，任何人都可以看到。',
@@ -7251,6 +7253,7 @@ ${reportName}
             }
             return `已将“${newValue}”的可退税部分添加到距离费率“${customUnitRateName}”中`;
         },
+        updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `已将 ${customUnitName} 费率名称从“${oldValue}”重命名为“${newValue}”`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
             return `${newValue ? '已启用' : '已禁用'}${customUnitName}费率“${customUnitRateName}”`;
         },
@@ -7660,6 +7663,8 @@ ${reportName}
                 `),
                 subtitle: '发送发票或试用 Expensify，了解更多信息。',
                 subtitleWithOnlyCreateButton: '使用下方的绿色按钮发送发票。',
+                subtitleCannotSend: '您需要一个启用了Invoices的工作区才能发送发票。',
+                subtitleCannotSendWithTestDrive: '您需要一个启用了Invoices的工作区才能发送发票。试用 Expensify，了解更多信息。',
             },
             emptyTripResults: {
                 title: '没有行程可显示',
@@ -9034,6 +9039,20 @@ ${reportName}
         expenseLevelExport: '所有数据 - 报销级别',
         exportInProgress: '导出进行中',
         conciergeWillSend: 'Concierge 将很快把文件发送给你。',
+    },
+    exportDownload: {
+        preparingTitle: 'Preparing download...',
+        preparingBody: 'You can either wait for the download to finish or Concierge can send it to you via chat.',
+        sendFromConcierge: "Send me the file when it's ready",
+        conciergeTitle: 'You bet!',
+        conciergeBody: 'Concierge will send you a message when the file is ready.',
+        goToConcierge: 'Go to Concierge',
+        dismiss: 'Dismiss',
+        readyTitle: 'Your file is ready!',
+        readyBody: "If it didn't automatically download, use the button below.",
+        downloadFile: 'Download file',
+        failedTitle: 'Export failed',
+        close: 'Close',
     },
     domain: {
         notVerified: '未验证',

@@ -154,7 +154,10 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${splitExpenseEditTransaction.reportID}`];
                 const selfDMReport = isSelfDM(report) ? report : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
                 const splitExpenseEditTransactionReport = transactionReport ?? selfDMReport;
-                initSplitExpense(splitExpenseEditTransaction, policy, splitExpenseEditTransactionReport, {navigateToEditSplitExpense: true, isProduction});
+                initSplitExpense(splitExpenseEditTransaction, policy, splitExpenseEditTransactionReport, currentUserPersonalDetails.accountID, {
+                    navigateToEditSplitExpense: true,
+                    isProduction,
+                });
                 return {
                     action: 'redirected',
                 };

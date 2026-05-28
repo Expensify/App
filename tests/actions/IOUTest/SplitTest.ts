@@ -4881,7 +4881,7 @@ describe('initSplitExpense', () => {
             reportID: '456',
         };
 
-        initSplitExpense(transaction, undefined, undefined);
+        initSplitExpense(transaction, undefined, undefined, CONST.DEFAULT_NUMBER_ID);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -4906,7 +4906,7 @@ describe('initSplitExpense', () => {
     });
     it('should not initialize split expense for null transaction', async () => {
         const transaction: Transaction | undefined = undefined;
-        initSplitExpense(transaction, undefined, undefined);
+        initSplitExpense(transaction, undefined, undefined, CONST.DEFAULT_NUMBER_ID);
         await waitForBatchedUpdates();
 
         expect(transaction).toBeFalsy();
@@ -4930,7 +4930,7 @@ describe('initSplitExpense', () => {
             reportID: '456',
         };
 
-        initSplitExpense(transaction, undefined, undefined);
+        initSplitExpense(transaction, undefined, undefined, CONST.DEFAULT_NUMBER_ID);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -4999,7 +4999,7 @@ describe('initSplitExpense', () => {
             reportID: '456',
         };
 
-        initSplitExpense(transaction, policy, undefined);
+        initSplitExpense(transaction, policy, undefined, policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -5072,7 +5072,7 @@ describe('initSplitExpense', () => {
         await waitForBatchedUpdates();
 
         // When the user initiates a split on the remaining transaction
-        initSplitExpense(remainingTransaction, undefined, undefined);
+        initSplitExpense(remainingTransaction, undefined, undefined, CONST.DEFAULT_NUMBER_ID);
         await waitForBatchedUpdates();
 
         // Then a fresh split is started keyed by the remaining transaction (2 new splits)
@@ -5133,7 +5133,7 @@ describe('initSplitExpense', () => {
         await waitForBatchedUpdates();
 
         // When the user opens the edit-splits flow from one of the children
-        initSplitExpense(secondChildTransaction, undefined, undefined);
+        initSplitExpense(secondChildTransaction, undefined, undefined, CONST.DEFAULT_NUMBER_ID);
         await waitForBatchedUpdates();
 
         // Then the edit-splits draft is keyed by the original transaction and rebuilt from the existing children
