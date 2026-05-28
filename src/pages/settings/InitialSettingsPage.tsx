@@ -37,7 +37,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
+import {resetExitSurveyForm, switchToOldDot} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {hasPendingExpensifyCardAction} from '@libs/CardUtils';
@@ -385,7 +385,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                                   Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXIT_SURVEY_REASON.path));
                                   return;
                               }
-                              Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXIT_SURVEY_CONFIRM.path));
+                              switchToOldDot('');
+                              openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
                           });
                       },
                   }),
