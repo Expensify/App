@@ -1,8 +1,11 @@
 import React, {createContext, useContext} from 'react';
 import type {ReactNode} from 'react';
+import useOnyx from '@hooks/useOnyx';
 import useTransactionThreadReport from '@hooks/useTransactionThreadReport';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
 type MoneyReportTransactionThreadContextValue = {
@@ -28,10 +31,12 @@ type MoneyReportTransactionThreadProviderProps = {
 
 function MoneyReportTransactionThreadProvider({reportID, children}: MoneyReportTransactionThreadProviderProps) {
     const {transactionThreadReportID, transactionThreadReport, reportActions} = useTransactionThreadReport(reportID);
+    const [reportActionsForParent] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`);
 
-    const requestParentReportAction =
-        reportActions?.find((action): action is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => action.reportActionID === transactionThreadReport?.parentReportActionID) ??
-        null;
+    // Parent lookup uses the raw Onyx collection so Hold/Unhold still work when the parent IOU is
+    // filtered from the report view (e.g. deleted money request) or outside the paginated window.
+    const parentReportAction = transactionThreadReport?.parentReportActionID ? reportActionsForParent?.[transactionThreadReport.parentReportActionID] : undefined;
+    const requestParentReportAction = isMoneyRequestAction(parentReportAction) ? parentReportAction : null;
 
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
 
