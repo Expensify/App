@@ -106,7 +106,7 @@ function AddAgentPage({route}: AddAgentPageProps) {
             // the optimistic personal detail by accountID, renders it with reduced opacity
             // (via `pendingAction`), and reconciles the email/accountID once CREATE_AGENT lands.
             Navigation.goBack();
-            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, workflowApproverEmail, undefined, optimisticAccountID));
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, workflowApproverEmail, undefined, Number(optimisticAccountID)));
             return;
         }
 

@@ -5,12 +5,12 @@ import {resolveAvatarURI} from '@libs/Avatars/PresetAvatarCatalog';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {generateReportID} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
-import {generateReportID} from '@libs/ReportUtils';
 
 function openAgentsPage() {
     read(READ_COMMANDS.OPEN_AGENTS_PAGE, null);
