@@ -7,7 +7,7 @@ import * as Member from '@src/libs/actions/Policy/Member';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ImportedSpreadsheet, PolicyEmployeeList, Policy as PolicyType, Report, ReportAction, ReportMetadata} from '@src/types/onyx';
+import type {PolicyEmployeeList, Policy as PolicyType, Report, ReportAction, ReportMetadata} from '@src/types/onyx';
 import type {Connections, NetSuiteConnection, NetSuiteConnectionConfig, NetSuiteConnectionData} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import createPersonalDetails from '../utils/collections/personalDetails';
@@ -904,23 +904,11 @@ describe('actions/PolicyMember', () => {
             const policy = createRandomPolicy(Number(policyID));
 
             // When importing 1 new member to the workspace
-            Member.importPolicyMembers(policy, [{email: 'user@gmail.com', role: 'user'}]);
-
-            await waitForBatchedUpdates();
-
-            const importedSpreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value);
-                    },
-                });
-            });
+            const importFinalModal = await Member.importPolicyMembers(policy, [{email: 'user@gmail.com', role: 'user'}]);
 
             // Then it should show the singular member added success message
-            expect(importedSpreadsheet?.importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
-            expect(importedSpreadsheet?.importFinalModal.promptKeyParams).toStrictEqual({added: 1, updated: 0});
+            expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
+            expect(importFinalModal.promptKeyParams).toStrictEqual({added: 1, updated: 0});
         });
 
         it('should show a "multiple members added message" when multiple new members are added', async () => {
@@ -929,26 +917,14 @@ describe('actions/PolicyMember', () => {
             const policy = createRandomPolicy(Number(policyID));
 
             // When importing multiple new members to the workspace
-            Member.importPolicyMembers(policy, [
+            const importFinalModal = await Member.importPolicyMembers(policy, [
                 {email: 'user@gmail.com', role: 'user'},
                 {email: 'user2@gmail.com', role: 'user'},
             ]);
 
-            await waitForBatchedUpdates();
-
-            const importedSpreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value);
-                    },
-                });
-            });
-
             // Then it should show the plural member added success message
-            expect(importedSpreadsheet?.importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
-            expect(importedSpreadsheet?.importFinalModal.promptKeyParams).toStrictEqual({added: 2, updated: 0});
+            expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
+            expect(importFinalModal.promptKeyParams).toStrictEqual({added: 2, updated: 0});
         });
 
         it('should show a "no members added/updated message" when no new members are added or updated', async () => {
@@ -966,23 +942,11 @@ describe('actions/PolicyMember', () => {
             };
 
             // When importing 1 existing member to the workspace with the same role
-            Member.importPolicyMembers(policy, [{email: userEmail, role: userRole}]);
-
-            await waitForBatchedUpdates();
-
-            const importedSpreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value);
-                    },
-                });
-            });
+            const importFinalModal = await Member.importPolicyMembers(policy, [{email: userEmail, role: userRole}]);
 
             // Then it should show the no member added/updated message
-            expect(importedSpreadsheet?.importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
-            expect(importedSpreadsheet?.importFinalModal.promptKeyParams).toStrictEqual({added: 0, updated: 0});
+            expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
+            expect(importFinalModal.promptKeyParams).toStrictEqual({added: 0, updated: 0});
         });
 
         it('should show a "single member updated message" when a member is updated', async () => {
@@ -1000,23 +964,11 @@ describe('actions/PolicyMember', () => {
             };
 
             // When importing 1 existing member with a different role
-            Member.importPolicyMembers(policy, [{email: userEmail, role: 'admin'}]);
-
-            await waitForBatchedUpdates();
-
-            const importedSpreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value);
-                    },
-                });
-            });
+            const importFinalModal = await Member.importPolicyMembers(policy, [{email: userEmail, role: 'admin'}]);
 
             // Then it should show the singular member updated success message
-            expect(importedSpreadsheet?.importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
-            expect(importedSpreadsheet?.importFinalModal.promptKeyParams).toStrictEqual({added: 0, updated: 1});
+            expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
+            expect(importFinalModal.promptKeyParams).toStrictEqual({added: 0, updated: 1});
         });
 
         it('should show a "multiple members updated message" when multiple members are updated', async () => {
@@ -1039,26 +991,14 @@ describe('actions/PolicyMember', () => {
             };
 
             // When importing multiple existing members with a different role
-            Member.importPolicyMembers(policy, [
+            const importFinalModal = await Member.importPolicyMembers(policy, [
                 {email: userEmail, role: 'admin'},
                 {email: userEmail2, role: 'admin'},
             ]);
 
-            await waitForBatchedUpdates();
-
-            const importedSpreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value);
-                    },
-                });
-            });
-
             // Then it should show the plural member updated success message
-            expect(importedSpreadsheet?.importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
-            expect(importedSpreadsheet?.importFinalModal.promptKeyParams).toStrictEqual({added: 0, updated: 2});
+            expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
+            expect(importFinalModal.promptKeyParams).toStrictEqual({added: 0, updated: 2});
         });
 
         it('should show a "single member added and updated message" when a member is both added and updated', async () => {
@@ -1076,26 +1016,14 @@ describe('actions/PolicyMember', () => {
             };
 
             // When importing 1 new member and 1 existing member with a different role
-            Member.importPolicyMembers(policy, [
+            const importFinalModal = await Member.importPolicyMembers(policy, [
                 {email: 'new_user@gmail.com', role: 'user'},
                 {email: userEmail, role: 'admin'},
             ]);
 
-            await waitForBatchedUpdates();
-
-            const importedSpreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value);
-                    },
-                });
-            });
-
             // Then it should show the singular member added and updated success message
-            expect(importedSpreadsheet?.importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
-            expect(importedSpreadsheet?.importFinalModal.promptKeyParams).toStrictEqual({added: 1, updated: 1});
+            expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
+            expect(importFinalModal.promptKeyParams).toStrictEqual({added: 1, updated: 1});
         });
 
         it('should show a "multiple members added and updated message" when multiple members are both added and updated', async () => {
@@ -1118,28 +1046,16 @@ describe('actions/PolicyMember', () => {
             };
 
             // When importing multiple new members and multiple existing members with a different role
-            Member.importPolicyMembers(policy, [
+            const importFinalModal = await Member.importPolicyMembers(policy, [
                 {email: 'new_user@gmail.com', role: 'user'},
                 {email: 'new_user2@gmail.com', role: 'user'},
                 {email: userEmail, role: 'admin'},
                 {email: userEmail2, role: 'admin'},
             ]);
 
-            await waitForBatchedUpdates();
-
-            const importedSpreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value);
-                    },
-                });
-            });
-
             // Then it should show the plural member added and updated success message
-            expect(importedSpreadsheet?.importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
-            expect(importedSpreadsheet?.importFinalModal.promptKeyParams).toStrictEqual({added: 2, updated: 2});
+            expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
+            expect(importFinalModal.promptKeyParams).toStrictEqual({added: 2, updated: 2});
         });
     });
 
@@ -1508,6 +1424,43 @@ describe('actions/PolicyMember', () => {
             expect(clearedMembersDraft).toEqual({});
             expect(clearedRoleDraft).toBeFalsy();
             expect(clearedApproverDraft).toBeFalsy();
+        });
+    });
+
+    describe('imported spreadsheet member role (migrated @react-navigation role picker, #90855)', () => {
+        it('setImportedSpreadsheetMemberRole stores the selected role in Onyx', async () => {
+            Member.setImportedSpreadsheetMemberRole(CONST.POLICY.ROLE.ADMIN);
+            await waitForBatchedUpdates();
+
+            const role = await getOnyxValue(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_ROLE);
+
+            // The role is now lifted into Onyx (previously it lived only in the parent's useState)
+            expect(role).toBe(CONST.POLICY.ROLE.ADMIN);
+        });
+
+        it('setImportedSpreadsheetMemberData stores the imported member data in Onyx', async () => {
+            const memberData = [{email: 'importtest@example.com', role: '', submitsTo: '', forwardsTo: ''}];
+            Member.setImportedSpreadsheetMemberData(memberData);
+            await waitForBatchedUpdates();
+
+            const storedData = await getOnyxValue(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA);
+
+            expect(storedData).toEqual(memberData);
+        });
+
+        it('clearImportedSpreadsheetMemberData clears BOTH the member data and the lifted role, so re-entering the import flow resets the role to its default', async () => {
+            // Simulate an in-progress import where a non-default role (Admin) was picked
+            Member.setImportedSpreadsheetMemberData([{email: 'importtest@example.com', role: '', submitsTo: '', forwardsTo: ''}]);
+            Member.setImportedSpreadsheetMemberRole(CONST.POLICY.ROLE.ADMIN);
+            await waitForBatchedUpdates();
+            expect(await getOnyxValue(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_ROLE)).toBe(CONST.POLICY.ROLE.ADMIN);
+
+            // The unmount cleanup (ImportedMembersConfirmationPage) / re-entering the flow must clear both keys
+            Member.clearImportedSpreadsheetMemberData();
+            await waitForBatchedUpdates();
+
+            expect(await getOnyxValue(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA)).toBeFalsy();
+            expect(await getOnyxValue(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_ROLE)).toBeFalsy();
         });
     });
 });
