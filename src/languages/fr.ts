@@ -8854,10 +8854,14 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             [CONST.EXIT_SURVEY.REASONS.PREFER_CLASSIC]: 'Pourquoi préférez-vous Expensify Classic ?',
         },
         responsePlaceholder: 'Votre réponse',
+        thankYou: 'Merci pour ce retour !',
+        thankYouSubtitle: 'Vos réponses nous aideront à créer un meilleur produit pour accomplir vos tâches. Merci beaucoup !',
         goToExpensifyClassic: 'Passer à Expensify Classic',
         offlineTitle: 'On dirait que vous êtes bloqué ici...',
         offline:
             'Vous semblez être hors ligne. Malheureusement, Expensify Classic ne fonctionne pas hors ligne, mais le nouveau Expensify, oui. Si vous préférez utiliser Expensify Classic, réessayez lorsque vous aurez une connexion Internet.',
+        quickTip: 'Astuce rapide…',
+        quickTipSubTitle: 'Vous pouvez aller directement sur Expensify Classic en visitant expensify.com. Ajoutez-le à vos favoris pour y accéder plus facilement !',
         bookACall: 'Réserver un appel',
         bookACallTitle: 'Souhaitez-vous parler à un chef de produit ?',
         benefits: {
@@ -8868,6 +8872,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         bookACallTextTop: 'En passant à Expensify Classic, vous ne profiterez pas de :',
         bookACallTextBottom:
             'Nous serions ravis d’organiser un appel avec vous pour comprendre pourquoi. Vous pouvez réserver un appel avec l’un de nos chefs de produit senior pour discuter de vos besoins.',
+        takeMeToExpensifyClassic: 'M’emmener vers Expensify Classic',
         goBackJustOnce: 'Revenir une seule fois',
     },
     listBoundary: {
