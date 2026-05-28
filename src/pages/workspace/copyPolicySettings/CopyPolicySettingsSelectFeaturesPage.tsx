@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -107,17 +107,9 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const availableFeatureRows = FEATURE_ROWS.filter((row) => isCopyPolicySettingsPartEnabledOnSource(row.part, sourceFeatureContext));
     const availablePartSet = new Set(availableFeatureRows.map((row) => row.part));
 
-    const [selectedFeatures, setSelectedFeatures] = useState<readonly Part[]>([]);
-
-    useEffect(() => {
-        if (!copyPolicySettings?.parts) {
-            return;
-        }
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- Restore the previously selected feature parts from Onyx when the user navigates back to this step from a later step in the flow.
-        setSelectedFeatures(copyPolicySettings.parts as Part[]);
-    }, [copyPolicySettings?.parts]);
-
-    const selectedAvailableFeatures = selectedFeatures.filter((part) => availablePartSet.has(part) && !isPartIncompatible(part));
+    const [selectedFeatures, setSelectedFeatures] = useState<readonly Part[] | null>(null);
+    const resolvedSelectedFeatures = selectedFeatures ?? (copyPolicySettings?.parts as Part[] | undefined) ?? [];
+    const selectedAvailableFeatures = resolvedSelectedFeatures.filter((part) => availablePartSet.has(part) && !isPartIncompatible(part));
     const isAccountingSelected = selectedAvailableFeatures.includes(CONST.POLICY.POLICY_FEATURE.ACCOUNTING);
 
     const effectiveSelectedFeatures = isAccountingSelected
@@ -166,8 +158,19 @@ function CopyPolicySettingsSelectFeaturesPage() {
         }
     };
 
+    const isAccountingMismatch = (part: Part): boolean => {
+        if (part === CONST.POLICY.POLICY_FEATURE.ACCOUNTING) {
+            return !isAccountingPartCompatible;
+        }
+        // When accounting is selected, the connection mismatch will be resolved by the copy.
+        if (isAccountingSelected) {
+            return false;
+        }
+        return !isCodingCompatible && isCodingPart(part);
+    };
+
     const getAlternateText = (part: Part): string | undefined => {
-        if (isPartIncompatible(part)) {
+        if (isAccountingMismatch(part)) {
             return translate('workspace.copyPolicySettings.selectSettings.accountingMismatch', {
                 part: translate(FEATURE_ROWS.find((row) => row.part === part)?.labelKey ?? 'workspace.common.accounting').toLowerCase(),
             });
@@ -198,10 +201,11 @@ function CopyPolicySettingsSelectFeaturesPage() {
             return;
         }
         setSelectedFeatures((prev) => {
-            if (prev.includes(part)) {
-                return prev.filter((selectedPart) => selectedPart !== part);
+            const current = prev ?? resolvedSelectedFeatures;
+            if (current.includes(part)) {
+                return current.filter((selectedPart) => selectedPart !== part);
             }
-            return [...prev, part];
+            return [...current, part];
         });
     };
 
