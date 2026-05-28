@@ -142,7 +142,7 @@ describe('actions/Duplicate', () => {
             reportActionID,
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             created: '2024-01-01 12:00:00',
-            reportID: reportID ?? '',
+            reportID,
             originalMessage: {
                 IOUTransactionID: transactionID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
