@@ -271,10 +271,9 @@ function MapViewImpl({
                 style={{...StyleUtils.getTextColorStyle(theme.mapAttributionText), zIndex: -1}}
                 mapStyle={styleURL}
                 interactive={interactive}
-                // The distance map is a flat, top-down street-level view where fog is never visible. Disabling it avoids a
-                // Mapbox GL teardown crash: markers schedule a deferred fog-opacity re-evaluation that fires after the map
-                // is torn down, reading `properties` off a reset Fog object (TypeError: properties.get of undefined).
-                // @ts-expect-error react-map-gl omits null from the fog prop type, but null is what clears the style's built-in fog.
+                // Disables fog (invisible on this flat top-down view): leaving it on lets Mapbox markers schedule
+                // a deferred fog-opacity timer that crashes if it fires after the map's fog is torn down.
+                // @ts-expect-error react-map-gl's fog type omits null, but null clears the style's fog.
                 fog={null}
             >
                 {interactive && shouldDisplayCurrentLocation && (
