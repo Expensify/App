@@ -1,7 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
+import {isSpendRuleCategory} from '@src/types/form/SpendRuleForm';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import {convertAmountToDisplayString} from './CurrencyUtils';
 import {formatList} from './Localize';
@@ -11,7 +11,8 @@ import {getOriginalMessage, isActionOfType} from './ReportActionsUtils';
 
 function getSpendRuleFallbackReportActionText(reportAction: OnyxEntry<ReportAction>): string {
     const message = Array.isArray(reportAction?.message) ? reportAction?.message.at(0) : reportAction?.message;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing - We intentionally use || here because empty strings from stripFollowupListFromHtml should also fall through to the text fallback
+    // We intentionally use || here because empty strings from stripFollowupListFromHtml should also fall through to the text fallback
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const text = stripFollowupListFromHtml(message?.html) || (message?.text ?? '');
     return text ? Parser.htmlToText(text) : '';
 }
@@ -41,7 +42,7 @@ function getSpendRuleAmountString(translate: LocalizedTranslate, amount: {operat
     if (amount.value.length === 0) {
         return '';
     }
-    return translate('workspaceActions.expensifyCardRule.amountFilter', {operator: operatorWord, amount: formatSpendRuleAmount(amount, currency)});
+    return translate('workspaceActions.expensifyCardRule.amountFilter', {operator: operatorWord, amount: formatSpendRuleAmount(amount.value, currency)});
 }
 
 function getSpendRuleCardsSummary(translate: LocalizedTranslate, cards: ReadonlyArray<{displayName?: string}> | undefined): string {
@@ -56,14 +57,12 @@ function getSpendRuleCardsSummary(translate: LocalizedTranslate, cards: Readonly
 }
 
 function getSpendRuleJoinFilters(items: readonly string[]): string {
-    const filtered = items.filter((value) => typeof value === 'string' && value !== '');
-    return formatList(filtered);
+    return formatList(items.filter((value) => value !== ''));
 }
 
 function getSpendRuleCategoryDisplayName(translate: LocalizedTranslate, category: string): string {
-    const knownCategories = Object.values(CONST.SPEND_RULES.CATEGORIES) as string[];
-    if (knownCategories.includes(category)) {
-        return translate(`workspace.rules.spendRules.categoryOptions.${category as ValueOf<typeof CONST.SPEND_RULES.CATEGORIES>}`);
+    if (isSpendRuleCategory(category)) {
+        return translate(`workspace.rules.spendRules.categoryOptions.${category}`);
     }
     return category;
 }
@@ -78,8 +77,8 @@ function getSpendRuleRestrictionVerb(translate: LocalizedTranslate, action: stri
     return action;
 }
 
-function formatSpendRuleAmount(amount: {value: string[]}, currency: string): string {
-    return convertAmountToDisplayString(getSpendRuleValueInCents(amount.value), currency);
+function formatSpendRuleAmount(amount: string[], currency: string): string {
+    return convertAmountToDisplayString(getSpendRuleValueInCents(amount), currency);
 }
 
 type SpendRuleStringDiff = {added: string[]; removed: string[]};
@@ -366,13 +365,13 @@ function getUpdateExpensifyCardRuleMessage(translate: LocalizedTranslate, report
     ];
 
     if (amountDiff.added.length === 1 && amountDiff.removed.length === 1) {
-        const oldValue = formatSpendRuleAmount(amountDiff.removed.at(0) ?? {value: []}, currency);
-        const newValue = formatSpendRuleAmount(amountDiff.added.at(0) ?? {value: []}, currency);
+        const oldValue = formatSpendRuleAmount(amountDiff.removed.at(0)?.value ?? [], currency);
+        const newValue = formatSpendRuleAmount(amountDiff.added.at(0)?.value ?? [], currency);
         const body = translate('workspaceActions.expensifyCardRule.update.bodyMaxAmountChange', {oldValue, newValue});
         phrases.push({verb: 'changed', adjective: '', bodyWithAdjective: body, bodyWithoutAdjective: body});
     } else {
         for (const amount of amountDiff.added) {
-            const body = translate('workspaceActions.expensifyCardRule.update.bodyMaxAmountSet', {value: formatSpendRuleAmount(amount, currency)});
+            const body = translate('workspaceActions.expensifyCardRule.update.bodyMaxAmountSet', {value: formatSpendRuleAmount(amount.value, currency)});
             phrases.push({verb: 'set', adjective: '', bodyWithAdjective: body, bodyWithoutAdjective: body});
         }
         if (amountDiff.removed.length > 0) {
