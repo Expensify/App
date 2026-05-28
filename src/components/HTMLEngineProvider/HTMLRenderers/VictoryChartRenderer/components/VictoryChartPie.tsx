@@ -1,11 +1,13 @@
 import {Skia} from '@shopify/react-native-skia';
+import {parseDocument} from 'htmlparser2';
 import React from 'react';
-import type {TNode} from 'react-native-render-html';
+import {type TNode, useAmbientTRenderEngine} from 'react-native-render-html';
 import {Pie, PolarChart} from 'victory-native';
 import {useChartDefaultTypeface} from '@components/Charts/hooks';
 import {COLOR_KEY, LABEL_KEY, VALUE_KEY, X_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
+import VictoryChartPieLabel from './VictoryChartPieLabel';
 
 type VictoryChartPieProps = {tnode: TNode};
 
@@ -24,15 +26,18 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
             startAngle={START_ANGLE}
             innerRadius={innerRadius}
             size={size}
-            circleSweepDegrees={360}
         >
-            {() => (
+            {({slice}) => (
                 <>
                     <Pie.Slice>
+                        <VictoryChartPieLabel
+                            tnode={tnode}
+                            slice={slice}
+                        />
                         <Pie.Label
                             font={boldTypeface ? Skia.Font(boldTypeface, 11) : null}
                             color={'black'}
-                            radiusOffset={1.3}
+                            radiusOffset={1.24}
                         />
                     </Pie.Slice>
                 </>
