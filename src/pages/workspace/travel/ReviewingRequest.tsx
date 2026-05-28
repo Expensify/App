@@ -29,6 +29,7 @@ function ReviewingRequest() {
             illustrationStyle={styles.travelCardIllustration}
             illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter]}
             titleStyles={styles.textHeadlineH1}
+            containerStyles={{marginHorizontal: 0}}
         />
     );
 }

@@ -48,13 +48,13 @@ type TableBodyProps = ViewProps & {
 function TableBody<T>({contentContainerStyle, style, ...props}: TableBodyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {processedData: filteredAndSortedData, activeSearchString, listProps, listRef, shouldUseNarrowTableLayout, hasActiveFilters, hasSearchString, isEmptyResult} = useTableContext<T>();
+    const {processedData: filteredAndSortedData, activeSearchString, listProps, listRef, hasActiveFilters, hasSearchString, isEmptyResult} = useTableContext<T>();
     const {ListEmptyComponent, contentContainerStyle: listContentContainerStyle, ...restListProps} = listProps ?? {};
 
     const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
-        addBottomSafeAreaPadding: true,
-        addOfflineIndicatorBottomSafeAreaPadding: true,
-        style: shouldUseNarrowTableLayout ? styles.pb20 : styles.pb4,
+        addBottomSafeAreaPadding: false,
+        addOfflineIndicatorBottomSafeAreaPadding: false,
+        style: styles.pb4,
     });
 
     // Determine the message based on what caused the empty result

@@ -54,6 +54,7 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import variables from '@styles/variables';
 import {openOldDotLink} from '@userActions/Link';
 import {openPolicyExpensifyCardsPage} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
@@ -613,18 +614,26 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 testID="PolicyAccountingPage"
                 shouldShowOfflineIndicatorInWideScreen
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.common.accounting')}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldUseHeadlineHeader
-                    shouldDisplayHelpButton
-                    onBackButtonPress={Navigation.goBack}
-                />
+                <View style={{width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center'}}>
+                    <HeaderWithBackButton
+                        title={translate('workspace.common.accounting')}
+                        shouldShowBackButton={shouldUseNarrowLayout}
+                        shouldUseHeadlineHeader
+                        shouldDisplayHelpButton
+                        onBackButtonPress={Navigation.goBack}
+                    />
+                </View>
                 <ScrollView
                     contentContainerStyle={styles.pt3}
                     addBottomSafeAreaPadding
                 >
-                    <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <View
+                        style={[
+                            styles.flex1,
+                            shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection,
+                            {width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center', paddingHorizontal: 20},
+                        ]}
+                    >
                         <Section
                             title={translate('workspace.accounting.title')}
                             subtitle={translate('workspace.accounting.subtitle')}
@@ -632,6 +641,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                             subtitleMuted
                             titleStyles={styles.accountSettingsSectionTitle}
                             childrenStyles={styles.pt5}
+                            containerStyles={{marginHorizontal: 0}}
                         >
                             {!hasUnsupportedNDIntegration &&
                                 connectionsMenuItems.map((menuItem) => (

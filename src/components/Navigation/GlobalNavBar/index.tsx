@@ -24,7 +24,7 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 
-const GLOBAL_NAV_BAR_HEIGHT = 44;
+const GLOBAL_NAV_BAR_HEIGHT = 48;
 
 const NAVIGATORS_WITH_LHN = new Set<string>([
     NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
@@ -117,7 +117,7 @@ function GlobalNavBar() {
                 <PressableWithFeedback
                     accessibilityLabel="Find anything..."
                     role={CONST.ROLE.BUTTON}
-                    style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.ph3, {height: 40, borderRadius: variables.buttonBorderRadius}]}
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.ph3, {height: 40, borderRadius: variables.buttonBorderRadius, marginBottom: 1}]}
                     sentryLabel={CONST.SENTRY_LABEL.SEARCH.SEARCH_BUTTON}
                     onPress={onSearchPress}
                 >
@@ -132,7 +132,7 @@ function GlobalNavBar() {
                             <Text style={[styles.buttonText, styles.buttonMediumText, {color: hovered ? theme.text : theme.textSupporting}]}>Find anything...</Text>
                             <Badge
                                 isCondensed
-                                badgeStyles={{marginLeft: 4}}
+                                badgeStyles={{marginLeft: 0}}
                             >
                                 <Text style={{fontWeight: 'normal', color: theme.textSupporting, fontSize: variables.fontSizeExtraSmall}}>⌘</Text>K
                             </Badge>
@@ -147,7 +147,7 @@ function GlobalNavBar() {
                         <PressableWithFeedback
                             accessibilityLabel="Ask Concierge"
                             role={CONST.ROLE.BUTTON}
-                            style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.ph3, {height: 40, borderRadius: variables.buttonBorderRadius}]}
+                            style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.ph3, {height: 40, borderRadius: variables.buttonBorderRadius, marginBottom: 1}]}
                             sentryLabel={CONST.SENTRY_LABEL.SIDE_PANEL.HELP}
                             onPress={openSidePanel}
                         >

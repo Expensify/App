@@ -281,7 +281,8 @@ function HeaderWithBackButton({
                 )}
                 {!!policyAvatar && (
                     <Avatar
-                        containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)), styles.mr3]}
+                        containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.SMALL)), styles.mr3]}
+                        size={CONST.AVATAR_SIZE.SMALL}
                         source={policyAvatar?.source}
                         name={policyAvatar?.name}
                         avatarID={policyAvatar?.id}

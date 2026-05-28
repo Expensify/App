@@ -38,6 +38,7 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                     large
                 />
             }
+            containerStyles={{marginHorizontal: 0}}
         />
     );
 }

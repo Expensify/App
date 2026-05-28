@@ -47,6 +47,7 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                 titleStyles={[styles.accountSettingsSectionTitle]}
                 subtitleMuted
                 isCentralPane
+                containerStyles={{marginHorizontal: 0}}
             >
                 <MenuItem
                     title={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.ctaText')}

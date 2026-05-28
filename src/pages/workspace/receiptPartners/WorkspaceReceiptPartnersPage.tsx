@@ -4,8 +4,6 @@ import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
-import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -14,7 +12,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
-import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
@@ -28,6 +26,7 @@ import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {MenuItemData} from '@pages/workspace/accounting/types';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import variables from '@styles/variables';
 import {openExternalLink} from '@userActions/Link';
 import {openPolicyReceiptPartnersPage, removePolicyReceiptPartnersConnection, togglePolicyUberAutoInvite, togglePolicyUberAutoRemove} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
@@ -57,7 +56,6 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
     const isAutoRemove = !!integrations?.uber?.autoRemove;
     const isAutoInvite = !!integrations?.uber?.autoInvite;
     const centralBillingAccountEmail = !!integrations?.uber?.centralBillingAccountEmail;
-    const {asset: ReceiptPartners} = useMemoizedLazyAsset(() => loadIllustration('ReceiptPartners' as IllustrationName));
     // Track focus and connection change to route to the invite flow once after successful connection
     const prevIsUberConnected = usePrevious(isUberConnected);
 
@@ -268,25 +266,33 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                     testID="WorkspaceReceiptPartnersPage"
                     shouldShowOfflineIndicatorInWideScreen
                 >
-                    <HeaderWithBackButton
-                        title={translate('workspace.common.receiptPartners')}
-                        shouldShowBackButton={shouldUseNarrowLayout}
-                        icon={ReceiptPartners}
-                        shouldUseHeadlineHeader
-                        shouldDisplayHelpButton
-                        onBackButtonPress={Navigation.goBack}
-                    />
+                    <View style={{width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center'}}>
+                        <HeaderWithBackButton
+                            title={translate('workspace.common.receiptPartners')}
+                            shouldShowBackButton={shouldUseNarrowLayout}
+                            shouldUseHeadlineHeader
+                            shouldDisplayHelpButton
+                            onBackButtonPress={Navigation.goBack}
+                        />
+                    </View>
                     <ScrollView
                         contentContainerStyle={styles.pt3}
                         addBottomSafeAreaPadding
                     >
-                        <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                        <View
+                            style={[
+                                styles.flex1,
+                                shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection,
+                                {width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center', paddingHorizontal: 20},
+                            ]}
+                        >
                             <Section
                                 title={translate('workspace.accounting.title')}
                                 isCentralPane
                                 subtitleMuted
                                 titleStyles={styles.accountSettingsSectionTitle}
                                 childrenStyles={styles.pt5}
+                                containerStyles={{marginHorizontal: 0}}
                             >
                                 {connectionsMenuItems.map((menuItem) => (
                                     <OfflineWithFeedback

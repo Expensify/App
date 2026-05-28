@@ -63,6 +63,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                 shouldShowNotFoundPage={false}
                 shouldShowLoading={false}
                 addBottomSafeAreaPadding
+                shouldCenterContent
             >
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {isCustomAgentBetaEnabled && !isAgentsRulesBannerDismissed && (
@@ -74,7 +75,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                             ctaSentryLabel={CONST.SENTRY_LABEL.AGENTS_RULES_BANNER.CTA}
                             onDismiss={() => dismissProductTraining(CONST.AGENTS_RULES_BANNER, true)}
                             dismissSentryLabel={CONST.SENTRY_LABEL.AGENTS_RULES_BANNER.DISMISS}
-                            style={[styles.mh5, styles.mb5]}
+                            style={styles.mb5}
                         />
                     )}
                     <IndividualExpenseRulesSection policyID={policyID} />

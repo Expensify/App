@@ -178,6 +178,7 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
             subtitle={translate('workspace.rules.spendRules.subtitle')}
             isCentralPane
             subtitleMuted
+            containerStyles={{marginHorizontal: 0}}
         >
             <MenuItem
                 wrapperStyle={[styles.borderedContentCard, styles.mt6, styles.ph4, styles.pv4]}

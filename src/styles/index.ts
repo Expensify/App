@@ -5126,9 +5126,7 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightXLarge,
         },
 
-        workspaceSection: {
-            maxWidth: variables.workspaceSectionMaxWidth + variables.sectionMargin * 2,
-        },
+        workspaceSection: {},
 
         workspaceSectionMobile: {
             width: '100%',

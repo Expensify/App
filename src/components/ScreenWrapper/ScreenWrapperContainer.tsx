@@ -66,6 +66,9 @@ type ScreenWrapperContainerProps = ForwardedFSClassProps &
         /** Whether to use the minHeight. Use true for screens where the window height are changing because of Virtual Keyboard */
         shouldEnableMinHeight?: boolean;
 
+        /** Subtract the global nav bar height from maxHeight/minHeight and the KAV's height. Needed for screens that size to full windowHeight (e.g. Inbox composer). */
+        shouldOffsetForGlobalNavBar?: boolean;
+
         /** Whether to avoid scroll on virtual viewport */
         shouldAvoidScrollOnVirtualViewport?: boolean;
 
@@ -104,6 +107,7 @@ function ScreenWrapperContainer({
     shouldEnableKeyboardAvoidingView = true,
     shouldEnableMaxHeight = false,
     shouldEnableMinHeight = false,
+    shouldOffsetForGlobalNavBar = false,
     shouldEnablePickerAvoiding = true,
     shouldDismissKeyboardBeforeClose = true,
     shouldAvoidScrollOnVirtualViewport = true,
@@ -121,8 +125,9 @@ function ScreenWrapperContainer({
     const {initialHeight} = useInitialDimensions();
     const styles = useThemeStyles();
     const globalNavBarHeight = useContext(GlobalNavBarHeightContext);
-    const maxHeight = shouldEnableMaxHeight ? windowHeight - globalNavBarHeight : undefined;
-    const minHeight = shouldEnableMinHeight && !isSafari() ? initialHeight - globalNavBarHeight : undefined;
+    const heightOffset = shouldOffsetForGlobalNavBar ? globalNavBarHeight : 0;
+    const maxHeight = shouldEnableMaxHeight ? windowHeight - heightOffset : undefined;
+    const minHeight = shouldEnableMinHeight && !isSafari() ? initialHeight - heightOffset : undefined;
     const {isBlurred} = useInputBlurState();
     const {setIsBlurred} = useInputBlurActions();
     const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && isMobileWebKit());
@@ -228,7 +233,7 @@ function ScreenWrapperContainer({
                 <KeyboardAvoidingView
                     style={[
                         styles.w100,
-                        globalNavBarHeight > 0 ? {height: `calc(100% - ${globalNavBarHeight}px)`} : styles.h100,
+                        heightOffset > 0 ? {height: `calc(100% - ${heightOffset}px)`} : styles.h100,
                         !isBlurred ? {maxHeight} : undefined,
                         isAvoidingViewportScroll ? [styles.overflowAuto, styles.overscrollBehaviorContain] : {},
                     ]}

@@ -112,6 +112,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                             navigation={navigation}
                             style={screenWrapperStyle}
                             shouldEnableKeyboardAvoidingView={isTopMostReportId || isInNarrowPaneModal}
+                            shouldOffsetForGlobalNavBar
                             testID={`report-screen-${reportIDFromRoute}`}
                         >
                             {!shouldDeferNonEssentials && (

@@ -477,6 +477,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                     onBackButtonPress={() => Navigation.goBack(route.params?.backTo ?? ROUTES.WORKSPACES_LIST.route)}
                     policyAvatar={policyAvatar}
                     shouldDisplayHelpButton={shouldUseNarrowLayout}
+                    shouldUseHeadlineHeader
                 />
 
                 <ScrollView contentContainerStyle={[styles.flexColumn, styles.pb14]}>

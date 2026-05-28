@@ -114,7 +114,7 @@ export default {
     homePageLeftColumnMaxWidth: 680,
     homePageRightColumnMaxWidth: 488,
     contentMaxWidth: 1140,
-    cardMaxWidth: 720,
+    cardMaxWidth: 760,
     minScanTooltipWidth: 320,
     uploadViewMargin: 20,
     chooseFilesViewMargin: 8,
