@@ -4698,15 +4698,20 @@ const staticStyles = (theme: ThemeColors) =>
         sidebarStatusAvatar: {
             alignItems: 'center',
             justifyContent: 'center',
-            height: 18,
-            width: 18,
+            backgroundColor: theme.border,
+            height: 20,
+            width: 20,
             borderRadius: 10,
             position: 'absolute',
-            right: -4,
-            bottom: -4,
+            right: -6,
+            bottom: -6,
             borderColor: theme.appBG,
             borderWidth: 2,
             overflow: 'hidden',
+        },
+
+        sidebarStatusAvatarHovered: {
+            borderColor: theme.hoverComponentBG,
         },
 
         profilePageAvatar: {
