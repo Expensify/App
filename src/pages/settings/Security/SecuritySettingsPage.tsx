@@ -17,6 +17,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {openSecuritySettingsPage} from '@libs/actions/Delegate';
 import Navigation from '@libs/Navigation/Navigation';
@@ -53,7 +54,7 @@ function SecuritySettingsPage() {
     const [hasDeviceManagementErrorValue] = useOnyx(ONYXKEYS.LOGINS, {selector: hasDeviceManagementError});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const privateSubscription = usePrivateSubscription();
-    const isUserValidated = account?.validated;
+    const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
 
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
@@ -81,11 +82,7 @@ function SecuritySettingsPage() {
                         showLockedAccountModal();
                         return;
                     }
-                    if (!isUserValidated) {
-                        Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.getRoute());
-                        return;
-                    }
-                    Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute());
+                    Navigation.navigate(getTwoFactorAuthRoute());
                 },
             },
         ];
@@ -178,7 +175,7 @@ function SecuritySettingsPage() {
         icons.Monitor,
         isAccountLocked,
         isActingAsDelegate,
-        isUserValidated,
+        getTwoFactorAuthRoute,
         showDelegateNoAccessModal,
         showLockedAccountModal,
         privateSubscription?.type,

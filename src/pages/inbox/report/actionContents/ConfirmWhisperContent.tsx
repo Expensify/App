@@ -4,31 +4,41 @@ import type {OnyxEntry} from 'react-native-onyx';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import type {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
+import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {resolveActionableMentionConfirmWhisper} from '@libs/actions/Report';
 import ReportActionItemMessage from '@pages/inbox/report/ReportActionItemMessage';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
 
 type ConfirmWhisperContentProps = {
+    /** All the data of the action item */
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>;
+
+    /** Report ID for the current report */
     reportID: string | undefined;
+
+    /** ID of the original report from which the given reportAction is first created */
     originalReportID: string | undefined;
-    report: OnyxEntry<Report>;
-    originalReport: OnyxEntry<Report>;
+
+    /** Report that owns this action for mutations (thread / merged-list cases use originalReport). This is a stable projection (heartbeat fields stripped). */
+    actionOwnerReportStable: OnyxEntry<Report>;
 };
 
-function ConfirmWhisperContent({action, reportID, originalReportID, report, originalReport}: ConfirmWhisperContentProps) {
-    const reportActionReport = originalReport ?? report;
+function ConfirmWhisperContent({action, reportID, originalReportID, actionOwnerReportStable}: ConfirmWhisperContentProps) {
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
-    const mentionReportContextValue = {currentReportID: report?.reportID, exactlyMatch: true};
+    const mentionReportContextValue = {currentReportID: reportID, exactlyMatch: true};
+
+    // Subscribe to the full report here — the resolve action needs heartbeat fields for its failure-revert payload.
+    const [actionOwnerReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${actionOwnerReportStable?.reportID}`);
 
     const buttons: ActionableItem[] = [
         {
             text: 'common.buttonConfirm',
             key: `${action.reportActionID}-actionableReportMentionConfirmWhisper-${CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE}`,
             onPress: () =>
-                resolveActionableMentionConfirmWhisper(reportActionReport, action, CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE, isOriginalReportArchived),
+                resolveActionableMentionConfirmWhisper(actionOwnerReport, action, CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE, isOriginalReportArchived),
             isPrimary: true,
         },
     ];
@@ -50,7 +60,5 @@ function ConfirmWhisperContent({action, reportID, originalReportID, report, orig
         </MentionReportContext.Provider>
     );
 }
-
-ConfirmWhisperContent.displayName = 'ConfirmWhisperContent';
 
 export default ConfirmWhisperContent;
