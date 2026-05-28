@@ -857,7 +857,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Votre espace',
         welcomeToRoom: (roomName: string) => `Bienvenue dans ${roomName} !`,
         usePlusButton: (additionalText: string) => `Utilisez le bouton + pour ${additionalText} une dépense.`,
-        askConcierge: 'Ceci est votre chat avec Concierge, votre agent IA personnel. Je peux faire presque tout, essayez-moi !',
+        askConcierge: 'Concierge peut répondre aux questions, mettre à jour les dépenses, et plus encore.',
         conciergeSupport: 'Votre agent IA personnel',
         create: 'créer',
         iouTypes: {
@@ -1973,6 +1973,14 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Privé',
             subtitle: 'Ces informations sont utilisées pour les déplacements et les paiements. Elles n’apparaissent jamais sur votre profil public.',
         },
+        aiPromptSection: {
+            title: 'Invite IA',
+            subtitle: 'Rédiger des instructions personnalisées',
+            prompt: 'Invite',
+            editPrompt: "Modifier l'invite",
+            promptCannotBeEmpty: "L'invite ne peut pas être vide",
+            saved: 'Enregistré',
+        },
     },
     securityPage: {
         title: 'Options de sécurité',
@@ -2586,6 +2594,8 @@ ${amount} pour ${merchant} - ${date}`,
         addApprovalTip: 'Ce workflow par défaut s’applique à tous les membres, sauf si un workflow plus spécifique existe.',
         approver: 'Approbateur',
         addApprovalsDescription: 'Exiger une approbation supplémentaire avant d’autoriser un paiement.',
+        automateApprovalsWithAgentsTitle: 'Automatisez les approbations avec des agents',
+        automateApprovalsWithAgentsSubtitle: 'Ajoutez l’agent ci-dessous au flux de travail pour automatiser les approbations.',
         makeOrTrackPaymentsTitle: 'Paiements',
         makeOrTrackPaymentsDescription: 'Ajoutez un payeur autorisé pour les paiements effectués dans Expensify ou suivez les paiements effectués ailleurs.',
         customApprovalWorkflowEnabled:
@@ -2798,7 +2808,9 @@ ${amount} pour ${merchant} - ${date}`,
         title: 'Modifier l’agent',
         agentName: 'Nom de l’agent',
         instructions: 'Écrire des instructions personnalisées',
-        deleteAgent: 'Supprimer l’agent',
+        chatWithAgent: 'Discuter avec l\u2019agent',
+        copilotIntoAccount: 'Copilote dans le compte',
+        deleteAgent: 'Supprimer l\u2019agent',
         deleteAgentTitle: 'Supprimer l’agent ?',
         deleteAgentMessage: 'Voulez-vous vraiment supprimer cet agent ? Cette action est irréversible.',
     },
@@ -6078,6 +6090,13 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             selectWorkspaces: 'Sélectionner des espaces de travail',
             description: 'Choisissez les espaces de travail vers lesquels vous souhaitez copier les paramètres, puis sélectionnez les paramètres que vous souhaitez copier.',
             searchPlaceholder: 'Rechercher des espaces de travail',
+            selectFeatures: 'Sélectionner les fonctionnalités à copier',
+            whichFeatures: 'Sélectionnez les paramètres à écraser sur vos espaces de travail existants.',
+            workflowsWithoutMembersConfirm: 'Continuer sans membres',
+            workflowsWithoutMembersPrompt:
+                'La copie d’espaces de travail sans membres ne copiera pas les workflows d’approbation. Les paramètres de soumission et de paiement seront néanmoins copiés.',
+            accountingMismatch: ({part}: {part: string}) =>
+                `Vous ne pouvez copier ${part} que si tous les espaces de travail utilisent le même système de comptabilité et la même connexion d’entreprise.`,
         },
         emptyWorkspace: {
             title: 'Vous n’avez aucun espace de travail',
@@ -6162,6 +6181,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
         card: {
             getStartedIssuing: 'Commencez par émettre votre première carte virtuelle ou physique.',
             issueCard: 'Émettre une carte',
+            chooseRule: 'Choisir une règle',
             issueNewCard: {
                 whoNeedsCard: 'Qui a besoin d’une carte ?',
                 inviteNewMember: 'Inviter un nouveau membre',
@@ -6204,22 +6224,27 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 enterValidDate: 'Entrez une date valide',
                 expirationDate: 'Date d’expiration',
                 limitAmount: 'Montant de la limite',
-                setExpiryOptions: 'Définir les options d’expiration',
-                setExpiryDate: 'Définir la date d’expiration',
-                setExpiryDateDescription: 'La carte expirera comme indiqué sur la carte',
+                setCardRules: 'Définir les règles de carte',
+                addSpendRule: 'Ajouter une règle de dépense',
+                addExpirationDate: 'Ajouter une date d’expiration',
+                addExpirationDateDescription: 'Si aucune date spécifique n’est définie, la carte expirera en fonction de la date d’expiration déjà indiquée sur la carte',
                 amount: 'Montant',
+                copyExisting: 'Copier l’existant',
+                createNew: 'Créer nouveau',
+                spendRulesEmptyStateTitle: 'Aucune règle à sélectionner',
+                spendRulesEmptyStateSubtitle: 'Vous n’avez encore créé aucune règle. Vous pouvez en créer une depuis l’écran précédent.',
             },
             deactivateCardModal: {
                 deactivate: 'Désactiver',
                 deactivateCard: 'Désactiver la carte',
                 deactivateConfirmation: 'La désactivation de cette carte entraînera le refus de toutes les futures transactions et est irréversible.',
             },
+            searchRules: 'Rechercher une règle de dépense',
         },
         accounting: {
             settings: 'paramètres',
             title: 'Connexions',
-            subtitle:
-                'Connectez votre système comptable pour imputer les opérations à votre plan comptable, faire correspondre automatiquement les paiements et garder vos finances synchronisées.',
+            subtitle: 'Connectez votre logiciel de comptabilité pour une synchronisation automatique.',
             qbo: 'QuickBooks Online',
             qbd: 'QuickBooks Desktop',
             xero: 'Xero',
@@ -6303,6 +6328,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `Voulez-vous vraiment connecter ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'cette intégration comptable'} ? Cette action supprimera toutes les connexions comptables existantes.`,
             enterCredentials: 'Saisissez vos identifiants',
+            updateCredentials: 'Mettre à jour les identifiants',
             claimOffer: {
                 badgeText: 'Offre disponible !',
                 xero: {
@@ -7011,6 +7037,11 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Allez dans [plus de fonctionnalités](${moreFeaturesLink}) et activez ${featureName} pour déverrouiller cette fonctionnalité.`,
             },
+            agentsPromoBanner: {
+                title: 'Vous ne voyez pas la règle dont vous avez besoin ? Ajoutez un agent',
+                subtitle: 'Ajoutez des règles complexes et réduisez les approbations manuelles grâce à des agents personnalisés.',
+                cta: 'Essayer',
+            },
             merchantRules: {
                 title: 'Commerçant',
                 subtitle: 'Définissez les règles de commerçant pour que les dépenses arrivent correctement codées et nécessitent moins de nettoyage.',
@@ -7221,6 +7252,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         hr: {
             title: 'RH',
             connections: 'Connexions',
+            connectionsSubtitle:
+                'Connectez votre système RH pour synchroniser les données des employé·es, faire correspondre automatiquement les remboursements aux bonnes personnes et garder les dépenses de votre équipe exactes, sans travail manuel.',
             subtitle: 'Connectez vos outils RH et gardez les approbations des employés synchronisées.',
             connect: 'Connecter',
             syncNow: 'Synchroniser maintenant',
@@ -7482,6 +7515,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             }
             return `a ajouté une partie de taxe récupérable de « ${newValue} » au taux de distance « ${customUnitRateName} »`;
         },
+        updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `a renommé le taux ${customUnitName} de « ${oldValue} » en « ${newValue} »`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
             return `${newValue ? 'Activé' : 'Désactivé'} le taux de ${customUnitName} « ${customUnitRateName} »`;
         },
@@ -8634,6 +8668,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         duplicatedTransaction: 'Doublon potentiel',
         fieldRequired: 'Les champs de note de frais sont obligatoires',
         futureDate: 'Date future non autorisée',
+        inactiveVendor: 'Fournisseur plus valide',
         invoiceMarkup: (invoiceMarkup: number) => `Majoration de ${invoiceMarkup} %`,
         maxAge: (maxAge: number) => `Date antérieure de plus de ${maxAge} jours`,
         missingCategory: 'Catégorie manquante',
@@ -9315,6 +9350,20 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         expenseLevelExport: 'Toutes les données - niveau dépense',
         exportInProgress: 'Export en cours',
         conciergeWillSend: 'Concierge vous enverra le fichier sous peu.',
+    },
+    exportDownload: {
+        preparingTitle: 'Preparing download...',
+        preparingBody: 'You can either wait for the download to finish or Concierge can send it to you via chat.',
+        sendFromConcierge: "Send me the file when it's ready",
+        conciergeTitle: 'You bet!',
+        conciergeBody: 'Concierge will send you a message when the file is ready.',
+        goToConcierge: 'Go to Concierge',
+        dismiss: 'Dismiss',
+        readyTitle: 'Your file is ready!',
+        readyBody: "If it didn't automatically download, use the button below.",
+        downloadFile: 'Download file',
+        failedTitle: 'Export failed',
+        close: 'Close',
     },
     domain: {
         notVerified: 'Non vérifié',
