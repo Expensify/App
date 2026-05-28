@@ -166,7 +166,15 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
                     const originalTransactionID = transaction?.comment?.originalTransactionID;
 
-                    if (isExpenseSplit && originalTransactionID) {
+                    const transactionCurrentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
+                    const isMovedExpenseSplitChild =
+                        !isExpenseSplit &&
+                        !!originalTransactionID &&
+                        transaction?.comment?.source === CONST.IOU.TYPE.SPLIT &&
+                        !originalTransaction?.comment?.splits &&
+                        transactionCurrentReport?.type === CONST.REPORT.TYPE.IOU;
+
+                    if ((isExpenseSplit || isMovedExpenseSplitChild) && originalTransactionID) {
                         acc.splitTransactionsByOriginalTransactionID[originalTransactionID] ??= [];
                         acc.splitTransactionsByOriginalTransactionID[originalTransactionID].push(item);
                     } else {

@@ -1248,7 +1248,7 @@ function updateSplitTransactions({
         // resulting in 3 transactions(deleted, undeleted, and original) being shown at the same time when offline.
         // Since original transaction will be reverted and both splits will eventually be deleted, we remove
         // the undeleted split entirely instead of marking it for deletion.
-        const forceDeleteSplitTransactionID = isReverseSplitOperation && !isOffline ? splitExpenses.at(0)?.transactionID : undefined;
+        const forceDeleteSplitTransactionID = isReverseSplitOperation ? splitExpenses.at(0)?.transactionID : undefined;
 
         const {
             optimisticData: deleteExpenseOptimisticData,
@@ -1654,10 +1654,10 @@ function updateSplitTransactions({
         });
         pushUpdatedReportPreviewActionToOnyxData();
         const isLastTransactionInReport = Object.values(allTransactionsList ?? {}).filter((itemTransaction) => itemTransaction?.reportID === expenseReportID).length === 1;
-        if (isLastTransactionInReport) {
+        if (isLastTransactionInReport && expenseReportID) {
             onyxData.optimisticData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionData.reportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`,
                 value: {
                     reportID: null,
                     pendingFields: {
@@ -1667,14 +1667,14 @@ function updateSplitTransactions({
             });
             onyxData.successData?.push({
                 onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionData.reportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`,
                 value: null,
             });
             onyxData.failureData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionData.reportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`,
                 value: {
-                    reportID: transactionData.reportID,
+                    reportID: expenseReportID,
                     pendingFields: null,
                 },
             });
