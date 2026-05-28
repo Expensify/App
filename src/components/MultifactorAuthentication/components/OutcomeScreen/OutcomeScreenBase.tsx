@@ -28,8 +28,13 @@ type OutcomeScreenBaseProps = {
     /**
      * Override the back/confirm button handler. Defaults to dispatching CLOSE_MODAL,
      * which is correct when the screen is hosted inside the MFA modal navigator.
-     * Hosts outside that navigator (e.g. RHP pages rendering the outcome inline)
-     * must supply their own dismiss callback (e.g. Navigation.closeRHPFlow).
+     *
+     * Hosts that render the outcome inline inside the RHP (outside the MFA navigator)
+     * must supply their own dismiss callback (e.g. `Navigation.closeRHPFlow()`).
+     *
+     * Examples in this repo:
+     * - `src/pages/iou/AuthorizeTransactionPage.tsx` — deny outcome rendered inside RHP.
+     * - `src/pages/settings/Wallet/ExpensifyCardPage/ChangePINAtATMPage.tsx` — standalone RHP screen.
      */
     onClose?: () => void;
     titleStyle?: StyleProp<TextStyle>;
