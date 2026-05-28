@@ -6,9 +6,7 @@ import {join} from 'node:path';
 import pixelmatch from 'pixelmatch';
 import {PNG} from 'pngjs';
 
-const cliDir = join(import.meta.dir, '..');
-const projectRoot = join(cliDir, '../..');
-const cliPath = join(cliDir, 'src/cli.tsx');
+const repoRoot = join(import.meta.dir, '../../..');
 const goldenPath = join(import.meta.dir, '__golden__/smoke.png');
 
 const EXPECTED_WIDTH = 400;
@@ -24,8 +22,8 @@ test('CLI renders a chart whose PNG matches the golden reference', () => {
     const actualPath = join(tempDir, 'smoke-actual.png');
 
     try {
-        const result = spawnSync('bun', ['--conditions=react-native', 'run', cliPath, actualPath], {
-            cwd: projectRoot,
+        const result = spawnSync('npm', ['run', 'dev', '-w', '@expensify/victory-chart-renderer', '--', actualPath], {
+            cwd: repoRoot,
             encoding: 'utf8',
         });
 

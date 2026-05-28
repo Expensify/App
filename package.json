@@ -6,6 +6,7 @@
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
   "license": "MIT",
   "private": true,
+  "workspaces": ["server/victory-chart-renderer"],
   "scripts": {
     "i-standalone": "STANDALONE_NEW_DOT=true npm i",
     "install-standalone": "STANDALONE_NEW_DOT=true npm install",
@@ -43,8 +44,8 @@
     "test:verbose": "TZ=utc NODE_OPTIONS=\"--experimental-vm-modules --max_old_space_size=4096\" JEST_VERBOSE=true jest",
     "test:debug": "TZ=utc NODE_OPTIONS='--inspect-brk --experimental-vm-modules' jest --runInBand",
     "perf-test": "NODE_OPTIONS=--experimental-vm-modules npx reassure",
-    "typecheck": "NODE_OPTIONS=--max_old_space_size=8192 tsc && tsc -p server/tsconfig.json",
-    "typecheck-tsgo": "tsgo --noEmit --incremental --tsBuildInfoFile tsconfig.tsgo.tsbuildinfo && tsgo --noEmit -p server/tsconfig.json --incremental --tsBuildInfoFile server/tsconfig.tsgo.tsbuildinfo",
+    "typecheck": "NODE_OPTIONS=--max_old_space_size=8192 tsc && tsc -p server/victory-chart-renderer/tsconfig.json",
+    "typecheck-tsgo": "tsgo --noEmit --incremental --tsBuildInfoFile tsconfig.tsgo.tsbuildinfo && tsgo --noEmit -p server/victory-chart-renderer/tsconfig.json --incremental --tsBuildInfoFile server/victory-chart-renderer/tsconfig.tsgo.tsbuildinfo",
     "lint": "./scripts/lint.sh",
     "lint-changed": "./scripts/lintChanged.sh",
     "lint-watch": "onchange '**/*.{js,jsx,ts,tsx,mjs,cjs}' -- ./scripts/lint.sh {{changed}}",
@@ -72,11 +73,11 @@
     "web:dist": "concurrently \"npm:web-proxy\" \"http-server ./dist --cors --port 8080 -P http://localhost:9000\"",
     "octokit": "cd scripts && npx ts-node -i -e \"$(cat ./octokit.ts)\"",
     "compress-svg": "npx ts-node scripts/compressSvg.ts --dir assets/images && npx ts-node scripts/compressSvg.ts --dir docs/assets/images",
-    "server:vcr:dev": "bun --conditions=react-native run server/victory-chart-renderer/src/cli.tsx",
-    "server:vcr:test": "bun test server/victory-chart-renderer/tests",
-    "server:vcr:build:linux": "bun build --conditions=react-native --compile --target=bun-linux-x64 server/victory-chart-renderer/src/cli.tsx --outfile server/victory-chart-renderer/dist/victory-chart-renderer-linux-x64",
-    "server:vcr:build:linux-arm": "bun build --conditions=react-native --compile --target=bun-linux-arm64 server/victory-chart-renderer/src/cli.tsx --outfile server/victory-chart-renderer/dist/victory-chart-renderer-linux-arm64",
-    "server:vcr:build:macos": "bun build --conditions=react-native --compile --target=bun-darwin-arm64 server/victory-chart-renderer/src/cli.tsx --outfile server/victory-chart-renderer/dist/victory-chart-renderer-darwin-arm64"
+    "server:vcr:dev": "npm run dev -w @expensify/victory-chart-renderer",
+    "server:vcr:test": "npm run test -w @expensify/victory-chart-renderer",
+    "server:vcr:build:linux": "npm run build:linux -w @expensify/victory-chart-renderer",
+    "server:vcr:build:linux-arm": "npm run build:linux-arm -w @expensify/victory-chart-renderer",
+    "server:vcr:build:macos": "npm run build:macos -w @expensify/victory-chart-renderer"
   },
   "dependencies": {
     "@babel/runtime": "^7.25.0",
@@ -275,7 +276,6 @@
     "@types/mime-db": "^1.43.5",
     "@types/node": "^20.11.5",
     "@types/pako": "^2.0.3",
-    "@types/pngjs": "^6.0.5",
     "@types/pusher-js": "^5.1.0",
     "@types/react": "^19.2.0",
     "@types/react-collapse": "^5.0.1",
@@ -339,8 +339,6 @@
     "openai": "^6.16.0",
     "patch-package": "^8.1.0-canary.1",
     "peggy": "^4.0.3",
-    "pixelmatch": "^7.2.0",
-    "pngjs": "^7.0.0",
     "portfinder": "^1.0.34",
     "prettier": "3.7.4",
     "react-native-clean-project": "^4.0.0-alpha4.0",
@@ -426,9 +424,6 @@
       "expo": "55.0.25"
     }
   },
-  "trustedDependencies": [
-    "@shopify/react-native-skia"
-  ],
   "expo": {
     "autolinking": {
       "exclude": [
