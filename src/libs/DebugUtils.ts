@@ -466,8 +466,6 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'unheldTotal':
         case 'nonReimbursableTotal':
         case 'unheldNonReimbursableTotal':
-        case 'reimbursableTotal':
-        case 'unheldReimbursableTotal':
         case 'transactionCount':
             return validateNumber(value);
         case 'chatType':
@@ -617,8 +615,6 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 total: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 unheldTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 unheldNonReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                reimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                unheldReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isWaitingOnBankAccount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isCancelledIOU: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasReportBeenRetracted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1056,6 +1052,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     subRates: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     comment: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     hold: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    vendor: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isLoading: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     type: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1183,6 +1180,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 source: 'string',
                 originalTransactionID: 'string',
                 liabilityType: CONST.TRANSACTION.LIABILITY_TYPE,
+                vendor: 'object',
                 splits: 'array',
                 dismissedViolations: 'object',
                 splitExpenses: 'array',
