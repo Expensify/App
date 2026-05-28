@@ -85,12 +85,14 @@ function useAutoCreateSubmitWorkspace() {
                 });
             } catch (error) {
                 Log.warn('[useAutoCreateSubmitWorkspace] Error completing onboarding', {error});
-            } finally {
-                setOnboardingAdminsChatReportID();
-                setOnboardingPolicyID();
-
-                navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(newPolicyID, shouldUseNarrowLayout);
             }
+
+            // Always clear Onyx state and navigate regardless of whether completeOnboarding succeeded or failed.
+            // React Compiler does not support try/finally, so this is placed after the try/catch instead.
+            setOnboardingAdminsChatReportID();
+            setOnboardingPolicyID();
+
+            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(newPolicyID, shouldUseNarrowLayout);
         },
         [
             currentUserEmail,
