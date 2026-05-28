@@ -288,18 +288,18 @@ function buildCopyPolicySettingsData(
     });
 
     // Step 4: drive currentStep on the COPY_POLICY_SETTINGS key itself.
-    // Success intentionally omits this key — the backend transitions currentStep
-    // to 'complete' via the bulkCopySettings NVP push.
+    // Success intentionally omits this key — the backend transitions the bulk policy
+    // copy NVP state to complete, which the UI uses to show the completion modal.
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.COPY_POLICY_SETTINGS,
-        value: {currentStep: 'loading', notificationRequestedForStep: null},
+        value: {currentStep: 'loading'},
     });
 
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.COPY_POLICY_SETTINGS,
-        value: {currentStep: null, notificationRequestedForStep: null},
+        value: {currentStep: null},
     });
 
     return {optimisticData, successData, failureData};

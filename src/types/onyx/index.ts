@@ -38,6 +38,7 @@ import type {
 import type CardOnWaitlist from './CardOnWaitlist';
 import type CodingRuleMatchingTransaction from './CodingRuleMatchingTransaction';
 import type CopyPolicySettings from './CopyPolicySettings';
+import type CopyPolicySettingsNVP from './CopyPolicySettingsNVP';
 import type {CorpayFields, CorpayFormField} from './CorpayFields';
 import type {CorpayOnboardingFields} from './CorpayOnboardingFields';
 import type Credentials from './Credentials';
@@ -224,6 +225,7 @@ export type {
     Download,
     ExportDownload,
     DuplicateWorkspace,
+    CopyPolicySettingsNVP,
     CopyPolicySettings,
     WorkspaceCardsList,
     ExpenseRule,

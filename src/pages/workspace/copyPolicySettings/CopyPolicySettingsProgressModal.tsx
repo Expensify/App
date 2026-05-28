@@ -1,4 +1,5 @@
 import React from 'react';
+import type {OnyxKey} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -7,23 +8,39 @@ import {clearCopyPolicySettings, requestCopyPolicySettingsNotification, setCopyP
 import {navigateToConciergeChat} from '@libs/actions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
+import type CopyPolicySettingsNVP from '@src/types/onyx/CopyPolicySettingsNVP';
 
 function useCopyPolicySettingsProgressModal() {
     const {translate} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [copyPolicySettings] = useOnyx(ONYXKEYS.COPY_POLICY_SETTINGS);
+    const [bulkPolicyCopySettings] = useOnyx<OnyxKey, CopyPolicySettingsNVP | null>(ONYXKEYS.NVP_BULK_POLICY_COPY_SETTINGS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     const currentStep = copyPolicySettings?.currentStep;
+    const isCopySettingsComplete = bulkPolicyCopySettings?.state === 'complete';
+    const shouldShowAllSet = currentStep === 'loading' && isCopySettingsComplete;
     const isVisible = currentStep === 'loading' || currentStep === 'complete';
 
-    const notificationRequestedForStep = copyPolicySettings?.notificationRequestedForStep ?? null;
-    const hasRequestedNotification = notificationRequestedForStep === currentStep;
+    if (shouldShowAllSet) {
+        return {
+            isVisible,
+            title: translate('common.allSet'),
+            prompt: translate('workspace.copyPolicySettings.progress.copyCompleted'),
+            confirmText: translate('common.done'),
+            cancelText: '',
+            shouldShowCancelButton: false,
+            onConfirm: () => {
+                clearCopyPolicySettings();
+            },
+            onCancel: () => {},
+        };
+    }
 
-    if (currentStep === 'loading' && !hasRequestedNotification) {
+    if (currentStep === 'loading') {
         return {
             isVisible,
             title: translate('workspace.copyPolicySettings.progress.copyInProgressTitle'),
@@ -33,13 +50,13 @@ function useCopyPolicySettingsProgressModal() {
             shouldShowCancelButton: false,
             onConfirm: () => {
                 requestCopyPolicySettingsNotification();
-                setCopyPolicySettingsData({notificationRequestedForStep: currentStep ?? null});
+                setCopyPolicySettingsData({currentStep: 'complete'});
             },
             onCancel: () => {},
         };
     }
 
-    if (currentStep === 'loading' && hasRequestedNotification) {
+    if (currentStep === 'complete') {
         return {
             isVisible,
             title: translate('workspace.copyPolicySettings.progress.conciergeNotificationTitle'),
@@ -54,21 +71,6 @@ function useCopyPolicySettingsProgressModal() {
             onCancel: () => {
                 clearCopyPolicySettings();
             },
-        };
-    }
-
-    if (currentStep === 'complete') {
-        return {
-            isVisible,
-            title: translate('common.allSet'),
-            prompt: translate('workspace.copyPolicySettings.progress.copyCompleted'),
-            confirmText: translate('common.done'),
-            cancelText: '',
-            shouldShowCancelButton: false,
-            onConfirm: () => {
-                clearCopyPolicySettings();
-            },
-            onCancel: () => {},
         };
     }
 
