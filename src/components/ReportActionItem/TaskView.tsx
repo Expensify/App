@@ -206,9 +206,10 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                         accessible
                                                         accessibilityRole={CONST.ROLE.BUTTON}
                                                         accessibilityLabel={taskAccessibilityLabel}
-                                                        accessibilityActions={[{name: 'activate'}]}
+                                                        accessibilityState={{disabled: isDisableInteractive}}
+                                                        accessibilityActions={isDisableInteractive ? [] : [{name: 'activate'}]}
                                                         onAccessibilityAction={(event) => {
-                                                            if (event.nativeEvent.actionName !== 'activate' || isDisableInteractive) {
+                                                            if (event.nativeEvent.actionName !== 'activate') {
                                                                 return;
                                                             }
                                                             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_TITLE.path));
