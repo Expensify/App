@@ -1017,7 +1017,7 @@ const translations = {
             title: ({days}: {days: number}) => `Free trial: ${days} ${days === 1 ? 'day' : 'days'} left!`,
             offer50Body: 'Get 50% off your first year',
             offer25Body: 'Get 25% off your first year',
-            addCardBody: "Don't wait! Add your payment card now.",
+            addCardBody: "Add your payment card",
             ctaClaim: 'Claim',
             ctaAdd: 'Add card',
             timeRemaining: ({formattedTime}: {formattedTime: string}) => `Time remaining: ${formattedTime}`,
