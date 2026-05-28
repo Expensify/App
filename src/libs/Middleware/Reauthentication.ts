@@ -61,14 +61,27 @@ function isExpiredSessionError(error: unknown): error is HttpsError {
     return error instanceof HttpsError && Number(error.status) === CONST.JSON_CODE.NOT_AUTHENTICATED;
 }
 
+// Preserve hard HTTP failures from Authenticate as response-shaped data so the
+// auth flow can map them to the right sign-in error instead of retrying them
+// like transient transport failures.
+function shouldResolveAuthenticateHTTPError(error: unknown, request: Request<OnyxKey> | PaginatedRequest<OnyxKey>): error is HttpsError {
+    return (
+        request.command === 'Authenticate' &&
+        error instanceof HttpsError &&
+        !!error.status &&
+        error.message !== CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED &&
+        error.message !== CONST.ERROR.THROTTLED
+    );
+}
+
 function handleExpiredSession<TKey extends OnyxKey>(
     request: Request<TKey> | PaginatedRequest<TKey>,
     isFromSequentialQueue: boolean,
     data: Response<TKey> = {jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED} as Response<TKey>,
-    shouldIgnoreOfflineStatus = false,
 ): Promise<Response<TKey> | void> {
-    if (!shouldIgnoreOfflineStatus && getIsOffline()) {
-        // Body-level 407 responses should continue to honor the existing offline pause.
+    if (getIsOffline()) {
+        // Both body-level and HTTP-level 407 responses should honor the existing
+        // offline pause so flaky connectivity does not trigger sign-out retries.
         throw new Error('Unable to reauthenticate because we are offline');
     }
 
@@ -153,15 +166,28 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
         })
         .catch((error) => {
             if (isExpiredSessionError(error)) {
-                return handleExpiredSession(request, isFromSequentialQueue, undefined, true).catch((reauthenticationError) => {
-                    if (isFromSequentialQueue) {
-                        throw reauthenticationError;
-                    }
+                return Promise.resolve()
+                    .then(() => handleExpiredSession(request, isFromSequentialQueue))
+                    .catch((reauthenticationError) => {
+                        if (isFromSequentialQueue) {
+                            throw reauthenticationError;
+                        }
 
-                    if (request.resolve) {
-                        request.resolve({jsonCode: CONST.JSON_CODE.UNABLE_TO_RETRY});
-                    }
-                });
+                        if (request.resolve) {
+                            request.resolve({jsonCode: CONST.JSON_CODE.UNABLE_TO_RETRY});
+                        }
+                    });
+            }
+
+            if (shouldResolveAuthenticateHTTPError(error, request)) {
+                if (request.resolve) {
+                    request.resolve({
+                        jsonCode: Number(error.status),
+                        message: error.message,
+                        title: error.title,
+                    });
+                }
+                return;
             }
 
             // If the request is on the sequential queue, re-throw the error so we can decide to retry or not

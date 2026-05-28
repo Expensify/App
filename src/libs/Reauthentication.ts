@@ -10,6 +10,7 @@ import {isConnectedAsDelegate, restoreDelegateSession} from './actions/Delegate'
 import clearShortLivedAuthState from './actions/Session/clearShortLivedAuthState';
 import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
 import redirectToSignIn from './actions/SignInRedirect';
+import HttpsError from './Errors/HttpsError';
 import {getAuthenticateErrorMessage} from './ErrorUtils';
 import Log from './Log';
 import {post} from './Network';
@@ -98,6 +99,16 @@ function Authenticate<TKey extends OnyxKey>(parameters: Parameters): Promise<Res
     });
 }
 
+function shouldRetryAuthenticateError(error: unknown): boolean {
+    if (!(error instanceof HttpsError)) {
+        return true;
+    }
+
+    // Only retry transient connectivity/service issues. Real HTTP auth failures
+    // like 401/403 should fall through to the normal sign-out path.
+    return error.message === CONST.ERROR.FAILED_TO_FETCH || error.message === CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED || error.message === CONST.ERROR.THROTTLED;
+}
+
 /**
  * Reauthenticate using the stored credentials and redirect to the sign in page if unable to do so.
  * @param [command] command name for logging purposes
@@ -110,10 +121,14 @@ function reauthenticate(command = ''): Promise<boolean> {
 
     // Prevent re-authentication if authentication with shortLiveToken is in progress
     if (isAuthenticatingWithShortLivedToken) {
-        if (account?.isLoading) {
+        // Only treat the short-lived auth state as stale once account loading has
+        // explicitly finished. Until then, keep aborting reauth to avoid interrupting
+        // a valid short-lived-token login during startup hydration races.
+        if (account?.isLoading !== false) {
             Log.hmmm('[Reauthenticate] Authentication with shortLivedToken is in progress. Re-authentication aborted.', {
                 command,
                 isSupportAuthTokenUsed,
+                accountIsLoading: account?.isLoading,
             });
             return Promise.resolve(false);
         }
@@ -237,6 +252,31 @@ function reauthenticate(command = ''): Promise<boolean> {
                 return true;
             })
             .catch((error) => {
+                if (!shouldRetryAuthenticateError(error)) {
+                    // Reuse the standard Authenticate response handling so HTTP
+                    // failures and body-level failures produce the same UX.
+                    const errorMessage = getAuthenticateErrorMessage({
+                        jsonCode: Number((error as HttpsError).status),
+                        message: (error as Error).message,
+                    } as Response<TKey>);
+
+                    trackAuthenticationError(error as Error, {
+                        errorType: 'auth_failure',
+                        functionName: 'reauthenticate',
+                        jsonCode: Number((error as HttpsError).status),
+                        command,
+                        errorMessage,
+                    });
+                    setIsAuthenticating(false);
+                    Log.hmmm('[Reauthenticate] Redirecting to Sign In because Authenticate returned a non-retriable HTTP error', {
+                        command,
+                        error: (error as Error).message,
+                        status: (error as HttpsError).status,
+                    });
+                    redirectToSignIn(errorMessage);
+                    return false;
+                }
+
                 trackAuthenticationError(error as Error, {
                     errorType: 'unexpected_error',
                     functionName: 'reauthenticate',
