@@ -101,10 +101,6 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
 
     const popoverContent = PopoverComponent({closeOverlay: toggleOverlay, isExpanded: isOverlayVisible, setPopoverWidth: setCustomPopoverWidth});
 
-    if (!isFocused) {
-        return null;
-    }
-
     return (
         <View
             ref={anchorRef}
@@ -114,31 +110,33 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
             {renderButton({ref: triggerRef, onPress: calculatePopoverPositionAndToggleOverlay, isExpanded: isOverlayVisible})}
 
             {/* Dropdown overlay */}
-            <PopoverWithMeasuredContent
-                anchorRef={triggerRef}
-                avoidKeyboard
-                isVisible={isOverlayVisible}
-                onClose={toggleOverlay}
-                anchorPosition={popoverTriggerPosition}
-                anchorAlignment={popoverAnchorAlignment}
-                restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
-                shouldEnableNewFocusManagement
-                shouldMeasureAnchorPositionFromTop={false}
-                outerStyle={{...StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop), ...containerStyles}}
-                // This must be false because we dont want the modal to close if we open the RHP for selections
-                // such as date years
-                shouldCloseWhenBrowserNavigationChanged={false}
-                innerContainerStyle={{...containerStyles, ...styles.p0}}
-                popoverDimensions={{
-                    width: actualPopoverWidth,
-                    height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,
-                }}
-                shouldSkipRemeasurement
-                shouldDisplayBelowModals
-                shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
-            >
-                {popoverContent}
-            </PopoverWithMeasuredContent>
+            {isFocused && (
+                <PopoverWithMeasuredContent
+                    anchorRef={triggerRef}
+                    avoidKeyboard
+                    isVisible={isOverlayVisible}
+                    onClose={toggleOverlay}
+                    anchorPosition={popoverTriggerPosition}
+                    anchorAlignment={popoverAnchorAlignment}
+                    restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
+                    shouldEnableNewFocusManagement
+                    shouldMeasureAnchorPositionFromTop={false}
+                    outerStyle={{...StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop), ...containerStyles}}
+                    // This must be false because we dont want the modal to close if we open the RHP for selections
+                    // such as date years
+                    shouldCloseWhenBrowserNavigationChanged={false}
+                    innerContainerStyle={{...containerStyles, ...styles.p0}}
+                    popoverDimensions={{
+                        width: actualPopoverWidth,
+                        height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,
+                    }}
+                    shouldSkipRemeasurement
+                    shouldDisplayBelowModals
+                    shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
+                >
+                    {popoverContent}
+                </PopoverWithMeasuredContent>
+            )}
         </View>
     );
 }
