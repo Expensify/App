@@ -145,7 +145,8 @@ function TroubleshootPage() {
                                   Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXIT_SURVEY_REASON.path));
                                   return;
                               }
-                              Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXIT_SURVEY_CONFIRM.path));
+                              switchToOldDot('');
+                              openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
                           });
                       },
                   }),
