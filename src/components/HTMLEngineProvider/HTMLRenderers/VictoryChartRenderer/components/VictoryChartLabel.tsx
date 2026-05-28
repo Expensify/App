@@ -24,7 +24,7 @@ function VictoryChartLabel({x, y: startY, text, color, fontSize, fontWeight, lin
         const lineWidth = font?.getGlyphWidths(font.getGlyphIDs(line)).reduce((acc, width) => acc + width, 0) ?? 0;
         const baseLineHeight = fontMetrics ? Math.abs(fontMetrics.ascent) + Math.abs(fontMetrics.descent) + Math.abs(fontMetrics.leading) : 0;
         const finalLineHeight = lineLineHeight ? lineLineHeight * (lineFontSize ?? 0) : baseLineHeight;
-        const lineY = y;
+        const lineY = y - (fontMetrics?.ascent ?? 0);
         y += finalLineHeight;
         return (
             <SkText
