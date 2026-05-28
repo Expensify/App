@@ -31,11 +31,11 @@ function SignUpWelcomeForm() {
     return (
         <>
             {isPhoneSignup && (
-                <View style={[styles.mt3]}>
+                <View style={[styles.mt3, styles.mb2]}>
                     <CheckboxWithLabel
                         label={marketingSMSConsentLabel}
                         isChecked={hasSMSMarketingConsent}
-                        onInputChange={(value) => setHasSMSMarketingConsent(!!value)}
+                        onInputChange={(value) => setHasSMSMarketingConsent(value ?? false)}
                         accessibilityLabel={marketingSMSConsentLabel}
                     />
                 </View>
