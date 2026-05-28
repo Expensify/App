@@ -215,12 +215,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Total amount of unheld non-reimbursable transactions in an expense report */
         unheldNonReimbursableTotal?: number;
 
-        /** Total amount of reimbursable transactions including held ones, freshly computed by the backend */
-        reimbursableTotal?: number;
-
-        /** Total amount of reimbursable transactions excluding held ones, freshly computed by the backend */
-        unheldReimbursableTotal?: number;
-
         /** For expense reports, this is the currency of the expense */
         currency?: string;
 

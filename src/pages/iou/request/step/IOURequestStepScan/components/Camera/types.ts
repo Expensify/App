@@ -10,20 +10,21 @@ type CameraProps = {
     /** Called when the camera view finishes layout */
     onLayout?: () => void;
 
-    /** Called to validate user-selected files (drag-and-drop or file picker) */
-    onDrop?: (files: FileObject[], items: DataTransferItem[]) => void;
+    /**
+     * Called when files are selected from the gallery picker (native), the file picker (web),
+     * or dropped onto the upload zone (desktop web). Files must be validated by the consumer
+     * before being treated as receipts; the camera shutter path stays on `onCapture`.
+     */
+    onPicked: (files: FileObject[], items?: DataTransferItem[]) => void;
 
     /** Whether we are replacing an existing receipt (affects drop zone icon/title on desktop) */
     isReplacingReceipt?: boolean;
 
-    /** Whether a file is being dragged over a parent wrapper (used by desktop for dual drag-over providers) */
-    isDraggingOverWrapper?: boolean;
-
-    /** Called when the native camera finishes initializing (useful for preloading subsequent screens) */
-    onCameraInitialized?: () => void;
-
     /** Called when the attachment picker opens or closes (useful for showing/hiding a full-screen loader) */
     onAttachmentPickerStatusChange?: (isOpen: boolean) => void;
+
+    /** Called when the user taps the multi-scan submit button on the preview ribbon. Used by native and mobile web. */
+    onMultiScanSubmit?: () => void;
 };
 
 export default CameraProps;
