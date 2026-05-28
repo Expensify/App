@@ -113,24 +113,22 @@ function isFocusRestoreInProgress(): boolean {
     return isRestoringFocus;
 }
 
-// 'retry' = in DOM but cannot accept focus now; 'gone' = detached, drop the entry.
-type RestorePick = {target: HTMLElement; source: 'primary' | 'fallback'} | 'retry' | 'gone';
+type RestorePick = {target: HTMLElement; source: 'primary' | 'fallback'};
 
-function pickRestoreTarget(entry: TriggerEntry): RestorePick {
+/*
+ * null = nothing focusable yet (unfocusable, or detached mid-remount). Detached is NOT "gone": the caller keeps
+ * the entry so scheduleRestore's budget can recover a remount — only that budget deletes (on success/exhaustion).
+ */
+function pickRestoreTarget(entry: TriggerEntry): RestorePick | null {
     const {primary, fallback} = entry;
-    const primaryInDom = document.contains(primary);
-    const fallbackInDom = !!fallback && document.contains(fallback);
 
-    if (primaryInDom && hasFocusableAttributes(primary)) {
+    if (document.contains(primary) && hasFocusableAttributes(primary)) {
         return {target: primary, source: 'primary'};
     }
-    if (fallbackInDom && fallback && hasFocusableAttributes(fallback)) {
+    if (fallback && document.contains(fallback) && hasFocusableAttributes(fallback)) {
         return {target: fallback, source: 'fallback'};
     }
-    if (primaryInDom || fallbackInDom) {
-        return 'retry';
-    }
-    return 'gone';
+    return null;
 }
 
 // Grace window after a successful restore: vetoes in-flight AUTO/INITIAL, then releases so unrelated later claimers aren't blocked for CYCLE_TIMEOUT_MS.
@@ -208,11 +206,7 @@ function restoreTriggerForRoute(routeKey: string): boolean {
     }
 
     const pick = pickRestoreTarget(entry);
-    if (pick === 'retry') {
-        return false;
-    }
-    if (pick === 'gone') {
-        triggerMap.delete(routeKey);
+    if (!pick) {
         return false;
     }
 
@@ -289,7 +283,7 @@ function scheduleRestore(routeKey: string, {waitForUpcomingTransition}: {waitFor
         // Stack pops dispatch before their transition registers, so they wait for the upcoming one; PUSH_PARAMS emits none, so it opts out to avoid stalling on the timeout.
         waitForUpcomingTransition,
         callback: () => {
-            // restoreTriggerForRoute preserves the entry on a transient miss and drops it when truly gone, so retry across a few frames and stop as soon as it resolves either way.
+            // A miss keeps the entry, so retry; stop once it's restored or removed elsewhere, and drop it ourselves only on exhaustion.
             let framesLeft = MAX_RESTORE_FRAMES;
             const attempt = () => {
                 if (cancelled) {

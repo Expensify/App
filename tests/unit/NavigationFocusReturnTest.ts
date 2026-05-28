@@ -1723,6 +1723,29 @@ describe('PUSH_PARAMS notifications', () => {
         });
     });
 
+    it('recovers focus when the trigger is detached at the first attempt and remounts within the retry budget', () => {
+        withFakeTimers(() => {
+            const trigger = appendInput();
+            fireFocusIn(trigger);
+            notifyPushParamsForward('search-x', {q: 'foo'});
+
+            // Param re-render unmounts the captured row before the backward restore runs.
+            trigger.remove();
+
+            const spy = jest.spyOn(trigger, 'focus');
+            notifyPushParamsBackward('search-x', {q: 'foo'});
+
+            // First attempt is detached — the entry must be preserved, not dropped.
+            flushTransitions();
+            expect(spy).not.toHaveBeenCalled();
+
+            // Row remounts; the retry budget recovers focus instead of giving up on the first miss.
+            document.body.appendChild(trigger);
+            jest.runAllTimers();
+            expect(spy).toHaveBeenCalled();
+        });
+    });
+
     it('should drop compound entries when their bare route is removed from the tree', () => {
         const trigger = appendInput();
         fireFocusIn(trigger);
