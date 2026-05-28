@@ -11,10 +11,11 @@ type MemberRightIconProps = {
     owner?: string;
     role?: string;
     login?: string;
+    isAgent?: boolean;
     badgeStyles?: StyleProp<ViewStyle>;
 };
 
-export default function MemberRightIcon({role, owner, login, badgeStyles}: MemberRightIconProps) {
+export default function MemberRightIcon({role, owner, login, isAgent = false, badgeStyles}: MemberRightIconProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isFocused} = useListItemFocus();
@@ -26,6 +27,8 @@ export default function MemberRightIcon({role, owner, login, badgeStyles}: Membe
         badgeText = 'common.admin';
     } else if (role === CONST.POLICY.ROLE.AUDITOR) {
         badgeText = 'common.auditor';
+    } else if (isAgent) {
+        badgeText = 'common.agent';
     }
     if (badgeText) {
         return (

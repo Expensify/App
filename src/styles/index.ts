@@ -5469,6 +5469,13 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
         },
 
+        avatarAgentApprover: {
+            backgroundColor: theme.icon,
+            borderRadius: variables.componentBorderRadiusCircle,
+            height: 40,
+            width: 40,
+        },
+
         successBankSharedCardIllustration: {
             width: 164,
             height: 164,

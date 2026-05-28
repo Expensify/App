@@ -11,7 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isAnyHRReadOnlyWorkflowMode} from '@libs/HRUtils';
+import colors from '@styles/theme/colors';
 import {clearApprovalWorkflowApprover, clearApprovalWorkflowApprovers, setApprovalWorkflow, setApprovalWorkflowApprover} from '@libs/actions/Workflow';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -123,6 +123,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                             role={employee.role}
                             owner={policy?.owner}
                             login={login}
+                            isAgent={isAgentEmail(employee.email)}
                         />
                     ),
                 };
@@ -227,7 +228,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         [translate, styles.textHeadlineH1, styles.mh5, styles.mv3, styles.mb3, styles.textSupporting],
     );
 
-    const shouldShowCreateAgentRow = isCustomAgentEnabled && !isChangeApproverRoute && approverIndex === 0;
+    const shouldShowCreateAgentRow = isCustomAgentEnabled && approverIndex === 0;
 
     const onCreateAgentPress = useCallback(() => {
         Navigation.navigate(
@@ -245,15 +246,17 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         return (
             <MenuItem
                 icon={icons.Bot}
-                iconWidth={variables.avatarSizeNormal}
-                iconHeight={variables.avatarSizeNormal}
+                iconWidth={variables.avatarSizeSubscript}
+                iconHeight={variables.avatarSizeSubscript}
+                iconStyles={[styles.avatarAgentApprover]}
+                iconFill={colors.productLight100}
                 title={translate('workflowsApproverPage.createNewAgent')}
                 description={translate('workflowsApproverPage.createNewAgentDescription')}
                 onPress={onCreateAgentPress}
                 shouldShowRightIcon
             />
         );
-    }, [shouldShowCreateAgentRow, icons.Bot, translate, onCreateAgentPress]);
+    }, [shouldShowCreateAgentRow, icons.Bot, translate, onCreateAgentPress, styles.avatarAgentApprover]);
 
     // Reconcile the optimistic agent approver once the server-side CREATE_AGENT response lands.
     // The new agent is written to `approvalWorkflow.approvers[approverIndex]` with `accountID` set
