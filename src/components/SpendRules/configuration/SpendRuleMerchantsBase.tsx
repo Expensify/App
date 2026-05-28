@@ -77,7 +77,7 @@ function SpendRuleMerchantsBase({policyID, action, merchantMatchTypes, merchantN
                         merchantNames.map((merchantName, index) => (
                             <MenuItemWithTopDescription
                                 // eslint-disable-next-line react/no-array-index-key
-                                key={`${merchantName}-${merchantMatchTypes.at(index) ?? ''}-${index}`}
+                                key={`merchant-${index}`}
                                 description={
                                     merchantMatchTypes.at(index) === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO
                                         ? translate('workspace.rules.spendRules.merchantExactlyMatches')

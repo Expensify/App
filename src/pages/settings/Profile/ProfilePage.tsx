@@ -270,7 +270,7 @@ function ProfilePage() {
                                 return (
                                     <MenuItemWithTopDescription
                                         // eslint-disable-next-line react/no-array-index-key
-                                        key={`${detail.title}_${index}`}
+                                        key={`${detail.description}_${index}`}
                                         interactive={!!pageRoute}
                                         shouldShowRightIcon={!!pageRoute}
                                         title={detail.title}
@@ -313,7 +313,7 @@ function ProfilePage() {
                                         {privateOptions.map((detail, index) => (
                                             <MenuItemWithTopDescription
                                                 // eslint-disable-next-line react/no-array-index-key
-                                                key={`${detail.title}_${index}`}
+                                                key={`${detail.description}_${index}`}
                                                 shouldShowRightIcon
                                                 title={detail.title}
                                                 description={detail.description}

@@ -47,7 +47,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     return (
         <>
             <MenuItemWithTopDescription
-                key={`${taxRates?.name}${taxRateTitle}`}
+                key={`${taxRates?.name}_rate`}
                 shouldShowRightIcon={canModifyTaxFields}
                 title={taxRateTitle}
                 description={taxRates?.name}
@@ -67,7 +67,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
                 sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_RATE_FIELD}
             />
             <MenuItemWithTopDescription
-                key={`${taxRates?.name}${formattedTaxAmount}`}
+                key={`${taxRates?.name}_amount`}
                 shouldShowRightIcon={canModifyTaxFields}
                 title={formattedTaxAmount}
                 description={translate('iou.taxAmount')}

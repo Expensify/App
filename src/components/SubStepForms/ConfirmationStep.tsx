@@ -72,7 +72,7 @@ function ConfirmationStep({
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{pageTitle}</Text>
             {summaryItems.map(({description, title, shouldShowRightIcon, onPress, brickRoadIndicator, errorText}) => (
                 <MenuItemWithTopDescription
-                    key={`${title}_${description}`}
+                    key={description}
                     description={description}
                     title={title}
                     shouldShowRightIcon={shouldShowRightIcon}

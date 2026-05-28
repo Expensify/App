@@ -223,7 +223,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const isSearchEmpty = filteredSortedCards.length === 0 && inputValue.length > 0;
     const shouldShowBulkSelection = filteredSortedCards.length > 0;
 
-    const renderItem = ({item, index}: ListRenderItemInfo<Card>) => {
+    const renderItem = ({item}: ListRenderItemInfo<Card>) => {
         const frozenByDisplayName = item.nameValuePairs?.frozen?.byAccountID
             ? getDisplayNameOrDefault(personalDetails?.[item.nameValuePairs.frozen.byAccountID], '', false) || undefined
             : undefined;
@@ -232,7 +232,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
         return (
             <OfflineWithFeedback
-                key={`${item.nameValuePairs?.cardTitle}_${index}`}
+                key={item.cardID}
                 pendingAction={item.pendingAction}
                 errorRowStyles={styles.ph5}
                 errors={item.errors}

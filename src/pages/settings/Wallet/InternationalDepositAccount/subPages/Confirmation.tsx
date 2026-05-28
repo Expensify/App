@@ -172,7 +172,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
             <Text style={[styles.mb6, styles.ph5, styles.textSupporting]}>{translate('addPersonalBankAccount.confirmationStepSubHeader')}</Text>
             {summaryItems.map(({description, title, shouldShowRightIcon, interactive, disabled, onPress}) => (
                 <MenuItemWithTopDescription
-                    key={`${title}_${description}`}
+                    key={description}
                     description={description}
                     title={title}
                     shouldShowRightIcon={shouldShowRightIcon}

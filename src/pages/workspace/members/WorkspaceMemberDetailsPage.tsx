@@ -390,7 +390,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
                                         return (
                                             <OfflineWithFeedback
-                                                key={`${cardTitle ?? ''}_${memberCard.cardID}`}
+                                                key={memberCard.cardID}
                                                 errorRowStyles={styles.ph5}
                                                 errors={memberCard.errors}
                                                 pendingAction={memberCard.pendingAction}
