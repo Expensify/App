@@ -115,6 +115,7 @@ function isSplitAction(
     currentUserAccountID: number,
     policy?: OnyxEntry<Policy>,
     parentReport?: OnyxEntry<Report>,
+    isProduction?: boolean,
 ): boolean {
     if (Number(reportTransactions?.length) !== 1 || !report) {
         return false;
@@ -144,7 +145,10 @@ function isSplitAction(
     }
 
     if (isSelfDMReportUtils(report) || isSelfDMReportUtils(parentReport)) {
-        return true;
+        // Hide the self-DM split entry-point in production while the flow is still being stabilised.
+        // Callers pass isProduction (resolved via useEnvironment in the React layer) so they can flip
+        // this on per environment without changing call sites.
+        return !isProduction;
     }
 
     if (!isExpenseReportUtils(report)) {
@@ -902,6 +906,7 @@ function getSecondaryReportActions({
     outstandingReportsByPolicyID,
     isChatReportArchived = false,
     parentReport,
+    isProduction,
 }: {
     currentUserLogin: string;
     currentUserAccountID: number;
@@ -920,6 +925,7 @@ function getSecondaryReportActions({
     canUseNewDotSplits?: boolean;
     isChatReportArchived?: boolean;
     parentReport?: OnyxEntry<Report>;
+    isProduction?: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
@@ -1019,7 +1025,7 @@ function getSecondaryReportActions({
     }
 
     if (
-        isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, currentUserAccountID, policy, parentReport) &&
+        isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, currentUserAccountID, policy, parentReport, isProduction) &&
         !shouldShowEditSplitInDeleteAction(report, reportTransactions, reportActions, originalTransaction)
     ) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
@@ -1119,6 +1125,7 @@ function getSecondaryTransactionThreadActions({
     outstandingReportsByPolicyID,
     isChatReportArchived,
     grandParentReport,
+    isProduction,
 }: {
     currentUserLogin: string;
     currentUserAccountID: number;
@@ -1131,6 +1138,7 @@ function getSecondaryTransactionThreadActions({
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue;
     isChatReportArchived?: boolean;
     grandParentReport?: OnyxEntry<Report>;
+    isProduction?: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
@@ -1147,7 +1155,7 @@ function getSecondaryTransactionThreadActions({
     }
 
     if (
-        isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, currentUserAccountID, policy, grandParentReport) &&
+        isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, currentUserAccountID, policy, grandParentReport, isProduction) &&
         !shouldShowEditSplitInDeleteAction(parentReport, [reportTransaction], reportAction ? [reportAction] : [], originalTransaction)
     ) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT);
