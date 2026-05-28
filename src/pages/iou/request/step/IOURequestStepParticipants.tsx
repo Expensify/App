@@ -41,7 +41,7 @@ function IOURequestStepParticipants({
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
     const isPerDiem = isPerDiemRequest(initialTransaction);
     const isTime = isTimeRequestUtil(initialTransaction);
-    const isCardTransaction = isFromCreditCardImport(initialTransaction);
+    const isCorporateCard = isFromCreditCardImport(initialTransaction);
     const {isBetaEnabled} = usePermissions();
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
 
@@ -167,7 +167,7 @@ function IOURequestStepParticipants({
                 isPerDiemRequest={isPerDiem}
                 isTimeRequest={isTime}
                 isWorkspacesOnly={isWorkspacesOnly}
-                isCardTransaction={isCardTransaction}
+                isCorporateCardTransaction={isCorporateCard}
                 initiallySelectedReportID={selectedParticipant?.reportID}
                 shouldMoveSelectedToTop
             />

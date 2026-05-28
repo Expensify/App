@@ -32,8 +32,8 @@ type MoneyRequestParticipantsSelectorProps = {
     /** Whether this is a time expense request */
     isTimeRequest?: boolean;
 
-    /** Whether this transaction was imported from a card (managed or personal bank-connected card) */
-    isCardTransaction?: boolean;
+    /** Whether this is a corporate card transaction */
+    isCorporateCardTransaction?: boolean;
 
     /** Report ID of a pre-selected participant whose selection state can't be derived from the participants array (e.g. self DM with accountID 0) */
     initiallySelectedReportID?: string;
@@ -62,7 +62,7 @@ function MoneyRequestParticipantsSelector({
     isPerDiemRequest = false,
     isTimeRequest = false,
     isWorkspacesOnly = false,
-    isCardTransaction = false,
+    isCorporateCardTransaction = false,
     initiallySelectedReportID,
     shouldMoveSelectedToTop = false,
     onRestrictedParticipantSelected,
@@ -91,7 +91,7 @@ function MoneyRequestParticipantsSelector({
             isPerDiemRequest={isPerDiemRequest}
             isTimeRequest={isTimeRequest}
             isNative={isNative}
-            isCardTransaction={isCardTransaction}
+            isCorporateCardTransaction={isCorporateCardTransaction}
             selectionListRef={selectionListRef}
             textInputAutoFocus={textInputAutoFocus}
             setTextInputAutoFocus={setTextInputAutoFocus}
