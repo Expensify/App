@@ -79,7 +79,8 @@ function stateReducer(state: MultifactorAuthenticationState, action: Action): Mu
             if (state.scenario) {
                 return state;
             }
-            // We can safely make this assertion because the params type is already type-guarded in both the executeScenario and the actions themselves. Each scenario config satisfies MultifactorAuthenticationScenarioConfig at definition; the union prevents direct assertion
+            // We can safely make this assertion because the params type is already type-guarded in both the executeScenario and the actions themselves.
+            // Each scenario config satisfies MultifactorAuthenticationScenarioConfig at definition; the union prevents direct assertion.
             const scenario = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[action.payload.scenario] as MultifactorAuthenticationScenarioConfig;
             return {
                 ...DEFAULT_STATE,
