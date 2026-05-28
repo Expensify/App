@@ -9,11 +9,10 @@ import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
@@ -27,7 +26,6 @@ const personalTrackGoalOptions = Object.values(CONST.ONBOARDING_PERSONAL_TRACK_G
 
 function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnboardingPersonalTrackGoalProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.PERSONAL_TRACK_GOAL);
@@ -36,6 +34,7 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
     const [error, setError] = useState('');
     const [inputError, setInputError] = useState('');
     const illustrations = useMemoizedLazyIllustrations(['RealEstate', 'HouseMoney', 'TargetWithArrow', 'Binoculars']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Checkmark']);
 
     const isSomethingElseSelected = selectedGoal === CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE;
 
@@ -51,6 +50,7 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
 
     const menuItems: MenuItemProps[] = personalTrackGoalOptions.map((goal) => {
         const translationKey = `onboarding.personalTrackGoal.${goal}` as const;
+        const isSelected = goal === selectedGoal;
         return {
             key: translationKey,
             title: translate(translationKey),
@@ -59,10 +59,10 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
             iconWidth: variables.menuIconSize,
             iconHeight: variables.menuIconSize,
             iconStyles: [styles.mh3],
-            wrapperStyle: [styles.purposeMenuItem, goal === selectedGoal && {borderWidth: 1, borderColor: theme.success}],
+            wrapperStyle: [styles.purposeMenuItem, isSelected && styles.activeComponentBG],
             numberOfLinesTitle: 0,
-            shouldShowRadioButton: true,
-            isSelected: goal === selectedGoal,
+            shouldShowRightIcon: isSelected,
+            iconRight: expensifyIcons.Checkmark,
             onPress: () => {
                 setSelectedGoal(goal);
                 setError('');
