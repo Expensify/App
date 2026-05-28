@@ -192,7 +192,6 @@ const DISPLAY_ORDER = [
 const PRESET_AVATAR_CATALOG: Record<PresetAvatarID, AvatarEntry> = {
     ...DEFAULTS,
     ...SEASON_F1,
-    ...BOT_AVATARS,
 };
 
 const buildOrderedAvatars = (): Array<{id: PresetAvatarID} & AvatarEntry> => {
