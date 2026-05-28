@@ -140,6 +140,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                     title={domainName}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAINS_LIST.route)}
                     shouldDisplayHelpButton={shouldUseNarrowLayout}
+                    shouldUseHeadlineHeader
                 />
 
                 <ScrollView contentContainerStyle={styles.flexColumn}>

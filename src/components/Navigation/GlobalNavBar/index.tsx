@@ -35,17 +35,15 @@ const NAVIGATORS_WITH_LHN = new Set<string>([
 ]);
 
 function isOnNavigatorWithLHN(state: NavigationState | PartialState<NavigationState> | undefined): boolean {
-    if (!state || state.index === undefined) {
+    if (!state) {
         return false;
     }
-    const route = state.routes.at(state.index);
-    if (!route) {
-        return false;
-    }
-    if (NAVIGATORS_WITH_LHN.has(route.name)) {
-        return true;
-    }
-    return isOnNavigatorWithLHN(route.state);
+    return state.routes.some((route) => {
+        if (NAVIGATORS_WITH_LHN.has(route.name)) {
+            return true;
+        }
+        return isOnNavigatorWithLHN(route.state);
+    });
 }
 
 function isOnSettings(state: NavigationState | PartialState<NavigationState> | undefined): boolean {
