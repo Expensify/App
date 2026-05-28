@@ -121,7 +121,7 @@ function scheduleRestore(routeKey: string, {waitForUpcomingTransition = true}: {
     let refocusHandle: {cancel: () => void} | null = null;
     let rafHandle: number | null = null;
     const handle = TransitionTracker.runAfterTransitions({
-        // Stack pops dispatch from the nav state listener before their transition registers, so wait for the upcoming one. PUSH_PARAMS (same-route param change) emits no transition — waiting would stall on the 1s timeout, so the caller opts out.
+        // Stack pops fire before their transition registers, so wait for it; PUSH_PARAMS emits none, so the caller opts out to avoid stalling on the 1s timeout.
         waitForUpcomingTransition,
         callback: () => {
             if (cancelled) {
