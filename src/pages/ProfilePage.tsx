@@ -152,8 +152,6 @@ function ProfilePage({route}: ProfilePageProps) {
 
     const isOwnedAgent = !isCurrentUser && isAgentEmail(login) && !!agentPrompt;
 
-    const navigateBackTo = route?.params?.backTo;
-
     const notificationPreferenceValue = getReportNotificationPreference(report);
 
     const shouldShowNotificationPreference = !isEmptyObject(report) && !isCurrentUser && !isReportHiddenForCurrentUser(notificationPreferenceValue);
