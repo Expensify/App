@@ -114,6 +114,18 @@ describe('SignUpWelcomeForm', () => {
         expect(signUpUserSpy).toHaveBeenCalledWith(undefined, false);
     });
 
+    it('passes hasSMSMarketingConsent=false when checkbox is checked then unchecked', async () => {
+        await setCredentialsLogin(PHONE_LOGIN);
+        await renderForm();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByLabelText('I agree to receive marketing texts from Expensify'));
+        fireEvent.press(screen.getByLabelText('I agree to receive marketing texts from Expensify'));
+        fireEvent.press(screen.getByText('Join'));
+
+        expect(signUpUserSpy).toHaveBeenCalledWith(undefined, false);
+    });
+
     it('omits the consent param when signing up with an email', async () => {
         await setCredentialsLogin(EMAIL_LOGIN);
         await renderForm();
