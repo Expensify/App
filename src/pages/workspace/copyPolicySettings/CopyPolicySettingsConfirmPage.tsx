@@ -39,17 +39,18 @@ function CopyPolicySettingsConfirmPage() {
     const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined;
     const targetPolicyIDs = copyPolicySettingsState?.targetPolicyIDs ?? [];
     const parts = (copyPolicySettingsState?.parts ?? []) as Part[];
+    const hasLoadedCopyPolicySettings = copyPolicySettingsState !== undefined;
 
     const targetPolicies = targetPolicyIDs.map((id) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]).filter((policy) => policy !== undefined);
 
     useEffect(() => {
-        if (!sourcePolicyID) {
+        if (!sourcePolicyID || !hasLoadedCopyPolicySettings) {
             return;
         }
         if (parts.length === 0 || targetPolicyIDs.length === 0) {
             Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS.getRoute(sourcePolicyID));
         }
-    }, [parts.length, sourcePolicyID, targetPolicyIDs.length]);
+    }, [hasLoadedCopyPolicySettings, parts.length, sourcePolicyID, targetPolicyIDs.length]);
 
     const translatedParts = parts
         .map((part) => {
