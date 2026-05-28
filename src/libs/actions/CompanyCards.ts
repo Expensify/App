@@ -18,6 +18,7 @@ import type {
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CardUtils from '@libs/CardUtils';
 import {getCardFeedWithDomainID} from '@libs/CardUtils';
+import {parseCSVDate} from '@libs/CSVDateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
@@ -104,6 +105,7 @@ function buildOptimisticCompanyCardCSVTransactions(
 
     const cardNumberColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER);
     const postedDateColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.POSTED_DATE);
+    const originalTransactionDateColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.ORIGINAL_TRANSACTION_DATE);
     const merchantColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.MERCHANT);
     const amountColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.AMOUNT);
     const currencyColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.CURRENCY);
@@ -117,7 +119,8 @@ function buildOptimisticCompanyCardCSVTransactions(
         row[externalIDColumnIndex] = transactionID;
 
         const cardName = row.at(cardNumberColumnIndex)?.trim();
-        const created = row.at(postedDateColumnIndex)?.trim();
+        const rawPostedDate = row.at(postedDateColumnIndex)?.trim();
+        const created = rawPostedDate ? parseCSVDate(rawPostedDate) : null;
         const merchant = row.at(merchantColumnIndex)?.trim() ?? '';
         const currency = row.at(currencyColumnIndex)?.trim();
         const amountValue = row.at(amountColumnIndex) ?? '';
@@ -125,6 +128,17 @@ function buildOptimisticCompanyCardCSVTransactions(
 
         if (!cardName || !created || !currency || amount === undefined) {
             continue;
+        }
+
+        // The backend expects yyyy-MM-dd dates, so write the normalized values back into
+        // the row before it gets serialized and sent to Auth/Scrapers.
+        row[postedDateColumnIndex] = created;
+        if (originalTransactionDateColumnIndex >= 0) {
+            const rawOriginalDate = row.at(originalTransactionDateColumnIndex)?.trim();
+            const parsedOriginalDate = rawOriginalDate ? parseCSVDate(rawOriginalDate) : null;
+            if (parsedOriginalDate) {
+                row[originalTransactionDateColumnIndex] = parsedOriginalDate;
+            }
         }
 
         const category = categoryColumnIndex >= 0 ? (row.at(categoryColumnIndex)?.trim() ?? '') : '';
