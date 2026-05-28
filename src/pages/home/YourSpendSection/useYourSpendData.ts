@@ -221,9 +221,9 @@ function useYourSpendData(): UseYourSpendDataReturn {
                 const total = snapshot?.count ? snapshot.total : cached?.total;
                 const currency = snapshot?.count ? snapshot.currency : cached?.currency;
 
-                // Some third-party cards leave `lastFourPAN` empty and stash the digits in
-                // `cardName` (e.g. "CREDIT CARD...1234"). Ternary, not `??`, so empty
-                // strings fall through.
+                // Fallback for third-party cards with empty `lastFourPAN` and digits in `cardName`
+                // (e.g. "CREDIT CARD...1234"; no-space names fall through to ""). Ternary so
+                // empty-string `lastFourPAN` also falls through.
                 const lastFour = card.lastFourPAN ? card.lastFourPAN : lastFourNumbersFromCardName(card.cardName);
                 if (!lastFour) {
                     return acc;

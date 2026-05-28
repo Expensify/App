@@ -1578,6 +1578,16 @@ describe('CardUtils', () => {
             const lastFour = lastFourNumbersFromCardName('Business Card Cash - Business');
             expect(lastFour).toBe('');
         });
+
+        it('Should return last 4 numbers for an ellipsis name with a space (e.g. "CREDIT CARD...1234")', () => {
+            const lastFour = lastFourNumbersFromCardName('CREDIT CARD...1234');
+            expect(lastFour).toBe('1234');
+        });
+
+        it('Should return empty string for an ellipsis name without a space (e.g. "CREDITCARD...1234")', () => {
+            const lastFour = lastFourNumbersFromCardName('CREDITCARD...1234');
+            expect(lastFour).toBe('');
+        });
     });
 
     describe('maskCardNumber', () => {
