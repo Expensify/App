@@ -1,5 +1,7 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useMemo} from 'react';
+import React, {useMemo, useRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -12,6 +14,7 @@ import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import MenuItemGroup from '@components/MenuItemGroup';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
@@ -33,14 +36,15 @@ import {getDisplayNameOrDefault, getFormattedAddress} from '@libs/PersonalDetail
 import {useIsAgentAccount} from '@libs/SessionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getContactMethodsOptions, getLoginListBrickRoadIndicator} from '@libs/UserUtils';
+import {clearAgentAvatarUpdateError} from '@userActions/Agent';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import AgentAIPromptSection from './AgentAIPromptSection';
 
 function ProfilePage() {
     const theme = useTheme();
@@ -50,6 +54,7 @@ function ProfilePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const scrollEnabled = useScrollEnabled();
+    const scrollViewRef = useRef<RNScrollView>(null);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
@@ -65,6 +70,8 @@ function ProfilePage() {
 
     const avatarURL = currentUserPersonalDetails?.avatar ?? '';
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    const isAgentAccount = useIsAgentAccount();
+    const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
     const avatarStyle = [styles.avatarXLarge, styles.alignSelfStart];
     const {asset: Profile} = useMemoizedLazyAsset(() => loadIllustration('Profile' as IllustrationName));
     const icons = useMemoizedLazyExpensifyIcons(['QrCode']);
@@ -77,7 +84,6 @@ function ProfilePage() {
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const isAgentAccount = useIsAgentAccount();
     const publicOptions: Array<{
         description: string;
         title: string;
@@ -130,39 +136,55 @@ function ProfilePage() {
             : []),
     ];
 
-    const navigateToPrivateDetails = (fieldToFocus?: string) => {
-        if (isActingAsDelegate) {
-            showDelegateNoAccessModal();
-            return;
-        }
-        Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(fieldToFocus));
-    };
-
     const privateOptions = [
         {
             description: translate('privatePersonalDetails.legalName'),
             title: legalName,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.LEGAL_NAME,
-            action: () => navigateToPrivateDetails(INPUT_IDS.LEGAL_FIRST_NAME),
+            action: () => {
+                if (isActingAsDelegate) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+                Navigation.navigate(ROUTES.SETTINGS_LEGAL_NAME);
+            },
         },
         {
             description: translate('common.dob'),
             title: privateDetails.dob ?? '',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.DATE_OF_BIRTH,
-            action: () => navigateToPrivateDetails(INPUT_IDS.DATE_OF_BIRTH),
+            action: () => {
+                if (isActingAsDelegate) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+                Navigation.navigate(ROUTES.SETTINGS_DATE_OF_BIRTH);
+            },
         },
         {
             description: translate('common.phoneNumber'),
             title: privateDetails.phoneNumber ?? '',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.PHONE_NUMBER,
-            action: () => navigateToPrivateDetails(INPUT_IDS.PHONE_NUMBER),
+            action: () => {
+                if (isActingAsDelegate) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+                Navigation.navigate(ROUTES.SETTINGS_PHONE_NUMBER);
+            },
             brickRoadIndicator: privatePersonalDetails?.errorFields?.phoneNumber ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
         {
             description: translate('privatePersonalDetails.address'),
             title: getFormattedAddress(privateDetails),
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.ADDRESS,
-            action: () => navigateToPrivateDetails(INPUT_IDS.ADDRESS_LINE_1),
+            action: () => {
+                if (isActingAsDelegate) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+                Navigation.navigate(ROUTES.SETTINGS_ADDRESS);
+            },
         },
     ];
 
@@ -193,9 +215,11 @@ function ProfilePage() {
                 shouldUseHeadlineHeader
             />
             <ScrollView
+                ref={scrollViewRef}
                 style={styles.pt3}
                 contentContainerStyle={safeAreaPaddingBottomStyle}
                 scrollEnabled={scrollEnabled}
+                keyboardShouldPersistTaps="handled"
             >
                 <MenuItemGroup>
                     <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -219,20 +243,26 @@ function ProfilePage() {
                                         }}
                                     />
                                 ) : (
-                                    <MenuItemGroup shouldUseSingleExecution={false}>
-                                        <AvatarButtonWithIcon
-                                            text={translate('avatarWithImagePicker.editImage')}
-                                            source={avatarURL}
-                                            avatarID={accountID}
-                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_AVATAR)}
-                                            size={CONST.AVATAR_SIZE.X_LARGE}
-                                            avatarStyle={avatarStyle}
-                                            pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
-                                            fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
-                                            editIconStyle={styles.profilePageAvatar}
-                                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.AVATAR}
-                                        />
-                                    </MenuItemGroup>
+                                    <OfflineWithFeedback
+                                        errors={isAgentAccount ? agentPrompt?.avatarErrors : undefined}
+                                        errorRowStyles={[styles.mh5, styles.mt5]}
+                                        onClose={() => clearAgentAvatarUpdateError(accountID)}
+                                    >
+                                        <MenuItemGroup shouldUseSingleExecution={false}>
+                                            <AvatarButtonWithIcon
+                                                text={translate('avatarWithImagePicker.editImage')}
+                                                source={avatarURL}
+                                                avatarID={accountID}
+                                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_AVATAR)}
+                                                size={CONST.AVATAR_SIZE.X_LARGE}
+                                                avatarStyle={avatarStyle}
+                                                pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
+                                                fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
+                                                editIconStyle={styles.profilePageAvatar}
+                                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.AVATAR}
+                                            />
+                                        </MenuItemGroup>
+                                    </OfflineWithFeedback>
                                 )}
                             </View>
                             {publicOptions.map((detail, index) => {
@@ -296,6 +326,12 @@ function ProfilePage() {
                                     </MenuItemGroup>
                                 )}
                             </Section>
+                        )}
+                        {isAgentAccount && (
+                            <AgentAIPromptSection
+                                accountID={accountID}
+                                parentScrollViewRef={scrollViewRef}
+                            />
                         )}
                     </View>
                 </MenuItemGroup>

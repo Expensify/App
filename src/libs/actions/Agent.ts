@@ -1,8 +1,11 @@
 import Onyx from 'react-native-onyx';
 import {read, write} from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {resolveAvatarURI} from '@libs/Avatars/PresetAvatarCatalog';
+import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -12,8 +15,19 @@ function openAgentsPage() {
     read(READ_COMMANDS.OPEN_AGENTS_PAGE, null);
 }
 
-function createAgent(firstName: string | undefined, prompt: string, customExpensifyAvatarID?: string) {
+function openProfilePage() {
+    read(READ_COMMANDS.OPEN_PROFILE_PAGE, null);
+}
+
+function createAgent(firstName: string | undefined, prompt: string, customExpensifyAvatarID?: string, file?: File | CustomRNImageManipulatorResult, optimisticAvatarURI?: string) {
     const optimisticAccountID = -Math.round(Math.random() * 1000000);
+
+    let avatarURI: string | undefined;
+    if (customExpensifyAvatarID) {
+        avatarURI = resolveAvatarURI(customExpensifyAvatarID);
+    } else {
+        avatarURI = optimisticAvatarURI;
+    }
 
     const optimisticData: AnyOnyxUpdate[] = [
         {
@@ -24,6 +38,7 @@ function createAgent(firstName: string | undefined, prompt: string, customExpens
                     accountID: optimisticAccountID,
                     displayName: firstName,
                     isOptimisticPersonalDetail: true,
+                    ...(avatarURI ? {avatar: avatarURI, avatarThumbnail: avatarURI} : {}),
                 },
             },
         },
@@ -58,6 +73,7 @@ function createAgent(firstName: string | undefined, prompt: string, customExpens
                     accountID: optimisticAccountID,
                     displayName: firstName,
                     isOptimisticPersonalDetail: true,
+                    ...(avatarURI ? {avatar: avatarURI, avatarThumbnail: avatarURI} : {}),
                 },
             },
         },
@@ -72,7 +88,7 @@ function createAgent(firstName: string | undefined, prompt: string, customExpens
         },
     ];
 
-    write(WRITE_COMMANDS.CREATE_AGENT, {firstName, prompt, customExpensifyAvatarID}, {optimisticData, successData, failureData});
+    write(WRITE_COMMANDS.CREATE_AGENT, {firstName, prompt, customExpensifyAvatarID, file}, {optimisticData, successData, failureData});
 }
 
 function clearAgentError(optimisticAccountID: number) {
@@ -81,7 +97,7 @@ function clearAgentError(optimisticAccountID: number) {
 }
 
 function clearAgentUpdateError(accountID: number) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {errors: null, nameErrors: null, promptErrors: null});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {errors: null, nameErrors: null, promptErrors: null, avatarErrors: null});
 }
 
 function clearAgentNameUpdateError(accountID: number) {
@@ -135,10 +151,11 @@ function updateAgentName(accountID: number, firstName: string, originalFirstName
 }
 
 function updateAgentPrompt(accountID: number, prompt: string, originalPrompt: string) {
+    const onyxKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`;
     const optimisticData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`,
+            key: onyxKey,
             value: {prompt, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, errors: null},
         },
     ];
@@ -146,7 +163,7 @@ function updateAgentPrompt(accountID: number, prompt: string, originalPrompt: st
     const successData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`,
+            key: onyxKey,
             value: {pendingAction: null, promptErrors: null},
         },
     ];
@@ -154,12 +171,86 @@ function updateAgentPrompt(accountID: number, prompt: string, originalPrompt: st
     const failureData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`,
+            key: onyxKey,
             value: {prompt: originalPrompt, pendingAction: null, promptErrors: getMicroSecondOnyxErrorWithTranslationKey('agentsPage.error.updatePrompt')},
         },
     ];
 
     write(WRITE_COMMANDS.UPDATE_AGENT_PROMPT, {agentAccountID: accountID, prompt}, {optimisticData, successData, failureData});
+}
+
+function clearAgentAvatarUpdateError(accountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {avatarErrors: null});
+}
+
+function updateAgentAvatar(
+    accountID: number,
+    update: {customExpensifyAvatarID: string; uri: string} | {file: File | CustomRNImageManipulatorResult; uri: string},
+    currentAvatar: AvatarSource | undefined,
+) {
+    const isCustomExpensifyAvatar = 'customExpensifyAvatarID' in update;
+
+    const optimisticData: AnyOnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: {
+                [accountID]: {
+                    avatar: update.uri,
+                    avatarThumbnail: update.uri,
+                    pendingFields: {avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    errorFields: {avatar: null},
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`,
+            value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, errors: null, avatarErrors: null},
+        },
+    ];
+
+    const successData: AnyOnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: {
+                [accountID]: {
+                    pendingFields: {avatar: null},
+                    errorFields: {avatar: null},
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`,
+            value: {pendingAction: null, avatarErrors: null},
+        },
+    ];
+
+    const failureData: AnyOnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: {
+                [accountID]: {
+                    avatar: currentAvatar,
+                    avatarThumbnail: typeof currentAvatar === 'string' ? currentAvatar : undefined,
+                    pendingFields: {avatar: null},
+                    errorFields: {avatar: null},
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`,
+            value: {pendingAction: null, avatarErrors: getMicroSecondOnyxErrorWithTranslationKey('agentsPage.error.updateAvatar')},
+        },
+    ];
+
+    const params = isCustomExpensifyAvatar ? {agentAccountID: accountID, customExpensifyAvatarID: update.customExpensifyAvatarID} : {agentAccountID: accountID, file: update.file};
+
+    write(WRITE_COMMANDS.UPDATE_AGENT_AVATAR, params, {optimisticData, successData, failureData});
 }
 
 function deleteAgent(accountID: number) {
@@ -196,18 +287,21 @@ function deleteAgent(accountID: number) {
     ];
 
     write(WRITE_COMMANDS.DELETE_AGENT, {agentAccountID: accountID}, {optimisticData, successData, failureData});
-    Navigation.navigate(ROUTES.SETTINGS_AGENTS);
+    Navigation.goBack(ROUTES.SETTINGS_AGENTS);
 }
 
 export {
     openAgentsPage,
+    openProfilePage,
     createAgent,
     clearAgentError,
     clearAgentUpdateError,
     clearAgentNameUpdateError,
     clearAgentPromptUpdateError,
+    clearAgentAvatarUpdateError,
     clearAgentDeleteError,
     updateAgentName,
     updateAgentPrompt,
+    updateAgentAvatar,
     deleteAgent,
 };

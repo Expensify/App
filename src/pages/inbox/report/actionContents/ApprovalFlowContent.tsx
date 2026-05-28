@@ -101,7 +101,5 @@ function ApprovalFlowContent({action, policyID, reportID, originalReport}: Appro
     return null;
 }
 
-ApprovalFlowContent.displayName = 'ApprovalFlowContent';
-
 export default ApprovalFlowContent;
 export {isApprovalFlowAction};

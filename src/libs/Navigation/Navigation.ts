@@ -37,6 +37,7 @@ import {isFullScreenName, isOnboardingFlowName, isSplitNavigatorName} from './he
 import isReportOpenInRHP from './helpers/isReportOpenInRHP';
 import isReportTopmostSplitNavigator from './helpers/isReportTopmostSplitNavigator';
 import isSideModalNavigator from './helpers/isSideModalNavigator';
+import isTabNavigatorReady from './helpers/isTabNavigatorReady';
 import linkTo from './helpers/linkTo';
 import getMinimalAction from './helpers/linkTo/getMinimalAction';
 import type {LinkToOptions} from './helpers/linkTo/types';
@@ -68,9 +69,10 @@ setupNavigationFocusReturn();
 
 // Screens which are part of the 2FA setup flow - used to determine when to hide the RequireTwoFactorAuthOverlay
 const SET_UP_2FA_SCREENS = new Set<string>([
-    SCREENS.TWO_FACTOR_AUTH.ROOT,
-    SCREENS.TWO_FACTOR_AUTH.VERIFY,
-    SCREENS.TWO_FACTOR_AUTH.VERIFY_ACCOUNT,
+    SCREENS.TWO_FACTOR_AUTH.DYNAMIC_ROOT,
+    SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY,
+    SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY_ACCOUNT,
+    SCREENS.TWO_FACTOR_AUTH.DYNAMIC_SUCCESS,
     SCREENS.TWO_FACTOR_AUTH.SUCCESS,
     SCREENS.TWO_FACTOR_AUTH.DISABLED,
     SCREENS.TWO_FACTOR_AUTH.DISABLE,
@@ -697,8 +699,16 @@ function navContainsProtectedRoutes(state: State | undefined): boolean {
         return false;
     }
 
-    // If one protected screen is in the routeNames then other screens are there as well.
-    return state?.routeNames.includes(PROTECTED_SCREENS.CONCIERGE);
+    if (!state.routeNames.includes(PROTECTED_SCREENS.CONCIERGE)) {
+        return false;
+    }
+
+    // routeNames only tells us screens are declared on the root navigator.
+    // We also need TabNavigator to be mounted (its child router has run
+    // useNavigationBuilder and produced a non-stale nested state), otherwise a
+    // deferred NAVIGATE targeting a screen inside TabNavigator will be dispatched
+    // before any child router is registered to handle it.
+    return isTabNavigatorReady(state);
 }
 
 /**
@@ -1007,9 +1017,11 @@ function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransiti
         });
         // Nested rAF: the first frame commits the route insertion, the second
         // frame starts the dismiss. This ensures React processes the two dispatches
-        // in separate renders so the dismiss animation is preserved.
+        // in separate renders so the dismiss animation is preserved. On narrow,
+        // wait for the hidden destination transition first so the RHP slides out
+        // over the final page instead of briefly revealing the previous page.
         requestAnimationFrame(() => {
-            dismissModal({afterTransition: options?.afterTransition});
+            dismissModal({afterTransition: options?.afterTransition, waitForTransition: getIsNarrowLayout()});
         });
     });
 }
