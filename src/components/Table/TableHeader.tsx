@@ -148,6 +148,7 @@ function TableHeaderColumn<T, ColumnKey extends string = string>({column}: {colu
         styles.tableHeaderContentHeight,
         column.styling?.flex ? {flex: column.styling.flex} : styles.flex1,
         column.styling?.containerStyles,
+        !column.sortable && styles.cursorDefault,
     ];
 
     return (
@@ -157,6 +158,7 @@ function TableHeaderColumn<T, ColumnKey extends string = string>({column}: {colu
             accessibilityRole="button"
             sentryLabel={CONST.SENTRY_LABEL.TABLE_HEADER.SORTABLE_COLUMN}
             style={tableHeaderStyles}
+            disabled={!column.sortable}
             onPress={() => toggleSorting(column.key)}
         >
             <Text

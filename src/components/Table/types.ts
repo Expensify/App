@@ -36,6 +36,9 @@ type TableColumn<ColumnKey extends string = string> = {
 
     /** Optional styling configuration for the column. */
     styling?: TableColumnStyling;
+
+    /** Whether or not the column is sortable */
+    sortable: boolean;
 };
 
 /**

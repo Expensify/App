@@ -37,8 +37,8 @@ export default function DomainListTable({domains}: DomainListTableProps) {
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     const domainTableColumns: Array<TableColumn<DomainTableColumnKey>> = [
-        {key: 'domains', label: translate('common.domains')},
-        {key: 'actions', width: variables.domainTableActionColumnWidth, label: '', styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]}},
+        {key: 'domains', label: translate('common.domains'), sortable: true},
+        {key: 'actions', width: variables.domainTableActionColumnWidth, label: '', styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]}, sortable: false},
     ];
 
     const compareTableItems: CompareItemsCallback<DomainRowData> = (item1, item2, activeSorting) => {

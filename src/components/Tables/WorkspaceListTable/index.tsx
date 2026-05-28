@@ -55,10 +55,10 @@ export default function WorkspaceListTable({ref, workspaces}: WorkspaceListTable
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     const workspaceTableColumns: Array<TableColumn<WorkspaceTableColumnKey>> = [
-        {key: 'workspaces', label: translate('common.workspaces')},
-        {key: 'owner', label: translate('common.owner')},
-        {key: 'type', label: translate('workspace.common.workspaceType')},
-        {key: 'actions', width: variables.workspaceTableActionColumnWidth, label: '', styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]}},
+        {key: 'workspaces', label: translate('common.workspaces'), sortable: true},
+        {key: 'owner', label: translate('common.owner'), sortable: true},
+        {key: 'type', label: translate('workspace.common.workspaceType'), sortable: true},
+        {key: 'actions', width: variables.workspaceTableActionColumnWidth, label: '', styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]}, sortable: false},
     ];
 
     const compareTableItems: CompareItemsCallback<WorkspaceRowData, WorkspaceTableColumnKey> = (item1, item2, activeSorting) => {

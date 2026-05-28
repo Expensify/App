@@ -148,18 +148,22 @@ function WorkspaceCompanyCardsTable({
         {
             key: 'member',
             label: translate('common.member'),
+            sortable: true,
         },
         {
             key: 'card',
             label: translate('workspace.companyCards.card'),
+            sortable: true,
         },
         {
             key: 'customCardName',
             label: translate('workspace.companyCards.cardName'),
+            sortable: true,
         },
         {
             key: 'actions',
             label: '',
+            sortable: false,
             styling: {
                 containerStyles: [styles.justifyContentEnd, styles.pr3],
             },
