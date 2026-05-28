@@ -50,7 +50,7 @@ function notifyPressedTrigger(ref: RefObject<View | null> | null, identifier?: s
     lastPressedTriggerAt = ref ? Date.now() : 0;
 }
 
-/* Single-use: clear after capture so a later press-less forward can't reuse a stale ref within the TTL. */
+/* Single-use: consumed by the next navigation so a later press-less forward can't reuse a stale ref within the TTL. */
 function clearStagedPress(): void {
     lastPressedTriggerRef = null;
     lastPressedTriggerIdentifier = null;
@@ -188,7 +188,6 @@ function handleStateChange(newState: NavigationState | undefined): void {
         skipNextRestore = false;
         cancelPendingRestore();
         captureTriggerForRoute(action.captureKey);
-        clearStagedPress();
     } else if (action.type === 'backward') {
         if (skipNextRestore) {
             skipNextRestore = false;
@@ -200,6 +199,11 @@ function handleStateChange(newState: NavigationState | undefined): void {
     } else if (action.type === 'lateral') {
         skipNextRestore = false;
         cancelPendingRestore();
+    }
+
+    const isRealNavigation = action.type !== 'noop';
+    if (isRealNavigation) {
+        clearStagedPress();
     }
 
     for (const key of removedKeys) {
@@ -254,6 +258,7 @@ function notifyPushParamsForward(routeKey: string, prevParams: unknown): void {
 
 function notifyPushParamsBackward(routeKey: string, targetParams: unknown): void {
     scheduleRestore(compoundParamsKey(routeKey, targetParams), {waitForUpcomingTransition: false});
+    clearStagedPress();
 }
 
 function cancelPendingFocusRestore(): void {

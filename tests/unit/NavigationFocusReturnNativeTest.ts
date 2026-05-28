@@ -365,6 +365,29 @@ describe('handleStateChange — backward', () => {
         flushTransitions();
         expect(getTriggerMapSizeForTests()).toBe(0);
     });
+
+    it('clears the staged press on a backward nav so a later press-less forward cannot capture the stale Back/Save ref', () => {
+        handleStateChange(stackState(0, [{key: 'A', name: 'A'}]));
+        handleStateChange(
+            stackState(1, [
+                {key: 'A', name: 'A'},
+                {key: 'B', name: 'B'},
+            ]),
+        );
+
+        // User presses Back on B (stages the back-button ref), then navigates back.
+        notifyPressedTrigger(fakeRef(fakeView('back-button')), 'Back');
+        handleStateChange(stackState(0, [{key: 'A', name: 'A'}]));
+
+        // A press-less forward within the TTL must capture nothing — the Back press was consumed by the backward nav.
+        handleStateChange(
+            stackState(1, [
+                {key: 'A', name: 'A'},
+                {key: 'C', name: 'C'},
+            ]),
+        );
+        expect(getTriggerMapSizeForTests()).toBe(0);
+    });
 });
 
 describe('handleStateChange — lateral & cleanup', () => {
@@ -491,6 +514,23 @@ describe('PUSH_PARAMS — same-route param change', () => {
         handleStateChange(stackState(0, [{key: 'A', name: 'A'}]));
         flushTransitions();
         expect(mockFireFocusEvent).not.toHaveBeenCalled();
+    });
+
+    it('clears the staged press on a PUSH_PARAMS backward so a later press-less forward cannot reuse it', () => {
+        handleStateChange(stackState(0, [{key: 'A', name: 'A'}]));
+
+        // User presses Back/Save (stages the ref), then a PUSH_PARAMS back reverts params.
+        notifyPressedTrigger(fakeRef(fakeView('back-button')), 'Back');
+        notifyPushParamsBackward('A', {q: 'old'});
+
+        // A press-less forward within the TTL must capture nothing.
+        handleStateChange(
+            stackState(1, [
+                {key: 'A', name: 'A'},
+                {key: 'B', name: 'B'},
+            ]),
+        );
+        expect(getTriggerMapSizeForTests()).toBe(0);
     });
 
     it('restores via the registry under the raw route key when the captured ref was nulled (compound key)', () => {
