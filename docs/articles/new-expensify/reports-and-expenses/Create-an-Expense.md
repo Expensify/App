@@ -187,9 +187,9 @@ This feature helps prevent policy violations and ensures accurate expense tracki
 
 If your company uses **Proofpoint Hosted Email Security**, you may be unable to forward receipts to receipts@expensify.com. This is caused by an issue on Proofpoint's side. Contact Proofpoint for resolution. In the meantime, you can upload receipts in the Expensify app or on the web, or text a receipt photo to 47777 (US numbers only) after [adding your phone number as a contact method](https://new.expensify.com/settings/profile/contact-methods).
 
-## Can I attach multiple receipts to one expense?
+## Can I add multiple receipts to a one expense?
 
-Yes. Each expense has one primary receipt, but you can add more images by opening the expense, hovering over the receipt (or tapping it on mobile), and selecting **Add additional receipts**. Only the primary receipt is included in exports and downloaded PDFs — additional images are viewable within Expensify. For details, see [Attach and edit receipts on expenses](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Attach-and-edit-receipts-on-expenses).
+Yes. Each expense has only one primary receipt, but you can attach additional receipt images directly on the expense for situations where multiple receipts are needed. [Learn how to attach additional receipts to an expense](articles/new-expensify/reports-and-expenses/Attach-and-edit-receipts-on-expenses#How-to-Add-Additional-Receipts-to-an-Expense). 
 
 ## Can I edit an expense after submission?
 
