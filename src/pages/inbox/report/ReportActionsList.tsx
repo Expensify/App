@@ -51,6 +51,7 @@ import {
     isArchivedNonExpenseReport,
     isCanceledTaskReport,
     isExpenseReport,
+    isHarvestCreatedExpenseReport,
     isInvoiceReport,
     isIOUReport,
     isMoneyRequestReport,
@@ -66,8 +67,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {getStableReportSelector} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
 import FloatingMessageCounter from './FloatingMessageCounter';
+import ReportActionIndexContext from './ReportActionIndexContext';
 import ReportActionsListHeader from './ReportActionsListHeader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import {getUnreadMarkerReportAction} from './shouldDisplayNewMarkerOnReportAction';
@@ -202,15 +205,15 @@ function ReportActionsList({
 
     const isAnonymousUser = useIsAnonymousUser();
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
-    const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [actionIdToHighlight, setActionIdToHighlight] = useState('');
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report.reportID}`);
     const prevIsLoadingInitialReportActions = usePrevious(reportLoadingState?.isLoadingInitialReportActions);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
+    const isHarvestCreatedExpenseReportAction = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
+
+    const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {selector: getStableReportSelector});
 
     const backTo = route?.params?.backTo as string;
     const linkedReportActionID = route?.params?.reportActionID;
@@ -739,13 +742,12 @@ function ReportActionsList({
             const safeIndex = actionIndexMap.get(reportAction.reportActionID) ?? index;
 
             return (
-                <>
+                <ReportActionIndexContext.Provider value={index}>
                     <ReportActionsListItemRenderer
                         reportAction={reportAction}
                         parentReportAction={parentReportAction}
                         parentReportActionForTransactionThread={parentReportActionForTransactionThread}
-                        index={index}
-                        report={report}
+                        report={reportStable}
                         transactionThreadReport={transactionThreadReport}
                         linkedReportActionID={linkedReportActionID}
                         displayAsGroup={
@@ -758,20 +760,18 @@ function ReportActionsList({
                         isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                         shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                         personalDetails={personalDetailsList}
-                        isReportArchived={isReportArchived}
-                        userBillingFundID={userBillingFundID}
-                        isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
-                        reportNameValuePairsOrigin={reportNameValuePairs?.origin}
-                        reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
+                        isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReportAction}
                     />
-                    <ShowPreviousMessagesButton
-                        reportID={report.reportID}
-                        actionType={reportAction.actionName}
-                        hasPreviousMessages={!!hasPreviousMessages}
-                        showFullHistory={!showHiddenHistory}
-                        onPress={onShowPreviousMessages}
-                    />
-                </>
+                    {!!reportStable?.reportID && (
+                        <ShowPreviousMessagesButton
+                            reportID={reportStable.reportID}
+                            actionType={reportAction.actionName}
+                            hasPreviousMessages={!!hasPreviousMessages}
+                            showFullHistory={!showHiddenHistory}
+                            onPress={onShowPreviousMessages}
+                        />
+                    )}
+                </ReportActionIndexContext.Provider>
             );
         },
         [
@@ -779,23 +779,19 @@ function ReportActionsList({
             firstVisibleReportActionID,
             hasPreviousMessages,
             isOffline,
-            isReportArchived,
-            isTryNewDotNVPDismissed,
             linkedReportActionID,
             onShowPreviousMessages,
             parentReportAction,
             parentReportActionForTransactionThread,
             personalDetailsList,
+            isHarvestCreatedExpenseReportAction,
             renderedVisibleReportActions,
-            report,
-            reportNameValuePairs?.origin,
-            reportNameValuePairs?.originalID,
+            reportStable,
             shouldHideThreadDividerLine,
             shouldUseThreadDividerLine,
             showHiddenHistory,
             transactionThreadReport,
             unreadMarkerReportActionID,
-            userBillingFundID,
         ],
     );
 
@@ -830,7 +826,10 @@ function ReportActionsList({
         // In case of an error we want to display the header no matter what.
         if (!canShowHeader) {
             hasHeaderRendered.current = true;
-            return null;
+
+            // Empty spacer so FlashList wraps a header and ListHeaderComponentStyle (flex: 1) applies —
+            // the wrapper sits at the visual bottom of the inverted list and pins items to the visual top.
+            return shouldBeAlignedToTop ? <View /> : null;
         }
 
         return (
@@ -840,7 +839,7 @@ function ReportActionsList({
                 hasActiveDraft={hasActiveDraft}
             />
         );
-    }, [canShowHeader, hasActiveDraft, report.reportID, retryLoadNewerChatsError]);
+    }, [canShowHeader, hasActiveDraft, report.reportID, retryLoadNewerChatsError, shouldBeAlignedToTop]);
 
     const shouldShowSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 
@@ -911,12 +910,13 @@ function ReportActionsList({
                     keyExtractor={keyExtractor}
                     drawDistance={1500}
                     renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={[styles.chatContentScrollView, shouldBeAlignedToTop && styles.justifyContentEnd]}
+                    contentContainerStyle={styles.chatContentScrollView}
                     onEndReached={onEndReached}
                     onEndReachedThreshold={0.75}
                     onStartReached={handleStartReached}
                     onStartReachedThreshold={0.75}
                     ListHeaderComponent={listHeaderComponent}
+                    ListHeaderComponentStyle={shouldBeAlignedToTop ? styles.flex1 : undefined}
                     ListFooterComponent={listFooterComponent}
                     keyboardShouldPersistTaps="handled"
                     onLayout={onLayoutInner}
