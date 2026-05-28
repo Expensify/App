@@ -54,6 +54,7 @@ Export settings determine how Expensify sends data to Xero.
 - **Export out-of-pocket expenses as** – All out-of-pocket expenses are exported as purchase bills (not editable).
 - **Purchase bill date** – Choose to use the date of the last expense, submitted date, or export date.
 - **Export invoices as** – All invoices export as sales invoices (not editable).
+- **Export travel invoicing expenses as** – If Travel Invoicing is enabled, travel expenses export as bank transactions. Click to select the **Travel payable account** where travel expenses will post in Xero.
 - **Export company card expenses as** – All company card expenses are exported as bank transactions (not editable).
 - **Xero bank account** – Select the account to post non-reimbursable expenses.
 

@@ -116,8 +116,6 @@ function PolicyDistanceRatesPage({
                     if (
                         transaction?.reportID &&
                         policyReports?.has(transaction.reportID) &&
-                        customUnit?.customUnitID &&
-                        transaction?.comment?.customUnit?.customUnitID === customUnit.customUnitID &&
                         transaction?.comment?.customUnit?.customUnitRateID &&
                         rateIDs.has(transaction?.comment?.customUnit?.customUnitRateID)
                     ) {
