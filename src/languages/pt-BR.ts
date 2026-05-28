@@ -4832,8 +4832,9 @@ ${amount} para ${merchant} - ${date}`,
         },
         certinia: {
             title: 'Certinia',
-            autoSyncDescription: 'Expensify will automatically sync with Certinia every day.',
-            syncReimbursedReportsDescription: 'With this option enabled, anytime a Payable Invoice is paid in FFA, the related Expensify report will be automatically marked as reimbursed.',
+            autoSyncDescription: 'O Expensify vai sincronizar automaticamente com a Certinia todos os dias.',
+            syncReimbursedReportsDescription:
+                'Com essa opção ativada, sempre que uma Fatura a Pagar for paga no FFA, o relatório correspondente no Expensify será marcado automaticamente como reembolsado.',
             prerequisites: {
                 title: 'Antes de conectar',
                 installBundle: 'Para conexões FFA',
