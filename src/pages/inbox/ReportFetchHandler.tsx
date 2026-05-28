@@ -16,7 +16,17 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getFilteredReportActionsForReportView, getIOUActionForReportID, getOneTransactionThreadReportID, isCreatedAction} from '@libs/ReportActionsUtils';
-import {isChatThread, isHiddenForCurrentUser, isOneTransactionThread, isPolicyExpenseChat, isPublicRoom, isReportTransactionThread, isTaskReport, isThread, isValidReportIDFromPath} from '@libs/ReportUtils';
+import {
+    isChatThread,
+    isHiddenForCurrentUser,
+    isOneTransactionThread,
+    isPolicyExpenseChat,
+    isPublicRoom,
+    isReportTransactionThread,
+    isTaskReport,
+    isThread,
+    isValidReportIDFromPath,
+} from '@libs/ReportUtils';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
 import {
     clearStaleDMRecoveryTargetByTargetReportID,
@@ -262,7 +272,7 @@ function ReportFetchHandler() {
     useEffect(() => {
         if (!isFocused || !reportID || !isPublicRoom(report) || !isAnonymousUser) {
             return;
-        };
+        }
 
         setViewingPublicRoomReportID(isThread(report) ? report.parentReportID : reportID);
     }, [reportID, report, isAnonymousUser, isFocused]);
