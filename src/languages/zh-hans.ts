@@ -1921,11 +1921,7 @@ const translations: TranslationDeepObject<typeof en> = {
             saved: '已保存',
         },
     },
-    securityPage: {
-        title: '安全选项',
-        subtitle: '启用双重身份验证以保护您的账户安全。',
-        goToSecurity: '返回安全页面',
-    },
+    securityPage: {title: '安全', subtitle: '保障您的账户安全。', goToSecurity: '返回安全页面'},
     shareCodePage: {
         title: '你的代码',
         subtitle: '通过分享你的个人二维码或推荐链接邀请成员加入 Expensify。',

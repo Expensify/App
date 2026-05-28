@@ -1960,11 +1960,7 @@ const translations: TranslationDeepObject<typeof en> = {
             saved: '保存しました',
         },
     },
-    securityPage: {
-        title: 'セキュリティオプション',
-        subtitle: 'アカウントを安全に保つために、2要素認証を有効にしてください。',
-        goToSecurity: 'セキュリティページに戻る',
-    },
+    securityPage: {title: 'セキュリティ', subtitle: 'アカウントを安全に保ちます。', goToSecurity: 'セキュリティページに戻る'},
     shareCodePage: {
         title: 'あなたのコード',
         subtitle: '自分のQRコードや紹介リンクを共有して、メンバーをExpensifyに招待しましょう。',

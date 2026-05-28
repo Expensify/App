@@ -1869,11 +1869,7 @@ const translations: TranslationDeepObject<typeof en> = {
             saved: 'Guardado',
         },
     },
-    securityPage: {
-        title: 'Opciones de seguridad',
-        subtitle: 'Activa la autenticación de dos factores para mantener tu cuenta segura.',
-        goToSecurity: 'Volver a la página de seguridad',
-    },
+    securityPage: {title: 'Seguridad', subtitle: 'Mantén tu cuenta segura.', goToSecurity: 'Volver a la página de seguridad'},
     shareCodePage: {
         title: 'Tu código',
         subtitle: 'Invita a miembros a Expensify compartiendo tu código QR personal o enlace de invitación.',
