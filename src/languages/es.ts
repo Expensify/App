@@ -1854,6 +1854,14 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Privado',
             subtitle: 'Estos detalles se utilizan para viajes y pagos. Nunca se mostrarán en tu perfil público.',
         },
+        aiPromptSection: {
+            title: 'Indicaciones de IA',
+            subtitle: 'Escribe instrucciones personalizadas',
+            prompt: 'Indicador',
+            editPrompt: 'Editar mensaje',
+            promptCannotBeEmpty: 'El campo de indicaciones no puede estar vacío',
+            saved: 'Guardado',
+        },
     },
     securityPage: {
         title: 'Opciones de seguridad',
@@ -2667,6 +2675,8 @@ ${amount} para ${merchant} - ${date}`,
         title: 'Editar agente',
         agentName: 'Nombre del agente',
         instructions: 'Escribir instrucciones personalizadas',
+        chatWithAgent: 'Chatear con el agente',
+        copilotIntoAccount: 'Copilot en la cuenta',
         deleteAgent: 'Eliminar agente',
         deleteAgentTitle: '¿Eliminar agente?',
         deleteAgentMessage: '¿Seguro que quieres eliminar a este agente? Esta acción no se puede deshacer.',
@@ -6075,6 +6085,7 @@ ${amount} para ${merchant} - ${date}`,
             connectPrompt: ({connectionName}) =>
                 `¿Estás seguro de que quieres conectar a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'esta integración contable'}? Esto eliminará cualquier conexión contable existente.`,
             enterCredentials: 'Ingresa tus credenciales',
+            updateCredentials: 'Actualizar credenciales',
             claimOffer: {
                 badgeText: '¡Oferta disponible!',
                 xero: {
@@ -7281,6 +7292,7 @@ ${amount} para ${merchant} - ${date}`,
             }
             return `añadió una parte recuperable de impuestos de "${newValue}" a la tasa por distancia "${customUnitRateName}`;
         },
+        updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `cambió el nombre de la tasa de ${customUnitName} de "${oldValue}" a "${newValue}"`,
         updatedCustomUnitRateEnabled: (customUnitName, customUnitRateName, newValue) => {
             return `${newValue ? 'habilitó' : 'deshabilitó'} la tasa de ${customUnitName} "${customUnitRateName}"`;
         },
@@ -9468,6 +9480,20 @@ ${amount} para ${merchant} - ${date}`,
         expenseLevelExport: 'Todos los datos - a nivel de gasto',
         exportInProgress: 'Exportación en curso',
         conciergeWillSend: 'Concierge te enviará el archivo en breve.',
+    },
+    exportDownload: {
+        preparingTitle: 'Preparando descarga...',
+        preparingBody: 'Puedes esperar a que termine la descarga o Concierge puede enviártelo por chat.',
+        sendFromConcierge: 'Envíame el archivo cuando esté listo',
+        conciergeTitle: '¡Por supuesto!',
+        conciergeBody: 'Concierge te enviará un mensaje cuando el archivo esté listo.',
+        goToConcierge: 'Ir a Concierge',
+        dismiss: 'Descartar',
+        readyTitle: '¡Tu archivo está listo!',
+        readyBody: 'Si no se descargó automáticamente, usa el botón de abajo.',
+        downloadFile: 'Descargar archivo',
+        failedTitle: 'Exportación fallida',
+        close: 'Cerrar',
     },
     openAppFailureModal: {
         title: 'Algo salió mal...',
