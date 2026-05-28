@@ -5508,12 +5508,12 @@ describe('ReportUtils', () => {
             };
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 ...createRandomReportAction(89012),
+                reportID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: currentUserAccountID,
                 message: [{type: CONST.REPORT.MESSAGE.TYPE.TEXT, text: ''}],
                 previousMessage: undefined,
                 originalMessage: {
-                    IOUReportID: reportID,
                     IOUTransactionID: transactionID,
                     amount: 5000,
                     currency: CONST.CURRENCY.USD,

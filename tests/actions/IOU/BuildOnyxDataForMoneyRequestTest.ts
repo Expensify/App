@@ -207,7 +207,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
 
                 expect(storedAction).toBeDefined();
                 expect(originalMessage?.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.TRACK);
-                expect(originalMessage?.IOUReportID).toBeUndefined();
+                expect(storedAction?.reportID).toBe(selfDMReport.reportID);
             });
 
             it('optimisticData updates selfDM report lastVisibleActionCreated', () => {
