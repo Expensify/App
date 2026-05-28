@@ -22,7 +22,6 @@ import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useSearchSelector from '@hooks/useSearchSelector';
-import useTransactionDraftValues from '@hooks/useTransactionDraftValues';
 import useUserToInviteReports from '@hooks/useUserToInviteReports';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import goToSettings from '@libs/goToSettings';
@@ -98,6 +97,9 @@ type ParticipantSearchResultsProps = {
 
     /** Whether to find the participant matching initiallySelectedReportID and move it to the top of the list */
     shouldMoveSelectedToTop?: boolean;
+
+    /** Callback to handle restricted participant selection */
+    onRestrictedParticipantSelected?: () => void;
 };
 
 function ParticipantSearchResults({
@@ -116,6 +118,7 @@ function ParticipantSearchResults({
     onFinish,
     initiallySelectedReportID,
     shouldMoveSelectedToTop = false,
+    onRestrictedParticipantSelected,
 }: ParticipantSearchResultsProps) {
     const getParticipantOptionKey = (option: Partial<Participant>) => option.reportID ?? option.accountID?.toString() ?? option.login ?? option.phoneNumber ?? '';
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
@@ -150,21 +153,12 @@ function ParticipantSearchResults({
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [hasBeenAddedToNudgeMigration] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
-        selector: (tryNewDot) => !!tryNewDot?.nudgeMigration?.timestamp,
-    });
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
-    const optimisticTransactions = useTransactionDraftValues();
 
     const {isDismissed: isDismissedReferralBanner} = useDismissedReferralBanners({referralContentType: CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE});
 
     const isPaidGroupPolicy = isPaidGroupPolicyUtil(policy);
     const activeAdminWorkspaces = getActiveAdminWorkspaces(allPolicies, currentUserLogin);
-
-    // This is necessary to prevent showing the Manager McTest when there are multiple transactions being created
-    const hasMultipleTransactions = optimisticTransactions.length > 1;
-    const isCurrentUserMemberOfAnyPolicy = Object.values(allPolicies ?? {}).some((pol) => pol?.isPolicyExpenseChatEnabled && pol?.id && pol.id !== CONST.POLICY.ID_FAKE);
-    const canShowManagerMcTest = !hasBeenAddedToNudgeMigration && action !== CONST.IOU.ACTION.SUBMIT && !hasMultipleTransactions && !isCurrentUserMemberOfAnyPolicy;
 
     const getValidOptionsConfig = {
         selectedOptions: participants as Participant[],
@@ -177,7 +171,6 @@ function ParticipantSearchResults({
         shouldSeparateSelfDMChat: iouType !== CONST.IOU.TYPE.INVOICE,
         shouldSeparateWorkspaceChat: true,
         includeSelfDM: !isMovingTransactionFromTrackExpense(action) && iouType !== CONST.IOU.TYPE.INVOICE,
-        canShowManagerMcTest,
         isPerDiemRequest,
         isTimeRequest,
         showRBR: false,
@@ -443,6 +436,7 @@ function ParticipantSearchResults({
             optionPolicy &&
             shouldRestrictUserBillableActions(optionPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)
         ) {
+            onRestrictedParticipantSelected?.();
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(option.policyID));
             return;
         }

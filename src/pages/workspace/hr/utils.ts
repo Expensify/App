@@ -4,9 +4,10 @@ import {hasSynchronizationErrorMessage, isConnectionInProgress} from '@libs/acti
 import getGustoSetupLink from '@libs/actions/connections/Gusto';
 import getMergeHRSetupLink from '@libs/actions/connections/MergeHR';
 import getZenefitsSetupLink from '@libs/actions/connections/Zenefits';
+import {getConnectedHRProvider, getHRApprovalMode} from '@libs/HRUtils';
+import type {HRConnectionName} from '@libs/HRUtils';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import type {HRConnectionName} from '@libs/PolicyUtils';
-import {getConnectedHRProvider, getHRApprovalMode, getIntegrationLastSuccessfulDate} from '@libs/PolicyUtils';
+import {getIntegrationLastSuccessfulDate} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import MERGE_HR_PROVIDERS from '@src/CONST/MERGE_HR_PROVIDERS';
 import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
@@ -114,7 +115,7 @@ function getHRSyncState(
         isSyncInProgress,
         isInitialSyncInProgress: undefined,
         hasError: hasSynchronizationErrorMessage(policy, connectionName, isSyncInProgress),
-        syncStageInProgress: isSyncInProgress && syncProgress?.stageInProgress ? syncProgress.stageInProgress : undefined,
+        syncStageInProgress: isSyncInProgress ? syncProgress?.stageInProgress : undefined,
         successfulDate: getIntegrationLastSuccessfulDate(getLocalDateFromDatetime, connection, syncProgress),
     };
 }
@@ -127,7 +128,7 @@ function getHRCardState({policy, connectionName, connectionSyncProgress, getLoca
     const syncState =
         connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR ? getMergeHRSyncState(policy) : getHRSyncState(policy, connectionName, connectionSyncProgress, getLocalDateFromDatetime);
 
-    const lastSyncErrorMessage = syncState.hasError ? (policy?.connections?.[connectionName]?.lastSync?.errorMessage ?? undefined) : undefined;
+    const lastSyncErrorMessage = syncState.hasError ? policy?.connections?.[connectionName]?.lastSync?.errorMessage : undefined;
 
     return {
         isConnected,

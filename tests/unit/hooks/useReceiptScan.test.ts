@@ -459,13 +459,12 @@ describe('useReceiptScan', () => {
 
             const files = [{file: {uri: 'receipt.jpg'}, source: 'file://receipt.jpg', transactionID: INITIAL_TRANSACTION_ID}];
             await act(async () => {
-                result.current.navigateToConfirmationStep(files, false, false);
+                result.current.navigateToConfirmationStep(files, false);
             });
 
             expect(mockHandleMoneyRequestStepScanParticipants).toHaveBeenCalledWith(
                 expect.objectContaining({
                     files,
-                    isTestTransaction: false,
                     locationPermissionGranted: false,
                 }),
             );

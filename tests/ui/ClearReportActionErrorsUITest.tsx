@@ -98,7 +98,6 @@ describe('ClearReportActionErrors UI', () => {
                                 action={action}
                                 displayAsGroup={false}
                                 shouldDisplayNewMarker={false}
-                                index={0}
                                 isFirstVisibleReportAction={false}
                                 originalReportID={originalReportID}
                             />

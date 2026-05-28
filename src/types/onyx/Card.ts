@@ -1,5 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
 import type {CardFeedWithNumber} from './CardFeeds';
 import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
@@ -339,6 +340,33 @@ type IssueNewCardData = {
 
     /** Optional end date for card validity (YYYY-MM-DD) */
     validThru?: string;
+
+    /** Whether or not we are adding a spend rule to the card or not */
+    spendRuleEnabled?: boolean;
+
+    /** Whether or not we will use an existing spend rule, or create a new one */
+    spendRuleOption?: ValueOf<typeof CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION>;
+
+    /** Optional card rule ID for card rule creation/duplicating */
+    spendRuleID?: string;
+
+    /** Optional card rule value for creating a new card rule */
+    spendRuleValue?: {
+        /** The type of restriction on the card */
+        restrictionAction?: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
+
+        /** The merchant names for the spend rule, if applicable */
+        merchantNames?: string[];
+
+        /** The merchant match types for the spend rule, if applicable */
+        merchantMatchTypes?: Array<ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>>;
+
+        /** The categories for the spend rule, if applicable */
+        categories?: SpendRuleCategory[];
+
+        /** The maximum amount for the spend rule, if applicable (in cents) */
+        maxAmount?: string;
+    };
 };
 
 /** Model of Issue new card flow */
