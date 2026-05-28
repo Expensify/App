@@ -172,12 +172,6 @@ function prepareToCleanUpMoneyRequest(
                 updatedIOUReport.nonReimbursableTotal += nonReimbursableAmountDiff;
             }
 
-            if (transaction?.reimbursable && typeof updatedIOUReport.reimbursableTotal === 'number') {
-                const reimbursableAmountDiff =
-                    getAmount(transaction, true) + (transactionPendingDelete?.reduce((prev, curr) => prev + (curr?.reimbursable ? getAmount(curr, true) : 0), 0) ?? 0);
-                updatedIOUReport.reimbursableTotal += reimbursableAmountDiff;
-            }
-
             if (!isTransactionOnHold) {
                 if (typeof updatedIOUReport.unheldTotal === 'number') {
                     updatedIOUReport.unheldTotal += unheldAmountDiff;
@@ -188,12 +182,6 @@ function prepareToCleanUpMoneyRequest(
                         getAmount(transaction, true) +
                         (transactionPendingDelete?.reduce((prev, curr) => prev + (!isOnHold(curr) && !curr?.reimbursable ? getAmount(curr, true) : 0), 0) ?? 0);
                     updatedIOUReport.unheldNonReimbursableTotal += unheldNonReimbursableAmountDiff;
-                }
-
-                if (transaction?.reimbursable && typeof updatedIOUReport.unheldReimbursableTotal === 'number') {
-                    const unheldReimbursableAmountDiff =
-                        getAmount(transaction, true) + (transactionPendingDelete?.reduce((prev, curr) => prev + (!isOnHold(curr) && curr?.reimbursable ? getAmount(curr, true) : 0), 0) ?? 0);
-                    updatedIOUReport.unheldReimbursableTotal += unheldReimbursableAmountDiff;
                 }
             }
         }
@@ -304,15 +292,13 @@ function cleanUpMoneyRequest(
     transactionID: string,
     reportAction: OnyxTypes.ReportAction,
     reportID: string,
+    transactionThreadReport: OnyxEntry<OnyxTypes.Report>,
     iouReport: OnyxEntry<OnyxTypes.Report>,
     chatReport: OnyxEntry<OnyxTypes.Report>,
     isChatIOUReportArchived: boolean | undefined,
     originalReportID: string | undefined,
     isSingleTransactionView = false,
 ) {
-    const allReports = getAllReports();
-    const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`];
-
     const {shouldDeleteTransactionThread, shouldDeleteIOUReport, updatedReportAction, updatedIOUReport, updatedReportPreviewAction, transactionThreadID, reportPreviewAction} =
         prepareToCleanUpMoneyRequest(transactionID, reportAction, transactionThreadReport, iouReport, chatReport, isChatIOUReportArchived, false);
 
