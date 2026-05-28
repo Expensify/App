@@ -144,7 +144,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
             case CONST.POLICY.POLICY_FEATURE.ACCOUNTING:
                 return connectedIntegration?.length ? connectedIntegration.map((name) => CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[name]).join(', ') : undefined;
             case CONST.POLICY.POLICY_FEATURE.CATEGORIES:
-                return categoriesCount > 0 ? `${categoriesCount} ${translate('workspace.common.categories').toLowerCase()}` : undefined;
+                return categoriesCount > 0 ? `${categoriesCount} ${translate('workspace.duplicateWorkspace.categories').toLowerCase()}` : undefined;
             case CONST.POLICY.POLICY_FEATURE.TAGS:
                 return totalTags > 0 ? `${totalTags} ${translate('workspace.common.tags').toLowerCase()}` : undefined;
             case CONST.POLICY.POLICY_FEATURE.TAXES:
