@@ -95,13 +95,18 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
     const isTaskCompletedFromOnyx = !isEmptyObject(taskReport)
         ? taskReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && taskReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED
         : action?.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && action?.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
+
+    // Local state provides immediate feedback for VoiceOver after toggling the checkbox,
+    // since Onyx updates asynchronously and the screen reader would announce the stale state.
     const [prevIsTaskCompletedFromOnyx, setPrevIsTaskCompletedFromOnyx] = useState(isTaskCompletedFromOnyx);
-    const [isTaskCompleted, setIsTaskCompleted] = useState(isTaskCompletedFromOnyx);
+    const [localIsTaskCompleted, setLocalIsTaskCompleted] = useState(isTaskCompletedFromOnyx);
 
     if (prevIsTaskCompletedFromOnyx !== isTaskCompletedFromOnyx) {
         setPrevIsTaskCompletedFromOnyx(isTaskCompletedFromOnyx);
-        setIsTaskCompleted(isTaskCompletedFromOnyx);
+        setLocalIsTaskCompleted(isTaskCompletedFromOnyx);
     }
+
+    const isTaskCompleted = shouldBreakGrouping ? localIsTaskCompleted : isTaskCompletedFromOnyx;
 
     const parentReportAction = useParentReportAction(taskContextReport);
     const taskAssigneeAccountID = getTaskAssigneeAccountID(taskContextReport, parentReportAction) ?? action?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -159,7 +164,9 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                             isChecked={isTaskCompleted}
                             disabled={!isTaskActionable}
                             onPress={callFunctionIfActionIsAllowed(() => {
-                                setIsTaskCompleted((prev) => !prev);
+                                if (shouldBreakGrouping) {
+                                    setLocalIsTaskCompleted((prev) => !prev);
+                                }
                                 if (isTaskCompleted) {
                                     reopenTask(taskContextReport, parentReport, currentUserPersonalDetails.accountID, delegateEmail, taskReportID);
                                 } else {
@@ -172,7 +179,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                     </View>
                     {shouldBreakGrouping ? (
                         <PressableWithoutFeedback
-                            onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(taskReportID, undefined, undefined, Navigation.getActiveRoute()))}
+                            onPress={() => Navigation.navigate(getReportRouteForCurrentContext({reportID: taskReportID}))}
                             style={[styles.flex1, styles.flexRow, styles.alignItemsStart]}
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={taskAccessibilityLabel}

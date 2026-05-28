@@ -86,13 +86,18 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
 
     const isOpen = isOpenTaskReport(report);
     const isCompletedFromOnyx = isCompletedTaskReport(report);
+
+    // Local state provides immediate feedback for VoiceOver after toggling the checkbox,
+    // since Onyx updates asynchronously and the screen reader would announce the stale state.
     const [prevIsCompletedFromOnyx, setPrevIsCompletedFromOnyx] = useState(isCompletedFromOnyx);
-    const [isCompleted, setIsCompleted] = useState(isCompletedFromOnyx);
+    const [localIsCompleted, setLocalIsCompleted] = useState(isCompletedFromOnyx);
 
     if (prevIsCompletedFromOnyx !== isCompletedFromOnyx) {
         setPrevIsCompletedFromOnyx(isCompletedFromOnyx);
-        setIsCompleted(isCompletedFromOnyx);
+        setLocalIsCompleted(isCompletedFromOnyx);
     }
+
+    const isCompleted = shouldBreakGrouping ? localIsCompleted : isCompletedFromOnyx;
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
     const hasOutstandingChildTask = useHasOutstandingChildTask(report);
     const isTaskModifiable = canModifyTask(report, currentUserPersonalDetails.accountID, isParentReportArchived);
@@ -179,7 +184,9 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                         if (isActiveTaskEditRoute(report?.reportID)) {
                                                             return;
                                                         }
-                                                        setIsCompleted((prev) => !prev);
+                                                        if (shouldBreakGrouping) {
+                                                            setLocalIsCompleted((prev) => !prev);
+                                                        }
                                                         if (isCompleted) {
                                                             reopenTask(report, parentReport, currentUserPersonalDetails.accountID, delegateEmail);
                                                         } else {
@@ -197,12 +204,9 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                 />
                                                 {shouldBreakGrouping ? (
                                                     <PressableWithoutFeedback
-                                                        onPress={callFunctionIfActionIsAllowed((e) => {
+                                                        onPress={callFunctionIfActionIsAllowed(() => {
                                                             if (isDisableInteractive) {
                                                                 return;
-                                                            }
-                                                            if (e?.type === 'click') {
-                                                                (e.currentTarget as HTMLElement).blur();
                                                             }
                                                             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_TITLE.path));
                                                         })}
