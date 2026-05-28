@@ -454,7 +454,11 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
      */
     const executeScenario = useCallback(
         async <T extends MultifactorAuthenticationScenario>(scenario: T, params?: ExecuteScenarioParams<T>): Promise<void> => {
-            // Perf short-circuit: skip native call + telemetry when already active. Reducer's INIT guard enforces correctness.
+            // Rapid double-tap on the trigger can fire executeScenario twice. The reducer's INIT
+            // case is the authoritative guard (it processes dispatches sequentially against the
+            // latest state and drops the duplicate). This check exists only as a perf short-circuit
+            // so the second tap doesn't pay for an extra captureCredentialsState() native call
+            // and Sentry breadcrumb on the happy path.
             if (state.scenario) {
                 return;
             }
