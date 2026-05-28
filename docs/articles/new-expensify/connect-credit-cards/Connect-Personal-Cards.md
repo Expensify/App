@@ -63,4 +63,4 @@ You can connect up to two personal cards for free. To add more, you'll need a pa
 
 ## How do I manage a personal card after connecting it?
 
-Once connected, your card appears in **Account > Wallet** under **Cards**. [Learn how to manage your personal cards](/articles/new-expensify/connect-credit-cards/Personal-Cards).
+Once connected, your card appears in **Account > Wallet** under **Cards**. [Learn how to manage your personal cards](/articles/new-expensify/connect-credit-cards/Manage-Personal-Cards).
