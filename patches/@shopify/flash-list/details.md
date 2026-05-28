@@ -74,3 +74,12 @@
 - Upstream PR/issue: https://github.com/Shopify/flash-list/issues/2291
 - E/App issue: https://github.com/Expensify/App/issues/89933
 - PR introducing patch: https://github.com/Expensify/App/pull/91248
+
+### [@shopify+flash-list+2.3.0+010+fix-web-subpixel-rounding.patch](@shopify+flash-list+2.3.0+010+fix-web-subpixel-rounding.patch)
+
+- Reason: Fixes a "Maximum update depth exceeded" infinite render loop on web (mostly Windows with fractional display scaling). `roundOffPixel` on web was a no-op, so subpixel drift in the child container's `getBoundingClientRect()` width re-triggered `ViewHolderCollection`'s `[fixedContainerSize]` layout effect on every measurement. The patch implements `roundOffPixel` to snap to the device-pixel grid (`Math.round(value * devicePixelRatio) / devicePixelRatio`), matching native `PixelRatio.roundToNearestPixel`. Two measurements that paint the same physical pixel now collapse to the same JS value, breaking the loop.
+- Files changed: `dist/recyclerview/utils/measureLayout.web.js` only.
+- Upstream PR/issue: TBD
+- E/App issue: https://github.com/Expensify/App/issues/91584
+- Sentry: https://expensify.sentry.io/issues/APP-DQ2
+- PR introducing patch: https://github.com/Expensify/App/pull/91799
