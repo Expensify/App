@@ -7974,11 +7974,7 @@ ${reportName}
             description: 'おっと、アイテムがたくさんありますね！まとめて整理して、間もなくConciergeからファイルをお送りします。',
         },
         exportedTo: 'エクスポート先',
-        exportAll: {
-            selectAllMatchingItems: '一致する項目をすべて選択',
-            allMatchingItemsSelected: '一致する項目をすべて選択済み',
-            selectAllOnThisPage: 'このページのすべてを選択',
-        },
+        exportAll: {selectAllMatchingItems: '一致する項目をすべて選択', allMatchingItemsSelected: '一致する項目をすべて選択済み', selectAllOnThisPage: 'このページのすべてを選択'},
         errors: {
             pleaseSelectDatesForBothFromAndTo: '開始日と終了日の両方を選択してください',
         },
