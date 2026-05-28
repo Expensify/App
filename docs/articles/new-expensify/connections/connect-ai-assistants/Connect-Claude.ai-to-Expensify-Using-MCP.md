@@ -9,6 +9,10 @@ internalScope: Audience is members using Claude.ai. Covers connecting Claude.ai 
 
 You can connect Claude.ai to Expensify using the Expensify MCP server. Once connected, Claude.ai can search and analyze your Expensify data using natural language.
 
+Learn more about supported AI clients, permissions, and security in [Use the Expensify MCP server with AI assistants](/articles/new-expensify/connections/connect-ai-assistants/Use-the-Expensify-MCP-Server-With-AI-Assistants).
+
+---
+
 ## Who can connect Claude.ai to Expensify using MCP
 
 Any member with an Expensify account and access to a supported Claude.ai plan can connect Claude.ai to Expensify using MCP.
@@ -19,9 +23,9 @@ Requirements:
 - An active Expensify account
 - Internet access for OAuth authentication
 
-## How to connect Claude.ai to Expensify using MCP
+---
 
-### Pro or Max plans
+## How to connect Claude.ai to Expensify using MCP on Pro or Max plans
 
 1. Open Claude.ai.
 2. Select **Customize**.
@@ -33,7 +37,9 @@ Requirements:
 8. Complete the OAuth sign-in and approval flow in your browser.
 9. Click **Approve**.
 
-### Team or Enterprise plans
+---
+
+## How to connect Claude.ai to Expensify using MCP on Team or Enterprise plans
 
 Workspace Owners must first add the connector for the organization.
 
@@ -54,18 +60,16 @@ After the connector is added, each member must connect individually:
 5. Complete the OAuth sign-in and approval flow in your browser.
 6. Click **Approve**.
 
-### Enable the connector in a conversation
+---
+
+## How to enable the Expensify connector in Claude.ai conversations
 
 1. Open a Claude.ai conversation.
 2. Click the **+** button near the message composer.
 3. Select **Connectors**.
 4. Turn on the Expensify connector.
 
-<!-- SCREENSHOT:
-Suggestion: Show the Claude.ai Connectors page with the Expensify MCP server configured.
-Location: After the setup steps.
-Purpose: Helps members identify the correct connector configuration.
--->
+---
 
 ## What happens after you connect Claude.ai to Expensify using MCP
 
@@ -84,6 +88,8 @@ Claude.ai cannot:
 - Edit expenses
 - Reimburse payments
 - Manage Workspace settings
+
+---
 
 # FAQ
 
