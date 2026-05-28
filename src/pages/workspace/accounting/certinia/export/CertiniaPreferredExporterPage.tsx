@@ -78,11 +78,14 @@ function CertiniaPreferredExporterPage({policy}: WithPolicyConnectionsProps) {
         [exportConfig?.exporter, goBack, policyID],
     );
 
-    const headerContent = (
-        <View style={[styles.ph5, styles.pt3, styles.pb5]}>
-            <Text style={[styles.textLabelSupporting, styles.colorMuted]}>{translate('workspace.accounting.exportPreferredExporterNote')}</Text>
-            <Text style={[styles.mt3, styles.textLabelSupporting, styles.colorMuted]}>{translate('workspace.accounting.exportPreferredExporterSubNote')}</Text>
-        </View>
+    const headerContent = useMemo(
+        () => (
+            <View style={[styles.pb2, styles.ph5]}>
+                <Text style={[styles.pb2, styles.textNormal]}>{translate('workspace.accounting.exportPreferredExporterNote')}</Text>
+                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.accounting.exportPreferredExporterSubNote')}</Text>
+            </View>
+        ),
+        [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal],
     );
 
     return (
