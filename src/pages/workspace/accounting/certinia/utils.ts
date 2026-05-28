@@ -1,4 +1,4 @@
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {
     updateFinancialForceDimension1Mapping,
@@ -16,7 +16,7 @@ const CERTINIA_DIMENSION_PARAMS = [
     CONST.CERTINIA_CONFIG.CODING_DIMENSION4,
 ] as const;
 
-type CertiniaDimensionParam = (typeof CERTINIA_DIMENSION_PARAMS)[number];
+type CertiniaDimensionParam = TupleToUnion<typeof CERTINIA_DIMENSION_PARAMS>;
 
 type CertiniaMappingValue = ValueOf<typeof CONST.CERTINIA_MAPPING_VALUE>;
 

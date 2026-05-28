@@ -9,13 +9,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {settingsPendingAction} from '@libs/PolicyUtils';
-import {
-    type CertiniaDimensionParam,
-    type CertiniaMappingValue,
-    dimensionParamToNumber,
-    isCertiniaDimensionParam,
-    updateFinancialForceDimensionMapping,
-} from '@pages/workspace/accounting/certinia/utils';
+import type {CertiniaDimensionParam, CertiniaMappingValue} from '@pages/workspace/accounting/certinia/utils';
+import {dimensionParamToNumber, isCertiniaDimensionParam, updateFinancialForceDimensionMapping} from '@pages/workspace/accounting/certinia/utils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
@@ -107,9 +102,11 @@ function CertiniaDimensionMappingPage({
             errors={dimensionKey ? getLatestErrorField(config ?? {}, dimensionKey) : undefined}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => {
-                if (dimensionKey) {
-                    clearFinancialForceErrorField(policyID, dimensionKey);
+                if (!dimensionKey) {
+                    return;
                 }
+
+                clearFinancialForceErrorField(policyID, dimensionKey);
             }}
         />
     );

@@ -1,7 +1,7 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import {read, write} from '@libs/API';
+import {write} from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -9,6 +9,8 @@ import {openLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FinancialForceConnectionConfig} from '@src/types/onyx/Policy';
+import type Policy from '@src/types/onyx/Policy';
+import {syncConnection} from './index';
 
 function prepareOnyxDataForFinancialForceCodingUpdate<K extends keyof FinancialForceConnectionConfig['coding']>(
     policyID: string,
@@ -188,9 +190,7 @@ function clearFinancialForceErrorField(policyID: string | undefined, fieldName: 
     });
 }
 
-function syncPolicyToFinancialForce(policyID: string) {
-    read(READ_COMMANDS.SYNC_POLICY_TO_FINANCIAL_FORCE, {policyID}, {});
-}
+
 
 function updateFinancialForceDimension1Mapping(
     policyID: string,
@@ -427,7 +427,6 @@ function updateFinancialForceSyncReimbursedReports(policyID: string, enabled: bo
 export {
     clearFinancialForceErrorField,
     connectPolicyToFinancialForce,
-    syncPolicyToFinancialForce,
     updateFinancialForceAutoSync,
     updateFinancialForceDefaultVendor,
     updateFinancialForceDimension1Mapping,
