@@ -620,6 +620,7 @@ const WRITE_COMMANDS = {
     DELETE_AGENT: 'DeleteAgent',
     SEND_EXPORT_FILE_FROM_CONCIERGE: 'SendExportFileFromConcierge',
     CLEAR_EXPORT_DOWNLOAD: 'ClearExportDownload',
+    SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD: 'SetPersonalDetailsAndRevealExpensifyCard',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
