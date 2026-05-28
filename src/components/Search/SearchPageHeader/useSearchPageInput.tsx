@@ -23,7 +23,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
-import {buildUserReadableQueryString, getKeywordQueryWithCurrentSearchContext, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {buildSearchQueryString, buildUserReadableQueryString, getKeywordQueryWithCurrentSearchContext, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -115,6 +115,15 @@ function useSearchPageInput({queryJSON, onSearch, onSubmit}: UseSearchPageInputP
             return;
         }
         onSearch(value);
+    }
+
+    function clearSearchInput() {
+        const queryWithoutKeywords = buildSearchQueryString({
+            ...queryJSON,
+            flatFilters: queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD),
+        });
+
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryWithoutKeywords}), {forceReplace: true});
     }
 
     function submitSearch(queryString: SearchQueryString, shouldSkipAmountConversion = false) {
@@ -223,6 +232,7 @@ function useSearchPageInput({queryJSON, onSearch, onSubmit}: UseSearchPageInputP
         selection,
         textInputRef,
         textInputValue,
+        clearSearchInput,
         handleKeyPress,
         handleSearchAction,
         onListItemPress,

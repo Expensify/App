@@ -35,6 +35,9 @@ type SearchAutocompleteInputProps = {
     /** Callback invoked when the user submits the input */
     onSubmit?: () => void;
 
+    /** Callback invoked when the user clears the input */
+    onClearInput?: () => void;
+
     /** Whether the input is full width */
     isFullWidth: boolean;
 
@@ -80,6 +83,7 @@ function SearchAutocompleteInput({
     value,
     onSearchQueryChange,
     onSubmit = () => {},
+    onClearInput,
     isFullWidth,
     disabled = false,
     shouldDelayFocus = false,
@@ -194,6 +198,7 @@ function SearchAutocompleteInput({
     const clearInput = () => {
         onSearchQueryChange('');
         setSearchContext(false);
+        onClearInput?.();
     };
 
     const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};

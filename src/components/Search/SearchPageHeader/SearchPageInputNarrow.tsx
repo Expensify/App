@@ -29,6 +29,7 @@ function SearchPageInputNarrow({queryJSON, searchRouterListVisible, hideSearchRo
         selection,
         textInputRef,
         textInputValue,
+        clearSearchInput,
         handleKeyPress,
         handleSearchAction,
         onListItemPress,
@@ -67,6 +68,7 @@ function SearchPageInputNarrow({queryJSON, searchRouterListVisible, hideSearchRo
                         }}
                         autoFocus={false}
                         onFocus={onSearchRouterFocus}
+                        onClearInput={clearSearchInput}
                         touchableInputWrapperStyle={styles.searchPageInputNarrowTouchableWrapper}
                         wrapperStyle={{...styles.searchAutocompleteInputResults, ...styles.br2}}
                         wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
