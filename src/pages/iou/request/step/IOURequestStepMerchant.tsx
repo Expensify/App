@@ -17,7 +17,7 @@ import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {markNextRestoreAsProgrammatic} from '@libs/NavigationFocusReturn';
+import {skipNextFocusRestore} from '@libs/NavigationFocusReturn';
 import {getTransactionDetails, isExpenseRequest, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {hasReceipt} from '@libs/TransactionUtils';
 import {isInvalidMerchantValue, isValidInputLength} from '@libs/ValidationUtils';
@@ -85,8 +85,8 @@ function IOURequestStepMerchant({
             return;
         }
         shouldNavigateAfterSaveRef.current = false;
-        // Save-by-Enter: suppress the restored Merchant row from claiming Enter so the page's "Create expense" shortcut fires on a follow-up Enter. Back/Esc don't call this — restored focus claims Enter normally there.
-        markNextRestoreAsProgrammatic();
+        // Skip focus-restore on the save path so the re-focused Merchant row doesn't consume the next Enter (which should hit "Create expense"). Back/Esc still restore.
+        skipNextFocusRestore();
         navigateBack();
     }, [isSaved, navigateBack]);
 

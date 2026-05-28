@@ -1,30 +1,19 @@
 import React, {useEffect, useState} from 'react';
-import {SUPPRESS_ACTIVE_ROLE_DATA_ATTRIBUTE} from '@libs/programmaticFocus';
 import type {ActiveElementRoleContextValue, ActiveElementRoleProps} from './types';
 
-const EMPTY: ActiveElementRoleContextValue = {role: null, isRoleSuppressed: false};
-
-const ActiveElementRoleContext = React.createContext<ActiveElementRoleContextValue>(EMPTY);
-
-function getActiveElementInfo(el: Element | null): ActiveElementRoleContextValue {
-    if (!el) {
-        return EMPTY;
-    }
-    return {
-        role: el.role ?? null,
-        isRoleSuppressed: el.getAttribute(SUPPRESS_ACTIVE_ROLE_DATA_ATTRIBUTE) === 'true',
-    };
-}
+const ActiveElementRoleContext = React.createContext<ActiveElementRoleContextValue>({
+    role: null,
+});
 
 function ActiveElementRoleProvider({children}: ActiveElementRoleProps) {
-    const [info, setInfo] = useState<ActiveElementRoleContextValue>(() => getActiveElementInfo(document?.activeElement ?? null));
+    const [activeRoleRef, setRole] = useState<string | null>(() => document?.activeElement?.role ?? null);
 
     const handleFocusIn = () => {
-        setInfo(getActiveElementInfo(document?.activeElement ?? null));
+        setRole(document?.activeElement?.role ?? null);
     };
 
     const handleFocusOut = () => {
-        setInfo(EMPTY);
+        setRole(null);
     };
 
     useEffect(() => {
@@ -37,8 +26,15 @@ function ActiveElementRoleProvider({children}: ActiveElementRoleProps) {
         };
     }, []);
 
-    return <ActiveElementRoleContext.Provider value={info}>{children}</ActiveElementRoleContext.Provider>;
+    const value = React.useMemo(
+        () => ({
+            role: activeRoleRef,
+        }),
+        [activeRoleRef],
+    );
+
+    return <ActiveElementRoleContext.Provider value={value}>{children}</ActiveElementRoleContext.Provider>;
 }
 
 export default ActiveElementRoleProvider;
-export {ActiveElementRoleContext, getActiveElementInfo};
+export {ActiveElementRoleContext};

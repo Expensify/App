@@ -1,6 +1,5 @@
 type ActiveElementRoleContextValue = {
     role: string | null;
-    isRoleSuppressed: boolean;
 };
 
 type ActiveElementRoleProps = {

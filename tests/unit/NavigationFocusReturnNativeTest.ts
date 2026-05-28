@@ -85,6 +85,7 @@ const {
     notifyPushParamsForward,
     notifyPushParamsBackward,
     cancelPendingFocusRestore,
+    skipNextFocusRestore,
     isFocusRestoreInProgress,
     shouldSkipAutoFocusDueToExistingFocus,
     resetForTests,
@@ -100,6 +101,7 @@ const {
     notifyPushParamsForward: (routeKey: string, prevParams: unknown) => void;
     notifyPushParamsBackward: (routeKey: string, targetParams: unknown) => void;
     cancelPendingFocusRestore: () => void;
+    skipNextFocusRestore: () => void;
     isFocusRestoreInProgress: () => boolean;
     shouldSkipAutoFocusDueToExistingFocus: () => boolean;
     resetForTests: () => void;
@@ -268,6 +270,50 @@ describe('handleStateChange — backward', () => {
         handleStateChange(stackState(0, [{key: 'profile', name: 'Profile'}]));
 
         expect(mockTtQueue.at(-1)?.waitForUpcomingTransition).toBe(true);
+    });
+
+    it('does NOT restore when skipNextFocusRestore was called before goBack (form-submit path)', () => {
+        setLastPressedTriggerRefForTests(fakeRef(fakeView('display-name')));
+        handleStateChange(stackState(0, [{key: 'profile', name: 'Profile'}]));
+        handleStateChange(
+            stackState(1, [
+                {key: 'profile', name: 'Profile'},
+                {key: 'display-name-page', name: 'DisplayName'},
+            ]),
+        );
+
+        skipNextFocusRestore();
+        handleStateChange(stackState(0, [{key: 'profile', name: 'Profile'}]));
+        flushTransitions();
+
+        expect(mockFireFocusEvent).not.toHaveBeenCalled();
+        expect(getTriggerMapSizeForTests()).toBe(0);
+    });
+
+    it('clears the skipped entry so a later deeplink Back to the same route cannot inherit it', () => {
+        setLastPressedTriggerRefForTests(fakeRef(fakeView('display-name')));
+        handleStateChange(stackState(0, [{key: 'profile', name: 'Profile'}]));
+        handleStateChange(
+            stackState(1, [
+                {key: 'profile', name: 'Profile'},
+                {key: 'display-name-page', name: 'DisplayName'},
+            ]),
+        );
+
+        skipNextFocusRestore();
+        handleStateChange(stackState(0, [{key: 'profile', name: 'Profile'}]));
+        flushTransitions();
+
+        // Deeplink-style forward (no fresh trigger) + back: the skipped entry must not resurface.
+        handleStateChange(
+            stackState(1, [
+                {key: 'profile', name: 'Profile'},
+                {key: 'new-screen', name: 'NewScreen'},
+            ]),
+        );
+        handleStateChange(stackState(0, [{key: 'profile', name: 'Profile'}]));
+        flushTransitions();
+        expect(mockFireFocusEvent).not.toHaveBeenCalled();
     });
 
     it('does NOT call sendAccessibilityEvent when no trigger was staged before the forward navigation', () => {

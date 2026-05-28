@@ -22,6 +22,7 @@ const triggerMap = new Map<string, TriggerEntry>();
 const pressableRegistry = new Map<string, Map<string, RefObject<View | null>>>();
 let prevState: NavigationState | undefined;
 let pendingRestore: {cancel: () => void} | null = null;
+let skipNextRestore = false;
 let stateUnsubscribe: (() => void) | null = null;
 
 /*
@@ -48,8 +49,10 @@ function notifyPressedTrigger(ref: RefObject<View | null> | null, identifier?: s
     lastPressedTriggerAt = ref ? Date.now() : 0;
 }
 
-/** Web-only signal. Native uses TalkBack/VoiceOver's announcement model — there's no per-button Enter-shortcut to suppress. No-op for cross-platform signature parity. */
-function markNextRestoreAsProgrammatic(): void {}
+/** Skip the next backward restore; call before a form-submit goBack. */
+function skipNextFocusRestore(): void {
+    skipNextRestore = true;
+}
 
 function registerPressable(routeKey: string, identifier: string, ref: RefObject<View | null>): () => void {
     let routeMap = pressableRegistry.get(routeKey);
@@ -165,13 +168,21 @@ function handleStateChange(newState: NavigationState | undefined): void {
     const {action, removedKeys} = diffNavigationState(prevState, newState);
 
     if (action.type === 'forward') {
+        skipNextRestore = false;
         cancelPendingRestore();
         captureTriggerForRoute(action.captureKey);
         lastPressedTriggerRef = null;
         lastPressedTriggerIdentifier = null;
     } else if (action.type === 'backward') {
-        scheduleRestore(action.restoreKey);
+        if (skipNextRestore) {
+            skipNextRestore = false;
+            cancelPendingRestore();
+            triggerMap.delete(action.restoreKey);
+        } else {
+            scheduleRestore(action.restoreKey);
+        }
     } else if (action.type === 'lateral') {
+        skipNextRestore = false;
         cancelPendingRestore();
     }
 
@@ -215,6 +226,7 @@ function teardownNavigationFocusReturn(): void {
     lastPressedTriggerRef = null;
     lastPressedTriggerIdentifier = null;
     lastPressedTriggerAt = 0;
+    skipNextRestore = false;
     stateUnsubscribe?.();
     stateUnsubscribe = null;
 }
@@ -274,7 +286,7 @@ export {
     notifyPushParamsForward,
     notifyPushParamsBackward,
     cancelPendingFocusRestore,
-    markNextRestoreAsProgrammatic,
+    skipNextFocusRestore,
     isFocusRestoreInProgress,
     shouldSkipAutoFocusDueToExistingFocus,
     resetForTests,

@@ -10,7 +10,6 @@ import getHadTabNavigation from './hadTabNavigation';
 import {consumeLauncher, pickLauncher, resetLauncherStackForTests} from './LauncherStack';
 import navigationRef from './Navigation/navigationRef';
 import {collectRouteKeys, diffNavigationState} from './navigationStateDiff';
-import {suppressActiveRole} from './programmaticFocus';
 import {isCycleIdle, Priorities, resetCycle, tryClaim} from './ScreenFocusArbiter';
 
 /** focusin tracks the last keyboard-focused element; a nav state listener captures it against the outgoing route and restores it on backward nav. */
@@ -45,7 +44,7 @@ function setTriggerEntry(routeKey: string, entry: TriggerEntry): void {
 let prevState: NavigationState | undefined;
 let pendingRestore: {cancel: () => void} | null = null;
 let isRestoringFocus = false;
-let nextRestoreIsProgrammatic = false;
+let skipNextRestore = false;
 let focusinHandler: ((e: FocusEvent) => void) | null = null;
 let mouseActivationHandler: ((e: MouseEvent) => void) | null = null;
 let stateUnsubscribe: (() => void) | null = null;
@@ -96,15 +95,9 @@ function notifyPushParamsBackward(routeKey: string, targetParams: unknown): void
     scheduleRestore(compoundParamsKey(routeKey, targetParams));
 }
 
-/** Marks the next backward restore as programmatic — the restored element gets `data-programmatic-focus` so role-based consumers (Button enter-shortcut suppression) treat the restore as system-driven. Call before a form-submit `goBack`. One-shot; cleared on consume/cancel/teardown. */
-function markNextRestoreAsProgrammatic(): void {
-    nextRestoreIsProgrammatic = true;
-}
-
-function consumeProgrammaticFlag(): boolean {
-    const v = nextRestoreIsProgrammatic;
-    nextRestoreIsProgrammatic = false;
-    return v;
+/** Skips the focus restore for the next back navigation. Call it before a form-submit goBack so the re-focused row doesn't eat the next Enter (which should hit the page's submit). Back and Esc don't call it, so they still restore focus. */
+function skipNextFocusRestore(): void {
+    skipNextRestore = true;
 }
 
 /** Native-only. Web captures via `focusin`; no-op here so the import resolves cross-platform. */
@@ -207,7 +200,7 @@ function cancelPendingFocusRestore(): void {
     }
 }
 
-function restoreTriggerForRoute(routeKey: string, {suppressRole = false}: {suppressRole?: boolean} = {}): boolean {
+function restoreTriggerForRoute(routeKey: string): boolean {
     if (typeof document === 'undefined') {
         return false;
     }
@@ -245,7 +238,6 @@ function restoreTriggerForRoute(routeKey: string, {suppressRole = false}: {suppr
     for (const candidate of candidates) {
         const before = document.activeElement;
         isRestoringFocus = true;
-        const unsuppressRole = suppressRole ? suppressActiveRole(candidate) : null;
         try {
             candidate.focus(focusOptions);
         } finally {
@@ -265,7 +257,6 @@ function restoreTriggerForRoute(routeKey: string, {suppressRole = false}: {suppr
             scheduleReturnHoldRelease();
             return true;
         }
-        unsuppressRole?.();
     }
 
     // Silent no-op (transient display:none / visibility:hidden ancestor) — leave the entry for scheduleRestore to retry; release the cycle so AUTO/INITIAL aren't blocked during the window.
@@ -283,8 +274,6 @@ const RESTORE_RETRY_MS = 50;
 
 function scheduleRestore(routeKey: string): void {
     cancelPendingRestore();
-    // Consume once at schedule time so an abandoned/cancelled restore can't leak the flag into a later unrelated Back; retries below reuse the captured value.
-    const shouldSuppressRole = consumeProgrammaticFlag();
     // `cancelled` flag in case a primitive's cancel races a queued callback.
     let cancelled = false;
     let attempts = 0;
@@ -304,7 +293,7 @@ function scheduleRestore(routeKey: string): void {
                     return;
                 }
                 attempts += 1;
-                const restored = restoreTriggerForRoute(routeKey, {suppressRole: shouldSuppressRole});
+                const restored = restoreTriggerForRoute(routeKey);
                 if (restored || !triggerMap.has(routeKey)) {
                     pendingRestore = null;
                     return;
@@ -349,20 +338,24 @@ function handleStateChange(newState: NavigationState | undefined): void {
     }
 
     if (action.type === 'forward') {
+        skipNextRestore = false;
         cancelPendingRestore();
         captureTriggerForRoute(action.captureKey);
         // Loose refs would pin detached unmounted nodes; triggerMap holds the captured copy.
         lastInteractiveElement = null;
         lastMouseTrigger = null;
         lastMouseTriggerAt = 0;
-        // A non-backward nav after a form-submit mark means the mark is stale — drop it so it can't taint a later Back.
-        consumeProgrammaticFlag();
     } else if (action.type === 'backward') {
-        scheduleRestore(action.restoreKey);
+        if (skipNextRestore) {
+            skipNextRestore = false;
+            cancelPendingRestore();
+        } else {
+            scheduleRestore(action.restoreKey);
+        }
     } else if (action.type === 'lateral') {
+        skipNextRestore = false;
         // Stale restore would steal focus back on sibling nav.
         cancelPendingRestore();
-        consumeProgrammaticFlag();
     }
 
     for (const key of removedKeys) {
@@ -443,7 +436,7 @@ function teardownNavigationFocusReturn(): void {
     lastInteractiveElement = null;
     lastMouseTrigger = null;
     lastMouseTriggerAt = 0;
-    nextRestoreIsProgrammatic = false;
+    skipNextRestore = false;
     if (typeof document !== 'undefined') {
         if (focusinHandler) {
             document.removeEventListener('focusin', focusinHandler, true);
@@ -471,7 +464,7 @@ function resetForTests(): void {
     lastMouseTrigger = null;
     lastMouseTriggerAt = 0;
     lastRestoreTarget = null;
-    nextRestoreIsProgrammatic = false;
+    skipNextRestore = false;
 }
 
 function setLastInteractiveElementForTests(element: HTMLElement | null): void {
@@ -494,7 +487,7 @@ export {
     notifyPushParamsForward,
     notifyPushParamsBackward,
     cancelPendingFocusRestore,
-    markNextRestoreAsProgrammatic,
+    skipNextFocusRestore,
     notifyPressedTrigger,
     registerPressable,
     isFocusRestoreInProgress,

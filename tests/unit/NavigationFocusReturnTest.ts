@@ -21,7 +21,7 @@ const {
     notifyPushParamsForward,
     notifyPushParamsBackward,
     cancelPendingFocusRestore,
-    markNextRestoreAsProgrammatic,
+    skipNextFocusRestore,
     isFocusRestoreInProgress,
     compoundParamsKey,
     shouldSkipAutoFocusDueToExistingFocus,
@@ -31,7 +31,7 @@ const {
     diffNavigationState: (prev: unknown, next: unknown) => {action: {type: string; captureKey?: string; restoreKey?: string}; removedKeys: string[]};
     collectRouteKeys: (state: unknown) => Set<string>;
     captureTriggerForRoute: (routeKey: string) => void;
-    restoreTriggerForRoute: (routeKey: string, options?: {suppressRole?: boolean}) => boolean;
+    restoreTriggerForRoute: (routeKey: string) => boolean;
     handleStateChange: (state: unknown) => void;
     resetForTests: () => void;
     setLastInteractiveElementForTests: (element: HTMLElement | null) => void;
@@ -39,7 +39,7 @@ const {
     notifyPushParamsForward: (routeKey: string, prevParams: unknown) => void;
     notifyPushParamsBackward: (routeKey: string, targetParams: unknown) => void;
     cancelPendingFocusRestore: () => void;
-    markNextRestoreAsProgrammatic: () => void;
+    skipNextFocusRestore: () => void;
     isFocusRestoreInProgress: () => boolean;
     compoundParamsKey: (routeKey: string, params: unknown) => string;
     shouldSkipAutoFocusDueToExistingFocus: () => boolean;
@@ -1456,7 +1456,7 @@ describe('handleStateChange integration', () => {
         });
     });
 
-    it('suppresses the restored element role only when the form-submit path opts in', () => {
+    it('skipNextFocusRestore suppresses the restore for the next backward nav only (form-submit goBack), then resumes', () => {
         withFakeTimers(() => {
             simulateTab();
             handleStateChange(onA);
@@ -1466,77 +1466,37 @@ describe('handleStateChange integration', () => {
             handleStateChange(onAB);
             trigger.blur();
 
-            markNextRestoreAsProgrammatic();
+            skipNextFocusRestore();
+            const spy = jest.spyOn(trigger, 'focus');
             handleStateChange(onA);
             jest.runAllTimers();
+            expect(spy).not.toHaveBeenCalled();
 
-            expect(trigger.getAttribute('data-suppress-active-role')).toBe('true');
+            // The flag is one-shot: a subsequent Back-button dismissal restores normally.
+            handleStateChange(onAB);
+            trigger.blur();
+            handleStateChange(onA);
+            jest.runAllTimers();
+            expect(spy).toHaveBeenCalled();
         });
     });
 
-    it('does not suppress the restored element role on an ordinary Back navigation', () => {
+    it('skipNextFocusRestore flag is cleared by an intervening forward nav so it cannot leak into a later backward', () => {
         withFakeTimers(() => {
             simulateTab();
             handleStateChange(onA);
 
             const trigger = appendButton();
             fireFocusIn(trigger);
+
+            skipNextFocusRestore();
             handleStateChange(onAB);
+
             trigger.blur();
-
-            // No markNextRestoreAsProgrammatic() — this models the Back/Esc dismissal path.
+            const spy = jest.spyOn(trigger, 'focus');
             handleStateChange(onA);
             jest.runAllTimers();
-
-            expect(trigger.getAttribute('data-suppress-active-role')).toBeNull();
-        });
-    });
-
-    it("clears the role-suppression marker on the restored element's blur", () => {
-        withFakeTimers(() => {
-            simulateTab();
-            handleStateChange(onA);
-
-            const trigger = appendButton();
-            fireFocusIn(trigger);
-            handleStateChange(onAB);
-            trigger.blur();
-
-            markNextRestoreAsProgrammatic();
-            handleStateChange(onA);
-            jest.runAllTimers();
-            expect(trigger.getAttribute('data-suppress-active-role')).toBe('true');
-
-            // User Tab moves focus away → blur fires on the restored element → marker is removed.
-            trigger.blur();
-            expect(trigger.getAttribute('data-suppress-active-role')).toBeNull();
-        });
-    });
-
-    it('consumes the opt-in once, so a later Back restore is not suppressed', () => {
-        withFakeTimers(() => {
-            simulateTab();
-            handleStateChange(onA);
-
-            // First trip: Save path with the marker.
-            const triggerA = appendButton();
-            fireFocusIn(triggerA);
-            handleStateChange(onAB);
-            triggerA.blur();
-            markNextRestoreAsProgrammatic();
-            handleStateChange(onA);
-            jest.runAllTimers();
-            expect(triggerA.getAttribute('data-suppress-active-role')).toBe('true');
-            triggerA.blur();
-
-            // Second trip: ordinary Back, no opt-in.
-            const triggerB = appendButton();
-            fireFocusIn(triggerB);
-            handleStateChange(onAB);
-            triggerB.blur();
-            handleStateChange(onA);
-            jest.runAllTimers();
-            expect(triggerB.getAttribute('data-suppress-active-role')).toBeNull();
+            expect(spy).toHaveBeenCalled();
         });
     });
 
