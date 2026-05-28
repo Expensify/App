@@ -36,7 +36,7 @@ If you encounter unrecognized, unauthorized, or fraudulent charges on your Expen
 4. Click **Report card fraud**.
 5. Follow the prompts to deactivate your card.
 
-**Note:** If you froze the card yourself, a new virtual card is automatically issued after deactivation. If your workspace admin froze the card, the card is permanently deactivated without a replacement — contact your admin to issue a new card.
+**Note:** If you froze the card yourself, a new virtual card is automatically issued after deactivation. If your workspace admin froze the card, the card is permanently deactivated without a replacement — contact your workspace admin to issue a new card.
 
 ## 2. Contact Expensify
 
