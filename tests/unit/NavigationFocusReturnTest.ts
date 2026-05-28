@@ -1,4 +1,25 @@
 // Typed require with explicit .ts path — matches the project's test-file convention.
+
+// scheduleRestore defers through TransitionTracker; mock it so the deferred restore can be flushed deterministically (waitForUpcomingTransition is Promise-based and can't be driven by fake timers alone).
+type TtEntry = {cb: () => void; cancelled: boolean; waitForUpcomingTransition: boolean};
+let mockTtQueue: TtEntry[] = [];
+jest.mock('../../src/libs/Navigation/TransitionTracker', () => ({
+    __esModule: true,
+    default: {
+        startTransition: jest.fn(),
+        endTransition: jest.fn(),
+        runAfterTransitions: ({callback, waitForUpcomingTransition = false}: {callback: () => void; waitForUpcomingTransition?: boolean}) => {
+            const entry: TtEntry = {cb: callback, cancelled: false, waitForUpcomingTransition};
+            mockTtQueue.push(entry);
+            return {
+                cancel: () => {
+                    entry.cancelled = true;
+                },
+            };
+        },
+    },
+}));
+
 /* eslint-disable import/extensions */
 const {resetCycle: resetArbiter, tryClaim, Priorities} = require<{
     resetCycle: () => void;
@@ -119,6 +140,18 @@ function withFakeTimers<T>(fn: () => T): T {
     }
 }
 
+// Runs the restore callbacks that scheduleRestore queued through the mocked TransitionTracker (mirrors a transition completing).
+function flushTransitions(): void {
+    const buffered = mockTtQueue;
+    mockTtQueue = [];
+    for (const entry of buffered) {
+        if (entry.cancelled) {
+            continue;
+        }
+        entry.cb();
+    }
+}
+
 setupHadTabNavigation();
 setupNavigationFocusReturn();
 
@@ -126,6 +159,7 @@ beforeEach(() => {
     resetForTests();
     resetArbiter();
     resetHadTabNavigation();
+    mockTtQueue = [];
     document.body.innerHTML = '';
 });
 
@@ -1102,7 +1136,7 @@ describe('restoreTriggerForRoute', () => {
             const clearSpy = jest.spyOn(clearAfterButton, 'focus');
 
             // Scheduled restore fires; RETURN preempts AUTO and focus lands on "Clear after", not the Message input.
-            jest.runAllTimers();
+            flushTransitions();
             expect(clearSpy).toHaveBeenCalled();
             expect(messageSpy).not.toHaveBeenCalled();
         });
@@ -1127,7 +1161,7 @@ describe('restoreTriggerForRoute', () => {
 
             // Esc → backward → scheduled restore refocuses Clear after. Hold extends because the target is still focused.
             handleStateChange(onStatus);
-            jest.runAllTimers();
+            flushTransitions();
             expect(document.activeElement).toBe(clearAfterButton);
 
             // Late useAutoFocusInput: the guard catches it before it reaches tryClaim.
@@ -1451,7 +1485,7 @@ describe('handleStateChange integration', () => {
             handleStateChange(onA);
 
             const spy = jest.spyOn(trigger, 'focus');
-            jest.runAllTimers();
+            flushTransitions();
             expect(spy).toHaveBeenCalled();
         });
     });
@@ -1469,14 +1503,14 @@ describe('handleStateChange integration', () => {
             skipNextFocusRestore();
             const spy = jest.spyOn(trigger, 'focus');
             handleStateChange(onA);
-            jest.runAllTimers();
+            flushTransitions();
             expect(spy).not.toHaveBeenCalled();
 
             // The flag is one-shot: a subsequent Back-button dismissal restores normally.
             handleStateChange(onAB);
             trigger.blur();
             handleStateChange(onA);
-            jest.runAllTimers();
+            flushTransitions();
             expect(spy).toHaveBeenCalled();
         });
     });
@@ -1495,7 +1529,7 @@ describe('handleStateChange integration', () => {
             trigger.blur();
             const spy = jest.spyOn(trigger, 'focus');
             handleStateChange(onA);
-            jest.runAllTimers();
+            flushTransitions();
             expect(spy).toHaveBeenCalled();
         });
     });
@@ -1536,7 +1570,7 @@ describe('handleStateChange integration', () => {
             handleStateChange(onTab2);
 
             const spy = jest.spyOn(trigger, 'focus');
-            jest.runAllTimers();
+            flushTransitions();
             expect(spy).not.toHaveBeenCalled();
         });
     });
@@ -1562,7 +1596,7 @@ describe('handleStateChange integration', () => {
             handleStateChange(onAC);
 
             const spy = jest.spyOn(trigger, 'focus');
-            jest.runAllTimers();
+            flushTransitions();
             expect(spy).not.toHaveBeenCalled();
         });
     });
@@ -1581,7 +1615,7 @@ describe('handleStateChange integration', () => {
         expect(restoreTriggerForRoute('a')).toBe(false);
     });
 
-    it('should drop the stale entry after MAX_RESTORE_ATTEMPTS retries all fail', () => {
+    it('should drop the stale entry after the retry budget is exhausted (trigger stays aria-hidden)', () => {
         withFakeTimers(() => {
             simulateTab();
             const hidden = document.createElement('div');
@@ -1596,7 +1630,8 @@ describe('handleStateChange integration', () => {
             trigger.blur();
             handleStateChange(onA);
 
-            // Trigger stays aria-hidden across all retry attempts — scheduleRestore gives up.
+            // Trigger stays aria-hidden across the transition + every rAF retry — scheduleRestore gives up.
+            flushTransitions();
             jest.runAllTimers();
             const spy = jest.spyOn(trigger, 'focus');
 
@@ -1683,7 +1718,7 @@ describe('PUSH_PARAMS notifications', () => {
 
             const spy = jest.spyOn(trigger, 'focus');
             notifyPushParamsBackward('search-x', {q: 'foo'});
-            jest.runAllTimers();
+            flushTransitions();
             expect(spy).toHaveBeenCalled();
         });
     });
@@ -1712,7 +1747,7 @@ describe('PUSH_PARAMS notifications', () => {
 
             const spy = jest.spyOn(trigger, 'focus');
             notifyPushParamsBackward('search-x', {q: 'baz'});
-            jest.runAllTimers();
+            flushTransitions();
             expect(spy).not.toHaveBeenCalled();
         });
     });
@@ -1790,7 +1825,7 @@ describe('teardown / setup lifecycle', () => {
 
             const spy = jest.spyOn(trigger, 'focus');
             teardownNavigationFocusReturn();
-            jest.runAllTimers(); // if cancellation failed, restore would fire here
+            flushTransitions(); // if cancellation failed, the restore would fire here
             expect(spy).not.toHaveBeenCalled();
         });
     });

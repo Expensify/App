@@ -1,7 +1,5 @@
 import type {NavigationState} from '@react-navigation/native';
 import type {RefObject} from 'react';
-// eslint-disable-next-line no-restricted-imports -- idiomatic defer primitive past navigation transitions.
-import {InteractionManager} from 'react-native';
 import type {View} from 'react-native';
 import compoundParamsKey, {COMPOUND_KEY_DELIMITER} from '@libs/compoundParamsKey';
 import FOCUSABLE_SELECTOR from '@libs/focusableSelector';
@@ -9,6 +7,8 @@ import hasFocusableAttributes from '@libs/focusGuards';
 import getHadTabNavigation from '@libs/hadTabNavigation';
 import {consumeLauncher, pickLauncher, resetLauncherStackForTests} from '@libs/LauncherStack';
 import navigationRef from '@libs/Navigation/navigationRef';
+// eslint-disable-next-line no-restricted-imports -- sibling primitive to TransitionTracker; needs the exact transitionEnd signal to defer past the navigation transition.
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {collectRouteKeys, diffNavigationState} from '@libs/navigationStateDiff';
 import {isCycleIdle, Priorities, resetCycle, tryClaim} from '@libs/ScreenFocusArbiter';
 
@@ -90,7 +90,7 @@ function notifyPushParamsForward(routeKey: string, prevParams: unknown): void {
 }
 
 function notifyPushParamsBackward(routeKey: string, targetParams: unknown): void {
-    scheduleRestore(compoundParamsKey(routeKey, targetParams));
+    scheduleRestore(compoundParamsKey(routeKey, targetParams), {waitForUpcomingTransition: false});
 }
 
 /** Skips the focus restore for the next back navigation. Call it before a form-submit goBack so the re-focused row doesn't eat the next Enter (which should hit the page's submit). Back and Esc don't call it, so they still restore focus. */
@@ -267,59 +267,50 @@ function cancelPendingRestore(): void {
     pendingRestore = null;
 }
 
-const MAX_RESTORE_ATTEMPTS = 2;
-const RESTORE_RETRY_MS = 50;
+const MAX_RESTORE_FRAMES = 5;
 
-function scheduleRestore(routeKey: string): void {
+function scheduleRestore(routeKey: string, {waitForUpcomingTransition}: {waitForUpcomingTransition: boolean}): void {
     cancelPendingRestore();
-    // `cancelled` flag in case a primitive's cancel races a queued callback.
     let cancelled = false;
-    let attempts = 0;
-    let frameId: number | undefined;
-    let retryTimerId: ReturnType<typeof setTimeout> | undefined;
-    let imHandle: {cancel: () => void} | undefined;
+    let rafId: number | undefined;
+    let handle: {cancel: () => void} | undefined;
 
-    const attempt = () => {
-        // Defer past the transition so useAutoFocusInput and React Navigation's own focus work settle first.
-        // eslint-disable-next-line @typescript-eslint/no-deprecated -- idiomatic defer primitive despite type-def deprecation.
-        imHandle = InteractionManager.runAfterInteractions(() => {
-            if (cancelled) {
-                return;
+    pendingRestore = {
+        cancel: () => {
+            cancelled = true;
+            handle?.cancel();
+            if (rafId !== undefined) {
+                cancelAnimationFrame(rafId);
             }
-            frameId = requestAnimationFrame(() => {
+        },
+    };
+
+    handle = TransitionTracker.runAfterTransitions({
+        // Stack pops dispatch before their transition registers, so they wait for the upcoming one; PUSH_PARAMS emits none, so it opts out to avoid stalling on the timeout.
+        waitForUpcomingTransition,
+        callback: () => {
+            // restoreTriggerForRoute preserves the entry on a transient miss and drops it when truly gone, so retry across a few frames and stop as soon as it resolves either way.
+            let framesLeft = MAX_RESTORE_FRAMES;
+            const attempt = () => {
                 if (cancelled) {
                     return;
                 }
-                attempts += 1;
                 const restored = restoreTriggerForRoute(routeKey);
                 if (restored || !triggerMap.has(routeKey)) {
                     pendingRestore = null;
                     return;
                 }
-                if (attempts >= MAX_RESTORE_ATTEMPTS) {
+                framesLeft -= 1;
+                if (framesLeft <= 0) {
                     triggerMap.delete(routeKey);
                     pendingRestore = null;
                     return;
                 }
-                retryTimerId = setTimeout(attempt, RESTORE_RETRY_MS);
-            });
-        });
-    };
-
-    pendingRestore = {
-        cancel: () => {
-            cancelled = true;
-            imHandle?.cancel();
-            if (frameId !== undefined) {
-                cancelAnimationFrame(frameId);
-            }
-            if (retryTimerId !== undefined) {
-                clearTimeout(retryTimerId);
-            }
+                rafId = requestAnimationFrame(attempt);
+            };
+            attempt();
         },
-    };
-
-    attempt();
+    });
 }
 
 function handleStateChange(newState: NavigationState | undefined): void {
@@ -348,7 +339,7 @@ function handleStateChange(newState: NavigationState | undefined): void {
             skipNextRestore = false;
             cancelPendingRestore();
         } else {
-            scheduleRestore(action.restoreKey);
+            scheduleRestore(action.restoreKey, {waitForUpcomingTransition: true});
         }
     } else if (action.type === 'lateral') {
         skipNextRestore = false;

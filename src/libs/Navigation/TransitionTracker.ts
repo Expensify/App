@@ -12,9 +12,7 @@ type RunAfterTransitionsOptions = {
     /** If true, the callback fires synchronously regardless of any active transitions. Defaults to false. */
     runImmediately?: boolean;
 
-    /** If true, waits for the next transition to start before queuing the callback, so it runs after that transition ends.
-     *  Useful when a navigation action has just been dispatched but the transition has not yet been registered.
-     * Defaults to false. */
+    /** Wait for a transition before running the callback — the next one to start if none is active yet, else the active one to end. Defaults to false. */
     waitForUpcomingTransition?: boolean;
 };
 
@@ -105,11 +103,12 @@ function endTransition(handle: TransitionHandle): void {
  * @param options - Options object.
  * @param options.callback - The function to invoke once transitions finish.
  * @param options.runImmediately - If true, the callback fires synchronously regardless of active transitions. Defaults to false.
- * @param options.waitForUpcomingTransition - If true, waits for the next transition to start before queuing the callback, so it runs after that transition ends. Use when navigation happens just before this call and the transition is not yet registered. Defaults to false.
+ * @param options.waitForUpcomingTransition - Wait for a transition before the callback: the upcoming one if none is active yet, else the active one to end. Defaults to false.
  * @returns A handle with a `cancel` method to prevent the callback from firing.
  */
 function runAfterTransitions({callback, runImmediately = false, waitForUpcomingTransition = false}: RunAfterTransitionsOptions): CancelHandle {
-    if (waitForUpcomingTransition) {
+    // If a transition is already active (web fires transitionStart before the navigation state event), wait for it to end rather than a next start that never comes — which would hit the timeout.
+    if (waitForUpcomingTransition && activeTransitions.size === 0) {
         let cancelled = false;
         let innerHandle: CancelHandle | null = null;
 

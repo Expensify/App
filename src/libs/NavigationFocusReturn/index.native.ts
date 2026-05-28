@@ -125,7 +125,7 @@ function cancelPendingRestore(): void {
     pendingRestore = null;
 }
 
-function scheduleRestore(routeKey: string, {waitForUpcomingTransition = true}: {waitForUpcomingTransition?: boolean} = {}): void {
+function scheduleRestore(routeKey: string, {waitForUpcomingTransition}: {waitForUpcomingTransition: boolean}): void {
     cancelPendingRestore();
     let cancelled = false;
     let refocusHandle: {cancel: () => void} | null = null;
@@ -186,7 +186,7 @@ function handleStateChange(newState: NavigationState | undefined): void {
             cancelPendingRestore();
             triggerMap.delete(action.restoreKey);
         } else {
-            scheduleRestore(action.restoreKey);
+            scheduleRestore(action.restoreKey, {waitForUpcomingTransition: true});
         }
     } else if (action.type === 'lateral') {
         skipNextRestore = false;

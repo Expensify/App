@@ -87,6 +87,16 @@ describe('TransitionTracker', () => {
             drainTransitions();
         });
 
+        it('waitForUpcomingTransition waits for an already-active transition to end (web order: transitionStart before the call) instead of a phantom next start', () => {
+            const callback = jest.fn();
+            const handle = TransitionTracker.startTransition();
+            TransitionTracker.runAfterTransitions({callback, waitForUpcomingTransition: true});
+            expect(callback).not.toHaveBeenCalled();
+            TransitionTracker.endTransition(handle);
+            expect(callback).toHaveBeenCalledTimes(1);
+            drainTransitions();
+        });
+
         it('waitForUpcomingTransition fires callback after timeout if transitionStart never arrives', async () => {
             const callback = jest.fn();
             TransitionTracker.runAfterTransitions({callback, waitForUpcomingTransition: true});
