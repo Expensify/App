@@ -14,6 +14,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MissingPersonalDetailsParamList} from '@libs/Navigation/types';
 import {arePersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
+import {setRevealedVirtualCardDetails} from '@libs/RevealedCardSecretsStore';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -48,13 +49,13 @@ function MissingPersonalDetailsMagicCodePage({
     const missingDetails = arePersonalDetailsMissing(privatePersonalDetails);
 
     useEffect(() => {
-        if (missingDetails || !!privateDetailsErrors || !areAllCardsShipped) {
+        if (isVirtualCard || missingDetails || !!privateDetailsErrors || !areAllCardsShipped) {
             return;
         }
 
         clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
         Navigation.dismissModal();
-    }, [missingDetails, privateDetailsErrors, areAllCardsShipped]);
+    }, [isVirtualCard, missingDetails, privateDetailsErrors, areAllCardsShipped]);
 
     const clearError = () => {
         if (isEmptyObject(validateLoginError) && isEmptyObject(validateCodeAction?.errorFields)) {
@@ -68,7 +69,15 @@ function MissingPersonalDetailsMagicCodePage({
     const handleSubmitForm = useCallback(
         (validateCode: string) => {
             if (isVirtualCard) {
-                setPersonalDetailsAndRevealExpensifyCard(values, countryCode, Number(cardID), validateCode);
+                setPersonalDetailsAndRevealExpensifyCard(values, countryCode, Number(cardID), validateCode).then((details) => {
+                    if (!details) {
+                        return;
+                    }
+                    setRevealedVirtualCardDetails(cardID, details);
+                    clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
+                    Navigation.closeRHPFlow();
+                    Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
+                });
                 return;
             }
             updatePersonalDetailsAndShipExpensifyCards(values, validateCode, countryCode);

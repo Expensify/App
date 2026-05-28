@@ -17,7 +17,7 @@ import type {
     UpdateSelectedTimezoneParams,
     UpdateUserAvatarParams,
 } from '@libs/API/parameters';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -31,6 +31,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {DateOfBirthForm} from '@src/types/form';
 import type {PersonalDetails} from '@src/types/onyx';
+import type {ExpensifyCardDetails} from '@src/types/onyx/Card';
 import type {CurrentUserPersonalDetails, SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
@@ -515,14 +516,15 @@ function clearPersonalDetailsErrors() {
     });
 }
 
-function setPersonalDetailsAndRevealExpensifyCard(values: PersonalDetailsFormValues, countryCode: number, cardID: number, validateCode: string) {
+function setPersonalDetailsAndRevealExpensifyCard(values: PersonalDetailsFormValues, countryCode: number, cardID: number, validateCode: string): Promise<ExpensifyCardDetails | undefined> {
     const parameters: SetPersonalDetailsAndRevealExpensifyCardParams = {
         ...buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode),
         cardID,
         validateCode,
     };
 
-    API.write(WRITE_COMMANDS.SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD, parameters, {
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD, parameters, {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -541,6 +543,15 @@ function setPersonalDetailsAndRevealExpensifyCard(values: PersonalDetailsFormVal
                 },
             },
         ],
+    }).then((response) => {
+        if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+            return undefined;
+        }
+        return {
+            pan: typeof response.pan === 'string' ? response.pan : '',
+            expiration: typeof response.expiration === 'string' ? response.expiration : '',
+            cvv: typeof response.cvv === 'string' ? response.cvv : '',
+        };
     });
 }
 
