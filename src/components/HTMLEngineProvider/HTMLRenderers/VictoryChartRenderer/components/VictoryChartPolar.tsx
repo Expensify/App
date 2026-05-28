@@ -14,6 +14,7 @@ function VictoryChartPolar() {
     const {tnode, data, labelItems, legendItems} = useVictoryChartContext();
 
     console.log(labelItems);
+    // s77rt missing padding
 
     return (
         <PolarChart
