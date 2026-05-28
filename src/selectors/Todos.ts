@@ -1,7 +1,7 @@
 import {shallowEqual} from 'fast-equals';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
-import type {TodosDerivedValue} from '@src/types/onyx';
+import type {FlaggedExpensesDerivedValue, TodosDerivedValue} from '@src/types/onyx';
 
 const EMPTY_TODOS_SINGLE_REPORT_IDS = Object.freeze({
     [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: undefined,
@@ -66,5 +66,48 @@ const todosSingleReportIDsSelector = (todos: OnyxEntry<TodosDerivedValue>) => {
     return newValue;
 };
 
+type FlaggedExpensesReview = {
+    /** Total number of flagged expenses */
+    count: number;
+    /** Transaction ID of the first flagged expense, used to seed the carousel handoff */
+    firstTransactionID: string | undefined;
+    /** Parent report ID of the first flagged expense */
+    firstReportID: string | undefined;
+};
+
+const EMPTY_FLAGGED_EXPENSES_REVIEW: FlaggedExpensesReview = Object.freeze({
+    count: 0,
+    firstTransactionID: undefined,
+    firstReportID: undefined,
+}) as FlaggedExpensesReview;
+
+// Manual memoization mirrors `todosSingleReportIDsSelector`: ForYouSection's useMemo dependency
+// list consumes the returned object as a whole, so we need referential stability across
+// equivalent derived snapshots to avoid cascading re-renders on every Onyx churn.
+let previousFlaggedExpensesReview: FlaggedExpensesReview = EMPTY_FLAGGED_EXPENSES_REVIEW;
+
+const flaggedExpensesReviewSelector = (flaggedExpensesValue: OnyxEntry<FlaggedExpensesDerivedValue>): FlaggedExpensesReview => {
+    const flaggedExpenses = flaggedExpensesValue?.flaggedExpenses;
+    if (!flaggedExpenses || flaggedExpenses.length === 0) {
+        previousFlaggedExpensesReview = EMPTY_FLAGGED_EXPENSES_REVIEW;
+        return EMPTY_FLAGGED_EXPENSES_REVIEW;
+    }
+
+    const first = flaggedExpenses.at(0);
+    const newValue: FlaggedExpensesReview = {
+        count: flaggedExpenses.length,
+        firstTransactionID: first?.transactionID,
+        firstReportID: first?.reportID,
+    };
+
+    if (shallowEqual(previousFlaggedExpensesReview, newValue)) {
+        return previousFlaggedExpensesReview;
+    }
+
+    previousFlaggedExpensesReview = newValue;
+    return newValue;
+};
+
 export default todosReportCountsSelector;
-export {todosSingleReportIDsSelector, EMPTY_TODOS_SINGLE_REPORT_IDS};
+export {EMPTY_FLAGGED_EXPENSES_REVIEW, EMPTY_TODOS_SINGLE_REPORT_IDS, flaggedExpensesReviewSelector, todosSingleReportIDsSelector};
+export type {FlaggedExpensesReview};

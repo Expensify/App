@@ -15,7 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {accountIDSelector} from '@src/selectors/Session';
-import todosReportCountsSelector, {EMPTY_TODOS_SINGLE_REPORT_IDS, todosSingleReportIDsSelector} from '@src/selectors/Todos';
+import todosReportCountsSelector, {EMPTY_FLAGGED_EXPENSES_REVIEW, EMPTY_TODOS_SINGLE_REPORT_IDS, flaggedExpensesReviewSelector, todosSingleReportIDsSelector} from '@src/selectors/Todos';
 import EmptyState from './EmptyState';
 import ForYouSkeleton from './ForYouSkeleton';
 
@@ -29,24 +29,33 @@ function ForYouSection() {
     const [isLoadingReportData = false] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
     const [singleReportIDs = EMPTY_TODOS_SINGLE_REPORT_IDS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosSingleReportIDsSelector});
+    const [flaggedExpensesReview = EMPTY_FLAGGED_EXPENSES_REVIEW] = useOnyx(ONYXKEYS.DERIVED.FLAGGED_EXPENSES, {selector: flaggedExpensesReviewSelector});
 
-    const icons = useMemoizedLazyExpensifyIcons(['MoneyBag', 'Send', 'ThumbsUp', 'Export']);
+    const icons = useMemoizedLazyExpensifyIcons(['Exclamation', 'MoneyBag', 'Send', 'ThumbsUp', 'Export']);
 
     const submitCount = reportCounts?.[CONST.SEARCH.SEARCH_KEYS.SUBMIT] ?? 0;
     const approveCount = reportCounts?.[CONST.SEARCH.SEARCH_KEYS.APPROVE] ?? 0;
     const payCount = reportCounts?.[CONST.SEARCH.SEARCH_KEYS.PAY] ?? 0;
     const exportCount = reportCounts?.[CONST.SEARCH.SEARCH_KEYS.EXPORT] ?? 0;
+    const flaggedExpensesCount = flaggedExpensesReview.count;
 
-    const hasAnyTodos = submitCount > 0 || approveCount > 0 || payCount > 0 || exportCount > 0;
+    const hasAnyTodos = flaggedExpensesCount > 0 || submitCount > 0 || approveCount > 0 || payCount > 0 || exportCount > 0;
+
+    const navigateToReport = useCallback(
+        (reportID: string) => {
+            if (shouldUseNarrowLayout) {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, ROUTES.HOME));
+                return;
+            }
+            Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID, backTo: ROUTES.HOME}));
+        },
+        [shouldUseNarrowLayout],
+    );
 
     const createNavigationHandler = useCallback(
         (action: string, queryParams: Record<string, unknown>, reportID?: string) => () => {
             if (reportID) {
-                if (shouldUseNarrowLayout) {
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, ROUTES.HOME));
-                } else {
-                    Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID, backTo: ROUTES.HOME}));
-                }
+                navigateToReport(reportID);
                 return;
             }
 
@@ -60,12 +69,29 @@ function ForYouSection() {
                 }),
             );
         },
-        [shouldUseNarrowLayout],
+        [navigateToReport],
+    );
+
+    const createReviewExpensesHandler = useCallback(
+        (firstReportID: string | undefined) => () => {
+            if (!firstReportID) {
+                return;
+            }
+            navigateToReport(firstReportID);
+        },
+        [navigateToReport],
     );
 
     const todoItems = useMemo(
         () =>
             [
+                {
+                    key: 'reviewExpenses',
+                    count: flaggedExpensesCount,
+                    icon: icons.Exclamation,
+                    translationKey: 'homePage.forYouSection.reviewExpenses' as const,
+                    handler: createReviewExpensesHandler(flaggedExpensesReview.firstReportID),
+                },
                 {
                     key: 'submit',
                     count: submitCount,
@@ -103,7 +129,23 @@ function ForYouSection() {
                     ),
                 },
             ].filter((item) => item.count > 0),
-        [accountID, approveCount, createNavigationHandler, exportCount, icons.Export, icons.MoneyBag, icons.Send, icons.ThumbsUp, payCount, singleReportIDs, submitCount],
+        [
+            accountID,
+            approveCount,
+            createNavigationHandler,
+            createReviewExpensesHandler,
+            exportCount,
+            flaggedExpensesCount,
+            flaggedExpensesReview.firstReportID,
+            icons.Exclamation,
+            icons.Export,
+            icons.MoneyBag,
+            icons.Send,
+            icons.ThumbsUp,
+            payCount,
+            singleReportIDs,
+            submitCount,
+        ],
     );
 
     const renderTodoItems = () => (
