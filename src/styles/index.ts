@@ -5743,6 +5743,17 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.w28,
         },
 
+        searchTypeMenuItemPadding: {
+            paddingLeft: 16,
+            paddingRight: 12,
+        },
+
+        searchTypeMenuAccordionPadding: {
+            paddingLeft: 8,
+            paddingRight: 12,
+            paddingVertical: 8,
+        },
+
         stickToBottom: {
             position: 'absolute',
             bottom: 0,
@@ -6523,17 +6534,6 @@ const dynamicStyles = (theme: ThemeColors) =>
             height: shouldUseNarrowLayout ? variables.sectionMenuItemHeight : variables.sectionMenuItemHeightCompact,
             alignItems: 'center',
         }),
-
-        searchTypeMenuItemPadding: {
-            paddingLeft: 16,
-            paddingRight: 12,
-        },
-
-        searchTypeMenuAccordionPadding: {
-            paddingLeft: 8,
-            paddingRight: 12,
-            paddingVertical: 8,
-        },
 
         searchActionsBar: (shouldUseNarrowLayout: boolean) => ({
             alignItems: 'center',
