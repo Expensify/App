@@ -495,6 +495,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Ano anterior',
         nextYear: 'Ano que vem',
         avatar: 'Avatar',
+        restrictions: 'Restrições',
     },
     socials: {
         podcast: 'Siga-nos no Podcast',
