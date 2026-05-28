@@ -1,5 +1,5 @@
 import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -16,8 +16,26 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 
+type OutstandingReportsForPolicy = OnyxTypes.OutstandingReportsByPolicyIDDerivedValue[string];
+
 const createOutstandingReportsForPolicySelector = (policyID: string | undefined) => (derived: OnyxEntry<OnyxTypes.OutstandingReportsByPolicyIDDerivedValue>) =>
     derived?.[policyID ?? CONST.DEFAULT_NUMBER_ID];
+
+const createOutstandingReportsNVPsSelector =
+    (outstandingReports: OutstandingReportsForPolicy | undefined) =>
+    (allNVPs: OnyxCollection<OnyxTypes.ReportNameValuePairs>): OnyxCollection<OnyxTypes.ReportNameValuePairs> | undefined => {
+        if (!outstandingReports || !allNVPs) {
+            return undefined;
+        }
+        const result: OnyxCollection<OnyxTypes.ReportNameValuePairs> = {};
+        for (const reportID of Object.keys(outstandingReports)) {
+            const key = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}` as const;
+            if (allNVPs[key] !== undefined) {
+                result[key] = allNVPs[key];
+            }
+        }
+        return result;
+    };
 
 type ReportFieldProps = {
     /** The selected participants */
@@ -54,8 +72,10 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
 
     const reportAttributes = useReportAttributes();
     const policyID = selectedParticipants?.at(0)?.policyID;
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [outstandingReportsForPolicy] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {selector: createOutstandingReportsForPolicySelector(policyID)}, [policyID]);
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {selector: createOutstandingReportsNVPsSelector(outstandingReportsForPolicy)}, [
+        outstandingReportsForPolicy,
+    ]);
 
     // Per-key report subscriptions instead of full COLLECTION.REPORT
     const [transactionReportEntry] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
