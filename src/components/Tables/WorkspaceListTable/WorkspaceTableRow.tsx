@@ -94,6 +94,24 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
         </Tooltip>
     );
 
+    const ThreeDotsMenuWithBrickRoadIndicator = (
+        <View style={[styles.flexRow, styles.gap1]}>
+            {item.brickRoadIndicator && BrickRoadIndicator}
+            <ThreeDotsMenu
+                isNested
+                shouldOverlay
+                shouldSelfPosition
+                disabled={item.disabled}
+                isContainerFocused={isFocused}
+                threeDotsMenuRef={threeDotsMenuRef}
+                menuItems={item.threeDotMenuItems ?? []}
+                iconStyles={styles.h7}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.THREE_DOT_MENU}
+                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+            />
+        </View>
+    );
+
     useEffect(() => {
         if (isLoadingBill) {
             return;
@@ -156,22 +174,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                                 </View>
                             </View>
 
-                            {!item.isJoinRequestPending && (
-                                <View style={[styles.flexRow, styles.gap1]}>
-                                    {item.brickRoadIndicator && BrickRoadIndicator}
-                                    <ThreeDotsMenu
-                                        isNested
-                                        shouldOverlay
-                                        shouldSelfPosition
-                                        disabled={item.disabled}
-                                        isContainerFocused={isFocused}
-                                        threeDotsMenuRef={threeDotsMenuRef}
-                                        menuItems={item.threeDotMenuItems ?? []}
-                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.THREE_DOT_MENU}
-                                        anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                                    />
-                                </View>
-                            )}
+                            {!item.isJoinRequestPending && ThreeDotsMenuWithBrickRoadIndicator}
 
                             <Icon
                                 src={icons.ArrowRight}
@@ -229,23 +232,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                             </View>
 
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3, styles.wAuto]}>
-                                {!item.isJoinRequestPending && (
-                                    <View style={[styles.flexRow, styles.gap1]}>
-                                        {item.brickRoadIndicator && BrickRoadIndicator}
-                                        <ThreeDotsMenu
-                                            isNested
-                                            shouldOverlay
-                                            shouldSelfPosition
-                                            disabled={item.disabled}
-                                            isContainerFocused={isFocused}
-                                            threeDotsMenuRef={threeDotsMenuRef}
-                                            menuItems={item.threeDotMenuItems ?? []}
-                                            iconStyles={styles.h7}
-                                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.THREE_DOT_MENU}
-                                            anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                                        />
-                                    </View>
-                                )}
+                                {!item.isJoinRequestPending && ThreeDotsMenuWithBrickRoadIndicator}
 
                                 <Icon
                                     src={icons.ArrowRight}

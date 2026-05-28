@@ -205,6 +205,7 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
             disabled={!column.sortable}
             sentryLabel={CONST.SENTRY_LABEL.TABLE_HEADER.SORTABLE_COLUMN}
             style={tableHeaderStyles}
+            disabled={!column.sortable}
             onPress={() => toggleSorting(column.key)}
         >
             <Text
