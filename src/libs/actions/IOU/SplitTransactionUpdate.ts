@@ -195,8 +195,6 @@ function updateSplitTransactions({
     }
     const splitExpenses = transactionData?.splitExpenses ?? [];
 
-    // Get all children once. `isProduction` makes this match pre-PR #84382 behavior in prod
-    // (unreported children are filtered out), keeping self-DM splits invisible end-to-end.
     const originalChildTransactions = getChildTransactions(allTransactionsList, originalTransactionID, isProduction);
     const processedChildTransactionIDs: string[] = [];
 

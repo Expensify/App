@@ -105,7 +105,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 return transaction;
             }
 
-            // Current main (post-PR #84382) logic.
             const isSelfDMSplit = isSelfDM(report) || (!!selfDMReportID && transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
             const hasMultipleSplits = getChildTransactions(allTransactions, originalTransaction?.transactionID, isProduction).length > 1;
             if (
