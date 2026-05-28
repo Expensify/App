@@ -104,6 +104,21 @@ describe('BaseLoginForm', () => {
         expect(mockBeginSignIn).not.toHaveBeenCalled();
     });
 
+    it('blocks agent email regardless of case', async () => {
+        renderForm();
+
+        const input = screen.getByTestId('username');
+        fireEvent.changeText(input, 'AGENT_123@EXPENSIFY.AI');
+
+        const continueButton = screen.getByText('Continue');
+        fireEvent.press(continueButton);
+
+        await waitFor(() => {
+            expect(screen.getByText(AGENT_ERROR)).toBeTruthy();
+        });
+        expect(mockBeginSignIn).not.toHaveBeenCalled();
+    });
+
     it('proceeds with sign-in for a normal email', async () => {
         renderForm();
 
