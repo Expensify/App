@@ -581,11 +581,12 @@ function SearchAutocompleteList({
             ListItem={SearchRouterItem}
             style={{
                 containerStyle: [styles.mh100],
-                listStyle: [styles.ph4, styles.overscrollBehaviorContain],
-                contentContainerStyle: styles.pb4,
+                listStyle: [styles.ph2, styles.overscrollBehaviorContain],
+                contentContainerStyle: styles.pb2,
                 listItemWrapperStyle: [styles.pr0, styles.pl0],
                 sectionTitleStyles: styles.mhn2,
             }}
+            showScrollIndicator={false}
             shouldSingleExecuteRowSelect
             ref={setListRef}
             initialScrollIndex={0}

@@ -234,6 +234,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
             isCentralPane
             titleStyles={styles.accountSettingsSectionTitle}
             subtitleMuted
+            containerStyles={{marginHorizontal: 0}}
         >
             <PaymentMethodList
                 onPress={onBankAccountRowPressed}

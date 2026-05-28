@@ -127,14 +127,22 @@ function WorkspaceHRPage({
                         setupLink={activeHRFlow.setupLink}
                     />
                 )}
-                <HeaderWithBackButton
-                    title={translate('workspace.hr.title')}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldUseHeadlineHeader
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <View style={{width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center'}}>
+                    <HeaderWithBackButton
+                        title={translate('workspace.hr.title')}
+                        shouldShowBackButton={shouldUseNarrowLayout}
+                        shouldUseHeadlineHeader
+                        onBackButtonPress={() => Navigation.goBack()}
+                    />
+                </View>
                 <ScrollView contentContainerStyle={styles.pt3}>
-                    <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <View
+                        style={[
+                            styles.flex1,
+                            shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection,
+                            {width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center', paddingHorizontal: 20},
+                        ]}
+                    >
                         <Section
                             title={translate('workspace.hr.connections')}
                             subtitle={translate('workspace.hr.connectionsSubtitle')}
@@ -142,6 +150,7 @@ function WorkspaceHRPage({
                             subtitleMuted
                             titleStyles={styles.accountSettingsSectionTitle}
                             childrenStyles={styles.pt5}
+                            containerStyles={{marginHorizontal: 0}}
                         >
                             <View>
                                 {connectedCards.map((card) => (

@@ -343,7 +343,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                                     onCheckboxPress={() => onSelectionButtonPress?.(transaction as unknown as TItem)}
                                     columns={currentColumns}
                                     onButtonPress={(event) => handleButtonPress(transaction, event)}
-                                    style={[styles.noBorderRadius, isLargeScreenWidth ? [styles.p3, styles.pv2, styles.tableRowHeight] : styles.p4, styles.flex1]}
+                                    style={[styles.noBorderRadius, isLargeScreenWidth ? [styles.ph5, styles.pv2, styles.tableRowHeight] : styles.p4, styles.flex1]}
                                     isReportItemChild
                                     isInSingleTransactionReport={isInSingleTransactionReport}
                                     shouldShowBottomBorder={shouldShowBottomBorder}

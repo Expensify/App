@@ -36,6 +36,7 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
                 shouldSkipVBBACall={false}
                 route={route}
                 addBottomSafeAreaPadding
+                shouldCenterContent
             >
                 {(policyID?: string) => (
                     <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>

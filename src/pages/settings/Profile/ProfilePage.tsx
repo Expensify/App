@@ -196,6 +196,7 @@ function ProfilePage() {
             includeSafeAreaPaddingBottom={false}
             testID="ProfilePage"
             shouldShowOfflineIndicatorInWideScreen
+            shouldOffsetForGlobalNavBar
         >
             <View style={{width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center'}}>
                 <HeaderWithBackButton

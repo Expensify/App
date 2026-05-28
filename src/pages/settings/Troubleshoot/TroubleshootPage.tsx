@@ -193,6 +193,7 @@ function TroubleshootPage() {
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
             testID="TroubleshootPage"
+            shouldOffsetForGlobalNavBar
         >
             <View style={{width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center'}}>
                 <HeaderWithBackButton

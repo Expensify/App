@@ -181,7 +181,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
 
     return (
         <View>
-            <View style={[styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth ? [styles.pl3, styles.pv1, styles.gap3] : [styles.p4, styles.gap3]]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth ? [styles.pl5, styles.pv1, styles.gap3] : [styles.p4, styles.gap3]]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
@@ -234,7 +234,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                 )}
             </View>
             {settlementStatus === CONST.SEARCH.SETTLEMENT_STATUS.FAILED && (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.ph3, styles.pb1]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.ph5, styles.pb1]}>
                     <Icon
                         src={expensifyIcons.DotIndicator}
                         fill={theme.danger}

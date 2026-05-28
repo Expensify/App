@@ -159,6 +159,7 @@ function AboutPage() {
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
             testID="AboutPage"
+            shouldOffsetForGlobalNavBar
         >
             <View style={{width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center'}}>
                 <HeaderWithBackButton

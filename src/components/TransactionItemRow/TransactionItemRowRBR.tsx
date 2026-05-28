@@ -94,14 +94,14 @@ function TransactionItemRowRBRInner({transaction, violations, report, containerS
                     height={variables.iconSizeExtraSmall}
                     width={variables.iconSizeExtraSmall}
                 />
-                <View style={[styles.pre, styles.flexShrink1, {color: theme.danger}]}>
+                <View style={[styles.pre, styles.flexShrink1, {color: theme.textSupporting}]}>
                     {hasHTMLTags ? (
                         <RenderHTML html={`<rbr shouldShowEllipsis="1" ${shouldUseNarrowLayout ? '' : 'issmall'}>${RBRMessages}</rbr>`} />
                     ) : (
                         <Text
                             numberOfLines={1}
                             ellipsizeMode="tail"
-                            style={[styles.textLabelError, shouldUseNarrowLayout ? styles.lh16 : styles.textMicro]}
+                            style={[styles.textLabelError, shouldUseNarrowLayout ? styles.lh16 : styles.textMicro, styles.textSupporting]}
                         >
                             {RBRMessages}
                         </Text>

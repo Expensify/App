@@ -667,6 +667,7 @@ function WalletPage() {
             <ScreenWrapper
                 testID="WalletPage"
                 shouldShowOfflineIndicatorInWideScreen
+                shouldOffsetForGlobalNavBar
             >
                 {headerWithBackButton}
                 <View style={[styles.flex1, styles.fullScreenLoading]}>
@@ -683,6 +684,7 @@ function WalletPage() {
         <ScreenWrapper
             testID="WalletPage"
             shouldShowOfflineIndicatorInWideScreen
+            shouldOffsetForGlobalNavBar
         >
             {headerWithBackButton}
             <ScrollView style={styles.pt3}>

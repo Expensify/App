@@ -353,6 +353,7 @@ function CopilotPage() {
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
+            shouldOffsetForGlobalNavBar
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <>
