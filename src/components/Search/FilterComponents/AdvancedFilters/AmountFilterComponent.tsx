@@ -8,6 +8,8 @@ import useFullscreenAdvancedFilters from '@components/Search/FilterDropdowns/Adv
 import type {SearchAmountFilterKeys, SearchAmountValues} from '@components/Search/types';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -57,8 +59,11 @@ function AmountInput({ref, filterKey, modifier, value, label}: AmountInputProps)
         },
     }));
 
+    const {inputCallbackRef} = useAutoFocusInput();
+
     return (
         <AmountWithoutCurrencyInput
+            ref={fullscreen ? (inputCallbackRef as (ref: BaseTextInputRef | null) => void) : undefined}
             containerStyles={[styles.ph4, styles.mv2]}
             defaultValue={value}
             onInputChange={setAmount}
@@ -67,7 +72,6 @@ function AmountInput({ref, filterKey, modifier, value, label}: AmountInputProps)
             role={CONST.ROLE.PRESENTATION}
             inputMode={CONST.INPUT_MODE.DECIMAL}
             shouldAllowNegative
-            autoFocus={fullscreen}
         />
     );
 }
@@ -97,9 +101,12 @@ function AmountBetweenInput({ref, filterKey, greaterThanValue, lessThanValue}: A
     const greaterThanLabel = translate('search.filters.amount.greaterThan');
     const lessThanLabel = translate('search.filters.amount.lessThan');
 
+    const {inputCallbackRef} = useAutoFocusInput();
+
     return (
         <View style={[styles.flexRow, styles.gap1, styles.ph4, styles.mv2]}>
             <AmountWithoutCurrencyInput
+                ref={fullscreen ? (inputCallbackRef as (ref: BaseTextInputRef | null) => void) : undefined}
                 containerStyles={styles.flex1}
                 defaultValue={greaterThanValue}
                 onInputChange={setGreaterThanAmount}
@@ -108,7 +115,6 @@ function AmountBetweenInput({ref, filterKey, greaterThanValue, lessThanValue}: A
                 role={CONST.ROLE.PRESENTATION}
                 inputMode={CONST.INPUT_MODE.DECIMAL}
                 shouldAllowNegative
-                autoFocus={fullscreen}
             />
             <AmountWithoutCurrencyInput
                 containerStyles={styles.flex1}

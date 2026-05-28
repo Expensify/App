@@ -1,6 +1,8 @@
 import React from 'react';
 import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterSelectionListProps} from '@components/Search/types';
 import TextInput from '@components/TextInput';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {FILTER_VIEW_MAP, getMultiSelectFilterOptions, getSingleSelectFilterOptions} from '@libs/SearchUIUtils';
@@ -72,15 +74,17 @@ function TextInputFilterComponents({filterKey, value, autoFocus, onChange}: Text
     const styles = useThemeStyles();
 
     const label = translate(FILTER_VIEW_MAP[filterKey].labelKey);
+    const {inputCallbackRef} = useAutoFocusInput();
+
     return (
         <TextInput
+            ref={autoFocus ? (inputCallbackRef as (ref: BaseTextInputRef | null) => void) : undefined}
             placeholder={label}
             value={value}
             onChangeText={onChange}
             accessibilityLabel={label}
             role={CONST.ROLE.PRESENTATION}
             containerStyles={[styles.ph5]}
-            autoFocus={autoFocus}
         />
     );
 }
