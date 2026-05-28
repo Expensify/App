@@ -41,7 +41,10 @@ function MoveUsersBetweenGroupsPage({route}: MoveUsersBetweenGroupsPageProps) {
 
     const memberCount = selectedMemberAccountIDs?.length ?? 0;
 
-    // Redirect back to the members page if there are no members to move.
+    // Redirect back to the members page when there's no selection (e.g. a web URL refresh or a
+    // shared deep link landing here without going through the members page first). Native cold
+    // restarts are handled by excluding this screen from LAST_VISITED_PATH so the user is restored
+    // to the underlying members page directly.
     useEffect(() => {
         if (memberCount > 0) {
             return;
