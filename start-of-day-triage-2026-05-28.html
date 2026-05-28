@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Start of Day Triage — 2026-05-28</title>
+</head>
+<body style="margin:0;padding:24px 0 48px;background:#FBF8F1;font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;color:#1A1A1A;">
+
+<!-- OUTER WRAPPER -->
+<table width="640" cellpadding="0" cellspacing="0" border="0" align="center" style="max-width:640px;margin:0 auto;">
+<tr><td>
+
+  <!-- MASTHEAD -->
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr><td style="border-top:3px solid #9B2C2C;padding-top:20px;"></td></tr>
+    <tr><td style="padding:8px 0 2px;text-align:center;font-family:Georgia,'Times New Roman',serif;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#9B2C2C;">Start of Day</td></tr>
+    <tr><td style="padding:4px 0 8px;text-align:center;font-family:Georgia,'Times New Roman',serif;font-size:34px;font-weight:normal;color:#1A1A1A;line-height:1.1;">Triage &mdash; 2026-05-28</td></tr>
+    <tr><td style="border-bottom:1px solid #E7E1D4;padding-bottom:16px;text-align:center;font-size:12px;color:#6B6B6B;">8 ranked items &middot; generated 08:00 UTC</td></tr>
+  </table>
+
+  <!-- SPACER -->
+  <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="height:28px;"></td></tr></table>
+
+  <!-- ═══════════════════ NOW ═══════════════════ -->
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td style="padding-bottom:4px;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#9B2C2C;font-family:Georgia,'Times New Roman',serif;">Now</td>
+    </tr>
+    <tr>
+      <td style="font-family:Georgia,'Times New Roman',serif;font-size:22px;color:#1A1A1A;padding-bottom:10px;">Ranked Action Items</td>
+    </tr>
+    <tr><td style="border-bottom:1px solid #E7E1D4;padding-bottom:20px;"></td></tr>
+  </table>
+
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:20px;">
+
+    <!-- ITEM 1 -->
+    <tr>
+      <td width="44" valign="top" style="font-family:Georgia,'Times New Roman',serif;font-size:28px;color:#9B2C2C;padding-top:14px;padding-right:12px;">1</td>
+      <td style="background:#FFFFFF;border:1px solid #E7E1D4;border-radius:4px;padding:14px 16px;margin-bottom:12px;">
+        <div style="margin-bottom:6px;">
+          <span style="background:#C0392B;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;letter-spacing:0.5px;">🔴 CRITICAL</span>
+        </div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:6px;line-height:1.3;">
+          <a href="https://github.com/Expensify/App/issues/72125" style="color:#9B2C2C;text-decoration:underline;">Deploy Blocker Crisis: 10 regressions from PR #84382 (Splits in NewDot)</a>
+        </div>
+        <div style="font-size:13px;color:#6B6B6B;line-height:1.5;">
+          <strong style="color:#1A1A1A;">Status:</strong> Open tracking issue · 10 active DeployBlockerCash bugs created May 27–28<br>
+          <strong style="color:#1A1A1A;">Why it matters:</strong> PR #84382 (enabling splits for unreported expenses in #72125) caused a cascade of regressions — "Hmm… it's not here" errors, incorrect totals, blank rate lists, self-DM disappearing, stuck magic-code modals — all blocking the cash deploy. lakchote is assigned CME.<br>
+          <strong style="color:#1A1A1A;">Next action:</strong> Investigate #84382 as the causal regression PR; comment on #72125 with findings; coordinate revert or hotfix with ZhenjaHorbach + garrettmknight today.
+        </div>
+      </td>
+    </tr>
+
+    <tr><td colspan="2" style="height:12px;"></td></tr>
+
+    <!-- ITEM 2 -->
+    <tr>
+      <td width="44" valign="top" style="font-family:Georgia,'Times New Roman',serif;font-size:28px;color:#1A1A1A;padding-top:14px;padding-right:12px;">2</td>
+      <td style="background:#FFFFFF;border:1px solid #E7E1D4;border-radius:4px;padding:14px 16px;">
+        <div style="margin-bottom:6px;">
+          <span style="background:#C0392B;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;letter-spacing:0.5px;">🔴 URGENT</span>
+        </div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:6px;line-height:1.3;">
+          <a href="https://github.com/Expensify/App/pull/91634" style="color:#9B2C2C;text-decoration:underline;">PR #91634 — feat(card): prompt for personal details before virtual card reveal (Review Requested)</a>
+        </div>
+        <div style="font-size:13px;color:#6B6B6B;line-height:1.5;">
+          <strong style="color:#1A1A1A;">Status:</strong> Open, all 30 CI checks green ✅, updated today<br>
+          <strong style="color:#1A1A1A;">Why it matters:</strong> lakchote is the assigned reviewer; melvin-bot requested the Reviewer Checklist 3 days ago (no response yet). Two unresolved P2 Codex inline comments raise real correctness bugs: (a) <code style="font-family:'SF Mono',ui-monospace,Menlo,Consolas,monospace;font-size:12px;">PersonalDetails.ts:525</code> — API.write() drops the revealed card PAN/expiry/CVV so the card page stays masked after successful verification; (b) <code style="font-family:'SF Mono',ui-monospace,Menlo,Consolas,monospace;font-size:12px;">MissingPersonalDetailsMagicCodePage.tsx:72</code> — modal auto-close fires on <code style="font-family:'SF Mono',ui-monospace,Menlo,Consolas,monospace;font-size:12px;">areAllCardsShipped</code> which is never true in the virtual-card reveal path, leaving users stuck.<br>
+          <strong style="color:#1A1A1A;">Next action:</strong> Post Reviewer Checklist comment; evaluate both P2 Codex findings and either resolve (if author already addressed) or leave a blocking comment before approving.
+        </div>
+      </td>
+    </tr>
+
+    <tr><td colspan="2" style="height:12px;"></td></tr>
+
+    <!-- ITEM 3 -->
+    <tr>
+      <td width="44" valign="top" style="font-family:Georgia,'Times New Roman',serif;font-size:28px;color:#1A1A1A;padding-top:14px;padding-right:12px;">3</td>
+      <td style="background:#FFFFFF;border:1px solid #E7E1D4;border-radius:4px;padding:14px 16px;">
+        <div style="margin-bottom:6px;">
+          <span style="background:#D35400;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;letter-spacing:0.5px;">🟠 HIGH</span>
+        </div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:6px;line-height:1.3;">
+          <a href="https://github.com/Expensify/App/issues/91105" style="color:#9B2C2C;text-decoration:underline;">Issue #91105 — [$250] Split revert bug · payment due 2026-06-01</a>
+        </div>
+        <div style="font-size:13px;color:#6B6B6B;line-height:1.5;">
+          <strong style="color:#1A1A1A;">Status:</strong> Open, Overdue, External, Help Wanted · $250 bounty, payment date 4 days away<br>
+          <strong style="color:#1A1A1A;">Why it matters:</strong> Unable to split a reverted split transaction after deleting an unreported split. MelvinBot and contributor proposals are present tracing the root cause to <code style="font-family:'SF Mono',ui-monospace,Menlo,Consolas,monospace;font-size:12px;">deleteTrackExpense</code> bypassing split-aware delete path. No C+ approval of a proposal yet — without one the $250 payment window closes June 1.<br>
+          <strong style="color:#1A1A1A;">Next action:</strong> Review proposals in thread; approve the most complete one (MelvinBot's proposal or nabi-ebrahimi's narrow merge-utils approach); trigger contributor assignment via melvin-bot.
+        </div>
+      </td>
+    </tr>
+
+    <tr><td colspan="2" style="height:12px;"></td></tr>
+
+    <!-- ITEM 4 -->
+    <tr>
+      <td width="44" valign="top" style="font-family:Georgia,'Times New Roman',serif;font-size:28px;color:#1A1A1A;padding-top:14px;padding-right:12px;">4</td>
+      <td style="background:#FFFFFF;border:1px solid #E7E1D4;border-radius:4px;padding:14px 16px;">
+        <div style="margin-bottom:6px;">
+          <span style="background:#D35400;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;letter-spacing:0.5px;">🟠 HIGH</span>
+        </div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:6px;line-height:1.3;">
+          <a href="https://github.com/Expensify/App/issues/89390" style="color:#9B2C2C;text-decoration:underline;">Issue #89390 — [$250] Imported personal card expenses: no merge, wrong icon · Overdue</a>
+        </div>
+        <div style="font-size:13px;color:#6B6B6B;line-height:1.5;">
+          <strong style="color:#1A1A1A;">Status:</strong> Open, Overdue (melvin-bot fired), External, Help Wanted · $250 bounty<br>
+          <strong style="color:#1A1A1A;">Why it matters:</strong> Created May 1, now 27 days old. lakchote's last comment (May 25): "still needs backend investigation." Multiple strong proposals exist with detailed code diffs (especially nabi-ebrahimi's narrow merge-utils fix and emkhalid's comprehensive patch). The backend-only symptoms (unreported + auto-merge) may not be solvable frontend-side, but the icon/merge-target bug can be fixed in App now.<br>
+          <strong style="color:#1A1A1A;">Next action:</strong> Decide whether to split into FE-fixable (icon/target) + BE-tracked subtasks; approve the FE portion of nabi-ebrahimi's or emkhalid's proposal; leave a clear comment so melvin-bot stops firing overdue alerts.
+        </div>
+      </td>
+    </tr>
+
+    <tr><td colspan="2" style="height:12px;"></td></tr>
+
+    <!-- ITEM 5 -->
+    <tr>
+      <td width="44" valign="top" style="font-family:Georgia,'Times New Roman',serif;font-size:28px;color:#1A1A1A;padding-top:14px;padding-right:12px;">5</td>
+      <td style="background:#FFFFFF;border:1px solid #E7E1D4;border-radius:4px;padding:14px 16px;">
+        <div style="margin-bottom:6px;">
+          <span style="background:#D35400;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;letter-spacing:0.5px;">🟠 HIGH</span>
+        </div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:6px;line-height:1.3;">
+          Internal Overdue Tasks: Accounting End-of-Month + CAP Software (Expensify/Expensify)
+        </div>
+        <div style="font-size:13px;color:#6B6B6B;line-height:1.5;">
+          <strong style="color:#1A1A1A;">Status:</strong> Both labeled <em>Overdue</em>, Daily cadence<br>
+          <strong style="color:#1A1A1A;">Issues:</strong>
+          <a href="https://github.com/Expensify/Expensify/issues/640619" style="color:#9B2C2C;text-decoration:underline;">#640619 Accounting End-of-Month May 2026</a> ·
+          <a href="https://github.com/Expensify/Expensify/issues/640429" style="color:#9B2C2C;text-decoration:underline;">#640429 CAP Software May 2026</a><br>
+          <strong style="color:#1A1A1A;">Why it matters:</strong> Both are Daily cadence tasks flagged Overdue. End-of-month accounting is especially time-sensitive since we are at the end of May 2026.<br>
+          <strong style="color:#1A1A1A;">Next action:</strong> Post status update on both; complete or escalate the monthly accounting close and CAP tracking.
+        </div>
+      </td>
+    </tr>
+
+    <tr><td colspan="2" style="height:12px;"></td></tr>
+
+    <!-- ITEM 6 -->
+    <tr>
+      <td width="44" valign="top" style="font-family:Georgia,'Times New Roman',serif;font-size:28px;color:#1A1A1A;padding-top:14px;padding-right:12px;">6</td>
+      <td style="background:#FFFFFF;border:1px solid #E7E1D4;border-radius:4px;padding:14px 16px;">
+        <div style="margin-bottom:6px;">
+          <span style="background:#B7950B;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;letter-spacing:0.5px;">🟡 MEDIUM</span>
+        </div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:6px;line-height:1.3;">
+          <a href="https://github.com/Expensify/App/issues/66415" style="color:#9B2C2C;text-decoration:underline;">Issue #66415 — Remove Onyx.connect() for POLICY key · Awaiting Payment · BugZero Checklist Incomplete</a>
+        </div>
+        <div style="font-size:13px;color:#6B6B6B;line-height:1.5;">
+          <strong style="color:#1A1A1A;">Status:</strong> Open, Reviewing, Awaiting Payment · 3 PRs merged (#84704, #85211, #86191) · payment was scheduled ~Apr 14<br>
+          <strong style="color:#1A1A1A;">Why it matters:</strong> DylanDylann and dukenv0307 are each owed $250 via NewDot. The BugZero checklist is still unchecked. DylanDylann noted in April that "more PRs are needed" — but three have since shipped. The payment loop is stalled and CME credit is at risk if the checklist doesn't get completed.<br>
+          <strong style="color:#1A1A1A;">Next action:</strong> Confirm with DylanDylann whether additional PRs are truly required or if the issue can now be closed; if complete, prompt @mallenexpensify to finish the BugZero checklist and process payment.
+        </div>
+      </td>
+    </tr>
+
+    <tr><td colspan="2" style="height:12px;"></td></tr>
+
+    <!-- ITEM 7 -->
+    <tr>
+      <td width="44" valign="top" style="font-family:Georgia,'Times New Roman',serif;font-size:28px;color:#1A1A1A;padding-top:14px;padding-right:12px;">7</td>
+      <td style="background:#FFFFFF;border:1px solid #E7E1D4;border-radius:4px;padding:14px 16px;">
+        <div style="margin-bottom:6px;">
+          <span style="background:#B7950B;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;letter-spacing:0.5px;">🟡 MEDIUM</span>
+        </div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:6px;line-height:1.3;">
+          <a href="https://github.com/Expensify/App/pull/70852" style="color:#9B2C2C;text-decoration:underline;">PR #70852 — [HOLD] Update Expensify-Card-Perks.md (Review Requested, Stale ~8 months)</a>
+        </div>
+        <div style="font-size:13px;color:#6B6B6B;line-height:1.5;">
+          <strong style="color:#1A1A1A;">Status:</strong> Open, HOLD, by VictoriaExpensify · 1 addition / 1 deletion in a Markdown doc · Concierge checklist already done by kadiealexander<br>
+          <strong style="color:#1A1A1A;">Why it matters:</strong> lakchote is requested reviewer. The Reviewer Checklist was requested by melvin-bot on Sep 19, 2025 — never posted. The HOLD title signals it's waiting on an upstream Expensify issue (#503962, EC UK/EU card updates). Low urgency but the outstanding checklist request is noise.<br>
+          <strong style="color:#1A1A1A;">Next action:</strong> Check whether Expensify/Expensify#503962 has been resolved; if still on hold, leave a short comment confirming the hold status is still valid and the checklist will be posted once unblocked.
+        </div>
+      </td>
+    </tr>
+
+    <tr><td colspan="2" style="height:12px;"></td></tr>
+
+    <!-- ITEM 8 -->
+    <tr>
+      <td width="44" valign="top" style="font-family:Georgia,'Times New Roman',serif;font-size:28px;color:#1A1A1A;padding-top:14px;padding-right:12px;">8</td>
+      <td style="background:#FFFFFF;border:1px solid #E7E1D4;border-radius:4px;padding:14px 16px;">
+        <div style="margin-bottom:6px;">
+          <span style="background:#2471A3;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;letter-spacing:0.5px;">🔵 MONITOR</span>
+        </div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:6px;line-height:1.3;">
+          <a href="https://github.com/Expensify/App/issues/80957" style="color:#9B2C2C;text-decoration:underline;">Issue #80957 — CC field / Invite to expense report · Awaiting Payment · Design undecided</a>
+        </div>
+        <div style="font-size:13px;color:#6B6B6B;line-height:1.5;">
+          <strong style="color:#1A1A1A;">Status:</strong> Open, Reviewing, Awaiting Payment, NewFeature · No PR raised · last substantive discussion Feb 23, 2026<br>
+          <strong style="color:#1A1A1A;">Why it matters:</strong> JmillsExpensify proposed a "Share in More menu" approach in Feb but no consensus reached. M00rish (contributor) is blocked waiting for the API command decision. 3+ months stalled.<br>
+          <strong style="color:#1A1A1A;">Next action:</strong> Not immediately closeable — design direction needs to be settled before a PR can proceed. Flag with JmillsExpensify for a decision; no immediate code action required.
+        </div>
+      </td>
+    </tr>
+
+  </table>
+
+  <!-- SPACER -->
+  <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="height:36px;"></td></tr></table>
+
+  <!-- ═══════════════════ WHY ═══════════════════ -->
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td style="padding-bottom:4px;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#9B2C2C;font-family:Georgia,'Times New Roman',serif;">Why</td>
+    </tr>
+    <tr>
+      <td style="font-family:Georgia,'Times New Roman',serif;font-size:22px;color:#1A1A1A;padding-bottom:10px;">Justification per Item</td>
+    </tr>
+    <tr><td style="border-bottom:1px solid #E7E1D4;padding-bottom:16px;"></td></tr>
+  </table>
+
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:16px;">
+    <tr><td style="padding:8px 0;font-size:13px;line-height:1.6;"><strong style="color:#9B2C2C;">#1</strong> — Ten distinct DeployBlockerCash issues were filed between May 27–28, all confirmed by QA engineers as regressions of PR #84382 ("Enable splits for unreported expenses"). Each one independently blocks the cash release; together they constitute a critical regression event requiring immediate CME triage.</td></tr>
+    <tr><td style="padding:8px 0;font-size:13px;line-height:1.6;"><strong style="color:#9B2C2C;">#2</strong> — PR #91634 is fully green today and the author (DylanDylann) is actively waiting; the Reviewer Checklist was never posted despite being requested 3 days ago. The two unresolved Codex P2 inline comments (card details dropped, modal stuck) are genuine product defects, not style nits — approving without addressing them ships broken behavior to users.</td></tr>
+    <tr><td style="padding:8px 0;font-size:13px;line-height:1.6;"><strong style="color:#9B2C2C;">#3</strong> — Issue #91105 carries an explicit "Due for payment 2026-06-01" title and a $250 bounty. Without a C+ proposal approval today, the payment window will lapse and the contributor loses compensation — and the split revert bug remains unfixed.</td></tr>
+    <tr><td style="padding:8px 0;font-size:13px;line-height:1.6;"><strong style="color:#9B2C2C;">#4</strong> — Issue #89390 has been open 27 days with the Overdue label applied. Several detailed proposals exist (nabi-ebrahimi, emkhalid) that correctly isolate the FE-solvable portion (merge target + icon) from the BE-only portion (unreported + auto-merge). A decision to split the scope and approve the FE fix would unlock progress and silence the overdue alerts.</td></tr>
+    <tr><td style="padding:8px 0;font-size:13px;line-height:1.6;"><strong style="color:#9B2C2C;">#5</strong> — #640619 and #640429 are Daily cadence issues with the Overdue label. The accounting close is especially time-sensitive at month-end May 2026; delay compounds the cost of reconciliation.</td></tr>
+    <tr><td style="padding:8px 0;font-size:13px;line-height:1.6;"><strong style="color:#9B2C2C;">#6</strong> — Three separate PRs have been merged for issue #66415 since March 2026 and payment was scheduled for April 14. The BugZero checklist remains unchecked after 6+ weeks. DylanDylann's April comment ("we need more PRs") may no longer be accurate — confirming either closure or the remaining scope would unlock the $500+ payment owed to contributors.</td></tr>
+    <tr><td style="padding:8px 0;font-size:13px;line-height:1.6;"><strong style="color:#9B2C2C;">#7</strong> — PR #70852 is on intentional HOLD and the doc change is trivially small. The only actionable item is confirming the hold reason is still valid and adding a brief comment — this prevents the melvin-bot overdue cycle from firing indefinitely.</td></tr>
+    <tr><td style="padding:8px 0;font-size:13px;line-height:1.6;"><strong style="color:#9B2C2C;">#8</strong> — Issue #80957 is furthest from closure: no PR, design direction unresolved, contributor blocked on an API command question since February. It is surface-level "Awaiting Payment" but has no actionable path without a product decision from JmillsExpensify.</td></tr>
+  </table>
+
+  <!-- SPACER -->
+  <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="height:36px;"></td></tr></table>
+
+  <!-- ═══════════════════ DRAFT REPLIES ═══════════════════ -->
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td style="padding-bottom:4px;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#9B2C2C;font-family:Georgia,'Times New Roman',serif;">Draft Replies</td>
+    </tr>
+    <tr>
+      <td style="font-family:Georgia,'Times New Roman',serif;font-size:22px;color:#1A1A1A;padding-bottom:10px;">Ready-to-Paste Comments</td>
+    </tr>
+    <tr><td style="border-bottom:1px solid #E7E1D4;padding-bottom:16px;"></td></tr>
+  </table>
+
+  <!-- Draft 1 -->
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:20px;">
+    <tr>
+      <td style="background:#FFFFFF;border-left:3px solid #9B2C2C;border-top:1px solid #E7E1D4;border-right:1px solid #E7E1D4;border-bottom:1px solid #E7E1D4;border-radius:0 4px 4px 0;padding:14px 16px;margin-bottom:16px;">
+        <div style="font-size:11px;color:#6B6B6B;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">PR #91634 — REVIEWER CHECKLIST COMMENT</div>
+        <pre style="font-family:'SF Mono',ui-monospace,Menlo,Consolas,monospace;font-size:12px;line-height:1.6;white-space:pre-wrap;margin:0;color:#1A1A1A;">## Reviewer Checklist
+
+- [ ] I have verified the author checklist is complete (all boxes checked).
+- [ ] I have verified the correct issue is linked in the Fixed Issues section.
+- [ ] I have verified that the PR description clearly explains the change.
+- [ ] I have reviewed the code change in this PR and confirm it:
+    - [ ] Does not introduce obvious regressions or introduce tech debt unnecessarily.
+    - [ ] Follows the coding standards and guidelines for the repository.
+    - [ ] Is DRY (does not duplicate logic).
+    - [ ] Uses appropriate types and avoids the use of `any`.
+- [ ] I have verified the test steps and confirmed the change works on all platforms.
+- [ ] I have checked for missing translations (all user-facing strings are localized).
+- [ ] I have checked that no console errors are present.
+- [ ] I have verified there are no Onyx-related issues (`canBeMissing`, stale keys, etc.).
+
+### Notes for author:
+
+Two unresolved P2 Codex inline comments require attention before this can be approved:
+
+1. **`PersonalDetails.ts:525`** — `setPersonalDetailsAndRevealExpensifyCard` uses `API.write()` which never reads the response payload. The revealed card PAN/expiry/CVV returned by `SetPersonalDetailsAndRevealExpensifyCard` is dropped, so `ExpensifyCardPage` never receives updated card details. Please switch to `API.read()` or ensure the card details are propagated via the response handler.
+
+2. **`MissingPersonalDetailsMagicCodePage.tsx:72`** — The modal auto-closes when `areAllCardsShipped` is `true`, but for a virtual card reveal no cards are being shipped, so this condition will never be met. Users will be stuck on the magic-code modal after completing verification. Please add a separate `isVirtualCard` close path.
+
+Please address these before requesting re-review. Happy to discuss further if the behavior is intentional.
+</pre>
+      </td>
+    </tr>
+  </table>
+
+  <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="height:14px;"></td></tr></table>
+
+  <!-- Draft 2 -->
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td style="background:#FFFFFF;border-left:3px solid #9B2C2C;border-top:1px solid #E7E1D4;border-right:1px solid #E7E1D4;border-bottom:1px solid #E7E1D4;border-radius:0 4px 4px 0;padding:14px 16px;margin-bottom:16px;">
+        <div style="font-size:11px;color:#6B6B6B;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Issue #89390 — STATUS UPDATE COMMENT</div>
+        <pre style="font-family:'SF Mono',ui-monospace,Menlo,Consolas,monospace;font-size:12px;line-height:1.6;white-space:pre-wrap;margin:0;color:#1A1A1A;">Not overdue — I'm splitting this issue's scope to unblock progress:
+
+**FE-fixable (can be done in App now):** The incorrect cash icon and wrong merge target after manual merge can be fixed in `MergeTransactionUtils.ts` by preserving card identity fields when the card transaction is not selected as the merge target. nabi-ebrahimi and emkhalid's proposals correctly describe this approach without changing `isFromCreditCardImport()`.
+
+**Requires backend investigation:** The "unreported after CSV import" and "auto-merge with receipts not triggering" symptoms need investigation/changes in the `ImportCSVTransactions` backend command.
+
+Approving the FE portion of the proposal for the icon/merge-target fix. Will open a separate tracking issue for the backend symptoms. @thesahindia please assign a contributor to the FE scope only.
+</pre>
+      </td>
+    </tr>
+  </table>
+
+  <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="height:14px;"></td></tr></table>
+
+  <!-- Draft 3 -->
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td style="background:#FFFFFF;border-left:3px solid #9B2C2C;border-top:1px solid #E7E1D4;border-right:1px solid #E7E1D4;border-bottom:1px solid #E7E1D4;border-radius:0 4px 4px 0;padding:14px 16px;">
+        <div style="font-size:11px;color:#6B6B6B;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Issue #66415 — PAYMENT FOLLOW-UP COMMENT</div>
+        <pre style="font-family:'SF Mono',ui-monospace,Menlo,Consolas,monospace;font-size:12px;line-height:1.6;white-space:pre-wrap;margin:0;color:#1A1A1A;">@DylanDylann — three PRs have now been merged (#84704, #85211, #86191). Can you confirm whether the remaining `Onyx.connect()` references for `ONYXKEYS.COLLECTION.POLICY` in `ReportUtils.ts` have been fully removed, or if additional PRs are still needed?
+
+If the issue is complete, please post the BugZero checklist so @mallenexpensify can process the $250 payments to you and @dukenv0307. It has been 6+ weeks since the last payment scheduled date.
+</pre>
+      </td>
+    </tr>
+  </table>
+
+  <!-- SPACER -->
+  <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="height:36px;"></td></tr></table>
+
+  <!-- ═══════════════════ SUGGESTED COMMANDS ═══════════════════ -->
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td style="padding-bottom:4px;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#9B2C2C;font-family:Georgia,'Times New Roman',serif;">Suggested Commands</td>
+    </tr>
+    <tr>
+      <td style="font-family:Georgia,'Times New Roman',serif;font-size:22px;color:#1A1A1A;padding-bottom:10px;">Quick Links for the Terminal</td>
+    </tr>
+    <tr><td style="border-bottom:1px solid #E7E1D4;padding-bottom:16px;"></td></tr>
+  </table>
+
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:16px;">
+    <tr>
+      <td style="background:#1A1A1A;border-radius:4px;padding:16px 20px;">
+        <pre style="font-family:'SF Mono',ui-monospace,Menlo,Consolas,monospace;font-size:13px;color:#FBF8F1;line-height:1.8;margin:0;white-space:pre-wrap;"># 1. Investigate the regressing PR that caused all 10 deploy blockers
+open https://github.com/Expensify/App/pull/84382
+
+# 2. Deploy blocker tracking issue — leave CME investigation comment
+open https://github.com/Expensify/App/issues/72125
+
+# 3. PR needing your Reviewer Checklist + P2 bug review (all-green CI)
+open https://github.com/Expensify/App/pull/91634
+
+# 4. Individual deploy blockers (triage / prioritize)
+open https://github.com/Expensify/App/issues/91920
+open https://github.com/Expensify/App/issues/91917
+open https://github.com/Expensify/App/issues/91907
+
+# 5. $250 payment due June 1 — approve proposal today
+open https://github.com/Expensify/App/issues/91105
+
+# 6. Overdue personal card merge bug — approve FE scope
+open https://github.com/Expensify/App/issues/89390
+
+# 7. Overdue internal accounting issue (Expensify repo)
+open https://github.com/Expensify/Expensify/issues/640619
+
+# 8. Check BugZero checklist status and confirm closure eligibility
+open https://github.com/Expensify/App/issues/66415</pre>
+      </td>
+    </tr>
+  </table>
+
+  <!-- SPACER -->
+  <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="height:36px;"></td></tr></table>
+
+  <!-- ═══════════════════ LINKS ═══════════════════ -->
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td style="padding-bottom:4px;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#9B2C2C;font-family:Georgia,'Times New Roman',serif;">Links</td>
+    </tr>
+    <tr>
+      <td style="font-family:Georgia,'Times New Roman',serif;font-size:22px;color:#1A1A1A;padding-bottom:10px;">All Referenced URLs</td>
+    </tr>
+    <tr><td style="border-bottom:1px solid #E7E1D4;padding-bottom:16px;"></td></tr>
+  </table>
+
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:16px;">
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/issues/72125" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/issues/72125</a> — [Splits in NewDot] Enable Splits for unreported expenses (tracking)</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/pull/84382" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/pull/84382</a> — PR linked to all 10 deploy blocker regressions</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/pull/91634" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/pull/91634</a> — feat(card): prompt for personal details before virtual card reveal</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/issues/91920" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/issues/91920</a> — Deploy Blocker: Incorrect Total Spend after splitting unreported expense</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/issues/91918" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/issues/91918</a> — Deploy Blocker: Extra expense displayed when deleting split offline</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/issues/91917" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/issues/91917</a> — Deploy Blocker: "Hmm… it's not here" when removing split expense</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/issues/91913" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/issues/91913</a> — Deploy Blocker: Self DM disappears after moving/deleting split</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/issues/91907" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/issues/91907</a> — Deploy Blocker: Unreported split not reverted after submit+delete</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/issues/91879" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/issues/91879</a> — Deploy Blocker: Add category opens "not here" in self DM</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/issues/91878" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/issues/91878</a> — Deploy Blocker: Error editing amount/distance/rate in self DM split</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/issues/91876" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/issues/91876</a> — Deploy Blocker: Rate list blank with personal rate</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/issues/91875" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/issues/91875</a> — Deploy Blocker: Original split remains after splitting undeleted split</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/issues/91874" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/issues/91874</a> — Deploy Blocker: Rate field disabled with non-default workspaces only</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/issues/91105" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/issues/91105</a> — [$250] Split revert bug · payment due 2026-06-01</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/issues/89390" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/issues/89390</a> — [$250] Imported personal card expenses: no merge, wrong icon · Overdue</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/Expensify/issues/640619" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/Expensify/issues/640619</a> — Accounting End-of-Month May 2026 · Overdue</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/Expensify/issues/640429" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/Expensify/issues/640429</a> — CAP Software May 2026 · Overdue</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/issues/66415" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/issues/66415</a> — Remove Onyx.connect() for POLICY key · Awaiting Payment</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/pull/70852" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/pull/70852</a> — [HOLD] Update Expensify-Card-Perks.md</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/issues/80957" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/issues/80957</a> — CC field / Invite to expense report · Awaiting Payment</td></tr>
+  </table>
+
+  <!-- SPACER -->
+  <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="height:36px;"></td></tr></table>
+
+  <!-- FOOTER -->
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr><td style="border-top:1px solid #E7E1D4;padding-top:16px;text-align:center;font-size:11px;color:#6B6B6B;">Automated read-only triage &middot; no actions were taken on your behalf</td></tr>
+  </table>
+
+</td></tr>
+</table>
+
+</body>
+</html>
