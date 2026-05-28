@@ -40,8 +40,10 @@ import type {
     StatementPeriodEnd,
     StatementPeriodEndDay,
 } from '@src/types/onyx/CardFeeds';
+import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type Transaction from '@src/types/onyx/Transaction';
+import {getImportFailedFinalModal, getImportFinalModalID, getImportFinalModalOnyxData, waitForImportFinalModal} from './ImportSpreadsheet';
 
 type AddNewCompanyCardFlowData = {
     /** Step to be set in Onyx */
@@ -316,7 +318,6 @@ function deleteWorkspaceCompanyCardFeed(
     const optimisticFeedUpdates = {[bankName]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}};
     const failureFeedUpdates = {[bankName]: {pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')}};
     const optimisticCardUpdates = Object.fromEntries(cardIDs.map((cardID) => [cardID, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}]));
-    const successCardUpdates = Object.fromEntries(cardIDs.map((cardID) => [cardID, null]));
     const failureCardUpdates = Object.fromEntries(cardIDs.map((cardID) => [cardID, {pendingAction: null}]));
 
     const optimisticData: Array<
@@ -349,11 +350,12 @@ function deleteWorkspaceCompanyCardFeed(
     ];
 
     // Card collections only: API onyxData provides SHARED_NVP on success (avoid merge-after-set on that key).
+    const successCardUpdates = Object.fromEntries(cardIDs.map((cardID) => [cardID, null]));
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST | typeof ONYXKEYS.CARD_LIST>> = [
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${bankName}`,
-            value: successCardUpdates,
+            value: null,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1119,7 +1121,7 @@ function importCSVCompanyCards({
     lastSelectedFeed,
     workspaceCardFeeds,
     existingInstanceID,
-}: ImportCSVCompanyCardsData) {
+}: ImportCSVCompanyCardsData): Promise<ImportFinalModal> {
     const feedName = layoutType as CompanyCardFeed;
     const {csvDataWithGeneratedIDs, normalizedColumnMappings, transactions} = buildOptimisticCompanyCardCSVTransactions(csvData, columnMappings, feedName);
     const instanceID = existingInstanceID ?? Date.now().toString();
@@ -1151,24 +1153,18 @@ function importCSVCompanyCards({
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IMPORTED_SPREADSHEET>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.IMPORTED_SPREADSHEET,
-            value: {
-                shouldFinalModalBeOpened: true,
-                shouldShowPendingMessage: true,
-                importFinalModal: {
-                    titleKey: 'spreadsheet.importSuccessfulTitle',
-                    promptKey: 'spreadsheet.importCompanyCardTransactionsSuccessfulDescription',
-                    promptKeyParams: {
-                        transactions: transactionsCount,
-                    },
-                },
-            },
+    const importFinalModal: ImportFinalModal = {
+        titleKey: 'spreadsheet.importSuccessfulTitle',
+        promptKey: 'spreadsheet.importCompanyCardTransactionsSuccessfulDescription',
+        promptKeyParams: {
+            transactions: transactionsCount,
         },
-    ];
+        pendingMessageKey: 'spreadsheet.importCompanyCardTransactionsPendingMessage',
+    };
+    const importFinalModalID = getImportFinalModalID();
+    const importFinalModalResult = waitForImportFinalModal(importFinalModalID);
 
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IMPORTED_SPREADSHEET>> = [getImportFinalModalOnyxData(importFinalModalID, importFinalModal)];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER | typeof ONYXKEYS.COLLECTION.LAST_SELECTED_FEED | typeof ONYXKEYS.IMPORTED_SPREADSHEET>> =
         [
             {
@@ -1176,17 +1172,7 @@ function importCSVCompanyCards({
                 key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`,
                 value: lastSelectedFeed ?? null,
             },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                value: {
-                    shouldFinalModalBeOpened: true,
-                    importFinalModal: {
-                        titleKey: 'spreadsheet.importFailedTitle',
-                        promptKey: 'spreadsheet.importFailedDescription',
-                    },
-                },
-            },
+            getImportFinalModalOnyxData(importFinalModalID, getImportFailedFinalModal()),
         ];
 
     if (shouldCreateFeed || shouldSetNickname) {
@@ -1228,7 +1214,12 @@ function importCSVCompanyCards({
         });
     }
 
-    API.write(WRITE_COMMANDS.IMPORT_CSV_COMPANY_CARDS, parameters, {optimisticData, successData, failureData});
+    return API.write(WRITE_COMMANDS.IMPORT_CSV_COMPANY_CARDS, parameters, {optimisticData, successData, failureData})
+        .then(() => importFinalModalResult.promise)
+        .catch(() => {
+            importFinalModalResult.cancel();
+            return getImportFailedFinalModal();
+        });
 }
 
 /**

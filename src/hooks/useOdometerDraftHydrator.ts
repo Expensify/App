@@ -1,7 +1,7 @@
 import {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {IOURequestType} from '@userActions/IOU';
-import {hydrateOdometerDraftIntoTransaction} from '@userActions/OdometerTransactionUtils';
+import {hydrateOdometerDraftIntoTransaction, isOdometerDraftPendingHydration} from '@userActions/OdometerTransactionUtils';
+import type {IOURequestType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OdometerDraft, Transaction} from '@src/types/onyx';
@@ -39,9 +39,14 @@ function useOdometerDraftHydrator({
         if (lastHydratedDraft === odometerDraft) {
             return;
         }
+        // Skip when the comment already matches the draft; re-minting blob URLs from base64 would flash the receipt.
+        if (!isOdometerDraftPendingHydration(odometerDraft, transaction?.comment)) {
+            lastHydratedDraft = odometerDraft;
+            return;
+        }
         hydrateOdometerDraftIntoTransaction(transaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID, odometerDraft, transaction?.comment);
         lastHydratedDraft = odometerDraft;
-        // transaction.comment intentionally excluded — it changes after our own merge and would re-fire.
+        // transaction.comment intentionally excluded - it changes after our own merge and would re-fire.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionRequestType, odometerDraft, isLoadingTransaction, isLoadingSelectedTab]);
 

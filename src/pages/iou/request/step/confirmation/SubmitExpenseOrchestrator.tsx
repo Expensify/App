@@ -1,7 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import DateUtils from '@libs/DateUtils';
-import {reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
+import {cancelDeferredWrite, flushDeferredWrite, reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
@@ -10,11 +10,11 @@ import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopm
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import {getReportOrDraftReport} from '@libs/ReportUtils';
+import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
 import {setFastPath, setPendingSubmitFollowUpAction, startTracking} from '@libs/telemetry/submitFollowUpAction';
-import {updateLastLocationPermissionPrompt} from '@userActions/IOU';
+import {updateLastLocationPermissionPrompt} from '@userActions/IOU/MoneyRequest';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -175,7 +175,7 @@ function SubmitExpenseOrchestrator({
             isReportPreInserted: isPreInserted && Navigation.getPreInsertedFullscreenRouteName() === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
             isFromGlobalCreate,
             canDismissFromSearch,
-            isSplitRequest: iouType === CONST.IOU.TYPE.SPLIT,
+            navigatesToDestinationReport: iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK,
             destinationReportID,
             isReportInRHP: isReportOpenInRHP(rootState),
             isReportTopmostSplit: isReportTopmostSplitNavigator(),
@@ -208,7 +208,7 @@ function SubmitExpenseOrchestrator({
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.REPORT_PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         Navigation.clearFullscreenPreInsertedFlag();
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, destinationReportID);
-        reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+        reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID});
         Navigation.dismissModal({
             afterTransition: () => {
                 createTransaction(listOfParticipants, false, false);
@@ -219,7 +219,8 @@ function SubmitExpenseOrchestrator({
 
     const handleDismissModalFastPath = (listOfParticipants: Participant[]) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_MODAL, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
-        reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+        const shouldPreserveSearchWithPlaceholder = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK) && isSearchTopmostFullScreenRoute();
+        reserveDeferredWriteChannel(shouldPreserveSearchWithPlaceholder ? CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH : CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID});
 
         const runAfterDismiss = () => {
             createTransaction(listOfParticipants, false, false);
@@ -268,6 +269,37 @@ function SubmitExpenseOrchestrator({
         });
     };
 
+    const handleDismissToReport = (listOfParticipants: Participant[]) => {
+        if (!destinationReportID) {
+            // Tracking already started in onSubmit; just override the fast path label.
+            Log.warn('[SubmitExpenseOrchestrator] handleDismissToReport reached without destinationReportID - falling back to default submit');
+            setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
+            // Matches the handleDefaultSubmit pattern: first rAF yields the JS
+            // thread so the current render cycle completes, second rAF delays
+            // unblocking the confirm button until the transaction creation has
+            // committed to Onyx and a fresh render is queued. The double-rAF
+            // is intentionally the same approach used in handleDefaultSubmit so
+            // this fallback behaves identically to the standard submit path.
+            requestAnimationFrame(() => {
+                createTransaction(listOfParticipants);
+                requestAnimationFrame(() => {
+                    setIsConfirming(false);
+                });
+            });
+            return;
+        }
+
+        setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_TO_REPORT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
+        setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, destinationReportID);
+
+        Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(destinationReportID), {
+            afterTransition: () => {
+                createTransaction(listOfParticipants, false, false);
+                setIsConfirming(false);
+            },
+        });
+    };
+
     const handleDefaultSubmit = (listOfParticipants: Participant[]) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
         requestAnimationFrame(() => {
@@ -278,14 +310,28 @@ function SubmitExpenseOrchestrator({
         });
     };
 
-    // Unlike handleDismissModalFastPath, this handler does NOT call reserveDeferredWriteChannel.
-    // The createTransaction call runs inside runAfterDismiss (after the transition completes),
-    // so there is no animation to protect - the write can execute immediately via deferOrExecuteWrite.
+    // The createTransaction call runs inside runAfterDismiss (after the transition completes).
+    // When the destination report is empty we reserve a DISMISS_MODAL deferred-write channel
+    // so that MoneyRequestReportActionsList can show a loading skeleton instead of the
+    // "no expenses" empty state while the dismiss animation plays.
     const handleReportInRHPDismiss = (listOfParticipants: Participant[]) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.REPORT_IN_RHP_DISMISS, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         const rootState = navigationRef.getRootState();
 
+        const report = destinationReportID ? getReportOrDraftReport(destinationReportID) : undefined;
+        const isDestinationEmpty = !!report && isMoneyRequestReport(report) && !report.transactionCount;
+        if (isDestinationEmpty) {
+            reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID});
+        }
+
         const runAfterDismiss = () => {
+            // Flush signals readiness on the reserved channel. Since no real write was
+            // registered, the channel transitions to flushRequested. When createTransaction
+            // below calls deferOrExecuteWrite, it sees the flushed channel and executes
+            // the write immediately instead of deferring.
+            if (isDestinationEmpty) {
+                flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+            }
             createTransaction(listOfParticipants, false, false);
             setIsConfirming(false);
         };
@@ -301,6 +347,9 @@ function SubmitExpenseOrchestrator({
         }
 
         Log.warn('[SubmitExpenseOrchestrator] handleReportInRHPDismiss reached without destinationReportID - falling back to default submit');
+        if (isDestinationEmpty) {
+            cancelDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+        }
         handleDefaultSubmit(listOfParticipants);
     };
 
@@ -333,6 +382,7 @@ function SubmitExpenseOrchestrator({
             [SUBMIT_HANDLER.SEARCH_PRE_INSERT]: () => handleSearchPreInsert(listOfParticipants),
             [SUBMIT_HANDLER.REPORT_PRE_INSERT]: () => handleReportPreInsert(listOfParticipants),
             [SUBMIT_HANDLER.DISMISS_MODAL]: () => handleDismissModalFastPath(listOfParticipants),
+            [SUBMIT_HANDLER.DISMISS_TO_REPORT]: () => handleDismissToReport(listOfParticipants),
             [SUBMIT_HANDLER.REPORT_IN_RHP_DISMISS]: () => handleReportInRHPDismiss(listOfParticipants),
             [SUBMIT_HANDLER.SEARCH_DISMISS]: () => handleSearchDismiss(listOfParticipants),
             [SUBMIT_HANDLER.DEFAULT]: () => handleDefaultSubmit(listOfParticipants),

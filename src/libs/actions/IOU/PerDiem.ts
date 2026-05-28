@@ -49,19 +49,19 @@ import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getAllPersonalDetails, getAllReports, getPolicyTags} from '.';
 import {
     buildMinimalTransactionForFormula,
     buildOnyxDataForMoneyRequest,
-    getAllPersonalDetails,
-    getAllReports,
-    getPolicyTags,
     getReportPreviewAction,
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
-} from '.';
-import type {BaseTransactionParams, MoneyRequestInformation, RequestMoneyParticipantParams} from './index';
+} from './MoneyRequestBuilder';
+import type {MoneyRequestInformation} from './MoneyRequestBuilder';
 import {dismissModalAndOpenReportInInboxTab, highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
 import type BasePolicyParams from './types/BasePolicyParams';
+import type BaseTransactionParams from './types/BaseTransactionParams';
+import type RequestMoneyParticipantParams from './types/RequestMoneyParticipantParams';
 
 function removeSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex: string) {
     // Index comes from the route params and is a string
@@ -1015,7 +1015,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         notifyNewAction(activeReportID, undefined, participantParams.payeeAccountID === currentUserAccountIDParam);
     }
 
-    return {iouReport};
+    return {iouReport, transactionID: transaction.transactionID};
 }
 
 /**

@@ -7,12 +7,12 @@ import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
+import {getDecodedLeafCategoryName} from '@libs/CategoryUtils';
 import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -41,6 +41,7 @@ function SplitListItem<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const splitItem = item as unknown as SplitListItemType;
 
     const formattedOriginalAmount = convertToDisplayStringWithoutCurrency(splitItem.originalAmount, splitItem.currency);
@@ -93,7 +94,7 @@ function SplitListItem<TItem extends ListItem>({
     const textContentAccessibilityLabel = [
         splitItem.headerText,
         splitItem.merchant,
-        splitItem.category ? getDecodedCategoryName(splitItem.category) : undefined,
+        splitItem.category ? getDecodedLeafCategoryName(splitItem.category) : undefined,
         splitItem.tags?.at(0) ? getCommaSeparatedTagNameWithSanitizedColons(splitItem.tags.at(0) ?? '') : undefined,
     ]
         .filter(Boolean)
@@ -172,7 +173,7 @@ function SplitListItem<TItem extends ListItem>({
                                         numberOfLines={1}
                                         style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
                                     >
-                                        {getDecodedCategoryName(splitItem.category)}
+                                        {getDecodedLeafCategoryName(splitItem.category)}
                                     </Text>
                                 </View>
                             )}

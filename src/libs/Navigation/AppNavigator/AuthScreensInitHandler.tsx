@@ -18,8 +18,10 @@ import {getReportIDFromLink} from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getSearchParamFromUrl} from '@libs/Url';
+import {openAgentsPage} from '@userActions/Agent';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
+import {clearStaleExportDownloads} from '@userActions/Export';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
@@ -29,13 +31,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 
-function initializePusher(currentUserAccountID?: number, getReportAttributes?: () => ReportAttributesDerivedValue['reports'] | undefined) {
+function initializePusher(currentUserAccountID?: number, currentUserEmail?: string, getReportAttributes?: () => ReportAttributesDerivedValue['reports'] | undefined) {
     return Pusher.init({
         appKey: CONFIG.PUSHER.APP_KEY,
         cluster: CONFIG.PUSHER.CLUSTER,
         authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
     }).then(() => {
-        User.subscribeToUserEvents(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, getReportAttributes);
+        User.subscribeToUserEvents(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserEmail ?? '', getReportAttributes);
     });
 }
 
@@ -76,8 +78,8 @@ function AuthScreensInitHandler() {
             return;
         }
         // This means sign in in RHP was successful, so we can subscribe to user events
-        initializePusher(session?.accountID, () => reportAttributesRef.current);
-    }, [session?.accountID]);
+        initializePusher(session?.accountID, session?.email, () => reportAttributesRef.current);
+    }, [session?.accountID, session?.email]);
 
     useEffect(() => {
         const isLoggingInAsNewUser = !!session?.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
@@ -99,7 +101,7 @@ function AuthScreensInitHandler() {
         });
         PusherConnectionManager.init();
 
-        initializePusher(session?.accountID, () => reportAttributesRef.current).finally(() => {
+        initializePusher(session?.accountID, session?.email, () => reportAttributesRef.current).finally(() => {
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT);
         });
 
@@ -127,6 +129,11 @@ function AuthScreensInitHandler() {
             App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
+        // Hydrate the user's custom-agent prompts so AgentZeroStatusProvider can recognize
+        // custom-agent chats opened directly from a deep link or right after sign-in, without
+        // requiring a prior visit to Settings > Agents.
+        openAgentsPage();
+
         App.setUpPoliciesAndNavigate(
             session,
             introSelected,
@@ -140,6 +147,7 @@ function AuthScreensInitHandler() {
         );
 
         Download.clearDownloads();
+        clearStaleExportDownloads();
 
         return () => {
             Session.cleanupSession();

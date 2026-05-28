@@ -29,6 +29,7 @@ type GetOnboardingInitialPathParamsType = {
     currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>;
     onboardingInitialPath: OnyxEntry<string>;
     onboardingValues: OnyxEntry<Onboarding>;
+    isAccountValidated?: boolean;
 };
 
 type OnboardingTaskLinks = Partial<{
@@ -107,6 +108,7 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         currentOnboardingCompanySize,
         onboardingInitialPath = '',
         onboardingValues,
+        isAccountValidated,
     } = getOnboardingInitialPathParams;
     const state = getStateFromPath(onboardingInitialPath, linkingConfig.config);
     const currentOnboardingValues = onboardingValuesParam ?? onboardingValues;
@@ -124,10 +126,23 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     }
 
     if (isIndividual) {
-        Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND, CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.CHAT_SPLIT]);
+        Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, [CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.TRACK_BUSINESS, CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]);
     }
-    if (isUserFromPublicDomain && !onboardingValuesParam?.isMergeAccountStepCompleted) {
+    // A validated account has no reason to be on the onboarding "add work email" screen.
+    if (isUserFromPublicDomain && !onboardingValuesParam?.isMergeAccountStepCompleted && !isAccountValidated) {
         return `/${ROUTES.ONBOARDING_WORK_EMAIL.route}`;
+    }
+
+    // PRIVATE_DOMAIN ("People you may know are already here") only makes sense for users on a private domain. Only redirect
+    // validated accounts; unvalidated users mid-AddWorkEmail can legitimately land here while isFromPublicDomain is stale.
+    if (isUserFromPublicDomain && isAccountValidated && onboardingInitialPath.includes(ROUTES.ONBOARDING_PRIVATE_DOMAIN.route)) {
+        if (isVsb) {
+            return `/${ROUTES.ONBOARDING_ACCOUNTING.route}`;
+        }
+        if (isSmb) {
+            return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
+        }
+        return `/${ROUTES.ONBOARDING_PURPOSE.route}`;
     }
 
     if (!isUserFromPublicDomain && hasAccessiblePolicies) {
@@ -370,6 +385,7 @@ const getOnboardingMessages = (locale?: Locale) => {
             [CONST.ONBOARDING_CHOICES.SUBMIT]: onboardingEmployerOrSubmitMessage,
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: onboardingManageTeamMessage,
             [CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE]: onboardingTrackWorkspaceMessage,
+            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: onboardingTrackWorkspaceMessage,
             [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: onboardingPersonalSpendMessage,
             [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: onboardingChatSplitMessage,
             [CONST.ONBOARDING_CHOICES.ADMIN]: onboardingAdminMessage,

@@ -2,6 +2,7 @@ import {emailSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import type {ReactElement} from 'react';
 import React, {useEffect, useRef, useState} from 'react';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -13,18 +14,19 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {cleanupTravelProvisioningSession, requestTravelAccess, setTravelProvisioningNextStep} from '@libs/actions/Travel';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 import {areTravelPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {getActivePolicies, getAdminsPrivateEmailDomains, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {getSearchParamFromPath} from '@libs/Url';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import Button from './Button';
-import ConfirmModal from './ConfirmModal';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import RenderHTML from './RenderHTML';
 
@@ -48,11 +50,13 @@ const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean, policy
     // Remove the previous provision session information if any is cached.
     cleanupTravelProvisioningSession();
     if (isUserValidated) {
-        Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain, policyID, Navigation.getActiveRoute()));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_TCS.getRoute(domain, policyID)));
         return;
     }
     Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, policyID, Navigation.getActiveRoute()));
 };
+
+const hasPolicyIDInActiveRoute = () => getSearchParamFromPath(Navigation.getActiveRoute(), CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) !== null;
 
 function BookTravelButton({
     text,
@@ -79,8 +83,7 @@ function BookTravelButton({
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
     const {isBetaEnabled} = usePermissions();
-    const [isPreventionModalVisible, setPreventionModalVisibility] = useState(false);
-    const [isVerificationModalVisible, setVerificationModalVisibility] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
@@ -90,8 +93,10 @@ function BookTravelButton({
     // Ref to track if we should auto-resume the booking flow after returning from TravelLegalNamePage
     const shouldResumeBookingRef = useRef(false);
 
-    const hidePreventionModal = () => setPreventionModalVisibility(false);
-    const hideVerificationModal = () => setVerificationModalVisibility(false);
+    const navigateToPublicDomainError = () => {
+        const dynamicSuffix = hasPolicyIDInActiveRoute() ? DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.path : DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(activePolicyID);
+        Navigation.navigate(createDynamicRoute(dynamicSuffix));
+    };
 
     useEffect(() => {
         if (!errorMessage) {
@@ -104,7 +109,17 @@ function BookTravelButton({
         setErrorMessage('');
 
         if (isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL)) {
-            setPreventionModalVisibility(true);
+            showConfirmModal({
+                title: translate('travel.blockedFeatureModal.title'),
+                titleStyles: styles.textHeadlineH1,
+                titleContainerStyles: styles.mb2,
+                prompt: translate('travel.blockedFeatureModal.message'),
+                promptStyles: styles.mb2,
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+                image: illustrations.RocketDude,
+                imageStyles: StyleUtils.getBackgroundColorStyle(colors.ice600),
+            });
             return;
         }
 
@@ -122,18 +137,18 @@ function BookTravelButton({
 
         // Spotnana requires a private domain email for travel booking
         if (isEmailPublicDomain(primaryContactMethod)) {
-            Navigation.navigate(ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(activePolicyID, Navigation.getActiveRoute()));
+            navigateToPublicDomainError();
             return;
         }
 
         const adminDomains = getAdminsPrivateEmailDomains(policy);
         if (adminDomains.length === 0) {
-            Navigation.navigate(ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(activePolicyID, Navigation.getActiveRoute()));
+            navigateToPublicDomainError();
             return;
         }
 
         if (groupPaidPolicies.length < 1) {
-            Navigation.navigate(ROUTES.TRAVEL_UPGRADE.getRoute(Navigation.getActiveRoute()));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_UPGRADE.path));
             return;
         }
 
@@ -153,7 +168,17 @@ function BookTravelButton({
                 return;
             }
             if (shouldShowVerifyAccountModal) {
-                setVerificationModalVisibility(true);
+                showConfirmModal({
+                    title: translate('travel.verifyCompany.title'),
+                    titleStyles: styles.textHeadlineH1,
+                    titleContainerStyles: styles.mb2,
+                    prompt: translate('travel.verifyCompany.message'),
+                    promptStyles: styles.mb2,
+                    confirmText: translate('common.buttonConfirm'),
+                    shouldShowCancelButton: false,
+                    image: illustrations.RocketDude,
+                    imageStyles: StyleUtils.getBackgroundColorStyle(colors.ice600),
+                });
             }
             if (!travelSettings?.lastTravelSignupRequestTime) {
                 requestTravelAccess();
@@ -170,7 +195,7 @@ function BookTravelButton({
                 // Determine where to redirect after OTP validation
                 const nextStep = isEmptyObject(policy?.address)
                     ? ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, activePolicyID, Navigation.getActiveRoute())
-                    : ROUTES.TRAVEL_TCS.getRoute(domain, activePolicyID);
+                    : createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_TCS.getRoute(domain, activePolicyID));
                 setTravelProvisioningNextStep(nextStep);
                 Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, activePolicyID, Navigation.getActiveRoute()));
                 return;
@@ -182,7 +207,8 @@ function BookTravelButton({
                 navigateToAcceptTerms(domain, !!isUserValidated, activePolicyID ?? undefined);
             }
         } else {
-            Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR.getRoute(activePolicyID, Navigation.getActiveRoute()));
+            const dynamicSuffix = hasPolicyIDInActiveRoute() ? DYNAMIC_ROUTES.TRAVEL_DOMAIN_SELECTOR.path : DYNAMIC_ROUTES.TRAVEL_DOMAIN_SELECTOR.getRoute(activePolicyID);
+            Navigation.navigate(createDynamicRoute(dynamicSuffix));
         }
     };
 
@@ -225,34 +251,6 @@ function BookTravelButton({
                     type="error"
                 />
             )}
-            <ConfirmModal
-                title={translate('travel.blockedFeatureModal.title')}
-                titleStyles={styles.textHeadlineH1}
-                titleContainerStyles={styles.mb2}
-                onConfirm={hidePreventionModal}
-                onCancel={hidePreventionModal}
-                image={illustrations.RocketDude}
-                imageStyles={StyleUtils.getBackgroundColorStyle(colors.ice600)}
-                isVisible={isPreventionModalVisible}
-                prompt={translate('travel.blockedFeatureModal.message')}
-                promptStyles={styles.mb2}
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
-            />
-            <ConfirmModal
-                title={translate('travel.verifyCompany.title')}
-                titleStyles={styles.textHeadlineH1}
-                titleContainerStyles={styles.mb2}
-                onConfirm={hideVerificationModal}
-                onCancel={hideVerificationModal}
-                image={illustrations.RocketDude}
-                imageStyles={StyleUtils.getBackgroundColorStyle(colors.ice600)}
-                isVisible={isVerificationModalVisible}
-                prompt={translate('travel.verifyCompany.message')}
-                promptStyles={styles.mb2}
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
-            />
         </>
     );
 }

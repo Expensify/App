@@ -4,20 +4,27 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import DateUtils from '@libs/DateUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {
-    areAllGroupPoliciesExpenseChatDisabled,
+    canAccessSubmitWorkspaceFeatures,
+    canMemberRead,
+    canMemberWrite,
     canSendInvoiceFromWorkspace,
     getActivePolicies,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
     getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
     getAllTaxRates,
     getAllTaxRatesNamesAndValues,
+    getConnectedHRProvider,
     getConnectedIntegrationNamesForPolicies,
     getCustomUnitsForDuplication,
     getDefaultTimeTrackingRate,
     getEligibleBankAccountShareRecipients,
+    getHRApprovalMode,
     getManagerAccountID,
     getPolicyEmployeeAccountIDs,
+    getQBOVendorByID,
+    getQBOVendors,
     getRateDisplayValue,
     getSubmitToAccountID,
     getTagApproverRule,
@@ -32,15 +39,21 @@ import {
     hasOnlyPersonalPolicies,
     hasOtherControlWorkspaces,
     hasPolicyWithXeroConnection,
+    hasVendorFeature,
+    isAnyHRConnected,
+    isAnyHRReadOnlyWorkflowMode,
+    isMergeHRConnected,
     isPolicyMemberWithoutPendingDelete,
     shouldShowPolicy,
     sortPoliciesByName,
     sortWorkspacesBySelected,
+    tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
 import {isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import {getPolicyBrickRoadIndicatorStatus} from '@src/libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
 import type {Connections} from '@src/types/onyx/Policy';
 import createCollection from '../utils/collections/createCollection';
@@ -61,6 +74,10 @@ const GENERATED_ACCOUNT_ID = '555555';
 jest.mock('@libs/UserUtils', () => ({
     // generateAccountID: () => GENERATED_ACCOUNT_ID,
     generateAccountID: jest.fn().mockReturnValue(GENERATED_ACCOUNT_ID),
+}));
+
+jest.mock('@libs/Navigation/Navigation', () => ({
+    navigate: jest.fn(),
 }));
 
 const testDate = DateUtils.getDBTime();
@@ -231,6 +248,72 @@ describe('PolicyUtils', () => {
         });
     });
 
+    describe('canMemberRead and canMemberWrite', () => {
+        const memberLogin = 'member@test.com';
+        const buildPolicy = (role: Policy['role']): Policy =>
+            ({
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                role,
+                employeeList: {
+                    [memberLogin]: {
+                        role,
+                    },
+                },
+            }) as Policy;
+
+        it('allows write access to satisfy read access', () => {
+            expect(canMemberRead(buildPolicy(CONST.POLICY.ROLE.CARD_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD)).toBe(true);
+        });
+
+        it('denies access when the role does not have the feature', () => {
+            expect(canMemberRead(buildPolicy(CONST.POLICY.ROLE.USER), memberLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD)).toBe(false);
+        });
+
+        it('uses the requested member role when login is provided', () => {
+            const policy = {
+                ...buildPolicy(CONST.POLICY.ROLE.ADMIN),
+                employeeList: {
+                    'member@test.com': {
+                        role: CONST.POLICY.ROLE.USER,
+                    },
+                },
+            };
+
+            expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD)).toBe(false);
+        });
+
+        it('allows admins to write every policy feature', () => {
+            const policy = buildPolicy(CONST.POLICY.ROLE.ADMIN);
+
+            for (const feature of Object.values(CONST.POLICY.POLICY_FEATURE)) {
+                expect(canMemberWrite(policy, memberLogin, feature)).toBe(true);
+            }
+        });
+
+        it('does not allow editors to assign elevated roles', () => {
+            const policy = buildPolicy(CONST.POLICY.ROLE.EDITOR);
+
+            expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.OVERVIEW)).toBe(true);
+            expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES)).toBe(false);
+        });
+
+        it('allows auditors to read but not write every policy feature', () => {
+            const policy = buildPolicy(CONST.POLICY.ROLE.AUDITOR);
+
+            for (const feature of Object.values(CONST.POLICY.POLICY_FEATURE)) {
+                expect(canMemberRead(policy, memberLogin, feature)).toBe(true);
+                expect(canMemberWrite(policy, memberLogin, feature)).toBe(false);
+            }
+        });
+
+        it('limits scoped admins to their assigned write features', () => {
+            expect(canMemberWrite(buildPolicy(CONST.POLICY.ROLE.CARD_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS)).toBe(true);
+            expect(canMemberWrite(buildPolicy(CONST.POLICY.ROLE.CARD_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS)).toBe(false);
+            expect(canMemberWrite(buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS)).toBe(true);
+            expect(canMemberWrite(buildPolicy(CONST.POLICY.ROLE.PAYMENTS_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS)).toBe(true);
+        });
+    });
+
     describe('useDefaultFundID', () => {
         beforeEach(() => {
             wrapOnyxWithWaitForBatchedUpdates(Onyx);
@@ -353,7 +436,7 @@ describe('PolicyUtils', () => {
             ).toBeUndefined();
         });
 
-        it('clones the source default rate (lowest enabled index) under the API-known customUnitRateID', () => {
+        it('rebinds the default rate to the API-known customUnitRateID and keeps non-default rates with their source IDs', () => {
             const distanceUnitWithMultipleRates = {
                 customUnitID: 'srcDist',
                 name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
@@ -378,13 +461,14 @@ describe('PolicyUtils', () => {
                     ...distanceUnitWithMultipleRates,
                     customUnitID: 'newDist',
                     rates: {
+                        rateB: {customUnitRateID: 'rateB', name: 'New Rate 1', rate: 100, currency: 'USD', enabled: true, index: 1, attributes: {taxRateExternalID: 'tax_other'}},
                         newRate: {customUnitRateID: 'newRate', name: 'Default Rate', rate: 70, currency: 'USD', enabled: true, index: 0, attributes: {taxRateExternalID: 'tax_default'}},
                     },
                 },
             });
         });
 
-        it('drops all rates when no enabled rate exists', () => {
+        it('keeps source rates with their source IDs when no enabled rate exists', () => {
             const distanceUnitAllDisabled = {
                 customUnitID: 'srcDist',
                 name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
@@ -403,7 +487,9 @@ describe('PolicyUtils', () => {
                 perDiemCustomUnitID: 'newPerDiem',
                 customUnitRateID: 'newRate',
             });
-            expect(result?.newDist.rates).toEqual({});
+            expect(result?.newDist.rates).toEqual({
+                rateA: {customUnitRateID: 'rateA', name: 'Disabled', rate: 50, currency: 'USD', enabled: false, index: 0},
+            });
         });
 
         it('treats missing index as 0 when picking the default rate', () => {
@@ -427,8 +513,54 @@ describe('PolicyUtils', () => {
                 customUnitRateID: 'newRate',
             });
             expect(result?.newDist.rates).toEqual({
+                rateB: {customUnitRateID: 'rateB', name: 'Indexed Rate', rate: 100, currency: 'USD', enabled: true, index: 1},
                 newRate: {customUnitRateID: 'newRate', name: 'No-Index Rate', rate: 70, currency: 'USD', enabled: true},
             });
+        });
+
+        it('preserves source iteration order so getDefaultMileageRate still picks the original default when a non-default rate has a missing index', () => {
+            // Source has 3 rates: Default (index 0), Indexed (index 1), and No-Index (no index field).
+            // No-Index ties with Default at the index-0 sort key after `?? CONST.DEFAULT_NUMBER_ID`.
+            // The optimistic clone must keep the source's iteration order so JavaScript's stable
+            // sort still places Default before No-Index — otherwise getDefaultMileageRate would
+            // pick whichever tied rate appeared first in iteration order, swapping the default.
+            const sourceUnit = {
+                customUnitID: 'srcDist',
+                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                enabled: true,
+                attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                rates: {
+                    rateA: {customUnitRateID: 'rateA', name: 'Default Rate', rate: 72.5, currency: 'USD', enabled: true, index: 0},
+                    rateB: {customUnitRateID: 'rateB', name: 'Indexed Rate', rate: 100, currency: 'USD', enabled: true, index: 1},
+                    rateC: {customUnitRateID: 'rateC', name: 'No-Index Rate', rate: 200, currency: 'USD', enabled: true},
+                },
+            };
+            const policyWithTiedIndex: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: {[sourceUnit.customUnitID]: sourceUnit},
+            };
+            const result = getCustomUnitsForDuplication(policyWithTiedIndex, true, false, {
+                distanceCustomUnitID: 'newDist',
+                perDiemCustomUnitID: 'newPerDiem',
+                customUnitRateID: 'newRate',
+            });
+
+            const cloned = result?.newDist;
+            if (!cloned) {
+                throw new Error('Expected cloned distance unit');
+            }
+            // Iteration order: the rebound default should still be first, before the No-Index rate.
+            const orderedKeys = Object.keys(cloned.rates);
+            expect(orderedKeys).toEqual(['newRate', 'rateB', 'rateC']);
+
+            // Sanity-check that getDefaultMileageRate's selection (enabled, sorted by index ?? 0,
+            // first) lands on the rebound default and not on No-Index Rate.
+            const pickedDefault = Object.values(cloned.rates)
+                .filter((rate) => rate.enabled !== false)
+                .sort((a, b) => (a.index ?? CONST.DEFAULT_NUMBER_ID) - (b.index ?? CONST.DEFAULT_NUMBER_ID))
+                .at(0);
+            expect(pickedDefault?.customUnitRateID).toBe('newRate');
+            expect(pickedDefault?.name).toBe('Default Rate');
         });
     });
     describe('getRateDisplayValue', () => {
@@ -2006,58 +2138,6 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('areAllGroupPoliciesExpenseChatDisabled', () => {
-        it('should return false when policies is empty', () => {
-            const result = areAllGroupPoliciesExpenseChatDisabled({});
-            expect(result).toBe(false);
-        });
-
-        it('should return false when there are no group policies (only personal)', () => {
-            const policies: OnyxCollection<Policy> = {
-                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL), isPolicyExpenseChatEnabled: false},
-                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), isPolicyExpenseChatEnabled: true},
-            };
-            const result = areAllGroupPoliciesExpenseChatDisabled(policies);
-            expect(result).toBe(false);
-        });
-
-        it('should return false when single group policy has expense chat enabled', () => {
-            const policies: OnyxCollection<Policy> = {
-                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: true, pendingAction: null},
-            };
-            const result = areAllGroupPoliciesExpenseChatDisabled(policies);
-            expect(result).toBe(false);
-        });
-
-        it('should return false when multiple group policies and at least one has expense chat enabled', () => {
-            const policies: OnyxCollection<Policy> = {
-                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: false, pendingAction: null},
-                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), isPolicyExpenseChatEnabled: true, pendingAction: null},
-                '3': {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: false, pendingAction: null},
-            };
-            const result = areAllGroupPoliciesExpenseChatDisabled(policies);
-            expect(result).toBe(false);
-        });
-
-        it('should return true when single group policy has expense chat disabled', () => {
-            const policies: OnyxCollection<Policy> = {
-                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: false, pendingAction: null},
-            };
-            const result = areAllGroupPoliciesExpenseChatDisabled(policies);
-            expect(result).toBe(true);
-        });
-
-        it('should return true when all group policies have expense chat disabled', () => {
-            const policies: OnyxCollection<Policy> = {
-                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: false, pendingAction: null},
-                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), isPolicyExpenseChatEnabled: false, pendingAction: null},
-                '3': {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: false, pendingAction: null},
-            };
-            const result = areAllGroupPoliciesExpenseChatDisabled(policies);
-            expect(result).toBe(true);
-        });
-    });
-
     describe('getDefaultTimeTrackingRate', () => {
         it('should return rate in subunits', () => {
             const policy: Policy = {
@@ -2615,6 +2695,360 @@ describe('PolicyUtils', () => {
 
             it('returns false when prohibitedExpenses is an empty object', () => {
                 expect(hasConfiguredRules({prohibitedExpenses: {}} as Policy)).toBe(false);
+            });
+        });
+    });
+
+    describe('canAccessSubmitWorkspaceFeatures', () => {
+        const submitPolicyForAccessTest: Policy = {...createRandomPolicy(99001, CONST.POLICY.TYPE.SUBMIT), id: 'policy-submit-access-test'};
+        const teamPolicyForAccessTest: Policy = {...createRandomPolicy(99002, CONST.POLICY.TYPE.TEAM), id: 'policy-team-access-test'};
+
+        it('returns true when policy is Submit and SUBMIT_2026 beta is enabled', () => {
+            expect(canAccessSubmitWorkspaceFeatures(submitPolicyForAccessTest, true)).toBe(true);
+        });
+
+        it('returns false when policy is Submit and SUBMIT_2026 beta is disabled', () => {
+            expect(canAccessSubmitWorkspaceFeatures(submitPolicyForAccessTest, false)).toBe(false);
+        });
+
+        it('returns false when policy is not Submit even if beta is enabled', () => {
+            expect(canAccessSubmitWorkspaceFeatures(teamPolicyForAccessTest, true)).toBe(false);
+        });
+
+        it('returns false when policy is undefined', () => {
+            expect(canAccessSubmitWorkspaceFeatures(undefined, true)).toBe(false);
+        });
+    });
+
+    describe('tryNavigateToSubmitWorkspaceUpgrade', () => {
+        const submitPolicyForNavTest: Policy = {...createRandomPolicy(99003, CONST.POLICY.TYPE.SUBMIT), id: 'policy-submit-nav-test'};
+        const teamPolicyForNavTest: Policy = {...createRandomPolicy(99004, CONST.POLICY.TYPE.TEAM), id: 'policy-team-nav-test'};
+        const featureAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias;
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
+
+        it('returns false and does not navigate when isEnabling is false', () => {
+            expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, false, featureAlias)).toBe(false);
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        it('returns false when policy is not Submit', () => {
+            expect(tryNavigateToSubmitWorkspaceUpgrade(teamPolicyForNavTest, true, featureAlias)).toBe(false);
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        it('navigates to workspace upgrade and returns true for Submit policy regardless of beta', () => {
+            const policyID = submitPolicyForNavTest.id;
+            const expectedRoute = ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, featureAlias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+
+            expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, true, featureAlias)).toBe(true);
+
+            expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+            expect(Navigation.navigate).toHaveBeenCalledWith(expectedRoute);
+        });
+    });
+
+    describe('HR connection helpers', () => {
+        describe('isMergeHRConnected', () => {
+            it('returns false for undefined policy', () => {
+                expect(isMergeHRConnected(undefined)).toBe(false);
+            });
+
+            it('returns false for policy with no connections', () => {
+                const policy = createRandomPolicy(0);
+                delete policy.connections;
+                expect(isMergeHRConnected(policy)).toBe(false);
+            });
+
+            it('returns true for policy with merge_hris connection', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {approvalMode: null, finalApprover: null, integration: 'workday'}},
+                    },
+                } as Policy;
+                expect(isMergeHRConnected(policy)).toBe(true);
+            });
+
+            it('returns false for policy with gusto connection only', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {config: {approvalMode: null, finalApprover: null}},
+                    },
+                } as Policy;
+                expect(isMergeHRConnected(policy)).toBe(false);
+            });
+        });
+
+        describe('getConnectedHRProvider', () => {
+            it('returns null for no connections', () => {
+                const policy = createRandomPolicy(0);
+                delete policy.connections;
+                expect(getConnectedHRProvider(policy)).toBeNull();
+            });
+
+            it('returns Gusto when only Gusto is connected', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {config: {approvalMode: null, finalApprover: null}},
+                    },
+                } as Policy;
+                const provider = getConnectedHRProvider(policy);
+                expect(provider?.connectionName).toBe(CONST.POLICY.CONNECTIONS.NAME.GUSTO);
+            });
+
+            it('prefers Gusto when both Gusto and Zenefits are connected', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {config: {approvalMode: null, finalApprover: null}},
+                        [CONST.POLICY.CONNECTIONS.NAME.ZENEFITS]: {config: {approvalMode: null, finalApprover: null, isConfigured: true}},
+                    },
+                } as Policy;
+                const provider = getConnectedHRProvider(policy);
+                expect(provider?.connectionName).toBe(CONST.POLICY.CONNECTIONS.NAME.GUSTO);
+            });
+
+            it('returns Merge HR with displayName from integration slug', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {approvalMode: null, finalApprover: null, integration: 'workday'}},
+                    },
+                } as Policy;
+                const provider = getConnectedHRProvider(policy);
+                expect(provider?.connectionName).toBe(CONST.POLICY.CONNECTIONS.NAME.MERGE_HR);
+                expect(provider?.displayName).toBe('Workday');
+                expect(provider?.mergeSlug).toBe('workday');
+            });
+        });
+
+        describe('isAnyHRConnected', () => {
+            it('returns false for empty connections', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {},
+                } as Policy;
+                expect(isAnyHRConnected(policy)).toBe(false);
+            });
+
+            it('returns true for Gusto', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {config: {approvalMode: null, finalApprover: null}},
+                    },
+                } as Policy;
+                expect(isAnyHRConnected(policy)).toBe(true);
+            });
+
+            it('returns true for Zenefits', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.ZENEFITS]: {config: {approvalMode: null, finalApprover: null, isConfigured: true}},
+                    },
+                } as Policy;
+                expect(isAnyHRConnected(policy)).toBe(true);
+            });
+
+            it('returns true for Merge HR', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {approvalMode: null, finalApprover: null, integration: 'workday'}},
+                    },
+                } as Policy;
+                expect(isAnyHRConnected(policy)).toBe(true);
+            });
+        });
+
+        describe('isAnyHRReadOnlyWorkflowMode', () => {
+            it('returns false with no HR connections', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {},
+                } as Policy;
+                expect(isAnyHRReadOnlyWorkflowMode(policy)).toBe(false);
+            });
+
+            it('returns false with custom mode for Gusto', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {config: {approvalMode: CONST.GUSTO.APPROVAL_MODE.CUSTOM, finalApprover: null}},
+                    },
+                } as Policy;
+                expect(isAnyHRReadOnlyWorkflowMode(policy)).toBe(false);
+            });
+
+            it('returns true with basic mode for Gusto', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {config: {approvalMode: CONST.GUSTO.APPROVAL_MODE.BASIC, finalApprover: null}},
+                    },
+                } as Policy;
+                expect(isAnyHRReadOnlyWorkflowMode(policy)).toBe(true);
+            });
+
+            it('returns true with manager mode for Zenefits', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.ZENEFITS]: {config: {approvalMode: CONST.ZENEFITS.APPROVAL_MODE.MANAGER, finalApprover: null, isConfigured: true}},
+                    },
+                } as Policy;
+                expect(isAnyHRReadOnlyWorkflowMode(policy)).toBe(true);
+            });
+
+            it('returns true with basic mode for Merge HR', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {approvalMode: CONST.MERGE_HR.APPROVAL_MODE.BASIC, finalApprover: null, integration: 'workday'}},
+                    },
+                } as Policy;
+                expect(isAnyHRReadOnlyWorkflowMode(policy)).toBe(true);
+            });
+        });
+
+        describe('getHRApprovalMode', () => {
+            it('returns null for no connection', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {},
+                } as Policy;
+                expect(getHRApprovalMode(policy, undefined)).toBeNull();
+            });
+
+            it('returns correct mode for Gusto', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {config: {approvalMode: CONST.GUSTO.APPROVAL_MODE.CUSTOM, finalApprover: null}},
+                    },
+                } as Policy;
+                expect(getHRApprovalMode(policy, CONST.POLICY.CONNECTIONS.NAME.GUSTO)).toBe(CONST.GUSTO.APPROVAL_MODE.CUSTOM);
+            });
+
+            it('returns correct mode for Zenefits', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.ZENEFITS]: {config: {approvalMode: CONST.ZENEFITS.APPROVAL_MODE.MANAGER, finalApprover: null, isConfigured: true}},
+                    },
+                } as Policy;
+                expect(getHRApprovalMode(policy, CONST.POLICY.CONNECTIONS.NAME.ZENEFITS)).toBe(CONST.ZENEFITS.APPROVAL_MODE.MANAGER);
+            });
+
+            it('returns correct mode for Merge HR', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {approvalMode: CONST.MERGE_HR.APPROVAL_MODE.BASIC, finalApprover: null, integration: 'workday'}},
+                    },
+                } as Policy;
+                expect(getHRApprovalMode(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR)).toBe(CONST.MERGE_HR.APPROVAL_MODE.BASIC);
+            });
+
+            it('returns null for unknown connection name', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {},
+                } as Policy;
+                expect(getHRApprovalMode(policy, CONST.POLICY.CONNECTIONS.NAME.GUSTO)).toBeNull();
+            });
+        });
+    });
+
+    describe('Vendor matching helpers', () => {
+        const buildQBOPolicy = (
+            exportDestination: string | undefined,
+            vendors: Array<{id: string; name: string; currency: string}> = [{id: 'v-1', name: 'Acme Co', currency: 'USD'}],
+        ): Policy =>
+            ({
+                ...createRandomPolicy(0),
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: exportDestination ? {nonReimbursableExpensesExportDestination: exportDestination} : {},
+                        data: {vendors},
+                    },
+                } as unknown as Connections,
+            }) as Policy;
+
+        describe('hasVendorFeature', () => {
+            it('returns true when beta is enabled and QBO non-reimbursable export is Credit Card', () => {
+                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), true)).toBe(true);
+            });
+
+            it('returns true when beta is enabled and QBO non-reimbursable export is Debit Card', () => {
+                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD), true)).toBe(true);
+            });
+
+            it('returns false when beta is disabled, even with Credit Card export configured', () => {
+                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), false)).toBe(false);
+            });
+
+            it('returns false when QBO non-reimbursable export is Vendor Bill', () => {
+                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL), true)).toBe(false);
+            });
+
+            it('returns false when QBO export destination is not set', () => {
+                expect(hasVendorFeature(buildQBOPolicy(undefined), true)).toBe(false);
+            });
+
+            it('returns false when no QBO connection exists on the policy', () => {
+                const policy = {...createRandomPolicy(0), connections: {}} as Policy;
+                expect(hasVendorFeature(policy, true)).toBe(false);
+            });
+
+            it('returns false when policy is undefined', () => {
+                expect(hasVendorFeature(undefined, true)).toBe(false);
+            });
+        });
+
+        describe('getQBOVendors', () => {
+            it('returns the vendor list from the QBO connection', () => {
+                const vendors = [
+                    {id: 'v-1', name: 'Acme', currency: 'USD'},
+                    {id: 'v-2', name: 'Other Co', currency: 'USD'},
+                ];
+                const policy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, vendors);
+                expect(getQBOVendors(policy)).toEqual(vendors);
+            });
+
+            it('returns an empty array when no QBO connection exists', () => {
+                const policy = {...createRandomPolicy(0), connections: {}} as Policy;
+                expect(getQBOVendors(policy)).toEqual([]);
+            });
+
+            it('returns an empty array when policy is undefined', () => {
+                expect(getQBOVendors(undefined)).toEqual([]);
+            });
+        });
+
+        describe('getQBOVendorByID', () => {
+            it('returns the matching vendor when the ID exists in the list', () => {
+                const policy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, [
+                    {id: 'v-1', name: 'Acme', currency: 'USD'},
+                    {id: 'v-2', name: 'Other Co', currency: 'USD'},
+                ]);
+                expect(getQBOVendorByID(policy, 'v-2')).toEqual({id: 'v-2', name: 'Other Co', currency: 'USD'});
+            });
+
+            it('returns undefined when the ID is not in the list (the inactive-vendor case)', () => {
+                const policy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD);
+                expect(getQBOVendorByID(policy, 'v-missing')).toBeUndefined();
+            });
+
+            it('returns undefined when no QBO connection exists', () => {
+                const policy = {...createRandomPolicy(0), connections: {}} as Policy;
+                expect(getQBOVendorByID(policy, 'v-1')).toBeUndefined();
             });
         });
     });
