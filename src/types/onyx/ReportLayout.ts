@@ -5,6 +5,12 @@ import type Transaction from './Transaction';
 /** User's report layout group-by preference */
 type ReportLayoutGroupBy = ValueOf<typeof CONST.REPORT_LAYOUT.GROUP_BY>;
 
+/** User's report layout option preference (detailed grouped view or flat matrix view) */
+type ReportLayoutOption = ValueOf<typeof CONST.REPORT_LAYOUT.LAYOUT_OPTION>;
+
+/** Selection shown in the report group-by selector: a group-by field, or matrix for the "None" (ungrouped) option */
+type ReportLayoutSelection = ReportLayoutGroupBy | typeof CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX;
+
 /** Grouped transactions for display */
 type GroupedTransactions = {
     /** Display name of the group (category or tag name) */
@@ -23,4 +29,4 @@ type GroupedTransactions = {
     isExpanded: boolean;
 };
 
-export type {ReportLayoutGroupBy, GroupedTransactions};
+export type {ReportLayoutGroupBy, ReportLayoutOption, ReportLayoutSelection, GroupedTransactions};
