@@ -25,7 +25,11 @@ function isSupportedInviteOnboardingChoice(choice: OnyxEntry<OnboardingPurpose>)
 }
 
 function isSupportedPendingInviteOnboarding(introSelected: OnyxEntry<IntroSelected>): introSelected is SupportedPendingInviteIntroSelected {
-    if (!introSelected?.inviteType || introSelected.isInviteOnboardingComplete) {
+    if (!introSelected) {
+        return false;
+    }
+
+    if (!introSelected.inviteType || introSelected.isInviteOnboardingComplete) {
         return false;
     }
 
