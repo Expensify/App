@@ -39,6 +39,7 @@ type ApproverSelectionListPageProps = {
     shouldShowListEmptyContent?: boolean;
     allowMultipleSelection?: boolean;
     onSelectApprover?: (approvers: SelectionListApprover[]) => void;
+    onDismissError?: (approver: SelectionListApprover) => void;
     shouldShowLoadingPlaceholder?: boolean;
     shouldEnableHeaderMaxHeight?: boolean;
     shouldUpdateFocusedIndex?: boolean;
@@ -66,6 +67,7 @@ function ApproverSelectionList({
     shouldShowListEmptyContent: shouldShowListEmptyContentProp = true,
     allowMultipleSelection = false,
     onSelectApprover,
+    onDismissError,
     shouldShowLoadingPlaceholder,
     shouldEnableHeaderMaxHeight,
     shouldUpdateFocusedIndex = true,
@@ -155,6 +157,7 @@ function ApproverSelectionList({
                 <SelectionList
                     data={data}
                     onSelectRow={toggleApprover}
+                    onDismissError={onDismissError}
                     ListItem={InviteMemberListItem}
                     textInputOptions={textInputOptions}
                     canSelectMultiple={allowMultipleSelection}

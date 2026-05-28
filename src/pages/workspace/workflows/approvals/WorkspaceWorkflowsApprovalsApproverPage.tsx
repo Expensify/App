@@ -11,16 +11,19 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
 import useThemeStyles from '@hooks/useThemeStyles';
-import colors from '@styles/theme/colors';
+import {clearOptimisticAgentFromApprovalWorkflow} from '@libs/actions/Agent';
 import {clearApprovalWorkflowApprover, clearApprovalWorkflowApprovers, setApprovalWorkflow, setApprovalWorkflowApprover} from '@libs/actions/Workflow';
+import {isAnyHRReadOnlyWorkflowMode} from '@libs/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getDefaultApprover, getMemberAccountIDsForWorkspace, isExpensifyTeam, shouldFilterExpensifyTeam} from '@libs/PolicyUtils';
+import {isAgentEmail} from '@libs/SessionUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
+import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,6 +42,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const [optimisticAgentAccountIDMapping] = useOnyx(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING);
+    const [agentPrompts] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT);
     const isApprovalWorkflowLoading = isLoadingOnyxValue(approvalWorkflowMetadata);
     const personalDetailsByEmail = usePersonalDetailsByEmail();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -144,6 +148,65 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         icons.FallbackAvatar,
         shouldFilterOutExpensifyTeam,
     ]);
+
+    // Optimistic agent approver (seeded by AddAgentPage). The pending approver carries the
+    // optimistic accountID but no email until CREATE_AGENT resolves; render it as a top row
+    // with reduced opacity (via `pendingAction`) and surface CREATE_AGENT errors so the admin
+    // can dismiss + retry without leaving the picker.
+    const pendingOptimisticApprover =
+        currentApprover?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !!currentApprover?.accountID && !currentApprover.email ? currentApprover : undefined;
+    const pendingOptimisticAccountID = pendingOptimisticApprover?.accountID;
+    const pendingOptimisticDetail = pendingOptimisticAccountID ? personalDetails?.[pendingOptimisticAccountID] : undefined;
+    const pendingOptimisticPromptErrors = pendingOptimisticAccountID ? agentPrompts?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${pendingOptimisticAccountID}`]?.errors : undefined;
+    const addAgentPolicyErrors = policy?.errorFields?.[CONST.POLICY.COLLECTION_KEYS.ADD_AGENT];
+    const pendingOptimisticErrors = addAgentPolicyErrors ?? pendingOptimisticPromptErrors;
+
+    const pendingOptimisticDetailDisplayName = pendingOptimisticDetail?.displayName;
+    const pendingOptimisticDetailAvatar = pendingOptimisticDetail?.avatar;
+    const pendingOptimisticApproverRow = useMemo<SelectionListApprover | undefined>(() => {
+        if (!pendingOptimisticApprover || !pendingOptimisticAccountID) {
+            return undefined;
+        }
+        const displayName = pendingOptimisticDetailDisplayName ?? pendingOptimisticApprover.displayName ?? '';
+        const avatar = pendingOptimisticDetailAvatar ?? pendingOptimisticApprover.avatar;
+        return {
+            text: displayName,
+            keyForList: String(pendingOptimisticAccountID),
+            isSelected: true,
+            login: '',
+            icons: [{source: avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: pendingOptimisticAccountID}],
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            errors: pendingOptimisticErrors ?? undefined,
+            isInteractive: false,
+        };
+    }, [pendingOptimisticApprover, pendingOptimisticAccountID, pendingOptimisticDetailDisplayName, pendingOptimisticDetailAvatar, pendingOptimisticErrors, icons.FallbackAvatar]);
+
+    // Once CREATE_AGENT resolves, the server echoes `{optimisticID: realID}` in
+    // `OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING` and the real agent lands in `policy.employeeList`,
+    // which means `allApprovers` already contains the real row before the reconcile effect
+    // rewrites `APPROVAL_WORKFLOW`. In that interim render we'd otherwise show both rows.
+    // Detect the mapping early, force the real row to render as selected, and drop the
+    // optimistic placeholder.
+    const reconciledRealAccountID = pendingOptimisticAccountID ? optimisticAgentAccountIDMapping?.[pendingOptimisticAccountID] : undefined;
+    const reconciledLogin = reconciledRealAccountID ? personalDetails?.[reconciledRealAccountID]?.login : undefined;
+    const isOptimisticReconciled = !!reconciledLogin && !!policy?.employeeList?.[reconciledLogin];
+
+    const allApproversWithOptimistic = useMemo(() => {
+        if (isOptimisticReconciled && reconciledLogin) {
+            return allApprovers.map((approver) => (approver.keyForList === reconciledLogin ? {...approver, isSelected: true} : approver));
+        }
+        if (pendingOptimisticApproverRow) {
+            return [pendingOptimisticApproverRow, ...allApprovers];
+        }
+        return allApprovers;
+    }, [pendingOptimisticApproverRow, allApprovers, isOptimisticReconciled, reconciledLogin]);
+
+    const onDismissOptimisticApprover = useCallback(() => {
+        if (!pendingOptimisticAccountID) {
+            return;
+        }
+        clearOptimisticAgentFromApprovalWorkflow(route.params.policyID, approverIndex, approvalWorkflow, pendingOptimisticAccountID);
+    }, [pendingOptimisticAccountID, route.params.policyID, approverIndex, approvalWorkflow]);
 
     const shouldShowListEmptyContent = !!approvalWorkflow && !isApprovalWorkflowLoading && !removingApproverEmail;
 
@@ -306,15 +369,16 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 headerContent={headerContent}
                 isLoadingReportData={isLoadingReportData}
                 policy={policy}
-                initiallyFocusedOptionKey={visibleSelectedApproverEmail}
+                initiallyFocusedOptionKey={(isOptimisticReconciled ? reconciledLogin : pendingOptimisticApproverRow?.keyForList) ?? visibleSelectedApproverEmail}
                 shouldShowNotFoundView={shouldShowNotFoundView}
                 shouldShowNotFoundViewLink
-                allApprovers={allApprovers}
+                allApprovers={allApproversWithOptimistic}
                 onBackButtonPress={goBack}
                 shouldShowListEmptyContent={shouldShowListEmptyContent}
                 listEmptyContentSubtitle={translate('workflowsPage.emptyContent.approverSubtitle')}
                 allowMultipleSelection={false}
                 onSelectApprover={toggleApprover}
+                onDismissError={onDismissOptimisticApprover}
             />
         </AccessOrNotFoundWrapper>
     );

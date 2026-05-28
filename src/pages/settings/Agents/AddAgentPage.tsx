@@ -142,7 +142,15 @@ function AddAgentPage({route}: AddAgentPageProps) {
                 policy,
                 personalDetailsByEmail,
             });
-            Navigation.goBack();
+            // Pop AddAgentPage + the Set Approver picker so the admin lands on the workflow
+            // edit/create screen with the optimistic agent already chosen as approver[0]. From
+            // there the Save button commits the workflow (the agent renders opaque until
+            // CREATE_AGENT resolves; on failure the picker's RBR X clears the pending agent).
+            if (approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT && workflowApproverEmail) {
+                Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, workflowApproverEmail));
+            } else {
+                Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID));
+            }
             return;
         }
 
