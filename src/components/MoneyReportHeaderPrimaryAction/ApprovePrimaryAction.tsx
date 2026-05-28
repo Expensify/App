@@ -1,4 +1,3 @@
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import ExpenseHeaderApprovalButton from '@components/ExpenseHeaderApprovalButton';
@@ -10,13 +9,7 @@ import usePolicy from '@hooks/usePolicy';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {approveMoneyRequest} from '@libs/actions/IOU/ReportWorkflow';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {
-    getNextApproverAccountID,
-    hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils,
-    hasViolations as hasViolationsReportUtils,
-    isReportOwner,
-    shouldShowMarkAsDone,
-} from '@libs/ReportUtils';
+import {getNextApproverAccountID, hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasViolations as hasViolationsReportUtils, isReportOwner} from '@libs/ReportUtils';
 import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,7 +33,6 @@ function ApprovePrimaryAction({reportID, chatReportID}: ApprovePrimaryActionProp
     const activePolicy = usePolicy(activePolicyID);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [expenseReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(iouReport?.policyID)}`);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -56,12 +48,6 @@ function ApprovePrimaryAction({reportID, chatReportID}: ApprovePrimaryActionProp
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
-
-    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
-        isTrackIntentUser,
-        report: iouReport,
-        policy: expenseReportPolicy,
-    });
 
     const nextApproverAccountID = getNextApproverAccountID(iouReport);
     const isSubmitterSameAsNextApprover = isReportOwner(iouReport) && (nextApproverAccountID === iouReport?.ownerAccountID || iouReport?.managerID === iouReport?.ownerAccountID);
@@ -121,7 +107,6 @@ function ApprovePrimaryAction({reportID, chatReportID}: ApprovePrimaryActionProp
             }}
             moneyRequestReport={iouReport}
             shouldShowPayButton={shouldShowPayButton}
-            shouldMarkAsDoneCopy={shouldUseMarkAsDoneCopy}
             isDisabled={isBlockSubmitDueToPreventSelfApproval}
         />
     );

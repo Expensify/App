@@ -32,9 +32,6 @@ type ExpenseHeaderApprovalButtonProps = {
     /** Whether to show the pay button */
     shouldShowPayButton: boolean;
 
-    /** Whether to show the "Mark as Done" copy */
-    shouldMarkAsDoneCopy?: boolean;
-
     /** Whether to disable the approve button */
     isDisabled?: boolean;
 };
@@ -104,7 +101,6 @@ function ExpenseHeaderApprovalButton({
     anchorAlignment,
     moneyRequestReport,
     shouldShowPayButton,
-    shouldMarkAsDoneCopy,
     isDisabled,
 }: ExpenseHeaderApprovalButtonProps) {
     const {translate} = useLocalize();
@@ -134,7 +130,7 @@ function ExpenseHeaderApprovalButton({
                 options={approvalOptions}
                 menuHeaderText={hasOnlyHeldExpenses ? translate('iou.confirmApprovalAllHoldAmount') : translate('iou.confirmApprovalWithHeldAmount')}
                 onPress={() => {}}
-                customText={shouldMarkAsDoneCopy ? translate('common.markAsDone') : translate('iou.approve')}
+                customText={translate('iou.approve')}
                 headerTextStyles={styles.lineHeightNormal}
                 shouldAlwaysShowDropdownMenu
                 isSplitButton={false}
@@ -149,7 +145,7 @@ function ExpenseHeaderApprovalButton({
         <Button
             success
             onPress={() => onApprove(true)}
-            text={shouldMarkAsDoneCopy ? translate('common.markAsDone') : translate('iou.approve')}
+            text={translate('iou.approve')}
             sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.APPROVE_BUTTON}
             isDisabled={isDisabled}
         />

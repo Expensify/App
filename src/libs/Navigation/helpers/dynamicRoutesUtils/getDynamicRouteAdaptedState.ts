@@ -3,7 +3,9 @@ import findFocusedRouteWithOnyxTabGuard from '@libs/Navigation/helpers/findFocus
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import type {Route} from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
-import findMatchingDynamicSuffix from './findMatchingDynamicSuffix';
+import SCREENS from '@src/SCREENS';
+import findAllMatchingDynamicSuffixes from './findAllMatchingDynamicSuffixes';
+import type {DynamicSuffixMatch} from './findAllMatchingDynamicSuffixes';
 import getPathWithoutDynamicSuffix from './getPathWithoutDynamicSuffix';
 import isDynamicRouteScreen from './isDynamicRouteScreen';
 
@@ -75,25 +77,38 @@ function getDynamicRouteAdaptedState(state: PartialState<NavigationState>, focus
 
     let newFocused = findFocusedRouteWithOnyxTabGuard(accumulatedState);
     do {
-        const suffixMatch = findMatchingDynamicSuffix(currentPath);
-        if (!suffixMatch) {
+        // Iterate all candidates so a false-positive greedy first match (e.g. a tag named
+        // "gl-code" coinciding with a static suffix) doesn't produce a wrong base state.
+        let resolvedMatch: DynamicSuffixMatch | undefined;
+        let resolvedBasePath: Route | undefined;
+        let resolvedBaseState: PartialState<NavigationState> | undefined;
+        const allSuffixMatches = findAllMatchingDynamicSuffixes(currentPath);
+
+        for (const candidate of allSuffixMatches) {
+            const candidateBasePath = getPathWithoutDynamicSuffix(currentPath, candidate.actualSuffix, candidate.pattern);
+            if (!candidateBasePath || candidateBasePath === currentPath) {
+                continue;
+            }
+            const candidateBaseState = getStateFromPath(candidateBasePath as Route);
+            const lastRoute = candidateBaseState?.routes?.at(-1);
+
+            if (!candidateBaseState || !lastRoute || lastRoute.name === SCREENS.NOT_FOUND) {
+                continue;
+            }
+            resolvedMatch = candidate;
+            resolvedBasePath = candidateBasePath;
+            resolvedBaseState = candidateBaseState;
             break;
         }
 
-        const basePath = getPathWithoutDynamicSuffix(currentPath, suffixMatch.actualSuffix, suffixMatch.pattern);
-        if (!basePath || basePath === currentPath) {
+        if (!resolvedMatch || !resolvedBasePath || !resolvedBaseState) {
             break;
         }
 
-        const baseState = getStateFromPath(basePath as Route);
-        if (!baseState) {
-            break;
-        }
+        accumulatedState = insertStateBelow(accumulatedState, resolvedBaseState);
+        currentPath = resolvedBasePath;
 
-        accumulatedState = insertStateBelow(accumulatedState, baseState);
-        currentPath = basePath;
-
-        newFocused = findFocusedRouteWithOnyxTabGuard(baseState);
+        newFocused = findFocusedRouteWithOnyxTabGuard(resolvedBaseState);
     } while (!!newFocused && isDynamicRouteScreen(newFocused.name as Screen));
 
     return accumulatedState;

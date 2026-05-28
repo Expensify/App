@@ -9,6 +9,7 @@ import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+import FormHelpMessage from './FormHelpMessage';
 import ConfirmationFieldsProvider from './MoneyRequestConfirmationFields/Provider';
 import ConfirmationFieldList from './MoneyRequestConfirmationListFooter/ConfirmationFieldList';
 import type {
@@ -39,6 +40,9 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** ID of the active transaction */
     transactionID: string | undefined;
+
+    /** Error message from the odometer receipt stitcher, rendered below the receipt */
+    receiptStitchError?: string | null;
 
     /** ID of the report the transaction belongs to */
     reportID: string;
@@ -112,6 +116,7 @@ function MoneyRequestConfirmationListFooter({
     iouType,
     transactionID,
     reportID,
+    receiptStitchError,
     reportActionID,
     transaction,
     policyID,
@@ -194,6 +199,12 @@ function MoneyRequestConfirmationListFooter({
                     onPDFLoadError={receiptOptions.onPDFLoadError}
                     onPDFPassword={receiptOptions.onPDFPassword}
                 />
+
+                {!!receiptStitchError && (
+                    <View style={styles.mh5}>
+                        <FormHelpMessage message={receiptStitchError} />
+                    </View>
+                )}
 
                 <ConfirmationFieldList
                     policy={policy}
