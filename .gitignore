@@ -176,6 +176,3 @@ agent-device-output/
 
 # Server CLI build artifacts
 server/*/dist/
-
-# Cursor IDE
-.cursor/
