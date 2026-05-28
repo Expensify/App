@@ -1,5 +1,5 @@
 /* cspell:disable */
-import {getAirReservations, getPNRReservationDataFromTripReport, getReservationsFromTripReport, isPnrCancelled} from '@libs/TripReservationUtils';
+import {formatAirportInfo, getAirReservations, getPNRReservationDataFromTripReport, getReservationsFromTripReport, isPnrCancelled} from '@libs/TripReservationUtils';
 import CONST from '@src/CONST';
 import type {Pnr, TripData} from '@src/types/onyx/TripData';
 import {airReservationPnrData, airReservationTravelers} from '../data/TripAirReservationData';
@@ -2717,6 +2717,14 @@ describe('TripReservationUtils', () => {
             expect(trainReservation?.type).toEqual(CONST.RESERVATION_TYPE.TRAIN);
             expect(trainReservation?.start?.shortName).toEqual('');
             expect(trainReservation?.end?.shortName).toEqual('');
+        });
+
+        it('should render only longName when shortName is empty (no trailing space, no empty parens)', () => {
+            expect(formatAirportInfo({date: '', longName: 'Brockenhurst', shortName: '', cityName: ''})).toEqual('Brockenhurst');
+        });
+
+        it('should render longName with parenthesized shortName when both are present', () => {
+            expect(formatAirportInfo({date: '', longName: 'Solana Beach station', shortName: 'SOL', cityName: ''})).toEqual('Solana Beach station (SOL)');
         });
 
         it('should preserve a clean station code in rail shortName', () => {

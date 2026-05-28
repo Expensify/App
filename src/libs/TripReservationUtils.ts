@@ -475,12 +475,12 @@ function getReservationsFromTripReport(tripReport?: Report, transactions?: Trans
 }
 
 function formatAirportInfo(reservationTimeDetails: ReservationTimeDetails, hideAirportCode = false): string {
-    const longName = reservationTimeDetails?.longName ? `${reservationTimeDetails?.longName} ` : '';
-    let shortName = reservationTimeDetails?.shortName ? `${reservationTimeDetails?.shortName}` : '';
-
-    shortName = longName && shortName ? `(${shortName})` : shortName;
-
-    return !hideAirportCode ? `${longName}${shortName}` : longName;
+    const longName = reservationTimeDetails?.longName ?? '';
+    const shortName = reservationTimeDetails?.shortName ?? '';
+    if (hideAirportCode || !shortName) {
+        return longName;
+    }
+    return longName ? `${longName} (${shortName})` : `(${shortName})`;
 }
 
 function getPNRReservationDataFromTripReport(tripReport?: Report, transactions?: Transaction[]): ReservationPNRData[] {
