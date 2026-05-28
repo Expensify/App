@@ -885,6 +885,7 @@ function MoneyRequestReportUnifiedList({
                 onContentSizeChange={onContentSizeChange}
                 contentContainerStyle={contentContainerStyle}
                 ListEmptyComponent={!isOffline && isLoadingInitialActions ? <ReportActionsListLoadingSkeleton reasonAttributes={skeletonReasonAttributes} /> : undefined}
+                drawDistance={1000}
             />
         </MoneyRequestReportHorizontalScrollWrapper>
     );
