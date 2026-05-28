@@ -112,14 +112,14 @@ function cancelPendingRestore(): void {
     pendingRestore = null;
 }
 
-function scheduleRestore(routeKey: string): void {
+function scheduleRestore(routeKey: string, {waitForUpcomingTransition = true}: {waitForUpcomingTransition?: boolean} = {}): void {
     cancelPendingRestore();
     let cancelled = false;
     let refocusHandle: {cancel: () => void} | null = null;
     let rafHandle: number | null = null;
     const handle = TransitionTracker.runAfterTransitions({
-        // We're called from the nav state listener — the back transition may not have registered yet, so wait for it to start, then run after it ends (avoids restoring while the outgoing screen is still active).
-        waitForUpcomingTransition: true,
+        // Stack pops dispatch from the nav state listener before their transition registers, so wait for the upcoming one. PUSH_PARAMS (same-route param change) emits no transition — waiting would stall on the 1s timeout, so the caller opts out.
+        waitForUpcomingTransition,
         callback: () => {
             if (cancelled) {
                 return;
@@ -226,7 +226,7 @@ function notifyPushParamsForward(routeKey: string, prevParams: unknown): void {
 }
 
 function notifyPushParamsBackward(routeKey: string, targetParams: unknown): void {
-    scheduleRestore(compoundParamsKey(routeKey, targetParams));
+    scheduleRestore(compoundParamsKey(routeKey, targetParams), {waitForUpcomingTransition: false});
 }
 
 function cancelPendingFocusRestore(): void {

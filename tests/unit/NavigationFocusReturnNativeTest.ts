@@ -34,15 +34,15 @@ jest.mock('../../src/libs/Accessibility/fireFocusEvent', () => ({
 
 AccessibilityInfo.sendAccessibilityEvent = mockSendAccessibilityEvent;
 
-type TtEntry = {cb: () => void; cancelled: boolean};
+type TtEntry = {cb: () => void; cancelled: boolean; waitForUpcomingTransition: boolean};
 let mockTtQueue: TtEntry[] = [];
 jest.mock('../../src/libs/Navigation/TransitionTracker', () => ({
     __esModule: true,
     default: {
         startTransition: jest.fn(),
         endTransition: jest.fn(),
-        runAfterTransitions: ({callback}: {callback: () => void}) => {
-            const entry: TtEntry = {cb: callback, cancelled: false};
+        runAfterTransitions: ({callback, waitForUpcomingTransition = false}: {callback: () => void; waitForUpcomingTransition?: boolean}) => {
+            const entry: TtEntry = {cb: callback, cancelled: false, waitForUpcomingTransition};
             mockTtQueue.push(entry);
             return {
                 cancel: () => {
@@ -256,6 +256,20 @@ describe('handleStateChange — backward', () => {
         expect(mockFireFocusEvent).toHaveBeenCalledWith(view);
     });
 
+    it('waits for the upcoming transition on a stack pop', () => {
+        setLastPressedTriggerRefForTests(fakeRef(fakeView('display-name')));
+        handleStateChange(stackState(0, [{key: 'profile', name: 'Profile'}]));
+        handleStateChange(
+            stackState(1, [
+                {key: 'profile', name: 'Profile'},
+                {key: 'display-name-page', name: 'DisplayName'},
+            ]),
+        );
+        handleStateChange(stackState(0, [{key: 'profile', name: 'Profile'}]));
+
+        expect(mockTtQueue.at(-1)?.waitForUpcomingTransition).toBe(true);
+    });
+
     it('does NOT call sendAccessibilityEvent when no trigger was staged before the forward navigation', () => {
         const prev = stackState(0, [{key: 'profile', name: 'Profile'}]);
         const forward = stackState(1, [
@@ -413,6 +427,8 @@ describe('PUSH_PARAMS — same-route param change', () => {
         expect(getTriggerMapSizeForTests()).toBe(1);
 
         notifyPushParamsBackward(ROUTE_KEY, {q: 'old'});
+        // PUSH_PARAMS emits no transition — restore must not wait for one (would stall on the 1s timeout).
+        expect(mockTtQueue.at(-1)?.waitForUpcomingTransition).toBe(false);
         flushTransitions();
         expect(mockFireFocusEvent).toHaveBeenCalledWith(view);
     });
