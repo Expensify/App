@@ -8,12 +8,14 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
+import {rand64} from '@libs/NumberUtils';
 import {hasDependentTags, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {
     buildOptimisticModifiedExpenseReportAction,
     getOutstandingChildRequest,
     getParsedComment,
+    getReportTransactions,
     getTransactionDetails,
     hasViolations as hasViolationsReportUtils,
     isExpenseReport,
@@ -28,6 +30,7 @@ import {
     getClearedPendingFields,
     getMerchant,
     getUpdatedTransaction,
+    hasSubmissionBlockingViolationInReport,
     haveWaypointAddressesChanged,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isFetchingWaypointsFromServer,
@@ -410,6 +413,85 @@ function updateMoneyRequestAttendees({
     });
     const {params, onyxData} = data;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_ATTENDEES, params, onyxData);
+}
+
+/**
+ * Update the QBO vendor matched to a non-reimbursable expense. The vendor lives on the transaction's
+ * `comment.vendor` NVP as `{ externalID, isManuallySet }`. `isManuallySet` is hard-coded to `true` here
+ * because this action is only called from user-driven flows (the App vendor picker, etc.); the PHP
+ * fuzzy matcher writes auto-matches directly via `UpdateMoneyRequestVendor` with `isManuallySet=false`.
+ *
+ * Passing `vendorID=''` clears the vendor from the transaction.
+ */
+function updateMoneyRequestVendor(transactionID: string, vendorID: string, transaction?: OnyxEntry<OnyxTypes.Transaction>) {
+    // Fall back to the cached Onyx transaction when the caller doesn't pass one so failureData can
+    // restore the actual previous vendor on API failure instead of clearing it.
+    const resolvedTransaction = transaction ?? getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const previousVendor = resolvedTransaction?.comment?.vendor;
+    const optimisticReportActionID = rand64();
+    const isClearing = !vendorID;
+
+    const newVendorOptimisticValue = isClearing ? null : {externalID: vendorID, isManuallySet: true};
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const,
+            value: {
+                comment: {
+                    vendor: newVendorOptimisticValue,
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [];
+
+    // Only roll back the vendor when we have a known prior snapshot. If the transaction isn't passed
+    // in AND isn't cached in Onyx yet, we don't know what to restore — writing null here would silently
+    // clear a vendor we don't know about. The next server sync will reconcile.
+    if (resolvedTransaction) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const,
+            value: {
+                comment: {
+                    vendor: previousVendor ?? null,
+                },
+            },
+        });
+    }
+
+    // Optimistically clear any existing inactive-vendor violation. This is the user-driven write
+    // path: the vendor selector RHP only offers vendors from `getQBOVendors(policy)`, so a user
+    // pick is always a valid vendor (resolving the violation); clearing the vendor likewise
+    // resolves it (no vendor → no inactive-vendor). Without this, the stale violation persists
+    // in Onyx until some unrelated recalculation fires, keeping the expense incorrectly flagged.
+    const violationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}` as const;
+    const currentViolations = getAllTransactionViolations()[violationsKey] ?? [];
+    if (currentViolations.some((violation) => violation.name === CONST.VIOLATIONS.INACTIVE_VENDOR)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: violationsKey,
+            value: currentViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.INACTIVE_VENDOR),
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: violationsKey,
+            value: currentViolations,
+        });
+    }
+
+    API.write(
+        WRITE_COMMANDS.UPDATE_MONEY_REQUEST_VENDOR,
+        {
+            transactionID,
+            reportActionID: optimisticReportActionID,
+            vendorID,
+            isManuallySet: true,
+        },
+        {optimisticData, failureData},
+    );
 }
 
 type UpdateMoneyRequestTagParams = {
@@ -1027,6 +1109,7 @@ type GetUpdateMoneyRequestParamsType = {
     policyRecentlyUsedCurrencies?: string[];
     iouReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     isSplitTransaction?: boolean;
+    isSelfDMSplit?: boolean;
     // TODO: This will be required eventually. Ref: https://github.com/Expensify/App/issues/66407
     isOffline?: boolean;
     delegateAccountID: number | undefined;
@@ -1068,6 +1151,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         policyRecentlyUsedCurrencies,
         iouReportNextStep,
         isSplitTransaction,
+        isSelfDMSplit,
         isOffline,
         delegateAccountID,
     } = params;
@@ -1186,6 +1270,31 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     const hasModifiedMerchant = 'merchant' in transactionChanges;
     // For split transactions, the merchant and amount are already computed in transactionChanges,
     // so we can build a valid optimistic MODIFIED_EXPENSE even when waypoints are pending.
+
+    // For selfDM splits, optimistically update the underlying transaction so that MoneyRequestView shows the new amount immediately.
+    if (isSelfDMSplit && isSplitTransaction && transaction && updatedTransaction && transactionID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                amount: updatedTransaction.amount,
+                modifiedAmount: updatedTransaction.modifiedAmount,
+                currency: updatedTransaction.currency,
+                modifiedCurrency: updatedTransaction.modifiedCurrency,
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                amount: transaction.amount,
+                modifiedAmount: transaction.modifiedAmount,
+                currency: transaction.currency,
+                modifiedCurrency: transaction.modifiedCurrency,
+            },
+        });
+    }
     const hasSplitDistanceMessageFields = !!isSplitTransaction && hasModifiedMerchant && hasModifiedAmount;
     // When distance is provided alongside waypoints (route was already calculated), we have valid
     // merchant/amount data to build the optimistic report action instead of waiting for the server.
@@ -1580,8 +1689,17 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
                 (hasModifiedReimbursable && iouReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED))
         ) {
             const currentNextStep = iouReportNextStep ?? {};
-            const shouldFixViolations = Array.isArray(violationsOnyxData.value) && violationsOnyxData.value.length > 0;
             const moneyRequestReport = updatedMoneyRequestReport ?? iouReport ?? undefined;
+            const reportTransactions = [
+                ...getReportTransactions(moneyRequestReport?.reportID).filter((reportTransaction) => reportTransaction.transactionID !== transactionID),
+                updatedTransaction,
+            ];
+            const shouldFixViolations = hasSubmissionBlockingViolationInReport(
+                reportTransactions,
+                getAllTransactionViolations(),
+                transactionID,
+                Array.isArray(violationsOnyxData.value) ? violationsOnyxData.value : null,
+            );
             const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, getAllTransactionViolations(), currentUserAccountIDParam, currentUserEmailParam);
             const optimisticNextStep = buildOptimisticNextStep({
                 report: moneyRequestReport,
@@ -1884,6 +2002,7 @@ export {
     updateMoneyRequestReimbursable,
     updateMoneyRequestMerchant,
     updateMoneyRequestAttendees,
+    updateMoneyRequestVendor,
     updateMoneyRequestTag,
     updateMoneyRequestTaxAmount,
     updateMoneyRequestTaxRate,

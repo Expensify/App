@@ -13,6 +13,7 @@ import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
 import useReportTransactions from '@hooks/useReportTransactions';
+import useTransactionsByID from '@hooks/useTransactionsByID';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
@@ -27,7 +28,7 @@ import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterEx
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
-import {findSelfDMReportID, generateReportID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils, isMoneyRequestReport, isSelectedManagerMcTest} from '@libs/ReportUtils';
+import {findSelfDMReportID, generateReportID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils, isMoneyRequestReport} from '@libs/ReportUtils';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
 import {
@@ -252,6 +253,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const transactionTaxValue = transaction?.taxValue ?? getTaxValue(policy, transaction, transactionTaxCode) ?? '';
 
+    const transactionIDs = transactions?.map((tx) => tx.transactionID);
+    const [storedTransactions] = useTransactionsByID(transactionIDs);
+
     function requestMoney(selectedParticipantsArg: Participant[], shouldHandleNav: boolean, gpsPoint?: GpsPoint) {
         if (!transactions.length) {
             return;
@@ -292,6 +296,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
             const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
             const existingTransactionDraft = transactions.find((tx) => tx.transactionID === existingTransactionID);
+            const existingTransaction = existingTransactionID ? storedTransactions?.find((tx) => tx?.transactionID === existingTransactionID) : undefined;
             let merchantToUse = isTestReceipt ? CONST.TEST_RECEIPT.MERCHANT : item.merchant;
             if (!isTestReceipt && isManualDistanceRequestTransactionUtils(item)) {
                 const distance = item.comment?.customUnit?.quantity;
@@ -379,6 +384,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 transactionViolations: transactionViolationsRef.current,
                 policyRecentlyUsedCurrencies,
                 quickAction,
+                existingTransaction,
                 existingTransactionDraft,
                 draftTransactionIDs,
                 isSelfTourViewed,
@@ -549,8 +555,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 shouldHandleNavigation: shouldHandleNav && index === transactions.length - 1,
                 shouldDeferForSearch,
                 isASAPSubmitBetaEnabled,
-                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                currentUserEmailParam: email,
+                currentUser: {accountID: currentUserPersonalDetails.accountID, email},
                 introSelected,
                 activePolicy,
                 quickAction,
@@ -844,13 +849,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
         if (Object.values(receiptFiles).filter((receipt) => !!receipt).length && !!transaction) {
             // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
-            if (
-                transaction.amount === 0 &&
-                !isSharingTrackExpense &&
-                !isCategorizingTrackExpense &&
-                locationPermissionGranted &&
-                !selectedParticipantsArg.some((participant) => isSelectedManagerMcTest(participant.login))
-            ) {
+            if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted) {
                 if (userLocation) {
                     requestMoney(selectedParticipantsArg, shouldHandleNavigation, {
                         lat: userLocation.latitude,
