@@ -49,10 +49,14 @@ import TaxCell from './DataCells/TaxCell';
 import TotalCell from './DataCells/TotalCell';
 import TypeCell from './DataCells/TypeCell';
 import DeferredTransactionItemRowRBR from './DeferredTransactionItemRowRBR';
-import type {TransactionItemRowProps, TransactionItemRowWideComputedData} from './types';
+import type {TransactionItemRowProps, TransactionItemRowRBRDeferControlProps, TransactionItemRowWideComputedData} from './types';
 
-type TransactionItemRowWideProps = Omit<TransactionItemRowProps, 'shouldUseNarrowLayout' | 'isAttendeesEnabledForMovingPolicy' | 'isLargeScreenWidth' | 'shouldShowCheckbox'> &
-    TransactionItemRowWideComputedData;
+type TransactionItemRowWideProps = Omit<
+    TransactionItemRowProps,
+    'shouldUseNarrowLayout' | 'isAttendeesEnabledForMovingPolicy' | 'isLargeScreenWidth' | 'shouldShowCheckbox' | 'shouldSkipDeferRBR'
+> &
+    TransactionItemRowWideComputedData &
+    TransactionItemRowRBRDeferControlProps;
 
 function TransactionItemRowWide({
     transactionItem,
@@ -77,6 +81,7 @@ function TransactionItemRowWide({
     shouldShowRadioButton = false,
     onRadioButtonPress = () => {},
     shouldShowErrors = true,
+    shouldDeferRBR = true,
     isDisabled = false,
     violations,
     shouldShowBottomBorder,
@@ -624,6 +629,7 @@ function TransactionItemRowWide({
                 </View>
                 {shouldShowErrors && (
                     <DeferredTransactionItemRowRBR
+                        shouldDefer={shouldDeferRBR}
                         transaction={transactionItem}
                         violations={violations}
                         report={report}

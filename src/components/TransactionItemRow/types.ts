@@ -106,6 +106,14 @@ type TransactionItemRowProps = {
     canEditCategory?: boolean;
     canEditAmount?: boolean;
     canEditTag?: boolean;
+
+    /** When true, RBR content renders immediately instead of via useDeferredValue. Use in FlashList contexts. */
+    shouldSkipDeferRBR?: boolean;
+};
+
+/** Derived from shouldSkipDeferRBR; passed to layout variants for DeferredTransactionItemRowRBR. */
+type TransactionItemRowRBRDeferControlProps = {
+    shouldDeferRBR?: boolean;
 };
 
 /**
@@ -135,4 +143,4 @@ type TransactionItemRowWideComputedData = Omit<TransactionItemRowNarrowComputedD
     totalPerAttendee: number | undefined;
 };
 
-export type {TransactionWithOptionalSearchFields, TransactionItemRowProps, TransactionItemRowNarrowComputedData, TransactionItemRowWideComputedData};
+export type {TransactionWithOptionalSearchFields, TransactionItemRowProps, TransactionItemRowRBRDeferControlProps, TransactionItemRowNarrowComputedData, TransactionItemRowWideComputedData};

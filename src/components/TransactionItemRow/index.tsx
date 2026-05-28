@@ -92,7 +92,9 @@ function TransactionItemRow({
     canEditCategory,
     canEditAmount,
     canEditTag,
+    shouldSkipDeferRBR = false,
 }: TransactionItemRowProps) {
+    const shouldDeferRBR = !shouldSkipDeferRBR;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const createdAt = getTransactionCreated(transactionItem);
@@ -165,6 +167,7 @@ function TransactionItemRow({
                 createdAt={createdAt}
                 transactionThreadReportID={transactionThreadReportID}
                 shouldRenderChatBubbleCell={shouldRenderChatBubbleCell}
+                shouldDeferRBR={shouldDeferRBR}
             />
         );
     }
@@ -242,6 +245,7 @@ function TransactionItemRow({
             totalPerAttendee={!attendeesCount || totalAmount === undefined ? undefined : totalAmount / attendeesCount}
             createdAt={createdAt}
             transactionThreadReportID={transactionThreadReportID}
+            shouldDeferRBR={shouldDeferRBR}
         />
     );
 }

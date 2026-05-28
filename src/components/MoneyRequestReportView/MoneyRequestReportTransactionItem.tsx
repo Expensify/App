@@ -87,6 +87,9 @@ type MoneyRequestReportTransactionItemBodyProps = MoneyRequestReportTransactionI
 
     /** Highlight animation style, computed by the parent so its state survives the narrow↔wide swap on resize. */
     animatedHighlightStyle: ReturnType<typeof useAnimatedHighlightStyle>;
+
+    /** Whether to skip deferring the RBR content. */
+    shouldSkipDeferRBR?: boolean;
 };
 
 function MoneyRequestReportTransactionItemBody({
@@ -110,6 +113,7 @@ function MoneyRequestReportTransactionItemBody({
     shouldScrollHorizontally = false,
     inlineEdit,
     animatedHighlightStyle,
+    shouldSkipDeferRBR = false,
 }: MoneyRequestReportTransactionItemBodyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -220,6 +224,7 @@ function MoneyRequestReportTransactionItemBody({
                         onEditCategory={inlineEdit?.onEditCategory}
                         onEditAmount={inlineEdit?.onEditAmount}
                         onEditTag={inlineEdit?.onEditTag}
+                        shouldSkipDeferRBR={shouldSkipDeferRBR}
                     />
                 )}
             </PressableWithFeedback>
@@ -262,6 +267,7 @@ function MoneyRequestReportTransactionItem(props: MoneyRequestReportTransactionI
             <MoneyRequestReportTransactionItemBody
                 {...props}
                 animatedHighlightStyle={animatedHighlightStyle}
+                shouldSkipDeferRBR
             />
         );
     }
