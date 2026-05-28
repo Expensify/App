@@ -17,7 +17,7 @@ const PROTECTED_SCREENS = {
 const SCREENS = {
     ...PROTECTED_SCREENS,
     REPORT: 'Report',
-    PROFILE_AVATAR: 'ProfileAvatar',
+    DYNAMIC_PROFILE_AVATAR: 'Dynamic_Profile_Avatar',
     WORKSPACE_AVATAR: 'WorkspaceAvatar',
     WORKSPACE_DOCUMENT: 'WorkspaceDocument',
     REPORT_AVATAR: 'ReportAvatar',
@@ -161,8 +161,6 @@ const SCREENS = {
             DATE_OF_BIRTH: 'Settings_DateOfBirth',
             PHONE_NUMBER: 'Settings_PhoneNumber',
             ADDRESS: 'Settings_Address',
-            PRIVATE_PERSONAL_DETAILS: 'Settings_PrivatePersonalDetails',
-            PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE: 'Settings_PrivatePersonalDetails_ConfirmMagicCode',
             AVATAR: 'Settings_Avatar',
             DYNAMIC_ADDRESS_COUNTRY: 'Dynamic_Address_Country',
             ADDRESS_STATE: 'Settings_Address_State',
@@ -518,7 +516,7 @@ const SCREENS = {
     },
 
     NEW_REPORT_WORKSPACE_SELECTION: {
-        ROOT: 'NewReportWorkspaceSelection_Root',
+        DYNAMIC_ROOT: 'Dynamic_NewReportWorkspaceSelection_Root',
     },
 
     SET_DEFAULT_WORKSPACE: 'SetDefaultWorkspace',
@@ -528,13 +526,13 @@ const SCREENS = {
     },
 
     REPORT_DETAILS: {
-        ROOT: 'Report_Details_Root',
-        SHARE_CODE: 'Report_Details_Share_Code',
-        EXPORT: 'Report_Details_Export',
+        DYNAMIC_ROOT: 'Dynamic_Report_Details_Root',
+        DYNAMIC_SHARE_CODE: 'Dynamic_Report_Details_Share_Code',
+        DYNAMIC_EXPORT: 'Dynamic_Report_Details_Export',
     },
 
     REPORT_CHANGE_WORKSPACE: {
-        ROOT: 'ReportChangeWorkspace_Root',
+        DYNAMIC_ROOT: 'Dynamic_Report_Change_Workspace_Root',
     },
 
     WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root', OWNER_SELECTOR: 'Workspace_Confirmation_Owner_Selector', SUCCESS: 'Workspace_Confirmation_Success'},
@@ -745,10 +743,15 @@ const SCREENS = {
         COMPANY_CARD_EXPORT: 'Workspace_CompanyCard_Export',
         EXPENSIFY_CARD: 'Workspace_ExpensifyCard',
         EXPENSIFY_CARD_DETAILS: 'Workspace_ExpensifyCard_Details',
+        EXPENSIFY_CARD_ADD_WORK_EMAIL: 'Workspace_ExpensifyCard_Add_Work_Email',
         DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: 'Dynamic_Workspace_ExpensifyCard_New',
         DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE: 'Dynamic_Workspace_ExpensifyCard_IssueNew_ConfirmMagicCode',
         DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SELECT_FEED: 'Dynamic_Workspace_ExpensifyCard_Select_Feed',
-        EXPENSIFY_CARD_ADD_WORK_EMAIL: 'Workspace_ExpensifyCard_Add_Work_Email',
+        DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_SELECTION: 'Workspace_ExpensifyCard_Rule_Selection',
+        DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MERCHANTS: 'Workspace_ExpensifyCard_Rule_Merchants',
+        DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MERCHANT_EDIT: 'Workspace_ExpensifyCard_Rule_Merchant_Edit',
+        DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CATEGORY: 'Workspace_ExpensifyCard_Rule_Category',
+        DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MAX_AMOUNT: 'Workspace_ExpensifyCard_Rule_Max_Amount',
         EXPENSIFY_CARD_VERIFY_WORK_EMAIL: 'Workspace_ExpensifyCard_Verify_Work_Email',
         EXPENSIFY_CARD_BANK_ACCOUNT: 'Workspace_ExpensifyCard_BankAccount',
         EXPENSIFY_CARD_SETTINGS: 'Workspace_ExpensifyCard_Settings',
@@ -917,7 +920,7 @@ const SCREENS = {
 
     EDIT_REQUEST: {
         CURRENCY: 'EditRequest_Currency',
-        REPORT_FIELD: 'EditRequest_ReportField',
+        DYNAMIC_REPORT_FIELD: 'Dynamic_EditRequest_ReportField',
     },
 
     NEW_CHAT: {
@@ -980,7 +983,7 @@ const SCREENS = {
     WALLET_STATEMENT_ROOT: 'WalletStatement_Root',
     SIGN_IN_ROOT: 'SignIn_Root',
     DETAILS_ROOT: 'Details_Root',
-    PROFILE_ROOT: 'Profile_Root',
+    DYNAMIC_PROFILE: 'Dynamic_Profile_Root',
     AUTO_SUBMIT_ROOT: 'AutoSubmit_Modal_Root',
     DYNAMIC_CHANGE_POLICY_EDUCATIONAL_ROOT: 'DynamicChangePolicyEducational_Root',
     REPORT_DESCRIPTION_ROOT: 'Report_Description_Root',
@@ -1003,9 +1006,10 @@ const SCREENS = {
     DYNAMIC_PRIVATE_NOTES_LIST: 'Dynamic_PrivateNotes_List',
     DYNAMIC_PRIVATE_NOTES_EDIT: 'Dynamic_PrivateNotes_Edit',
     REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',
+    REIMBURSEMENT_ACCOUNT_USD: 'Reimbursement_Account_USD',
     REIMBURSEMENT_ACCOUNT_NON_USD: 'Reimbursement_Account_Non_USD',
     REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO: 'Reimbursement_Account_Signer_Info',
-    REFERRAL_DETAILS: 'Referral_Details',
+    DYNAMIC_REFERRAL_DETAILS: 'Dynamic_Referral_Details',
     REPORT_VERIFY_ACCOUNT: 'Report_Verify_Account',
     EXPENSE_REPORT_VERIFY_ACCOUNT: 'Expense_Report_Verify_Account',
     SHARE: {

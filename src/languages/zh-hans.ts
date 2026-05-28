@@ -124,6 +124,7 @@ const translations: TranslationDeepObject<typeof en> = {
             approve: '批准',
             pay: '支付',
             fix: '修复',
+            task: '任务',
         },
         success: '成功',
         group: '群组',
@@ -828,7 +829,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: '你的空间',
         welcomeToRoom: (roomName: string) => `欢迎来到 ${roomName}！`,
         usePlusButton: (additionalText: string) => `使用 + 按钮来${additionalText}一笔费用。`,
-        askConcierge: '这是您与 Concierge（您的个人 AI 代理）的聊天。我几乎什么都能做，来试试吧！',
+        askConcierge: 'Concierge 可以回答问题、更新报销等。',
         conciergeSupport: '您的专属AI助手',
         create: '创建',
         iouTypes: {
@@ -1006,6 +1007,7 @@ const translations: TranslationDeepObject<typeof en> = {
             inviteAccountant: '邀请你的会计',
         },
         yourSpend: {title: '您的支出', awaitingApproval: '等待审批', repaidLast30Days: '过去30天内已偿还', recentTransactions: ({lastFour}: {lastFour: string}) => `最近交易 • ${lastFour}`},
+        seeMore: ({count}: {count: number}) => `再查看 ${count} 个`,
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -1904,6 +1906,14 @@ const translations: TranslationDeepObject<typeof en> = {
             title: '私人',
             subtitle: '这些详细信息用于旅行和付款。它们绝不会显示在你的公开资料中。',
         },
+        aiPromptSection: {
+            title: 'AI 提示',
+            subtitle: '编写自定义说明',
+            prompt: '提示',
+            editPrompt: '编辑提示',
+            promptCannotBeEmpty: '提示不能为空',
+            saved: '已保存',
+        },
     },
     securityPage: {
         title: '安全选项',
@@ -2157,7 +2167,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     deviceManagementPage: {
         title: '设备管理',
-        description: '管理所有已使用你的 Expensify 账户登录的设备。<a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">了解详情</a>',
+        description: '管理所有已使用你的 Expensify 账户登录的设备。<a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">了解详情</a>.',
         revoke: '撤销',
         unknownDevice: '未知设备',
     },
@@ -2171,11 +2181,11 @@ const translations: TranslationDeepObject<typeof en> = {
         disabled: '已关闭双重身份验证',
         noAuthenticatorApp: '你今后登录 Expensify 时将不再需要验证器应用程序。',
         stepCodes: '恢复代码',
-        keepCodesSafe: '请妥善保管这些恢复代码！',
+        keepCodesSafe: '妥善保管这些验证码！',
         codesLoseAccess: dedent(`
-            如果你无法访问身份验证应用并且没有这些代码，你将无法访问你的帐户。
+            如果你无法使用身份验证应用且没有这些代码，你将无法访问你的账户。
 
-            注意：设置双重身份验证会将你从所有其他活动会话中登出。
+            <strong>注意</strong>：设置双重身份验证后，你将在所有其他活跃会话中退出登录。
         `),
         errorStepCodes: '请在继续之前复制或下载这些代码',
         stepVerify: '验证',
@@ -2204,6 +2214,9 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyOldDeviceDescription: '请输入您当前身份验证器应用中的六位数验证码，以确认您仍可访问该应用。',
         verifyNewDeviceTitle: '设置新设备',
         verifyNewDeviceDescription: '使用新设备扫描二维码，然后输入代码完成设置。',
+        downloadCodes: '下载代码',
+        screenshotTip: '提示：截屏此页面以将其保存到你的相册',
+        copyCodes: '复制代码',
     },
     recoveryCodeForm: {
         error: {
@@ -2493,6 +2506,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         addApprovalTip: '除非存在更具体的工作流程，否则此默认工作流程适用于所有成员。',
         approver: '审批人',
         addApprovalsDescription: '在付款前需要额外审批。',
+        automateApprovalsWithAgentsTitle: '使用代理自动化审批',
+        automateApprovalsWithAgentsSubtitle: '在下方添加代理到工作流程中以自动化审批。',
         makeOrTrackPaymentsTitle: '付款',
         makeOrTrackPaymentsDescription: '为在 Expensify 中进行的付款添加授权付款人，或跟踪在其他地方进行的付款。',
         customApprovalWorkflowEnabled:
@@ -2609,6 +2624,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     reportFraudConfirmationPage: {
         title: '已报告卡片欺诈',
         description: '我们已永久停用你的现有卡片。当你返回查看卡片详情时，你将会看到一张新的虚拟卡片可用。',
+        descriptionCardNotReplaced: '您的卡已被永久停用。请联系管理员以发行新卡。',
         buttonText: '明白了，谢谢！',
     },
     activateCardPage: {
@@ -2696,6 +2712,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         title: '编辑代理',
         agentName: '代理人姓名',
         instructions: '编写自定义说明',
+        chatWithAgent: '与代理聊天',
+        copilotIntoAccount: 'Copilot 进入账户',
         deleteAgent: '删除代理',
         deleteAgentTitle: '删除代理？',
         deleteAgentMessage: '确定要删除此代理吗？此操作无法撤销。',
@@ -2877,7 +2895,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         peopleYouMayKnow: '你可能认识的人已经在这里了！验证你的邮箱以加入他们。',
         workspaceYouMayJoin: (domain: string, email: string) => `${domain} 中的某位成员已经创建了一个工作区。请输入发送到 ${email} 的魔法验证码。`,
         joinAWorkspace: '加入工作区',
-        listOfWorkspaces: '以下是你可以加入的工作空间列表。别担心，如果你愿意，你随时都可以稍后再加入。',
+        listOfWorkspaces: '以下是你可以加入的工作区列表。',
         skipForNow: '暂时跳过',
         workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} 位成员${employeeCount > 1 ? '秒' : ''} • ${policyOwner}`,
         whereYouWork: '你在哪里工作？',
@@ -3235,7 +3253,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         enterPhoneNumber: '你的电话号码是多少？',
         personalDetails: '个人信息',
         privateDataMessage: '这些详细信息将用于出行和付款，绝不会显示在你的公开个人资料中。',
-        basicDetails: '基本信息',
         legalName: '法定姓名',
         legalFirstName: '法定名（名）',
         legalLastName: '法定姓氏',
@@ -3424,7 +3441,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             noBankAccountSelected: '请选择一个账户',
             taxID: '请输入有效的税号',
             website: '请输入有效的网站',
-            zipCode: `请输入有效的邮政编码，格式为：${COMMON_CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
+            zipCode: `请输入有效的邮政编码，格式为：${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
             phoneNumber: '请输入有效的电话号码',
             email: '请输入有效的邮箱地址',
             companyName: '请输入有效的公司名称',
@@ -5231,6 +5248,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     duplicateColumns: (duplicateColumn: string) => `哎呀！你已将单个字段（“${duplicateColumn}”）映射到了多个列。请检查后重试。`,
                 },
                 fileImportDescription: '如果您的银行无法发送数据馈送时的手动选项。',
+                duplicateFeedModal: {title: '卡片流水已连接', prompt: '您不能将同一张卡片流水两次添加到同一个工作区。'},
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: '月末最后一天',
@@ -5862,8 +5880,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             error: '复制工作区设置时发生错误。请重试。',
             title: '复制设置',
             selectWorkspaces: '选择工作区',
-            description: '选择要复制设置到的工作区，然后选择你想复制的设置。',
+            description: '选择要复制设置到的工作区，然后选择你想要复制的设置。',
             searchPlaceholder: '搜索工作区',
+            selectFeatures: '选择要复制的功能',
+            whichFeatures: '选择要覆盖现有工作区的设置。',
+            workflowsWithoutMembersConfirm: '继续，无成员',
+            workflowsWithoutMembersPrompt: '在没有成员的情况下复制工作流程时，将不会复制审批流程。但提交和付款设置仍会被复制。',
+            accountingMismatch: ({part}: {part: string}) => `仅当所有工作区使用相同的会计系统和公司连接时，您才能复制 ${part}。`,
         },
         emptyWorkspace: {
             title: '你还没有工作区',
@@ -5944,6 +5967,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
         card: {
             getStartedIssuing: '从发放您的第一张虚拟卡或实体卡开始使用。',
             issueCard: '发卡',
+            chooseRule: '选择规则',
             issueNewCard: {
                 whoNeedsCard: '谁需要一张卡？',
                 inviteNewMember: '邀请新成员',
@@ -5985,21 +6009,27 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 enterValidDate: '请输入有效日期',
                 expirationDate: '过期日期',
                 limitAmount: '限额金额',
-                setExpiryOptions: '设置过期选项',
-                setExpiryDate: '设置过期日期',
-                setExpiryDateDescription: '卡片将按照卡片上列出的日期过期',
+                setCardRules: '设置卡片规则',
+                addSpendRule: '添加消费规则',
+                addExpirationDate: '添加到期日期',
+                addExpirationDateDescription: '如果未设置特定日期，卡片将按照当前卡片上的到期日失效',
                 amount: '金额',
+                copyExisting: '复制现有设置',
+                createNew: '新建',
+                spendRulesEmptyStateTitle: '没有可供选择的规则',
+                spendRulesEmptyStateSubtitle: '你还没有创建任何规则。你可以在上一页面创建一个规则。',
             },
             deactivateCardModal: {
                 deactivate: '停用',
                 deactivateCard: '停用卡片',
                 deactivateConfirmation: '停用此卡将拒绝所有未来交易，且此操作无法撤销。',
             },
+            searchRules: '查找支出规则',
         },
         accounting: {
             settings: '设置',
             title: '连接',
-            subtitle: '连接到您的会计系统，以使用科目表为交易编码、自动匹配付款，并保持财务数据同步。',
+            subtitle: '连接您的会计软件以自动同步。',
             qbo: 'QuickBooks Online',
             qbd: 'QuickBooks Desktop',
             xero: 'Xero',
@@ -6081,6 +6111,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `确定要连接 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? '此会计集成'} 吗？这将删除所有现有的会计连接。`,
             enterCredentials: '请输入您的凭证',
+            updateCredentials: '更新凭证',
             claimOffer: {
                 badgeText: '优惠可用！',
                 xero: {
@@ -6554,7 +6585,7 @@ ${reportName}
                 perActiveMember: '每位活跃成员每月。',
                 perMember: '每位成员每月。',
             },
-            note: (subscriptionLink: string) => `<muted-text>升级以使用此功能，或<a href="${subscriptionLink}">了解更多</a>我们的方案和价格。</muted-text>`,
+            note: (subscriptionLink: string) => `<muted-text><a href="${subscriptionLink}">了解详情</a>，包括我们的方案和价格。</muted-text>`,
             upgradeToUnlock: '解锁此功能',
             completed: {
                 headline: `您已升级您的工作区！`,
@@ -6760,6 +6791,7 @@ ${reportName}
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `添加 ${featureName} 以解锁此功能。`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) => `前往[更多功能](${moreFeaturesLink})并启用 ${featureName} 以解锁此功能。`,
             },
+            agentsPromoBanner: {title: '找不到需要的规则？添加代理人', subtitle: '添加复杂规则，并通过自定义代理减少人工审批。', cta: '试用一下'},
             merchantRules: {
                 title: '商户',
                 subtitle: '设置商户规则，使报销费用自动使用正确的编码，并减少后期清理工作。',
@@ -6967,6 +6999,7 @@ ${reportName}
         hr: {
             title: '人力资源',
             connections: '连接',
+            connectionsSubtitle: '连接您的 HR 系统以同步员工数据，自动将报销匹配到正确的员工，并在无需手动操作的情况下保持团队报销的准确性。',
             subtitle: '连接人力资源工具，保持员工审批同步。',
             connect: '连接',
             syncNow: '立即同步',
@@ -7218,6 +7251,7 @@ ${reportName}
             }
             return `已将“${newValue}”的可退税部分添加到距离费率“${customUnitRateName}”中`;
         },
+        updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `已将 ${customUnitName} 费率名称从“${oldValue}”重命名为“${newValue}”`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
             return `${newValue ? '已启用' : '已禁用'}${customUnitName}费率“${customUnitRateName}”`;
         },
@@ -8328,6 +8362,7 @@ ${reportName}
         duplicatedTransaction: '可能重复',
         fieldRequired: '报表字段为必填项',
         futureDate: '不允许使用未来日期',
+        inactiveVendor: '供应商不再有效',
         invoiceMarkup: (invoiceMarkup: number) => `加价 ${invoiceMarkup}%`,
         maxAge: (maxAge: number) => `日期早于 ${maxAge} 天`,
         missingCategory: '缺少类别',
@@ -8795,7 +8830,7 @@ ${reportName}
         copilotDelegatedAccess: 'Copilot：委托访问',
         copilotDelegatedAccessDescription: '允许其他成员访问你的账户。',
         learnMoreAboutDelegatedAccess: '了解更多关于委托访问的信息',
-        addCopilot: '添加副驾',
+        addCopilot: '添加副驾驶',
         membersCanAccessYourAccount: '这些成员可以访问你的账户：',
         youCanAccessTheseAccounts: '您可以访问这些账户：',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
@@ -9000,6 +9035,20 @@ ${reportName}
         expenseLevelExport: '所有数据 - 报销级别',
         exportInProgress: '导出进行中',
         conciergeWillSend: 'Concierge 将很快把文件发送给你。',
+    },
+    exportDownload: {
+        preparingTitle: 'Preparing download...',
+        preparingBody: 'You can either wait for the download to finish or Concierge can send it to you via chat.',
+        sendFromConcierge: "Send me the file when it's ready",
+        conciergeTitle: 'You bet!',
+        conciergeBody: 'Concierge will send you a message when the file is ready.',
+        goToConcierge: 'Go to Concierge',
+        dismiss: 'Dismiss',
+        readyTitle: 'Your file is ready!',
+        readyBody: "If it didn't automatically download, use the button below.",
+        downloadFile: 'Download file',
+        failedTitle: 'Export failed',
+        close: 'Close',
     },
     domain: {
         notVerified: '未验证',
