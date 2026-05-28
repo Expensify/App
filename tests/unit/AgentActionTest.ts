@@ -46,13 +46,13 @@ describe('createAgent', () => {
         expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, expect.objectContaining({firstName: undefined, prompt: 'Some prompt'}), expect.any(Object));
     });
 
-    it('optimistic personal detail entry has a negative account ID', () => {
+    it('optimistic personal detail entry has a positive account ID from generateReportID', () => {
         createAgent('Bot', 'My prompt');
 
         const {optimisticData} = getWriteOptions();
         const accountID = getOptimisticAccountID(optimisticData);
 
-        expect(Number(accountID)).toBeLessThan(0);
+        expect(Number(accountID)).toBeGreaterThan(0);
     });
 
     it('optimistic personal detail entry stores displayName and marks entry as optimistic', () => {
@@ -170,7 +170,8 @@ describe('createAgent', () => {
     it('returns the optimistic accountID and avatarURI so callers can chain follow-up navigation', () => {
         const result = createAgent('Bot', 'My prompt', 'bot-avatar--blue');
 
-        expect(result.optimisticAccountID).toBeLessThan(0);
+        expect(result.optimisticAccountID).toEqual(expect.any(String));
+        expect(Number(result.optimisticAccountID)).toBeGreaterThan(0);
         expect(result.avatarURI).toBeTruthy();
     });
 
@@ -265,7 +266,7 @@ describe('createAgent', () => {
         const promptRollback = failureData.find((u) => u.key === `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
 
         expect((personalDetailRollback?.value as Record<string, unknown>)[accountID]).toMatchObject({
-            accountID: Number(accountID),
+            accountID,
             displayName: 'Bot',
             isOptimisticPersonalDetail: true,
         });
