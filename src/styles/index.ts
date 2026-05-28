@@ -1182,7 +1182,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderWidth: 1,
             borderRadius: variables.componentBorderRadius,
             borderColor: 'transparent',
-            padding: 4,
+            padding: 6,
             height: 'auto',
             minHeight: variables.editableCellHeight,
             overflow: 'hidden',
@@ -1191,30 +1191,22 @@ const staticStyles = (theme: ThemeColors) =>
 
         editableCellHoverIcon: {
             position: 'absolute',
-            right: -2,
+            right: 4,
             top: 0,
             bottom: 0,
-            width: 30,
-            height: 30,
-            paddingRight: 6,
             justifyContent: 'center',
-            alignItems: 'flex-end',
-            backgroundImage: `linear-gradient(to right, ${theme.hoverComponentBG}00 0% 0%, ${theme.hoverComponentBG} 40% 100%)`,
-        },
-
-        editableCellHoverIconGradientHidden: {
-            backgroundImage: 'none',
         },
 
         editableCellHoverIconButton: {
             padding: 4,
             borderRadius: '50%',
+            backgroundColor: theme.buttonDefaultBG,
             justifyContent: 'center',
             alignItems: 'center',
         },
 
         editableCellHoverIconButtonActive: {
-            backgroundColor: theme.buttonDefaultBG,
+            backgroundColor: theme.buttonHoveredBG,
         },
 
         editableCellFocus: {

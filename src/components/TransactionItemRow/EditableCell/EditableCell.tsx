@@ -1,7 +1,7 @@
 import React, {useDeferredValue, useEffect, useId, useState} from 'react';
 import type {ReactNode, RefObject} from 'react';
 import {View} from 'react-native';
-import ChevronDown from '@assets/images/down.svg';
+import Pencil from '@assets/images/pencil.svg';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -107,7 +107,7 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
                     {children}
                     {isCellHovered && (
                         <View
-                            style={[styles.editableCellHoverIcon, isIconHovered && styles.editableCellHoverIconGradientHidden]}
+                            style={styles.editableCellHoverIcon}
                             pointerEvents="box-none"
                         >
                             <PressableWithFeedback
@@ -122,9 +122,9 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
                                 style={[styles.editableCellHoverIconButton, isIconHovered && styles.editableCellHoverIconButtonActive]}
                             >
                                 <Icon
-                                    src={ChevronDown}
-                                    width={14}
-                                    height={14}
+                                    src={Pencil}
+                                    width={12}
+                                    height={12}
                                     fill={theme.icon}
                                 />
                             </PressableWithFeedback>
