@@ -125,11 +125,11 @@ function mapTransactionItemToSelectedEntry(
     originalItemTransaction: OnyxEntry<Transaction>,
     currentUserLogin: string,
     currentUserAccountID: number,
-    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
-    allowNegativeAmount = true,
-    parentReport?: OnyxEntry<Report>,
-    selfDMReport?: OnyxEntry<Report>,
-    isProduction?: boolean,
+    outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue | undefined,
+    allowNegativeAmount: boolean,
+    parentReport: OnyxEntry<Report> | undefined,
+    selfDMReport: OnyxEntry<Report> | undefined,
+    isProduction: boolean,
 ): [string, SelectedTransactionInfo] {
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy, currentUserAccountID);
     const canRejectRequest = item.report ? canRejectReportAction(currentUserLogin, item.report) : false;
@@ -202,10 +202,10 @@ function prepareTransactionsList(
     selectedTransactions: SelectedTransactions,
     currentUserLogin: string,
     currentUserAccountID: number,
-    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
-    parentReport?: OnyxEntry<Report>,
-    selfDMReport?: OnyxEntry<Report>,
-    isProduction?: boolean,
+    outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue | undefined,
+    parentReport: OnyxEntry<Report> | undefined,
+    selfDMReport: OnyxEntry<Report> | undefined,
+    isProduction: boolean,
 ) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
         const {[item.keyForList]: omittedTransaction, ...transactions} = selectedTransactions;
