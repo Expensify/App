@@ -4779,33 +4779,28 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         },
         certinia: {
             title: 'Certinia',
-            exportDescription: 'Configure how Expensify data exports to Certinia.',
-            payableInvoices: 'Payable Invoices',
+            exportDescription: 'Expensify のデータを Certinia へエクスポートする方法を設定します。',
+            payableInvoices: '支払対象の請求書',
             exportStatus: {
-                label: 'Payable invoice status',
+                label: '買掛請求書のステータス',
                 values: {
-                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Complete',
-                    [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'In Progress',
-                    [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Submitted',
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: '完了',
+                    [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: '進行中',
+                    [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: '送信済み',
                 },
             },
             exportDate: {
-                label: 'Payable invoice date',
+                label: '支払予定請求書日',
                 values: {
-                    [CONST.CERTINIA_EXPORT_DATE.LAST_EXPENSE]: 'Date of last expense',
-                    [CONST.CERTINIA_EXPORT_DATE.REPORT_SUBMITTED]: 'Report submitted date',
-                    [CONST.CERTINIA_EXPORT_DATE.REPORT_EXPORTED]: 'Export date',
+                    [CONST.CERTINIA_EXPORT_DATE.LAST_EXPENSE]: '最終経費日',
+                    [CONST.CERTINIA_EXPORT_DATE.REPORT_SUBMITTED]: 'レポート提出日',
+                    [CONST.CERTINIA_EXPORT_DATE.REPORT_EXPORTED]: 'エクスポート日',
                 },
             },
-            exportReimbursable: {
-                label: 'Export reimbursable as',
-                helperText: 'Expenses marked as reimbursable will be exported as Payable Invoices made out to the employee.',
-            },
-            exportNonReimbursable: {
-                label: 'Export non-reimbursable as',
-            },
-            noVendorsFound: 'No vendors found',
-            noVendorsFoundDescription: 'Please sync the connection again after vendors are added in Certinia.',
+            exportReimbursable: {label: '精算対象経費の書き出し形式', helperText: '払い戻し対象としてマークされた経費は、従業員宛ての未払請求書としてエクスポートされます。'},
+            exportNonReimbursable: {label: '未払い精算の対象外経費を次の形式でエクスポートする'},
+            noVendorsFound: 'ベンダーが見つかりませんでした',
+            noVendorsFoundDescription: 'Certinia にベンダーを追加した後に、もう一度接続の同期を行ってください。',
             prerequisites: {
                 title: '接続する前に',
                 installBundle: 'FFA 接続用',
