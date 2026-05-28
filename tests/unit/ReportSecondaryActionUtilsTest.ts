@@ -2073,6 +2073,7 @@ describe('getSecondaryAction', () => {
             amount: 20,
             merchant: 'Merchant',
             date: '2025-01-01',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
             comment: {
                 type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                 customUnit: {
@@ -3320,6 +3321,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             amount: 20,
             merchant: 'Merchant',
             date: '2025-01-01',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
             comment: {
                 type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                 customUnit: {

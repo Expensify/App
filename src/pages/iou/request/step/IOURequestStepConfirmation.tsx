@@ -120,6 +120,7 @@ function IOURequestStepConfirmation({
     const allPolicyCategories = usePolicyCategories();
 
     const [transactions] = useOptimisticDraftTransactions(initialTransaction);
+    const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${initialTransaction?.participants?.at(0)?.reportID}`);
     const hasMultipleTransactions = transactions.length > 1;
 
     // Depend on transactions.length to avoid updating transactionIDs when only the transaction details change
@@ -141,7 +142,7 @@ function IOURequestStepConfirmation({
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
 
-    const realPolicyID = getIOURequestPolicyID(initialTransaction, reportReal);
+    const realPolicyID = getIOURequestPolicyID(initialTransaction, reportReal ?? participantReport);
     const draftPolicyID = getIOURequestPolicyID(initialTransaction, reportDraft);
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${draftPolicyID}`);
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${realPolicyID}`);
@@ -330,12 +331,16 @@ function IOURequestStepConfirmation({
             if (!activeTransactionID) {
                 return;
             }
-            setMoneyRequestParticipants(activeTransactionID, participantsList);
+            if (participantsList.at(0)?.isSelfDM) {
+                setMoneyRequestParticipantsFromReport(activeTransactionID, selfDMReport, currentUserPersonalDetails.accountID);
+            } else {
+                setMoneyRequestParticipants(activeTransactionID, participantsList);
+            }
             if (participantsList.length > 0) {
                 closeParticipantPicker();
             }
         },
-        [activeTransactionID, closeParticipantPicker],
+        [activeTransactionID, closeParticipantPicker, currentUserPersonalDetails.accountID, selfDMReport],
     );
 
     useEffect(() => {
