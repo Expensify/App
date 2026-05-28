@@ -1223,6 +1223,56 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getExportIntegrationActionFragments', () => {
+        function buildExportedToIntegrationAction(label: string, nonReimbursableUrls: string[]): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION> {
+            return {
+                actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                reportActionID: '1',
+                reportID: '123',
+                created: '2026-05-15 10:00:00.000',
+                message: [],
+                originalMessage: {
+                    label,
+                    lastModified: '2026-05-15 10:00:00.000',
+                    nonReimbursableUrls,
+                },
+            } as unknown as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION>;
+        }
+
+        it.each([CONST.EXPORT_LABELS.INTACCT, CONST.EXPORT_LABELS.SAGE_INTACCT, CONST.EXPORT_LABELS.QBD])('does not link ID-based %s company card export records', (label) => {
+            const fragments = ReportActionsUtils.getExportIntegrationActionFragments(translateLocal, buildExportedToIntegrationAction(label, ['SI-123', 'SI-456']));
+
+            expect(fragments).toEqual([
+                {text: `exported to ${label}`, url: ''},
+                {text: 'and successfully created a record for', url: ''},
+                {text: 'company card expenses', url: ''},
+            ]);
+        });
+
+        it('keeps URL-based company card export records linked', () => {
+            const fragments = ReportActionsUtils.getExportIntegrationActionFragments(
+                translateLocal,
+                buildExportedToIntegrationAction(CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.xero, ['1', '2']),
+            );
+
+            expect(fragments).toEqual([
+                {text: `exported to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.xero}`, url: ''},
+                {text: 'and successfully created a record for', url: ''},
+                {text: 'company card expenses', url: 'https://go.xero.com/Bank/BankAccounts.aspx'},
+            ]);
+        });
+
+        it('keeps QuickBooks Online company card export records linked', () => {
+            const fragments = ReportActionsUtils.getExportIntegrationActionFragments(translateLocal, buildExportedToIntegrationAction(CONST.EXPORT_LABELS.QBO, ['1', '2']));
+
+            expect(fragments).toEqual([
+                {text: `exported to ${CONST.EXPORT_LABELS.QBO}`, url: ''},
+                {text: 'and successfully created a record for', url: ''},
+                {text: 'company card expenses', url: 'https://qbo.intuit.com/app/expenses'},
+            ]);
+        });
+    });
+
     describe('getReportActionMessageFragments', () => {
         it('should return the correct fragment for the DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action', () => {
             // Given a DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action
@@ -1698,6 +1748,21 @@ describe('ReportActionsUtils', () => {
 
         it('should return false for CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS action with empty message array', () => {
             const reportAction = buildOptimisticCreatedReportForUnapprovedAction('123456', '789012');
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
+        });
+
+        it('should return false for CARD_ISSUED_VIRTUAL action with empty message array', () => {
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
+                reportActionID: 'card-issued-virtual-123',
+                actorAccountID: 21052128,
+                created: '2026-05-19 01:00:00.000',
+                message: [],
+                originalMessage: {
+                    assigneeAccountID: 21052128,
+                    cardID: 12345,
+                },
+            };
             expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
         });
 
@@ -2241,6 +2306,17 @@ describe('ReportActionsUtils', () => {
             const expectedMessage = translateLocal('reportAction.harvestCreatedExpenseReport', `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`, reportName);
 
             const result = ReportActionsUtils.getHarvestCreatedExpenseReportMessage(reportID, reportName, translateLocal);
+
+            expect(result).toBe(expectedMessage);
+        });
+
+        // Guards regression #90422: when the harvest report is absent from Onyx, getReportName returns ''
+        // and the message previously rendered an empty hyperlink on screen and an empty span when copied.
+        it('should fall back to "#<reportID>" when the report name is empty', () => {
+            const reportID = '12345';
+            const expectedMessage = translateLocal('reportAction.harvestCreatedExpenseReport', `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`, `#${reportID}`);
+
+            const result = ReportActionsUtils.getHarvestCreatedExpenseReportMessage(reportID, '', translateLocal);
 
             expect(result).toBe(expectedMessage);
         });
