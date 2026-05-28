@@ -1,9 +1,9 @@
 import React from 'react';
 import useLocalize from '@hooks/useLocalize';
 import {updateGustoFinalApprover} from '@libs/actions/connections/Gusto';
+import {isGustoConnected} from '@libs/HRUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isGustoConnected} from '@libs/PolicyUtils';
 import HRFinalApproverPageBase from '@pages/workspace/hr/HRFinalApproverPageBase';
 import type {HRFinalApproverProviderConfig} from '@pages/workspace/hr/HRFinalApproverPageBase';
 import CONST from '@src/CONST';
