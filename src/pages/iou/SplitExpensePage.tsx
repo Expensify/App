@@ -19,7 +19,6 @@ import useAllTransactions from '@hooks/useAllTransactions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useEnvironment from '@hooks/useEnvironment';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -92,7 +91,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
     const {isOffline} = useNetwork();
-    const {isProduction} = useEnvironment();
 
     const [errorMessage, setErrorMessage] = React.useState<string>('');
     const {currentSearchResults} = useSearchResultsContext();
@@ -146,7 +144,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 currentUserPersonalDetails.accountID,
                 currentItemPolicy,
                 parentReport,
-                isProduction,
             )
         );
     };
@@ -154,16 +151,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const isSplitAvailable =
         report &&
         transaction &&
-        isSplitAction(
-            currentReport,
-            [transaction],
-            originalTransaction,
-            currentUserPersonalDetails.login ?? '',
-            currentUserPersonalDetails.accountID,
-            effectivePolicy,
-            parentReport,
-            isProduction,
-        );
+        isSplitAction(currentReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.accountID, effectivePolicy, parentReport);
 
     const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, undefined, effectivePolicy, true) ?? {};
     const transactionDetailsAmount = useMemo(() => {
@@ -200,7 +188,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const isPercentageMode = (selectedTab as string) === CONST.TAB.SPLIT.PERCENTAGE;
     const isDateMode = (selectedTab as string) === CONST.TAB.SPLIT.DATE;
-    const childTransactions = getChildTransactions(allTransactions, transactionID, isProduction);
+    const childTransactions = getChildTransactions(allTransactions, transactionID);
     const isDraftSelfDMContext = isSelfDM(draftTransactionReport);
     const splitFieldDataFromChildTransactions = childTransactions.map((childTransaction) => {
         const childTransactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childTransaction?.reportID}`];

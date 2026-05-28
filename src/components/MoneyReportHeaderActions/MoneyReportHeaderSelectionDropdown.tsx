@@ -22,7 +22,6 @@ import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useEnvironment from '@hooks/useEnvironment';
 import useExportActions from '@hooks/useExportActions';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -193,8 +192,6 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
         isOnSearch: !!isReportInSearch,
     });
 
-    const {isProduction} = useEnvironment();
-
     const computedSecondaryActions = moneyRequestReport
         ? getSecondaryReportActions({
               currentUserLogin: currentUserLogin ?? '',
@@ -212,7 +209,6 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
               policies: allPolicies,
               outstandingReportsByPolicyID,
               isChatReportArchived,
-              isProduction,
           })
         : [];
 
