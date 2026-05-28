@@ -2,8 +2,8 @@ import {useEffect} from 'react';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {approveMoneyRequest, clearPendingWorkspaceUpgradeIntent} from '@userActions/IOU/ReportWorkflow';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useOnyx from './useOnyx';
 import CONST from '@src/CONST';
+import useOnyx from './useOnyx';
 
 type ApproveParams = Parameters<typeof approveMoneyRequest>[0];
 
