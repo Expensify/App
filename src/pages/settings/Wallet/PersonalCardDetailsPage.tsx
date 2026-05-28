@@ -17,7 +17,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isUsingStagingApi} from '@libs/ApiUtils';
@@ -50,7 +49,6 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const styles = useThemeStyles();
-    const theme = useTheme();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'RemoveMembers', 'Sync']);
@@ -207,7 +205,6 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                             <CardDetailsActionButton
                                 text={translate('workspace.moreFeatures.companyCards.updateCard')}
                                 icon={expensifyIcons.Sync}
-                                iconFill={theme.icon}
                                 onPress={updateCard}
                                 isDisabled={isOffline || card?.isLoadingLastUpdated}
                                 isLoading={card?.isLoadingLastUpdated}
@@ -217,7 +214,6 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                         <CardDetailsActionButton
                             text={translate('workspace.common.viewTransactions')}
                             icon={expensifyIcons.MoneySearch}
-                            iconFill={theme.icon}
                             onPress={navigateToTransactions}
                             style={styles.flexShrink0}
                         />
