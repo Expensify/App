@@ -145,9 +145,7 @@ function isSplitAction(
     }
 
     if (isSelfDMReportUtils(report) || isSelfDMReportUtils(parentReport)) {
-        // Hide the self-DM split entry-point in production while the flow is still being stabilised.
-        // Callers pass isProduction (resolved via useEnvironment in the React layer) so they can flip
-        // this on per environment without changing call sites.
+        // Hide the self-DM split entry-point in production
         return !isProduction;
     }
 
