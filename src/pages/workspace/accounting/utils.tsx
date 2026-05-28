@@ -336,6 +336,19 @@ function getAccountingIntegrationData(
                         key={key}
                     />
                 ),
+                onImportPagePress: () => {},
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT.getRoute(policyID)),
+                onAdvancedPagePress: () => {},
+                subscribedExportSettings: [
+                    CONST.CERTINIA_CONFIG.EXPORTER,
+                    CONST.CERTINIA_CONFIG.EXPORT_STATUS,
+                    CONST.CERTINIA_CONFIG.EXPORT_DATE,
+                    CONST.CERTINIA_CONFIG.VENDOR_ACCOUNT,
+                    CONST.CERTINIA_CONFIG.REIMBURSABLE,
+                    CONST.CERTINIA_CONFIG.NON_REIMBURSABLE,
+                ],
+                pendingFields: policy?.connections?.financialforce?.config?.pendingFields,
+                errorFields: policy?.connections?.financialforce?.config?.errorFields,
                 workspaceUpgradeNavigationDetails: {
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING[CONST.POLICY.CONNECTIONS.NAME.CERTINIA].alias,
                     backToAfterWorkspaceUpgradeRoute: getBackToAfterWorkspaceUpgradeRouteForCertinia(),
