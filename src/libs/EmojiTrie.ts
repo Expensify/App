@@ -91,7 +91,7 @@ function createTrie(lang: FullySupportedLocale = CONST.LOCALES.DEFAULT): Trie<Em
 
         const nameParts = getNameParts(localeName).slice(1); // We remove the first part because we already index the full name.
         addKeywordsToTrie(trie, nameParts, emoji, localeName);
-        
+
         for (const alias of emoji.aliases ?? []) {
             const {node: aliasNode, isNew: aliasIsNew} = trie.getOrCreate(alias);
             if (aliasIsNew) {
