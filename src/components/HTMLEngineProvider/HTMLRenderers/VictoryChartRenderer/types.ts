@@ -70,14 +70,17 @@ type LabelItem = {
     /** Text to draw */
     text: string;
 
-    /** The color of the text */
-    color?: Color;
+    /** The color of the text (per line) */
+    color?: Color[];
 
-    /** Font size */
-    fontSize?: number;
+    /** Font size (per line) */
+    fontSize?: number[];
 
-    /** Font weight */
-    fontWeight?: 'normal' | 'bold';
+    /** Font weight (per line) */
+    fontWeight?: Array<'normal' | 'bold'>;
+
+    /** Line height (per line) */
+    lineHeight?: number[];
 };
 
 type LegendItemEntry = {

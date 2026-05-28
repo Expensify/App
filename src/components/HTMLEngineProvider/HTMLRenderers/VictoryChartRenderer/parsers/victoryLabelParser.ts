@@ -6,14 +6,32 @@ import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/Victory
  * Parse label config from a `<victorylabel>` node.
  */
 function parseVictoryLabelNode(tnode: TNode): PartialProcessNodeResult {
-    const x = parseAttribute<number>(tnode.attributes.x) ?? 0;
-    const y = parseAttribute<number>(tnode.attributes.y) ?? 0;
-    const text = parseAttribute<string>(tnode.attributes.text) ?? '';
-    const style = parseAttribute<RawLabelStyle>(tnode.attributes.style);
-    const color = style?.fill;
-    const fontSize = style?.fontSize !== undefined ? Number(style.fontSize) : undefined;
-    const fontWeight = Number(style?.fontWeight) === 700 ? 'bold' : undefined;
-    const labelItem: LabelItem = {x, y, text, color, fontSize, fontWeight};
+    const labelItem: LabelItem = {
+        x: parseAttribute<number>(tnode.attributes.x) ?? 0,
+        y: parseAttribute<number>(tnode.attributes.y) ?? 0,
+        text: parseAttribute<string>(tnode.attributes.text) ?? '',
+        color: [],
+        fontSize: [],
+        fontWeight: [],
+        lineHeight: parseAttribute<number[]>(tnode.attributes.lineheight),
+    };
+
+    const style = parseAttribute(tnode.attributes.style);
+    if (style) {
+        const textStyles = Array.isArray(style) ? (style as RawLabelStyle[]) : [style as RawLabelStyle];
+        for (const textStyle of textStyles) {
+            if (textStyle.fill) {
+                labelItem.color?.push(textStyle.fill);
+            }
+            if (textStyle.fontSize) {
+                labelItem.fontSize?.push(Number(textStyle.fontSize));
+            }
+            if (textStyle.fontWeight) {
+                labelItem.fontWeight?.push(Number(textStyle.fontWeight) === 700 ? 'bold' : 'normal');
+            }
+        }
+    }
+
     return {labelItems: [labelItem]};
 }
 

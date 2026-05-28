@@ -15,19 +15,32 @@ function VictoryChartLabels({labelItems}: VictoryChartLabelsProps) {
     const {regular: regularTypeface, bold: boldTypeface} = useChartDefaultTypeface();
     return (
         <>
-            {labelItems.map(({x, y, text, color, fontSize, fontWeight}) => {
-                const typeface = fontWeight === 'bold' ? boldTypeface : regularTypeface;
-                const font = typeface ? Skia.Font(typeface, fontSize) : null;
-                return (
-                    <SkText
-                        key={`text-${x}-${y}`}
-                        x={x}
-                        y={y}
-                        text={text}
-                        font={font}
-                        color={color}
-                    />
-                );
+            {labelItems.map(({x, y: startY, text, color, fontSize, fontWeight, lineHeight}) => {
+                let y = startY;
+                return text.split('\n').map((line, index) => {
+                    const lineColor = color?.[index];
+                    const lineFontSize = fontSize?.[index];
+                    const lineFontWeight = fontWeight?.[index];
+                    const lineLineHeight = lineHeight?.[index];
+                    const typeface = lineFontWeight === 'bold' ? boldTypeface : regularTypeface;
+                    const font = typeface ? Skia.Font(typeface, lineFontSize) : null;
+                    const fontMetrics = font?.getMetrics();
+                    const lineWidth = font?.getGlyphWidths(font.getGlyphIDs(line)).reduce((acc, width) => acc + width, 0) ?? 0;
+                    const baseLineHeight = fontMetrics ? Math.abs(fontMetrics.ascent) + Math.abs(fontMetrics.descent) + Math.abs(fontMetrics.leading) : 0;
+                    const finalLineHeight = lineLineHeight ? lineLineHeight * (lineFontSize ?? 0) : baseLineHeight;
+                    y += finalLineHeight;
+                    const lineY = y;
+                    return (
+                        <SkText
+                            key={`text-${x}-${y}`}
+                            x={x}
+                            y={lineY}
+                            text={line}
+                            font={font}
+                            color={lineColor}
+                        />
+                    );
+                });
             })}
         </>
     );

@@ -4,12 +4,16 @@ import {COLOR_KEY, LABEL_KEY, VALUE_KEY} from '@components/HTMLEngineProvider/HT
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getHierarchyID';
 import VictoryChartCategories from './VictoryChartCategories';
+import VictoryChartLabels from './VictoryChartLabels';
+import VictoryChartLegend from './VictoryChartLegend';
 
 /**
  * Renders the PolarChart with data drawn from context.
  */
 function VictoryChartPolar() {
-    const {tnode, data} = useVictoryChartContext();
+    const {tnode, data, labelItems, legendItems} = useVictoryChartContext();
+
+    console.log(labelItems);
 
     return (
         <PolarChart
@@ -24,6 +28,8 @@ function VictoryChartPolar() {
                     tnode={child}
                 />
             ))}
+            <VictoryChartLabels labelItems={labelItems} />
+            <VictoryChartLegend legendItems={legendItems} />
         </PolarChart>
     );
 }
