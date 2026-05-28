@@ -1,6 +1,6 @@
+import {getReportLayoutGroupBy, setReportLayout} from '@libs/actions/ReportLayout';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {getReportLayoutGroupBy, setReportLayout} from '@libs/actions/ReportLayout';
 import CONST from '@src/CONST';
 
 jest.mock('@libs/API');
