@@ -53,12 +53,11 @@ Each AI client has its own MCP configuration flow, but the general setup process
 7. Approve the OAuth access request.
 8. Return to your AI client and test the connection using a natural language query.
 
-Each supported setup guide walks you through:
-
- - Locating MCP settings
- - Connecting to `https://www.expensify.com/mcp`
- - Completing the OAuth approval flow
- - Testing your connection
+Supported setup guides: 
+ - [Connect ChatGPT to Expensify using MCP](/articles/new-expensify/connections/connect-ai-assistants/Connect-ChatGPT-to-Expensify-Using-MCP)
+ - [Connect Claude Desktop to Expensify using MCP](/articles/new-expensify/connections/connect-ai-assistants/Connect-Claude-Desktop-to-Expensify-Using-MCP)
+ - [Connect Claude.ai to Expensify using MCP](/articles/new-expensify/connections/connect-ai-assistants/Connect-Claude.ai-to-Expensify-Using-MCP)
+ - [Connect Cursor to Expensify using MCP](/articles/new-expensify/connections/connect-ai-assistants/Connect-Cursor-to-Expensify-Using-MCP)
 
 ## What you can do with Expensify’s MCP server
 
