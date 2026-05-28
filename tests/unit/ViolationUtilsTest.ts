@@ -2206,8 +2206,8 @@ describe('getViolationsOnyxData', () => {
             });
             const violations = (result.value ?? []) as TransactionViolation[];
             expect(violations.some((v) => v.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)).toBe(true);
-        })
-    })
+        });
+    });
 });
 
 const getFakeTransaction = (transactionID: string, comment?: Transaction['comment']) => ({
