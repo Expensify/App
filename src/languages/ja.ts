@@ -8704,14 +8704,10 @@ ${reportName}
             [CONST.EXIT_SURVEY.REASONS.PREFER_CLASSIC]: 'なぜExpensify Classicを好むのですか？',
         },
         responsePlaceholder: 'あなたの回答',
-        thankYou: 'ご意見ありがとうございます！',
-        thankYouSubtitle: '皆さまのご回答は、より便利で仕事がはかどる製品づくりに役立ちます。ご協力ありがとうございます！',
         goToExpensifyClassic: 'Expensify Classic に切り替える',
         offlineTitle: 'ここで行き詰まってしまったようです…',
         offline:
             'オフラインのようです。申し訳ありませんが、Expensify Classic はオフラインでは使用できませんが、新しい Expensify はオフラインでも動作します。Expensify Classic を利用したい場合は、インターネットに接続できるときにもう一度お試しください。',
-        quickTip: 'お役立ち情報…',
-        quickTipSubTitle: 'expensify.com にアクセスすると、すぐに Expensify Classic を利用できます。簡単に開けるようにブックマークしておきましょう！',
         bookACall: '通話を予約',
         bookACallTitle: 'プロダクトマネージャーと話しますか？',
         benefits: {
@@ -8721,7 +8717,6 @@ ${reportName}
         },
         bookACallTextTop: 'Expensify Classic に切り替えると、次の機能が利用できなくなります：',
         bookACallTextBottom: 'ぜひお電話で理由をお聞かせください。お客様のニーズについて話し合うために、シニアプロダクトマネージャーとの通話を予約できます。',
-        takeMeToExpensifyClassic: 'Expensify Classic に移動',
         goBackJustOnce: '一度だけ戻る',
     },
     listBoundary: {

@@ -8553,13 +8553,9 @@ ${reportName}
             [CONST.EXIT_SURVEY.REASONS.PREFER_CLASSIC]: '你为什么更喜欢使用 Expensify 经典版？',
         },
         responsePlaceholder: '您的回复',
-        thankYou: '感谢你的反馈！',
-        thankYouSubtitle: '您的反馈将帮助我们打造更好的产品，助您更高效地完成工作。非常感谢！',
         goToExpensifyClassic: '切换到 Expensify 经典版',
         offlineTitle: '看起来你被卡在这里了……',
         offline: '您似乎处于离线状态。不幸的是，Expensify Classic 无法在离线状态下使用，但 New Expensify 可以。如果您更喜欢使用 Expensify Classic，请在连接到互联网后重试。',
-        quickTip: '小提示...',
-        quickTipSubTitle: '您可以直接访问 expensify.com 打开 Expensify Classic。将其加入书签以便快速访问！',
         bookACall: '预约通话',
         bookACallTitle: '您想和产品经理聊一聊吗？',
         benefits: {
@@ -8569,7 +8565,6 @@ ${reportName}
         },
         bookACallTextTop: '切换回 Expensify 经典版后，您将无法享受：',
         bookACallTextBottom: '我们非常期待与您通话以了解原因。您可以预约与我们的一位资深产品经理通话，讨论您的需求。',
-        takeMeToExpensifyClassic: '带我前往 Expensify 经典版',
         goBackJustOnce: '仅此一次返回',
     },
     listBoundary: {

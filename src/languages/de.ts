@@ -8824,14 +8824,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             [CONST.EXIT_SURVEY.REASONS.PREFER_CLASSIC]: 'Warum bevorzugst du Expensify Classic?',
         },
         responsePlaceholder: 'Ihre Antwort',
-        thankYou: 'Danke für das Feedback!',
-        thankYouSubtitle: 'Ihre Antworten helfen uns, ein besseres Produkt zu entwickeln, mit dem Sie mehr erledigen können. Vielen Dank!',
         goToExpensifyClassic: 'Zu Expensify Classic wechseln',
         offlineTitle: 'Sie scheinst hier festzustecken …',
         offline:
             'Sie scheinen offline zu sein. Leider funktioniert Expensify Classic nicht offline, aber New Expensify schon. Wenn Sie Expensify Classic weiter verwenden möchten, versuchen Sie es erneut, wenn Sie eine Internetverbindung haben.',
-        quickTip: 'Kurzer Tipp ...',
-        quickTipSubTitle: 'Du kannst direkt zu Expensify Classic gehen, indem du expensify.com besuchst. Setze ein Lesezeichen dafür, um eine schnelle Abkürzung zu haben!',
         bookACall: 'Einen Anruf buchen',
         bookACallTitle: 'Möchtest du mit einem Produktmanager sprechen?',
         benefits: {
@@ -8842,7 +8838,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         bookACallTextTop: 'Wenn Sie zu Expensify Classic wechseln, verzichten Sie auf Folgendes:',
         bookACallTextBottom:
             'Wir würden uns freuen, mit Ihnen zu telefonieren, um die Gründe besser zu verstehen. Sie können einen Anruf mit einer*m unserer leitenden Produktmanager*innen buchen, um Ihre Bedürfnisse zu besprechen.',
-        takeMeToExpensifyClassic: 'Bring mich zu Expensify Classic',
         goBackJustOnce: 'Nur dieses Mal zurück',
     },
     listBoundary: {

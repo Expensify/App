@@ -8836,14 +8836,10 @@ const translations = {
             [CONST.EXIT_SURVEY.REASONS.PREFER_CLASSIC]: 'Why do you prefer Expensify Classic?',
         },
         responsePlaceholder: 'Your response',
-        thankYou: 'Thanks for the feedback!',
-        thankYouSubtitle: 'Your responses will help us build a better product to get stuff done. Thank you so much!',
         goToExpensifyClassic: 'Switch to Expensify Classic',
         offlineTitle: "Looks like you're stuck here...",
         offline:
             "You appear to be offline. Unfortunately, Expensify Classic doesn't work offline, but New Expensify does. If you prefer to use Expensify Classic, try again when you have an internet connection.",
-        quickTip: 'Quick tip...',
-        quickTipSubTitle: 'You can go straight to Expensify Classic by visiting expensify.com. Bookmark it for an easy shortcut!',
         bookACall: 'Book a call',
         bookACallTitle: 'Would you like to speak to a product manager?',
         benefits: {
@@ -8853,7 +8849,6 @@ const translations = {
         },
         bookACallTextTop: 'By switching to Expensify Classic, you will miss out on:',
         bookACallTextBottom: 'We’d be excited to get on a call with you to understand why. You can book a call with one of our senior product managers to discuss your needs.',
-        takeMeToExpensifyClassic: 'Take me to Expensify Classic',
         goBackJustOnce: 'Go back just once',
     },
     listBoundary: {

@@ -8767,14 +8767,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             [CONST.EXIT_SURVEY.REASONS.PREFER_CLASSIC]: 'Dlaczego wolisz Expensify Classic?',
         },
         responsePlaceholder: 'Twoja odpowiedź',
-        thankYou: 'Dziękujemy za opinię!',
-        thankYouSubtitle: 'Twoje odpowiedzi pomogą nam stworzyć lepszy produkt do załatwiania spraw. Bardzo dziękujemy!',
         goToExpensifyClassic: 'Przełącz na Expensify Classic',
         offlineTitle: 'Wygląda na to, że utknąłeś tutaj…',
         offline:
             'Wygląda na to, że jesteś offline. Niestety Expensify Classic nie działa w trybie offline, ale Nowy Expensify tak. Jeśli wolisz korzystać z Expensify Classic, spróbuj ponownie, gdy będziesz mieć połączenie z internetem.',
-        quickTip: 'Szybka porada...',
-        quickTipSubTitle: 'Możesz przejść bezpośrednio do Expensify Classic, odwiedzając expensify.com. Dodaj ją do zakładek, aby mieć łatwy skrót!',
         bookACall: 'Umów rozmowę',
         bookACallTitle: 'Czy chcesz porozmawiać z product managerem?',
         benefits: {
@@ -8785,7 +8781,6 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         bookACallTextTop: 'Przechodząc na Expensify Classic, stracisz dostęp do:',
         bookACallTextBottom:
             'Chętnie umówimy się z Tobą na rozmowę, aby zrozumieć dlaczego. Możesz zarezerwować rozmowę z jednym z naszych starszych menedżerów produktu, aby omówić swoje potrzeby.',
-        takeMeToExpensifyClassic: 'Przejdź do Expensify Classic',
         goBackJustOnce: 'Wróć tylko raz',
     },
     listBoundary: {
