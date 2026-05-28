@@ -33,6 +33,10 @@ function SearchAdvancedFiltersContentBase() {
 
     const validFilterKey = isFilterKeyValid(filterKey) ? filterKey : undefined;
 
+    const goBack = () => {
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+    }
+
     return (
         <ScreenWrapper
             testID="SearchAdvancedFiltersPage"
@@ -42,7 +46,10 @@ function SearchAdvancedFiltersContentBase() {
         >
             {validFilterKey ? (
                 <>
-                    <HeaderWithBackButton title={translate(FILTER_VIEW_MAP[validFilterKey].labelKey)} />
+                    <HeaderWithBackButton
+                        title={translate(FILTER_VIEW_MAP[validFilterKey].labelKey)}
+                        onBackButtonPress={goBack}
+                    />
                     <View style={[styles.filterContentContainer]}>
                         <FilterContent
                             values={currentDraftFilters}
@@ -51,7 +58,7 @@ function SearchAdvancedFiltersContentBase() {
                             autoFocus
                             onChange={(newValues) => {
                                 setDraftFilters(newValues);
-                                Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+                                goBack();
                             }}
                         />
                     </View>
