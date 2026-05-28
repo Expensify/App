@@ -11,7 +11,7 @@ Commercial card feeds are file-based connections managed by your bank that impor
 
 Before you begin, contact your bank to confirm that your card program is eligible for a commercial card feed.
 
-If you're not eligible for a commercial card feed, you can [set up a direct company card feed connection](/articles/new-expensify/connect-credit-cards/Set-up-a-Direct-Company-Card-Feed-Connection) or [import company card transactions from a spreadsheet](/articles/new-expensify/connect-credit-cards/Import-Company-Card-Transactions-From-a-Spreadsheet). 
+If you're not eligible for a commercial card feed, you can [set up a direct company card feed connection](/articles/new-expensify/connect-credit-cards/Set-up-a-Direct-Company-Card-Feed-Connection) or [learn how to import company card transactions from a spreadsheet](/articles/new-expensify/connect-credit-cards/Import-Company-Card-Transactions-From-a-Spreadsheet). 
 
 ---
 
