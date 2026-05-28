@@ -2054,8 +2054,8 @@ const translations = {
         },
     },
     securityPage: {
-        title: 'Security options',
-        subtitle: 'Enable two-factor authentication to keep your account safe.',
+        title: 'Security',
+        subtitle: 'Keep your account safe with the options below.',
         goToSecurity: 'Go back to security page',
     },
     shareCodePage: {
