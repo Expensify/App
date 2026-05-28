@@ -258,7 +258,7 @@ function reauthenticate(command = ''): Promise<boolean> {
                     const errorMessage = getAuthenticateErrorMessage({
                         jsonCode: Number((error as HttpsError).status),
                         message: (error as Error).message,
-                    } as Response<TKey>);
+                    } as Response<OnyxKey>);
 
                     trackAuthenticationError(error as Error, {
                         errorType: 'auth_failure',
