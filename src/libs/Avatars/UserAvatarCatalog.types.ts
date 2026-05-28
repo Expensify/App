@@ -1,5 +1,3 @@
-import type {SvgProps} from 'react-native-svg';
-
 type DefaultAvatarIDs =
     | 'default-avatar_1'
     | 'default-avatar_2'
@@ -91,7 +89,6 @@ type LetterAvatarIDs =
     | 'letter-default-avatar_z';
 
 type LetterAvatarColorStyle = {backgroundColor: string; fillColor: string};
-type AvatarEntry = {local: React.FC<SvgProps>; url: string};
-type PresetAvatarID = DefaultAvatarIDs | SeasonF1AvatarIDs;
+type UserAvatarID = DefaultAvatarIDs | SeasonF1AvatarIDs;
 
-export type {DefaultAvatarIDs, SeasonF1AvatarIDs, LetterAvatarIDs, PresetAvatarID, LetterAvatarColorStyle, AvatarEntry};
+export type {DefaultAvatarIDs, SeasonF1AvatarIDs, LetterAvatarIDs, UserAvatarID, LetterAvatarColorStyle};

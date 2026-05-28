@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`PresetAvatarCatalog matches snapshot for a default avatar 1`] = `
+exports[`UserAvatarCatalog matches snapshot for a default avatar 1`] = `
 <View
   accessibilityElementsHidden={true}
   accessible={false}

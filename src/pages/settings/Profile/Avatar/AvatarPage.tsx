@@ -13,7 +13,8 @@ import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation'
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getAvatarURL, isPresetAvatarID, resolveAvatarURI} from '@libs/Avatars/PresetAvatarCatalog';
+import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
+import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
 import {useIsAgentAccount} from '@libs/SessionUtils';
@@ -82,10 +83,10 @@ function ProfileAvatar() {
             return;
         }
 
-        if (selected && isPresetAvatarID(selected)) {
+        if (selected && USER_AVATARS.isAvatarID(selected)) {
             updateAvatar(
                 {
-                    uri: getAvatarURL(selected),
+                    uri: USER_AVATARS.getURL(selected) ?? '',
                     name: selected,
                     customExpensifyAvatarID: selected,
                 },
@@ -130,7 +131,7 @@ function ProfileAvatar() {
                 });
             } else {
                 const {customExpensifyAvatarID} = params;
-                const uri = resolveAvatarURI(customExpensifyAvatarID);
+                const uri = AGENT_AVATARS.resolveURI(customExpensifyAvatarID);
                 updateAvatar(
                     {
                         uri,
