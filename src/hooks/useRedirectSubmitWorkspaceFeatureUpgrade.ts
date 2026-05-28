@@ -1,7 +1,7 @@
 import {useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
-import {canAccessSubmitWorkspaceFeatures} from '@libs/PolicyUtils';
+import {isSubmitPolicy} from '@libs/PolicyUtils';
 import ROUTES from '@src/ROUTES';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -12,31 +12,24 @@ type UseRedirectSubmitWorkspaceFeatureUpgradeParams = {
     backTo: string | undefined;
     /** `CONST.UPGRADE_FEATURE_INTRO_MAPPING.*.alias` for the feature being gated. */
     upgradeFeatureAlias: string;
-    isSubmit2026BetaEnabled: boolean;
     /** When true, the redirect is skipped (e.g. while required Onyx data is still loading). */
     shouldDeferRedirect?: boolean;
 };
 
 /**
- * For users on a Submit workspace with SUBMIT_2026 beta, redirects once to the workspace upgrade flow
+ * For users on a Submit workspace, redirects once to the workspace upgrade flow
  * when opening a feature that requires upgrading. Matches the pattern used on role-selection RHP screens.
  */
-function useRedirectSubmitWorkspaceFeatureUpgrade({
-    policy,
-    backTo,
-    upgradeFeatureAlias,
-    isSubmit2026BetaEnabled,
-    shouldDeferRedirect = false,
-}: UseRedirectSubmitWorkspaceFeatureUpgradeParams): void {
+function useRedirectSubmitWorkspaceFeatureUpgrade({policy, backTo, upgradeFeatureAlias, shouldDeferRedirect = false}: UseRedirectSubmitWorkspaceFeatureUpgradeParams): void {
     const didRedirectRef = useRef(false);
 
     useEffect(() => {
-        if (didRedirectRef.current || !backTo || isEmptyObject(policy) || shouldDeferRedirect || !canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)) {
+        if (didRedirectRef.current || !backTo || isEmptyObject(policy) || shouldDeferRedirect || !isSubmitPolicy(policy)) {
             return;
         }
         didRedirectRef.current = true;
         Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policy?.id, upgradeFeatureAlias, backTo));
-    }, [policy, backTo, upgradeFeatureAlias, isSubmit2026BetaEnabled, shouldDeferRedirect]);
+    }, [policy, backTo, upgradeFeatureAlias, shouldDeferRedirect]);
 }
 
 export default useRedirectSubmitWorkspaceFeatureUpgrade;

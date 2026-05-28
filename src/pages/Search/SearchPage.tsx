@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import Animated from 'react-native-reanimated';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
-import type {SearchParams, SearchStateContextValue} from '@components/Search/types';
+import {useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import type {SearchParams} from '@components/Search/types';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import useDocumentTitle from '@hooks/useDocumentTitle';
@@ -30,7 +30,7 @@ import SearchPageWide from './SearchPageWide';
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
 
 type FooterCurrencyState = {
-    searchHash: SearchStateContextValue['currentSearchHash'] | undefined;
+    searchHash: number | undefined;
     selectedCurrency: string | undefined;
     defaultCurrency: string | undefined;
     pendingCurrency: string | undefined;
@@ -41,9 +41,11 @@ function SearchPage({route}: SearchPageProps) {
     useDocumentTitle(translate('common.spend'));
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const {selectedTransactions, lastSearchType, areAllMatchingItemsSelected, currentSearchHash, currentSearchKey, currentSearchResults, currentSearchQueryJSON, shouldUseLiveData} =
-        useSearchStateContext();
-    const {clearSelectedTransactions, setLastSearchType} = useSearchActionsContext();
+    const {selectedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {lastSearchType, currentSearchResults, shouldUseLiveData} = useSearchResultsContext();
+    const {currentSearchHash, currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
+    const {clearSelectedTransactions} = useSearchSelectionActions();
+    const {setLastSearchType} = useSearchResultsActions();
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
     const [hasFilterBars = false] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: hasFilterBarsSelector});
