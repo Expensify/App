@@ -2055,7 +2055,7 @@ const translations = {
     },
     securityPage: {
         title: 'Security',
-        subtitle: 'Keep your account safe with the options below.',
+        subtitle: 'Keep your account safe.',
         goToSecurity: 'Go back to security page',
     },
     shareCodePage: {
