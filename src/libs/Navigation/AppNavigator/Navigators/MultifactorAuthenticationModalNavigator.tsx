@@ -170,13 +170,16 @@ function MultifactorAuthenticationModalNavigator() {
                                         presentation: Presentation.TRANSPARENT_MODAL,
                                         cardOverlayEnabled: false,
                                         cardStyle: styles.navigationScreenCardStyle,
-                                        // Always use the Expensify modal interpolator (not just on Safari like RHP does).
-                                        // The MFA navigator pushes the real screen from MFA_INITIAL's onLayout callback,
-                                        // so when push fires the incoming screen's measured width can still be 0.
-                                        // forHorizontalIOS interpolates translateX from layouts.screen.width — if width
-                                        // is 0 at push start, the slide range collapses to 0→0 and the screen appears
-                                        // via opacity only. modalCardStyleInterpolator uses a constant variables.sideBarWidth
-                                        // on wide layout, so the slide range is stable regardless of layout timing.
+
+                                        /**
+                                         * Always use the Expensify modal interpolator (not just on Safari like RHP does).
+                                         * The MFA navigator pushes the real screen from MFA_INITIAL's onLayout callback,
+                                         * so when push fires, the incoming screen's measured width can still be 0.
+                                         * forHorizontalIOS interpolates translateX from layouts.screen.width — if width
+                                         * is 0 at push start, the slide range collapses to 0→0 and the screen appears
+                                         * via opacity only. modalCardStyleInterpolator uses a constant variables.sideBarWidth
+                                         * on wide layout, so the slide range is stable regardless of layout timing.
+                                         */
                                         cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: {kind: 'slide-from-width'}}),
                                     },
                                 }}
