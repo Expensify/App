@@ -159,7 +159,7 @@ When an expense is split, each portion becomes its own expense, with the same re
 
 ## Can I add multiple receipts to a single expense?
 
-Yes. Each expense has one primary receipt, but you can attach additional receipt images by opening the expense, hovering over the receipt image (or tapping it on mobile), and selecting **Add additional receipts**. Only the primary receipt is included in exports and downloaded PDFs — additional images are viewable within Expensify. You can also add supporting documents as a Report Attachment. See [Add Comments & Attachments](https://help.expensify.com/articles/expensify-classic/reports/Edit-and-Submit-Expense-Reports#add-comments--attachments-to-a-report) to learn more.
+Yes. Each expense has only one primary receipt, but you can attach additional receipt images directly on the expense for situations where multiple receipts are needed. [Learn how to attach additional receipts to an expense](articles/new-expensify/reports-and-expenses/Attach-and-edit-receipts-on-expenses#How-to-Add-Additional-Receipts-to-an-Expense). 
 
 ## Why can't I edit my expense amount?
 
