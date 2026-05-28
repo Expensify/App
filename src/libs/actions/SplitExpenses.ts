@@ -113,7 +113,7 @@ function initSplitExpense(
     const hasMultipleSplits = getChildTransactions(allTransactions, originalTransactionID, false).length > 1;
     const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
     const isReportOpen = isOpenReport(transactionReport);
-    const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
+    const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || (isProduction && isReportOpen));
 
     const isSelfDMReport = isSelfDM(report) || isSelfDM(parentReport);
 
