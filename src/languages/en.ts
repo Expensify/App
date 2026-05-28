@@ -7500,6 +7500,7 @@ const translations = {
             }
             return `added a tax reclaimable portion of "${newValue}" to the distance rate "${customUnitRateName}"`;
         },
+        updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `renamed the ${customUnitName} rate "${oldValue}" to "${newValue}"`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
             return `${newValue ? 'enabled' : 'disabled'} the ${customUnitName} rate "${customUnitRateName}"`;
         },
