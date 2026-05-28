@@ -32,6 +32,7 @@ type ApproverSelectionListPageProps = {
     shouldShowNotFoundViewLink?: boolean;
     listEmptyContentSubtitle?: string;
     footerContent?: React.ReactNode;
+    headerContent?: React.JSX.Element | null;
     subtitle?: React.ReactNode;
     shouldShowTextInput?: boolean;
     allApprovers: SelectionListApprover[];
@@ -60,6 +61,7 @@ function ApproverSelectionList({
     shouldShowNotFoundViewLink = true,
     listEmptyContentSubtitle,
     footerContent = null,
+    headerContent = null,
     allApprovers,
     shouldShowListEmptyContent: shouldShowListEmptyContentProp = true,
     allowMultipleSelection = false,
@@ -162,6 +164,7 @@ function ApproverSelectionList({
                     initiallyFocusedItemKey={initiallyFocusedOptionKey}
                     shouldShowTextInput={shouldShowTextInput}
                     shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
+                    customListHeaderContent={headerContent}
                     footerContent={footerContent}
                     addBottomSafeAreaPadding
                     shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}

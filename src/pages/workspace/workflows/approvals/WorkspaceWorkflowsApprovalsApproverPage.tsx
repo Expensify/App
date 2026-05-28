@@ -1,16 +1,18 @@
 import {useNavigationState} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import ApproverSelectionList from '@components/ApproverSelectionList';
+import MenuItem from '@components/MenuItem';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearApprovalWorkflowApprover, clearApprovalWorkflowApprovers, setApprovalWorkflowApprover} from '@libs/actions/Workflow';
 import {isAnyHRReadOnlyWorkflowMode} from '@libs/HRUtils';
+import {clearApprovalWorkflowApprover, clearApprovalWorkflowApprovers, setApprovalWorkflow, setApprovalWorkflowApprover} from '@libs/actions/Workflow';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -19,6 +21,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -31,8 +34,11 @@ type WorkspaceWorkflowsApprovalsApproverPageProps = WithPolicyAndFullscreenLoadi
 function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsApproverPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Bot']);
+    const {isBetaEnabled} = usePermissions();
+    const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
+    const [optimisticAgentAccountIDMapping] = useOnyx(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING);
     const isApprovalWorkflowLoading = isLoadingOnyxValue(approvalWorkflowMetadata);
     const personalDetailsByEmail = usePersonalDetailsByEmail();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -221,6 +227,70 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         [translate, styles.textHeadlineH1, styles.mh5, styles.mv3, styles.mb3, styles.textSupporting],
     );
 
+    const shouldShowCreateAgentRow = isCustomAgentEnabled && !isChangeApproverRoute && approverIndex === 0;
+
+    const onCreateAgentPress = useCallback(() => {
+        Navigation.navigate(
+            ROUTES.SETTINGS_AGENTS_ADD.getRoute({
+                policyID: route.params.policyID,
+                workflowApproverEmail: firstApprover,
+            }),
+        );
+    }, [route.params.policyID, firstApprover]);
+
+    const headerContent = useMemo(() => {
+        if (!shouldShowCreateAgentRow) {
+            return null;
+        }
+        return (
+            <MenuItem
+                icon={icons.Bot}
+                iconWidth={variables.avatarSizeNormal}
+                iconHeight={variables.avatarSizeNormal}
+                title={translate('workflowsApproverPage.createNewAgent')}
+                description={translate('workflowsApproverPage.createNewAgentDescription')}
+                onPress={onCreateAgentPress}
+                shouldShowRightIcon
+            />
+        );
+    }, [shouldShowCreateAgentRow, icons.Bot, translate, onCreateAgentPress]);
+
+    // Reconcile the optimistic agent approver once the server-side CREATE_AGENT response lands.
+    // The new agent is written to `approvalWorkflow.approvers[approverIndex]` with `accountID` set
+    // but `email = ''` and `pendingAction = ADD`. When the server replies, the real accountID
+    // (mapped via `OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING`) shows up in `employeeList` with a login;
+    // upgrade the approver to the real email so the picker can match it to a row in `allApprovers`.
+    useEffect(() => {
+        if (!approvalWorkflow || !policy?.employeeList || !personalDetails) {
+            return;
+        }
+        const pendingApprover = approvalWorkflow.approvers[approverIndex];
+        if (!pendingApprover || pendingApprover.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || pendingApprover.email || !pendingApprover.accountID) {
+            return;
+        }
+        const mappedRealAccountID = optimisticAgentAccountIDMapping?.[pendingApprover.accountID];
+        if (!mappedRealAccountID) {
+            return;
+        }
+        const mappedDetail = personalDetails[mappedRealAccountID];
+        if (!mappedDetail?.login || !policy.employeeList?.[mappedDetail.login]) {
+            return;
+        }
+        const upgradedApprovers = approvalWorkflow.approvers.map((approver, index) =>
+            index === approverIndex && approver
+                ? {
+                      ...approver,
+                      email: mappedDetail.login as string,
+                      accountID: mappedDetail.accountID,
+                      avatar: mappedDetail.avatar ?? approver.avatar,
+                      displayName: mappedDetail.displayName ?? approver.displayName,
+                      pendingAction: undefined,
+                  }
+                : approver,
+        );
+        setApprovalWorkflow({...approvalWorkflow, approvers: upgradedApprovers});
+    }, [approvalWorkflow, policy?.employeeList, personalDetails, optimisticAgentAccountIDMapping, approverIndex]);
+
     return (
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
@@ -230,6 +300,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 testID="WorkspaceWorkflowsApprovalsApproverPage"
                 headerTitle={translate('workflowsPage.approver')}
                 subtitle={subtitle}
+                headerContent={headerContent}
                 isLoadingReportData={isLoadingReportData}
                 policy={policy}
                 initiallyFocusedOptionKey={visibleSelectedApproverEmail}

@@ -2549,6 +2549,8 @@ ${amount} para ${merchant} - ${date}`,
         genericErrorMessage: 'El aprobador no pudo ser cambiado. Por favor, inténtelo de nuevo o contacte al soporte.',
         title: 'Establecer aprobador',
         description: 'Esta persona aprobará los gastos.',
+        createNewAgent: 'Crear nuevo agente',
+        createNewAgentDescription: 'Automatiza tus aprobaciones con un prompt',
     },
     workflowsApprovalLimitPage: {
         title: 'Aprobador',

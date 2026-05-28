@@ -14,6 +14,8 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isMobile} from '@libs/Browser';
@@ -23,10 +25,11 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {createAgent} from '@userActions/Agent';
+import {setApprovalWorkflowApprover} from '@userActions/Workflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddAgentForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {clearPendingAvatar, getPendingAvatar, setInitialPresetID, setNavigationToken, setReturnRoute} from './pendingAgentAvatarStore';
@@ -38,7 +41,11 @@ type AddAgentPageProps =
 function AddAgentPage({route}: AddAgentPageProps) {
     const policyID = route.params?.policyID;
     const workflowApproverEmail = route.params?.workflowApproverEmail;
-    const isWorkflowSeedFlow = !!policyID && !!workflowApproverEmail;
+    const isWorkflowSeedFlow = !!policyID && !!workflowApproverEmail && route.name === SCREENS.WORKSPACE.WORKFLOWS_ADD_AGENT;
+    const isSetApproverSeedFlow = !!policyID && !!workflowApproverEmail && route.name === SCREENS.SETTINGS.AGENTS.ADD;
+    const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const personalDetailsByEmail = usePersonalDetailsByEmail();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
@@ -76,7 +83,12 @@ function AddAgentPage({route}: AddAgentPageProps) {
         const presetID = botAvatarIDs.get(avatarSource as BotAvatar);
         setInitialPresetID(presetID);
         setNavigationToken();
-        setReturnRoute(isWorkflowSeedFlow ? ROUTES.WORKSPACE_WORKFLOWS_ADD_AGENT.getRoute({policyID, workflowApproverEmail}) : ROUTES.SETTINGS_AGENTS_ADD.getRoute());
+        const returnRoute = isWorkflowSeedFlow
+            ? ROUTES.WORKSPACE_WORKFLOWS_ADD_AGENT.getRoute({policyID, workflowApproverEmail})
+            : isSetApproverSeedFlow
+              ? ROUTES.SETTINGS_AGENTS_ADD.getRoute({policyID, workflowApproverEmail})
+              : ROUTES.SETTINGS_AGENTS_ADD.getRoute();
+        setReturnRoute(returnRoute);
         Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD_AVATAR);
     };
 
@@ -96,7 +108,7 @@ function AddAgentPage({route}: AddAgentPageProps) {
         // Pure optimistic flow — no waiting on the server, online or offline. `createAgent`
         // returns the optimistic accountID it wrote into Onyx so we can hand it to the next
         // screen and let it render the agent with opacity until CREATE_AGENT resolves.
-        const {optimisticAccountID} = pendingFile
+        const {optimisticAccountID, avatarURI} = pendingFile
             ? createAgent(firstName, prompt, undefined, pendingFile.file, pendingFile.uri, policyID)
             : createAgent(firstName, prompt, botAvatarIDs.get(avatarSource as BotAvatar), undefined, undefined, policyID);
 
@@ -107,6 +119,30 @@ function AddAgentPage({route}: AddAgentPageProps) {
             // (via `pendingAction`), and reconciles the email/accountID once CREATE_AGENT lands.
             Navigation.goBack();
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, workflowApproverEmail, undefined, Number(optimisticAccountID)));
+            return;
+        }
+
+        if (isSetApproverSeedFlow && policyID && approvalWorkflow) {
+            // Seeded from the Set Approver page: write the optimistic agent into the in-progress
+            // approval workflow as approver[0] with `pendingAction = ADD`. The picker's
+            // reconciliation effect upgrades the row to the real email/accountID once
+            // CREATE_AGENT lands and the agent shows up in `policy.employeeList`.
+            setApprovalWorkflowApprover({
+                approver: {
+                    email: '',
+                    accountID: optimisticAccountID,
+                    avatar: avatarURI,
+                    displayName: firstName ?? '',
+                    approvalLimit: null,
+                    overLimitForwardsTo: '',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+                approverIndex: 0,
+                currentApprovalWorkflow: approvalWorkflow,
+                policy,
+                personalDetailsByEmail,
+            });
+            Navigation.goBack();
             return;
         }
 

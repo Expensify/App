@@ -2734,6 +2734,8 @@ const translations = {
         genericErrorMessage: "The approver couldn't be changed. Please try again or contact support.",
         title: 'Set approver',
         description: 'This person will approve the expenses.',
+        createNewAgent: 'Create new agent',
+        createNewAgentDescription: 'Automate your approvals with prompt',
     },
     workflowsApprovalLimitPage: {
         title: 'Approver',
