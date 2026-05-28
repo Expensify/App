@@ -199,6 +199,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.IMPORT_TRANSACTIONS_SPREADSHEET]: {cardID?: string};
     [SCREENS.SETTINGS.WALLET.TRANSACTIONS_IMPORTED]: {cardID?: string};
     [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: {
+        page?: string;
         subPage?: string;
         action?: 'edit';
     };
