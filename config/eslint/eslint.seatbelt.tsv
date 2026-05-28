@@ -564,8 +564,9 @@
 "../../src/pages/signin/LoginForm/BaseLoginForm.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/signin/SignInPage.tsx"	"react-hooks/refs"	2
 "../../src/pages/signin/SignInPage.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/signin/SignInPageLayout/BackgroundImage/index.native.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
-"../../src/pages/signin/SignInPageLayout/BackgroundImage/index.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
+"../../src/pages/signin/SignInPageLayout/BackgroundImage/index.native.tsx"	"@typescript-eslint/no-unused-vars"	1
+"../../src/pages/signin/SignInPageLayout/BackgroundImage/index.native.tsx"	"no-restricted-imports"	1
+"../../src/pages/signin/SignInPageLayout/BackgroundImage/index.tsx"	"no-restricted-imports"	1
 "../../src/pages/signin/ValidateCodeForm/BaseValidateCodeForm.tsx"	"react-hooks/set-state-in-effect"	4
 "../../src/pages/tasks/NewTaskPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/tasks/TaskAssigneeSelectorModal.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	2

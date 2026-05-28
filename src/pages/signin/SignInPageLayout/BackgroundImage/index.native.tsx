@@ -16,7 +16,7 @@ function BackgroundImage({width}: BackgroundImageProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isInteractionComplete, setIsInteractionComplete] = useState(false);
-    const isAnonymous = true;
+    const isAnonymous = isAnonymousUser();
 
     const opacity = useSharedValue(0);
     const animatedStyle = useAnimatedStyle(() => ({opacity: opacity.get()}));
