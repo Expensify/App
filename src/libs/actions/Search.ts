@@ -31,7 +31,7 @@ import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
-import {getSubmitReportManagerAccountID, getValidConnectedIntegration, isDelayedSubmissionEnabled} from '@libs/PolicyUtils';
+import {getSubmitReportManagerAccountID, getValidConnectedIntegration, isDelayedSubmissionEnabled, isSubmitPolicy} from '@libs/PolicyUtils';
 import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
 import {
     buildOptimisticExportIntegrationAction,
@@ -80,6 +80,7 @@ import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
 import {deleteMoneyRequest} from './IOU/DeleteMoneyRequest';
 import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU/RejectMoneyRequest';
 import type {RejectMoneyRequestData} from './IOU/RejectMoneyRequest';
+import {setPendingWorkspaceUpgradeIntent} from './IOU/ReportWorkflow';
 import {isCurrencySupportedForGlobalReimbursement} from './Policy/Policy';
 import {deleteAppReport, setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
@@ -192,6 +193,27 @@ function handleActionButtonPress({
             if (hasHeldExpense) {
                 onHoldMenuOpen?.(item as TransactionReportGroupListItemType, CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
                 return;
+            }
+            {
+                const policyToUpgrade = snapshotPolicy ?? policy;
+                if (isSubmitPolicy(policyToUpgrade) && policyToUpgrade?.id && item.reportID) {
+                    const upgradeFeatureAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.alias;
+                    const backTo = Navigation.getActiveRoute() ?? ROUTES.SEARCH_ROOT;
+
+                    setPendingWorkspaceUpgradeIntent({
+                        type: CONST.WORKSPACE_UPGRADE_INTENT_TYPES.APPROVE_MONEY_REQUEST_ON_SEARCH,
+                        policyID: policyToUpgrade.id,
+                        reportID: item.reportID,
+                        searchHash: hash,
+                        currentSearchKey,
+                        upgradeFeatureAlias,
+                        backTo,
+                        created: new Date().toISOString(),
+                    });
+
+                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyToUpgrade.id, upgradeFeatureAlias, backTo));
+                    return;
+                }
             }
             approveMoneyRequestOnSearch(hash, item.reportID ? [item.reportID] : [], currentSearchKey);
             return;

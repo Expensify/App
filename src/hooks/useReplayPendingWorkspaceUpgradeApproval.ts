@@ -29,17 +29,21 @@ export default function useReplayPendingWorkspaceUpgradeApproval({
     onApproved,
 }: Params) {
     const [pendingWorkspaceUpgradeIntent] = useOnyx(ONYXKEYS.PENDING_WORKSPACE_UPGRADE_INTENT);
+    const approveIntentType = pendingWorkspaceUpgradeIntent?.type;
+    const approveIntentReportID = pendingWorkspaceUpgradeIntent?.reportID;
+    const approveIntentPolicyID = pendingWorkspaceUpgradeIntent?.policyID;
+    const approveIntentFull = pendingWorkspaceUpgradeIntent?.type === CONST.WORKSPACE_UPGRADE_INTENT_TYPES.APPROVE_MONEY_REQUEST ? pendingWorkspaceUpgradeIntent.full : undefined;
 
     useEffect(() => {
-        if (pendingWorkspaceUpgradeIntent?.type !== CONST.WORKSPACE_UPGRADE_INTENT_TYPES.APPROVE_MONEY_REQUEST) {
+        if (approveIntentType !== CONST.WORKSPACE_UPGRADE_INTENT_TYPES.APPROVE_MONEY_REQUEST) {
             return;
         }
 
-        if (!expenseReport?.reportID || pendingWorkspaceUpgradeIntent.reportID !== expenseReport.reportID) {
+        if (!expenseReport?.reportID || approveIntentReportID !== expenseReport.reportID) {
             return;
         }
 
-        if (!activePolicy?.id || pendingWorkspaceUpgradeIntent.policyID !== activePolicy.id) {
+        if (!activePolicy?.id || approveIntentPolicyID !== activePolicy.id) {
             return;
         }
 
@@ -64,13 +68,17 @@ export default function useReplayPendingWorkspaceUpgradeApproval({
             userBillingGracePeriodEnds,
             amountOwed,
             ownerBillingGracePeriodEnd,
-            full: pendingWorkspaceUpgradeIntent.full,
+            full: approveIntentFull ?? false,
             onApproved,
             delegateEmail,
         });
     }, [
         activePolicy,
         amountOwed,
+        approveIntentFull,
+        approveIntentPolicyID,
+        approveIntentReportID,
+        approveIntentType,
         betas,
         currentUserAccountIDParam,
         currentUserEmailParam,
@@ -83,9 +91,5 @@ export default function useReplayPendingWorkspaceUpgradeApproval({
         onApproved,
         ownerBillingGracePeriodEnd,
         userBillingGracePeriodEnds,
-        pendingWorkspaceUpgradeIntent?.full,
-        pendingWorkspaceUpgradeIntent?.policyID,
-        pendingWorkspaceUpgradeIntent?.reportID,
-        pendingWorkspaceUpgradeIntent?.type,
     ]);
 }
