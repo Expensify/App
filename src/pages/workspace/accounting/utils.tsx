@@ -337,7 +337,7 @@ function getAccountingIntegrationData(
                     />
                 ),
                 onImportPagePress: () => {},
-                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT.getRoute(policyID)),
+                onExportPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID))),
                 onAdvancedPagePress: () => {},
                 subscribedExportSettings: [
                     CONST.CERTINIA_CONFIG.EXPORTER,

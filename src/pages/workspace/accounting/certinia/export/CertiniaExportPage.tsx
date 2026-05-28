@@ -4,12 +4,13 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 type ExportRow = {
     description: string;
@@ -27,6 +28,7 @@ function CertiniaExportPage({policy}: WithPolicyConnectionsProps) {
     const policyOwner = policy?.owner ?? '';
     const {config, data} = policy?.connections?.financialforce ?? {};
     const exportConfig = config?.export;
+    const exportPath = policyID ? `${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT.path}` : undefined;
     const selectedVendor = data?.vendors?.find((vendor) => vendor.id === exportConfig?.vendorAccount);
     const exportStatus = exportConfig?.exportStatus;
     const exportDate = exportConfig?.exportDate;
@@ -35,19 +37,19 @@ function CertiniaExportPage({policy}: WithPolicyConnectionsProps) {
         {
             description: translate('workspace.accounting.preferredExporter'),
             title: exportConfig?.exporter ?? policyOwner,
-            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_PREFERRED_EXPORTER.getRoute(policyID)),
+            onPress: !exportPath ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_PREFERRED_EXPORTER.path, exportPath)),
             subscribedSettings: [CONST.CERTINIA_CONFIG.EXPORTER],
         },
         {
             description: translate('workspace.certinia.exportStatus.label'),
             title: exportStatus ? translate(`workspace.certinia.exportStatus.values.${exportStatus}`) : exportConfig?.exportStatus,
-            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT_STATUS.getRoute(policyID)),
+            onPress: !exportPath ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT_STATUS.path, exportPath)),
             subscribedSettings: [CONST.CERTINIA_CONFIG.EXPORT_STATUS],
         },
         {
             description: translate('workspace.accounting.exportDate'),
             title: exportDate ? translate(`workspace.certinia.exportDate.values.${exportDate}`) : exportConfig?.exportDate,
-            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT_DATE.getRoute(policyID)),
+            onPress: !exportPath ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT_DATE.path, exportPath)),
             subscribedSettings: [CONST.CERTINIA_CONFIG.EXPORT_DATE],
         },
         {
@@ -67,7 +69,7 @@ function CertiniaExportPage({policy}: WithPolicyConnectionsProps) {
         {
             description: translate('workspace.accounting.defaultVendor'),
             title: selectedVendor?.name,
-            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_DEFAULT_VENDOR.getRoute(policyID)),
+            onPress: !exportPath ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_DEFAULT_VENDOR.path, exportPath)),
             subscribedSettings: [CONST.CERTINIA_CONFIG.VENDOR_ACCOUNT],
         },
     ];
