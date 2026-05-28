@@ -2,6 +2,7 @@ import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AgentPromotionalBanner from '@components/AgentPromotionalBanner';
+import SpendRulesSection from '@components/SpendRules/SpendRulesSection';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -23,7 +24,6 @@ import type SCREENS from '@src/SCREENS';
 import type DismissedProductTraining from '@src/types/onyx/DismissedProductTraining';
 import IndividualExpenseRulesSection from './IndividualExpenseRulesSection';
 import MerchantRulesSection from './MerchantRulesSection';
-import SpendRulesSection from './SpendRules/SpendRulesSection';
 
 type PolicyRulesPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.RULES>;
 
