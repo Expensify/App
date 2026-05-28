@@ -59,15 +59,13 @@ function AnimatedBadge({text, isExpanded}: AnimatedBadgeProps) {
     }));
 
     return (
-        <Animated.View style={[badgeAnimatedStyle]}>
-            <View style={styles.popoverMenuIcon}>
-                <Badge
-                    text={text}
-                    badgeStyles={[styles.searchSectionBadge, styles.ml0]}
-                    success
-                    isCondensed
-                />
-            </View>
+        <Animated.View style={[styles.searchTypeMenuAccessoryBox, badgeAnimatedStyle]}>
+            <Badge
+                text={text}
+                badgeStyles={[styles.searchSectionBadge, styles.ml0]}
+                success
+                isCondensed
+            />
         </Animated.View>
     );
 }
@@ -94,7 +92,7 @@ function SearchTypeMenuAccordion({title, isExpanded, badgeText, children, onSect
         <View>
             <PressableWithoutFeedback
                 onPress={onSectionHeaderPress}
-                style={[styles.flexRow, {paddingLeft: 8, paddingRight: 12, paddingVertical: 8}, styles.gap2, styles.alignItemsCenter, styles.br2]}
+                style={[styles.flexRow, styles.searchTypeMenuAccordionPadding, styles.gap2, styles.alignItemsCenter, styles.br2]}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={title}
                 sentryLabel={CONST.SENTRY_LABEL.ACCORDION_SECTION.TOGGLE}
@@ -112,8 +110,8 @@ function SearchTypeMenuAccordion({title, isExpanded, badgeText, children, onSect
                         isExpanded={isAccordionExpanded}
                     />
                 )}
-                <View style={styles.popoverMenuIcon}>
-                    <Animated.View style={[arrowAnimatedStyle]}>
+                <View style={styles.searchTypeMenuAccessoryBox}>
+                    <Animated.View style={arrowAnimatedStyle}>
                         <Icon
                             fill={theme.icon}
                             src={icons.UpArrow}

@@ -1929,7 +1929,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         popoverMenuIcon: {
-            width: 28,
+            width: variables.componentSizeNormal,
             justifyContent: 'center',
             alignItems: 'center',
         },
@@ -5725,7 +5725,7 @@ const staticStyles = (theme: ThemeColors) =>
         todoBadge: {
             alignItems: 'center',
             justifyContent: 'center',
-            width: 28,
+            width: variables.w28,
             paddingHorizontal: 4,
         },
 
@@ -5733,8 +5733,14 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
             justifyContent: 'center',
             height: 16,
-            width: 28,
+            width: variables.w28,
             paddingHorizontal: 4,
+        },
+
+        searchTypeMenuAccessoryBox: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: variables.w28,
         },
 
         stickToBottom: {
@@ -6512,12 +6518,22 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         sectionMenuItem: (shouldUseNarrowLayout: boolean) => ({
             borderRadius: 8,
-            paddingLeft: 16,
-            paddingRight: 12,
+            paddingHorizontal: 16,
             paddingVertical: shouldUseNarrowLayout ? 8 : 4,
             height: shouldUseNarrowLayout ? variables.sectionMenuItemHeight : variables.sectionMenuItemHeightCompact,
             alignItems: 'center',
         }),
+
+        searchTypeMenuItemPadding: {
+            paddingLeft: 16,
+            paddingRight: 12,
+        },
+
+        searchTypeMenuAccordionPadding: {
+            paddingLeft: 8,
+            paddingRight: 12,
+            paddingVertical: 8,
+        },
 
         searchActionsBar: (shouldUseNarrowLayout: boolean) => ({
             alignItems: 'center',
