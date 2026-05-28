@@ -1,5 +1,4 @@
 import {BaseNavigationContainer, NavigationIndependentTree} from '@react-navigation/core';
-import {DarkTheme, DefaultTheme} from '@react-navigation/native';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import React, {useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
@@ -16,6 +15,7 @@ import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
 import useThemePreference from '@hooks/useThemePreference';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getNavigationBaseTheme from '@libs/Navigation/getNavigationBaseTheme';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
@@ -98,7 +98,7 @@ function MultifactorAuthenticationModalNavigator() {
         setPhase('closing');
     }
 
-    const navigationThemeBase = themePreference === CONST.THEME.DARK ? DarkTheme : DefaultTheme;
+    const navigationThemeBase = getNavigationBaseTheme(themePreference);
     const navigationTheme = {
         ...navigationThemeBase,
         colors: {
