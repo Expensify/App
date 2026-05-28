@@ -7,8 +7,11 @@ type UseSelectionProps<DataType extends TableData> = {
     /** The data being used in the table */
     data: DataType[];
 
+    /** The list of selected keys */
+    selectedKeys: string[];
+
     /** Callback that is fired when the selection of rows in the table changes */
-    onRowSelectionChange?: (selectedRows: Array<TableRow<DataType>>) => void;
+    onRowSelectionChange?: (selectedRowKeys: string[]) => void;
 };
 
 type SelectionMethods = {
@@ -33,11 +36,9 @@ type UseSelectionResult<DataType extends TableData> = MiddlewareHookResult<DataT
     isMobileSelectionModalVisible: boolean;
 };
 
-export default function useSelection<DataType extends TableData>({data, onRowSelectionChange}: UseSelectionProps<DataType>): UseSelectionResult<DataType> {
+export default function useSelection<DataType extends TableData>({data, selectedKeys, onRowSelectionChange}: UseSelectionProps<DataType>): UseSelectionResult<DataType> {
     const lastSelectedRowKeyRef = useRef<string | null>(null);
     const lastSelectedRowIsSelectedRef = useRef<boolean>(false);
-
-    const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
     const [isMobileSelectionModalVisible, setIsMobileSelectionModalVisible] = useState(false);
 
     const selectableKeys = data.filter((item) => !item.disabled).map((item) => item.keyForList);
@@ -55,27 +56,10 @@ export default function useSelection<DataType extends TableData>({data, onRowSel
     }
 
     /**
-     * Helper method to ensure that the row selection callback is called every time that the selected
-     * keys are updated
-     */
-    const updateSelectedKeys: Dispatch<SetStateAction<string[]>> = (action) => {
-        setSelectedKeys((prevSelectedKeys) => {
-            const updatedSelectedKeys = typeof action === 'function' ? action(prevSelectedKeys) : action;
-
-            if (onRowSelectionChange) {
-                const selectedRows = tableRowData.filter((row) => updatedSelectedKeys.includes(row.keyForList));
-                onRowSelectionChange(selectedRows);
-            }
-
-            return updatedSelectedKeys;
-        });
-    };
-
-    /**
      * Clear all of the currently selected keys
      */
     const clearSelection = () => {
-        updateSelectedKeys([]);
+        onRowSelectionChange?.([]);
     };
 
     /**
@@ -84,9 +68,9 @@ export default function useSelection<DataType extends TableData>({data, onRowSel
      */
     const handleSelectAll = () => {
         if (areAllSelectableRowsSelected) {
-            updateSelectedKeys([]);
+            onRowSelectionChange?.([]);
         } else {
-            updateSelectedKeys(selectableKeys);
+            onRowSelectionChange?.(selectableKeys);
         }
     };
 
@@ -95,19 +79,18 @@ export default function useSelection<DataType extends TableData>({data, onRowSel
      * on or off
      */
     const handleSingleRowSelection = (keyForList: string) => {
-        updateSelectedKeys((prevSelectedKeys) => {
-            const keyIndex = prevSelectedKeys.indexOf(keyForList);
-            const isCurrentlySelected = keyIndex !== -1;
+        const keyIndex = selectedKeys.indexOf(keyForList);
+        const isCurrentlySelected = keyIndex !== -1;
 
-            lastSelectedRowKeyRef.current = keyForList;
-            lastSelectedRowIsSelectedRef.current = !isCurrentlySelected;
+        lastSelectedRowKeyRef.current = keyForList;
+        lastSelectedRowIsSelectedRef.current = !isCurrentlySelected;
 
-            if (isCurrentlySelected) {
-                return [...prevSelectedKeys.slice(0, keyIndex), ...prevSelectedKeys.slice(keyIndex + 1)];
-            }
+        if (isCurrentlySelected) {
+            onRowSelectionChange?.([...selectedKeys.slice(0, keyIndex), ...selectedKeys.slice(keyIndex + 1)]);
+            return;
+        }
 
-            return [...prevSelectedKeys, keyForList];
-        });
+        onRowSelectionChange?.([...selectedKeys, keyForList]);
     };
 
     /**
@@ -140,30 +123,28 @@ export default function useSelection<DataType extends TableData>({data, onRowSel
         const endIndex = Math.max(currentSelectedRowIndex, lastSelectedRowIndex);
         const startIndex = Math.min(currentSelectedRowIndex, lastSelectedRowIndex);
 
-        updateSelectedKeys((prevSelectedKeys) => {
-            const newSelectedKeys = [...prevSelectedKeys];
+        const newSelectedKeys = [...selectedKeys];
 
-            for (let i = startIndex; i <= endIndex; i++) {
-                const key = selectableKeys.at(i);
+        for (let i = startIndex; i <= endIndex; i++) {
+            const key = selectableKeys.at(i);
 
-                if (!key) {
-                    continue;
-                }
-
-                if (lastSelectedRowIsSelected) {
-                    if (!newSelectedKeys.includes(key)) {
-                        newSelectedKeys.push(key);
-                    }
-                } else {
-                    const index = newSelectedKeys.indexOf(key);
-                    if (index !== -1) {
-                        newSelectedKeys.splice(index, 1);
-                    }
-                }
+            if (!key) {
+                continue;
             }
 
-            return newSelectedKeys;
-        });
+            if (lastSelectedRowIsSelected) {
+                if (!newSelectedKeys.includes(key)) {
+                    newSelectedKeys.push(key);
+                }
+            } else {
+                const index = newSelectedKeys.indexOf(key);
+                if (index !== -1) {
+                    newSelectedKeys.splice(index, 1);
+                }
+            }
+        }
+
+        onRowSelectionChange?.(newSelectedKeys);
     };
 
     const middleware = () => {

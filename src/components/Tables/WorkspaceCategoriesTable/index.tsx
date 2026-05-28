@@ -31,10 +31,11 @@ type WorkspaceCategoriesTableProps = {
     ref?: React.Ref<TableHandle<WorkspaceCategoryTableRowData, WorkspaceCategoryTableColumnKey, string>> | undefined;
     categories: WorkspaceCategoryTableRowData[];
     shouldShowApproverColumn: boolean;
-    onRowSelectionChange: (selectedRows: WorkspaceCategoryTableRowData[]) => void;
+    selectedKeys: string[];
+    onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
-export default function WorkspaceCategoriesTable({ref, categories, shouldShowApproverColumn, onRowSelectionChange}: WorkspaceCategoriesTableProps) {
+export default function WorkspaceCategoriesTable({ref, categories, selectedKeys, shouldShowApproverColumn, onRowSelectionChange}: WorkspaceCategoriesTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
@@ -120,6 +121,7 @@ export default function WorkspaceCategoriesTable({ref, categories, shouldShowApp
             compareItems={compareItems}
             isItemInSearch={isItemInSearch}
             renderItem={renderCategoryItem}
+            selectedKeys={selectedKeys}
             onRowSelectionChange={onRowSelectionChange}
         >
             {categories.length > CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.categories.findCategory')} />}

@@ -140,9 +140,10 @@ import type {TableData, TableHandle, TableMethods, TableProps} from './types';
 function Table<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string>({
     ref,
     title,
-    data = [],
     columns,
     filters,
+    data = [],
+    selectedKeys = [],
     compareItems,
     isItemInFilter,
     isItemInSearch,
@@ -170,7 +171,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const {middleware: sortMiddleware, activeSorting, methods: sortMethods} = useSorting<DataType, ColumnKey>({compareItems, initialSortColumn});
     const sortedData = sortMiddleware(searchedData);
 
-    const {middleware: selectionMiddleware, methods: selectionMethods, isMobileSelectionModalVisible} = useSelection<DataType>({data: sortedData, onRowSelectionChange});
+    const {middleware: selectionMiddleware, methods: selectionMethods, isMobileSelectionModalVisible} = useSelection<DataType>({data: sortedData, selectedKeys, onRowSelectionChange});
     const processedData = selectionMiddleware(sortedData);
 
     const listRef = useRef<FlashListRef<DataType>>(null);
