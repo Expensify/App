@@ -9231,6 +9231,28 @@ const translations = {
             chat: 'Chat on any expense to resolve questions quickly',
         },
     },
+    aiFeaturesPromoModal: {
+        title: 'Meet Concierge AI',
+        description: 'Your new AI-powered Expensify assistant.',
+        letsGo: "Let's go",
+        learnMore: 'Learn more',
+        next: 'Next',
+        back: 'Back',
+        screens: {
+            spendAnalysis: {
+                title: 'Interactive spend analysis',
+                description: 'Ask Concierge to break down your spending however you want — by category, person, project, or time.',
+            },
+            expenseAssistant: {
+                title: 'Meet your new expense assistant',
+                description: 'Concierge can categorize expenses, fill in details, and follow up on missing receipts for you.',
+            },
+            buildAgents: {
+                title: 'Build your own agents',
+                description: 'Create custom AI agents to automate the workflows that matter most to your team.',
+            },
+        },
+    },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
