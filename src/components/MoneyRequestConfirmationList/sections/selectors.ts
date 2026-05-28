@@ -1,6 +1,7 @@
 /** Onyx selectors used by the confirmation field leaves. */
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {canSendInvoice} from '@libs/PolicyUtils';
+import getReportNameValuePairsForReports from '@libs/ReportNameValuePairsUtils';
 import {
     getCategory,
     getCreated,
@@ -14,7 +15,6 @@ import {
     willFieldBeAutomaticallyFilled,
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 
@@ -216,17 +216,7 @@ const createOutstandingReportsNVPsSelector =
         if (!outstandingReports || !allNVPs) {
             return undefined;
         }
-        const result: OnyxCollection<OnyxTypes.ReportNameValuePairs> = {};
-        for (const report of Object.values(outstandingReports)) {
-            if (!report?.reportID) {
-                continue;
-            }
-            const key = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}` as const;
-            if (allNVPs[key] !== undefined) {
-                result[key] = allNVPs[key];
-            }
-        }
-        return result;
+        return getReportNameValuePairsForReports(outstandingReports, allNVPs);
     };
 
 // --- InvoiceSenderField ---
