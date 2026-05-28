@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -28,6 +28,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import { openDuplicatePolicyPage } from '@libs/actions/Policy/Policy';
 
 /**
  * Coding parts whose IDs are tied to the target's existing accounting connection.
@@ -93,6 +94,13 @@ function CopyPolicySettingsSelectFeaturesPage() {
         hasInvoiceConfiguration: !!(bankAccountList && Object.keys(bankAccountList).length) || !!invoiceCompany,
         isCollectPolicy: isCollectPolicy(sourcePolicy),
     };
+
+    useEffect(() => {
+        if (!sourcePolicyID) {
+            return;
+        }
+        openDuplicatePolicyPage(sourcePolicyID);
+    }, [sourcePolicyID]);
 
     const isPartIncompatible = (part: Part): boolean => {
         if (part === CONST.POLICY.POLICY_FEATURE.ACCOUNTING) {
