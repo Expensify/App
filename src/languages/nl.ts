@@ -853,7 +853,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Jouw ruimte',
         welcomeToRoom: (roomName: string) => `Welkom bij ${roomName}!`,
         usePlusButton: (additionalText: string) => `Gebruik de +-knop om een uitgave te ${additionalText}.`,
-        askConcierge: 'Dit is je chat met Concierge, je persoonlijke AI-agent. Ik kan bijna alles, probeer het maar!',
+        askConcierge: 'Concierge kan vragen beantwoorden, uitgaven bijwerken en meer.',
         conciergeSupport: 'Jouw persoonlijke AI-agent',
         create: 'maken',
         iouTypes: {
@@ -1965,6 +1965,14 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Privé',
             subtitle: 'Deze gegevens worden gebruikt voor reizen en betalingen. Ze worden nooit getoond op je openbare profiel.',
         },
+        aiPromptSection: {
+            title: 'AI-prompt',
+            subtitle: 'Schrijf aangepaste instructies',
+            prompt: 'Prompt',
+            editPrompt: 'Prompt bewerken',
+            promptCannotBeEmpty: 'Prompt mag niet leeg zijn',
+            saved: 'Opgeslagen',
+        },
     },
     securityPage: {
         title: 'Beveiligingsopties',
@@ -2580,6 +2588,8 @@ ${amount} voor ${merchant} - ${date}`,
         addApprovalTip: 'Deze standaardworkflow is van toepassing op alle leden, tenzij er een specifiekere workflow bestaat.',
         approver: 'Fiatteur',
         addApprovalsDescription: 'Extra goedkeuring vereisen voordat je een betaling autoriseert.',
+        automateApprovalsWithAgentsTitle: 'Automatiseer goedkeuringen met agents',
+        automateApprovalsWithAgentsSubtitle: 'Voeg hieronder een agent toe aan de workflow om goedkeuringen te automatiseren.',
         makeOrTrackPaymentsTitle: 'Betalingen',
         makeOrTrackPaymentsDescription: 'Voeg een gemachtigde betaler toe voor betalingen die in Expensify worden gedaan of volg betalingen die elders zijn gedaan.',
         customApprovalWorkflowEnabled:
@@ -2792,6 +2802,8 @@ ${amount} voor ${merchant} - ${date}`,
         title: 'Agent bewerken',
         agentName: 'Naam medewerker',
         instructions: 'Aangepaste instructies schrijven',
+        chatWithAgent: 'Chat met agent',
+        copilotIntoAccount: 'Copilot in account',
         deleteAgent: 'Agent verwijderen',
         deleteAgentTitle: 'Agent verwijderen?',
         deleteAgentMessage: 'Weet je zeker dat je deze agent wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.',
@@ -6034,6 +6046,11 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             selectWorkspaces: 'Selecteer werkruimtes',
             description: 'Kies de werkruimtes waarnaar je instellingen wilt kopiëren en selecteer daarna de instellingen die je wilt kopiëren.',
             searchPlaceholder: 'Werkruimtes zoeken',
+            selectFeatures: 'Selecteer functies om te kopiëren',
+            whichFeatures: 'Selecteer de instellingen die je wilt overschrijven in je bestaande werkruimtes.',
+            workflowsWithoutMembersConfirm: 'Doorgaan zonder leden',
+            workflowsWithoutMembersPrompt: 'Workflows kopiëren zonder leden kopieert geen goedkeuringsworkflows. Instellingen voor indienen en betalen worden nog steeds gekopieerd.',
+            accountingMismatch: ({part}: {part: string}) => `Je kunt ${part} alleen kopiëren als alle werkruimtes hetzelfde boekhoudsysteem en dezelfde bedrijfsverbinding gebruiken.`,
         },
         emptyWorkspace: {
             title: 'Je hebt geen werkruimtes',
@@ -6118,6 +6135,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
         card: {
             getStartedIssuing: 'Begin met het uitgeven van je eerste virtuele of fysieke kaart.',
             issueCard: 'Kaart uitgeven',
+            chooseRule: 'Kies een regel',
             issueNewCard: {
                 whoNeedsCard: 'Wie heeft er een kaart nodig?',
                 inviteNewMember: 'Nieuw lid uitnodigen',
@@ -6159,22 +6177,27 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 enterValidDate: 'Voer een geldige datum in',
                 expirationDate: 'Vervaldatum',
                 limitAmount: 'Limietbedrag',
-                setExpiryOptions: 'Vervalopties instellen',
-                setExpiryDate: 'Vervaldatum instellen',
-                setExpiryDateDescription: 'De kaart verloopt zoals vermeld op de kaart',
+                setCardRules: 'Kaartregels instellen',
+                addSpendRule: 'Uitgavenregel toevoegen',
+                addExpirationDate: 'Vervaldatum toevoegen',
+                addExpirationDateDescription: 'Als er geen specifieke datum is ingesteld, verloopt de kaart op basis van de bestaande vervaldatum op de kaart',
                 amount: 'Bedrag',
+                copyExisting: 'Bestaande kopiëren',
+                createNew: 'Nieuw maken',
+                spendRulesEmptyStateTitle: 'Geen regels om uit te kiezen',
+                spendRulesEmptyStateSubtitle: 'Je hebt nog geen regels aangemaakt. Je kunt er een aanmaken vanaf het vorige scherm.',
             },
             deactivateCardModal: {
                 deactivate: 'Deactiveren',
                 deactivateCard: 'Kaart deactiveren',
                 deactivateConfirmation: 'Als je deze kaart deactiveert, worden alle toekomstige transacties geweigerd en dit kan niet ongedaan worden gemaakt.',
             },
+            searchRules: 'Uitgavenregel zoeken',
         },
         accounting: {
             settings: 'instellingen',
             title: 'Verbindingen',
-            subtitle:
-                'Maak verbinding met je boekhoudsysteem om transacties te coderen met je grootboekrekeningen, betalingen automatisch te matchen en je financiën gesynchroniseerd te houden.',
+            subtitle: 'Verbind je boekhoudsoftware voor een automatische synchronisatie.',
             qbo: 'QuickBooks Online',
             qbd: 'QuickBooks Desktop',
             xero: 'Xero',
@@ -6960,6 +6983,11 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Ga naar [meer functies](${moreFeaturesLink}) en schakel ${featureName} in om deze functie te ontgrendelen.`,
             },
+            agentsPromoBanner: {
+                title: 'Zie je de regel die je nodig hebt niet? Voeg een agent toe',
+                subtitle: 'Voeg complexe regels toe en verminder handmatige goedkeuringen met aangepaste agents.',
+                cta: 'Probeer het uit',
+            },
             merchantRules: {
                 title: 'Handelaar',
                 subtitle: 'Stel de leveranciersregels in zodat onkosten correct gecodeerd binnenkomen en er minder nabewerking nodig is.',
@@ -7168,6 +7196,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         hr: {
             title: 'HR',
             connections: 'Verbindingen',
+            connectionsSubtitle:
+                'Verbind met je HR-systeem om werknemersgegevens te synchroniseren, terugbetalingen automatisch aan de juiste personen te koppelen en de uitgaven van je team nauwkeurig te houden zonder handmatig werk.',
             subtitle: 'Koppel HR-tools en houd goedkeuringen van medewerkers gesynchroniseerd.',
             connect: 'Verbinden',
             syncNow: 'Nu synchroniseren',
@@ -7827,7 +7857,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
     search: {
         resultsAreLimited: 'Zoekresultaten zijn beperkt.',
         viewResults: 'Resultaten bekijken',
-        applyFilters: 'Filters toepassen',
         appliedFilters: 'Toegepaste filters',
         resetFilters: 'Filters resetten',
         searchResults: {
@@ -7937,12 +7966,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             amount: {
                 lessThan: (amount?: string) => `Minder dan ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Groter dan ${amount ?? ''}`,
-                between: (greaterThan?: string, lessThan?: string) => {
-                    if (greaterThan && lessThan) {
-                        return `Tussen ${greaterThan} en ${lessThan}`;
-                    }
-                    return 'Tussen';
-                },
+                between: (greaterThan: string, lessThan: string) => `Tussen ${greaterThan} en ${lessThan}`,
                 equalTo: (amount?: string) => `Gelijk aan ${amount ?? ''}`,
             },
             card: {
@@ -8580,6 +8604,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         duplicatedTransaction: 'Mogelijke duplicaat',
         fieldRequired: 'Rapportvelden zijn verplicht',
         futureDate: 'Toekomstige datum niet toegestaan',
+        inactiveVendor: 'Leverancier niet meer geldig',
         invoiceMarkup: (invoiceMarkup: number) => `Met ${invoiceMarkup}% verhoogd`,
         maxAge: (maxAge: number) => `Datum ouder dan ${maxAge} dagen`,
         missingCategory: 'Ontbrekende categorie',
@@ -9053,7 +9078,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         copilotDelegatedAccess: 'Copilot: Gedelegeerde toegang',
         copilotDelegatedAccessDescription: 'Sta andere leden toe toegang te krijgen tot je account.',
         learnMoreAboutDelegatedAccess: 'Meer informatie over gedelegeerde toegang',
-        addCopilot: 'Copiloot toevoegen',
+        addCopilot: 'Co-piloot toevoegen',
         membersCanAccessYourAccount: 'Deze leden hebben toegang tot je account:',
         youCanAccessTheseAccounts: 'Je hebt toegang tot deze accounts:',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {

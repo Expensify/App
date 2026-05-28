@@ -1,7 +1,8 @@
 import useOnyx from '@hooks/useOnyx';
-import {isCard, isCardPendingActivate, isCardPendingIssue, isCardWithCustomZeroLimit, isCardWithPotentialFraud, isExpensifyCard} from '@libs/CardUtils';
+import {isCard, isCardPendingActivate, isCardPendingIssue, isCardPendingReplace, isCardWithCustomZeroLimit, isCardWithPotentialFraud, isExpensifyCard} from '@libs/CardUtils';
 import {arePersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {getUnresolvedCardFraudAlertAction} from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card} from '@src/types/onyx';
 
@@ -17,11 +18,7 @@ function useTimeSensitiveCards() {
     const virtualCardsNeedingPersonalDetails: Card[] = [];
 
     for (const card of Object.values(cards ?? {})) {
-        if (!isCard(card)) {
-            continue;
-        }
-
-        if (!isExpensifyCard(card)) {
+        if (!isCard(card) || !isExpensifyCard(card) || !CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state)) {
             continue;
         }
 
@@ -34,6 +31,10 @@ function useTimeSensitiveCards() {
         }
 
         if (isCardWithCustomZeroLimit(card)) {
+            continue;
+        }
+
+        if (isCardPendingReplace(card)) {
             continue;
         }
 

@@ -204,6 +204,7 @@ export type {default as SetReportNameParams} from './SetReportNameParams';
 export type {default as DeleteReportFieldParams} from './DeleteReportFieldParams';
 export type {default as CompleteSplitBillParams} from './CompleteSplitBillParams';
 export type {default as UpdateMoneyRequestParams} from './UpdateMoneyRequestParams';
+export type {default as UpdateMoneyRequestVendorParams} from './UpdateMoneyRequestVendorParams';
 export type {default as RequestMoneyParams} from './RequestMoneyParams';
 export type {default as SplitBillParams} from './SplitBillParams';
 export type {SplitTransactionParams, SplitTransactionSplitsParam, RevertSplitTransactionParams} from './SplitTransactionParams';
