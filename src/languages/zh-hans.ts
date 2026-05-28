@@ -2925,7 +2925,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.HOUSEHOLD_TRACKING]: '家庭支出',
             [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SIDEPROJECT_TRACKING]: '副业报销',
             [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE]: '其他原因',
-            somethingElsePlaceholder: '你正在跟踪什么？',
+            somethingElsePlaceholder: '你在记录什么？',
         },
         employees: {
             title: '您有多少名员工？',

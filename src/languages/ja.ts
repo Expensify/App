@@ -2983,7 +2983,7 @@ ${date} の ${merchant} への ${amount}`,
             [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.HOUSEHOLD_TRACKING]: '家計費',
             [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SIDEPROJECT_TRACKING]: 'サイドプロジェクト経費',
             [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE]: 'その他',
-            somethingElsePlaceholder: '何を記録しますか？',
+            somethingElsePlaceholder: '何を記録していますか？',
         },
         employees: {
             title: '従業員は何人いますか？',
