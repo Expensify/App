@@ -134,17 +134,6 @@ function CopilotPage() {
         [setMenuPosition],
     );
 
-    const showDelegatorPopoverMenu = useCallback(
-        (nativeEvent: GestureResponderEvent | KeyboardEvent, delegator: Delegate) => {
-            delegateButtonRef.current = nativeEvent?.currentTarget as HTMLDivElement;
-            setMenuPosition();
-            setShouldShowDelegatorPopoverMenu(true);
-            setSelectedDelegator(delegator);
-            setSelectedEmail(delegator.email);
-        },
-        [setMenuPosition],
-    );
-
     useLayoutEffect(() => {
         const popoverPositionListener = Dimensions.addEventListener('change', () => {
             debounce(setMenuPosition, CONST.TIMING.RESIZE_DEBOUNCE_TIME)();
@@ -157,6 +146,17 @@ function CopilotPage() {
             popoverPositionListener.remove();
         };
     }, [setMenuPosition]);
+
+    const showDelegatorPopoverMenu = useCallback(
+        (nativeEvent: GestureResponderEvent | KeyboardEvent, delegator: Delegate) => {
+            delegateButtonRef.current = nativeEvent?.currentTarget as HTMLDivElement;
+            setMenuPosition();
+            setShouldShowDelegatorPopoverMenu(true);
+            setSelectedDelegator(delegator);
+            setSelectedEmail(delegator.email);
+        },
+        [setMenuPosition],
+    );
 
     const renderTitleWithRole = useCallback(
         (titleText: string, descriptionText: string, role: DelegateRole | undefined) => (
@@ -256,55 +256,40 @@ function CopilotPage() {
         actingDelegateEmail,
     ]);
 
-    const delegatorMenuItems: MenuItemProps[] = useMemo(() => {
-        const sortedDelegators = sortAlphabetically(
-            delegators.map((d) => ({...d, sortKey: personalDetailsByLogin[d.email.toLowerCase()]?.displayName ?? formatPhoneNumber(d.email)})),
-            'sortKey',
-            localeCompare,
-        );
-        return sortedDelegators.map(({email, role, pendingAction}) => {
-            const personalDetail = personalDetailsByLogin[email.toLowerCase()];
-            const formattedEmail = formatPhoneNumber(email);
-            const connectError = getLatestError(errorFields?.connect?.[email]);
-            const isCurrentUser = email === session?.email;
-            const isPending = !!pendingAction;
-            const titleText = personalDetail?.displayName ?? formattedEmail;
-            const descriptionText = personalDetail?.displayName ? formattedEmail : '';
-
-            return {
-                key: email,
-                titleComponent: renderTitleWithRole(titleText, descriptionText, role),
-                avatarID: personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                icon: personalDetail?.avatar ?? (personalDetail ? getDefaultAvatarURL({accountID: personalDetail.accountID, accountEmail: email}) : undefined),
-                iconType: CONST.ICON_TYPE_AVATAR,
-                wrapperStyle: [styles.sectionMenuItemTopDescription],
-                disabled: isPending || isCurrentUser,
-                onPress: (e: GestureResponderEvent | KeyboardEvent) => {
-                    showDelegatorPopoverMenu(e, {email, role});
-                },
-                role: CONST.ROLE.LINK,
-                error: connectError,
-                onPendingActionDismiss: () => clearDelegatorErrors({delegatedAccess: account?.delegatedAccess}),
-                iconRight: icons.ThreeDots,
-                shouldShowRightIcon: !isCurrentUser,
-                success: selectedEmail === email,
-                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.DELEGATOR_ITEM,
-            };
-        });
-    }, [
-        delegators,
-        styles,
-        formatPhoneNumber,
-        account?.delegatedAccess,
-        personalDetailsByLogin,
+    const sortedDelegators = sortAlphabetically(
+        delegators.map((d) => ({...d, sortKey: personalDetailsByLogin[d.email.toLowerCase()]?.displayName ?? formatPhoneNumber(d.email)})),
+        'sortKey',
         localeCompare,
-        session?.email,
-        errorFields,
-        showDelegatorPopoverMenu,
-        renderTitleWithRole,
-        selectedEmail,
-        icons.ThreeDots,
-    ]);
+    );
+    const delegatorMenuItems: MenuItemProps[] = sortedDelegators.map(({email, role, pendingAction}) => {
+        const personalDetail = personalDetailsByLogin[email.toLowerCase()];
+        const formattedEmail = formatPhoneNumber(email);
+        const connectError = getLatestError(errorFields?.connect?.[email]);
+        const isCurrentUser = email === session?.email;
+        const isPending = !!pendingAction;
+        const titleText = personalDetail?.displayName ?? formattedEmail;
+        const descriptionText = personalDetail?.displayName ? formattedEmail : '';
+
+        return {
+            key: email,
+            titleComponent: renderTitleWithRole(titleText, descriptionText, role),
+            avatarID: personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            icon: personalDetail?.avatar ?? (personalDetail ? getDefaultAvatarURL({accountID: personalDetail.accountID, accountEmail: email}) : undefined),
+            iconType: CONST.ICON_TYPE_AVATAR,
+            wrapperStyle: [styles.sectionMenuItemTopDescription],
+            disabled: isPending || isCurrentUser,
+            onPress: (e: GestureResponderEvent | KeyboardEvent) => {
+                showDelegatorPopoverMenu(e, {email, role});
+            },
+            role: CONST.ROLE.LINK,
+            error: connectError,
+            onPendingActionDismiss: () => clearDelegatorErrors({delegatedAccess: account?.delegatedAccess}),
+            iconRight: icons.ThreeDots,
+            shouldShowRightIcon: !isCurrentUser,
+            success: selectedEmail === email,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.DELEGATOR_ITEM,
+        };
+    });
 
     const delegatePopoverMenuItems: PopoverMenuItem[] = [
         {

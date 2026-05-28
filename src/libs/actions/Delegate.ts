@@ -2,7 +2,12 @@ import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {AddDelegateParams as APIAddDelegateParams, RemoveDelegateParams as APIRemoveDelegateParams, RemoveDelegatorParams as APIRemoveDelegatorParams, UpdateDelegateRoleParams as APIUpdateDelegateRoleParams} from '@libs/API/parameters';
+import type {
+    AddDelegateParams as APIAddDelegateParams,
+    RemoveDelegateParams as APIRemoveDelegateParams,
+    RemoveDelegatorParams as APIRemoveDelegatorParams,
+    UpdateDelegateRoleParams as APIUpdateDelegateRoleParams,
+} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
