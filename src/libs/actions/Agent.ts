@@ -15,6 +15,10 @@ function openAgentsPage() {
     read(READ_COMMANDS.OPEN_AGENTS_PAGE, null);
 }
 
+function openProfilePage() {
+    read(READ_COMMANDS.OPEN_PROFILE_PAGE, null);
+}
+
 function createAgent(firstName: string | undefined, prompt: string, customExpensifyAvatarID?: string, file?: File | CustomRNImageManipulatorResult, optimisticAvatarURI?: string) {
     const optimisticAccountID = -Math.round(Math.random() * 1000000);
 
@@ -147,10 +151,11 @@ function updateAgentName(accountID: number, firstName: string, originalFirstName
 }
 
 function updateAgentPrompt(accountID: number, prompt: string, originalPrompt: string) {
+    const onyxKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`;
     const optimisticData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`,
+            key: onyxKey,
             value: {prompt, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, errors: null},
         },
     ];
@@ -158,7 +163,7 @@ function updateAgentPrompt(accountID: number, prompt: string, originalPrompt: st
     const successData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`,
+            key: onyxKey,
             value: {pendingAction: null, promptErrors: null},
         },
     ];
@@ -166,7 +171,7 @@ function updateAgentPrompt(accountID: number, prompt: string, originalPrompt: st
     const failureData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`,
+            key: onyxKey,
             value: {prompt: originalPrompt, pendingAction: null, promptErrors: getMicroSecondOnyxErrorWithTranslationKey('agentsPage.error.updatePrompt')},
         },
     ];
@@ -282,11 +287,12 @@ function deleteAgent(accountID: number) {
     ];
 
     write(WRITE_COMMANDS.DELETE_AGENT, {agentAccountID: accountID}, {optimisticData, successData, failureData});
-    Navigation.navigate(ROUTES.SETTINGS_AGENTS);
+    Navigation.goBack(ROUTES.SETTINGS_AGENTS);
 }
 
 export {
     openAgentsPage,
+    openProfilePage,
     createAgent,
     clearAgentError,
     clearAgentUpdateError,

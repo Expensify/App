@@ -5,6 +5,7 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import type {SelectorType} from '@components/SelectionScreen';
 import CONST from '@src/CONST';
 import MERGE_HR_PROVIDERS from '@src/CONST/MERGE_HR_PROVIDERS';
+import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
@@ -36,6 +37,7 @@ import type {
     PolicyFeatureName,
     Rate,
     Tenant,
+    Vendor,
 } from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -66,13 +68,16 @@ type HRConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.HR_CONNECTI
 /** Display info for an HR provider connected to a policy. */
 type HRProviderInfo = {
     /** The internal connection name used as the key on `policy.connections` (e.g. `'gusto'`, `'zenefits'`, `'merge_hris'`). */
-    connectionName: string;
+    connectionName: ConnectionName;
 
     /** Human-readable label shown in the UI (e.g. `'Gusto'`, `'TriNet'`, or a Merge HR provider brand like `'Workday'`). */
     displayName: string;
 
     /** Optional logo URL. Populated only for Merge HR providers when their slug resolves in `MERGE_HR_PROVIDERS`. */
     iconUrl?: string;
+
+    /** Merge HR integration slug (e.g. `'bamboohr'`, `'workday'`). Only set when `connectionName` is Merge HR. */
+    mergeSlug?: MergeHRProviderSlug;
 };
 
 type WorkspaceDetails = {
@@ -1011,6 +1016,15 @@ function isSubmitPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.SUBMIT;
 }
 
+/**
+ * We only allow users to access Submit feature if they have the SUBMIT_2026 beta enabled.
+ *
+ * @param isSubmit2026BetaEnabled - Prefer `isBetaEnabled(CONST.BETAS.SUBMIT_2026)` from `usePermissions()`, not raw betas from Onyx.
+ */
+function canAccessSubmitWorkspaceFeatures(policy: OnyxInputOrEntry<Policy>, isSubmit2026BetaEnabled: boolean): boolean {
+    return isSubmitPolicy(policy) && isSubmit2026BetaEnabled;
+}
+
 const isPolicyEditor = (policy: OnyxInputOrEntry<Policy>, login?: string): boolean => getPolicyRole(policy, login) === CONST.POLICY.ROLE.EDITOR;
 
 /**
@@ -1041,6 +1055,19 @@ function getOwnedPaidPolicies(policies: OnyxCollection<Policy> | null, currentUs
 
 function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.CORPORATE;
+}
+
+/**
+ * For Submit workspaces, certain features require upgrading the plan before enabling.
+ * When conditions match, navigates to the workspace upgrade flow and returns true (caller should not enable the feature).
+ * @returns true if upgrade navigation was performed; false otherwise
+ */
+function tryNavigateToSubmitWorkspaceUpgrade(policy: OnyxEntry<Policy>, isEnabling: boolean, upgradeFeatureAlias: string): boolean {
+    if (!policy?.id || !isEnabling || !isSubmitPolicy(policy)) {
+        return false;
+    }
+    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policy?.id, upgradeFeatureAlias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policy?.id)));
+    return true;
 }
 
 /**
@@ -1139,6 +1166,10 @@ function isSubmitAndClose(policy: OnyxInputOrEntry<Policy>): boolean {
 
 function arePaymentsEnabled(policy: OnyxEntry<Policy>): boolean {
     return policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+}
+
+function hasApprovalFlow(policy: OnyxInputOrEntry<Policy>): boolean {
+    return isPaidGroupPolicy(policy) && !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 
 function isControlOnAdvancedApprovalMode(policy: OnyxInputOrEntry<Policy>): boolean {
@@ -1917,6 +1948,7 @@ function getConnectedHRProvider(policy?: OnyxEntry<Policy>): HRProviderInfo | nu
             connectionName: CONST.POLICY.CONNECTIONS.NAME.MERGE_HR,
             displayName: providerInfo?.displayName ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.merge_hris,
             iconUrl: providerInfo?.iconUrl ?? undefined,
+            mergeSlug: slug,
         };
     }
     return null;
@@ -1966,6 +1998,45 @@ function getHRApprovalMode(
 
 function getConnectedIntegration(policy: Policy | undefined, connectionNames: readonly ConnectionName[] = getAccountingConnectionNames()) {
     return connectionNames.find((integration) => !!policy?.connections?.[integration]);
+}
+
+/**
+ * QBO vendor feature gate. Returns true when the workspace has the `vendorMatching` beta enabled
+ * AND QBO is connected with an individual card transaction non-reimbursable export type — the only
+ * scope the Vendor field is shown for. Mirrors `QuickbooksOnline::hasVendorFeature` on the PHP side
+ * so the App and backend agree on which workspaces see the field.
+ */
+function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
+    if (!isVendorMatchingBetaEnabled || !policy) {
+        return false;
+    }
+    const qboConnection = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO];
+    if (!qboConnection) {
+        return false;
+    }
+    const exportDestination = qboConnection.config?.nonReimbursableExpensesExportDestination;
+    return exportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD || exportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD;
+}
+
+/**
+ * Returns the QBO vendor list imported into the workspace (empty array when QBO isn't connected or
+ * the sync hasn't populated vendors yet). Source of truth for the workspace Vendors tab and the
+ * vendor selector RHP.
+ */
+function getQBOVendors(policy: OnyxEntry<Policy>): Vendor[] {
+    return policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]?.data?.vendors ?? [];
+}
+
+/**
+ * Look up a single QBO vendor by `externalID`. Used to resolve the vendor name for display when
+ * only the ID is stored on the transaction NVP. Returns undefined when the ID isn't found
+ * (which happens after a vendor is deleted from QBO — see the inactive-vendor violation).
+ */
+function getQBOVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined): Vendor | undefined {
+    if (!vendorID) {
+        return undefined;
+    }
+    return getQBOVendors(policy).find((vendor) => vendor.id === vendorID);
 }
 
 function getValidConnectedIntegration(policy: Policy | undefined, connectionNames: readonly ConnectionName[] = getAccountingConnectionNames()) {
@@ -2353,6 +2424,9 @@ export {
     getConnectedIntegration,
     getConnectedIntegrationNamesForPolicies,
     getConnectionExporters,
+    getQBOVendorByID,
+    getQBOVendors,
+    hasVendorFeature,
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
@@ -2407,6 +2481,7 @@ export {
     isPolicyMember,
     isPolicyPayer,
     arePaymentsEnabled,
+    hasApprovalFlow,
     isSubmitAndClose,
     isTaxTrackingEnabled,
     shouldShowPolicy,
@@ -2510,6 +2585,8 @@ export {
     isPolicyTaxEnabled,
     sortPoliciesByName,
     isPolicyApprover,
+    tryNavigateToSubmitWorkspaceUpgrade,
+    canAccessSubmitWorkspaceFeatures,
     getRulesDocumentSourceURL,
     getHRConnectionNames,
     isGustoConnected,
@@ -2523,4 +2600,4 @@ export {
     isPolicyEditor,
 };
 
-export type {MemberEmailsToAccountIDs, PolicyFeature, PolicyFeatureAccess, HRProviderInfo};
+export type {MemberEmailsToAccountIDs, PolicyFeature, PolicyFeatureAccess, HRProviderInfo, HRConnectionName};
