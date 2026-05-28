@@ -61,6 +61,7 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
             iconStyles: [styles.mh3],
             wrapperStyle: [styles.purposeMenuItem, goal === selectedGoal && {borderWidth: 1, borderColor: theme.success}],
             numberOfLinesTitle: 0,
+            shouldShowRadioButton: true,
             isSelected: goal === selectedGoal,
             onPress: () => {
                 setSelectedGoal(goal);
