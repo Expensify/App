@@ -2692,6 +2692,53 @@ describe('TripReservationUtils', () => {
         });
     });
 
+    describe('rail shortName sanitization', () => {
+        it('should drop a URN-formatted code from rail shortName', () => {
+            const railPnrWithUrnCodes = JSON.parse(JSON.stringify(railPnr)) as typeof railPnr;
+            const leg = railPnrWithUrnCodes.data.railPnr?.legInfos.at(0);
+            if (leg) {
+                leg.originInfo.code = 'urn:trainline:public:nloc:at000408';
+                leg.destinationInfo.code = 'urn:trainline:public:nloc:at001685';
+            }
+
+            const report = createRandomReport(1, undefined);
+            report.tripData = {
+                tripID: 'trip123',
+                payload: {
+                    ...basicTripData,
+                    pnrs: [railPnrWithUrnCodes],
+                },
+            };
+
+            const result = getReservationsFromTripReport(report, []);
+            expect(result).toHaveLength(1);
+
+            const trainReservation = result.at(0)?.reservation;
+            expect(trainReservation?.type).toEqual(CONST.RESERVATION_TYPE.TRAIN);
+            expect(trainReservation?.start?.shortName).toEqual('');
+            expect(trainReservation?.end?.shortName).toEqual('');
+        });
+
+        it('should preserve a clean station code in rail shortName', () => {
+            const report = createRandomReport(1, undefined);
+            report.tripData = {
+                tripID: 'trip123',
+                payload: {
+                    ...basicTripData,
+                    pnrs: [railPnr],
+                },
+            };
+
+            const result = getReservationsFromTripReport(report, []);
+            expect(result).toHaveLength(1);
+
+            const trainReservation = result.at(0)?.reservation;
+            expect(trainReservation?.type).toEqual(CONST.RESERVATION_TYPE.TRAIN);
+            expect(trainReservation?.start?.shortName).toEqual('STX');
+            expect(trainReservation?.end?.shortName).toEqual('STY');
+        });
+    });
+
     describe('getPNRReservationDataFromTripReport', () => {
         it('should return an empty array when there are no transactions and trip payload', () => {
             const report = createRandomReport(1, undefined);

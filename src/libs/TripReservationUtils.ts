@@ -336,6 +336,9 @@ function getCarReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationItem
     return reservationList;
 }
 
+// Trainline-sourced rail legs put a URN (e.g. "urn:trainline:public:nloc:at000408") in `code` instead of a short station identifier — strip those so the UI doesn't render the URN as a station label.
+const getRailStationShortName = (code: string | undefined) => (code && !code.startsWith('urn:') ? code : '');
+
 function getRailReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationItem[] {
     const reservationList: ReservationItem[] = [];
 
@@ -362,13 +365,13 @@ function getRailReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationIte
                     start: {
                         date: leg.departAt.iso8601,
                         longName: leg.originInfo.name,
-                        shortName: leg.originInfo.code,
+                        shortName: getRailStationShortName(leg.originInfo.code),
                         cityName: leg.originInfo.cityName,
                     },
                     end: {
                         date: leg.arriveAt.iso8601,
                         longName: leg.destinationInfo.name,
-                        shortName: leg.destinationInfo.code,
+                        shortName: getRailStationShortName(leg.destinationInfo.code),
                         cityName: leg.destinationInfo.cityName,
                     },
                     route: {
