@@ -121,7 +121,7 @@ function NonUSDVerifiedBankAccountFlowPage({route}: NonUSDVerifiedBankAccountFlo
     }, [backTo, currentPageIndex, pages, policyID]);
 
     return (
-        <View style={styles.flex1}>
+        <View style={[styles.flex1, styles.appBG]}>
             <CurrentPage
                 onSubmit={onSubmit}
                 onBackButtonPress={onBackButtonPress}

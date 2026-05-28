@@ -3,6 +3,7 @@
  * derivation, Onyx subscriptions, and edit handlers live in one place rather
  * than being duplicated across every surface that renders a transaction.
  */
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {useCallback, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports -- Need original useOnyx to avoid reading partial Search snapshot policy data.
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
@@ -116,6 +117,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${getNonEmptyStringOnyxID(policyID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(effectiveParentReportID)}`);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     // Use original Onyx here because the useOnyx wrapper can read partial Search snapshot policy data instead of the full policy object.
     const [completePolicy] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`);
 
@@ -157,6 +159,8 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
             policyRecentlyUsedCategories,
             policyRecentlyUsedTags,
             parentReportNextStep,
+            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed ?? false,
+            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow ?? false,
         };
     };
 
