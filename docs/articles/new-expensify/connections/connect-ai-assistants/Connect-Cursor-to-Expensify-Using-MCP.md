@@ -27,6 +27,10 @@ Requirements:
 
 ## How to connect Cursor to Expensify using MCP
 
+You can install the Expensify MCP server in Cursor with one click: [Install the Expensify MCP server in Cursor](cursor://anysphere.cursor-deeplink/mcp/install?name=expensify&config=eyJ1cmwiOiJodHRwczovL3d3dy5leHBlbnNpZnkuY29tL21jcCIsInR5cGUiOiJodHRwIn0%3D)
+
+Or you can configure the MCP server manually:
+
 1. Open Cursor.
 2. Open **Cursor Settings**.
 3. Go to **Tools & MCPs**.
