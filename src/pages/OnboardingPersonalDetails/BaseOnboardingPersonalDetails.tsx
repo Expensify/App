@@ -152,8 +152,15 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                     Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(route.params?.backTo));
                     return;
                 }
+                setIsLoading(true);
                 updateDisplayName(firstName, lastName, formatPhoneNumber, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-                autoCreateSubmitWorkspace(firstName, lastName);
+                try {
+                    autoCreateSubmitWorkspace(firstName, lastName);
+                } catch (error) {
+                    Log.warn('[BaseOnboardingPersonalDetails] Error creating submit workspace', {error});
+                } finally {
+                    setIsLoading(false);
+                }
                 return;
             }
 
@@ -166,7 +173,9 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             if (isTrackOnboardingChoice(onboardingPurposeSelected)) {
                 setIsLoading(true);
                 updateDisplayName(firstName, lastName, formatPhoneNumber, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-                autoCreateTrackWorkspace(firstName, lastName, onboardingPurposeSelected);
+                autoCreateTrackWorkspace(firstName, lastName, onboardingPurposeSelected).finally(() => {
+                    setIsLoading(false);
+                });
                 return;
             }
 
