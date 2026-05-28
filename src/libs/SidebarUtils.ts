@@ -213,8 +213,6 @@ type WelcomeMessageParams = {
     reportDetailsLink?: string;
     shouldShowUsePlusButtonText?: boolean;
     additionalText?: string;
-    isTrackIntentUser?: boolean;
-    currentUserAccountID?: number;
 };
 
 function compareStringDates(a: string, b: string): 0 | 1 | -1 {
@@ -793,7 +791,6 @@ function getOptionData({
     reportAttributesDerived,
     policyTags,
     currentUserLogin,
-    isTrackIntentUser,
 }: {
     report: OnyxEntry<Report>;
     oneTransactionThreadReport: OnyxEntry<Report>;
@@ -818,7 +815,6 @@ function getOptionData({
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     policyTags?: OnyxEntry<PolicyTagLists>;
     currentUserLogin: string;
-    isTrackIntentUser?: boolean;
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -977,7 +973,6 @@ function getOptionData({
             policyTags,
             currentUserLogin,
             lastAction,
-            isTrackIntentUser,
         });
     }
 
@@ -1276,8 +1271,6 @@ function getOptionData({
                         conciergeReportID,
                         reportAttributes: reportAttributesDerived,
                         isReportArchived,
-                        isTrackIntentUser,
-                        currentUserAccountID,
                     }).messageText ?? translate('report.noActivityYet'),
                 );
             }
@@ -1383,8 +1376,6 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
         reportDetailsLink = '',
         shouldShowUsePlusButtonText = false,
         additionalText = '',
-        isTrackIntentUser = false,
-        currentUserAccountID,
     } = params;
 
     const welcomeMessage: WelcomeMessage = {};
@@ -1399,9 +1390,6 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
     if (isPolicyExpenseChat(report)) {
         if (policy?.description) {
             welcomeMessage.messageHtml = policy.description;
-            welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
-        } else if (isTrackIntentUser && report?.ownerAccountID === currentUserAccountID) {
-            welcomeMessage.messageHtml = translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatTrack');
             welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
         } else {
             welcomeMessage.messageHtml = translate(
