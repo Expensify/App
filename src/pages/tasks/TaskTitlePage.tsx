@@ -65,14 +65,14 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                 editTask(report, {title: values.title}, delegateEmail);
             }
 
-            Navigation.dismissModalWithReport({reportID: report?.reportID});
+            Navigation.goBack(backPath);
         },
-        [report, delegateEmail],
+        [report, delegateEmail, backPath],
     );
 
     if (!isTaskReport(report)) {
         Navigation.isNavigationReady().then(() => {
-            Navigation.dismissModalWithReport({reportID: report?.reportID});
+            Navigation.goBack(backPath);
         });
     }
 
