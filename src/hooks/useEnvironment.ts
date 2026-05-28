@@ -12,7 +12,7 @@ export default function useEnvironment(): UseEnvironment {
     return {
         environment,
         environmentURL,
-        isProduction: true,
+        isProduction: environment === CONST.ENVIRONMENT.PRODUCTION,
         isDevelopment: environment === CONST.ENVIRONMENT.DEV,
     };
 }
