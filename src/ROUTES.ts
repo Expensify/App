@@ -1158,12 +1158,13 @@ const ROUTES = {
     SETTINGS_ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT: `settings/wallet/add-bank-account/select-country/${VERIFY_ACCOUNT}`,
     SETTINGS_BANK_ACCOUNT_PURPOSE: 'settings/wallet/bank-account-purpose',
     SETTINGS_ENABLE_PAYMENTS: {
-        route: 'settings/wallet/enable-payments/:subPage?/:action?',
-        getRoute: (subPage?: string, action?: 'edit') => {
-            if (!subPage) {
-                return 'settings/wallet/enable-payments' as const;
-            }
-            return `settings/wallet/enable-payments/${subPage}${action ? `/${action}` : ''}` as const;
+        route: 'settings/wallet/enable-payments/:page?/:subPage?/:action?',
+        getRoute: ({page, subPage, action}: {page?: string; subPage?: string; action?: 'edit'} = {}) => {
+            const base = 'settings/wallet/enable-payments';
+            const pagePart = page ? `/${page}` : '';
+            const subPagePart = subPage ? `/${subPage}` : '';
+            const actionPart = action ? `/${action}` : '';
+            return `${base}${pagePart}${subPagePart}${actionPart}` as const;
         },
     },
     SETTINGS_WALLET_UNSHARE_BANK_ACCOUNT: {

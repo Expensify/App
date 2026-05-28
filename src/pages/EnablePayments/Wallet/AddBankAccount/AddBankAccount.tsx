@@ -21,11 +21,11 @@ import SetupMethod from './SetupMethod';
 import Confirmation from './substeps/ConfirmationStep';
 import Plaid from './substeps/PlaidStep';
 
-const ADD_BANK_ACCOUNT_PAGE_NAME = CONST.ENABLE_PAYMENTS.PAGE_NAME.ADD_BANK_ACCOUNT;
+const ADD_BANK_ACCOUNT_SUB_PAGES = CONST.ENABLE_PAYMENTS.ADD_BANK_ACCOUNT_STEP.SUB_PAGE_NAMES;
 
 const plaidPages = [
-    {pageName: ADD_BANK_ACCOUNT_PAGE_NAME.PLAID, component: Plaid},
-    {pageName: ADD_BANK_ACCOUNT_PAGE_NAME.CONFIRMATION, component: Confirmation},
+    {pageName: ADD_BANK_ACCOUNT_SUB_PAGES.PLAID, component: Plaid},
+    {pageName: ADD_BANK_ACCOUNT_SUB_PAGES.CONFIRMATION, component: Confirmation},
 ];
 
 function AddBankAccount() {
@@ -54,11 +54,16 @@ function AddBankAccount() {
 
     const isSetupTypeChosen = personalBankAccountDraft?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
 
-    const {CurrentPage, isEditing, pageIndex, nextPage, prevPage, moveTo, isRedirecting} = useSubPage<SubPageProps>({
+    const {CurrentPage, isEditing, pageIndex, nextPage, moveTo, isRedirecting} = useSubPage<SubPageProps>({
         pages: plaidPages,
         startFrom: 0,
         onFinished: submit,
-        buildRoute: (pageName, action) => ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute(pageName, action),
+        buildRoute: (pageName, action) =>
+            ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute({
+                page: CONST.ENABLE_PAYMENTS.PAGE_NAMES.ADD_BANK_ACCOUNT,
+                subPage: pageName,
+                action,
+            }),
     });
 
     const exitFlow = (shouldContinue = false) => {
@@ -81,13 +86,14 @@ function AddBankAccount() {
             exitFlow();
             return;
         }
+
         if (pageIndex === 0) {
             clearPersonalBankAccount();
             updateCurrentStep(null);
             Navigation.goBack(ROUTES.SETTINGS_WALLET);
             return;
         }
-        prevPage();
+        Navigation.goBack();
     };
 
     if (isSetupTypeChosen && isRedirecting) {

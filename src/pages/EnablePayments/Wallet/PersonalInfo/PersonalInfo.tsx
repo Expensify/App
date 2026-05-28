@@ -24,15 +24,15 @@ import PhoneNumber from './substeps/PhoneNumberStep';
 import SocialSecurityNumber from './substeps/SocialSecurityNumberStep';
 
 const PERSONAL_INFO_STEP_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
-const PERSONAL_INFO_PAGE_NAME = CONST.ENABLE_PAYMENTS.PAGE_NAME.PERSONAL_INFO;
+const PERSONAL_INFO_SUB_PAGES = CONST.ENABLE_PAYMENTS.PERSONAL_INFO_STEP.SUB_PAGE_NAMES;
 
 const formPages = [
-    {pageName: PERSONAL_INFO_PAGE_NAME.LEGAL_NAME, component: LegalName},
-    {pageName: PERSONAL_INFO_PAGE_NAME.DATE_OF_BIRTH, component: DateOfBirth},
-    {pageName: PERSONAL_INFO_PAGE_NAME.ADDRESS, component: Address},
-    {pageName: PERSONAL_INFO_PAGE_NAME.PHONE_NUMBER, component: PhoneNumber},
-    {pageName: PERSONAL_INFO_PAGE_NAME.SSN, component: SocialSecurityNumber},
-    {pageName: PERSONAL_INFO_PAGE_NAME.CONFIRMATION, component: Confirmation},
+    {pageName: PERSONAL_INFO_SUB_PAGES.LEGAL_NAME, component: LegalName},
+    {pageName: PERSONAL_INFO_SUB_PAGES.DATE_OF_BIRTH, component: DateOfBirth},
+    {pageName: PERSONAL_INFO_SUB_PAGES.ADDRESS, component: Address},
+    {pageName: PERSONAL_INFO_SUB_PAGES.PHONE_NUMBER, component: PhoneNumber},
+    {pageName: PERSONAL_INFO_SUB_PAGES.SSN, component: SocialSecurityNumber},
+    {pageName: PERSONAL_INFO_SUB_PAGES.CONFIRMATION, component: Confirmation},
 ];
 
 function PersonalInfoPage() {
@@ -67,11 +67,16 @@ function PersonalInfoPage() {
 
     const startFrom = useMemo(() => getInitialSubstepForPersonalInfo(values), [values]);
 
-    const {CurrentPage, isEditing, nextPage, prevPage, moveTo, pageIndex, isRedirecting} = useSubPage<SubPageProps>({
+    const {CurrentPage, isEditing, nextPage, moveTo, isRedirecting} = useSubPage<SubPageProps>({
         pages: formPages,
         startFrom,
         onFinished: submit,
-        buildRoute: (pageName, action) => ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute(pageName, action),
+        buildRoute: (pageName, action) =>
+            ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute({
+                page: CONST.ENABLE_PAYMENTS.PAGE_NAMES.PERSONAL_INFO,
+                subPage: pageName,
+                action,
+            }),
     });
 
     const handleBackButtonPress = () => {
@@ -79,15 +84,12 @@ function PersonalInfoPage() {
             moveTo(formPages.length - 1, false);
             return;
         }
-        if (pageIndex === 0) {
-            Navigation.goBack(ROUTES.SETTINGS_WALLET);
-            return;
-        }
+
         if (showIdologyQuestions) {
             setAdditionalDetailsQuestions(null, '');
             return;
         }
-        prevPage();
+        Navigation.goBack();
     };
 
     if (isRedirecting) {

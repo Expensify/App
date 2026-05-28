@@ -14,11 +14,11 @@ import ROUTES from '@src/ROUTES';
 import FeesStep from './substeps/FeesStep';
 import TermsStep from './substeps/TermsStep';
 
-const FEES_AND_TERMS_PAGE_NAME = CONST.ENABLE_PAYMENTS.PAGE_NAME.FEES_AND_TERMS;
+const FEES_AND_TERMS_SUB_PAGES = CONST.ENABLE_PAYMENTS.FEES_AND_TERMS_STEP.SUB_PAGE_NAMES;
 
 const termsAndFeesPages = [
-    {pageName: FEES_AND_TERMS_PAGE_NAME.FEES, component: FeesStep},
-    {pageName: FEES_AND_TERMS_PAGE_NAME.TERMS, component: TermsStep},
+    {pageName: FEES_AND_TERMS_SUB_PAGES.FEES, component: FeesStep},
+    {pageName: FEES_AND_TERMS_SUB_PAGES.TERMS, component: TermsStep},
 ];
 
 function FeesAndTerms() {
@@ -40,7 +40,12 @@ function FeesAndTerms() {
         pages: termsAndFeesPages,
         startFrom: 0,
         onFinished: submit,
-        buildRoute: (pageName, action) => ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute(pageName, action),
+        buildRoute: (pageName, action) =>
+            ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute({
+                page: CONST.ENABLE_PAYMENTS.PAGE_NAMES.FEES_AND_TERMS,
+                subPage: pageName,
+                action,
+            }),
     });
 
     const handleBackButtonPress = () => {

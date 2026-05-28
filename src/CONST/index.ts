@@ -3439,12 +3439,20 @@ const CONST = {
     },
 
     ENABLE_PAYMENTS: {
-        PAGE_NAME: {
-            ADD_BANK_ACCOUNT: {
+        PAGE_NAMES: {
+            ADD_BANK_ACCOUNT: 'add-bank-account',
+            PERSONAL_INFO: 'personal-info',
+            VERIFY_IDENTITY: 'verify-identity',
+            FEES_AND_TERMS: 'fees-and-terms',
+        },
+        ADD_BANK_ACCOUNT_STEP: {
+            SUB_PAGE_NAMES: {
                 PLAID: 'plaid',
                 CONFIRMATION: 'bank-account-confirmation',
             },
-            PERSONAL_INFO: {
+        },
+        PERSONAL_INFO_STEP: {
+            SUB_PAGE_NAMES: {
                 LEGAL_NAME: 'legal-name',
                 DATE_OF_BIRTH: 'date-of-birth',
                 ADDRESS: 'address',
@@ -3452,7 +3460,9 @@ const CONST = {
                 SSN: 'ssn',
                 CONFIRMATION: 'personal-info-confirmation',
             },
-            FEES_AND_TERMS: {
+        },
+        FEES_AND_TERMS_STEP: {
+            SUB_PAGE_NAMES: {
                 FEES: 'fees',
                 TERMS: 'terms',
             },
