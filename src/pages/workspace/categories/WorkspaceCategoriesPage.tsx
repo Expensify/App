@@ -270,6 +270,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 enabled: value.enabled,
                 errors: value.errors ?? undefined,
                 pendingAction: value.pendingAction,
+                isLocked: isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value]),
                 action: () => navigateToCategory(value),
                 onToggleEnabled: (enabled: boolean) => handleCategoryToggle(enabled, value),
                 dismissError: () => clearCategoryErrors(policyId, value.name, policyCategories),
@@ -277,7 +278,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
             return acc;
         }, []);
-    }, [categories, isOffline, shouldShowApproverColumn, categoryApproverEmails, navigateToCategory, handleCategoryToggle, policyId, policyCategories]);
+    }, [categories, isOffline, shouldShowApproverColumn, categoryApproverEmails, policy, policyCategories, navigateToCategory, handleCategoryToggle, policyId]);
 
     useAutoTurnSelectionModeOffWhenHasNoActiveOption(categoryRows);
 
@@ -626,12 +627,27 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     />
                 )}
                 {hasVisibleCategories && !isLoading && (
-                    <WorkspaceCategoriesTable
-                        categories={categoryRows}
-                        selectedKeys={selectedCategoryKeys}
-                        shouldShowApproverColumn={shouldShowApproverColumn}
-                        onRowSelectionChange={(selectedRowKeys) => setSelectedCategoryKeys(selectedRowKeys)}
-                    />
+                    <>
+                        <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                            {!hasSyncError && isConnectionVerified && currentConnectionName ? (
+                                <ImportedFromAccountingSoftware
+                                    policyID={policyId}
+                                    currentConnectionName={currentConnectionName}
+                                    connectedIntegration={connectedIntegration}
+                                    translatedText={translate('workspace.categories.importedFromAccountingSoftware')}
+                                />
+                            ) : (
+                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
+                            )}
+                        </View>
+
+                        <WorkspaceCategoriesTable
+                            categories={categoryRows}
+                            selectedKeys={selectedCategoryKeys}
+                            shouldShowApproverColumn={shouldShowApproverColumn}
+                            onRowSelectionChange={(selectedRowKeys) => setSelectedCategoryKeys(selectedRowKeys)}
+                        />
+                    </>
                 )}
                 {!hasVisibleCategories && !isLoading && (
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>

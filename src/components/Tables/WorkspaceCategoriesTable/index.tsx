@@ -22,6 +22,7 @@ type WorkspaceCategoryTableRowData = TableData & {
     disabled: boolean;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
+    isLocked: boolean;
     action: () => void;
     dismissError: () => void;
     onToggleEnabled: (enabled: boolean) => void;

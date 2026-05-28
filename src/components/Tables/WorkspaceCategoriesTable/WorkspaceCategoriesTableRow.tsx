@@ -79,6 +79,7 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
                         <Switch
                             isOn={item.enabled}
                             disabled={item.disabled}
+                            showLockIcon={item.isLocked}
                             accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${item.name}`}
                             onToggle={item.onToggleEnabled}
                         />
