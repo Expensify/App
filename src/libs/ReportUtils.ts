@@ -7094,7 +7094,9 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
     const actionReportID = iouReportID || generateReportID();
 
     const originalMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>['originalMessage'] = {
+        amount,
         comment,
+        currency,
         IOUTransactionID: transactionID,
         type,
         payAsBusiness,
@@ -7104,18 +7106,19 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
     const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
 
     if (type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
-        delete originalMessage.comment;
-
         // In pay someone flow, we store amount, comment, currency in IOUDetails when type = pay
         if (isSendMoneyFlow) {
+            const keys = ['amount', 'comment', 'currency'] as const;
+            for (const key of keys) {
+                delete originalMessage[key];
+            }
             originalMessage.IOUDetails = {amount, comment, currency};
             originalMessage.paymentType = paymentType;
         } else {
             // In case of pay someone action, we dont store the comment
             // and there is no single transactionID to link the action to.
             delete originalMessage.IOUTransactionID;
-            originalMessage.amount = amount;
-            originalMessage.currency = currency;
+            delete originalMessage.comment;
             originalMessage.paymentType = paymentType;
         }
     }
