@@ -152,9 +152,11 @@ function MoneyReportView({
     const isPaidGroupPolicyExpenseReport = isPaidGroupPolicyExpenseReportUtils(report);
     const isInvoiceReport = isInvoiceReportUtils(report);
 
+    // Must match the report-field render guard below, otherwise the divider can show with no field above it.
     const shouldShowReportField =
         !isClosedExpenseReportWithNoExpenses &&
         (isPaidGroupPolicyExpenseReport || isInvoiceReport) &&
+        !!policy?.areReportFieldsEnabled &&
         (!isCombinedReport || !isOnlyTitleFieldEnabled) &&
         !sortedPolicyReportFields.every(shouldHideSingleReportField);
 
