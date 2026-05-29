@@ -7783,6 +7783,52 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `heeft ${fieldType}-rapportveld "${fieldName}" toegevoegd${defaultValue ? ` met standaardwaarde "${defaultValue}"` : ''}`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `vereiste ${enabled ? 'ingeschakeld' : 'uitgeschakeld'} voor bedrijfskaarttransacties`,
+        expensifyCardRule: {
+            actionVerb: {block: 'geblokkeerd', allow: 'toegestaan'},
+            amountOperator: {over: 'over', under: 'onder'},
+            amountFilter: ({operator, amount}: {operator: string; amount: string}) => `bedragen ${operator} ${amount}`,
+            theCard: 'de kaart',
+            multipleCards: ({count}: {count: number}) => ({
+                one: '1 kaart',
+                other: `${count} kaarten`,
+            }),
+            addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
+                let text = verb;
+                if (filters !== '') {
+                    text += ` ${filters}`;
+                }
+                text += ` op ${cards}`;
+                return text;
+            },
+            removeRule: ({cards}: {cards: string}) => `besteedregel verwijderd van ${cards}`,
+            restrictionVerb: {block: 'blokkeren', allow: 'alleen toestaan'},
+            update: {
+                modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) =>
+                    `heeft bestedingsregel gewijzigd van ${fromAction} naar ${toAction} op ${cards}`,
+                appliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: 'uitgavenregel toegepast op 1 extra kaart',
+                    other: `uitgavenregel toegepast op ${count} extra kaarten`,
+                }),
+                phraseVerb: {added: 'toegevoegd', removed: 'verwijderd', changed: 'gewijzigd', set: 'instellen', applied: 'toegepast'},
+                bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} handelaar '${value}'` : `handelaar '${value}'`),
+                bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `${adjective} verkoper gewijzigd van '${oldValue}' naar '${newValue}'` : `handelaar van '${oldValue}' naar '${newValue}'`,
+                bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) =>
+                    adjective !== '' ? `${adjective} uitgavencategorie '${value}'` : `uitgavencategorie ‘${value}’`,
+                bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `${adjective} uitgavencategorie van '${oldValue}' naar '${newValue}'` : `uitgavencategorie van '${oldValue}' naar '${newValue}'`,
+                bodyMaxAmount: 'maximum bedrag',
+                bodyMaxAmountSet: ({value}: {value: string}) => `maximumbedrag tot ${value}`,
+                bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `maximumbedrag van ${oldValue} naar ${newValue}`,
+                bodyAppliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: 'bestedingsregel naar 1 extra kaart',
+                    other: `bestedingsregel naar ${count} extra kaarten`,
+                }),
+                bodyRemovedFromCards: ({cards}: {cards: string}) => `bestedingsregel van ${cards}`,
+                composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} op ${cards}`,
+                composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} van ${cards}`,
+            },
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',
@@ -8059,6 +8105,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         exportAll: {
             selectAllMatchingItems: 'Selecteer alle overeenkomende items',
             allMatchingItemsSelected: 'Alle overeenkomende items geselecteerd',
+            selectAllOnThisPage: 'Selecteer alles op deze pagina',
         },
         errors: {
             pleaseSelectDatesForBothFromAndTo: 'Selecteer datums voor Van en Tot',

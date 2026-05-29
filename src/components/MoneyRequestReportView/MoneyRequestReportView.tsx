@@ -3,7 +3,7 @@ import React, {useCallback, useEffect, useMemo} from 'react';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
-import {Animated, ScrollView, View} from 'react-native';
+import {Animated, InteractionManager, ScrollView, View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
@@ -61,7 +61,7 @@ type MoneyRequestReportViewProps = {
     onLayout?: (event: LayoutChangeEvent) => void;
 };
 
-function goBackFromSearchMoneyRequest(options?: {afterTransition?: () => void}) {
+function goBackFromSearchMoneyRequest() {
     const rootState = navigationRef.getRootState();
     const lastRoute = rootState.routes.at(-1);
 
@@ -71,7 +71,7 @@ function goBackFromSearchMoneyRequest(options?: {afterTransition?: () => void}) 
     }
 
     if (lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
-        Navigation.goBack(undefined, options);
+        Navigation.goBack();
         return;
     }
 
@@ -81,11 +81,11 @@ function goBackFromSearchMoneyRequest(options?: {afterTransition?: () => void}) 
     }
 
     if (rootState.routes.length > 1) {
-        Navigation.goBack(undefined, options);
+        Navigation.goBack();
         return;
     }
 
-    Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}), options);
+    Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 }
 
 function InitialLoadingSkeleton({styles, onLayout, reasonAttributes}: {styles: ThemeStyles; onLayout?: (event: LayoutChangeEvent) => void; reasonAttributes: SkeletonSpanReasonAttributes}) {
@@ -144,7 +144,8 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
 
     const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
     const dismissReportCreationError = useCallback(() => {
-        goBackFromSearchMoneyRequest({afterTransition: () => removeFailedReport(reportID)});
+        goBackFromSearchMoneyRequest();
+        InteractionManager.runAfterInteractions(() => removeFailedReport(reportID));
     }, [reportID]);
 
     // Special case handling a report that is a transaction thread
