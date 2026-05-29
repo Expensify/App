@@ -1,7 +1,6 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {useIsFocused} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
@@ -13,7 +12,6 @@ import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -482,22 +480,6 @@ function MoneyRequestConfirmationList({
         onConfirm,
         onSendMoney,
     });
-
-    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    useFocusEffect(
-        useCallback(() => {
-            // Blurring the active element after transition fights AmountField focus in the new manual flow (RHP reopen).
-            if (isNewManualExpenseFlowEnabled) {
-                return undefined;
-            }
-            focusTimeoutRef.current = setTimeout(() => {
-                InteractionManager.runAfterInteractions(() => {
-                    blurActiveElement();
-                });
-            }, CONST.ANIMATED_TRANSITION);
-            return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
-        }, [isNewManualExpenseFlowEnabled]),
-    );
 
     const isCompactMode = !showMoreFields && isScanRequest && !isInLandscapeMode;
     const selectionListStyle = {
