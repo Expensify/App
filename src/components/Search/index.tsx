@@ -862,6 +862,7 @@ function Search({
                         reportAction: transactionItem.reportAction,
                         isFromOneTransactionReport: isOneTransactionReport(transactionItem.report),
                         report: transactionItem.report,
+                        groupKey: previousSelection?.groupKey ?? (propagateSelectionToAllRows && !isExpenseReportType ? reportKey : undefined),
                     };
                 }
             }
