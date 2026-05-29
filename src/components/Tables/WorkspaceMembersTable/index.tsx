@@ -37,7 +37,7 @@ type WorkspaceMembersTableProps = {
     isPolicyAdmin: boolean;
     shouldShowCustomField1Column: boolean;
     shouldShowCustomField2Column: boolean;
-    onRowSelectionChange: (selectedRows: WorkspaceMemberRowData[]) => void;
+    onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
 const WORKSPACE_MEMBER_FILTER_VALUES = {
@@ -59,11 +59,7 @@ export default function WorkspaceMembersTable({ref, isPolicyAdmin, shouldShowCus
             label: translate('common.member'),
             sortable: true,
         },
-        {
-            key: 'role',
-            label: translate('common.role'),
-            sortable: true,
-        },
+
         ...(shouldShowCustomField1Column
             ? [
                   {
@@ -82,6 +78,15 @@ export default function WorkspaceMembersTable({ref, isPolicyAdmin, shouldShowCus
                   },
               ]
             : []),
+        {
+            key: 'role',
+            label: translate('common.role'),
+            sortable: true,
+            width: variables.workspaceMembersRoleColumnWidth,
+            styling: {
+                containerStyles: styles.justifyContentCenter,
+            },
+        },
         {
             label: '',
             key: 'actions',

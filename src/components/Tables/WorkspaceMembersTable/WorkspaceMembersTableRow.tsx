@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Table from '@components/Table';
@@ -63,10 +64,11 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
                             fallbackDisplayName={item.name ?? item.email}
                             secondaryAvatarContainerStyle={getSecondaryAvatarContainerStyle(!!hovered)}
                         />
-                        <Text numberOfLines={1}>{item.name}</Text>
+                        <View>
+                            <Text style={[styles.optionDisplayName, styles.pre]}>{item.name}</Text>
+                            <Text style={[styles.textLabelSupporting, styles.lh16, styles.pre]}>{item.login}</Text>
+                        </View>
                     </View>
-
-                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}></View>
 
                     {shouldShowCustomField1Column && (
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
@@ -79,6 +81,13 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
                             <Text numberOfLines={1}>{item.employeePayrollID}</Text>
                         </View>
                     )}
+
+                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                        <Badge
+                            text={item.role}
+                            badgeStyles={styles.ml0}
+                        />
+                    </View>
 
                     <Icon
                         src={icons.ArrowRight}

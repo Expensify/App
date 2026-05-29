@@ -14,7 +14,6 @@ import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleS
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
-import SearchBar from '@components/SearchBar';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import {TableHandle} from '@components/Table';
@@ -865,10 +864,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         isPolicyAdmin={isPolicyAdmin}
                         shouldShowCustomField1Column={shouldShowCustomField1Column}
                         shouldShowCustomField2Column={shouldShowCustomField2Column}
-                        onRowSelectionChange={(selectedRows) => {
-                            const selectedLogins = selectedRows.map((row) => row.login);
-                            setSelectedEmployees(selectedLogins);
-                        }}
+                        onRowSelectionChange={(selectedRows) => setSelectedEmployees(selectedRows)}
                     />
                 </>
             )}
