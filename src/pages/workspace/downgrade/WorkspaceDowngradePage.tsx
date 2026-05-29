@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -63,13 +63,10 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
     };
 
     const dismissModalAndNavigate = (targetPolicyID: string) => {
-        Navigation.dismissModal();
+        Navigation.dismissModal({waitForTransition: true});
         Navigation.isNavigationReady().then(() => {
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(targetPolicyID));
-
-            InteractionManager.runAfterInteractions(() => {
-                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(targetPolicyID));
-            });
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(targetPolicyID), {waitForTransition: true});
         });
     };
 
@@ -79,8 +76,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
         }
 
         setIsDowngradeWarningModalOpen(false);
-
-        InteractionManager.runAfterInteractions(() => dismissModalAndNavigate(policyID));
+        dismissModalAndNavigate(policyID);
     };
 
     if (!canPerformDowngrade) {
