@@ -43,7 +43,13 @@ import {
     updateOptimisticParentReportAction,
 } from '@libs/ReportUtils';
 import {isTracking, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
-import {getChildTransactions, isDistanceRequest as isDistanceRequestTransactionUtils, isOnHold, isPerDiemRequest as isPerDiemRequestTransactionUtils} from '@libs/TransactionUtils';
+import {
+    getChildTransactions,
+    hasValidModifiedAmount,
+    isDistanceRequest as isDistanceRequestTransactionUtils,
+    isOnHold,
+    isPerDiemRequest as isPerDiemRequestTransactionUtils,
+} from '@libs/TransactionUtils';
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 import {removeDraftSplitTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
@@ -98,6 +104,16 @@ type UpdateSplitTransactionsParams = {
     expenseReport: OnyxEntry<OnyxTypes.Report>;
     isOffline: boolean;
 };
+
+function resetSnapshotGroupAmount<T extends OnyxTypes.Transaction>(transaction: T): T {
+    const splitAmount = hasValidModifiedAmount(transaction) ? Number(transaction.modifiedAmount) : (transaction.amount ?? 0);
+    return {
+        ...transaction,
+        groupAmount: splitAmount,
+        groupCurrency: transaction.currency,
+        groupExchangeRate: undefined,
+    };
+}
 
 function updateSplitTransactions({
     allTransactionsList,
@@ -1168,12 +1184,13 @@ function updateSplitTransactions({
             // as the Onyx transactions. This prevents getChildTransactions from treating them as separate
             // orphaned children on the next edit, which would incorrectly delete them from the snapshot.
             const snapshotTransactionID = isCreationOfSplits ? splitExpense.transactionID : optimisticTransactionFromGetMoneyRequest.transactionID;
-            newSelfDMSplitTransactions.push({
-                ...optimisticTransactionFromGetMoneyRequest,
-                transactionID: snapshotTransactionID,
-                // For edits, show a pending indicator in the snapshot while the request is in-flight.
-                ...(!isCreationOfSplits && {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
-            });
+            newSelfDMSplitTransactions.push(
+                resetSnapshotGroupAmount({
+                    ...optimisticTransactionFromGetMoneyRequest,
+                    transactionID: snapshotTransactionID,
+                    ...(!isCreationOfSplits && {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+                }),
+            );
 
             const reportActionsTargetReportID = selfDMReportID ?? originalSelfDMReportID;
             const targetReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsTargetReportID}` as const;
@@ -1204,7 +1221,7 @@ function updateSplitTransactions({
                 transactionUpdate && 'value' in transactionUpdate && typeof transactionUpdate.value === 'object' && transactionUpdate.value !== null
                     ? (transactionUpdate.value as OnyxTypes.Transaction)
                     : optimisticTransactionFromGetMoneyRequest;
-            optimisticChildSnapshotEntries[transactionKey] = snapshotTransaction;
+            optimisticChildSnapshotEntries[transactionKey] = resetSnapshotGroupAmount(snapshotTransaction);
             optimisticChildSnapshotKeys.push(transactionKey);
         }
 
