@@ -11,7 +11,7 @@ let middlewares: Middleware[] = [];
 function makeXHR<TKey extends OnyxKey>(request: Request<TKey>): Promise<Response<TKey> | void> {
     const finalParameters = enhanceParameters(request.command, request?.data ?? {});
     return hasReadRequiredDataFromStorage().then((): Promise<Response<TKey> | void> => {
-        return HttpUtils.xhr(request.command, finalParameters, request.headers, request.type, request.shouldUseSecure, request.initiatedOffline);
+        return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure, request.initiatedOffline);
     });
 }
 

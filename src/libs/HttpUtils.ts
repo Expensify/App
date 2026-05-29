@@ -67,7 +67,6 @@ function processHTTPRequest<TKey extends OnyxKey>(
     url: string,
     method: RequestType = 'get',
     body: FormData | null = null,
-    headers: Record<string, string> = {},
     abortSignal: AbortSignal | undefined = undefined,
 ): Promise<Response<TKey>> {
     const startTime = new Date().valueOf();
@@ -80,10 +79,9 @@ function processHTTPRequest<TKey extends OnyxKey>(
 
     const prefetchHeaders = prefetchKey
         ? {
-              ...headers,
               prefetchKey,
           }
-        : headers;
+        : undefined;
 
     const fetchParams: NonNullable<Parameters<typeof nitroFetch>[1]> = {
         // We hook requests to the same Controller signal, so we can cancel them all at once
@@ -207,7 +205,6 @@ function processHTTPRequest<TKey extends OnyxKey>(
 function xhr<TKey extends OnyxKey>(
     command: string,
     data: Record<string, unknown>,
-    headers: Record<string, string> = {},
     type: RequestType = CONST.NETWORK.METHOD.POST,
     shouldUseSecure = false,
     initiatedOffline = false,
@@ -216,7 +213,7 @@ function xhr<TKey extends OnyxKey>(
         const url = getCommandURL({shouldUseSecure, command});
         const abortSignalController = data.canCancel ? (abortControllerMap.get(command as AbortCommand) ?? abortControllerMap.get(ABORT_COMMANDS.All)) : undefined;
 
-        return processHTTPRequest(url, type, formData, headers, abortSignalController?.signal);
+        return processHTTPRequest(url, type, formData, abortSignalController?.signal);
     });
 }
 
