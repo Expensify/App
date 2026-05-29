@@ -1508,9 +1508,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.REPORT_SETTINGS]: {
                     screens: {
-                        [SCREENS.REPORT_SETTINGS.ROOT]: {
-                            path: ROUTES.REPORT_SETTINGS.route,
-                        },
+                        [SCREENS.REPORT_SETTINGS.DYNAMIC_ROOT]: DYNAMIC_ROUTES.REPORT_SETTINGS.path,
                         [SCREENS.REPORT_SETTINGS.DYNAMIC_NOTIFICATION_PREFERENCES]: DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.path,
                         [SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_NAME]: DYNAMIC_ROUTES.REPORT_SETTINGS_NAME.path,
                         [SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_WRITE_CAPABILITY]: DYNAMIC_ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.path,

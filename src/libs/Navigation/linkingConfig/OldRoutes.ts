@@ -12,6 +12,7 @@ const oldRoutes: Record<string, string> = {
     '/workspaces/*/category/*': '/workspaces/$1/categories/category/$2',
     '/settings/workspaces/*': '/workspaces/$1',
     '/settings/workspaces': '/workspaces',
+    '/r/*/settings': '/r/$1/details/report-settings',
     '/r/*/settings/name': '/r/$1/details/settings/name',
     '/r/*/title': '/r/$1/title',
     '/r/*/description': '/r/$1/description',

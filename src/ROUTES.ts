@@ -132,17 +132,21 @@ const DYNAMIC_ROUTES = {
         path: 'imported-members-role',
         entryScreens: [SCREENS.WORKSPACE.MEMBERS_IMPORTED_CONFIRMATION],
     },
+    REPORT_SETTINGS: {
+        path: 'report-settings',
+        entryScreens: [SCREENS.REPORT_DETAILS.DYNAMIC_ROOT],
+    },
     REPORT_SETTINGS_NAME: {
         path: 'settings/name',
         entryScreens: [SCREENS.REPORT_DETAILS.DYNAMIC_ROOT],
     },
     REPORT_SETTINGS_WRITE_CAPABILITY: {
         path: 'who-can-post',
-        entryScreens: [SCREENS.REPORT_SETTINGS.ROOT],
+        entryScreens: [SCREENS.REPORT_SETTINGS.DYNAMIC_ROOT],
     },
     REPORT_SETTINGS_VISIBILITY: {
         path: 'visibility',
-        entryScreens: [SCREENS.REPORT_SETTINGS.ROOT],
+        entryScreens: [SCREENS.REPORT_SETTINGS.DYNAMIC_ROOT],
     },
     CHANGE_POLICY_EDUCATIONAL: {
         path: 'change-workspace-educational',
@@ -479,7 +483,7 @@ const DYNAMIC_ROUTES = {
     },
     NOTIFICATION_PREFERENCES: {
         path: 'notification-preferences',
-        entryScreens: [SCREENS.REPORT_SETTINGS.ROOT, SCREENS.DYNAMIC_PROFILE],
+        entryScreens: [SCREENS.REPORT_SETTINGS.DYNAMIC_ROOT, SCREENS.DYNAMIC_PROFILE],
         getRoute: (reportID: string) => getUrlWithParams('notification-preferences', {reportID}),
         queryParams: ['reportID'],
     },
@@ -1443,11 +1447,6 @@ const ROUTES = {
     EXPENSE_REPORT_VERIFY_ACCOUNT: {
         route: `e/:reportID/${VERIFY_ACCOUNT}`,
         getRoute: (reportID: string) => `e/${reportID}/${VERIFY_ACCOUNT}` as const,
-    },
-    REPORT_SETTINGS: {
-        route: 'r/:reportID/settings',
-
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings` as const, backTo),
     },
     REPORT_CHANGE_APPROVER_ADD_APPROVER: {
         route: 'r/:reportID/change-approver/add',
