@@ -2,8 +2,10 @@ import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
-import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {ExpenseReportListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+import UserInfoAndActionButtonRow from '@components/Search/SearchList/ListItem/UserInfoAndActionButtonRow';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
@@ -26,6 +28,7 @@ type DuplicateTransactionItemProps = {
 
 function DuplicateTransactionItem({transaction, isLastItem, isSelected, shouldShowSelection = true, onSelectTransaction, onPreviewPressed}: DuplicateTransactionItemProps) {
     const styles = useThemeStyles();
+    const personalDetails = usePersonalDetails();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`);
@@ -37,6 +40,15 @@ function DuplicateTransactionItem({transaction, isLastItem, isSelected, shouldSh
         const iouTransactionID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : CONST.DEFAULT_NUMBER_ID;
         return iouTransactionID === transaction?.transactionID;
     });
+    const ownerPersonalDetails = report?.ownerAccountID ? personalDetails?.[report.ownerAccountID] : undefined;
+    const reportStatusItem = ownerPersonalDetails
+        ? ({
+              ...report,
+              from: ownerPersonalDetails,
+              to: ownerPersonalDetails,
+              formattedFrom: ownerPersonalDetails.displayName ?? '',
+          } as ExpenseReportListItemType)
+        : undefined;
 
     const handlePreviewPress = () => {
         if (!action || !report) {
@@ -77,8 +89,17 @@ function DuplicateTransactionItem({transaction, isLastItem, isSelected, shouldSh
                 role={getButtonRole(true)}
                 isNested
                 hoverStyle={styles.hoveredComponentBG}
-                style={!isLastItem && styles.borderBottom}
+                style={[!isLastItem && styles.borderBottom, styles.pt4, styles.pb4, styles.pl4, shouldShowSelection ? styles.pr0 : styles.pr4]}
             >
+                {!!reportStatusItem && (
+                    <UserInfoAndActionButtonRow
+                        item={reportStatusItem}
+                        shouldShowUserInfo
+                        stateNum={report?.stateNum}
+                        statusNum={report?.statusNum}
+                        containerStyles={[styles.mb3, shouldShowSelection && styles.pr4]}
+                    />
+                )}
                 <TransactionItemRow
                     transactionItem={transaction as TransactionListItemType}
                     report={report}
@@ -91,7 +112,7 @@ function DuplicateTransactionItem({transaction, isLastItem, isSelected, shouldSh
                     taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                     shouldHighlightItemWhenSelected={false}
                     shouldShowErrors={false}
-                    style={[styles.p4, shouldShowSelection ? styles.pr0 : styles.pr4]}
+                    style={shouldShowSelection ? [styles.pr0] : [styles.pv2]}
                     shouldShowRadioButton={shouldShowSelection}
                     shouldStopRadioButtonMouseDownPropagation
                     radioButtonContainerStyle={styles.ml0}
