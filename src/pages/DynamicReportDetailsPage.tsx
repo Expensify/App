@@ -110,7 +110,7 @@ import {
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {getOriginalTransactionWithSplitInfo, isDemoTransaction} from '@libs/TransactionUtils';
-import {shouldShowGoToRoom as shouldShowGoToRoomUtil} from '@libs/WorkspaceRoomsUtils';
+import shouldShowGoToRoomUtil from '@libs/WorkspaceRoomsUtils';
 import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoneyRequest';
 import {deleteTrackExpense, getNavigationUrlAfterTrackExpenseDelete} from '@userActions/IOU/TrackExpense';
 import {

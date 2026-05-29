@@ -1,7 +1,8 @@
-import type {OnyxEntry, Report} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {Report} from '@src/types/onyx';
 import getTopmostReportParams from './Navigation/helpers/getTopmostReportParams';
 import isReportTopmostSplitNavigator from './Navigation/helpers/isReportTopmostSplitNavigator';
-import {navigationRef} from './Navigation/Navigation';
+import navigationRef from './Navigation/navigationRef';
 import {isChatRoom, isPolicyExpenseChat} from './ReportUtils';
 
 function shouldShowGoToRoom(report: OnyxEntry<Report>): boolean {
@@ -16,4 +17,4 @@ function shouldShowGoToRoom(report: OnyxEntry<Report>): boolean {
     return backgroundReportID !== report?.reportID;
 }
 
-export default {shouldShowGoToRoom};
+export default shouldShowGoToRoom;
