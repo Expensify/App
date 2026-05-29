@@ -133,7 +133,8 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
         }
 
         const fields: string[] = [];
-        const isCopyingExistingRule = data.spendRuleOption === CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.COPY_EXISTING;
+        const spendRuleOption = data?.spendRuleOption ?? CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.COPY_EXISTING;
+        const isCopyingExistingRule = spendRuleOption === CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.COPY_EXISTING;
         const spendRuleForm = isCopyingExistingRule ? cardRules.find((rule) => rule.ruleID === data.spendRuleID)?.formValues : data?.spendRuleValue;
 
         if (spendRuleForm?.categories?.length) {
