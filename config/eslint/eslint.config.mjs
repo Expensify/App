@@ -739,7 +739,7 @@ const config = defineConfig([
         files: ['server/**/*.ts', 'server/**/*.tsx'],
         languageOptions: {
             parserOptions: {
-                project: path.resolve(projectRoot, 'server/victory-chart-renderer/tsconfig.json'),
+                project: path.resolve(projectRoot, 'server/tsconfig.json'),
             },
         },
     },

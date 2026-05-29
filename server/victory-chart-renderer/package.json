@@ -13,9 +13,9 @@
     "dependencies": {
         "@shopify/react-native-skia": "^2.4.14",
         "react": "19.2.0",
-        "react-native": "file:./stubs/react-native",
-        "react-native-gesture-handler": "file:./stubs/react-native-gesture-handler",
-        "react-native-reanimated": "file:./stubs/react-native-reanimated",
+        "react-native": "file:../stubs/react-native",
+        "react-native-gesture-handler": "file:../stubs/react-native-gesture-handler",
+        "react-native-reanimated": "file:../stubs/react-native-reanimated",
         "victory-native": "^41.21.0"
     },
     "devDependencies": {
@@ -25,9 +25,9 @@
         "pngjs": "^7.0.0"
     },
     "overrides": {
-        "react-native": "file:./stubs/react-native",
-        "react-native-reanimated": "file:./stubs/react-native-reanimated",
-        "react-native-gesture-handler": "file:./stubs/react-native-gesture-handler"
+        "react-native": "file:../stubs/react-native",
+        "react-native-reanimated": "file:../stubs/react-native-reanimated",
+        "react-native-gesture-handler": "file:../stubs/react-native-gesture-handler"
     },
     "installConfig": {
         "hoistingLimits": "workspaces"

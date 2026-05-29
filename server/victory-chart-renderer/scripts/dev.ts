@@ -1,18 +1,17 @@
 import {spawnSync} from 'node:child_process';
 import {mkdirSync} from 'node:fs';
 import {join, resolve} from 'node:path';
-import {createRnStubPlugin} from './rnStubPlugin';
+import createRnStubPlugin from './rnStubPlugin';
 
 const packageRoot = resolve(import.meta.dir, '..');
 const repoRoot = resolve(packageRoot, '../..');
-const stubRoot = resolve(packageRoot, 'stubs');
+const stubRoot = resolve(packageRoot, '../stubs');
 const outFile = resolve(packageRoot, '.dev/cli.js');
 
 mkdirSync(join(packageRoot, '.dev'), {recursive: true});
 
 const buildResult = await Bun.build({
     entrypoints: [resolve(packageRoot, 'src/cli.tsx')],
-    outfile: outFile,
     target: 'bun',
     packages: 'bundle',
     conditions: ['react-native'],

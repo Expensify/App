@@ -1,0 +1,11 @@
+{
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "types": ["@types/bun"],
+        "paths": {
+            "@scripts/*": ["../scripts/*", "../.github/scripts/*"],
+            "@src/*": ["../src/*"]
+        }
+    },
+    "include": ["stubs", "victory-chart-renderer/src", "victory-chart-renderer/tests", "victory-chart-renderer/scripts"]
+}
