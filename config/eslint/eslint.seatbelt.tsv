@@ -657,7 +657,6 @@
 "../../src/types/onyx/AccountData.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/BankAccount.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/CancellationDetails.ts"	"no-restricted-syntax"	1
-"../../src/types/onyx/Card.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/CardFeeds.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/Domain.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/DomainErrors.ts"	"no-restricted-syntax"	1
