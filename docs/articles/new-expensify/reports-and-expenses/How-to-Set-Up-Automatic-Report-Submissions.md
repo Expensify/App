@@ -39,7 +39,7 @@ Only **Workspace Admins** can turn on Submissions and choose a submission freque
    - **Weekly** — Reports are submitted weekly on Sundays
    - **Twice a month** — Reports are submitted on the 15th and last day of the month
    - **By trip** — A report is submitted after two full days without new expenses
-   - **Manually** — Expenses are auto-added to reports, but members must submit manually
+   - **Manually** — Expenses are still **auto-added to a report** as they're created, but members must submit the report manually. This frequency only controls **when** reports are submitted, not whether expenses are placed on a report.
 
 ![Submissions section in Expensify Workflows settings, showing the toggle enabled and Frequency set to By trip]({{site.url}}/assets/images/ExpensifyHelp-WorkspaceSubmissions_ND.png){:width="100%"}
 
