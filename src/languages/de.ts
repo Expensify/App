@@ -1031,7 +1031,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: ({days}: {days: number}) => `Kostenlose Testversion: Noch ${days} ${days === 1 ? 'Tag' : 'Tage'}!`,
             offer50Body: 'Sparen Sie 50 % im ersten Jahr',
             offer25Body: 'Erhalten Sie 25 % Rabatt auf Ihr erstes Jahr',
-            addCardBody: 'Warten Sie nicht! Fügen Sie jetzt Ihre Zahlungskarte hinzu.',
+            addCardBody: 'Zahlungskarte hinzufügen',
             ctaClaim: 'Anspruch',
             ctaAdd: 'Karte hinzufügen',
             timeRemaining: ({formattedTime}: {formattedTime: string}) => `Verbleibende Zeit: ${formattedTime}`,
@@ -2818,10 +2818,7 @@ ${amount} für ${merchant} – ${date}`,
     expenseRulesPage: {
         title: 'Ausgabenregeln',
         findRule: 'Regel finden',
-        emptyRules: {
-            title: 'Du hast noch keine Regeln erstellt',
-            subtitle: 'Füge eine Regel hinzu, um die Spesenabrechnung zu automatisieren.',
-        },
+        emptyRules: {title: 'Noch keine Regeln', subtitle: 'Füge eine Regel hinzu, um die Spesenabrechnung zu automatisieren.'},
         changes: {
             billableUpdate: (value: boolean) => `Ausgabe ${value ? 'verrechenbar' : 'nicht abrechenbar'} aktualisieren`,
             categoryUpdate: (value: string) => `Kategorie auf „${value}“ aktualisieren`,
@@ -2971,6 +2968,8 @@ ${amount} für ${merchant} – ${date}`,
         phoneOrEmail: 'Telefon oder E-Mail',
         error: {
             invalidFormatEmailLogin: 'Die eingegebene E-Mail-Adresse ist ungültig. Bitte korrigiere das Format und versuche es erneut.',
+            agentSignInBlocked:
+                'Agent-Konten können nicht direkt verwendet werden. Um ein Agent-Konto zu nutzen, melden Sie sich mit Ihrem eigenen Konto an und greifen Sie über Copilot darauf zu.',
         },
         cannotGetAccountDetails: 'Kontodetails konnten nicht abgerufen werden. Bitte melde dich erneut an.',
         loginForm: 'Anmeldeformular',
@@ -5575,7 +5574,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             needCategoryForExportToIntegration: (connectionName: string) => `Alle Ausgaben müssen kategorisiert werden, um nach ${connectionName} exportiert zu werden.`,
             subtitle: 'Verschaffe dir einen besseren Überblick darüber, wofür Geld ausgegeben wird. Verwende unsere Standardkategorien oder füge eigene hinzu.',
             emptyCategories: {
-                title: 'Sie haben noch keine Kategorien erstellt',
+                title: 'Noch keine Kategorien',
                 subtitle: 'Füge eine Kategorie hinzu, um deine Ausgaben zu organisieren.',
                 subtitleWithAccounting: (accountingPageURL: string) =>
                     `<muted-text><centered-text>Ihre Kategorien werden derzeit über eine Buchhaltungsverbindung importiert. Gehen Sie zu <a href="${accountingPageURL}">Buchhaltung</a>, um Änderungen vorzunehmen.</centered-text></muted-text>`,
@@ -5876,10 +5875,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             findReportField: 'Berichtsfeld suchen',
             deleteConfirmation: 'Sind Sie sicher, dass Sie dieses Berichts­feld löschen möchten?',
             deleteFieldsConfirmation: 'Möchten Sie diese Berichtsfelder wirklich löschen?',
-            emptyReportFields: {
-                title: 'Du hast noch keine Berichtsfelder erstellt',
-                subtitle: 'Füge ein benutzerdefiniertes Feld (Text, Datum oder Dropdown) hinzu, das in Berichten erscheint.',
-            },
+            emptyReportFields: {title: 'Noch keine Berichtsfelder', subtitle: 'Füge ein benutzerdefiniertes Feld (Text, Datum oder Dropdown) hinzu, das in Berichten erscheint.'},
             subtitle: 'Berichtsfelder gelten für alle Ausgaben und können hilfreich sein, wenn du nach zusätzlichen Informationen fragen möchtest.',
             disableReportFields: 'Berichtsfelder deaktivieren',
             disableReportFieldsConfirmation: 'Bist du sicher? Text- und Datumsfelder werden gelöscht und Listen werden deaktiviert.',
@@ -5903,10 +5899,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             disableValues: 'Werte deaktivieren',
             enableValue: 'Wert aktivieren',
             enableValues: 'Werte aktivieren',
-            emptyReportFieldsValues: {
-                title: 'Sie haben noch keine Listenwerte erstellt',
-                subtitle: 'Füge benutzerdefinierte Werte hinzu, die in Berichten erscheinen.',
-            },
+            emptyReportFieldsValues: {title: 'Noch keine Listeneinträge', subtitle: 'Füge benutzerdefinierte Werte hinzu, die in Berichten erscheinen.'},
             deleteValuePrompt: 'Sind Sie sicher, dass Sie diesen Listenwert löschen möchten?',
             deleteValuesPrompt: 'Bist du sicher, dass du diese Listenwerte löschen möchtest?',
             listValueRequiredError: 'Bitte gib einen Namen für den Listeneintrag ein',
@@ -5942,7 +5935,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             subtitleWithDependentTags: (importSpreadsheetLink: string) =>
                 `<muted-text>Tags bieten detailliertere Möglichkeiten, Kosten zu klassifizieren. Sie verwenden <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">abhängige Tags</a>. Sie können <a href="${importSpreadsheetLink}">eine Tabelle erneut importieren</a>, um Ihre Tags zu aktualisieren.</muted-text>`,
             emptyTags: {
-                title: 'Sie haben noch keine Tags erstellt',
+                title: 'Noch keine Tags',
                 subtitle: 'Füge ein Tag hinzu, um Projekte, Standorte, Abteilungen und mehr zu verfolgen.',
                 subtitleHTML: `<muted-text><centered-text>Fügen Sie Tags hinzu, um Projekte, Standorte, Abteilungen und mehr nachzuverfolgen. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Erfahren Sie mehr</a> über das Formatieren von Tag-Dateien für den Import.</centered-text></muted-text>`,
                 subtitleWithAccounting: (accountingPageURL: string) =>
@@ -6217,7 +6210,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 copyExisting: 'Vorhandene kopieren',
                 createNew: 'Neu erstellen',
                 spendRulesEmptyStateTitle: 'Keine Regeln zur Auswahl',
-                spendRulesEmptyStateSubtitle: 'Sie haben noch keine Regeln erstellt. Sie können eine auf dem vorherigen Bildschirm erstellen.',
+                spendRulesEmptyStateSubtitle: 'Noch keine Regeln. Sie können eine auf dem vorherigen Bildschirm erstellen.',
             },
             deactivateCardModal: {
                 deactivate: 'Deaktivieren',
@@ -7905,30 +7898,24 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 subtitle: `Versuche, deine Suchkriterien anzupassen oder etwas mit der +‑Schaltfläche zu erstellen.`,
             },
             emptyExpenseResults: {
-                title: 'Du hast noch keine Ausgaben erstellt',
+                title: 'Noch keine Ausgaben',
                 subtitle: 'Erstelle eine Ausgabe oder mache eine Probefahrt mit Expensify, um mehr zu erfahren.',
                 subtitleWithOnlyCreateButton: 'Verwende die grüne Schaltfläche unten, um eine Ausgabe zu erstellen.',
             },
             emptyReportResults: {
-                title: 'Du hast noch keine Berichte erstellt',
+                title: 'Noch keine Berichte',
                 subtitle: 'Erstelle einen Bericht oder mache eine Probefahrt mit Expensify, um mehr zu erfahren.',
                 subtitleWithOnlyCreateButton: 'Verwende die grüne Schaltfläche unten, um einen Bericht zu erstellen.',
             },
             emptyInvoiceResults: {
-                title: dedent(`
-                    Sie haben noch keine Rechnungen erstellt
-                `),
+                title: 'Noch keine Rechnungen',
                 subtitle: 'Sende eine Rechnung oder mache eine Probefahrt mit Expensify, um mehr zu erfahren.',
                 subtitleWithOnlyCreateButton: 'Verwende die grüne Schaltfläche unten, um eine Rechnung zu senden.',
                 subtitleCannotSend: 'Du benötigst einen Arbeitsbereich mit aktiviertem Invoices, um Rechnungen zu senden.',
                 subtitleCannotSendWithTestDrive:
                     'Du benötigst einen Arbeitsbereich mit aktiviertem Invoices, um Rechnungen zu senden. Mache eine Probefahrt mit Expensify, um mehr zu erfahren.',
             },
-            emptyTripResults: {
-                title: 'Keine Reisen zum Anzeigen',
-                subtitle: 'Beginne, indem du unten deine erste Reise buchst.',
-                buttonText: 'Reise buchen',
-            },
+            emptyTripResults: {title: 'Noch keine Reisen', subtitle: 'Beginne, indem du unten deine erste Reise buchst.', buttonText: 'Reise buchen'},
             emptySubmitResults: {
                 title: 'Keine Ausgaben zum Einreichen',
                 subtitle: 'Alles erledigt. Dreh eine Ehrenrunde!',
@@ -9497,6 +9484,13 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             chooseWhereToMove: ({count}: {count: number}) => `Wählen Sie aus, wohin Sie ${count} ${count === 1 ? 'Mitglied' : 'Mitglieder'} verschieben möchten.`,
             domainGroup: 'Domain-Gruppe',
             chooseWhereToMoveName: ({name}: {name: string}) => `Wähle aus, wohin ${name} verschoben werden soll.`,
+            membersFeatureList: {
+                subtitle: ({domainName}: {domainName: string}) =>
+                    `<muted-text>Bestätigen Sie Ihre Domain, um mehr Kontrolle über <strong>${domainName}</strong>-Mitglieder in Expensify zu erhalten.</muted-text>`,
+                controlPolicyCreation: 'Arbeitsbereichserstellung einschränken',
+                enableSamlSso: 'SAML-SSO aktivieren',
+                enforce2FA: '2FA erzwingen',
+            },
         },
         common: {
             settings: 'Einstellungen',
