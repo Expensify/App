@@ -7688,6 +7688,8 @@ ${amount} para ${merchant} - ${date}`,
             newChat: 'Nueva pantalla de chat',
             copy: 'Copiar comentario',
             openDebug: 'Abrir el diálogo de preferencias de pruebas',
+            expenseReportSearch: 'Buscar informes de gastos',
+            goToWorkspace: 'Ir al espacio de trabajo del informe actual',
         },
     },
     guides: {

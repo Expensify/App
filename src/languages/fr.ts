@@ -7920,6 +7920,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             newChat: 'Nouvel écran de discussion',
             copy: 'Copier le commentaire',
             openDebug: 'Ouvrir la boîte de dialogue des préférences de test',
+            expenseReportSearch: 'Rechercher des rapports de dépenses',
+            goToWorkspace: "Accéder à l'espace de travail du rapport actuel",
         },
     },
     guides: {

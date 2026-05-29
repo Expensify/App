@@ -73,6 +73,7 @@ Onyx.connectWithoutView({
                     }
                 }
                 persistedRequests = [...persistedRequests, ...newFromOtherTabs];
+                persistedRequests.filter();
                 trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests));
                 crossTabRequestsCallback?.();
                 return;

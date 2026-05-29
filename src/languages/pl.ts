@@ -7838,6 +7838,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             newChat: 'Nowy ekran czatu',
             copy: 'Skopiuj komentarz',
             openDebug: 'Otwórz okno preferencji testowania',
+            expenseReportSearch: 'Wyszukaj raporty wydatków',
+            goToWorkspace: 'Przejdź do obszaru roboczego bieżącego raportu',
         },
     },
     guides: {

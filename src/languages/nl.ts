@@ -7848,6 +7848,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             newChat: 'Nieuw chatscherm',
             copy: 'Opmerking kopiëren',
             openDebug: 'Dialoogvenster testvoorkeuren openen',
+            expenseReportSearch: 'Onkostenrapporten zoeken',
+            goToWorkspace: 'Ga naar de werkruimte van het huidige rapport',
         },
     },
     guides: {

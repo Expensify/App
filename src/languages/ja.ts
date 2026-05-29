@@ -7786,6 +7786,8 @@ ${reportName}
             newChat: '新しいチャット画面',
             copy: 'コメントをコピー',
             openDebug: 'テスト設定ダイアログを開く',
+            expenseReportSearch: '経費レポートを検索',
+            goToWorkspace: '現在のレポートのワークスペースへ移動',
         },
     },
     guides: {

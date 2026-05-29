@@ -7890,6 +7890,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             newChat: 'Neuer Chat-Bildschirm',
             copy: 'Kommentar kopieren',
             openDebug: 'Testeinstellungen öffnen',
+            expenseReportSearch: 'Spesenberichte suchen',
+            goToWorkspace: 'Zum Arbeitsbereich des aktuellen Berichts wechseln',
         },
     },
     guides: {
