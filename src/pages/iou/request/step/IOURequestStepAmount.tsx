@@ -392,6 +392,7 @@ function IOURequestStepAmount({
                         optimisticChatReportID,
                         linkedTrackedExpenseReportAction: transaction?.linkedTrackedExpenseReportAction,
                     });
+<<<<<<< HEAD
                 };
                 submitWithDismissFirst({
                     executeWrite: executeExpenseWrite,
@@ -405,6 +406,55 @@ function IOURequestStepAmount({
                     },
                 });
                 return;
+=======
+                    return;
+                }
+                if (iouType === CONST.IOU.TYPE.TRACK) {
+                    const trackParams = {
+                        report,
+                        isDraftPolicy: false,
+                        participantParams: {
+                            payeeEmail: currentUserEmailParam,
+                            payeeAccountID: currentUserAccountIDParam,
+                            participant: participants.at(0) ?? {},
+                        },
+                        transactionParams: {
+                            amount: backendAmount,
+                            currency: selectedCurrency ?? CONST.CURRENCY.USD,
+                            created: transaction?.created,
+                            merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                            reimbursable: defaultReimbursable,
+                        },
+                        existingTransaction: storedTransaction ?? transaction,
+                        isASAPSubmitBetaEnabled,
+                        currentUser: {accountID: currentUserAccountIDParam, email: currentUserEmailParam},
+                        introSelected,
+                        quickAction,
+                        recentWaypoints,
+                        betas,
+                        draftTransactionIDs,
+                        isSelfTourViewed,
+                    };
+
+                    submitWithDismissFirst({
+                        executeWrite: (overrides) =>
+                            trackExpense({
+                                ...trackParams,
+                                shouldHandleNavigation: overrides?.shouldHandleNavigation,
+                                shouldDeferForSearch: overrides?.shouldDeferForSearch,
+                            }),
+                        destinationReportID: selfDMReport?.reportID,
+                        telemetryContext: {
+                            scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.TRACK_EXPENSE,
+                            iouType: CONST.IOU.TYPE.TRACK,
+                            requestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                            isFromGlobalCreate: isEmptyObject(report) || !report?.reportID,
+                            hasReceipt: false,
+                        },
+                    });
+                    return;
+                }
+>>>>>>> 39db014db8cd39cab9c9c54abd5c924713f9a7ab
             }
             if (isSplitBill && !report.isOwnPolicyExpenseChat && report.participants) {
                 const participantAccountIDs = Object.keys(report.participants).map((accountID) => Number(accountID));
@@ -581,8 +631,8 @@ function IOURequestStepAmount({
 /**
  * Check if the participant is a P2P chat
  */
-function isParticipantP2P(participant: {accountID?: number; isPolicyExpenseChat?: boolean} | undefined): boolean {
-    return !!(participant?.accountID && !participant.isPolicyExpenseChat);
+function isParticipantP2P(participant: {accountID?: number; isPolicyExpenseChat?: boolean; isSelfDM?: boolean} | undefined): boolean {
+    return !!(participant?.accountID && !participant.isPolicyExpenseChat && !participant.isSelfDM);
 }
 
 const IOURequestStepAmountWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepAmount, true);

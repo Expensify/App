@@ -1196,6 +1196,7 @@ describe('actions/Duplicate', () => {
                 ...mockTransaction,
                 transactionID,
                 amount: AMOUNT_CENTS,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.TIME,
                 comment: {
                     type: 'time' as const,
                     units: {
@@ -1250,6 +1251,106 @@ describe('actions/Duplicate', () => {
             expect(duplicatedTransaction?.comment?.units?.unit).toBe('h');
             expect(duplicatedTransaction?.comment?.type).toBe('time');
             expect(isTimeRequest(duplicatedTransaction)).toBeTruthy();
+        });
+
+        it('should duplicate a scan expense as a manual expense when a target workspace is provided', async () => {
+            const transactionID = 'scan-workspace-1';
+            const mockScanExpenseTransaction = {
+                ...mockTransaction,
+                transactionID,
+                amount: mockTransaction.amount * -1,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                receipt: {source: 'https://example.com/receipt.jpg', state: CONST.IOU.RECEIPT_STATE.OPEN},
+            };
+
+            await Onyx.clear();
+
+            duplicateExpenseTransaction({
+                transaction: mockScanExpenseTransaction,
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                customUnitPolicyID: '',
+                targetPolicy: mockPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetReport: policyExpenseChat,
+                existingTransactionDraft: undefined,
+                draftTransactionIDs: [],
+                personalDetails: mockPersonalDetails,
+                betas: [CONST.BETAS.ALL],
+                recentWaypoints,
+                targetPolicyTags,
+                conciergeReportID: undefined,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+            });
+
+            await waitForBatchedUpdates();
+
+            let duplicatedTransaction: OnyxEntry<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (allTransactions) => {
+                    duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
+                },
+            });
+
+            expect(duplicatedTransaction?.transactionID).not.toBe(transactionID);
+            expect(duplicatedTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.MANUAL);
+        });
+
+        it('should duplicate a scan expense as a manual expense when no targetPolicy is provided', async () => {
+            const transactionID = 'scan-unreported-1';
+            const mockScanExpenseTransaction = {
+                ...mockTransaction,
+                transactionID,
+                amount: mockTransaction.amount * -1,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                receipt: {source: 'https://example.com/receipt.jpg', state: CONST.IOU.RECEIPT_STATE.OPEN},
+            };
+
+            await Onyx.clear();
+
+            duplicateExpenseTransaction({
+                transaction: mockScanExpenseTransaction,
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                customUnitPolicyID: '',
+                targetPolicy: undefined,
+                targetPolicyCategories: undefined,
+                targetReport: undefined,
+                existingTransactionDraft: undefined,
+                draftTransactionIDs: [],
+                betas: [CONST.BETAS.ALL],
+                personalDetails: {},
+                recentWaypoints,
+                targetPolicyTags,
+                conciergeReportID: undefined,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+            });
+
+            await waitForBatchedUpdates();
+
+            let duplicatedTransaction: OnyxEntry<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (allTransactions) => {
+                    duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
+                },
+            });
+
+            expect(duplicatedTransaction?.transactionID).not.toBe(transactionID);
+            expect(duplicatedTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.MANUAL);
         });
 
         it('should create a duplicate expense successfully (previously with transaction drafts)', async () => {
@@ -1366,6 +1467,7 @@ describe('actions/Duplicate', () => {
                 ...mockTransaction,
                 transactionID,
                 amount: AMOUNT_CENTS,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.TIME,
                 comment: {
                     type: 'time' as const,
                     units: {
@@ -1496,6 +1598,7 @@ describe('actions/Duplicate', () => {
             const mockDistanceTransaction = {
                 ...mockTransaction,
                 amount: mockTransaction.amount * -1,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
                 comment: {
                     type: 'customUnit' as const,
                     customUnit: {
@@ -1535,10 +1638,73 @@ describe('actions/Duplicate', () => {
             expect(Navigation.dismissModal).not.toHaveBeenCalled();
         });
 
+        it('should not corrupt modifiedCreated or leak top-level Transaction fields when duplicating a distance expense', async () => {
+            const transactionID = 'distance-shim-shape';
+            const mockDistanceTransaction = {
+                ...mockTransaction,
+                transactionID,
+                amount: -1000,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                comment: {
+                    type: 'customUnit' as const,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                    },
+                    waypoints: {waypoint0: {address: 'A', lat: 1, lng: 1, keyForList: 'wp0'}},
+                },
+            };
+
+            await Onyx.clear();
+
+            duplicateExpenseTransaction({
+                transaction: mockDistanceTransaction,
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                customUnitPolicyID: '',
+                targetPolicy: mockPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetReport: policyExpenseChat,
+                existingTransactionDraft: undefined,
+                draftTransactionIDs: [],
+                personalDetails: mockPersonalDetails,
+                betas: [CONST.BETAS.ALL],
+                recentWaypoints,
+                targetPolicyTags,
+                conciergeReportID: undefined,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+            });
+
+            await waitForBatchedUpdates();
+
+            let duplicatedTransaction: OnyxEntry<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (allTransactions) => {
+                    duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t && t.transactionID !== transactionID);
+                },
+            });
+
+            expect(duplicatedTransaction).toBeDefined();
+            expect(duplicatedTransaction?.modifiedCreated).not.toBe('');
+            const persisted = duplicatedTransaction as Record<string, unknown> | undefined;
+            expect(persisted?.distance).toBeUndefined();
+            expect(persisted?.validWaypoints).toBeUndefined();
+            expect(persisted?.customUnitRateID).toBeUndefined();
+        });
+
         it('should call submitPerDiemExpense for per diem transactions', async () => {
             const mockPerDiemTransaction = {
                 ...mockTransaction,
                 amount: mockTransaction.amount * -1,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
                 comment: {
                     type: 'customUnit' as const,
                     customUnit: {
@@ -2061,6 +2227,28 @@ describe('actions/Duplicate', () => {
             expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(1);
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST)).toBe(1);
             expect(Navigation.dismissModal).not.toHaveBeenCalled();
+        });
+
+        it('should duplicate a scan expense as a manual expense', async () => {
+            const scanExpenseTx = createCashTransaction('scan-completed-1', {
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                receipt: {source: 'https://example.com/receipt.jpg', state: CONST.IOU.RECEIPT_STATE.OPEN},
+            });
+
+            duplicateReport(getDefaultParams([scanExpenseTx]));
+            await waitForBatchedUpdates();
+
+            let duplicatedTransaction: OnyxEntry<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (allTransactions) => {
+                    duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t && t.transactionID !== scanExpenseTx.transactionID);
+                },
+            });
+
+            expect(duplicatedTransaction).toBeDefined();
+            expect(duplicatedTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.MANUAL);
         });
 
         it('should not duplicate expenses when no target policy exists', async () => {

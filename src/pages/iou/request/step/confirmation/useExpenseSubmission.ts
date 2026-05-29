@@ -437,7 +437,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 transactionViolations: transactionViolationsRef.current,
                 policyRecentlyUsedCurrencies,
                 quickAction,
-                existingTransaction,
+                existingTransaction: existingTransaction ?? item,
                 existingTransactionDraft,
                 draftTransactionIDs,
                 isSelfTourViewed,
@@ -633,8 +633,14 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 accountantParams: {
                     accountant: item.accountant,
                 },
+<<<<<<< HEAD
                 optimisticChatReportID: optimisticSelfDMReportID,
                 optimisticTransactionID: lastOptimisticTransactionID,
+=======
+                existingTransaction: item,
+                shouldHandleNavigation: shouldHandleNav && index === transactions.length - 1,
+                shouldDeferForSearch,
+>>>>>>> 39db014db8cd39cab9c9c54abd5c924713f9a7ab
                 isASAPSubmitBetaEnabled,
                 currentUser: {accountID: currentUserPersonalDetails.accountID, email},
                 introSelected,

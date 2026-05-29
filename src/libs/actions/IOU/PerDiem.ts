@@ -29,9 +29,13 @@ import {
     buildOptimisticSelfDMReport,
     generateReportID,
     getChatByParticipants,
+<<<<<<< HEAD
     getReimbursableTotal,
     getReportOrDraftReport,
     getUnheldReimbursableTotal,
+=======
+    getReportOrDraftReport,
+>>>>>>> 39db014db8cd39cab9c9c54abd5c924713f9a7ab
     isExpenseReport,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
@@ -386,22 +390,31 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
               })
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency);
     } else if (isPolicyExpenseChat) {
+<<<<<<< HEAD
         // Capture the previous reimbursable totals before the mutation so we can apply the diff
         // consistently regardless of whether the freshly tracked field was already populated.
         const previousReimbursableTotal = getReimbursableTotal(iouReport);
         const previousUnheldReimbursableTotal = getUnheldReimbursableTotal(iouReport);
+=======
+>>>>>>> 39db014db8cd39cab9c9c54abd5c924713f9a7ab
         iouReport = {...iouReport};
         // Because of the Expense reports are stored as negative values, we subtract the total from the amount
         if (iouReport?.currency === currency) {
             if (!Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
                 iouReport.total -= amount;
+<<<<<<< HEAD
                 // Per diems are reimbursable, so mirror the change on the freshly tracked reimbursable total.
                 iouReport.reimbursableTotal = previousReimbursableTotal - amount;
+=======
+>>>>>>> 39db014db8cd39cab9c9c54abd5c924713f9a7ab
             }
 
             if (typeof iouReport.unheldTotal === 'number') {
                 iouReport.unheldTotal -= amount;
+<<<<<<< HEAD
                 iouReport.unheldReimbursableTotal = previousUnheldReimbursableTotal - amount;
+=======
+>>>>>>> 39db014db8cd39cab9c9c54abd5c924713f9a7ab
             }
         }
     } else {

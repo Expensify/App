@@ -1,8 +1,12 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+<<<<<<< HEAD
 import {createTransaction, getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
+=======
+import {clearMoneyRequestAmount, createTransaction, getMoneyRequestParticipantOptions, handleMoneyRequestStepDistanceNavigation, setMoneyRequestAmount} from '@libs/actions/IOU/MoneyRequest';
+>>>>>>> 39db014db8cd39cab9c9c54abd5c924713f9a7ab
 import Navigation from '@libs/Navigation/Navigation';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import handleMoneyRequestStepDistanceNavigation from '@pages/iou/request/step/IOURequestStepDistance/handleMoneyRequestStepDistanceNavigation';
@@ -12,19 +16,21 @@ import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, PolicyTagLists, QuickAction, RecentWaypoint} from '@src/types/onyx';
+import type {Policy, QuickAction, RecentWaypoint} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {SplitShares} from '@src/types/onyx/Transaction';
 import type * as IOU from '../../../src/libs/actions/IOU';
 import * as Split from '../../../src/libs/actions/IOU/Split';
 import * as TrackExpense from '../../../src/libs/actions/IOU/TrackExpense';
 import DistanceRequestUtils from '../../../src/libs/DistanceRequestUtils';
+<<<<<<< HEAD
 import type * as SubmitWithDismissFirstMock from '../../__mocks__/submitWithDismissFirst';
+=======
+>>>>>>> 39db014db8cd39cab9c9c54abd5c924713f9a7ab
 import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport, createSelfDM} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {getOnyxData} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/actions/IOU', () => {
@@ -81,9 +87,7 @@ jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => ({
 
 describe('MoneyRequest', () => {
     const currentUserAccountID = 111;
-    const currentUserLogin = 'test@example.com';
     const TEST_USER_ACCOUNT_ID = 123;
-    const TEST_USER_EMAIL = 'test@test.com';
     const SELF_DM_REPORT_ID = '2';
     const TEST_LATITUDE = 37.7749;
     const TEST_LONGITUDE = -122.4194;
@@ -356,6 +360,34 @@ describe('MoneyRequest', () => {
             );
         });
 
+        it('should pass the source transaction as existingTransaction to requestMoney for non-TRACK iouType', () => {
+            createTransaction({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.SEND,
+                allTransactionDrafts: {},
+            });
+
+            expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    existingTransaction: fakeTransaction,
+                }),
+            );
+        });
+
+        it('should pass the source transaction as existingTransaction to trackExpense for TRACK iouType', () => {
+            createTransaction({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.TRACK,
+                allTransactionDrafts: {},
+            });
+
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    existingTransaction: fakeTransaction,
+                }),
+            );
+        });
+
         it('should compute draftTransactionIDs from allTransactionDrafts', () => {
             const draft1 = createRandomTransaction(101);
             const draft2 = createRandomTransaction(102);
@@ -549,6 +581,7 @@ describe('MoneyRequest', () => {
         });
     });
 
+<<<<<<< HEAD
     describe('handleMoneyRequestStepScanParticipants', () => {
         const fakeReport = {
             ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
@@ -1080,6 +1113,8 @@ describe('MoneyRequest', () => {
         });
     });
 
+=======
+>>>>>>> 39db014db8cd39cab9c9c54abd5c924713f9a7ab
     describe('handleMoneyRequestStepDistanceNavigation', () => {
         const fakeReport = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
         const fakeTransaction = createRandomTransaction(1);
@@ -1219,6 +1254,7 @@ describe('MoneyRequest', () => {
                         merchant: 'Pending...',
                         customUnitRateID: '_FAKE_P2P_ID_',
                     }),
+<<<<<<< HEAD
                     currentUser: {accountID: baseParams.currentUserAccountID, email: baseParams.currentUserLogin},
                 }),
             );
@@ -1226,6 +1262,40 @@ describe('MoneyRequest', () => {
             expect(typeof distanceTrackExpenseParams?.optimisticTransactionID).toBe('string');
             expect(typeof distanceTrackExpenseParams?.optimisticChatReportID).toBe('string');
             expect(distanceTrackExpenseParams && 'shouldHandleNavigation' in distanceTrackExpenseParams).toBeFalsy();
+=======
+                },
+                policyParams: {
+                    policy: undefined,
+                },
+                transactionParams: {
+                    amount: 0,
+                    distance: 20,
+                    currency: fakeTransaction?.currency ?? 'USD',
+                    created: fakeTransaction?.created ?? '',
+                    merchant: 'Pending...',
+                    receipt: {},
+                    billable: false,
+                    reimbursable: fakePolicy?.defaultReimbursable ?? true,
+                    validWaypoints: undefined,
+                    customUnitRateID: '_FAKE_P2P_ID_',
+                    attendees: fakeTransaction?.comment?.attendees,
+                    gpsCoordinates: undefined,
+                    odometerEnd: undefined,
+                    odometerStart: undefined,
+                    taxCode: '',
+                    taxAmount: 0,
+                },
+                existingTransaction: fakeTransaction,
+                shouldHandleNavigation: true,
+                shouldDeferForSearch: false,
+                isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
+                currentUser: {accountID: baseParams.currentUserAccountID, email: baseParams.currentUserLogin},
+                quickAction: baseParams.quickAction,
+                recentWaypoints: baseParams.recentWaypoints,
+                betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [baseParams.transactionID],
+            });
+>>>>>>> 39db014db8cd39cab9c9c54abd5c924713f9a7ab
 
             // The function must return after trackExpense and not call createDistanceRequest
             expect(Split.createDistanceRequest).not.toHaveBeenCalled();
@@ -1720,7 +1790,7 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: true,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined)).toBe(true);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined, policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID)).toBe(true);
         });
 
         it('should return false when iouType is not CREATE', () => {
@@ -1730,9 +1800,9 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: true,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.SUBMIT, policy, 0, undefined, undefined)).toBe(false);
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.TRACK, policy, 0, undefined, undefined)).toBe(false);
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.SPLIT, policy, 0, undefined, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.SUBMIT, policy, 0, undefined, undefined, policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.TRACK, policy, 0, undefined, undefined, policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.SPLIT, policy, 0, undefined, undefined, policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID)).toBe(false);
         });
 
         it('should return false when policy is not a paid group policy', () => {
@@ -1742,7 +1812,7 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: true,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined, policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID)).toBe(false);
         });
 
         it('should return false when isPolicyExpenseChatEnabled is false', () => {
@@ -1752,15 +1822,15 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: false,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined, policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID)).toBe(false);
         });
 
         it('should return false when policy is undefined', () => {
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, undefined, 0, undefined, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, undefined, 0, undefined, undefined, currentUserAccountID)).toBe(false);
         });
 
         it('should return false when policy is null', () => {
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, null, 0, undefined, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, null, 0, undefined, undefined, currentUserAccountID)).toBe(false);
         });
 
         it('should handle amountOwed being undefined', () => {
@@ -1770,7 +1840,7 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: true,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, undefined, undefined, undefined)).toBe(true);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, undefined, undefined, undefined, policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID)).toBe(true);
         });
 
         it('should pass ownerBillingGracePeriodEnd through to shouldRestrictUserBillableActions', async () => {
@@ -1785,9 +1855,58 @@ describe('MoneyRequest', () => {
             await Onyx.set(ONYXKEYS.SESSION, {accountID: TEST_USER_ACCOUNT_ID});
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 100, undefined, pastDate)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 100, undefined, pastDate, TEST_USER_ACCOUNT_ID)).toBe(false);
 
             await Onyx.clear();
+        });
+    });
+
+    describe('setMoneyRequestAmount and clearMoneyRequestAmount', () => {
+        const transactionID = 'amount-test-txn';
+
+        beforeEach(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                transactionID,
+                amount: 0,
+                currency: 'USD',
+                comment: {},
+                iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+            });
+        });
+
+        afterEach(async () => {
+            await Onyx.clear();
+        });
+
+        it('sets isAmountSet to true when the user enters an amount', async () => {
+            setMoneyRequestAmount(transactionID, 1500, 'USD');
+            await waitForBatchedUpdates();
+
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(transaction?.amount).toBe(1500);
+            expect(transaction?.currency).toBe('USD');
+            expect(transaction?.isAmountSet).toBe(true);
+        });
+
+        it('allows explicitly setting zero as a valid amount via isAmountSet', async () => {
+            setMoneyRequestAmount(transactionID, 0, 'USD');
+            await waitForBatchedUpdates();
+
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(transaction?.amount).toBe(0);
+            expect(transaction?.isAmountSet).toBe(true);
+        });
+
+        it('clears isAmountSet when the user deletes the amount input', async () => {
+            setMoneyRequestAmount(transactionID, 2500, 'USD');
+            await waitForBatchedUpdates();
+
+            clearMoneyRequestAmount(transactionID);
+            await waitForBatchedUpdates();
+
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(transaction?.amount).toBe(0);
+            expect(transaction?.isAmountSet).toBe(false);
         });
     });
 });
