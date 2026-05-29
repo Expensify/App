@@ -640,18 +640,22 @@ function MoneyRequestReportTransactionList({
         return visibleTransactions.at(-1)?.transactionID;
     }, [shouldShowGroupedTransactions, groupedTransactions, resolvedTransactions, isOffline]);
 
+    const violationsByTransactionID = useMemo(() => {
+        const map = new Map<string, OnyxTypes.TransactionViolations>();
+        const email = currentUserDetails.email ?? '';
+        const accountID = currentUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID;
+
+        for (const transaction of resolvedTransactions) {
+            map.set(transaction.transactionID, filterTransactionViolations(transaction, allTransactionViolations, email, accountID, report, policy ?? undefined));
+        }
+        return map;
+    }, [resolvedTransactions, allTransactionViolations, currentUserDetails.email, currentUserDetails.accountID, report, policy]);
+
     const renderTransactionItem = (transaction: TransactionWithOptionalHighlight) => (
         <MoneyRequestReportTransactionItem
             key={transaction.transactionID}
             transaction={transaction}
-            violations={filterTransactionViolations(
-                transaction,
-                allTransactionViolations,
-                currentUserDetails?.email ?? '',
-                currentUserDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                report,
-                policy ?? undefined,
-            )}
+            violations={violationsByTransactionID.get(transaction.transactionID) ?? EMPTY_VIOLATIONS}
             shouldBeHighlighted={highlightedTransactionIDs.has(transaction.transactionID)}
             columns={columnsToShow}
             report={report}
