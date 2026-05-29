@@ -2459,6 +2459,7 @@ describe('SearchUIUtils', () => {
                 allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: undefined,
             });
             const transaction = (sections as TransactionListItemType[]).find((item) => item.transactionID === transactionID);
             expect(transaction?.action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
@@ -2477,6 +2478,7 @@ describe('SearchUIUtils', () => {
                 allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: undefined,
             });
             const reportSection = (sections as TransactionReportGroupListItemType[]).find((item) => item.reportID === reportID);
             expect(reportSection?.action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
@@ -2496,6 +2498,7 @@ describe('SearchUIUtils', () => {
                 allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: undefined,
             });
             const transaction = (sections as TransactionListItemType[]).find((item) => item.transactionID === transactionID);
             expect(transaction?.action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
@@ -4786,6 +4789,7 @@ describe('SearchUIUtils', () => {
                 conciergeReportID: undefined,
                 queryJSON: queryJSON as SearchQueryJSON,
                 convertToDisplayString,
+                reportAttributesDerivedValue: undefined,
             }) as [TransactionTagGroupListItemType[], number, boolean];
 
             expect(result.at(0)?.transactionsQueryJSON?.inputQuery).toBe('type:expense sortBy:groupTag sortOrder:asc has:receipt -has:tag');

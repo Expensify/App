@@ -974,7 +974,7 @@ type GetReportNameParams = {
     personalDetails?: Partial<PersonalDetailsList>;
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
     /** Report attributes used to return a precomputed report name */
-    reportAttributes: ReportAttributesDerivedValue['reports'];
+    reportAttributes: ReportAttributesDerivedValue['reports'] | undefined;
     transactions?: Transaction[];
     reports?: Report[];
     isReportArchived?: boolean;
@@ -6112,8 +6112,8 @@ function getParentNavigationSubtitle(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     conciergeReportID: string | undefined,
+    reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
     isParentReportArchived = false,
-    reportAttributes: ReportAttributesDerivedValue['reports'] = {},
 ): ParentNavigationSummaryParams {
     const parentReport = getParentReport(report);
 
