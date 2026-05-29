@@ -28,7 +28,7 @@ function createAgent(
     optimisticAvatarURI?: string,
     policyID?: string,
 ) {
-    const optimisticAccountID = generateReportID();
+    const optimisticAccountID = Number(generateReportID());
 
     let avatarURI: string | undefined;
     if (customExpensifyAvatarID) {

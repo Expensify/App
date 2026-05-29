@@ -593,7 +593,7 @@ const ONYXKEYS = {
     DEFERRED_AGENT_WORKFLOW_SAVES: 'deferredAgentWorkflowSaves',
 
     /**
-     * Maps optimistic agent account IDs (negative) to the real, server-assigned IDs returned
+     * Maps optimistic agent account IDs (randomly generated) to the real, server-assigned IDs returned
      * by CREATE_AGENT. The server echoes this mapping in the response's `onyxData` (and queues
      * it on the owner's account channel) so the WorkspaceWorkflowsPage and Edit Approvers
      * reconciliation can swap the pending approver to the real agent without falling back to
