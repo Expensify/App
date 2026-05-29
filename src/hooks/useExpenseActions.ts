@@ -27,6 +27,7 @@ import {
     getAddExpenseDropdownOptions,
     getPolicyExpenseChat,
     isDM,
+    isOpenReport,
     isSelfDM,
     navigateOnDeleteExpense,
 } from '@libs/ReportUtils';
@@ -55,6 +56,7 @@ import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from './useDefaultExpensePolicy';
 import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
+import useEnvironment from './useEnvironment';
 import useGetIOUReportFromReportAction from './useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
@@ -85,6 +87,7 @@ type UseExpenseActionsReturn = {
 function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplicateReset}: UseExpenseActionsParams): UseExpenseActionsReturn {
     const theme = useTheme();
     const {translate, localeCompare} = useLocalize();
+    const {isProduction} = useEnvironment();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -170,8 +173,9 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
     // Split indicator
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
-    const hasMultipleSplits = !!transaction?.comment?.originalTransactionID && getChildTransactions(allTransactions, transaction.comment.originalTransactionID).length > 1;
-    const hasSplitIndicator = isExpenseSplit && hasMultipleSplits;
+    const hasMultipleSplits = !!transaction?.comment?.originalTransactionID && getChildTransactions(allTransactions, transaction.comment.originalTransactionID, false).length > 1;
+    const isReportOpen = isOpenReport(moneyRequestReport);
+    const hasSplitIndicator = isExpenseSplit && (hasMultipleSplits || (isProduction && isReportOpen));
     const shouldShowEditSplitOnDeleteAction = !!transaction?.transactionID && shouldOpenSplitExpenseEditFlowOnDelete([transaction.transactionID]);
 
     // Duplicate report throttle
@@ -270,6 +274,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
         amountOwed,
         ownerBillingGracePeriodEnd,
         lastDistanceExpenseType,
+        currentUserAccountID: accountID,
     });
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -299,7 +304,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 if (transactions.length !== 1) {
                     return;
                 }
-                initSplitExpense(currentTransaction, policy, moneyRequestReport);
+                initSplitExpense(currentTransaction, policy, moneyRequestReport, accountID, {isProduction});
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.MERGE]: {
@@ -320,7 +325,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
             iconFill: isDuplicateActive ? undefined : theme.icon,
             value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE,
             onSelected: () => {
-                if (defaultExpensePolicy && shouldRestrictUserBillableActions(defaultExpensePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+                if (defaultExpensePolicy && shouldRestrictUserBillableActions(defaultExpensePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
                     onDuplicateReset?.();
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(defaultExpensePolicy.id));
                     return;
@@ -381,7 +386,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 const isSourcePolicyValid = !!policy && isPolicyAccessible(policy, currentUserLogin ?? '');
                 const targetPolicyForDuplicate = isSourcePolicyValid ? policy : defaultExpensePolicy;
 
-                if (targetPolicyForDuplicate && shouldRestrictUserBillableActions(targetPolicyForDuplicate, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+                if (targetPolicyForDuplicate && shouldRestrictUserBillableActions(targetPolicyForDuplicate, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
                     onDuplicateReset?.();
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(targetPolicyForDuplicate.id));
                     return;
@@ -552,18 +557,19 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 setDeleteTransactionNavigateBackUrl(deleteNavigateBackUrl);
 
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
-                    Navigation.goBack(backToRoute);
-                    InteractionManager.runAfterInteractions(() => {
-                        deleteAppReport({
-                            report: moneyRequestReport,
-                            selfDMReport,
-                            currentUserEmailParam: email ?? '',
-                            currentUserAccountIDParam: accountID,
-                            reportTransactions,
-                            allTransactionViolations,
-                            bankAccountList,
-                            hash: currentSearchHash,
-                        });
+                    Navigation.goBack(backToRoute, {
+                        afterTransition: () => {
+                            deleteAppReport({
+                                report: moneyRequestReport,
+                                selfDMReport,
+                                currentUserEmailParam: email ?? '',
+                                currentUserAccountIDParam: accountID,
+                                reportTransactions,
+                                allTransactionViolations,
+                                bankAccountList,
+                                hash: currentSearchHash,
+                            });
+                        },
                     });
                 });
             },
