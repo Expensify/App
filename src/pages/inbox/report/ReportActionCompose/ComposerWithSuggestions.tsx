@@ -310,9 +310,9 @@ function ComposerWithSuggestions({
 
     const commentRef = useRef(initialText);
 
-    const {superWideRHPRouteKeys} = useWideRHPState();
-    // When SearchReport is stacked above another RHP, delay autofocus until after the transition completes to avoid animation jank
-    const shouldDelayAutoFocus = superWideRHPRouteKeys.length > 0 && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
+    const {superWideRHPRouteKeys, wideRHPRouteKeys} = useWideRHPState();
+    // When SearchReport is stacked above another RHP (wide or super-wide), delay autofocus until after the transition completes to avoid animation jank
+    const shouldDelayAutoFocus = (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0) && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
     const shouldDelayAutoFocusRef = useRef(shouldDelayAutoFocus);
     shouldDelayAutoFocusRef.current = shouldDelayAutoFocus;
 
@@ -328,7 +328,10 @@ function ComposerWithSuggestions({
         focusComposerWithDelay(composerRef.current, delay)(shouldDelay, forcedSelectionRange, forceKeyboardIfAlreadyFocused).catch(() => {});
     }, []);
 
-    const handleEditFocus = useCallback(() => focus(true, undefined, true), [focus]);
+    const handleEditFocus = useCallback(() => {
+        focus(true, undefined, true);
+        onFocus();
+    }, [focus, onFocus]);
 
     const handleEditValueChange = useCallback(
         (nextValue: string) => {
