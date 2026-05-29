@@ -231,11 +231,6 @@ function IOURequestStepConfirmation({
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
 
     const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).length && isScanRequest(transaction);
-<<<<<<< HEAD
-    const [isStitchingReceipt, setIsStitchingReceipt] = useState(false);
-    const [stitchError, setStitchError] = useState('');
-=======
->>>>>>> 39db014db8cd39cab9c9c54abd5c924713f9a7ab
     const headerTitle = useMemo(() => {
         if (isCategorizingTrackExpense) {
             return translate('iou.categorize');

@@ -26,13 +26,7 @@ import {
     generateReportID,
     getChatByParticipants,
     getOutstandingChildRequest,
-<<<<<<< HEAD
-    getReimbursableTotal,
     getReportTransactions,
-    getUnheldReimbursableTotal,
-=======
-    getReportTransactions,
->>>>>>> 39db014db8cd39cab9c9c54abd5c924713f9a7ab
     hasViolations as hasViolationsReportUtils,
     isDeprecatedGroupDM,
     isExpenseReport,
@@ -422,12 +416,9 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         transactionViolations = {},
         hasViolations,
         quickAction,
-<<<<<<< HEAD
-=======
         isSelfDMSplit,
         isReverseSplitOperation,
         selfDMReportID,
->>>>>>> 39db014db8cd39cab9c9c54abd5c924713f9a7ab
     } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {
@@ -1354,13 +1345,6 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
               })
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency, undefined, undefined, optimisticReportID);
     } else if (isPolicyExpenseChat) {
-<<<<<<< HEAD
-        // Capture previous fresh reimbursable totals before mutating, so the diff applies whether or
-        // not the iouReport already had reimbursableTotal/unheldReimbursableTotal populated locally.
-        const previousReimbursableTotal = getReimbursableTotal(iouReport);
-        const previousUnheldReimbursableTotal = getUnheldReimbursableTotal(iouReport);
-=======
->>>>>>> 39db014db8cd39cab9c9c54abd5c924713f9a7ab
         iouReport = {...iouReport};
         // Because of the Expense reports are stored as negative values, we subtract the total from the amount
         if (iouReport?.currency === currency) {
@@ -1378,12 +1362,6 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                     } else {
                         iouReport.nonReimbursableTotal = (iouReport.nonReimbursableTotal ?? 0) - amount;
                     }
-<<<<<<< HEAD
-                } else {
-                    // Reimbursable transaction: reflect the change in the freshly tracked reimbursableTotal too.
-                    iouReport.reimbursableTotal = previousReimbursableTotal - amount;
-=======
->>>>>>> 39db014db8cd39cab9c9c54abd5c924713f9a7ab
                 }
 
                 iouReport = maybeUpdateReportNameForFormulaTitle(iouReport, policy);
@@ -1395,12 +1373,6 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                 } else {
                     iouReport.unheldTotal -= amount;
                 }
-<<<<<<< HEAD
-                if (reimbursable) {
-                    iouReport.unheldReimbursableTotal = previousUnheldReimbursableTotal - amount;
-                }
-=======
->>>>>>> 39db014db8cd39cab9c9c54abd5c924713f9a7ab
             }
         }
     } else {
@@ -1704,16 +1676,6 @@ function getUpdatedMoneyRequestReportData(
         if (updatedTransaction && transaction?.reimbursable !== updatedTransaction?.reimbursable && typeof updatedMoneyRequestReport.nonReimbursableTotal === 'number') {
             updatedMoneyRequestReport.nonReimbursableTotal += updatedTransaction.reimbursable ? -updatedTransaction.amount : updatedTransaction.amount;
         }
-<<<<<<< HEAD
-        // Mirror the diff on the freshly tracked reimbursable totals so we don't drift between optimistic and confirmed state.
-        if (transaction?.reimbursable && typeof updatedMoneyRequestReport.reimbursableTotal === 'number') {
-            updatedMoneyRequestReport.reimbursableTotal -= diff;
-        }
-        if (updatedTransaction && transaction?.reimbursable !== updatedTransaction?.reimbursable && typeof updatedMoneyRequestReport.reimbursableTotal === 'number') {
-            updatedMoneyRequestReport.reimbursableTotal += updatedTransaction.reimbursable ? updatedTransaction.amount : -updatedTransaction.amount;
-        }
-=======
->>>>>>> 39db014db8cd39cab9c9c54abd5c924713f9a7ab
         if (!isTransactionOnHold) {
             if (typeof updatedMoneyRequestReport.unheldTotal === 'number') {
                 updatedMoneyRequestReport.unheldTotal -= diff;
@@ -1724,15 +1686,6 @@ function getUpdatedMoneyRequestReportData(
             if (updatedTransaction && transaction?.reimbursable !== updatedTransaction?.reimbursable && typeof updatedMoneyRequestReport.unheldNonReimbursableTotal === 'number') {
                 updatedMoneyRequestReport.unheldNonReimbursableTotal += updatedTransaction.reimbursable ? -updatedTransaction.amount : updatedTransaction.amount;
             }
-<<<<<<< HEAD
-            if (transaction?.reimbursable && typeof updatedMoneyRequestReport.unheldReimbursableTotal === 'number') {
-                updatedMoneyRequestReport.unheldReimbursableTotal -= diff;
-            }
-            if (updatedTransaction && transaction?.reimbursable !== updatedTransaction?.reimbursable && typeof updatedMoneyRequestReport.unheldReimbursableTotal === 'number') {
-                updatedMoneyRequestReport.unheldReimbursableTotal += updatedTransaction.reimbursable ? updatedTransaction.amount : -updatedTransaction.amount;
-            }
-=======
->>>>>>> 39db014db8cd39cab9c9c54abd5c924713f9a7ab
         }
         if (transactionChanges && 'reimbursable' in transactionChanges) {
             updatedMoneyRequestReport = maybeUpdateReportNameForFormulaTitle(updatedMoneyRequestReport, policy);

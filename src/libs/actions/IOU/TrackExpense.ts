@@ -1600,12 +1600,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         quickAction,
         policyRecentlyUsedCurrencies,
         existingTransactionDraft,
-<<<<<<< HEAD
-        existingTransaction,
-=======
         existingTransaction: explicitExistingTransaction,
-        draftTransactionIDs = [],
->>>>>>> 39db014db8cd39cab9c9c54abd5c924713f9a7ab
         isSelfTourViewed,
         betas,
         personalDetails,
@@ -1708,12 +1703,8 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         transactionParams,
         moneyRequestReportID,
         existingTransactionID,
-<<<<<<< HEAD
         optimisticTransactionID: requestMoneyInformation.optimisticTransactionID,
-        existingTransaction: isDistanceRequestTransactionUtils(existingTransactionRef) ? existingTransactionRef : undefined,
-=======
         existingTransaction,
->>>>>>> 39db014db8cd39cab9c9c54abd5c924713f9a7ab
         retryParams,
         testDriveCommentReportActionID,
         optimisticChatReportID,

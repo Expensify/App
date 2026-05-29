@@ -4989,8 +4989,6 @@ describe('initSplitExpense', () => {
         expect(splitExpenses?.[1].merchant).toBeTruthy();
         expect(splitExpenses?.[1].merchant).toContain('100');
     });
-<<<<<<< HEAD
-=======
 
     it('should let you split the expense again after its other split half was deleted', async () => {
         const originalTransactionID = 'dissolved-original';
@@ -5116,7 +5114,6 @@ describe('initSplitExpense', () => {
         const freshDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${secondChildTransactionID}`);
         expect(freshDraft).toBeFalsy();
     });
->>>>>>> 39db014db8cd39cab9c9c54abd5c924713f9a7ab
 });
 
 describe('addSplitExpenseField', () => {

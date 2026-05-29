@@ -22,10 +22,6 @@ import {
     buildTransactionThread,
     canAddTransaction,
     generateReportID,
-<<<<<<< HEAD
-    getReimbursableTotal,
-=======
->>>>>>> 39db014db8cd39cab9c9c54abd5c924713f9a7ab
     getTransactionDetails,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -217,19 +213,11 @@ function mergeDuplicates({
     }, 0);
 
     const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`];
-<<<<<<< HEAD
-    const previousReimbursableTotal = getReimbursableTotal(expenseReport);
-=======
->>>>>>> 39db014db8cd39cab9c9c54abd5c924713f9a7ab
     const expenseReportOptimisticData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`,
         value: {
             total: (expenseReport?.total ?? 0) - duplicateTransactionTotals,
-<<<<<<< HEAD
-            reimbursableTotal: previousReimbursableTotal - duplicateTransactionTotals,
-=======
->>>>>>> 39db014db8cd39cab9c9c54abd5c924713f9a7ab
         },
     };
     const expenseReportFailureData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> = {
@@ -237,10 +225,6 @@ function mergeDuplicates({
         key: `${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`,
         value: {
             total: expenseReport?.total,
-<<<<<<< HEAD
-            reimbursableTotal: previousReimbursableTotal,
-=======
->>>>>>> 39db014db8cd39cab9c9c54abd5c924713f9a7ab
         },
     };
 
@@ -812,8 +796,6 @@ function duplicateExpenseTransaction({
         policyRecentlyUsedCurrencies,
         quickAction,
         existingTransactionDraft,
-<<<<<<< HEAD
-=======
         existingTransaction: {
             iouRequestType: getDuplicateRequestType(transaction),
             amount: 0,
@@ -823,8 +805,6 @@ function duplicateExpenseTransaction({
             reportID: '1',
             transactionID: '1',
         },
-        draftTransactionIDs,
->>>>>>> 39db014db8cd39cab9c9c54abd5c924713f9a7ab
         isSelfTourViewed,
         betas,
         personalDetails,
@@ -1016,8 +996,6 @@ function duplicateReport({
             quickAction,
             policyRecentlyUsedCurrencies,
             existingTransactionDraft: undefined,
-<<<<<<< HEAD
-=======
             existingTransaction: {
                 iouRequestType: getDuplicateRequestType(transaction),
                 amount: 0,
@@ -1027,8 +1005,6 @@ function duplicateReport({
                 reportID: '1',
                 transactionID: '1',
             },
-            draftTransactionIDs,
->>>>>>> 39db014db8cd39cab9c9c54abd5c924713f9a7ab
             isSelfTourViewed,
             betas,
             personalDetails,
