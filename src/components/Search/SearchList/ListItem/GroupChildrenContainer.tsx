@@ -234,7 +234,7 @@ function GroupChildrenContainer({
             <Animated.View style={contentAnimatedStyle}>
                 {isExpanded || isRendered ? (
                     <Animated.View
-                        style={styles.stickToTop}
+                        style={[styles.stickToTop, {paddingBottom: 4}]}
                         onLayout={(e) => {
                             const height = e.nativeEvent.layout.height;
                             if (height) {
