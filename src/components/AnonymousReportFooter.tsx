@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -26,6 +27,7 @@ function AnonymousReportFooter({reportID}: AnonymousReportFooterProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const policy = usePolicy(report?.policyID);
     const isSmallSizeLayout = windowWidth - (shouldUseNarrowLayout ? 0 : variables.sideBarWithLHBWidth) < variables.anonymousReportFooterBreakpoint || isInSidePanel;
 
     return (
@@ -33,6 +35,7 @@ function AnonymousReportFooter({reportID}: AnonymousReportFooterProps) {
             <View style={[styles.flexRow, styles.flexShrink1]}>
                 <AvatarWithDisplayName
                     report={report}
+                    policy={policy}
                     isAnonymous
                     shouldEnableDetailPageNavigation
                 />

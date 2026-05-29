@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -9,6 +10,7 @@ import type ReportSearchHeaderProps from './types';
 function ReportSearchHeader({report, style, transactions, avatarBorderColor}: ReportSearchHeaderProps) {
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
+    const policy = usePolicy(report?.policyID);
 
     const statusContainerStyle = useMemo(() => {
         return [isLargeScreenWidth ? styles.mt1 : styles.mt0Half, report?.shouldShowStatusAsPending && styles.offlineFeedbackPending];
@@ -28,6 +30,7 @@ function ReportSearchHeader({report, style, transactions, avatarBorderColor}: Re
                 customDisplayNameStyle={styles.fontWeightNormal}
                 parentNavigationSubtitleTextStyles={[styles.textLineHeightNormal, styles.minHeight4, styles.mt1, !isLargeScreenWidth && styles.textMicro]}
                 parentNavigationStatusContainerStyles={statusContainerStyle}
+                policy={policy}
             />
         );
     }, [
@@ -41,6 +44,7 @@ function ReportSearchHeader({report, style, transactions, avatarBorderColor}: Re
         isLargeScreenWidth,
         styles.textMicro,
         statusContainerStyle,
+        policy,
     ]);
 
     return (

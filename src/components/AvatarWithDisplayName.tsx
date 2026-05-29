@@ -91,7 +91,7 @@ type AvatarWithDisplayNameProps = {
     parentNavigationStatusContainerStyles?: StyleProp<ViewStyle>;
 
     /** The policy associated with the report */
-    policy?: OnyxEntry<Policy>;
+    policy: OnyxEntry<Policy>;
 };
 
 function getCustomDisplayName(
