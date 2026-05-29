@@ -5,12 +5,10 @@ import SelectionListWithSections from '@components/SelectionList/SelectionListWi
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
-import useReportAttributes from '@hooks/useReportAttributes';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useSearchSelector from '@hooks/useSearchSelector';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {formatSectionsFromSearchTerm, getFilteredRecentAttendees, getParticipantsOption} from '@libs/OptionsListUtils';
+import {getFilteredRecentAttendees, getParticipantsOption} from '@libs/OptionsListUtils';
 import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
@@ -19,6 +17,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Attendee} from '@src/types/onyx/IOU';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 
 /**
@@ -63,13 +62,10 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
-    const reportAttributesDerived = useReportAttributes();
-    const privateIsArchivedMap = usePrivateIsArchivedMap();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     // Transform raw recentAttendees into Option[] format for use with getValidOptions (only for attendee filter)
     const recentAttendeeLists = useMemo(
@@ -77,19 +73,31 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         [personalDetails, recentAttendees, currentUserEmail, currentUserAccountID, shouldAllowNameOnlyOptions],
     );
 
-    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, setSelectedOptions, toggleSelection, areOptionsInitialized, onListEndReached} =
-        useSearchSelector({
-            selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-            searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
-            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-            includeUserToInvite: true,
-            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-            includeRecentReports: true,
-            shouldInitialize: didScreenTransitionEnd,
-            includeCurrentUser: true,
-            recentAttendees: recentAttendeeLists,
-            shouldAllowNameOnlyOptions,
-        });
+    const {
+        searchTerm,
+        debouncedSearchTerm,
+        setSearchTerm,
+        availableOptions,
+        selectedOptions,
+        selectedNonExistingOptions = getEmptyArray<OptionData>(),
+        setSelectedOptions,
+        toggleSelection,
+        areOptionsInitialized,
+        onListEndReached,
+    } = useSearchSelector({
+        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+        maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+        includeUserToInvite: true,
+        excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+        includeRecentReports: true,
+        shouldInitialize: didScreenTransitionEnd,
+        includeCurrentUser: true,
+        recentAttendees: recentAttendeeLists,
+        shouldAllowNameOnlyOptions,
+        shouldKeepSelectedInAvailableOptions: true,
+        shouldSeparateNonExistingSelectedOptions: true,
+    });
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections = [];
@@ -100,106 +108,75 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         const chatOptions = {...availableOptions};
         const currentUserOption = chatOptions.currentUserOption;
 
-        // Ensure current user is not in personalDetails when they should be excluded
-        if (currentUserOption) {
+        // Ensure current user is not in personalDetails or recentReports to avoid duplication
+        // with the dedicated currentUserOption section shown at the top of the list.
+        if (currentUserOption?.accountID) {
             chatOptions.personalDetails = chatOptions.personalDetails.filter((detail) => detail.accountID !== currentUserOption.accountID);
+            chatOptions.recentReports = chatOptions.recentReports.filter((report) => report.accountID !== currentUserOption.accountID);
         }
 
-        const formattedResults = formatSectionsFromSearchTerm(
-            debouncedSearchTerm.trim().toLowerCase(),
-            selectedOptions,
-            chatOptions.recentReports,
-            chatOptions.personalDetails,
-            privateIsArchivedMap,
-            currentUserAccountID,
-            allPolicies,
-            personalDetails,
-            true,
-            undefined,
-            reportAttributesDerived,
-        );
-        const selectedCurrentUser = formattedResults.section.data.find((option) => option.accountID === currentUserAccountID);
+        const isCurrentUserSelected = !!currentUserAccountID && selectedOptions.some((option) => option.accountID === currentUserAccountID);
 
-        // If the current user is already selected, remove them from the recent reports and personal details
-        if (selectedCurrentUser) {
-            chatOptions.recentReports = chatOptions.recentReports.filter((report) => report.accountID !== selectedCurrentUser.accountID);
-            chatOptions.personalDetails = chatOptions.personalDetails.filter((detail) => detail.accountID !== selectedCurrentUser.accountID);
-        }
-
-        // If the current user is not selected, add them to the top of the list
-        // Falls back to creating from personal details to handle pagination edge cases
-        if (!selectedCurrentUser) {
-            let currentUserOptionToShow = chatOptions.currentUserOption;
-            const currentUserDetails = currentUserAccountID ? personalDetails?.[currentUserAccountID] : undefined;
-            if (!currentUserOptionToShow && currentUserAccountID && currentUserDetails) {
-                const candidateOption = getParticipantsOption(currentUserDetails, personalDetails) as OptionData;
-                const trimmedSearchTerm = debouncedSearchTerm.trim().toLowerCase();
-                if (!trimmedSearchTerm || doesPersonalDetailMatchSearchTerm(candidateOption, currentUserAccountID, trimmedSearchTerm)) {
-                    currentUserOptionToShow = candidateOption;
-                }
-            }
-
-            if (currentUserOptionToShow) {
-                const formattedName = getDisplayNameForParticipant({
-                    accountID: currentUserOptionToShow.accountID,
-                    shouldAddCurrentUserPostfix: true,
-                    personalDetailsData: personalDetails,
-                    formatPhoneNumber,
-                });
-                currentUserOptionToShow.text = formattedName;
-
-                newSections.push({
-                    title: '',
-                    data: [currentUserOptionToShow],
-                    sectionIndex: 0,
-                });
+        // Show the current user at the top of the list. Falls back to creating from personal details
+        // to handle pagination edge cases.
+        let currentUserOptionToShow = currentUserOption;
+        const currentUserDetails = currentUserAccountID ? personalDetails?.[currentUserAccountID] : undefined;
+        if (!currentUserOptionToShow && currentUserAccountID && currentUserDetails) {
+            const candidateOption = getParticipantsOption(currentUserDetails, personalDetails) as OptionData;
+            const trimmedSearchTerm = debouncedSearchTerm.trim().toLowerCase();
+            if (!trimmedSearchTerm || doesPersonalDetailMatchSearchTerm(candidateOption, currentUserAccountID, trimmedSearchTerm)) {
+                currentUserOptionToShow = candidateOption;
             }
         }
 
-        newSections.push({
-            ...formattedResults.section,
-            data: formattedResults.section.data.map((option) => ({...option, isSelected: true})) as OptionData[],
-        });
+        if (currentUserOptionToShow) {
+            const formattedName = getDisplayNameForParticipant({
+                accountID: currentUserOptionToShow.accountID,
+                shouldAddCurrentUserPostfix: true,
+                personalDetailsData: personalDetails,
+                formatPhoneNumber,
+            });
+            currentUserOptionToShow = {...currentUserOptionToShow, text: formattedName, isSelected: isCurrentUserSelected};
 
-        // Filter current user from recentReports to avoid duplicate with currentUserOption section
-        // Only filter if both the report and currentUserOption have valid accountIDs to avoid
-        // accidentally filtering out name-only attendees (which have accountID: undefined)
-        const filteredRecentReports = chatOptions.recentReports.filter(
-            (report) => !report.accountID || !chatOptions.currentUserOption?.accountID || report.accountID !== chatOptions.currentUserOption.accountID,
-        );
+            newSections.push({
+                title: '',
+                data: [currentUserOptionToShow],
+                sectionIndex: 0,
+            });
+        }
+
+        // Selected options not present in personalDetails / recentReports (e.g. name-only attendees
+        // for the attendee filter). These need their own section so they stay visible. The current
+        // user is excluded since they already have a dedicated section above.
+        const extraSelectedOptions = selectedNonExistingOptions.filter((option) => !option.accountID || option.accountID !== currentUserAccountID);
+        if (extraSelectedOptions.length > 0) {
+            newSections.push({
+                title: '',
+                data: extraSelectedOptions,
+                sectionIndex: 1,
+            });
+        }
 
         newSections.push({
             title: '',
-            data: filteredRecentReports,
-            sectionIndex: 1,
+            data: chatOptions.recentReports,
+            sectionIndex: 2,
         });
 
         newSections.push({
             title: '',
             data: chatOptions.personalDetails,
-            sectionIndex: 2,
+            sectionIndex: 3,
         });
 
-        const noResultsFound = chatOptions.personalDetails.length === 0 && chatOptions.recentReports.length === 0 && !chatOptions.currentUserOption;
+        const noResultsFound = chatOptions.personalDetails.length === 0 && chatOptions.recentReports.length === 0 && !currentUserOptionToShow && extraSelectedOptions.length === 0;
         const message = noResultsFound ? translate('common.noResultsFound') : undefined;
 
         return {
             sections: newSections,
             headerMessage: message,
         };
-    }, [
-        areOptionsInitialized,
-        availableOptions,
-        debouncedSearchTerm,
-        selectedOptions,
-        privateIsArchivedMap,
-        currentUserAccountID,
-        personalDetails,
-        allPolicies,
-        reportAttributesDerived,
-        translate,
-        formatPhoneNumber,
-    ]);
+    }, [areOptionsInitialized, availableOptions, debouncedSearchTerm, selectedOptions, selectedNonExistingOptions, currentUserAccountID, personalDetails, translate, formatPhoneNumber]);
 
     const resetChanges = useCallback(() => {
         setSelectedOptions([]);
@@ -331,6 +308,8 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             shouldShowTextInput
             footerContent={footerContent}
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+            shouldUpdateFocusedIndex
+            shouldPreventAutoScrollOnSelect
             onSelectRow={handleParticipantSelection}
             isLoadingNewOptions={isLoadingNewOptions}
             shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
