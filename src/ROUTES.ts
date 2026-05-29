@@ -683,18 +683,17 @@ const DYNAMIC_ROUTES = {
         ],
     },
     REPORT_PARTICIPANTS_INVITE: {
-        path: 'participants/invite',
+        path: 'participants-invite',
         entryScreens: [SCREENS.REPORT_PARTICIPANTS.DYNAMIC_ROOT],
     },
     REPORT_PARTICIPANTS_DETAILS: {
-        path: 'participants/:accountID',
+        path: 'participants-details/:accountID',
         entryScreens: [SCREENS.REPORT_PARTICIPANTS.DYNAMIC_ROOT],
-        getRoute: (accountID: number) => `participants/${accountID}` as const,
+        getRoute: (accountID: number) => `participants-details/${accountID}` as const,
     },
     REPORT_PARTICIPANTS_ROLE: {
-        path: 'participants/:accountID/role',
+        path: 'participants-role',
         entryScreens: [SCREENS.REPORT_PARTICIPANTS.DYNAMIC_DETAILS],
-        getRoute: (accountID: number) => `participants/${accountID}/role` as const,
     },
     REPORT_DETAILS_SHARE_CODE: {
         path: 'share-code',

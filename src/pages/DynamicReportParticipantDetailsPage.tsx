@@ -67,7 +67,7 @@ function DynamicReportParticipantDetails({report, route}: DynamicReportParticipa
     };
 
     const openRoleSelectionModal = () => {
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_ROLE.getRoute(accountID)));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_ROLE.path));
     };
 
     if (!member) {
