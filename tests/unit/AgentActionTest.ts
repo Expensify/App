@@ -21,12 +21,12 @@ function getWriteOptions(): {optimisticData: AnyOnyxUpdate[]; successData: AnyOn
     return options as {optimisticData: AnyOnyxUpdate[]; successData: AnyOnyxUpdate[]; failureData: AnyOnyxUpdate[]};
 }
 
-function getOptimisticAccountID(optimisticData: AnyOnyxUpdate[]): string {
+function getOptimisticAccountID(optimisticData: AnyOnyxUpdate[]): number {
     const personalDetailUpdate = optimisticData.find((u) => u.key === ONYXKEYS.PERSONAL_DETAILS_LIST);
     if (!personalDetailUpdate?.value || typeof personalDetailUpdate.value !== 'object') {
         throw new Error('No personal detail update in optimisticData');
     }
-    return Object.keys(personalDetailUpdate.value as Record<string, unknown>).at(0) ?? '';
+    return Number(Object.keys(personalDetailUpdate.value as Record<string, unknown>).at(0));
 }
 
 describe('createAgent', () => {
@@ -170,8 +170,8 @@ describe('createAgent', () => {
     it('returns the optimistic accountID and avatarURI so callers can chain follow-up navigation', () => {
         const result = createAgent('Bot', 'My prompt', 'bot-avatar--blue');
 
-        expect(result.optimisticAccountID).toEqual(expect.any(String));
-        expect(Number(result.optimisticAccountID)).toBeGreaterThan(0);
+        expect(result.optimisticAccountID).toEqual(expect.any(Number));
+        expect(result.optimisticAccountID).toBeGreaterThan(0);
         expect(result.avatarURI).toBeTruthy();
     });
 
