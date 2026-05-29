@@ -189,7 +189,7 @@ If your company uses **Proofpoint Hosted Email Security**, you may be unable to 
 
 ## Can I add multiple receipts to one expense?
 
-Yes. Each expense has only one primary receipt, but you can attach additional receipt images directly on the expense for situations where multiple receipts are needed. [Learn how to attach additional receipts to an expense](articles/new-expensify/reports-and-expenses/Attach-and-edit-receipts-on-expenses#How-to-Add-Additional-Receipts-to-an-Expense). 
+Yes. Each expense has only one primary receipt, but you can attach additional receipt images directly on the expense for situations where multiple receipts are needed. [Learn how to attach additional receipts to an expense](articles/new-expensify/reports-and-expenses/Attach-and-edit-receipts-on-expenses#how-to-add-additional-receipts-to-an-expense). 
 
 ## Can I edit an expense after submission?
 
