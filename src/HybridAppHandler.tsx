@@ -9,6 +9,7 @@ import Log from './libs/Log';
 import {endSpan, startSpan} from './libs/telemetry/activeSpans';
 import {addBootsplashBreadcrumb} from './libs/telemetry/bootsplashTelemetry';
 import ONYXKEYS from './ONYXKEYS';
+import flushOnyxStringifyStats from './setup/telemetry/reportOnyxStringify';
 import {useSplashScreenActions} from './SplashScreenStateContext';
 import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 
@@ -22,6 +23,8 @@ function HybridAppHandler() {
 
         setupNewDotAfterTransitionFromOldDot(hybridAppSettings, tryNewDot).then(() => {
             if (loggedOutFromOldDot) {
+                // Flush Onyx JSON.stringify benchmark totals onto the still-active startup span before it ends.
+                flushOnyxStringifyStats();
                 endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP);
                 endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
                 endSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_LOGGED_OUT);

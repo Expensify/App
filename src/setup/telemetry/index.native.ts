@@ -3,10 +3,19 @@ import Log from '@libs/Log';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
 import reportModuleInitTimes from './reportModuleInitTimes';
+import reportOnyxInitialParse from './reportOnyxInitialParse';
+import installOnyxNativeParseBenchmark from './reportOnyxNativeParse';
 import setupSentry from './setupSentry';
 
 export default function (): void {
     setupSentry();
+
+    // Install the Onyx initial-parse benchmark callback before Onyx.init runs (called in src/setup/index.ts
+    // immediately after telemetry()), so the first SQLiteProvider.getAll() invocation can forward its timing.
+    reportOnyxInitialParse();
+    // Install the head-to-head native parser benchmark hook on the same lifecycle — the patched
+    // SQLiteProvider will invoke it with the same raw rows used by the Hermes measurement.
+    installOnyxNativeParseBenchmark();
 
     let nativeAppStartTimeMs: number | undefined;
     try {

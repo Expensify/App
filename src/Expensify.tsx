@@ -36,6 +36,7 @@ import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
 import PriorityModeHandler from './PriorityModeHandler';
 import type {Route} from './ROUTES';
+import flushOnyxStringifyStats from './setup/telemetry/reportOnyxStringify';
 import {useSplashScreenActions, useSplashScreenState} from './SplashScreenStateContext';
 
 Onyx.registerLogger(({level, message, parameters}) => {
@@ -201,6 +202,8 @@ function Expensify() {
     const onSplashHide = useCallback(() => {
         setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
         endSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION);
+        // Flush Onyx JSON.stringify benchmark totals onto the still-active startup span before it ends.
+        flushOnyxStringifyStats();
         endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP);
         endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
         endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.SPLASH_HIDER);
