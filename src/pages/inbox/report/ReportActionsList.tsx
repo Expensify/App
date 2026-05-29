@@ -7,7 +7,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import InvertedFlashList from '@components/FlashList/InvertedFlashList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/FlatList/hooks/useFlatListScrollKey';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -24,7 +23,6 @@ import useUnreadMarker from '@hooks/useUnreadMarker';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
-import FS from '@libs/Fullstory';
 import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -42,8 +40,6 @@ import {
     isTransactionThread,
 } from '@libs/ReportActionsUtils';
 import {
-    canShowReportRecipientLocalTime,
-    canUserPerformWriteAction,
     chatIncludesChronosWithID,
     getReportLastVisibleActionCreated,
     isArchivedNonExpenseReport,
@@ -69,10 +65,10 @@ import FloatingMessageCounter from './FloatingMessageCounter';
 import ReportActionIndexContext from './ReportActionIndexContext';
 import ReportActionsListHeader from './ReportActionsListHeader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
+import ReportActionsListPaddingView from './ReportActionsListPaddingView';
 import ShowPreviousMessagesButton from './ShowPreviousMessagesButton';
 import useReportActionsNewActionLiveTail from './useReportActionsNewActionLiveTail';
 import useReportUnreadMessageScrollTracking from './useReportUnreadMessageScrollTracking';
-import useShouldShowComposerForActiveEditDraft from './useShouldShowComposerForActiveEditDraft';
 
 type ReportActionsListProps = {
     /** The report currently being looked at */
@@ -122,9 +118,6 @@ type ReportActionsListProps = {
 
     setTreatAsNoPaginationAnchor: (value: boolean) => void;
 
-    /** Whether the composer is in full size */
-    isComposerFullSize?: boolean;
-
     /** Stable key to remount the list when the deep-linked action or unread anchor (or report) changes */
     listID: string;
 
@@ -168,7 +161,6 @@ function ReportActionsList({
     treatAsNoPaginationAnchor,
     setTreatAsNoPaginationAnchor,
     onLayout,
-    isComposerFullSize,
     listID,
     parentReportActionForTransactionThread,
     showHiddenHistory,
@@ -176,7 +168,6 @@ function ReportActionsList({
     onShowPreviousMessages,
 }: ReportActionsListProps) {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const personalDetailsList = usePersonalDetails();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
@@ -414,7 +405,6 @@ function ReportActionsList({
         return () => clearTimeout(timer);
     }, [actionIdToHighlight]);
 
-    const reportActionsListFSClass = FS.getChatFSClass(report);
     const lastIOUActionWithError = sortedVisibleReportActions.find((action) => action.errors);
     const prevLastIOUActionWithError = usePrevious(lastIOUActionWithError);
 
@@ -520,7 +510,6 @@ function ReportActionsList({
                         shouldDisplayReplyDivider={renderedVisibleReportActions.length > 1}
                         isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                         shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-                        personalDetails={personalDetailsList}
                         isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReportAction}
                     />
                     {!!reportStable?.reportID && (
@@ -544,7 +533,6 @@ function ReportActionsList({
             onShowPreviousMessages,
             parentReportAction,
             parentReportActionForTransactionThread,
-            personalDetailsList,
             isHarvestCreatedExpenseReportAction,
             renderedVisibleReportActions,
             reportStable,
@@ -562,9 +550,6 @@ function ReportActionsList({
         () => [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined, isArchivedNonExpenseReport(report, isReportArchived), draftReportAction?.reportActionID, draftMessageHTML],
         [draftMessageHTML, draftReportAction?.reportActionID, unreadMarkerReportActionID, shouldUseNarrowLayout, report, isReportArchived],
     );
-    const shouldShowComposerForActiveEditDraft = useShouldShowComposerForActiveEditDraft();
-    const hideComposer = !canUserPerformWriteAction(report, isReportArchived) && !shouldShowComposerForActiveEditDraft;
-    const shouldShowReportRecipientLocalTime = canShowReportRecipientLocalTime(personalDetailsList, report, currentUserAccountID) && !isComposerFullSize;
     const canShowHeader = isOffline || hasHeaderRendered.current;
 
     const onLayoutInner = useCallback(
@@ -661,9 +646,9 @@ function ReportActionsList({
                 isActive={isFloatingMessageCounterVisible}
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
-            <View
-                style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
-                fsClass={reportActionsListFSClass}
+            <ReportActionsListPaddingView
+                report={report}
+                isReportArchived={isReportArchived}
             >
                 <InvertedFlashList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
@@ -706,7 +691,7 @@ function ReportActionsList({
                         trackVerticalScrolling(undefined);
                     }}
                 />
-            </View>
+            </ReportActionsListPaddingView>
         </>
     );
 }
