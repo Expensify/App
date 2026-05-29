@@ -75,7 +75,7 @@ function TextInputFilterContent({filterKey, value: initialValue, autoFocus, onCh
     );
 }
 
-function CommonContent({filterKey, value: initialValue, type, policyIDs, policyIDQuery, autoFocus, onChange}: CommonContentProps) {
+function CommonContent({filterKey, value: initialValue, type, policyIDs, policyIDQuery, autoFocus, ready, onChange}: CommonContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [value, setValue] = useState<FilterComponentsProps['value']>(initialValue);
@@ -86,6 +86,7 @@ function CommonContent({filterKey, value: initialValue, type, policyIDs, policyI
         <FilterComponents
             value={fullscreen ? value : initialValue}
             type={type}
+            ready={ready}
             policyIDs={policyIDs}
             filterKey={filterKey}
             policyIDQuery={policyIDQuery}
@@ -114,7 +115,7 @@ function CommonContent({filterKey, value: initialValue, type, policyIDs, policyI
     );
 }
 
-function FilterContent({filterKey, values, policyIDQuery, autoFocus, onChange}: FilterContentProps) {
+function FilterContent({filterKey, values, policyIDQuery, autoFocus, ready = true, onChange}: FilterContentProps) {
     if (
         filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
         filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION ||
@@ -159,6 +160,7 @@ function FilterContent({filterKey, values, policyIDQuery, autoFocus, onChange}: 
                     [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: values?.[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`],
                     [CONST.SEARCH.DATE_MODIFIERS.RANGE]: values?.[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.RANGE}`],
                 }}
+                hasFeed={!!values?.feed}
                 onChange={onChange}
             />
         );
@@ -182,6 +184,7 @@ function FilterContent({filterKey, values, policyIDQuery, autoFocus, onChange}: 
             policyIDs={values?.policyID}
             policyIDQuery={policyIDQuery}
             autoFocus={autoFocus}
+            ready={ready}
             onChange={onChange}
         />
     );

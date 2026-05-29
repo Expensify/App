@@ -18,10 +18,11 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 type DateFilterComponentProps = {
     filterKey: SearchDateFilterKeys;
     value: SearchDateValues;
+    hasFeed: boolean;
     onChange: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
-function DateFilterComponent({filterKey, value: initialValue, onChange}: DateFilterComponentProps) {
+function DateFilterComponent({filterKey, value: initialValue, hasFeed, onChange}: DateFilterComponentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const fullscreen = useFullscreenAdvancedFilters();
@@ -70,7 +71,7 @@ function DateFilterComponent({filterKey, value: initialValue, onChange}: DateFil
                 selectedDateModifier={selectedDateModifier}
                 onSelectDateModifier={setSelectedDateModifier}
                 defaultDateValues={value}
-                presets={getDatePresets(filterKey, true)}
+                presets={getDatePresets(filterKey, hasFeed)}
                 onSubmit={onDateChange}
                 shouldShowActionButtons={false}
             />

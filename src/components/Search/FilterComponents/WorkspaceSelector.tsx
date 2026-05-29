@@ -2,11 +2,14 @@ import React from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {SearchFilterSelectionListProps} from '@components/Search/types';
 import {advancedSearchPoliciesSelector, useAdvancedSearchFiltersWorkspaces} from '@hooks/useAdvancedSearchFilters';
+import useDebouncedState from '@hooks/useDebouncedState';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {MultiSelectItem} from './MultiSelect';
 import MultiSelect from './MultiSelect';
 
@@ -17,9 +20,12 @@ type WorkspaceSelectorProps = SearchFilterSelectionListProps & {
     onChange: (item: string[]) => void;
 };
 
-function WorkspaceSelector({policyIDQuery, value, selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: WorkspaceSelectorProps) {
-    const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: advancedSearchPoliciesSelector});
-    const {workspaces, shouldShowWorkspaceSearchInput} = useAdvancedSearchFiltersWorkspaces(policies);
+function WorkspaceSelector({policyIDQuery, value, selectionListTextInputStyle, selectionListStyle, autoFocus, ready, footer, onChange}: WorkspaceSelectorProps) {
+    const {isOffline} = useNetwork();
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>(), policiesResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: advancedSearchPoliciesSelector});
+    const [, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
+    const {workspaces, shouldShowWorkspaceSearchInput} = useAdvancedSearchFiltersWorkspaces(policies, debouncedSearchTerm);
     const workspaceOptions: Array<MultiSelectItem<string>> = workspaces
         .flatMap((section) => section.data)
         .filter((workspace): workspace is typeof workspace & {policyID: string; icons: Icon[]} => !!workspace.policyID && !!workspace.icons)
@@ -37,11 +43,14 @@ function WorkspaceSelector({policyIDQuery, value, selectionListTextInputStyle, s
             items={workspaceOptions}
             value={selectedWorkspaceOptions}
             autoFocus={autoFocus}
-            onChange={(policyIDs) => onChange(policyIDs.map((id) => id.value))}
             isSearchable={shouldShowWorkspaceSearchInput}
             selectionListTextInputStyle={selectionListTextInputStyle}
             selectionListStyle={selectionListStyle}
             footer={footer}
+            loading={isLoadingApp && !isOffline}
+            shouldShowLoadingPlaceholder={isLoadingOnyxValue(policiesResult) || !ready}
+            onChange={(policyIDs) => onChange(policyIDs.map((id) => id.value))}
+            onSearch={setSearchTerm}
         />
     );
 }

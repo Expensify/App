@@ -34,6 +34,7 @@ function ReportFieldFilterComponent({values, onChange}: ReportFieldComponentProp
             <ReportFieldBase
                 ref={reportFieldRef}
                 values={values}
+                hasFeed={!!values?.feed}
                 selectedField={selectedField}
                 onFieldSelected={setSelectedField}
                 allowDeselectSingleSelection

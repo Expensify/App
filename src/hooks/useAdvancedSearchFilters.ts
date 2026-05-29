@@ -296,7 +296,7 @@ const hasTagsSelector = (allPolicyTagLists: OnyxCollection<PolicyTagLists>) => {
     return false;
 };
 
-function useAdvancedSearchFiltersWorkspaces(policies: OnyxCollection<Policy>) {
+function useAdvancedSearchFiltersWorkspaces(policies: OnyxCollection<Policy>, searchTerm?: string) {
     const {localeCompare} = useLocalize();
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
 
@@ -305,7 +305,7 @@ function useAdvancedSearchFiltersWorkspaces(policies: OnyxCollection<Policy>) {
         currentUserLogin,
         shouldShowPendingDeletePolicy: false,
         selectedPolicyIDs: undefined,
-        searchTerm: '',
+        searchTerm: searchTerm ?? '',
         localeCompare,
     });
 

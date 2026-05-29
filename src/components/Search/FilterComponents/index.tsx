@@ -138,6 +138,7 @@ function FilterComponents({
     selectionListTextInputStyle,
     selectionListStyle,
     autoFocus,
+    ready,
     footer,
     allowDeselectSingleSelection,
     onChange,
@@ -166,6 +167,7 @@ function FilterComponents({
                     selectionListTextInputStyle={selectionListTextInputStyle}
                     selectionListStyle={selectionListStyle}
                     autoFocus={autoFocus}
+                    ready={ready}
                     footer={footer}
                     onChange={onChange}
                 />
@@ -256,6 +258,7 @@ function FilterComponents({
                     selectionListTextInputStyle={selectionListTextInputStyle}
                     selectionListStyle={selectionListStyle}
                     autoFocus={autoFocus}
+                    ready={ready}
                     footer={footer}
                     onChange={onChange}
                 />
@@ -268,6 +271,7 @@ function FilterComponents({
                     selectionListTextInputStyle={selectionListTextInputStyle}
                     selectionListStyle={selectionListStyle}
                     autoFocus={autoFocus}
+                    ready={ready}
                     footer={footer}
                     onChange={onChange}
                 />

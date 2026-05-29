@@ -45,28 +45,31 @@ function SearchAdvancedFiltersContentBase() {
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
-            {validFilterKey ? (
-                <>
-                    <HeaderWithBackButton
-                        title={translate(FILTER_VIEW_MAP[validFilterKey].labelKey)}
-                        onBackButtonPress={goBack}
-                    />
-                    <View style={[styles.filterContentContainer]}>
-                        <FilterContent
-                            values={currentDraftFilters}
-                            filterKey={validFilterKey}
-                            policyIDQuery={currentSearchQueryJSON?.policyID}
-                            autoFocus
-                            onChange={(newValues) => {
-                                setDraftFilters(newValues);
-                                goBack();
-                            }}
+            {({didScreenTransitionEnd}) =>
+                validFilterKey ? (
+                    <>
+                        <HeaderWithBackButton
+                            title={translate(FILTER_VIEW_MAP[validFilterKey].labelKey)}
+                            onBackButtonPress={goBack}
                         />
-                    </View>
-                </>
-            ) : (
-                <FullPageNotFoundView shouldShow />
-            )}
+                        <View style={[styles.filterContentContainer]}>
+                            <FilterContent
+                                values={currentDraftFilters}
+                                filterKey={validFilterKey}
+                                policyIDQuery={currentSearchQueryJSON?.policyID}
+                                autoFocus
+                                ready={didScreenTransitionEnd}
+                                onChange={(newValues) => {
+                                    setDraftFilters(newValues);
+                                    goBack();
+                                }}
+                            />
+                        </View>
+                    </>
+                ) : (
+                    <FullPageNotFoundView shouldShow />
+                )
+            }
         </ScreenWrapper>
     );
 }

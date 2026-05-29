@@ -88,6 +88,7 @@ function FilterPopup({filterKey, searchAdvancedFiltersForm, queryJSON, closeOver
                 filterKey={filterKey}
                 value={value}
                 label={label}
+                hasFeed={!!searchAdvancedFiltersForm.feed}
                 updateFilterForm={closeModalAndUpdateFilterForm}
             />
         );

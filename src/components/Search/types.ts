@@ -410,6 +410,7 @@ type SearchFilterSelectionListProps = {
     selectionListTextInputStyle?: StyleProp<ViewStyle>;
     selectionListStyle?: SelectionListStyle;
     autoFocus?: boolean;
+    ready?: boolean;
     footer?: React.ReactNode;
 };
 

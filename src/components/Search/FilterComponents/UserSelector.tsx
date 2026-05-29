@@ -20,7 +20,7 @@ type UserSelectorProps = SearchFilterSelectionListProps & {
     onChange: (options: string[]) => void;
 };
 
-function UserSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: UserSelectorProps) {
+function UserSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, ready, footer, onChange}: UserSelectorProps) {
     const selectionListRef = useRef<SelectionListHandle<ListItem> | null>(null);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -43,6 +43,7 @@ function UserSelector({value = [], selectionListTextInputStyle, selectionListSty
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         includeCurrentUser: false,
         includeRecentReports: false,
+        shouldInitialize: ready,
         onSelectionChange: onChange,
     });
 
@@ -93,7 +94,7 @@ function UserSelector({value = [], selectionListTextInputStyle, selectionListSty
                 ListItem={UserSelectionListItem}
                 onSelectRow={selectUser}
                 isLoadingNewOptions={isLoadingNewOptions}
-                shouldShowLoadingPlaceholder={!areOptionsInitialized}
+                shouldShowLoadingPlaceholder={!areOptionsInitialized || !ready}
                 style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
                 footerContent={footer}
             />

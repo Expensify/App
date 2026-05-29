@@ -42,12 +42,19 @@ type MultiSelectProps<T> = SearchFilterSelectionListProps & {
     /** Whether the data for the popover is loading */
     loading?: boolean;
 
+    /** Whether to show the loading placeholder */
+    shouldShowLoadingPlaceholder?: boolean;
+
     /** Whether the text input should be auto-focused or not. Defaults to true. */
     autoFocus?: boolean;
+
+    /** Callback to filter out items based on search term */
+    onSearch?: (searchTerm: string) => void;
 };
 
 function MultiSelect<T extends string>({
     loading,
+    shouldShowLoadingPlaceholder,
     value,
     items,
     isSearchable,
@@ -57,6 +64,7 @@ function MultiSelect<T extends string>({
     autoFocus,
     footer,
     onChange,
+    onSearch,
 }: MultiSelectProps<T>) {
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -96,7 +104,7 @@ function MultiSelect<T extends string>({
     const textInputOptions: TextInputOptions = {
         value: searchTerm,
         label: isSearchable ? (searchPlaceholder ?? translate('common.search')) : undefined,
-        onChangeText: setSearchTerm,
+        onChangeText: onSearch ?? setSearchTerm,
         headerMessage,
         style: {
             containerStyle: selectionListTextInputStyle,
@@ -122,6 +130,7 @@ function MultiSelect<T extends string>({
             ) : (
                 <SelectionList
                     shouldSingleExecuteRowSelect
+                    shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                     data={listData}
                     ListItem={MultiSelectListItem}
                     onSelectRow={updateSelectedItems}
