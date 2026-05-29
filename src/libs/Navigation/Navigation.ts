@@ -37,6 +37,7 @@ import {isFullScreenName, isOnboardingFlowName, isSplitNavigatorName} from './he
 import isReportOpenInRHP from './helpers/isReportOpenInRHP';
 import isReportTopmostSplitNavigator from './helpers/isReportTopmostSplitNavigator';
 import isSideModalNavigator from './helpers/isSideModalNavigator';
+import isTabNavigatorReady from './helpers/isTabNavigatorReady';
 import linkTo from './helpers/linkTo';
 import getMinimalAction from './helpers/linkTo/getMinimalAction';
 import type {LinkToOptions} from './helpers/linkTo/types';
@@ -698,8 +699,16 @@ function navContainsProtectedRoutes(state: State | undefined): boolean {
         return false;
     }
 
-    // If one protected screen is in the routeNames then other screens are there as well.
-    return state?.routeNames.includes(PROTECTED_SCREENS.CONCIERGE);
+    if (!state.routeNames.includes(PROTECTED_SCREENS.CONCIERGE)) {
+        return false;
+    }
+
+    // routeNames only tells us screens are declared on the root navigator.
+    // We also need TabNavigator to be mounted (its child router has run
+    // useNavigationBuilder and produced a non-stale nested state), otherwise a
+    // deferred NAVIGATE targeting a screen inside TabNavigator will be dispatched
+    // before any child router is registered to handle it.
+    return isTabNavigatorReady(state);
 }
 
 /**
@@ -825,7 +834,7 @@ function dismissModal({ref = navigationRef, afterTransition, waitForTransition}:
 const dismissModalWithReport = (
     {reportID, reportActionID, referrer, backTo}: ReportsSplitNavigatorParamList[typeof SCREENS.REPORT],
     ref = navigationRef,
-    options?: {onBeforeNavigate?: (willOpenReport: boolean) => void},
+    options?: {onBeforeNavigate?: (willOpenReport: boolean) => void; afterTransition?: () => void},
 ) => {
     const dismissAndOpenReport = () => {
         const topmostSuperWideRHPReportID = getTopmostSuperWideRHPReportID();
@@ -833,7 +842,7 @@ const dismissModalWithReport = (
 
         if (topmostSuperWideRHPReportID === reportID && areReportsIDsDefined) {
             options?.onBeforeNavigate?.(false);
-            dismissToSuperWideRHP();
+            dismissToSuperWideRHP({afterTransition: options?.afterTransition});
             return;
         }
 
@@ -842,14 +851,14 @@ const dismissModalWithReport = (
         const isReportsSplitTopmostFullScreen = isReportTopmostSplitNavigator();
         if (topmostReportID === reportID && areReportsIDsDefined && isReportsSplitTopmostFullScreen) {
             options?.onBeforeNavigate?.(false);
-            dismissModal();
+            dismissModal({afterTransition: options?.afterTransition});
             return;
         }
         options?.onBeforeNavigate?.(true);
         const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID, referrer, backTo);
         dismissModal({
             afterTransition: () => {
-                navigate(reportRoute);
+                navigate(reportRoute, {afterTransition: options?.afterTransition});
             },
         });
     };
