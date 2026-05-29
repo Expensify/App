@@ -56,10 +56,6 @@ type WorkspaceConfirmationFormProps = {
      */
     policyOwnerEmail?: string;
 
-    /** Optional pre-generated policyID. When omitted the form generates one internally. Allows callers
-     *  that need the ID before submit (e.g. for pre-inserting the destination route under the RHP). */
-    policyID?: string;
-
     /** Submit function */
     onSubmit: (params: WorkspaceConfirmationSubmitFunctionParams) => void;
 
@@ -70,13 +66,7 @@ type WorkspaceConfirmationFormProps = {
     addBottomSafeAreaPadding?: boolean;
 };
 
-function WorkspaceConfirmationForm({
-    onSubmit,
-    policyOwnerEmail = '',
-    policyID: policyIDFromProps,
-    onBackButtonPress = () => Navigation.goBack(),
-    addBottomSafeAreaPadding = true,
-}: WorkspaceConfirmationFormProps) {
+function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButtonPress = () => Navigation.goBack(), addBottomSafeAreaPadding = true}: WorkspaceConfirmationFormProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Camera', 'ImageCropSquareMask']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -118,8 +108,7 @@ function WorkspaceConfirmationForm({
         [translate, isApprovedAccountant],
     );
 
-    const [generatedPolicyID] = useState(() => generatePolicyID());
-    const policyID = policyIDFromProps ?? generatedPolicyID;
+    const policyID = useMemo(() => generatePolicyID(), []);
     const [session, metadata] = useOnyx(ONYXKEYS.SESSION);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 

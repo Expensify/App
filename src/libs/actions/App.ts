@@ -643,19 +643,11 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
                 return;
             }
 
-            // Fast path: WorkspaceConfirmationPage already pre-inserted the destination route under the
-            // RHP (and seeded a draft policy so it rendered actual content under the modal). We just
-            // need to dismiss the modal — no second REPLACE_FULLSCREEN_UNDER_RHP needed.
-            if (Navigation.getIsFullscreenPreInsertedUnderRHP()) {
-                Navigation.clearFullscreenPreInsertedFlag();
-                Navigation.dismissModal();
-                return;
-            }
-
-            // Slow path (pre-insert timer didn't fire, or wide layout): collapse the destination tab to
-            // the new leaf so the RHP dismiss animation reveals only the new workspace, without the
-            // prior list briefly flashing underneath.
-            Navigation.revealRouteBeforeDismissingModal(routeToNavigate, {collapseTabToLeaf: true});
+            // Collapse the destination tab to the new leaf so the RHP dismiss reveals only the new
+            // workspace, without the prior WorkspacesList briefly flashing underneath.
+            Navigation.revealRouteBeforeDismissingModal(routeToNavigate, {
+                collapseTabToLeaf: true,
+            });
         } else {
             Navigation.navigate(routeToNavigate, {forceReplace: true});
         }

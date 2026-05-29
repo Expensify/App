@@ -20,17 +20,18 @@ const Stack = createWorkspaceNavigator<WorkspaceNavigatorParamList>();
 // does not play SLIDE_FROM_RIGHT (which on iOS native-stack would otherwise be deferred and
 // replayed after the RHP dismiss, briefly revealing the collapsed-away WorkspacesList).
 function hasNoEnterAnimationFlag(params: unknown): boolean {
-    return !!(params as {_noEnterAnimation?: boolean} | undefined)?._noEnterAnimation;
+    return !!(params as {noEnterAnimation?: boolean} | undefined)?.noEnterAnimation;
 }
 
 function WorkspaceNavigator({route}: PlatformStackScreenProps<TabNavigatorParamList, typeof NAVIGATORS.WORKSPACE_NAVIGATOR>) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     // On narrow layout, use slide animation and enable swipe-back gesture on native platforms from WorkspaceInitialPage and DomainInitialPage.
-    // When the leaf route carries `_noEnterAnimation` (set atomically with the navigation state change in
+    // When the leaf route carries `noEnterAnimation` (set atomically with the navigation state change in
     // handleReplaceFullscreenUnderRHP for `collapseTabToLeaf`), suppress the slide so the screen mounts instantly.
-    const buildSplitNavigatorOptions = ({route: screenRoute}: {route: {params?: unknown}}) => {
-        if (!shouldUseNarrowLayout || hasNoEnterAnimationFlag(screenRoute.params)) {
+    const buildSplitNavigatorOptions = ({route: screenRoute}: {route: {params?: unknown; name?: string; key?: string}}) => {
+        const hasNoEnter = hasNoEnterAnimationFlag(screenRoute.params);
+        if (!shouldUseNarrowLayout || hasNoEnter) {
             return {animation: Animations.NONE};
         }
         return {animation: Animations.SLIDE_FROM_RIGHT, gestureEnabled: true};

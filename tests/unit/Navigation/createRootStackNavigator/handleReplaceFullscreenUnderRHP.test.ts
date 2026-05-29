@@ -113,7 +113,7 @@ beforeEach(() => {
 });
 
 describe('handleReplaceFullscreenUnderRHP — tab merge behaviour', () => {
-    it('with collapseTabToLeaf=true: replaces the target tab with a SINGLE leaf route (no WORKSPACES_LIST seed, no sandwich)', () => {
+    it('with collapseTabToLeaf=true: keeps WORKSPACES_LIST as the back stack and focuses the new leaf', () => {
         // Existing state: WORKSPACE_NAVIGATOR has just WORKSPACES_LIST under it.
         const existing = makeExistingState([makeRoute(SCREENS.WORKSPACES_LIST, undefined, undefined, 'list-key')], 0);
 
@@ -124,18 +124,19 @@ describe('handleReplaceFullscreenUnderRHP — tab merge behaviour', () => {
         const workspaceNav = (tabNav?.state as NavigationState | undefined)?.routes?.find((r) => r.name === NAVIGATORS.WORKSPACE_NAVIGATOR);
         const workspaceNavInnerRoutes = (workspaceNav?.state as NavigationState | undefined)?.routes;
 
-        expect(workspaceNavInnerRoutes).toHaveLength(1);
-        expect(workspaceNavInnerRoutes?.at(0)?.name).toBe(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
-        expect((workspaceNav?.state as NavigationState | undefined)?.index).toBe(0);
-        // Leaf is tagged with `_noEnterAnimation` so navigators that opt in (WorkspaceNavigator) read it
+        expect(workspaceNavInnerRoutes).toHaveLength(2);
+        expect(workspaceNavInnerRoutes?.at(0)?.name).toBe(SCREENS.WORKSPACES_LIST);
+        expect(workspaceNavInnerRoutes?.at(1)?.name).toBe(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
+        expect((workspaceNav?.state as NavigationState | undefined)?.index).toBe(1);
+        // Leaf is tagged with `noEnterAnimation` so navigators that opt in (WorkspaceNavigator) read it
         // synchronously when computing screenOptions and skip the SLIDE_FROM_RIGHT entry animation.
-        expect(workspaceNavInnerRoutes?.at(0)?.params).toEqual({policyID: 'NEW', _noEnterAnimation: true});
+        expect(workspaceNavInnerRoutes?.at(1)?.params).toEqual({policyID: 'NEW', noEnterAnimation: true});
     });
 
-    it('with collapseTabToLeaf=true: collapses even when the existing nested stack already has WORKSPACE_SPLIT_NAVIGATOR at index 0 (no sandwich)', () => {
-        // This simulates the pre-existing bug input: an earlier custom helper had collapsed the tab,
-        // and the legacy reveal would prepend WORKSPACES_LIST again. With collapseTabToLeaf the result
-        // must remain a single leaf.
+    it('with collapseTabToLeaf=true: rebuilds to [WORKSPACES_LIST, new leaf] even when the existing nested stack already has WORKSPACE_SPLIT_NAVIGATOR at index 0', () => {
+        // This simulates the pre-existing bug input: an earlier custom helper had collapsed the tab.
+        // collapseTabToLeaf rebuilds the nested stack as [WORKSPACES_LIST, new leaf] so the prior split is
+        // dropped and swipe-back from the new workspace lands on the list.
         const existing = makeExistingState([makeRoute(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {policyID: 'OLD'}, undefined, 'old-split-key')], 0);
 
         const result = handleReplaceFullscreenUnderRHP(existing, makeAction(true), CONFIG_OPTIONS, stackRouter);
@@ -144,9 +145,11 @@ describe('handleReplaceFullscreenUnderRHP — tab merge behaviour', () => {
         const workspaceNav = (tabNav?.state as NavigationState | undefined)?.routes?.find((r) => r.name === NAVIGATORS.WORKSPACE_NAVIGATOR);
         const workspaceNavInnerRoutes = (workspaceNav?.state as NavigationState | undefined)?.routes;
 
-        expect(workspaceNavInnerRoutes).toHaveLength(1);
-        expect(workspaceNavInnerRoutes?.at(0)?.name).toBe(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
-        expect(workspaceNavInnerRoutes?.at(0)?.params).toEqual({policyID: 'NEW', _noEnterAnimation: true});
+        expect(workspaceNavInnerRoutes).toHaveLength(2);
+        expect(workspaceNavInnerRoutes?.at(0)?.name).toBe(SCREENS.WORKSPACES_LIST);
+        expect(workspaceNavInnerRoutes?.at(1)?.name).toBe(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
+        expect((workspaceNav?.state as NavigationState | undefined)?.index).toBe(1);
+        expect(workspaceNavInnerRoutes?.at(1)?.params).toEqual({policyID: 'NEW', noEnterAnimation: true});
     });
 
     it('with collapseTabToLeaf=false (default): keeps the existing sidebar prepend behaviour so back navigation lands on it', () => {

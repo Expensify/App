@@ -51,6 +51,10 @@ const MODAL_ROUTES_TO_DISMISS = new Set<string>([
 
 const screensWithEnteringAnimation = new Set<string>();
 
+// Bumped each time the workspace tab is collapsed to a freshly-created workspace so the tab route gets
+// a unique key and remounts (see handleReplaceFullscreenUnderRHP).
+let workspaceTabRevealKey = 0;
+
 // RN's deep-link initial-state hint keys, per `getStateFromParams` in
 // @react-navigation/core/src/useNavigationBuilder.tsx. Stripped only when `params.screen` is
 // set so legitimate user keys (e.g. `path`, `initial`) on non-hydrated routes survive.
@@ -177,6 +181,24 @@ function getFocusedRouteFromNavigatorState(navState: NavigationState | PartialSt
             : // Partial states from linking should include `index`; fall back to first route.
               0;
     return navState.routes[idx] as NavigationPartialRoute;
+}
+
+/**
+ * Recursively tags a route and its focused-path descendants with `noEnterAnimation: true`. Used by
+ * collapseTabToLeaf so every nested screen along the focused path (outer leaf, its split, its inner
+ * sidebar) reads the flag synchronously when computing screenOptions and mounts with animation: NONE.
+ */
+function tagFocusedPathWithNoEnterAnimation<R extends {params?: unknown; state?: PartialState<NavigationState> | NavigationState | undefined}>(route: R): R {
+    const params = {...((route.params as Record<string, unknown> | undefined) ?? {}), noEnterAnimation: true};
+    const innerState = route.state as (PartialState<NavigationState> & {index?: number}) | NavigationState | undefined;
+    if (!innerState?.routes?.length) {
+        return {...route, params} as R;
+    }
+    const innerIdx = typeof innerState.index === 'number' && innerState.routes[innerState.index] !== undefined ? innerState.index : innerState.routes.length - 1;
+    const innerRoutes = innerState.routes.map((r, i) =>
+        i === innerIdx ? tagFocusedPathWithNoEnterAnimation(r as {params?: unknown; state?: PartialState<NavigationState> | NavigationState | undefined}) : r,
+    );
+    return {...route, params, state: {...innerState, routes: innerRoutes} as typeof route.state} as R;
 }
 
 /**
@@ -399,18 +421,25 @@ function handleReplaceFullscreenUnderRHP(
             const newNestedRoutes = focusedTargetTab.state?.routes;
             let mergedNestedState = focusedTargetTab.state;
             if (action.payload.collapseTabToLeaf) {
-                // Replace the tab's nested stack with the leaf only, so the RHP dismiss animation
-                // reveals just the destination — no seeded sidebar flashing underneath.
-                // Also tag the leaf with `_noEnterAnimation`: navigators that opt in (e.g. WorkspaceNavigator)
-                // read this param synchronously when computing screenOptions, so the screen mounts with
-                // animation: 'none' on its FIRST render. This avoids the race seen with an event-emitter
-                // suppression where the navigation state change committed before the setState toggling the
-                // animation option, and iOS native-stack played a deferred SLIDE_FROM_RIGHT after the
-                // RHP dismiss — briefly revealing the collapsed-away list.
+                // Replace the tab's nested stack with [sidebar, leaf] so:
+                //  - The dismissing modal reveals only the leaf (top of stack covers the sidebar).
+                //  - Swipe-back from the new leaf lands on the sidebar (e.g., WorkspacesList).
+                //  - When the previous leaf was the same-named SPLIT (different policyID), the new
+                //    state has more routes than the old one — RN treats this as a push, not an
+                //    in-place same-name replace which on web exposes a blank frame.
+                // The leaf AND its focused nested descendants are tagged with `noEnterAnimation`
+                // so navigators on the focused path mount with animation: 'none' on first render.
                 const leafRoute = newNestedRoutes?.at(-1);
                 if (leafRoute && focusedTargetTab.state) {
-                    const taggedLeaf = {...leafRoute, params: {...(leafRoute.params as Record<string, unknown> | undefined), _noEnterAnimation: true}};
-                    mergedNestedState = {...focusedTargetTab.state, routes: [taggedLeaf], index: 0};
+                    const taggedLeaf = tagFocusedPathWithNoEnterAnimation(leafRoute);
+                    const sidebarBackName = r.name === NAVIGATORS.WORKSPACE_NAVIGATOR ? SCREENS.WORKSPACES_LIST : undefined;
+                    const collapsedRoutes: NavigationPartialRoute[] = sidebarBackName ? [{name: sidebarBackName}, taggedLeaf] : [taggedLeaf];
+                    mergedNestedState = {...focusedTargetTab.state, routes: collapsedRoutes, index: collapsedRoutes.length - 1};
+                } else {
+                    Log.hmmm('[Navigation] handleReplace: collapseTabToLeaf set but leaf or state missing', {
+                        hasLeafRoute: !!leafRoute,
+                        hasFocusedTargetTabState: !!focusedTargetTab.state,
+                    });
                 }
             } else {
                 // Prepend the existing sidebar/root route (e.g. Inbox) to the incoming state when
@@ -432,8 +461,16 @@ function handleReplaceFullscreenUnderRHP(
             // Strip any RN deep-link hint chain from `r.params`; otherwise RN would run a
             // follow-up NAVIGATE from it and override the `state` we splice below.
             const sanitizedRoute = withSanitizedDeepLinkParams(r, focusedTargetTab.params as Record<string, unknown> | undefined);
+            // A fresh key remounts the workspace tab so react-native-screens builds a new native view that is
+            // drawn before the RHP dismiss reveals it, instead of repainting the heavier multi-tab tree a frame late.
+            let remountKey: {key?: string} = {};
+            if (action.payload.collapseTabToLeaf) {
+                workspaceTabRevealKey += 1;
+                remountKey = {key: `${r.name}-${workspaceTabRevealKey}`};
+            }
             return {
                 ...sanitizedRoute,
+                ...remountKey,
                 ...(mergedNestedState !== undefined ? {state: mergedNestedState as typeof r.state} : {}),
             };
         });
@@ -442,7 +479,8 @@ function handleReplaceFullscreenUnderRHP(
         // Save original route so handleRemoveFullscreenUnderRHP can fully restore it on cancel.
         preInsertedOriginalTabRoute = existingTabRoute;
         const newRoutes = [...routesWithoutRHP.slice(0, tabNavIndex), updatedTabRoute, ...routesWithoutRHP.slice(tabNavIndex + 1), rhpRoute];
-        return stackRouter.getRehydratedState({...state, routes: newRoutes, index: newRoutes.length - 1}, configOptions);
+        const rehydrated = stackRouter.getRehydratedState({...state, routes: newRoutes, index: newRoutes.length - 1}, configOptions);
+        return rehydrated;
     }
 
     // For non-tab fullscreen targets: push the route underneath the RHP (existing behavior).
@@ -503,6 +541,7 @@ function handleRemoveFullscreenUnderRHP(
     if (preInsertedOriginalTabRoute) {
         const tabNavIndex = routesWithoutRHP.findLastIndex((r) => r.name === NAVIGATORS.TAB_NAVIGATOR);
         if (tabNavIndex < 0) {
+            Log.hmmm('[Navigation] handleRemove: TAB_NAVIGATOR not found, clearing snapshot');
             preInsertedOriginalTabRoute = undefined;
             return null;
         }

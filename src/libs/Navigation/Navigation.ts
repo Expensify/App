@@ -1009,11 +1009,11 @@ function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransiti
             type: CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP,
             payload: {route, collapseTabToLeaf: options?.collapseTabToLeaf},
         });
-        // Wait for the inserted route's transition before dismissing the modal: the freshly
-        // inserted fullscreen route needs to finish its layout/transition before the RHP
-        // slides away, otherwise the dismiss momentarily reveals a blank screen on iOS.
+
         TransitionTracker.runAfterTransitions({
-            callback: () => dismissModal({afterTransition: options?.afterTransition, waitForTransition: getIsNarrowLayout()}),
+            callback: () => {
+                dismissModal({afterTransition: options?.afterTransition, waitForTransition: getIsNarrowLayout()});
+            },
             waitForUpcomingTransition: true,
         });
     });
@@ -1035,12 +1035,8 @@ let preInsertedFullscreenRouteName: string | undefined;
  * is that the insert happens eagerly (on confirmation screen mount) rather than at
  * submission time, giving React time to mount the destination component tree while
  * the user is still filling in details.
- *
- * `collapseTabToLeaf` mirrors the same option on revealRouteBeforeDismissingModal: when set,
- * the destination tab's nested stack is replaced with the leaf route only, so the dismiss
- * animation reveals just the destination — no seeded sidebar/list flashing underneath.
  */
-function preInsertFullscreenUnderRHP(route: Route, options?: {collapseTabToLeaf?: boolean}) {
+function preInsertFullscreenUnderRHP(route: Route) {
     if (!getIsNarrowLayout()) {
         return;
     }
@@ -1066,7 +1062,7 @@ function preInsertFullscreenUnderRHP(route: Route, options?: {collapseTabToLeaf?
 
     navigationRef.current.dispatch({
         type: CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP,
-        payload: {route, collapseTabToLeaf: options?.collapseTabToLeaf},
+        payload: {route},
     });
 
     const stateAfter = navigationRef.current.getRootState();
@@ -1118,6 +1114,7 @@ function removePreInsertedFullscreenIfNeeded() {
 
     const rootState = navigationRef.getRootState();
     if (!rootState) {
+        Log.hmmm('[Navigation] removePreInserted: no rootState');
         return;
     }
 
@@ -1141,16 +1138,25 @@ function removePreInsertedFullscreenIfNeeded() {
     const originalTabRoute = getPreInsertedOriginalTabRoute();
     if (originalTabRoute) {
         clearPreInsertedOriginalTabRoute();
+        // Read the root state synchronously inside rAF and dispatch a plain CommonActions.reset on
+        // navigationRef. The function form `dispatch((state) => ...)` would be invoked with the
+        // currently focused navigator's state (the collapsed WorkspaceSplit after RHP dismiss),
+        // which doesn't contain TAB_NAVIGATOR — the previous fallback `reset(state)` then no-op'd
+        // that inner navigator instead of restoring the saved tab snapshot.
         requestAnimationFrame(() => {
-            navigationRef.current?.dispatch((state) => {
-                const tabNavIndex = state.routes.findLastIndex((r) => r.name === NAVIGATORS.TAB_NAVIGATOR);
-                if (tabNavIndex < 0) {
-                    return CommonActions.reset(state);
-                }
-                const newRoutes = [...state.routes.slice(0, tabNavIndex), originalTabRoute as (typeof state.routes)[number], ...state.routes.slice(tabNavIndex + 1)];
-                const clampedIndex = state.index >= newRoutes.length ? newRoutes.length - 1 : state.index;
-                return CommonActions.reset({...state, routes: newRoutes, index: clampedIndex});
-            });
+            const rootStateAtRAF = navigationRef.getRootState();
+            if (!rootStateAtRAF) {
+                Log.hmmm('[Navigation] removePreInserted: no rootState at rAF time');
+                return;
+            }
+            const tabNavIndex = rootStateAtRAF.routes.findLastIndex((r) => r.name === NAVIGATORS.TAB_NAVIGATOR);
+            if (tabNavIndex < 0) {
+                Log.hmmm('[Navigation] removePreInserted: TAB_NAVIGATOR not in rootState at rAF time', {routeNames: rootStateAtRAF.routes.map((r) => r.name)});
+                return;
+            }
+            const newRoutes = [...rootStateAtRAF.routes.slice(0, tabNavIndex), originalTabRoute, ...rootStateAtRAF.routes.slice(tabNavIndex + 1)];
+            const clampedIndex = rootStateAtRAF.index >= newRoutes.length ? newRoutes.length - 1 : rootStateAtRAF.index;
+            navigationRef.current?.dispatch(CommonActions.reset({...rootStateAtRAF, routes: newRoutes, index: clampedIndex}));
         });
         return;
     }
