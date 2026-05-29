@@ -49,7 +49,7 @@ function DateFilterComponent({filterKey, value: initialValue, onChange}: DateFil
     };
 
     return (
-        <View style={[styles.flex1, !fullscreen && styles.pv2]}>
+        <View style={[styles.flex1, !fullscreen && styles.pt2]}>
             {!!selectedDateModifier && (
                 <HeaderWithBackButton
                     style={[styles.h10]}

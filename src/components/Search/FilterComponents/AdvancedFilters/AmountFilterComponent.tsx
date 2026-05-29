@@ -186,7 +186,7 @@ function AmountFilterComponent({filterKey, value, autoFocus, onChange}: AmountFi
     const label = translate(FILTER_VIEW_MAP[filterKey].labelKey);
 
     return (
-        <View style={[styles.flex1, styles.justifyContentBetween, !fullscreen && styles.pv2]}>
+        <View style={[styles.flex1, styles.justifyContentBetween, !fullscreen && styles.pt2]}>
             <ScrollView
                 keyboardShouldPersistTaps="handled"
                 // In landscape mode, when the virtual keyboard appears, the entire ScrollView shrinks and no longer receives input,
