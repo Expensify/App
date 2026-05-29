@@ -1,11 +1,12 @@
 import React from 'react';
-import {type TNode, useAmbientTRenderEngine} from 'react-native-render-html';
+import {useAmbientTRenderEngine} from 'react-native-render-html';
+import type {TNode} from 'react-native-render-html';
 import type {PieSliceData} from 'victory-native';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
+import parseVictoryLabelNode from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/victoryLabelParser';
 import type {PolarChartData} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import parseComponent from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseComponent';
-import parseVictoryLabelNode from '../parsers/victoryLabelParser';
 import VictoryChartLabel from './VictoryChartLabel';
 
 type VictoryChartPieLabelProps = {

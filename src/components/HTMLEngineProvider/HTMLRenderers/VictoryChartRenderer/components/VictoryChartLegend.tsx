@@ -35,7 +35,7 @@ function VictoryChartLegend({x, y, entries, gutter, symbolSpacer}: VictoryChartL
             acc.x += (symbolSize ?? 0) + (symbolSpacer ?? 0);
             const textX = acc.x;
             const textY = y - lineHeight / 2;
-            acc.x += (font?.getGlyphWidths(font.getGlyphIDs(text)).reduce((acc, width) => acc + width, 0) ?? 0) + (gutter ?? 0);
+            acc.x += (font?.getGlyphWidths(font.getGlyphIDs(text)).reduce((totalWidth, width) => totalWidth + width, 0) ?? 0) + (gutter ?? 0);
 
             acc.entries.push({
                 symbolX,
