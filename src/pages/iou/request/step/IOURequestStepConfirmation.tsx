@@ -368,8 +368,6 @@ function IOURequestStepConfirmation({
         if (defaultParticipants.at(0)?.isSelfDM) {
             setTransactionReport(transaction.transactionID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
             navigation.setParams({iouType: CONST.IOU.TYPE.TRACK});
-        } else {
-            navigation.setParams({iouType: CONST.IOU.TYPE.CREATE});
         }
     }, [transaction?.transactionID, transaction?.participants, defaultParticipants, isNewManualExpenseFlowEnabled, isManualRequest, navigation]);
 
