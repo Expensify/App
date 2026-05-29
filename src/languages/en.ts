@@ -9511,6 +9511,12 @@ const translations = {
             reportSuspiciousActivityPrompt: (email: string) =>
                 `Are you sure? This will lock <strong>${email}'s</strong> account. <br /><br /> Our team will then review the account and remove any unauthorized access. To regain access, they'll need to work with Concierge.`,
             reportSuspiciousActivityConfirmationPrompt: 'We’ll review the account to verify it’s safe to unlock and reach out via Concierge with any questions.',
+            membersFeatureList: {
+                subtitle: ({domainName}: {domainName: string}) => `<muted-text>Verify your domain for more control over <strong>${domainName}</strong> members in Expensify.</muted-text>`,
+                controlPolicyCreation: 'Restrict workspace creation',
+                enableSamlSso: 'Enable SAML SSO',
+                enforce2FA: 'Enforce 2FA',
+            },
         },
         common: {
             settings: 'Settings',

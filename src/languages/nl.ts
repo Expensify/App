@@ -9456,6 +9456,13 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             chooseWhereToMove: ({count}: {count: number}) => `Kies waar je ${count} ${count === 1 ? 'lid' : 'leden'} naartoe wilt verplaatsen.`,
             domainGroup: 'Domeingroep',
             chooseWhereToMoveName: ({name}: {name: string}) => `Kies waar je ${name} naartoe wilt verplaatsen.`,
+            membersFeatureList: {
+                subtitle: ({domainName}: {domainName: string}) =>
+                    `<muted-text>Verifieer je domein voor meer controle over leden met <strong>${domainName}</strong> in Expensify.</muted-text>`,
+                controlPolicyCreation: 'Aanmaken van werkruimtes beperken',
+                enableSamlSso: 'SAML-SSO inschakelen',
+                enforce2FA: '2FA afdwingen',
+            },
         },
         common: {
             settings: 'Instellingen',
