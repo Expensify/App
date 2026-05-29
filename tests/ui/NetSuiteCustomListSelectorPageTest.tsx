@@ -32,12 +32,14 @@ const mockPolicy = {
 };
 
 let mockFormDraft: Record<string, unknown> | undefined;
+let mockCanGoBack = true;
 
 jest.mock('@react-navigation/native', () => {
     const actualNavigation: typeof ReactNavigation = jest.requireActual('@react-navigation/native');
     return {
         ...actualNavigation,
         useFocusEffect: jest.fn(),
+        useNavigation: jest.fn(() => ({canGoBack: () => mockCanGoBack})),
     };
 });
 
@@ -77,6 +79,7 @@ describe('NetSuiteCustomListSelectorPage', () => {
         mockedSetDraftValues.mockClear();
         mockedNavigationGoBack.mockClear();
         mockFormDraft = undefined;
+        mockCanGoBack = true;
     });
 
     it('builds option rows from the policy custom lists and marks the draft value as selected', () => {
@@ -97,7 +100,7 @@ describe('NetSuiteCustomListSelectorPage', () => {
         expect(selectionListProps?.initiallyFocusedItemKey).toBe('Project');
     });
 
-    it('writes both listName and internalID to the form draft on row select then navigates back', () => {
+    it('writes both listName and internalID to the form draft on row select then returns to the page that opened the selector', () => {
         render(
             <NetSuiteCustomListSelectorPage
                 route={{params: {policyID: 'P1'}} as never}
@@ -113,6 +116,24 @@ describe('NetSuiteCustomListSelectorPage', () => {
             [INPUT_IDS.LIST_NAME]: 'Department',
             [INPUT_IDS.INTERNAL_ID]: '123',
         });
+        expect(mockedNavigationGoBack).toHaveBeenCalledTimes(1);
+        expect(mockedNavigationGoBack).toHaveBeenCalledWith();
+    });
+
+    it('falls back to the custom list name sub-page on row select when there is no screen to go back to (direct deeplink/refresh)', () => {
+        mockCanGoBack = false;
+
+        render(
+            <NetSuiteCustomListSelectorPage
+                route={{params: {policyID: 'P1'}} as never}
+                navigation={jest.fn() as never}
+            />,
+        );
+
+        const selectionListProps = mockedSelectionList.mock.lastCall?.[0];
+        const selectedRow = selectionListProps?.data.find((item) => (item as CustomListSelectorType).value === 'Department') as CustomListSelectorType;
+        selectionListProps?.onSelectRow?.(selectedRow);
+
         expect(mockedNavigationGoBack).toHaveBeenCalledTimes(1);
         expect(mockedNavigationGoBack).toHaveBeenCalledWith(
             ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_ADD.getRoute('P1', CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_LIST.PAGE_NAME.NAME),
