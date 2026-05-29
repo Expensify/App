@@ -46,6 +46,7 @@ import {
 import {
     canShowReportRecipientLocalTime,
     canUserPerformWriteAction,
+    chatIncludesChronos,
     chatIncludesChronosWithID,
     getReportLastVisibleActionCreated,
     isArchivedNonExpenseReport,
@@ -69,6 +70,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {getStableReportSelector} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
+import ChronosGoalCelebration from './ChronosGoalCelebration';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import ReportActionIndexContext from './ReportActionIndexContext';
 import ReportActionsListHeader from './ReportActionsListHeader';
@@ -903,6 +905,12 @@ function ReportActionsList({
 
     return (
         <>
+            {chatIncludesChronos(report) && (
+                <ChronosGoalCelebration
+                    reportActions={sortedVisibleReportActions}
+                    lastReadTime={report.lastReadTime}
+                />
+            )}
             <FloatingMessageCounter
                 hasNewMessages={!!unreadMarkerReportActionID}
                 isActive={isFloatingMessageCounterVisible}

@@ -1,3 +1,4 @@
+import {PortalHost} from '@gorhom/portal';
 import type {RouteProp} from '@react-navigation/native';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
@@ -153,6 +154,7 @@ function AuthScreens() {
 
     return (
         <>
+            <PortalHost name="SparkleFall" />
             <AuthScreensInitHandler />
             <ThreeDSAuthHandler />
             <UserStatusHandler />
