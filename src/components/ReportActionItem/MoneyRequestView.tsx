@@ -455,8 +455,16 @@ function MoneyRequestView({
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
     const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
 
-    const tripRoomReportID = transaction?.comment?.tripChatReportID;
-    const tripRoomName = transaction?.comment?.tripName;
+    const transactionTripID = transaction?.comment?.tripID;
+    const tripRoomReportSelector = (reports: OnyxCollection<OnyxTypes.Report>) => {
+        if (!transactionTripID || !reports) {
+            return undefined;
+        }
+        return Object.values(reports).find((candidateReport) => candidateReport?.tripData?.tripID === transactionTripID);
+    };
+    const [tripRoomReport] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: tripRoomReportSelector}, [transactionTripID]);
+    const tripRoomReportID = tripRoomReport?.reportID;
+    const tripRoomName = tripRoomReport ? getReportName(tripRoomReport, reportAttributes) || tripRoomReport.reportName : undefined;
     const shouldShowTripRoomLink = !!tripRoomReportID && !!tripRoomName;
 
     const {getViolationsForField} = useViolations(transactionViolations ?? [], isTransactionScanning || !isPaidGroupPolicy(transactionThreadReport));
