@@ -27,10 +27,16 @@ function VictoryChartPolar() {
                 />
             ))}
             {labelItems.map((labelItem) => (
-                <VictoryChartLabel {...labelItem} />
+                <VictoryChartLabel
+                    key={`label-${labelItem.x}-${labelItem.y}`}
+                    {...labelItem}
+                />
             ))}
             {legendItems.map((legendItem) => (
-                <VictoryChartLegend {...legendItem} />
+                <VictoryChartLegend
+                    key={`legend-${legendItem.x}-${legendItem.y}`}
+                    {...legendItem}
+                />
             ))}
         </PolarChart>
     );
