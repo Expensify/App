@@ -1,6 +1,5 @@
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {MeasureInWindowOnSuccessCallback, TextInputKeyPressEvent, TextInputScrollEvent} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import {useSharedValue} from 'react-native-reanimated';
@@ -19,13 +18,11 @@ import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useScrollBlocker from '@hooks/useScrollBlocker';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearActive, isActive as isEmojiPickerActive} from '@libs/actions/EmojiPickerAction';
 import {composerFocusKeepFocusOn} from '@libs/actions/InputFocus';
 import {clearAllReportActionDrafts, saveReportActionDraft} from '@libs/actions/Report';
-import {isMobileChrome} from '@libs/Browser';
 import {canSkipTriggerHotkeys, insertText} from '@libs/ComposerUtils';
 import DomUtils from '@libs/DomUtils';
 import {extractEmojis, getTextVSCursorOffset, insertTextVSBetweenDigitAndEmoji, replaceAndExtractEmojis} from '@libs/EmojiUtils';
@@ -141,8 +138,6 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
 
     const [modal = DEFAULT_MODAL_VALUE] = useOnyx(ONYXKEYS.MODAL);
     const [onyxInputFocused = false] = useOnyx(ONYXKEYS.INPUT_FOCUSED);
-
-    const {isScrolling, startScrollBlock, endScrollBlock} = useScrollBlocker();
 
     const composerRef = useRef<ComposerRef | null>(null);
     const draftRef = useRef(draft);
@@ -355,13 +350,9 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
                 });
             };
 
-            if (isScrolling) {
-                return;
-            }
-
             performMeasurement();
         },
-        [cursorPositionValue, measureContainer, selection, isScrolling],
+        [cursorPositionValue, measureContainer, selection],
     );
 
     useEffect(() => {
@@ -439,16 +430,6 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
                                 setIsFocused(true);
                                 if (composerRef.current) {
                                     ReportActionComposeFocusManager.editComposerRef.current = composerRef.current;
-                                }
-                                startScrollBlock();
-                                InteractionManager.runAfterInteractions(() => {
-                                    requestAnimationFrame(() => {
-                                        reportScrollManager.scrollToIndex(index, true);
-                                        endScrollBlock();
-                                    });
-                                });
-                                if (isMobileChrome() && reportScrollManager.ref?.current) {
-                                    reportScrollManager.ref.current.scrollToIndex({index, animated: false});
                                 }
 
                                 // Clear active report action when another action gets focused
