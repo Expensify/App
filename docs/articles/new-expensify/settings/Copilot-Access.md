@@ -4,6 +4,8 @@ description: How to add a Copilot or act as a Copilot for delegated account acce
 keywords: [New Expensify, copilot, copilot access, delegated access, switch accounts, expense management, account assistant, view user account, expense forwarding, full access, limited access, account delegation, share account, behalf of, proxy access, delegate, assistant, manage someone else's account, shared access, account access, executive assistant, accountant]
 ---
 
+# Copilot Access 
+
 You can assign someone access to your Expensify account as a **Copilot**. A Copilot can help manage expenses, review reports, and access your settings without sharing your login details.
 
 **Common use cases:**
@@ -13,7 +15,7 @@ You can assign someone access to your Expensify account as a **Copilot**. A Copi
 
 ---
 
-# What Can a Copilot Do?
+## What Can a Copilot Do?
 
 Copilots can access another user’s Expensify account to:
 
@@ -29,7 +31,7 @@ Copilots can access another user’s Expensify account to:
 
 ---
 
-# Add a Copilot
+## How to Add a Copilot
 
 To grant someone access to your account:
 
@@ -41,11 +43,11 @@ To grant someone access to your account:
    - **Limited Access** – Excludes approvals, payments, rejections, holds, retractions, and reopens.
 5. Click **Add Copilot**.
 
-💡 **Note:** You can invite someone who doesn’t have an Expensify account. They’ll receive an invite to create one.
+**Note:** You can invite someone who doesn’t have an Expensify account. They’ll receive an invite to create one.
 
 ---
 
-# Remove or Change a Copilot’s Access
+## How to Remove or Change a Copilot’s Access
 
 To **remove a Copilot**:
 
@@ -62,7 +64,7 @@ To **change a Copilot's access level**:
 
 ---
 
-# Switch to a Copilot Account
+## How to Switch to a Copilot Account
 
 If you've been added as a Copilot, you can switch into the other user’s account easily.
 
@@ -74,7 +76,7 @@ You'll see a **dual avatar** in the bottom-left corner confirming you're in Copi
 
 ---
 
-# Forward Receipts as a Copilot
+## How to Forward Receipts as a Copilot
 
 To send a receipt to the account you support:
 
@@ -113,5 +115,5 @@ Not sure whether you need a **Copilot** or a **Vacation Delegate**? Here's a qui
 | **Access level options** | Full Access or Limited Access | N/A |
 | **Best for** | Executive assistants, accountants, or anyone who regularly helps manage your expenses | Covering approvals during vacation or leave |
 
-If you need someone to **temporarily handle approvals** while you're out of office, see [Delegate When Out of Office](https://help.expensify.com/articles/new-expensify/settings/Delegate-when-out-of-office) instead.
+If you need someone to **temporarily handle approvals** while you're out of office, see [Delegate When Out of Office](/articles/new-expensify/settings/Delegate-when-out-of-office) instead.
 If you need someone to temporarily handle approvals while you're out of office, see [Delegate When Out of Office](/articles/new-expensify/settings/Delegate-when-out-of-office) instead.
