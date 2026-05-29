@@ -123,7 +123,8 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
     const iconWrapperStyle = StyleUtils.getTaskPreviewIconWrapper(hasAssignee ? avatarSize : undefined);
 
     const shouldShowGreenDotIndicator = isOpenTaskReport(taskContextReport, action) && isReportManager(taskContextReport);
-    const taskAccessibilityLabel = taskTitleWithoutImage ? `${translate('task.task')}: ${taskTitleWithoutImage}` : translate('task.task');
+    const taskTitlePlainText = Parser.htmlToText(taskTitle);
+    const taskAccessibilityLabel = taskTitlePlainText ? `${translate('task.task')}: ${taskTitlePlainText}` : translate('task.task');
     if (isDeletedParentAction) {
         return <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedTask')}</deleted-action>`} />;
     }

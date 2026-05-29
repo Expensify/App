@@ -74,7 +74,8 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     const taskTitleWithoutPre = StringUtils.removePreCodeBlock(report?.reportName);
     const titleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitleWithoutPre), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
     const taskTitle = `<task-title>${titleWithoutImage}</task-title>`;
-    const taskAccessibilityLabel = titleWithoutImage ? `${translate('task.task')}: ${titleWithoutImage}` : translate('task.task');
+    const taskTitlePlainText = Parser.htmlToText(taskTitleWithoutPre);
+    const taskAccessibilityLabel = taskTitlePlainText ? `${translate('task.task')}: ${taskTitlePlainText}` : translate('task.task');
 
     const assigneeTooltipDetails = getDisplayNamesWithTooltips(
         getPersonalDetailsForAccountIDs(report?.managerID ? [report?.managerID] : [], personalDetails),
@@ -180,6 +181,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                             <View style={[styles.flexRow, styles.flex1]}>
                                                 <Checkbox
                                                     onPress={callFunctionIfActionIsAllowed(() => {
+                                                        // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
                                                         if (isActiveTaskEditRoute(report?.reportID)) {
                                                             return;
                                                         }
