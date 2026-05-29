@@ -15,6 +15,7 @@ type PusherDraftPaceRefs = {
     completedPusherDraftEventRef: MutableRef<ConciergeDraftEvent | null>;
     latestPusherDraftEventRef: MutableRef<ConciergeDraftEvent | null>;
     pusherPaceIntervalRef: MutableRef<ReturnType<typeof setInterval> | null>;
+    queuedPusherDraftEventsRef: MutableRef<ConciergeDraftEvent[]>;
     visibleBodyMarkdownRef: MutableRef<string>;
 };
 
@@ -63,10 +64,11 @@ function stopPusherDraftPace(runtime: PusherDraftPaceRefs) {
 }
 
 function resetPusherDraftPace(runtime: PusherDraftPaceRefs) {
-    const {completedPusherDraftEventRef, latestPusherDraftEventRef, visibleBodyMarkdownRef} = runtime;
+    const {completedPusherDraftEventRef, latestPusherDraftEventRef, queuedPusherDraftEventsRef, visibleBodyMarkdownRef} = runtime;
 
     stopPusherDraftPace(runtime);
     latestPusherDraftEventRef.current = null;
+    queuedPusherDraftEventsRef.current = [];
     completedPusherDraftEventRef.current = null;
     visibleBodyMarkdownRef.current = '';
 }
@@ -81,7 +83,7 @@ function clearCachedPusherDraft(runtime: PusherDraftPacingRuntime) {
 }
 
 function cacheDraftWithPusherPaceState(runtime: PusherDraftPacingRuntime, nextDraft: ConciergeDraft | null): ConciergeDraft | null {
-    const {completedPusherDraftEventRef, currentDraftRef, latestPusherDraftEventRef, reportID} = runtime;
+    const {completedPusherDraftEventRef, currentDraftRef, latestPusherDraftEventRef, queuedPusherDraftEventsRef, reportID} = runtime;
 
     if (!nextDraft) {
         currentDraftRef.current = null;
@@ -90,12 +92,14 @@ function cacheDraftWithPusherPaceState(runtime: PusherDraftPacingRuntime, nextDr
     }
 
     const latestPusherDraftEvent = latestPusherDraftEventRef.current;
+    const queuedPusherDraftEvents = queuedPusherDraftEventsRef.current;
     const completedPusherDraftEvent = completedPusherDraftEventRef.current;
     const nextDraftWithPusherPaceState = latestPusherDraftEvent?.bodyMarkdown
         ? {
               ...nextDraft,
               pusherTargetBodyMarkdown: latestPusherDraftEvent.bodyMarkdown,
               pusherTargetSequence: latestPusherDraftEvent.sequence,
+              pusherQueuedTargetEvents: queuedPusherDraftEvents.length > 0 ? [...queuedPusherDraftEvents] : undefined,
               pusherPendingCompletionEvent: nextDraft.status === 'completed' ? undefined : (completedPusherDraftEvent ?? undefined),
           }
         : nextDraft;
@@ -103,6 +107,12 @@ function cacheDraftWithPusherPaceState(runtime: PusherDraftPacingRuntime, nextDr
     currentDraftRef.current = nextDraftWithPusherPaceState;
     setCachedDraft(reportID, nextDraftWithPusherPaceState);
     return nextDraftWithPusherPaceState;
+}
+
+function cacheCurrentDraftWithPusherPaceState(runtime: PusherDraftPacingRuntime) {
+    const {setDraft} = runtime;
+
+    setDraft((currentDraft) => cacheDraftWithPusherPaceState(runtime, currentDraft));
 }
 
 function publishVisibleEvent(runtime: PusherDraftPacingRuntime, event: ConciergeDraftEvent, bodyMarkdown?: string, status?: ConciergeDraftEvent['status']) {
@@ -127,7 +137,7 @@ function publishVisibleEvent(runtime: PusherDraftPacingRuntime, event: Concierge
 }
 
 function tickPacing(runtime: PusherDraftPacingRuntime) {
-    const {completedPusherDraftEventRef, latestPusherDraftEventRef, visibleBodyMarkdownRef} = runtime;
+    const {completedPusherDraftEventRef, latestPusherDraftEventRef, queuedPusherDraftEventsRef, visibleBodyMarkdownRef} = runtime;
     const latestEvent = latestPusherDraftEventRef.current;
     const targetBodyMarkdown = latestEvent?.bodyMarkdown ?? '';
 
@@ -137,16 +147,22 @@ function tickPacing(runtime: PusherDraftPacingRuntime) {
     }
 
     const completedEvent = completedPusherDraftEventRef.current;
+    const hasQueuedTarget = queuedPusherDraftEventsRef.current.length > 0;
     const nextVisibleBodyMarkdown = getNextVisibleConciergeDraftBodyMarkdown(visibleBodyMarkdownRef.current, targetBodyMarkdown);
 
     if (nextVisibleBodyMarkdown !== visibleBodyMarkdownRef.current) {
-        const status = completedEvent && nextVisibleBodyMarkdown === targetBodyMarkdown ? 'completed' : 'updated';
+        const status = completedEvent && !hasQueuedTarget && nextVisibleBodyMarkdown === targetBodyMarkdown ? 'completed' : 'updated';
         publishVisibleEvent(runtime, status === 'completed' && completedEvent ? completedEvent : latestEvent, nextVisibleBodyMarkdown, status);
 
         if (status === 'completed') {
             completedPusherDraftEventRef.current = null;
             stopPusherDraftPace(runtime);
         }
+        return;
+    }
+
+    if (promoteQueuedPusherDraftTarget(runtime)) {
+        startPusherDraftPace(runtime);
         return;
     }
 
@@ -168,33 +184,97 @@ function startPusherDraftPace(runtime: PusherDraftPacingRuntime) {
     pusherPaceIntervalRef.current = setInterval(() => tickPacing(runtime), PUSHER_DRAFT_PACE_INTERVAL_MS);
 }
 
+function getNewestPusherDraftTarget(runtime: PusherDraftPacingRuntime): ConciergeDraftEvent | null {
+    return runtime.queuedPusherDraftEventsRef.current.at(-1) ?? runtime.latestPusherDraftEventRef.current;
+}
+
+function queuePusherDraftTargets(runtime: PusherDraftPacingRuntime, events: ConciergeDraftEvent[]) {
+    const {queuedPusherDraftEventsRef} = runtime;
+    let newestTarget = getNewestPusherDraftTarget(runtime);
+    const queueableEvents: ConciergeDraftEvent[] = [];
+
+    for (const event of events) {
+        if (!event.bodyMarkdown || (newestTarget?.streamSessionID === event.streamSessionID && event.sequence <= newestTarget.sequence)) {
+            continue;
+        }
+
+        queueableEvents.push(event);
+        newestTarget = event;
+    }
+
+    if (queueableEvents.length === 0) {
+        return;
+    }
+
+    queuedPusherDraftEventsRef.current = [...queuedPusherDraftEventsRef.current, ...queueableEvents];
+}
+
+function shouldQueuePusherDraftTarget(runtime: PusherDraftPacingRuntime, event: ConciergeDraftEvent): boolean {
+    const {latestPusherDraftEventRef, queuedPusherDraftEventsRef, visibleBodyMarkdownRef} = runtime;
+    const currentTarget = latestPusherDraftEventRef.current;
+
+    return (
+        !!currentTarget?.bodyMarkdown &&
+        currentTarget.streamSessionID === event.streamSessionID &&
+        event.sequence > currentTarget.sequence &&
+        (currentTarget.bodyMarkdown !== visibleBodyMarkdownRef.current || queuedPusherDraftEventsRef.current.length > 0)
+    );
+}
+
+function setOrQueuePusherDraftTarget(runtime: PusherDraftPacingRuntime, event: ConciergeDraftEvent): boolean {
+    if (shouldQueuePusherDraftTarget(runtime, event)) {
+        queuePusherDraftTargets(runtime, [event]);
+        return true;
+    }
+
+    updateLatestPusherDraftTarget(runtime, event);
+    return false;
+}
+
+function promoteQueuedPusherDraftTarget(runtime: PusherDraftPacingRuntime): boolean {
+    const {latestPusherDraftEventRef, queuedPusherDraftEventsRef} = runtime;
+    const [queuedPusherDraftEvent, ...remainingQueuedPusherDraftEvents] = queuedPusherDraftEventsRef.current;
+    if (!queuedPusherDraftEvent?.bodyMarkdown) {
+        return false;
+    }
+
+    latestPusherDraftEventRef.current = queuedPusherDraftEvent;
+    queuedPusherDraftEventsRef.current = remainingQueuedPusherDraftEvents;
+    return true;
+}
+
 function updateLatestPusherDraftTarget(runtime: PusherDraftPacingRuntime, event: ConciergeDraftEvent) {
-    const {completedPusherDraftEventRef, currentDraftRef, latestPusherDraftEventRef, visibleBodyMarkdownRef} = runtime;
-    const latestEvent = latestPusherDraftEventRef.current;
+    const {completedPusherDraftEventRef, currentDraftRef, latestPusherDraftEventRef, queuedPusherDraftEventsRef, visibleBodyMarkdownRef} = runtime;
+    const latestEvent = getNewestPusherDraftTarget(runtime);
     const activeStreamSessionID = latestEvent?.streamSessionID ?? currentDraftRef.current?.streamSessionID;
     if (activeStreamSessionID && activeStreamSessionID !== event.streamSessionID) {
         stopPusherDraftPace(runtime);
         completedPusherDraftEventRef.current = null;
+        queuedPusherDraftEventsRef.current = [];
         visibleBodyMarkdownRef.current = '';
     }
 
     latestPusherDraftEventRef.current = event;
+    queuedPusherDraftEventsRef.current = [];
 }
 
-function isStalePusherDraftEvent(runtime: PusherDraftPacingRuntime, event: ConciergeDraftEvent): boolean {
-    const {currentDraftRef, latestPusherDraftEventRef, reportID} = runtime;
+function isStalePusherDraftEventAgainstTarget(runtime: PusherDraftPacingRuntime, event: ConciergeDraftEvent, latestEvent: ConciergeDraftEvent | null): boolean {
+    const {currentDraftRef, reportID} = runtime;
 
     if (event.reportID !== reportID) {
         return true;
     }
 
-    const latestEvent = latestPusherDraftEventRef.current;
     if (latestEvent?.streamSessionID === event.streamSessionID && event.sequence <= latestEvent.sequence) {
         return true;
     }
 
     const activeStreamSessionID = latestEvent?.streamSessionID ?? currentDraftRef.current?.streamSessionID;
     return !!activeStreamSessionID && activeStreamSessionID !== event.streamSessionID && event.status !== 'started' && event.status !== 'updated';
+}
+
+function isStalePusherDraftEvent(runtime: PusherDraftPacingRuntime, event: ConciergeDraftEvent): boolean {
+    return isStalePusherDraftEventAgainstTarget(runtime, event, getNewestPusherDraftTarget(runtime));
 }
 
 function handlePusherDraftEvent(runtime: PusherDraftPacingRuntime, event: ConciergeDraftEvent) {
@@ -211,17 +291,23 @@ function handlePusherDraftEvent(runtime: PusherDraftPacingRuntime, event: Concie
     }
 
     if (event.status === 'completed') {
+        let didQueueTarget = false;
         if (event.bodyMarkdown) {
-            latestPusherDraftEventRef.current = {
+            didQueueTarget = setOrQueuePusherDraftTarget(runtime, {
                 ...event,
                 finalRenderedHTML: undefined,
                 status: 'updated',
-            };
+            });
         }
         completedPusherDraftEventRef.current = event;
-        if (latestPusherDraftEventRef.current?.bodyMarkdown) {
+        if (latestPusherDraftEventRef.current?.bodyMarkdown || didQueueTarget) {
+            if (didQueueTarget) {
+                cacheCurrentDraftWithPusherPaceState(runtime);
+            }
             startPusherDraftPace(runtime);
-            tickPacing(runtime);
+            if (!didQueueTarget) {
+                tickPacing(runtime);
+            }
         } else {
             publishVisibleEvent(runtime, event, undefined, 'completed');
         }
@@ -233,7 +319,13 @@ function handlePusherDraftEvent(runtime: PusherDraftPacingRuntime, event: Concie
         return;
     }
 
-    updateLatestPusherDraftTarget(runtime, event);
+    const didQueueTarget = setOrQueuePusherDraftTarget(runtime, event);
+    if (didQueueTarget) {
+        cacheCurrentDraftWithPusherPaceState(runtime);
+        startPusherDraftPace(runtime);
+        return;
+    }
+
     const nextVisibleBodyMarkdown = getNextVisibleConciergeDraftBodyMarkdown(visibleBodyMarkdownRef.current, targetBodyMarkdown);
     if (nextVisibleBodyMarkdown !== visibleBodyMarkdownRef.current) {
         publishVisibleEvent(runtime, event, nextVisibleBodyMarkdown, event.status);
@@ -247,10 +339,13 @@ function handlePusherDraftEvent(runtime: PusherDraftPacingRuntime, event: Concie
 }
 
 function handlePusherDraftEvents(runtime: PusherDraftPacingRuntime, eventData: ConciergeDraftEventsEvent) {
-    let firstVisibleEvent: ConciergeDraftEvent | null = null;
+    const {completedPusherDraftEventRef, latestPusherDraftEventRef, queuedPusherDraftEventsRef, visibleBodyMarkdownRef} = runtime;
+    const targetEvents: ConciergeDraftEvent[] = [];
+    let latestAcceptedEvent: ConciergeDraftEvent | null = null;
+    let completedEvent: ConciergeDraftEvent | null = null;
 
     for (const event of eventData.events) {
-        if (isStalePusherDraftEvent(runtime, event)) {
+        if (isStalePusherDraftEventAgainstTarget(runtime, event, latestAcceptedEvent ?? getNewestPusherDraftTarget(runtime))) {
             continue;
         }
 
@@ -267,10 +362,10 @@ function handlePusherDraftEvents(runtime: PusherDraftPacingRuntime, eventData: C
                     finalRenderedHTML: undefined,
                     status: 'updated' as const,
                 };
-                updateLatestPusherDraftTarget(runtime, completedTargetEvent);
-                firstVisibleEvent ??= completedTargetEvent;
+                targetEvents.push(completedTargetEvent);
             }
-            runtime.completedPusherDraftEventRef.current = event;
+            latestAcceptedEvent = event;
+            completedEvent = event;
             continue;
         }
 
@@ -279,37 +374,57 @@ function handlePusherDraftEvents(runtime: PusherDraftPacingRuntime, eventData: C
             continue;
         }
 
-        updateLatestPusherDraftTarget(runtime, event);
-        firstVisibleEvent ??= event;
+        targetEvents.push(event);
+        latestAcceptedEvent = event;
     }
+
+    const [firstVisibleEvent, ...queuedTargetEvents] = targetEvents;
 
     if (firstVisibleEvent?.bodyMarkdown) {
-        const nextVisibleBodyMarkdown = getNextVisibleConciergeDraftBodyMarkdown(runtime.visibleBodyMarkdownRef.current, firstVisibleEvent.bodyMarkdown);
-        if (nextVisibleBodyMarkdown !== runtime.visibleBodyMarkdownRef.current) {
-            publishVisibleEvent(runtime, firstVisibleEvent, nextVisibleBodyMarkdown, firstVisibleEvent.status === 'completed' ? 'updated' : firstVisibleEvent.status);
+        const didQueueFirstTarget = setOrQueuePusherDraftTarget(runtime, firstVisibleEvent);
+        queuePusherDraftTargets(runtime, queuedTargetEvents);
+        if (completedEvent) {
+            completedPusherDraftEventRef.current = completedEvent;
         }
+
+        let didPublishVisibleEvent = false;
+        if (!didQueueFirstTarget) {
+            const nextVisibleBodyMarkdown = getNextVisibleConciergeDraftBodyMarkdown(visibleBodyMarkdownRef.current, firstVisibleEvent.bodyMarkdown);
+            if (nextVisibleBodyMarkdown !== visibleBodyMarkdownRef.current) {
+                publishVisibleEvent(runtime, firstVisibleEvent, nextVisibleBodyMarkdown, firstVisibleEvent.status === 'completed' ? 'updated' : firstVisibleEvent.status);
+                didPublishVisibleEvent = true;
+            }
+        }
+
+        if (!didPublishVisibleEvent) {
+            cacheCurrentDraftWithPusherPaceState(runtime);
+        }
+    } else if (completedEvent) {
+        completedPusherDraftEventRef.current = completedEvent;
     }
 
-    if (runtime.latestPusherDraftEventRef.current?.bodyMarkdown) {
+    if (
+        latestPusherDraftEventRef.current?.bodyMarkdown &&
+        (latestPusherDraftEventRef.current.bodyMarkdown !== visibleBodyMarkdownRef.current || queuedPusherDraftEventsRef.current.length > 0 || !!completedPusherDraftEventRef.current)
+    ) {
         startPusherDraftPace(runtime);
         return;
     }
 
-    const completedEvent = runtime.completedPusherDraftEventRef.current;
-    if (completedEvent) {
-        publishVisibleEvent(runtime, completedEvent, undefined, 'completed');
-        runtime.completedPusherDraftEventRef.current = null;
+    if (completedPusherDraftEventRef.current) {
+        publishVisibleEvent(runtime, completedPusherDraftEventRef.current, undefined, 'completed');
+        completedPusherDraftEventRef.current = null;
     }
 }
 
 function resumeCachedPusherDraftPace(runtime: PusherDraftPacingRuntime) {
-    const {completedPusherDraftEventRef, latestPusherDraftEventRef, visibleBodyMarkdownRef} = runtime;
+    const {completedPusherDraftEventRef, latestPusherDraftEventRef, queuedPusherDraftEventsRef, visibleBodyMarkdownRef} = runtime;
     const latestEvent = latestPusherDraftEventRef.current;
     if (!latestEvent?.bodyMarkdown) {
         return;
     }
 
-    const shouldResumePacing = latestEvent.bodyMarkdown !== visibleBodyMarkdownRef.current || !!completedPusherDraftEventRef.current;
+    const shouldResumePacing = latestEvent.bodyMarkdown !== visibleBodyMarkdownRef.current || queuedPusherDraftEventsRef.current.length > 0 || !!completedPusherDraftEventRef.current;
     if (!shouldResumePacing) {
         return;
     }
@@ -327,6 +442,7 @@ function usePusherDraftPacing(reportID: string) {
     const visibleBodyMarkdownRef = useRef(draft?.bodyMarkdown ?? '');
     const visibleSequenceRef = useRef(draft?.sequence ?? 0);
     const latestPusherDraftEventRef = useRef<ConciergeDraftEvent | null>(buildPusherDraftEventFromCachedDraft(reportID, draft));
+    const queuedPusherDraftEventsRef = useRef<ConciergeDraftEvent[]>(draft?.pusherQueuedTargetEvents ?? []);
     const completedPusherDraftEventRef = useRef<ConciergeDraftEvent | null>(draft?.pusherPendingCompletionEvent ?? null);
     const pusherPaceIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -336,6 +452,7 @@ function usePusherDraftPacing(reportID: string) {
             currentDraftRef,
             latestPusherDraftEventRef,
             pusherPaceIntervalRef,
+            queuedPusherDraftEventsRef,
             reportID,
             setDraft,
             visibleBodyMarkdownRef,
@@ -348,6 +465,7 @@ function usePusherDraftPacing(reportID: string) {
             completedPusherDraftEventRef,
             latestPusherDraftEventRef,
             pusherPaceIntervalRef,
+            queuedPusherDraftEventsRef,
             visibleBodyMarkdownRef,
         });
         setDraft((currentDraft) => {
@@ -364,6 +482,7 @@ function usePusherDraftPacing(reportID: string) {
             currentDraftRef,
             latestPusherDraftEventRef,
             pusherPaceIntervalRef,
+            queuedPusherDraftEventsRef,
             reportID,
             setDraft,
             visibleBodyMarkdownRef,

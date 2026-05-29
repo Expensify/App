@@ -7,10 +7,12 @@ import type {ReportAction} from '@src/types/onyx';
 type ConciergeDraft = {
     /** Currently rendered markdown. Pusher pacing may intentionally lag this behind the latest server snapshot. */
     bodyMarkdown?: string;
-    /** Latest server markdown snapshot held by the Pusher pacer so remounts can resume revealing banked text. */
+    /** Current server markdown snapshot held by the Pusher pacer so remounts can resume revealing banked text. */
     pusherTargetBodyMarkdown?: string;
-    /** Server event sequence for the latest Pusher target snapshot. */
+    /** Server event sequence for the current Pusher target snapshot. */
     pusherTargetSequence?: number;
+    /** Newer server markdown snapshots queued behind the current Pusher target. */
+    pusherQueuedTargetEvents?: ConciergeDraftEvent[];
     /** Completion event held while the Pusher pacer is still revealing banked text. */
     pusherPendingCompletionEvent?: ConciergeDraftEvent;
     reportAction: ReportAction;

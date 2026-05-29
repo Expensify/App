@@ -135,26 +135,22 @@ describe('conciergeDraftState', () => {
     });
 
     describe('getNextVisibleConciergeDraftBodyMarkdown', () => {
-        it('handles normal reveal, completion acceleration, code points, and corrections', () => {
+        it('handles normal reveal, code points, and corrections', () => {
             // Given representative pacing inputs
             const longTarget = 'a'.repeat(200);
-            const completionTarget = 'a'.repeat(40);
 
             // When calculating the next visible body
             const firstSlice = getNextVisibleConciergeDraftBodyMarkdown('', 'Hello');
             const secondSlice = getNextVisibleConciergeDraftBodyMarkdown('H', 'Hello');
             const emojiSlice = getNextVisibleConciergeDraftBodyMarkdown('Hi ', 'Hi 😃 there');
             const longBacklogSlice = getNextVisibleConciergeDraftBodyMarkdown('', longTarget);
-            const normalCompletionSlice = getNextVisibleConciergeDraftBodyMarkdown('', completionTarget);
-            const acceleratedCompletionSlice = getNextVisibleConciergeDraftBodyMarkdown('', completionTarget, true);
             const correctedSlice = getNextVisibleConciergeDraftBodyMarkdown('Old draft', 'New draft');
 
             // Then each pacing path preserves its expected reveal behavior
             expect(firstSlice).toBe('H');
             expect(secondSlice).toBe('He');
             expect(emojiSlice).toBe('Hi 😃');
-            expect(longBacklogSlice.length).toBeGreaterThan(1);
-            expect(acceleratedCompletionSlice.length).toBeGreaterThan(normalCompletionSlice.length);
+            expect(longBacklogSlice).toBe('a');
             expect(correctedSlice).toBe('New draft');
         });
     });
