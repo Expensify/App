@@ -2885,6 +2885,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         phoneOrEmail: '电话或邮箱',
         error: {
             invalidFormatEmailLogin: '输入的邮箱无效。请修正格式后重试。',
+            agentSignInBlocked: '代理帐户无法直接登录。要使用代理，请先登录您自己的帐户，然后通过 Copilot 访问该代理。',
         },
         cannotGetAccountDetails: '无法获取账户详情。请尝试重新登录。',
         loginForm: '登录表单',

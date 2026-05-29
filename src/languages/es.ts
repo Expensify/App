@@ -2850,6 +2850,8 @@ ${amount} para ${merchant} - ${date}`,
         phoneOrEmail: 'Número de teléfono o correo electrónico',
         error: {
             invalidFormatEmailLogin: 'El correo electrónico introducido no es válido. Corrígelo e inténtalo de nuevo.',
+            agentSignInBlocked:
+                'No se puede iniciar sesión directamente en las cuentas de agente. Para usar un agente, inicia sesión con tu propia cuenta y accede a él a través de Copilot.',
         },
         cannotGetAccountDetails: 'No se pudieron cargar los detalles de tu cuenta. Por favor, intenta iniciar sesión de nuevo.',
         loginForm: 'Formulario de inicio de sesión',

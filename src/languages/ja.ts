@@ -2942,6 +2942,8 @@ ${date} の ${merchant} への ${amount}`,
         phoneOrEmail: '電話番号またはメールアドレス',
         error: {
             invalidFormatEmailLogin: '入力されたメールアドレスが無効です。形式を修正して、もう一度お試しください。',
+            agentSignInBlocked:
+                'エージェントアカウントには直接サインインすることはできません。エージェントを利用するには、ご自身のアカウントでサインインし、Copilot 経由でアクセスしてください。',
         },
         cannotGetAccountDetails: 'アカウントの詳細を取得できませんでした。もう一度サインインしてください。',
         loginForm: 'ログインフォーム',
