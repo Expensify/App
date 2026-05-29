@@ -450,6 +450,14 @@ type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     onLongPress: (transaction: TransactionListItemType) => void;
 };
 
+type GroupHeaderItemType = TransactionGroupListItemType & {
+    listItemType: 'group_header';
+};
+
+type GroupChildrenContainerItemType = TransactionGroupListItemType & {
+    listItemType: 'children_container';
+};
+
 type UnreportedExpenseListItemType = Transaction & {
     isDisabled: boolean;
     keyForList: string;
@@ -482,4 +490,6 @@ export type {
     TransactionListItemProps,
     ReportActionListItemType,
     UnreportedExpenseListItemType,
+    GroupHeaderItemType,
+    GroupChildrenContainerItemType,
 };

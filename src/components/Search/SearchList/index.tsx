@@ -31,7 +31,7 @@ import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import DateUtils from '@libs/DateUtils';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import navigationRef from '@libs/Navigation/navigationRef';
-import {applySelectionToItem, getTableMinWidth} from '@libs/SearchUIUtils';
+import {applySelectionToItem, getTableMinWidth, splitGroupsIntoPairs} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import type {TransactionPreviewData} from '@userActions/Search';
 import CONST from '@src/CONST';
@@ -40,10 +40,14 @@ import type {CardList, Transaction} from '@src/types/onyx';
 import BaseSearchList from './BaseSearchList';
 import type ChatListItem from './ListItem/ChatListItem';
 import type ExpenseReportListItem from './ListItem/ExpenseReportListItem';
+import GroupChildrenContainer from './ListItem/GroupChildrenContainer';
+import GroupHeader from './ListItem/GroupHeader';
 import type TaskListItem from './ListItem/TaskListItem';
 import type TransactionGroupListItem from './ListItem/TransactionGroupListItem';
 import type TransactionListItem from './ListItem/TransactionListItem';
 import type {
+    GroupChildrenContainerItemType,
+    GroupHeaderItemType,
     ReportActionListItemType,
     TaskListItemType,
     TransactionCardGroupListItemType,
@@ -296,6 +300,40 @@ function SearchList({
     const hasItemsBeingRemoved = prevDataLength && prevDataLength > data.length;
     const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
 
+    const isGroupByActive = !!groupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+    const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => new Set());
+
+    const onToggleGroup = useCallback((key: string) => {
+        setExpandedGroups((prev) => {
+            const next = new Set(prev);
+            if (next.has(key)) {
+                next.delete(key);
+            } else {
+                next.add(key);
+            }
+            return next;
+        });
+    }, []);
+
+    const {splitData: listData, stickyHeaderIndices} = useMemo(() => {
+        if (!isGroupByActive) {
+            return {splitData: data, stickyHeaderIndices: undefined};
+        }
+        return splitGroupsIntoPairs(data);
+    }, [data, isGroupByActive]);
+
+    const getItemType = useMemo(() => {
+        if (!isGroupByActive) {
+            return undefined;
+        }
+        return (item: SearchListItem) => {
+            if ('listItemType' in item) {
+                return (item as GroupHeaderItemType | GroupChildrenContainerItemType).listItemType;
+            }
+            return 'default';
+        };
+    }, [isGroupByActive]);
+
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -430,11 +468,54 @@ function SearchList({
 
     const renderItem = useCallback(
         (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
+            // Handle group header items (sticky)
+            if ('listItemType' in item && (item as GroupHeaderItemType).listItemType === 'group_header') {
+                const headerItem = item as GroupHeaderItemType;
+                const originalKey = (item.keyForList ?? '').replace('header_', '');
+                return (
+                    <GroupHeader
+                        item={headerItem}
+                        groupBy={groupBy}
+                        searchType={type}
+                        columns={columns}
+                        canSelectMultiple={canSelectMultiple}
+                        isExpanded={expandedGroups.has(originalKey)}
+                        onToggle={() => onToggleGroup(originalKey)}
+                        onSelectRow={(val, event) => onSelectRow(val, undefined, event)}
+                        onCheckboxPress={(val) => onCheckboxPress(val as SearchListItem)}
+                        isFocused={isItemFocused}
+                        isFirstItem={index === firstVisibleIndex}
+                        isLastItem={index === lastVisibleIndex && !ListFooterComponent}
+                    />
+                );
+            }
+
+            // Handle children container items (animated expand/collapse)
+            if ('listItemType' in item && (item as GroupChildrenContainerItemType).listItemType === 'children_container') {
+                const containerItem = item as GroupChildrenContainerItemType;
+                const originalKey = (item.keyForList ?? '').replace('children_', '');
+                return (
+                    <GroupChildrenContainer
+                        item={containerItem}
+                        isExpanded={expandedGroups.has(originalKey)}
+                        groupBy={groupBy}
+                        searchType={type}
+                        columns={columns}
+                        canSelectMultiple={canSelectMultiple}
+                        onSelectRow={onSelectRow}
+                        onCheckboxPress={onCheckboxPress}
+                        onLongPressRow={isMobileSelectionModeEnabled ? handleLongPressRowInMobileSelectionMode : handleLongPressRow}
+                        nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                        onUndelete={handleUndelete}
+                    />
+                );
+            }
+
+            // Default rendering for non-group items
             const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-            const shouldApplyAnimation = shouldAnimate && index < data.length - 1;
+            const shouldApplyAnimation = shouldAnimate && index < listData.length - 1;
 
             const newTransactionID = item.keyForList ? newTransactionIDByItemKey.get(item.keyForList) : undefined;
-            // Apply selection lazily per row so we don't rebuild a list-wide wrapper structure on every render.
             const {itemWithSelection} = applySelectionToItem(item, canSelectMultiple, selectedTransactions);
 
             return (
@@ -477,7 +558,7 @@ function SearchList({
             groupBy,
             newTransactionIDByItemKey,
             shouldAnimate,
-            data.length,
+            listData.length,
             styles.overflowHidden,
             hasItemsBeingRemoved,
             ListItem,
@@ -499,6 +580,8 @@ function SearchList({
             handleUndelete,
             firstVisibleIndex,
             lastVisibleIndex,
+            expandedGroups,
+            onToggleGroup,
         ],
     );
 
@@ -547,7 +630,7 @@ function SearchList({
                 </View>
             )}
             <BaseSearchList
-                data={data}
+                data={listData}
                 renderItem={renderItem}
                 onSelectRow={onSelectRow}
                 keyExtractor={keyExtractor}
@@ -556,7 +639,7 @@ function SearchList({
                 ref={listRef}
                 columns={columns}
                 scrollToIndex={scrollToIndex}
-                flattenedItemsLength={data.length}
+                flattenedItemsLength={listData.length}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={onEndReachedThreshold}
                 ListFooterComponent={ListFooterComponent}
@@ -567,6 +650,8 @@ function SearchList({
                 selectedTransactions={selectedTransactions}
                 isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                 nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                stickyHeaderIndices={stickyHeaderIndices}
+                getItemType={getItemType}
             />
             <Modal
                 isVisible={isModalVisible}
