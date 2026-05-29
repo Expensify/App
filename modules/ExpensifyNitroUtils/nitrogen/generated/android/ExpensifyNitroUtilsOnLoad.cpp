@@ -18,6 +18,7 @@
 #include "JHybridAppStartTimeModuleSpec.hpp"
 #include "JHybridContactsModuleSpec.hpp"
 #include <NitroModules/DefaultConstructableObject.hpp>
+#include "HybridJsonParser.hpp"
 
 namespace margelo::nitro::utils {
 
@@ -63,6 +64,15 @@ void registerAllNatives() {
     "AppStartTimeModule",
     []() -> std::shared_ptr<HybridObject> {
       return JHybridAppStartTimeModuleSpecImpl::create();
+    }
+  );
+  HybridObjectRegistry::registerHybridObjectConstructor(
+    "JsonParser",
+    []() -> std::shared_ptr<HybridObject> {
+      static_assert(std::is_default_constructible_v<HybridJsonParser>,
+                    "The HybridObject \"HybridJsonParser\" is not default-constructible! "
+                    "Create a public constructor that takes zero arguments to be able to autolink this HybridObject.");
+      return std::make_shared<HybridJsonParser>();
     }
   );
 }

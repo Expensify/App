@@ -15,6 +15,9 @@
         "AppStartTimeModule": {
             "swift": "HybridAppStartTimeModule",
             "kotlin": "HybridAppStartTimeModule"
+        },
+        "JsonParser": {
+            "cpp": "HybridJsonParser"
         }
     },
     "ignorePaths": ["node_modules"]
