@@ -18,6 +18,7 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 // Do not lazy load Search navigator for performance reasons
+import InsightsNavigator from './InsightsNavigator';
 import SearchFullscreenNavigator from './SearchFullscreenNavigator';
 import TabNavigatorBar from './TabNavigatorBar';
 
@@ -126,6 +127,10 @@ function TabNavigator() {
                     <Tab.Screen
                         name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
                         component={SearchFullscreenNavigator}
+                    />
+                    <Tab.Screen
+                        name={NAVIGATORS.INSIGHTS_NAVIGATOR}
+                        component={InsightsNavigator}
                     />
                     <Tab.Screen
                         name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}

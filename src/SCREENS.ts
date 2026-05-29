@@ -112,6 +112,13 @@ const SCREENS = {
             ADD_APPROVER: 'Search_Change_Approver_Add_Approver',
         },
     },
+    INSIGHTS: {
+        ROOT: 'Insights_Root',
+        TOP_SPENDERS: 'Insights_Top_Spenders',
+        TOP_CATEGORIES: 'Insights_Top_Categories',
+        TOP_MERCHANTS: 'Insights_Top_Merchants',
+        SPEND_OVER_TIME: 'Insights_Spend_Over_Time',
+    },
     SETTINGS: {
         ROOT: 'Settings_Root',
         SHARE_CODE: 'Settings_Share_Code',

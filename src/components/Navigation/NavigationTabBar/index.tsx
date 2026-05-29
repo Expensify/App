@@ -49,7 +49,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
     const {translate} = useLocalize();
     const {chatTabBrickRoad} = useSidebarOrderedReportsState();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Home', 'Inbox']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Home', 'Inbox', 'ChartPie']);
 
     const lastReportRouteReportID = useRootNavigationState((rootState) => {
         if (!rootState) {
@@ -93,6 +93,13 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
             return;
         }
         Navigation.navigate(ROUTES.HOME);
+    };
+
+    const navigateToInsights = () => {
+        if (selectedTab === NAVIGATION_TABS.INSIGHTS) {
+            return;
+        }
+        Navigation.navigate(ROUTES.INSIGHTS_TOP_SPENDERS.getRoute());
     };
 
     const navigateToChats = () => {
@@ -186,6 +193,22 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                             selectedTab={selectedTab}
                             isWideLayout
                         />
+                        <PressableWithFeedback
+                            onPress={navigateToInsights}
+                            role={CONST.ROLE.TAB}
+                            accessibilityLabel={translate('common.insights')}
+                            style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
+                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
+                        >
+                            {({hovered}) => (
+                                <TabBarItem
+                                    icon={expensifyIcons.ChartPie}
+                                    label={translate('common.insights')}
+                                    isSelected={selectedTab === NAVIGATION_TABS.INSIGHTS}
+                                    isHovered={hovered}
+                                />
+                            )}
+                        </PressableWithFeedback>
                         <WorkspacesTabButton
                             selectedTab={selectedTab}
                             isWideLayout
@@ -241,6 +264,20 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                     selectedTab={selectedTab}
                     isWideLayout={false}
                 />
+                <PressableWithFeedback
+                    onPress={navigateToInsights}
+                    role={CONST.ROLE.TAB}
+                    accessibilityLabel={translate('common.insights')}
+                    wrapperStyle={styles.flex1}
+                    style={styles.navigationTabBarItem}
+                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
+                >
+                    <TabBarItem
+                        icon={expensifyIcons.ChartPie}
+                        label={translate('common.insights')}
+                        isSelected={selectedTab === NAVIGATION_TABS.INSIGHTS}
+                    />
+                </PressableWithFeedback>
                 <WorkspacesTabButton
                     selectedTab={selectedTab}
                     isWideLayout={false}

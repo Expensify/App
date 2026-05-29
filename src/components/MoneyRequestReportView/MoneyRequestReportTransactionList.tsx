@@ -694,7 +694,7 @@ function MoneyRequestReportTransactionList({
                 style={[
                     styles.dFlex,
                     styles.flexRow,
-                    isDesktopTableLayout ? styles.ph5 : styles.pl5,
+                    isDesktopTableLayout ? styles.ph3 : styles.pl5,
                     isDesktopTableLayout && styles.mh5,
                     !isDesktopTableLayout && styles.pr16,
                     styles.alignItemsCenter,

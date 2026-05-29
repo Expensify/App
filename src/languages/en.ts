@@ -89,6 +89,7 @@ const translations = {
         search: 'Search',
         reports: 'Reports',
         spend: 'Spend',
+        insights: 'Insights',
         find: 'Find',
         searchWithThreeDots: 'Search...',
         next: 'Next',

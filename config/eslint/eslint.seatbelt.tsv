@@ -622,7 +622,7 @@
 "../../src/pages/workspace/accounting/xero/import/XeroCustomerConfigurationPage.tsx"	"no-restricted-syntax"	3
 "../../src/pages/workspace/accounting/xero/import/XeroCustomerConfigurationPage.tsx"	"rulesdir/no-default-id-values"	1
 "../../src/pages/workspace/categories/CategorySettingsPage.tsx"	"react-hooks/preserve-manual-memoization"	1
-"../../src/pages/workspace/categories/WorkspaceCategoriesPage.tsx"	"react-hooks/set-state-in-effect"	2
+"../../src/pages/workspace/categories/WorkspaceCategoriesPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/companyCards/BankConnection/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/companyCards/WorkspaceVerifyWorkAccountPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/companyCards/addNew/AddNewCardPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1

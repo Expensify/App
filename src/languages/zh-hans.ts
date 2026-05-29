@@ -94,6 +94,7 @@ const translations: TranslationDeepObject<typeof en> = {
         search: '搜索',
         reports: '报表',
         spend: '支出',
+        insights: '洞察',
         find: '查找',
         searchWithThreeDots: '搜索…',
         next: '下一步',

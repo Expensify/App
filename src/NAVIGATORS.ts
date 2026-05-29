@@ -17,6 +17,7 @@ export default {
     WORKSPACE_SPLIT_NAVIGATOR: 'WorkspaceSplitNavigator',
     DOMAIN_SPLIT_NAVIGATOR: 'DomainSplitNavigator',
     SEARCH_FULLSCREEN_NAVIGATOR: 'SearchFullscreenNavigator',
+    INSIGHTS_NAVIGATOR: 'InsightsNavigator',
     SHARE_MODAL_NAVIGATOR: 'ShareModalNavigator',
     TEST_TOOLS_MODAL_NAVIGATOR: 'TestToolsModalNavigator',
     TAB_NAVIGATOR: 'TabNavigator',

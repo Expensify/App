@@ -5,6 +5,7 @@ import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import usePreviousDefined from '@hooks/usePreviousDefined';
 import useRootNavigationState from '@hooks/useRootNavigationState';
+import {getInsightConfig, isInsightTabScreen} from '@libs/InsightsUtils';
 import {getDeepestFocusedScreen} from '@libs/Navigation/Navigation';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches} from '@libs/SearchUIUtils';
@@ -18,7 +19,13 @@ type SearchQueryProviderProps = {
 
 function selectSearchQueryParam(state: NavigationState | undefined) {
     const focused = getDeepestFocusedScreen(state);
-    return focused?.name === SCREENS.SEARCH.ROOT ? (focused.params?.q as string | undefined) : undefined;
+    if (focused?.name === SCREENS.SEARCH.ROOT) {
+        return focused.params?.q as string | undefined;
+    }
+    if (isInsightTabScreen(focused?.name)) {
+        return getInsightConfig(focused.name).searchQuery;
+    }
+    return undefined;
 }
 
 function selectSearchRawQueryParam(state: NavigationState | undefined) {

@@ -94,6 +94,7 @@ const translations: TranslationDeepObject<typeof en> = {
         search: '検索',
         reports: 'レポート',
         spend: '支出',
+        insights: 'インサイト',
         find: '検索',
         searchWithThreeDots: '検索…',
         next: '次へ',

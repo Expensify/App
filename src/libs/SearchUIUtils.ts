@@ -4492,39 +4492,6 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         }
     }
 
-    // Insights section
-    {
-        const insightsSection: SearchTypeMenuSection = {
-            translationPath: 'search.tabs.insights',
-            menuItems: [],
-        };
-
-        const insightsSearchKeys = [
-            CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME,
-            ...(!isTrackIntentWithWorkflowsDisabled ? [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS] : []),
-            CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES,
-            CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS,
-        ];
-
-        for (const key of insightsSearchKeys) {
-            if (!suggestedSearchesVisibility[key]) {
-                continue;
-            }
-
-            insightsSection.menuItems.push({
-                ...suggestedSearches[key],
-                emptyState: {
-                    title: 'search.searchResults.emptyResults.title',
-                    subtitle: 'search.searchResults.emptyResults.subtitle',
-                },
-            });
-        }
-
-        if (insightsSection.menuItems.length > 0) {
-            typeMenuSections.push(insightsSection);
-        }
-    }
-
     return typeMenuSections;
 }
 

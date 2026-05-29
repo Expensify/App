@@ -797,6 +797,26 @@ const ROUTES = {
         route: 'domains',
         getRoute: () => 'domains' as const,
     },
+    INSIGHTS_ROOT: {
+        route: 'insights',
+        getRoute: () => 'insights' as const,
+    },
+    INSIGHTS_TOP_SPENDERS: {
+        route: 'insights/top-spenders',
+        getRoute: () => 'insights/top-spenders' as const,
+    },
+    INSIGHTS_TOP_CATEGORIES: {
+        route: 'insights/top-categories',
+        getRoute: () => 'insights/top-categories' as const,
+    },
+    INSIGHTS_TOP_MERCHANTS: {
+        route: 'insights/top-merchants',
+        getRoute: () => 'insights/top-merchants' as const,
+    },
+    INSIGHTS_SPEND_OVER_TIME: {
+        route: 'insights/spend-over-time',
+        getRoute: () => 'insights/spend-over-time' as const,
+    },
     SEARCH_ROUTER: 'search-router',
     SEARCH_ROOT: {
         route: 'search',
