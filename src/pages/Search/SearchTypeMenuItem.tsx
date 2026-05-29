@@ -1,5 +1,6 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import type {GestureResponderEvent} from 'react-native';
 import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
@@ -30,7 +31,7 @@ type SearchTypeMenuItemProps = {
     focused?: boolean;
 
     /** Press handler */
-    onPress: () => void;
+    onPress: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 };
 
 const COLLAPSED_BADGE_BOTTOM_OFFSET = -6;

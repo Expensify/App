@@ -3,7 +3,6 @@ import React, {useContext, useEffect, useEffectEvent, useLayoutEffect, useRef, u
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
-import {useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
@@ -46,7 +45,6 @@ type SectionParams = {
 
 function Section({section, hash, activeItemIndex, sectionStartIndex, reportCounts, areAllSectionsExpanded, onItemPress, onCollapsed}: SectionParams) {
     const {translate} = useLocalize();
-    const {isVisuallyCollapsed} = useSearchSidebarCollapse();
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Basket',
         'CalendarSolid',
@@ -93,7 +91,7 @@ function Section({section, hash, activeItemIndex, sectionStartIndex, reportCount
             title={translate(section.translationPath)}
             badgeText={getSectionBadgeText(section.translationPath, reportCounts)}
         >
-            {isSavedSearchesSection && !isVisuallyCollapsed && (
+            {isSavedSearchesSection && (
                 <SavedSearchList
                     hash={hash}
                     areAllSectionsExpanded={areAllSectionsExpanded}
