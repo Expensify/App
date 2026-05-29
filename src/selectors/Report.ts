@@ -1,8 +1,10 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import {getOriginalMessage, isClosedAction} from '@libs/ReportActionsUtils';
-import {canShowReportRecipientLocalTime, getPolicyIDsWithEmptyReportsForAccount, isOpenExpenseReport} from '@libs/ReportUtils';
+import {canShowReportRecipientLocalTime, getPolicyIDsWithEmptyReportsForAccount, isChatRoom, isOpenExpenseReport, isPolicyExpenseChat, isThread} from '@libs/ReportUtils';
+import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Report, ReportActions, Transaction} from '@src/types/onyx';
 import {getLastClosedReportAction} from './ReportAction';
 
@@ -36,6 +38,32 @@ const policyIDsWithEmptyReportsSelector =
             return {};
         }
         return getPolicyIDsWithEmptyReportsForAccount(reports, accountID, transactionsByReportID);
+    };
+
+const policyChatRoomsSelector =
+    (policyID: string | undefined, archivedReportsIdSet: ArchivedReportsIDSet) =>
+    (reports: OnyxCollection<Report>): Report[] => {
+        if (!policyID || !reports) {
+            return [];
+        }
+
+        const list: Report[] = [];
+        for (const report of Object.values(reports)) {
+            if (!report || report.policyID !== policyID) {
+                continue;
+            }
+            if (isThread(report)) {
+                continue;
+            }
+            if (!isChatRoom(report) && !isPolicyExpenseChat(report)) {
+                continue;
+            }
+            if (archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`)) {
+                continue;
+            }
+            list.push(report);
+        }
+        return list;
     };
 
 function openExpenseReportIDsSelector(reports: OnyxCollection<Report>): OpenExpenseReportIDMap {
@@ -164,7 +192,8 @@ export {
     getReportOwnerAccountID,
     getReportPolicyID,
     policyIDsWithEmptyReportsSelector,
-    openExpenseReportIDsSelector,
     canShowReportRecipientLocalTimeSelector,
+    policyChatRoomsSelector,
+    openExpenseReportIDsSelector,
     getStableReportSelector,
 };

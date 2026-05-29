@@ -374,6 +374,76 @@ describe('mergeTransactionRequest', () => {
         expect(updatedMergeTransaction).toBeNull();
     });
 
+    it('should preserve target iouRequestType when merging a distance request without an iouRequestType in the merge transaction', async () => {
+        // Given a distance target transaction with a sub-type and a merge transaction that omits iouRequestType
+        const targetReportID = 'target-report';
+        const targetTransaction: Transaction = {
+            ...createRandomDistanceRequestTransaction(1),
+            transactionID: 'target-distance',
+            reportID: targetReportID,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+        };
+        const sourceExpenseReport = {
+            ...createExpenseReport(1),
+            reportID: 'source-report',
+        };
+        const sourceTransaction: Transaction = {
+            ...createRandomTransaction(2),
+            transactionID: 'source-distance',
+            reportID: sourceExpenseReport.reportID,
+        };
+        const mergeTransaction = {
+            ...createRandomMergeTransaction(1),
+            targetTransactionID: targetTransaction.transactionID,
+            sourceTransactionID: sourceTransaction.transactionID,
+            reportID: targetReportID,
+            // Intentionally no iouRequestType
+        };
+        const mergeTransactionID = 'merge-distance';
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`, targetTransaction);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`, sourceTransaction);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceExpenseReport.reportID}`, sourceExpenseReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, mergeTransaction);
+
+        mockFetch?.pause?.();
+
+        // When the merge fires
+        mergeTransactionRequest({
+            mergeTransactionID,
+            mergeTransaction,
+            targetTransaction,
+            sourceTransaction,
+            targetTransactionThreadReport: {reportID: targetReportID},
+            targetTransactionThreadParentReport: undefined,
+            targetTransactionThreadParentReportNextStep: undefined,
+            allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID),
+            policy: undefined,
+            policyTags: undefined,
+            policyCategories: undefined,
+            currentUserAccountIDParam: TEST_ACCOUNT_ID,
+            currentUserEmailParam: TEST_EMAIL,
+            isASAPSubmitBetaEnabled: false,
+            delegateAccountID: undefined,
+            selfDMReport: undefined,
+        });
+
+        await mockFetch?.resume?.();
+        await waitForBatchedUpdates();
+
+        // Then the target transaction's iouRequestType must fall back to its own value, not be nulled
+        const updatedTargetTransaction = await new Promise<Transaction | null>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`,
+                callback: (transaction) => {
+                    Onyx.disconnect(connection);
+                    resolve(transaction ?? null);
+                },
+            });
+        });
+        expect(updatedTargetTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_MAP);
+    });
+
     it('should call MERGE_TRANSACTION with correct params and delete only the chosen source expense in Merge Expense flow', async () => {
         // Given:
         // - Two expenses on different reports

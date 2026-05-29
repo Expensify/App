@@ -29,6 +29,8 @@ function ChatListItem<TItem extends ListItem>({
 }: ChatListItemProps<TItem>) {
     const reportActionItem = item as unknown as ReportActionListItemType;
     const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID}`, {selector: getStableReportSelector});
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.childReportID}`);
+
     const styles = useThemeStyles();
     const theme = useTheme();
     const animatedHighlightStyle = useAnimatedHighlightStyle({
@@ -77,6 +79,7 @@ function ChatListItem<TItem extends ListItem>({
             <ReportActionItem
                 action={reportActionItem}
                 report={reportStable}
+                transactionThreadReport={transactionThreadReport}
                 onPress={handlePress}
                 parentReportAction={undefined}
                 displayAsGroup={false}

@@ -16,11 +16,13 @@ type DebugReportActionPreviewProps = {
 
 function DebugReportActionPreview({reportAction, reportID}: DebugReportActionPreviewProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction?.childReportID}`);
 
     return (
         <ScrollView>
             <ReportActionItem
                 action={reportAction ?? ({} as ReportAction)}
+                transactionThreadReport={transactionThreadReport}
                 report={report ?? ({} as Report)}
                 parentReportAction={undefined}
                 displayAsGroup={false}
