@@ -180,6 +180,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
             {summaryItems.map(({id, description, title, shouldShowRightIcon, interactive, disabled, onPress}) => (
                 <MenuItemWithTopDescription
                     key={id}
+                    pressableTestID={id}
                     description={description}
                     title={title}
                     shouldShowRightIcon={shouldShowRightIcon}
