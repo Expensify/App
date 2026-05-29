@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Start of Day Triage — 2026-05-29</title>
+</head>
+<body style="margin:0;padding:0;background-color:#FBF8F1;font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;color:#1A1A1A;">
+
+<!-- Outer wrapper -->
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#FBF8F1;">
+<tr><td align="center" style="padding:40px 16px 60px 16px;">
+
+<!-- 640px container -->
+<table width="640" cellpadding="0" cellspacing="0" border="0" style="max-width:640px;width:100%;">
+
+<!-- ═══════════════════════════════════════════
+     MASTHEAD
+════════════════════════════════════════════ -->
+<tr><td>
+  <!-- 3px oxblood top rule -->
+  <div style="border-top:3px solid #9B2C2C;margin-bottom:20px;"></div>
+
+  <!-- Kicker: START OF DAY -->
+  <div style="font-family:Georgia,'Times New Roman',serif;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:#9B2C2C;margin-bottom:10px;">Start of Day</div>
+
+  <!-- Main headline -->
+  <div style="font-family:Georgia,'Times New Roman',serif;font-size:36px;font-weight:normal;color:#1A1A1A;line-height:1.1;margin-bottom:16px;">Triage &mdash; 2026-05-29</div>
+
+  <!-- Thin rule -->
+  <div style="border-top:1px solid #E7E1D4;margin-bottom:12px;"></div>
+
+  <!-- Summary line -->
+  <div style="font-size:13px;color:#6B6B6B;margin-bottom:36px;">8 ranked items &middot; generated 06:05 UTC</div>
+</td></tr>
+
+<!-- ═══════════════════════════════════════════
+     SECTION: NOW
+════════════════════════════════════════════ -->
+<tr><td style="padding-bottom:8px;">
+  <div style="font-family:Georgia,'Times New Roman',serif;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:#9B2C2C;margin-bottom:6px;">Now</div>
+  <div style="font-family:Georgia,'Times New Roman',serif;font-size:22px;color:#1A1A1A;margin-bottom:10px;">Ranked Action Items</div>
+  <div style="border-top:1px solid #E7E1D4;margin-bottom:20px;"></div>
+</td></tr>
+
+<!-- ── ITEM 1 ──────────────────────────────── -->
+<tr><td style="padding-bottom:12px;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF;border:1px solid #E7E1D4;">
+  <tr>
+    <td width="44" valign="top" style="padding:16px 0 16px 16px;">
+      <div style="font-family:Georgia,'Times New Roman',serif;font-size:28px;color:#9B2C2C;line-height:1;">1</div>
+    </td>
+    <td valign="top" style="padding:16px 16px 16px 12px;">
+      <!-- Badge -->
+      <span style="display:inline-block;background-color:#C0392B;color:#FFFFFF;font-size:11px;font-weight:600;padding:2px 8px;border-radius:3px;margin-bottom:8px;">&#128308; CRITICAL</span>
+      <!-- Title -->
+      <div style="font-size:15px;font-weight:600;color:#1A1A1A;margin-bottom:6px;">
+        Splits payment window: regressions threaten June&nbsp;4 payout
+        &nbsp;<a href="https://github.com/Expensify/App/issues/72125" style="color:#9B2C2C;text-decoration:underline;">#72125</a>
+      </div>
+      <!-- Meta -->
+      <div style="font-size:13px;color:#6B6B6B;line-height:1.5;">
+        <strong>Status:</strong> PRs <a href="https://github.com/Expensify/App/pull/84382" style="color:#9B2C2C;">#84382</a> &amp; <a href="https://github.com/Expensify/App/pull/91932" style="color:#9B2C2C;">#91932</a> deployed to v9.3.88-2; 7-day regression window; payment to @ZhenjaHorbach due <strong>2026-06-04</strong>. &middot;
+        <strong>Why now:</strong> 10+ Daily bugs filed May 27–28 are all linked as Deploy Blockers against this issue from PR #84382; BugZero checklist not yet complete; regression discount rules may apply. &middot;
+        <strong>Action:</strong> Triage each Deploy Blocker; coordinate with @ZhenjaHorbach to complete the BugZero checklist; invoke regression discount process if warranted before June 4.
+      </div>
+    </td>
+  </tr>
+  </table>
+</td></tr>
+
+<!-- ── ITEM 2 ──────────────────────────────── -->
+<tr><td style="padding-bottom:12px;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF;border:1px solid #E7E1D4;">
+  <tr>
+    <td width="44" valign="top" style="padding:16px 0 16px 16px;">
+      <div style="font-family:Georgia,'Times New Roman',serif;font-size:28px;color:#1A1A1A;line-height:1;">2</div>
+    </td>
+    <td valign="top" style="padding:16px 16px 16px 12px;">
+      <span style="display:inline-block;background-color:#C0392B;color:#FFFFFF;font-size:11px;font-weight:600;padding:2px 8px;border-radius:3px;margin-bottom:8px;">&#128308; CRITICAL</span>
+      <div style="font-size:15px;font-weight:600;color:#1A1A1A;margin-bottom:6px;">
+        10 Daily/Deploy-Blocker splits regression bugs — CME triage required
+        &nbsp;<a href="https://github.com/Expensify/App/issues/91875" style="color:#9B2C2C;text-decoration:underline;">#91875</a>
+        <a href="https://github.com/Expensify/App/issues/91876" style="color:#9B2C2C;text-decoration:underline;">#91876</a>
+        <a href="https://github.com/Expensify/App/issues/91878" style="color:#9B2C2C;text-decoration:underline;">#91878</a>
+        <a href="https://github.com/Expensify/App/issues/91907" style="color:#9B2C2C;text-decoration:underline;">#91907</a>
+        <a href="https://github.com/Expensify/App/issues/91913" style="color:#9B2C2C;text-decoration:underline;">#91913</a>
+        <a href="https://github.com/Expensify/App/issues/91918" style="color:#9B2C2C;text-decoration:underline;">#91918</a>
+        <a href="https://github.com/Expensify/App/issues/91920" style="color:#9B2C2C;text-decoration:underline;">#91920</a>
+        <a href="https://github.com/Expensify/App/issues/91930" style="color:#9B2C2C;text-decoration:underline;">#91930</a>
+        <a href="https://github.com/Expensify/App/issues/91874" style="color:#9B2C2C;text-decoration:underline;">#91874</a>
+        <a href="https://github.com/Expensify/App/issues/91917" style="color:#9B2C2C;text-decoration:underline;">#91917</a>
+      </div>
+      <div style="font-size:13px;color:#6B6B6B;line-height:1.5;">
+        <strong>Status:</strong> All open; filed May 27–28; co-assigned lakchote + @ZhenjaHorbach (+ @dmkt9 on some); melvin-bot linked 8 of these as Deploy Blockers against #72125 on May 28. &middot;
+        <strong>Why now:</strong> These are the regressions from the splits feature landing (PR #84382); they block clean payment and must each be CME-investigated. #91917 has a [HOLD] tag suggesting an in-progress fix. #641645 (Expensify repo) may be a server-side correlation. &middot;
+        <strong>Action:</strong> Work through each issue comment thread with @ZhenjaHorbach; confirm root-cause alignment with PR #84382; check #91917 [HOLD] for fix status.
+      </div>
+    </td>
+  </tr>
+  </table>
+</td></tr>
+
+<!-- ── ITEM 3 ──────────────────────────────── -->
+<tr><td style="padding-bottom:12px;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF;border:1px solid #E7E1D4;">
+  <tr>
+    <td width="44" valign="top" style="padding:16px 0 16px 16px;">
+      <div style="font-family:Georgia,'Times New Roman',serif;font-size:28px;color:#1A1A1A;line-height:1;">3</div>
+    </td>
+    <td valign="top" style="padding:16px 16px 16px 12px;">
+      <span style="display:inline-block;background-color:#D35400;color:#FFFFFF;font-size:11px;font-weight:600;padding:2px 8px;border-radius:3px;margin-bottom:8px;">&#127824; HIGH</span>
+      <div style="font-size:15px;font-weight:600;color:#1A1A1A;margin-bottom:6px;">
+        CC field NewFeature — Awaiting Payment, 12+ days overdue
+        &nbsp;<a href="https://github.com/Expensify/App/issues/80957" style="color:#9B2C2C;text-decoration:underline;">#80957</a>
+      </div>
+      <div style="font-size:13px;color:#6B6B6B;line-height:1.5;">
+        <strong>Status:</strong> Reviewing + Awaiting Payment; eroded from Daily to Weekly May 25. @abzokhattab (May 23): "not ready yet for payment." lakchote's last action: review feedback on linked PR, May 21. &middot;
+        <strong>Why now:</strong> The Awaiting Payment label means a PR was merged; payment is pending. The issue has gone quiet for 8 days since lakchote's last input, and the bot has flagged it twice. &middot;
+        <strong>Action:</strong> Check linked PR status; if @abzokhattab addressed lakchote's review feedback, approve forward motion; ping @abzokhattab on concrete next step and ETA.
+      </div>
+    </td>
+  </tr>
+  </table>
+</td></tr>
+
+<!-- ── ITEM 4 ──────────────────────────────── -->
+<tr><td style="padding-bottom:12px;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF;border:1px solid #E7E1D4;">
+  <tr>
+    <td width="44" valign="top" style="padding:16px 0 16px 16px;">
+      <div style="font-family:Georgia,'Times New Roman',serif;font-size:28px;color:#1A1A1A;line-height:1;">4</div>
+    </td>
+    <td valign="top" style="padding:16px 16px 16px 12px;">
+      <span style="display:inline-block;background-color:#D35400;color:#FFFFFF;font-size:11px;font-weight:600;padding:2px 8px;border-radius:3px;margin-bottom:8px;">&#127824; HIGH</span>
+      <div style="font-size:15px;font-weight:600;color:#1A1A1A;margin-bottom:6px;">
+        3rd-Party Connection Flow — Overdue + Daily, updated today
+        &nbsp;<a href="https://github.com/Expensify/Expensify/issues/613689" style="color:#9B2C2C;text-decoration:underline;">#613689</a>
+      </div>
+      <div style="font-size:13px;color:#6B6B6B;line-height:1.5;">
+        <strong>Status:</strong> Task, Daily, <em>Overdue</em> label; assigned lakchote + @dylanexpensify; last updated today (May 29). &middot;
+        <strong>Why now:</strong> The Overdue label is an active SLA breach; the Daily cadence means a comment is expected every business day. No comment visible today yet. &middot;
+        <strong>Action:</strong> Post a status comment on the issue; if blocked, surface to @dylanexpensify or escalate in #expensify-open-source.
+      </div>
+    </td>
+  </tr>
+  </table>
+</td></tr>
+
+<!-- ── ITEM 5 ──────────────────────────────── -->
+<tr><td style="padding-bottom:12px;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF;border:1px solid #E7E1D4;">
+  <tr>
+    <td width="44" valign="top" style="padding:16px 0 16px 16px;">
+      <div style="font-family:Georgia,'Times New Roman',serif;font-size:28px;color:#1A1A1A;line-height:1;">5</div>
+    </td>
+    <td valign="top" style="padding:16px 16px 16px 12px;">
+      <span style="display:inline-block;background-color:#B7950B;color:#FFFFFF;font-size:11px;font-weight:600;padding:2px 8px;border-radius:3px;margin-bottom:8px;">&#127761; MEDIUM</span>
+      <div style="font-size:15px;font-weight:600;color:#1A1A1A;margin-bottom:6px;">
+        [$75] &ldquo;Save view&rdquo; rename — internal reviewer signal needed (updated today)
+        &nbsp;<a href="https://github.com/Expensify/App/issues/91050" style="color:#9B2C2C;text-decoration:underline;">#91050</a>
+      </div>
+      <div style="font-size:13px;color:#6B6B6B;line-height:1.5;">
+        <strong>Status:</strong> Reviewing, External, Weekly. C+ reviewer @shubham1206agra approved @mdneyazahmad&rsquo;s proposal May 19. melvin-bot auto-assigned lakchote as internal reviewer. No PR opened yet. Issue updated today. &middot;
+        <strong>Why now:</strong> Contributors are debating scope (rename key vs. update value only); the winning contributor is waiting for an internal go-ahead to open their PR. &middot;
+        <strong>Action:</strong> Read @mdneyazahmad&rsquo;s approved proposal; post a brief comment confirming the approach and green-lighting the PR; assign contributor if not done.
+      </div>
+    </td>
+  </tr>
+  </table>
+</td></tr>
+
+<!-- ── ITEM 6 ──────────────────────────────── -->
+<tr><td style="padding-bottom:12px;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF;border:1px solid #E7E1D4;">
+  <tr>
+    <td width="44" valign="top" style="padding:16px 0 16px 16px;">
+      <div style="font-family:Georgia,'Times New Roman',serif;font-size:28px;color:#1A1A1A;line-height:1;">6</div>
+    </td>
+    <td valign="top" style="padding:16px 16px 16px 12px;">
+      <span style="display:inline-block;background-color:#B7950B;color:#FFFFFF;font-size:11px;font-weight:600;padding:2px 8px;border-radius:3px;margin-bottom:8px;">&#127761; MEDIUM</span>
+      <div style="font-size:15px;font-weight:600;color:#1A1A1A;margin-bottom:6px;">
+        [HOLD] PR review — reviewer checklist outstanding 8+ months
+        &nbsp;<a href="https://github.com/Expensify/App/pull/70852" style="color:#9B2C2C;text-decoration:underline;">App #70852</a>
+      </div>
+      <div style="font-size:13px;color:#6B6B6B;line-height:1.5;">
+        <strong>Status:</strong> Open [HOLD] HelpDot PR by @VictoriaExpensify; review requested from lakchote since Sep 2025. CI all-green. Co-reviewer @kadiealexander completed Concierge checklist Sep 22. lakchote&rsquo;s engineering reviewer checklist never posted. &middot;
+        <strong>Why now:</strong> 8+ months of reviewer checklist debt; if/when HOLD is lifted this is the only blocker to merge. The PR is a 1-line HelpDot doc change — trivial review. &middot;
+        <strong>Action:</strong> Post the reviewer checklist when HOLD is lifted. For now, note as pending. Draft below is ready to paste.
+      </div>
+    </td>
+  </tr>
+  </table>
+</td></tr>
+
+<!-- ── ITEM 7 ──────────────────────────────── -->
+<tr><td style="padding-bottom:12px;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF;border:1px solid #E7E1D4;">
+  <tr>
+    <td width="44" valign="top" style="padding:16px 0 16px 16px;">
+      <div style="font-family:Georgia,'Times New Roman',serif;font-size:28px;color:#1A1A1A;line-height:1;">7</div>
+    </td>
+    <td valign="top" style="padding:16px 16px 16px 12px;">
+      <span style="display:inline-block;background-color:#B7950B;color:#FFFFFF;font-size:11px;font-weight:600;padding:2px 8px;border-radius:3px;margin-bottom:8px;">&#127761; MEDIUM</span>
+      <div style="font-size:15px;font-weight:600;color:#1A1A1A;margin-bottom:6px;">
+        BugBot ServerError — Unexpected split transaction, Daily (Expensify repo)
+        &nbsp;<a href="https://github.com/Expensify/Expensify/issues/641645" style="color:#9B2C2C;text-decoration:underline;">#641645</a>
+      </div>
+      <div style="font-size:13px;color:#6B6B6B;line-height:1.5;">
+        <strong>Status:</strong> Daily, ServerError, Auth; assigned solely to lakchote; filed May 27, updated May 28. &middot;
+        <strong>Why now:</strong> The error title mentions a split transaction — likely correlated with the PR #84382 regression burst. Being the sole assignee, lakchote owns the investigation. &middot;
+        <strong>Action:</strong> Investigate the BugBot stack trace; cross-reference with the splits regression cluster (items 1–2); link if related; escalate to the Auth/backend team if a server-side fix is needed.
+      </div>
+    </td>
+  </tr>
+  </table>
+</td></tr>
+
+<!-- ── ITEM 8 ──────────────────────────────── -->
+<tr><td style="padding-bottom:24px;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF;border:1px solid #E7E1D4;">
+  <tr>
+    <td width="44" valign="top" style="padding:16px 0 16px 16px;">
+      <div style="font-family:Georgia,'Times New Roman',serif;font-size:28px;color:#1A1A1A;line-height:1;">8</div>
+    </td>
+    <td valign="top" style="padding:16px 16px 16px 12px;">
+      <span style="display:inline-block;background-color:#2471A3;color:#FFFFFF;font-size:11px;font-weight:600;padding:2px 8px;border-radius:3px;margin-bottom:8px;">&#128309; WATCH</span>
+      <div style="font-size:15px;font-weight:600;color:#1A1A1A;margin-bottom:6px;">
+        [$250] Auto-choose selection — contributor blocked on BE spec, Reviewing
+        &nbsp;<a href="https://github.com/Expensify/App/issues/86220" style="color:#9B2C2C;text-decoration:underline;">#86220</a>
+      </div>
+      <div style="font-size:13px;color:#6B6B6B;line-height:1.5;">
+        <strong>Status:</strong> Reviewing, External, Weekly; @mukhrr posted a detailed BE spec on Apr 2; no update visible since. Updated May 28 (likely bot). &middot;
+        <strong>Why now:</strong> The contributor wrote a substantial spec for 4 backend API commands requiring backend engineer collaboration. The $250 bounty stalls without internal action. &middot;
+        <strong>Action:</strong> Review @mukhrr&rsquo;s Apr 2 BE spec; determine if a backend engineer can be engaged, or advise a frontend-only workaround to unblock the PR.
+      </div>
+    </td>
+  </tr>
+  </table>
+</td></tr>
+
+<!-- ═══════════════════════════════════════════
+     SECTION: WHY
+════════════════════════════════════════════ -->
+<tr><td style="padding-bottom:8px;">
+  <div style="font-family:Georgia,'Times New Roman',serif;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:#9B2C2C;margin-bottom:6px;">Why</div>
+  <div style="font-family:Georgia,'Times New Roman',serif;font-size:22px;color:#1A1A1A;margin-bottom:10px;">One-Sentence Justification</div>
+  <div style="border-top:1px solid #E7E1D4;margin-bottom:20px;"></div>
+</td></tr>
+<tr><td style="padding-bottom:24px;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr><td style="padding:6px 0;font-size:14px;line-height:1.6;color:#1A1A1A;">
+      <strong style="color:#9B2C2C;">1.</strong> PR #84382 merged and deployed, but caused 10+ Daily regressions all linked as Deploy Blockers — the June 4 payment to @ZhenjaHorbach depends on the regression window surviving clean, making triage urgent <em>today</em>.
+    </td></tr>
+    <tr><td style="padding:6px 0;font-size:14px;line-height:1.6;color:#1A1A1A;">
+      <strong style="color:#9B2C2C;">2.</strong> Every one of the 10 splits regression bugs is co-assigned to lakchote as CME and carries a Daily label, meaning each individually requires a same-day comment per Expensify&rsquo;s issue cadence SLAs.
+    </td></tr>
+    <tr><td style="padding:6px 0;font-size:14px;line-height:1.6;color:#1A1A1A;">
+      <strong style="color:#9B2C2C;">3.</strong> Issue #80957 has been in Awaiting Payment for 12+ days with lakchote&rsquo;s review feedback unacknowledged by the team, and the bot is now escalating — a single follow-up comment could unlock forward motion.
+    </td></tr>
+    <tr><td style="padding:6px 0;font-size:14px;line-height:1.6;color:#1A1A1A;">
+      <strong style="color:#9B2C2C;">4.</strong> Issue #613689 carries an explicit <em>Overdue</em> label and a Daily cadence, meaning it is breaching SLA right now and requires at minimum a status comment today.
+    </td></tr>
+    <tr><td style="padding:6px 0;font-size:14px;line-height:1.6;color:#1A1A1A;">
+      <strong style="color:#9B2C2C;">5.</strong> Issue #91050 has been waiting for lakchote&rsquo;s internal-reviewer signal since May 19 — contributors are stalled at proposal stage and updated the issue again today, indicating active waiting.
+    </td></tr>
+    <tr><td style="padding:6px 0;font-size:14px;line-height:1.6;color:#1A1A1A;">
+      <strong style="color:#9B2C2C;">6.</strong> PR #70852 has been sitting in [HOLD] for 8+ months with lakchote&rsquo;s reviewer checklist missing — a trivial 1-line HelpDot PR that is entirely unblocked from lakchote&rsquo;s side once HOLD is released.
+    </td></tr>
+    <tr><td style="padding:6px 0;font-size:14px;line-height:1.6;color:#1A1A1A;">
+      <strong style="color:#9B2C2C;">7.</strong> BugBot #641645 mentions &ldquo;split transaction error&rdquo; and is assigned solely to lakchote — this is likely a server-side symptom of the same splits regression and warrants cross-referencing today.
+    </td></tr>
+    <tr><td style="padding:6px 0;font-size:14px;line-height:1.6;color:#1A1A1A;">
+      <strong style="color:#9B2C2C;">8.</strong> Issue #86220 has a well-written BE spec from a contributor that has been waiting without a response since April 2, and the $250 bounty will remain stalled until lakchote either engages a backend engineer or proposes an alternative path.
+    </td></tr>
+  </table>
+</td></tr>
+
+<!-- ═══════════════════════════════════════════
+     SECTION: DRAFT REPLIES
+════════════════════════════════════════════ -->
+<tr><td style="padding-bottom:8px;">
+  <div style="font-family:Georgia,'Times New Roman',serif;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:#9B2C2C;margin-bottom:6px;">Draft replies</div>
+  <div style="font-family:Georgia,'Times New Roman',serif;font-size:22px;color:#1A1A1A;margin-bottom:10px;">Ready-to-Paste (Never Post Automatically)</div>
+  <div style="border-top:1px solid #E7E1D4;margin-bottom:20px;"></div>
+</td></tr>
+
+<!-- Draft 1: #72125 BugZero / regression coordination -->
+<tr><td style="padding-bottom:16px;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF;border-left:3px solid #9B2C2C;border-top:1px solid #E7E1D4;border-right:1px solid #E7E1D4;border-bottom:1px solid #E7E1D4;">
+  <tr><td style="padding:14px 16px;">
+    <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#6B6B6B;margin-bottom:8px;">TARGET: <a href="https://github.com/Expensify/App/issues/72125" style="color:#9B2C2C;">#72125</a> — BugZero checklist &amp; regression coordination</div>
+    <div style="font-family:'SF Mono',ui-monospace,Menlo,Consolas,monospace;font-size:13px;color:#1A1A1A;line-height:1.65;white-space:pre-wrap;">@ZhenjaHorbach — the BugZero checklist has been requested. Please complete it before June 4 so the regression window closes cleanly.
+
+Quick note: deploy blockers #91875, #91876, #91878, #91907, #91913, #91918, #91920, and #91930 have all been linked to this issue from PR #84382. I'm triaging each one now to assess scope and whether a regression discount applies per our guidelines. I'll follow up in Slack — let's align on priority order for the fixes.</div>
+  </td></tr>
+  </table>
+</td></tr>
+
+<!-- Draft 2: #91050 internal reviewer signal -->
+<tr><td style="padding-bottom:16px;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF;border-left:3px solid #9B2C2C;border-top:1px solid #E7E1D4;border-right:1px solid #E7E1D4;border-bottom:1px solid #E7E1D4;">
+  <tr><td style="padding:14px 16px;">
+    <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#6B6B6B;margin-bottom:8px;">TARGET: <a href="https://github.com/Expensify/App/issues/91050" style="color:#9B2C2C;">#91050</a> — internal reviewer approval</div>
+    <div style="font-family:'SF Mono',ui-monospace,Menlo,Consolas,monospace;font-size:13px;color:#1A1A1A;line-height:1.65;white-space:pre-wrap;">@mdneyazahmad — the C+ approval from @shubham1206agra looks good. Please go ahead and open a PR.
+
+Approach note: renaming the translation key (`SEARCH_SAVE_FORM` → `SAVE_VIEW_FORM`) is the correct path rather than only updating the string value, as you noted — the key name should reflect the current context for long-term maintainability. Please also update the Sentry label in the form definition as called out in your proposal.
+
+If other contributors are still interested, @mdneyazahmad has priority here. Thanks everyone for the proposals!</div>
+  </td></tr>
+  </table>
+</td></tr>
+
+<!-- Draft 3: #80957 follow-up ping -->
+<tr><td style="padding-bottom:16px;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF;border-left:3px solid #9B2C2C;border-top:1px solid #E7E1D4;border-right:1px solid #E7E1D4;border-bottom:1px solid #E7E1D4;">
+  <tr><td style="padding:14px 16px;">
+    <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#6B6B6B;margin-bottom:8px;">TARGET: <a href="https://github.com/Expensify/App/issues/80957" style="color:#9B2C2C;">#80957</a> — status follow-up</div>
+    <div style="font-family:'SF Mono',ui-monospace,Menlo,Consolas,monospace;font-size:13px;color:#1A1A1A;line-height:1.65;white-space:pre-wrap;">@abzokhattab @M00rish — following up on status. The issue is in Awaiting Payment and was last updated May 23 ("not ready yet"). It's been 8 days and the bot flagged it as 12 days overdue before eroding it to Weekly.
+
+What's the current blocker on the linked PR? If my review feedback (from May 21) has been addressed, let me know and I'll do another pass so we can move forward. Happy to jump on a quick sync if that helps.</div>
+  </td></tr>
+  </table>
+</td></tr>
+
+<!-- Draft 4: PR #70852 reviewer checklist (ready for when HOLD lifts) -->
+<tr><td style="padding-bottom:24px;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF;border-left:3px solid #9B2C2C;border-top:1px solid #E7E1D4;border-right:1px solid #E7E1D4;border-bottom:1px solid #E7E1D4;">
+  <tr><td style="padding:14px 16px;">
+    <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#6B6B6B;margin-bottom:8px;">TARGET: <a href="https://github.com/Expensify/App/pull/70852" style="color:#9B2C2C;">App #70852</a> — reviewer checklist stub (post when HOLD lifts)</div>
+    <div style="font-family:'SF Mono',ui-monospace,Menlo,Consolas,monospace;font-size:13px;color:#1A1A1A;line-height:1.65;white-space:pre-wrap;">[Post the Reviewer Checklist from the standard template here when the HOLD is released]
+
+Notes on this PR:
+- 1-file change: adds "(US ONLY)" to the Cashback section heading in Expensify-Card-Perks.md
+- CI all green; @kadiealexander's Concierge checklist is complete
+- Content truncation in the Talkspace section was flagged by the automated review — confirm with @VictoriaExpensify whether that's intentional before approving</div>
+  </td></tr>
+  </table>
+</td></tr>
+
+<!-- ═══════════════════════════════════════════
+     SECTION: SUGGESTED COMMANDS
+════════════════════════════════════════════ -->
+<tr><td style="padding-bottom:8px;">
+  <div style="font-family:Georgia,'Times New Roman',serif;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:#9B2C2C;margin-bottom:6px;">Suggested commands</div>
+  <div style="font-family:Georgia,'Times New Roman',serif;font-size:22px;color:#1A1A1A;margin-bottom:10px;">Quick-Open Links &amp; Queries</div>
+  <div style="border-top:1px solid #E7E1D4;margin-bottom:20px;"></div>
+</td></tr>
+<tr><td style="padding-bottom:24px;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#1A1A1A;">
+  <tr><td style="padding:16px 20px;">
+    <div style="font-family:'SF Mono',ui-monospace,Menlo,Consolas,monospace;font-size:13px;color:#FBF8F1;line-height:1.8;">
+# 1. All open splits regression bugs assigned to you (Daily label)<br>
+https://github.com/Expensify/App/issues?q=is%3Aopen+label%3ADaily+label%3ABug+assignee%3Alakchote<br>
+<br>
+# 2. Parent splits tracking issue — BugZero checklist + payment window<br>
+https://github.com/Expensify/App/issues/72125<br>
+<br>
+# 3. BugZero checklist template (for @ZhenjaHorbach)<br>
+https://raw.githubusercontent.com/Expensify/App/main/contributingGuides/BUGZERO_CHECKLIST.md<br>
+<br>
+# 4. CC field issue — check linked PR status<br>
+https://github.com/Expensify/App/issues/80957<br>
+<br>
+# 5. Save view issue — review winning proposal<br>
+https://github.com/Expensify/App/issues/91050<br>
+<br>
+# 6. Overdue 3rd-party connection flow (Expensify repo)<br>
+https://github.com/Expensify/Expensify/issues/613689<br>
+<br>
+# 7. BugBot server error — split transaction<br>
+https://github.com/Expensify/Expensify/issues/641645<br>
+<br>
+# 8. Auto-choose selection — review @mukhrr BE spec (Apr 2 comment)<br>
+https://github.com/Expensify/App/issues/86220<br>
+<br>
+# 9. [HOLD] HelpDot PR review (post checklist when HOLD lifted)<br>
+https://github.com/Expensify/App/pull/70852<br>
+<br>
+# 10. All open review-requested PRs for you<br>
+https://github.com/pulls?q=is%3Aopen+review-requested%3Alakchote
+    </div>
+  </td></tr>
+  </table>
+</td></tr>
+
+<!-- ═══════════════════════════════════════════
+     SECTION: LINKS
+════════════════════════════════════════════ -->
+<tr><td style="padding-bottom:8px;">
+  <div style="font-family:Georgia,'Times New Roman',serif;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:#9B2C2C;margin-bottom:6px;">Links</div>
+  <div style="font-family:Georgia,'Times New Roman',serif;font-size:22px;color:#1A1A1A;margin-bottom:10px;">All Referenced URLs</div>
+  <div style="border-top:1px solid #E7E1D4;margin-bottom:20px;"></div>
+</td></tr>
+<tr><td style="padding-bottom:40px;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/issues/72125" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/issues/72125</a> — Splits payment tracking (due Jun 4)</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/pull/84382" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/pull/84382</a> — Splits feature PR (deployed, caused regressions)</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/pull/91932" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/pull/91932</a> — Splits followup fix PR</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/issues/91874" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/issues/91874</a> — Rate field disabled (splits regression)</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/issues/91875" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/issues/91875</a> — Original split remains (Deploy Blocker)</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/issues/91876" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/issues/91876</a> — Rate list blank (Deploy Blocker)</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/issues/91878" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/issues/91878</a> — Error editing amount/distance (Deploy Blocker)</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/issues/91879" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/issues/91879</a> — Category button "not here" page (splits regression)</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/issues/91907" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/issues/91907</a> — Unreported split not reverted (Deploy Blocker)</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/issues/91913" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/issues/91913</a> — Self DM disappears (Deploy Blocker)</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/issues/91917" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/issues/91917</a> — [HOLD] "Hmm not here" on remove split (Hourly)</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/issues/91918" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/issues/91918</a> — Extra expense on offline delete (Deploy Blocker)</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/issues/91920" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/issues/91920</a> — Incorrect Total Spend (Deploy Blocker)</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/issues/91930" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/issues/91930</a> — Expense-level export fails (Deploy Blocker)</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/issues/80957" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/issues/80957</a> — CC field NewFeature (Awaiting Payment)</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/Expensify/issues/613689" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/Expensify/issues/613689</a> — 3rd-party connection flow (Overdue)</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/pull/70852" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/pull/70852</a> — [HOLD] HelpDot PR review request</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/issues/91050" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/issues/91050</a> — [$75] "Save view" rename (internal reviewer)</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/Expensify/issues/641645" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/Expensify/issues/641645</a> — BugBot ServerError split transaction</td></tr>
+    <tr><td style="padding:5px 0;font-size:13px;"><a href="https://github.com/Expensify/App/issues/86220" style="color:#9B2C2C;text-decoration:underline;">https://github.com/Expensify/App/issues/86220</a> — [$250] Auto-choose selection (BE spec pending)</td></tr>
+  </table>
+</td></tr>
+
+<!-- ═══════════════════════════════════════════
+     FOOTER
+════════════════════════════════════════════ -->
+<tr><td>
+  <div style="border-top:1px solid #E7E1D4;padding-top:16px;text-align:center;">
+    <div style="font-size:11px;color:#6B6B6B;">Automated read-only triage &middot; no actions were taken on your behalf</div>
+  </div>
+</td></tr>
+
+</table>
+<!-- /640px container -->
+
+</td></tr>
+</table>
+<!-- /Outer wrapper -->
+
+</body>
+</html>
