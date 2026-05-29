@@ -28,7 +28,7 @@ function VictoryChartPieLabel({tnode, slice}: VictoryChartPieLabelProps) {
 
     const dataLabels = Object.values(data).map((entry) => (entry as PolarChartData).label);
     const labels = parseAttribute<string[]>(tnode.attributes.labels);
-    const text = labels?.at(dataLabels.indexOf(slice.label)) ?? slice.label;
+    const text = labels?.[dataLabels.indexOf(slice.label)] ?? slice.label;
 
     const labelRadius = tnode.attributes.labelradius !== undefined ? Number(parseAttribute(tnode.attributes.labelradius)) : slice.radius;
     const midAngle = (slice.startAngle + slice.endAngle) / 2;
