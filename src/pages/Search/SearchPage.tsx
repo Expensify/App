@@ -168,9 +168,12 @@ function SearchPage({route}: SearchPageProps) {
 
         const shouldUseClientTotal = selectedTransactionsKeys.length > 0 || !metadata?.count;
         const selectedTransactionItems = Object.values(selectedTransactions);
+        const footerSelectedCurrency = !selectedCurrency || shouldUseClientTotal || metadata?.currency === selectedCurrency ? selectedCurrency : undefined;
         const isSelectedSubtotalLoading =
-            shouldUseClientTotal && !!selectedCurrency && selectedTransactionItems.some((transaction) => !!transaction.groupCurrency && transaction.groupCurrency !== selectedCurrency);
-        const currency = selectedCurrency ?? metadata?.currency ?? selectedTransactionItems.at(0)?.groupCurrency ?? selectedTransactionItems.at(0)?.currency;
+            shouldUseClientTotal &&
+            !!footerSelectedCurrency &&
+            selectedTransactionItems.some((transaction) => !!transaction.groupCurrency && transaction.groupCurrency !== footerSelectedCurrency);
+        const currency = footerSelectedCurrency ?? metadata?.currency ?? selectedTransactionItems.at(0)?.groupCurrency ?? selectedTransactionItems.at(0)?.currency;
         const numberOfExpense = shouldUseClientTotal
             ? selectedTransactionsKeys.reduce((count, key) => {
                   const item = selectedTransactions[key];
@@ -182,7 +185,7 @@ function SearchPage({route}: SearchPageProps) {
             : metadata?.count;
         const total = shouldUseClientTotal
             ? selectedTransactionItems.reduce((acc, transaction) => {
-                  const shouldUseGroupAmount = !selectedCurrency || transaction.groupCurrency === selectedCurrency;
+                  const shouldUseGroupAmount = !footerSelectedCurrency || transaction.groupCurrency === footerSelectedCurrency;
                   return acc - (shouldUseGroupAmount ? (transaction.groupAmount ?? -Math.abs(transaction.amount)) : -Math.abs(transaction.amount));
               }, 0)
             : metadata?.total;
