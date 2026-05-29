@@ -15,6 +15,7 @@ import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEnvironment from '@hooks/useEnvironment';
 import type {ActionHandledType} from '@hooks/useHoldMenuSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
@@ -27,6 +28,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSaveSortedReportIDs from '@hooks/useSaveSortedReportIDs';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
+import useSelfDMReport from '@hooks/useSelfDMReport';
 import useStableArrayReference from '@hooks/useStableArrayReference';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -79,7 +81,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
-import type {OutstandingReportsByPolicyIDDerivedValue, SaveSearch, Transaction} from '@src/types/onyx';
+import type {OutstandingReportsByPolicyIDDerivedValue, Report, SaveSearch, Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -88,7 +90,8 @@ import useOptimisticSearchTracking from './hooks/useOptimisticSearchTracking';
 import useStableOptimisticSortedData from './hooks/useStableOptimisticSortedData';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
-import {useSearchActionsContext, useSearchStateContext, useSyncSelectedReports} from './SearchContext';
+import {useSearchQueryActions, useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
+import {useSyncSelectedReports} from './SearchContextProvider';
 import SearchList from './SearchList';
 import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
 import {SearchScopeProvider} from './SearchScopeProvider';
@@ -122,12 +125,17 @@ function mapTransactionItemToSelectedEntry(
     originalItemTransaction: OnyxEntry<Transaction>,
     currentUserLogin: string,
     currentUserAccountID: number,
-    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
-    allowNegativeAmount = true,
+    outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue | undefined,
+    allowNegativeAmount: boolean,
+    parentReport: OnyxEntry<Report> | undefined,
+    selfDMReport: OnyxEntry<Report> | undefined,
+    isProduction: boolean,
 ): [string, SelectedTransactionInfo] {
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy, currentUserAccountID);
     const canRejectRequest = item.report ? canRejectReportAction(currentUserLogin, item.report) : false;
     const amount = hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : item.amount;
+    const isUnreported = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const reportForSplit = item.report ?? (isUnreported ? selfDMReport : undefined);
 
     return [
         item.keyForList,
@@ -138,7 +146,7 @@ function mapTransactionItemToSelectedEntry(
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
             canUnhold: canUnholdRequest,
-            canSplit: isSplitAction(item.report, [itemTransaction], originalItemTransaction, currentUserLogin, currentUserAccountID, item.policy),
+            canSplit: isSplitAction(reportForSplit, [itemTransaction], originalItemTransaction, currentUserLogin, currentUserAccountID, item.policy, parentReport, isProduction),
             hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
             canChangeReport: canEditFieldOfMoneyRequest({
                 reportAction: item.reportAction,
@@ -194,7 +202,10 @@ function prepareTransactionsList(
     selectedTransactions: SelectedTransactions,
     currentUserLogin: string,
     currentUserAccountID: number,
-    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
+    outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue | undefined,
+    parentReport: OnyxEntry<Report> | undefined,
+    selfDMReport: OnyxEntry<Report> | undefined,
+    isProduction: boolean,
 ) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
         const {[item.keyForList]: omittedTransaction, ...transactions} = selectedTransactions;
@@ -210,6 +221,9 @@ function prepareTransactionsList(
         currentUserAccountID,
         outstandingReportsByPolicyID,
         false,
+        parentReport,
+        selfDMReport,
+        isProduction,
     );
 
     return {
@@ -234,6 +248,7 @@ function Search({
     const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
 
     const {isOffline} = useNetwork();
+    const {isProduction} = useEnvironment();
     const prevIsOffline = usePrevious(isOffline);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth, isLargeScreenWidth, isInLandscapeMode} = useResponsiveLayout();
@@ -242,20 +257,13 @@ function Search({
     const isFocused = useIsFocused();
 
     const {markReportIDAsExpense, markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense} = useWideRHPActions();
-    const {
-        currentSearchHash,
-        currentSearchKey,
-        selectedTransactions,
-        shouldTurnOffSelectionMode,
-        lastSearchType,
-        areAllMatchingItemsSelected,
-        shouldResetSearchQuery,
-        shouldUseLiveData,
-        suggestedSearches,
-    } = useSearchStateContext();
+    const {currentSearchHash, currentSearchKey, shouldResetSearchQuery, suggestedSearches} = useSearchQueryContext();
+    const {lastSearchType, shouldUseLiveData} = useSearchResultsContext();
+    const {selectedTransactions, shouldTurnOffSelectionMode, areAllMatchingItemsSelected} = useSearchSelectionContext();
 
-    const {setSelectedTransactions, clearSelectedTransactions, setShouldShowFiltersBarLoading, setShouldShowSelectAllMatchingItems, selectAllMatchingItems, setShouldResetSearchQuery} =
-        useSearchActionsContext();
+    const {setShouldResetSearchQuery} = useSearchQueryActions();
+    const {setShouldShowFiltersBarLoading} = useSearchResultsActions();
+    const {setSelectedTransactions, clearSelectedTransactions, setShouldShowSelectAllMatchingItems, selectAllMatchingItems} = useSearchSelectionActions();
     const [offset, setOffset] = useState(0);
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -269,6 +277,7 @@ function Search({
     const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {accountID, email, login} = useCurrentUserPersonalDetails();
+    const selfDMReport = useSelfDMReport();
     const isActionLoadingSet = useActionLoadingReportIDs();
     const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
@@ -527,6 +536,7 @@ function Search({
             queryJSON,
             isActionLoadingSet,
             cardFeeds,
+            cardList: nonPersonalAndWorkspaceCards,
             isOffline,
             allTransactionViolations: violations,
             customCardNames,
@@ -562,6 +572,7 @@ function Search({
         email,
         isActionLoadingSet,
         cardFeeds,
+        nonPersonalAndWorkspaceCards,
         policies,
         bankAccountList,
         violations,
@@ -790,6 +801,9 @@ function Search({
                     const originalItemTransaction =
                         searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`] ??
                         transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
+                    const itemParentReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
+                    const isItemUnreported = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+                    const reportForSplit = transactionItem.report ?? (isItemUnreported ? selfDMReport : undefined);
 
                     newTransactionList[transactionItem.transactionID] = {
                         transaction: transactionItem,
@@ -797,7 +811,7 @@ function Search({
                         canHold: canHoldRequest,
                         isHeld: isOnHold(transactionItem),
                         canUnhold: canUnholdRequest,
-                        canSplit: isSplitAction(transactionItem.report, [itemTransaction], originalItemTransaction, login ?? '', accountID, transactionItem.policy),
+                        canSplit: isSplitAction(reportForSplit, [itemTransaction], originalItemTransaction, login ?? '', accountID, transactionItem.policy, itemParentReport, isProduction),
                         hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
                         canChangeReport: canEditFieldOfMoneyRequest({
                             reportAction: transactionItem.reportAction,
@@ -846,6 +860,9 @@ function Search({
 
                 const itemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                 const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
+                const itemParentReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
+                const isItemUnreported = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+                const reportForSplit = transactionItem.report ?? (isItemUnreported ? selfDMReport : undefined);
 
                 newTransactionList[transactionItem.transactionID] = {
                     transaction: transactionItem,
@@ -853,7 +870,7 @@ function Search({
                     canHold: canHoldRequest,
                     isHeld: isOnHold(transactionItem),
                     canUnhold: canUnholdRequest,
-                    canSplit: isSplitAction(transactionItem.report, [itemTransaction], originalItemTransaction, login ?? '', accountID, transactionItem.policy),
+                    canSplit: isSplitAction(reportForSplit, [itemTransaction], originalItemTransaction, login ?? '', accountID, transactionItem.policy, itemParentReport, isProduction),
                     hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
                     canChangeReport: canEditFieldOfMoneyRequest({
                         reportAction: transactionItem.reportAction,
@@ -951,8 +968,6 @@ function Search({
         isRefreshingSelection.current = false;
     }, [selectedTransactions]);
 
-    // Keeps `selectedReports` in sync with the current selection + visible rows.
-    // Hoisted out of `toggleTransaction` so the callback doesn't churn on every search re-derivation.
     useSyncSelectedReports(filteredData);
 
     const areItemsGrouped = !!validGroupBy || isExpenseReportType;
@@ -1011,6 +1026,7 @@ function Search({
                 }
                 const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`] as OnyxEntry<Transaction>;
                 const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
+                const itemParentReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${item.report?.parentReportID}`] as OnyxEntry<Report>;
                 const updatedTransactions = prepareTransactionsList(
                     item,
                     itemTransaction,
@@ -1019,6 +1035,9 @@ function Search({
                     email ?? '',
                     accountID,
                     outstandingReportsByPolicyID,
+                    itemParentReport,
+                    selfDMReport,
+                    isProduction,
                 );
                 setSelectedTransactions(updatedTransactions);
                 updateSelectAllMatchingItemsState(updatedTransactions);
@@ -1079,16 +1098,42 @@ function Search({
                     currentTransactions
                         .filter((t) => !isTransactionPendingDelete(t))
                         .map((transactionItem) => {
-                            const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
-                            const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                            return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', accountID, outstandingReportsByPolicyID);
+                            const itemTransaction = (searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] ??
+                                transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`]) as OnyxEntry<Transaction>;
+                            const originalItemTransaction =
+                                searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`] ??
+                                transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
+                            const itemParentReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
+                            return mapTransactionItemToSelectedEntry(
+                                transactionItem,
+                                itemTransaction,
+                                originalItemTransaction,
+                                email ?? '',
+                                accountID,
+                                outstandingReportsByPolicyID,
+                                true,
+                                itemParentReport,
+                                selfDMReport,
+                                isProduction,
+                            );
                         }),
                 ),
             };
             setSelectedTransactions(updatedTransactions);
             updateSelectAllMatchingItemsState(updatedTransactions);
         },
-        [selectedTransactions, setSelectedTransactions, updateSelectAllMatchingItemsState, transactions, email, accountID, outstandingReportsByPolicyID],
+        [
+            selectedTransactions,
+            setSelectedTransactions,
+            updateSelectAllMatchingItemsState,
+            transactions,
+            searchResults?.data,
+            email,
+            accountID,
+            outstandingReportsByPolicyID,
+            selfDMReport,
+            isProduction,
+        ],
     );
 
     const onSelectRowInMobileSelectionMode = (item: SearchListItem) => {
@@ -1391,7 +1436,19 @@ function Search({
                     .map((transactionItem) => {
                         const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                         const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                        return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', accountID, outstandingReportsByPolicyID);
+                        const itemParentReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
+                        return mapTransactionItemToSelectedEntry(
+                            transactionItem,
+                            itemTransaction,
+                            originalItemTransaction,
+                            email ?? '',
+                            accountID,
+                            outstandingReportsByPolicyID,
+                            true,
+                            itemParentReport,
+                            selfDMReport,
+                            isProduction,
+                        );
                     });
             });
             updatedTransactions = Object.fromEntries(allSelections);
@@ -1403,7 +1460,19 @@ function Search({
                     .map((transactionItem) => {
                         const itemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                         const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                        return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', accountID, outstandingReportsByPolicyID);
+                        const itemParentReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
+                        return mapTransactionItemToSelectedEntry(
+                            transactionItem,
+                            itemTransaction,
+                            originalItemTransaction,
+                            email ?? '',
+                            accountID,
+                            outstandingReportsByPolicyID,
+                            true,
+                            itemParentReport,
+                            selfDMReport,
+                            isProduction,
+                        );
                     }),
             );
         }
@@ -1421,6 +1490,8 @@ function Search({
         accountID,
         outstandingReportsByPolicyID,
         searchResults?.data,
+        selfDMReport,
+        isProduction,
     ]);
 
     const onLayoutBase = useCallback(() => {

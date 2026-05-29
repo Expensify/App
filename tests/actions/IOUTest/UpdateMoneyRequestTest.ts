@@ -225,6 +225,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     taxCode,
                     taxAmount,
                     amount: 100,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
                     comment: {
                         type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                         customUnit: {

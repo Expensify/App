@@ -124,6 +124,7 @@ const translations: TranslationDeepObject<typeof en> = {
             approve: 'Goedkeuren',
             pay: 'Betalen',
             fix: 'Oplossen',
+            task: 'Taak',
         },
         success: 'Gelukt',
         group: 'Groep',
@@ -506,6 +507,7 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Redenering inklappen',
         expandReasoning: 'Redenering uitklappen',
+        enableNotifications: {prompt: 'Wil je een melding krijgen wanneer Concierge reageert?', cta: 'Melden'},
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -852,7 +854,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Jouw ruimte',
         welcomeToRoom: (roomName: string) => `Welkom bij ${roomName}!`,
         usePlusButton: (additionalText: string) => `Gebruik de +-knop om een uitgave te ${additionalText}.`,
-        askConcierge: 'Dit is je chat met Concierge, je persoonlijke AI-agent. Ik kan bijna alles, probeer het maar!',
+        askConcierge: 'Concierge kan vragen beantwoorden, uitgaven bijwerken en meer.',
         conciergeSupport: 'Jouw persoonlijke AI-agent',
         create: 'maken',
         iouTypes: {
@@ -1043,6 +1045,7 @@ const translations: TranslationDeepObject<typeof en> = {
             repaidLast30Days: 'Terugbetaald in de afgelopen 30 dagen',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Recente transacties • ${lastFour}`,
         },
+        seeMore: ({count}: {count: number}) => `Bekijk nog ${count}`,
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -1950,6 +1953,8 @@ const translations: TranslationDeepObject<typeof en> = {
         offline: 'Offline',
         syncing: 'Synchroniseren',
         profileAvatar: 'Profielavatar',
+        customInstructions: 'Aangepaste instructies',
+        copilotIntoAccount: 'Copilot naar account',
         publicSection: {
             title: 'Openbaar',
             subtitle: 'Deze gegevens worden weergegeven op je openbare profiel. Iedereen kan ze zien.',
@@ -1957,6 +1962,14 @@ const translations: TranslationDeepObject<typeof en> = {
         privateSection: {
             title: 'Privé',
             subtitle: 'Deze gegevens worden gebruikt voor reizen en betalingen. Ze worden nooit getoond op je openbare profiel.',
+        },
+        aiPromptSection: {
+            title: 'AI-prompt',
+            subtitle: 'Schrijf aangepaste instructies',
+            prompt: 'Prompt',
+            editPrompt: 'Prompt bewerken',
+            promptCannotBeEmpty: 'Prompt mag niet leeg zijn',
+            saved: 'Opgeslagen',
         },
     },
     securityPage: {
@@ -2216,7 +2229,7 @@ const translations: TranslationDeepObject<typeof en> = {
     deviceManagementPage: {
         title: 'Apparaatbeheer',
         description:
-            'Beheer alle apparaten waarop je bent ingelogd met je Expensify-account. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Meer informatie</a>',
+            'Beheer alle apparaten waarop je bent ingelogd met je Expensify-account. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Meer informatie</a>.',
         revoke: 'Intrekken',
         unknownDevice: 'Onbekend Apparaat',
     },
@@ -2231,11 +2244,11 @@ const translations: TranslationDeepObject<typeof en> = {
         disabled: 'Tweeledige verificatie is nu uitgeschakeld',
         noAuthenticatorApp: 'Je hebt geen authenticator-app meer nodig om in te loggen bij Expensify.',
         stepCodes: 'Herstelcodes',
-        keepCodesSafe: 'Bewaar deze herstercodes goed!',
+        keepCodesSafe: 'Bewaar deze codes goed!',
         codesLoseAccess: dedent(`
-            Als je de toegang tot je authenticator-app kwijtraakt en deze codes niet hebt, verlies je de toegang tot je account.
+            Als je de toegang tot je authenticator-app verliest en deze codes niet hebt, verlies je de toegang tot je account.
 
-            Let op: het instellen van tweeledige verificatie zal je uitloggen bij alle andere actieve sessies.
+            <strong>Let op</strong>: Het instellen van twee-factor-authenticatie zal je bij alle andere actieve sessies afmelden.
         `),
         errorStepCodes: 'Kopieer of download de codes voordat je verdergaat',
         stepVerify: 'Verifiëren',
@@ -2264,6 +2277,9 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyOldDeviceDescription: 'Voer de zescijferige code uit je huidige authenticator-app in om te bevestigen dat je daar toegang toe hebt.',
         verifyNewDeviceTitle: 'Nieuw apparaat instellen',
         verifyNewDeviceDescription: 'Scan de QR-code met je nieuwe apparaat en voer daarna de code in om de installatie te voltooien.',
+        downloadCodes: 'Codes downloaden',
+        screenshotTip: 'Tip: maak een screenshot om dit op te slaan in je fotobibliotheek',
+        copyCodes: 'Codes kopiëren',
     },
     recoveryCodeForm: {
         error: {
@@ -2566,6 +2582,8 @@ ${amount} voor ${merchant} - ${date}`,
         addApprovalTip: 'Deze standaardworkflow is van toepassing op alle leden, tenzij er een specifiekere workflow bestaat.',
         approver: 'Fiatteur',
         addApprovalsDescription: 'Extra goedkeuring vereisen voordat je een betaling autoriseert.',
+        automateApprovalsWithAgentsTitle: 'Automatiseer goedkeuringen met agents',
+        automateApprovalsWithAgentsSubtitle: 'Voeg hieronder een agent toe aan de workflow om goedkeuringen te automatiseren.',
         makeOrTrackPaymentsTitle: 'Betalingen',
         makeOrTrackPaymentsDescription: 'Voeg een gemachtigde betaler toe voor betalingen die in Expensify worden gedaan of volg betalingen die elders zijn gedaan.',
         customApprovalWorkflowEnabled:
@@ -2616,6 +2634,9 @@ ${amount} voor ${merchant} - ${date}`,
         hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `Goedkeuringen worden beheerd door je ${provider}-integratie. Ga naar je ${provider}-verbindingsinstellingen om je goedkeuringsworkflow bij te werken.`,
         goToHRSettings: ({provider}: {provider: string}) => `Ga naar ${provider}-instellingen`,
+        approverFromProvider: ({provider}: {provider: string}) => `van ${provider}`,
+        finalApprover: 'Laatste fiatteur',
+        manager: 'Manager',
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Indienfrequentie kon niet worden gewijzigd. Probeer het opnieuw of neem contact op met support.',
@@ -2689,6 +2710,7 @@ ${amount} voor ${merchant} - ${date}`,
     reportFraudConfirmationPage: {
         title: 'Kaartfraude gemeld',
         description: 'We hebben je bestaande kaart permanent gedeactiveerd. Wanneer je teruggaat om je kaartgegevens te bekijken, heb je een nieuwe virtuele kaart beschikbaar.',
+        descriptionCardNotReplaced: 'Je kaart is permanent gedeactiveerd. Neem contact op met een beheerder om een nieuwe kaart uit te geven.',
         buttonText: 'Begrepen, dank je!',
     },
     activateCardPage: {
@@ -2777,6 +2799,8 @@ ${amount} voor ${merchant} - ${date}`,
         title: 'Agent bewerken',
         agentName: 'Naam medewerker',
         instructions: 'Aangepaste instructies schrijven',
+        chatWithAgent: 'Chat met agent',
+        copilotIntoAccount: 'Copilot in account',
         deleteAgent: 'Agent verwijderen',
         deleteAgentTitle: 'Agent verwijderen?',
         deleteAgentMessage: 'Weet je zeker dat je deze agent wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.',
@@ -2939,6 +2963,7 @@ ${amount} voor ${merchant} - ${date}`,
         phoneOrEmail: 'Telefoon of e-mail',
         error: {
             invalidFormatEmailLogin: 'Het ingevoerde e-mailadres is ongeldig. Corrigeer de notatie en probeer het opnieuw.',
+            agentSignInBlocked: 'Je kunt niet rechtstreeks inloggen op agent-accounts. Log in met je eigen account en gebruik de agent via Copilot.',
         },
         cannotGetAccountDetails: 'Accountgegevens konden niet worden opgehaald. Probeer opnieuw in te loggen.',
         loginForm: 'Aanmeldformulier',
@@ -2959,7 +2984,7 @@ ${amount} voor ${merchant} - ${date}`,
         peopleYouMayKnow: 'Mensen die je misschien kent zijn hier al! Verifieer je e-mailadres om je bij hen aan te sluiten.',
         workspaceYouMayJoin: (domain: string, email: string) => `Iemand van ${domain} heeft al een workspace gemaakt. Voer de magische code in die is verzonden naar ${email}.`,
         joinAWorkspace: 'Lid worden van een workspace',
-        listOfWorkspaces: 'Hier is de lijst met werkruimtes waaraan je kunt deelnemen. Geen zorgen, je kunt je er altijd later nog bij aansluiten als je dat liever hebt.',
+        listOfWorkspaces: 'Hier is de lijst met werkruimtes waartoe je je kunt aansluiten.',
         skipForNow: 'Voorlopig overslaan',
         workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} lid${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         whereYouWork: 'Waar werk je?',
@@ -3318,7 +3343,6 @@ ${amount} voor ${merchant} - ${date}`,
         enterPhoneNumber: 'Wat is je telefoonnummer?',
         personalDetails: 'Persoonlijke gegevens',
         privateDataMessage: 'Deze gegevens worden gebruikt voor reizen en betalingen. Ze worden nooit weergegeven op je openbare profiel.',
-        basicDetails: 'Basisgegevens',
         legalName: 'Wettelijke naam',
         legalFirstName: 'Juridische voornaam',
         legalLastName: 'Wettelijke achternaam',
@@ -3511,7 +3535,7 @@ ${amount} voor ${merchant} - ${date}`,
             noBankAccountSelected: 'Kies een account',
             taxID: 'Voer een geldig btw-identificatienummer in',
             website: 'Voer een geldige website in',
-            zipCode: `Voer een geldige postcode in met het volgende formaat: ${COMMON_CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
+            zipCode: `Voer een geldige postcode in met het volgende formaat: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
             phoneNumber: 'Voer een geldig telefoonnummer in',
             email: 'Voer een geldig e-mailadres in',
             companyName: 'Voer een geldige bedrijfsnaam in',
@@ -4227,6 +4251,7 @@ ${amount} voor ${merchant} - ${date}`,
             workflows: 'Workflows',
             workspace: 'Werkruimte',
             findWorkspace: 'Werkruimte zoeken',
+            findRoom: 'Kamer zoeken',
             edit: 'Werkruimte bewerken',
             enabled: 'Ingeschakeld',
             disabled: 'Uitgeschakeld',
@@ -5365,6 +5390,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                         `Oeps! Je hebt één enkel veld (“${duplicateColumn}”) aan meerdere kolommen gekoppeld. Controleer dit en probeer het opnieuw.`,
                 },
                 fileImportDescription: 'Een handmatige optie als je bank geen feed kan versturen.',
+                duplicateFeedModal: {title: 'Kaartfeed al verbonden', prompt: 'Je kunt dezelfde kaartfeed niet twee keer aan dezelfde workspace toevoegen.'},
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Laatste dag van de maand',
@@ -6019,6 +6045,11 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             selectWorkspaces: 'Selecteer werkruimtes',
             description: 'Kies de werkruimtes waarnaar je instellingen wilt kopiëren en selecteer daarna de instellingen die je wilt kopiëren.',
             searchPlaceholder: 'Werkruimtes zoeken',
+            selectFeatures: 'Selecteer functies om te kopiëren',
+            whichFeatures: 'Selecteer de instellingen die je wilt overschrijven in je bestaande werkruimtes.',
+            workflowsWithoutMembersConfirm: 'Doorgaan zonder leden',
+            workflowsWithoutMembersPrompt: 'Workflows kopiëren zonder leden kopieert geen goedkeuringsworkflows. Instellingen voor indienen en betalen worden nog steeds gekopieerd.',
+            accountingMismatch: ({part}: {part: string}) => `Je kunt ${part} alleen kopiëren als alle werkruimtes hetzelfde boekhoudsysteem en dezelfde bedrijfsverbinding gebruiken.`,
         },
         emptyWorkspace: {
             title: 'Je hebt geen werkruimtes',
@@ -6103,6 +6134,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
         card: {
             getStartedIssuing: 'Begin met het uitgeven van je eerste virtuele of fysieke kaart.',
             issueCard: 'Kaart uitgeven',
+            chooseRule: 'Kies een regel',
             issueNewCard: {
                 whoNeedsCard: 'Wie heeft er een kaart nodig?',
                 inviteNewMember: 'Nieuw lid uitnodigen',
@@ -6144,22 +6176,27 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 enterValidDate: 'Voer een geldige datum in',
                 expirationDate: 'Vervaldatum',
                 limitAmount: 'Limietbedrag',
-                setExpiryOptions: 'Vervalopties instellen',
-                setExpiryDate: 'Vervaldatum instellen',
-                setExpiryDateDescription: 'De kaart verloopt zoals vermeld op de kaart',
+                setCardRules: 'Kaartregels instellen',
+                addSpendRule: 'Uitgavenregel toevoegen',
+                addExpirationDate: 'Vervaldatum toevoegen',
+                addExpirationDateDescription: 'Als er geen specifieke datum is ingesteld, verloopt de kaart op basis van de bestaande vervaldatum op de kaart',
                 amount: 'Bedrag',
+                copyExisting: 'Bestaande kopiëren',
+                createNew: 'Nieuw maken',
+                spendRulesEmptyStateTitle: 'Geen regels om uit te kiezen',
+                spendRulesEmptyStateSubtitle: 'Je hebt nog geen regels aangemaakt. Je kunt er een aanmaken vanaf het vorige scherm.',
             },
             deactivateCardModal: {
                 deactivate: 'Deactiveren',
                 deactivateCard: 'Kaart deactiveren',
                 deactivateConfirmation: 'Als je deze kaart deactiveert, worden alle toekomstige transacties geweigerd en dit kan niet ongedaan worden gemaakt.',
             },
+            searchRules: 'Uitgavenregel zoeken',
         },
         accounting: {
             settings: 'instellingen',
             title: 'Verbindingen',
-            subtitle:
-                'Maak verbinding met je boekhoudsysteem om transacties te coderen met je grootboekrekeningen, betalingen automatisch te matchen en je financiën gesynchroniseerd te houden.',
+            subtitle: 'Verbind je boekhoudsoftware voor een automatische synchronisatie.',
             qbo: 'QuickBooks Online',
             qbd: 'QuickBooks Desktop',
             xero: 'Xero',
@@ -6243,6 +6280,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `Weet je zeker dat je ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'deze boekhoudkoppeling'} wilt koppelen? Hierdoor worden alle bestaande boekhoudkundige koppelingen verwijderd.`,
             enterCredentials: 'Voer je inloggegevens in',
+            updateCredentials: 'Inloggegevens bijwerken',
             claimOffer: {
                 badgeText: 'Aanbieding beschikbaar!',
                 xero: {
@@ -6730,8 +6768,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 perActiveMember: 'per actieve deelnemer per maand.',
                 perMember: 'per lid per maand.',
             },
-            note: (subscriptionLink: string) =>
-                `<muted-text>Upgrade om toegang te krijgen tot deze functie, of <a href="${subscriptionLink}">lees meer</a> over onze abonnementen en prijzen.</muted-text>`,
+            note: (subscriptionLink: string) => `<muted-text><a href="${subscriptionLink}">Lees meer</a> over onze abonnementen en prijzen.</muted-text>`,
             upgradeToUnlock: 'Deze functie ontgrendelen',
             completed: {
                 headline: `Je hebt je workspace geüpgraded!`,
@@ -6945,6 +6982,11 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Ga naar [meer functies](${moreFeaturesLink}) en schakel ${featureName} in om deze functie te ontgrendelen.`,
             },
+            agentsPromoBanner: {
+                title: 'Zie je de regel die je nodig hebt niet? Voeg een agent toe',
+                subtitle: 'Voeg complexe regels toe en verminder handmatige goedkeuringen met aangepaste agents.',
+                cta: 'Probeer het uit',
+            },
             merchantRules: {
                 title: 'Handelaar',
                 subtitle: 'Stel de leveranciersregels in zodat onkosten correct gecodeerd binnenkomen en er minder nabewerking nodig is.',
@@ -7153,6 +7195,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         hr: {
             title: 'HR',
             connections: 'Verbindingen',
+            connectionsSubtitle:
+                'Verbind met je HR-systeem om werknemersgegevens te synchroniseren, terugbetalingen automatisch aan de juiste personen te koppelen en de uitgaven van je team nauwkeurig te houden zonder handmatig werk.',
             subtitle: 'Koppel HR-tools en houd goedkeuringen van medewerkers gesynchroniseerd.',
             connect: 'Verbinden',
             syncNow: 'Nu synchroniseren',
@@ -7408,6 +7452,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             }
             return `heeft een terugvorderbaar belastingdeel van „${newValue}” toegevoegd aan het kilometertarief „${customUnitRateName}”`;
         },
+        updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `heeft het tarief voor ${customUnitName} hernoemd van „${oldValue}” naar „${newValue}”`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
             return `${newValue ? 'ingeschakeld' : 'uitgeschakeld'} het ${customUnitName}-tarief "${customUnitRateName}"`;
         },
@@ -7835,6 +7880,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 `),
                 subtitle: 'Stuur een factuur of maak een testrit met Expensify om meer te weten te komen.',
                 subtitleWithOnlyCreateButton: 'Gebruik de groene knop hieronder om een factuur te versturen.',
+                subtitleCannotSend: 'Je hebt een werkruimte met Invoices ingeschakeld nodig om facturen te versturen.',
+                subtitleCannotSendWithTestDrive: 'Je hebt een werkruimte met Invoices ingeschakeld nodig om facturen te versturen. Maak een testrit met Expensify om meer te weten te komen.',
             },
             emptyTripResults: {
                 title: 'Geen reizen om weer te geven',
@@ -8559,6 +8606,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         duplicatedTransaction: 'Mogelijke duplicaat',
         fieldRequired: 'Rapportvelden zijn verplicht',
         futureDate: 'Toekomstige datum niet toegestaan',
+        inactiveVendor: 'Leverancier niet meer geldig',
         invoiceMarkup: (invoiceMarkup: number) => `Met ${invoiceMarkup}% verhoogd`,
         maxAge: (maxAge: number) => `Datum ouder dan ${maxAge} dagen`,
         missingCategory: 'Ontbrekende categorie',
@@ -9032,7 +9080,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         copilotDelegatedAccess: 'Copilot: Gedelegeerde toegang',
         copilotDelegatedAccessDescription: 'Sta andere leden toe toegang te krijgen tot je account.',
         learnMoreAboutDelegatedAccess: 'Meer informatie over gedelegeerde toegang',
-        addCopilot: 'Copiloot toevoegen',
+        addCopilot: 'Co-piloot toevoegen',
         membersCanAccessYourAccount: 'Deze leden hebben toegang tot je account:',
         youCanAccessTheseAccounts: 'Je hebt toegang tot deze accounts:',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
@@ -9241,6 +9289,20 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         expenseLevelExport: 'Alle gegevens - uitgaveniveau',
         exportInProgress: 'Export bezig',
         conciergeWillSend: 'Concierge stuurt je het bestand zo meteen.',
+    },
+    exportDownload: {
+        preparingTitle: 'Preparing download...',
+        preparingBody: 'You can either wait for the download to finish or Concierge can send it to you via chat.',
+        sendFromConcierge: "Send me the file when it's ready",
+        conciergeTitle: 'You bet!',
+        conciergeBody: 'Concierge will send you a message when the file is ready.',
+        goToConcierge: 'Go to Concierge',
+        dismiss: 'Dismiss',
+        readyTitle: 'Your file is ready!',
+        readyBody: "If it didn't automatically download, use the button below.",
+        downloadFile: 'Download file',
+        failedTitle: 'Export failed',
+        close: 'Close',
     },
     domain: {
         notVerified: 'Niet geverifieerd',

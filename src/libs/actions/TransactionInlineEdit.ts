@@ -174,6 +174,8 @@ type GetIouParamsInput = {
     policyRecentlyUsedCategories: OnyxEntry<RecentlyUsedCategories>;
     policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
     parentReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
+    isSelfTourViewed: boolean | undefined;
+    hasCompletedGuidedSetupFlow: boolean | undefined;
 };
 
 type TransactionInlineEditParams = GetIouParamsInput & {
@@ -199,6 +201,8 @@ function getIouParamsForTransaction({
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
     parentReportNextStep,
+    isSelfTourViewed,
+    hasCompletedGuidedSetupFlow,
 }: GetIouParamsInput) {
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
@@ -244,6 +248,8 @@ function getIouParamsForTransaction({
             iouReportAction: resolvedParentReportAction,
             transaction,
             transactionViolations: transactionViolations ?? undefined,
+            isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
         });
     }
 

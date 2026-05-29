@@ -117,6 +117,11 @@ function useLoadReportActions({
         // (which may include Pusher-delivered actions like Concierge replies that skip gaps)
         if (newestFetchedReportActionID) {
             getNewerActions(reportID, newestFetchedReportActionID);
+
+            // Keep transaction thread in sync for mixed report+thread views.
+            if (isTransactionThreadReport) {
+                getNewerActions(transactionThreadReportID, transactionThreadNewestAction?.reportActionID);
+            }
             return;
         }
 
