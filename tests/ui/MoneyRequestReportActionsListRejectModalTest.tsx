@@ -276,4 +276,30 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
         expect(screen.queryByTestId('HoldOrRejectEducationalModal')).toBeNull();
         expect(mockOriginalRejectOnSelected).toHaveBeenCalled();
     });
+
+    it('should not crash when Array.prototype.toReversed is unavailable (older Chromium)', async () => {
+        const originalToReversed = (Array.prototype as unknown as {toReversed?: unknown}).toReversed;
+        (Array.prototype as unknown as {toReversed?: unknown}).toReversed = undefined;
+
+        try {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION]: true,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
+                    [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${FAKE_TRANSACTION_ID}` as const]: mockTransaction,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_REPORT_ID}` as const]: {[mockReportAction.reportActionID]: mockReportAction},
+                    [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${FAKE_REPORT_ID}` as const]: {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true},
+                    [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL} as Session,
+                });
+            });
+
+            renderComponent();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByTestId('MockMoneyRequestReportTransactionList')).toBeTruthy();
+        } finally {
+            (Array.prototype as unknown as {toReversed?: unknown}).toReversed = originalToReversed;
+        }
+    });
 });
