@@ -82,5 +82,5 @@ No, only the account owner can assign additional Copilots.
 | **Access level options** | Full Access or Submit Only Access | N/A |
 | **Best for** | Executive assistants, accountants, or anyone who regularly helps manage your expenses | Covering approvals during vacation or leave |
 
-If you need someone to **temporarily handle approvals** while you're out of office, see [Delegate When Out of Office](https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Delegate-when-out-of-office) instead.
-
+If you need someone to temporarily handle approvals while you're out of office, see [Delegate When Out of Office](/articles/expensify-classic/copilots-and-delegates/Delegate-when-out-of-office) instead.
+If you need someone to temporarily handle approvals while you're out of office, see [Delegate When Out of Office](/articles/expensify-classic/copilots-and-delegates/Delegate-when-out-of-office) instead.
