@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.3.83-0",
+  "version": "9.3.89-3",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -135,7 +135,7 @@
     "expo-font": "14.0.8",
     "expo-image": "55.0.3",
     "expo-image-manipulator": "55.0.2",
-    "expo-location": "55.0.3",
+    "expo-location": "55.1.10",
     "expo-modules-core": "55.0.25",
     "expo-store-review": "~9.0.8",
     "expo-task-manager": "55.0.2",
@@ -185,7 +185,7 @@
     "react-native-localize": "^3.5.4",
     "react-native-nitro-modules": "0.35.0",
     "react-native-nitro-sqlite": "9.6.0",
-    "react-native-onyx": "3.0.73",
+    "react-native-onyx": "3.0.75",
     "react-native-pager-view": "8.0.0",
     "react-native-pdf": "7.0.2",
     "react-native-permissions": "^5.4.0",
@@ -208,7 +208,7 @@
     "react-plaid-link": "3.3.2",
     "react-web-config": "^1.0.0",
     "react-webcam": "^7.1.1",
-    "victory-native": "^41.20.2",
+    "victory-native": "^41.21.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
