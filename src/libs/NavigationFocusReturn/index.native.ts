@@ -139,7 +139,21 @@ function scheduleRestore(routeKey: string, {waitForUpcomingTransition}: {waitFor
     let cancelled = false;
     let refocusHandle: {cancel: () => void} | null = null;
     let rafHandle: number | null = null;
-    const handle = TransitionTracker.runAfterTransitions({
+    let handle: {cancel: () => void} | null = null;
+
+    // Assign pendingRestore before runAfterTransitions: with waitForUpcomingTransition false the callback can fire synchronously, so a re-entrant cancel must already see this handle to abort the just-scheduled rAF retry.
+    pendingRestore = {
+        cancel: () => {
+            cancelled = true;
+            handle?.cancel();
+            refocusHandle?.cancel();
+            if (rafHandle !== null) {
+                cancelAnimationFrame(rafHandle);
+            }
+        },
+    };
+
+    handle = TransitionTracker.runAfterTransitions({
         // Stack pops fire before their transition registers, so wait for it; PUSH_PARAMS emits none, so the caller opts out to avoid stalling on the 1s timeout.
         waitForUpcomingTransition,
         callback: () => {
@@ -165,17 +179,6 @@ function scheduleRestore(routeKey: string, {waitForUpcomingTransition}: {waitFor
             attempt();
         },
     });
-
-    pendingRestore = {
-        cancel: () => {
-            cancelled = true;
-            handle.cancel();
-            refocusHandle?.cancel();
-            if (rafHandle !== null) {
-                cancelAnimationFrame(rafHandle);
-            }
-        },
-    };
 }
 
 function handleStateChange(newState: NavigationState | undefined): void {
@@ -251,13 +254,19 @@ function teardownNavigationFocusReturn(): void {
 
 /** PUSH_PARAMS reuses the focused key, so `diffNavigationState` reports `noop`; key against `routeKey + params`. */
 function notifyPushParamsForward(routeKey: string, prevParams: unknown): void {
+    skipNextRestore = false;
     cancelPendingRestore();
     captureTriggerForRoute(compoundParamsKey(routeKey, prevParams));
     clearStagedPress();
 }
 
 function notifyPushParamsBackward(routeKey: string, targetParams: unknown): void {
-    scheduleRestore(compoundParamsKey(routeKey, targetParams), {waitForUpcomingTransition: false});
+    // Honor a one-shot skip on this param-revert too (form-submit goBack can land as PUSH_PARAMS, not a stack pop).
+    if (skipNextRestore) {
+        skipNextRestore = false;
+    } else {
+        scheduleRestore(compoundParamsKey(routeKey, targetParams), {waitForUpcomingTransition: false});
+    }
     clearStagedPress();
 }
 

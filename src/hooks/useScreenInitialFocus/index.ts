@@ -22,6 +22,8 @@ function isOnScreen(el: HTMLElement): boolean {
     return true;
 }
 
+const MAX_INITIAL_FOCUS_FRAMES = 5;
+
 /*
  * Mobile-web counterpart to `useDialogContainerFocus` (RHP-only): focuses `ref` once after `didScreenTransitionEnd`.
  * Hover-capable devices gate on Tab (WCAG 2.4.7); touch-primary devices bypass.
@@ -38,20 +40,21 @@ const useScreenInitialFocus: UseScreenInitialFocus = (ref) => {
             return;
         }
         let rafId: number | null = null;
-        const attempt = (retry: boolean) => {
+        let framesLeft = MAX_INITIAL_FOCUS_FRAMES;
+        const attempt = () => {
             const el = ref.current;
-            if (!el || !isOnScreen(el)) {
-                // The target can attach a frame after the transition ends; retry once on the next frame.
-                if (retry) {
-                    rafId = requestAnimationFrame(() => attempt(false));
-                }
+            if (el && isOnScreen(el) && claimInitialFocus(el, {focusVisible: getHadTabNavigation()})) {
+                claimedRef.current = true;
                 return;
             }
-            if (claimInitialFocus(el, {focusVisible: getHadTabNavigation()})) {
-                claimedRef.current = true;
+            // The target can attach, or its ancestors settle so focus lands, a few frames after the transition ends.
+            framesLeft -= 1;
+            if (framesLeft <= 0) {
+                return;
             }
+            rafId = requestAnimationFrame(attempt);
         };
-        attempt(true);
+        attempt();
         return () => {
             if (rafId === null) {
                 return;

@@ -115,6 +115,22 @@ describe('useScreenInitialFocus', () => {
         expect(button.getAttribute('data-programmatic-focus')).toBe('true');
     });
 
+    it('does not leave data-programmatic-focus set when focus silently fails to land (touch)', () => {
+        mockHasHoverSupport = false;
+        simulatePointer();
+        const button = makeButton();
+        // Simulate an inert/visibility:hidden-ancestor case: focus() is a no-op, so activeElement never becomes the button.
+        jest.spyOn(button, 'focus').mockImplementation(() => {});
+        render(
+            <MountedHarness
+                target={button}
+                didScreenTransitionEnd
+            />,
+        );
+        // claimInitialFocus must detect the non-landing and run markProgrammaticFocus's cleanup, not leak the ring-suppression attribute.
+        expect(button.getAttribute('data-programmatic-focus')).toBeNull();
+    });
+
     it('does NOT focus on desktop mouse modality (hasHoverSupport && !hadTab) — WCAG 2.4.7', () => {
         simulatePointer();
         const button = makeButton();

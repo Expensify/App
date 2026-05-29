@@ -85,11 +85,17 @@ function captureTriggerForRoute(routeKey: string): void {
 
 function notifyPushParamsForward(routeKey: string, prevParams: unknown): void {
     // Same-key transition is noop in handleStateChange — clear pending restores AND completed-RETURN state here so neither leaks into the next params screen.
+    skipNextRestore = false;
     cancelPendingFocusRestore();
     captureTriggerForRoute(compoundParamsKey(routeKey, prevParams));
 }
 
 function notifyPushParamsBackward(routeKey: string, targetParams: unknown): void {
+    // Honor a one-shot skip on this param-revert too (form-submit goBack can land as PUSH_PARAMS, not a stack pop).
+    if (skipNextRestore) {
+        skipNextRestore = false;
+        return;
+    }
     scheduleRestore(compoundParamsKey(routeKey, targetParams), {waitForUpcomingTransition: false});
 }
 
