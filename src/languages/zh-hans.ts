@@ -2786,7 +2786,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         },
     },
     reportDetailsPage: {
-        goToRoom: '前往聊天室',
         inWorkspace: (policyName: string) => `在 ${policyName} 中`,
         generatingPDF: '生成 PDF',
         waitForPDF: '正在生成 PDF，请稍候。',

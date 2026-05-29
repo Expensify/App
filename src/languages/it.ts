@@ -2870,7 +2870,6 @@ ${amount} per ${merchant} - ${date}`,
         },
     },
     reportDetailsPage: {
-        goToRoom: 'Vai alla stanza',
         inWorkspace: (policyName: string) => `in ${policyName}`,
         generatingPDF: 'Genera PDF',
         waitForPDF: 'Attendi mentre generiamo il PDF.',

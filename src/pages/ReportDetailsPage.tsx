@@ -178,7 +178,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
         'Camera',
         'Trashcan',
         'ArrowSplit',
-        'ChatBubble',
+        'Hashtag',
     ]);
     const backTo = route.params.backTo;
 
@@ -418,7 +418,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.GO_TO_ROOM,
                 translationKey: 'reportDetailsPage.goToRoom',
-                icon: expensifyIcons.ChatBubble,
+                icon: expensifyIcons.Hashtag,
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
@@ -677,7 +677,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
         expensifyIcons.Building,
         expensifyIcons.Exit,
         expensifyIcons.Bug,
-        expensifyIcons.ChatBubble,
+        expensifyIcons.Hashtag,
         styles.ph2,
         shouldOpenRoomMembersPage,
         backTo,

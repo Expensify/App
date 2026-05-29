@@ -2843,7 +2843,6 @@ ${date} の ${merchant} への ${amount}`,
         },
     },
     reportDetailsPage: {
-        goToRoom: 'ルームに移動',
         inWorkspace: (policyName: string) => `${policyName} 内`,
         generatingPDF: 'PDFを生成',
         waitForPDF: 'PDF を作成しています。しばらくお待ちください。',
