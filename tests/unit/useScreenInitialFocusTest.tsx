@@ -100,7 +100,7 @@ describe('useScreenInitialFocus', () => {
         expect(button.getAttribute('data-programmatic-focus')).toBeNull();
     });
 
-    it('focuses the ref on touch-primary devices (no hover) but suppresses the ring (no focusVisible, data-programmatic-focus set)', () => {
+    it('focuses the ref on touch-primary devices (no hover) with focusVisible:false, so :focus-visible never matches and no ring shows (WCAG 2.4.7)', () => {
         mockHasHoverSupport = false;
         simulatePointer();
         const button = makeButton();
@@ -111,15 +111,15 @@ describe('useScreenInitialFocus', () => {
                 didScreenTransitionEnd
             />,
         );
-        expect(spy).toHaveBeenCalledWith({preventScroll: true});
-        expect(button.getAttribute('data-programmatic-focus')).toBe('true');
+        expect(spy).toHaveBeenCalledWith({preventScroll: true, focusVisible: false});
+        expect(button.getAttribute('data-programmatic-focus')).toBeNull();
     });
 
-    it('does not leave data-programmatic-focus set when focus silently fails to land (touch)', () => {
+    it('releases the arbiter cycle when focus silently fails to land (touch), so a later claim is not blocked', () => {
         mockHasHoverSupport = false;
         simulatePointer();
         const button = makeButton();
-        // Simulate an inert/visibility:hidden-ancestor case: focus() is a no-op, so activeElement never becomes the button.
+        // focus() no-ops (e.g. inert / visibility:hidden ancestor), so activeElement never becomes the button.
         jest.spyOn(button, 'focus').mockImplementation(() => {});
         render(
             <MountedHarness
@@ -127,8 +127,7 @@ describe('useScreenInitialFocus', () => {
                 didScreenTransitionEnd
             />,
         );
-        // claimInitialFocus must detect the non-landing and run markProgrammaticFocus's cleanup, not leak the ring-suppression attribute.
-        expect(button.getAttribute('data-programmatic-focus')).toBeNull();
+        expect(arbiterClaim(arbiterPriorities.INITIAL)).toBe(true);
     });
 
     it('does NOT focus on desktop mouse modality (hasHoverSupport && !hadTab) — WCAG 2.4.7', () => {

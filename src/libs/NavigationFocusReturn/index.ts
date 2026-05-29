@@ -205,7 +205,7 @@ function cancelPendingFocusRestore(): void {
     }
 }
 
-function restoreTriggerForRoute(routeKey: string): boolean {
+function restoreTriggerForRoute(routeKey: string, restoreBaseline: Element | null = null): boolean {
     if (typeof document === 'undefined') {
         return false;
     }
@@ -219,8 +219,10 @@ function restoreTriggerForRoute(routeKey: string): boolean {
         return false;
     }
 
-    // Idle cycle + non-body focus = user manually focused during the defer; respect it. Held cycle (AUTO mid-defer) = system-driven; preempt per priority (Status → Clear after race).
-    if (isCycleIdle() && document.activeElement && document.activeElement !== document.body && hasFocusableAttributes(document.activeElement)) {
+    // Yield to existing focus only if it moved after the baseline (a user action mid-defer); pre-existing focus is a system-restored opener that RETURN overrides. A held cycle (AUTO mid-defer) is preempted by priority below.
+    const activeNow = document.activeElement;
+    const focusMovedDuringDefer = activeNow !== restoreBaseline;
+    if (isCycleIdle() && activeNow && activeNow !== document.body && hasFocusableAttributes(activeNow) && focusMovedDuringDefer) {
         triggerMap.delete(routeKey);
         return false;
     }
@@ -273,6 +275,8 @@ function cancelPendingRestore(): void {
 const MAX_RESTORE_FRAMES = 5;
 
 function scheduleRestore(routeKey: string, {waitForUpcomingTransition}: {waitForUpcomingTransition: boolean}): void {
+    // Baseline: focus present synchronously at back-nav time is pre-existing, not a user action during the defer.
+    const restoreBaseline = typeof document !== 'undefined' ? document.activeElement : null;
     cancelPendingRestore();
     let cancelled = false;
     let rafId: number | undefined;
@@ -298,7 +302,7 @@ function scheduleRestore(routeKey: string, {waitForUpcomingTransition}: {waitFor
                 if (cancelled) {
                     return;
                 }
-                const restored = restoreTriggerForRoute(routeKey);
+                const restored = restoreTriggerForRoute(routeKey, restoreBaseline);
                 if (restored || !triggerMap.has(routeKey)) {
                     pendingRestore = null;
                     return;
