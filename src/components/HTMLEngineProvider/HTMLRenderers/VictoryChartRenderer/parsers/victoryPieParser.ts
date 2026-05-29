@@ -1,5 +1,6 @@
 import type {Color} from '@shopify/react-native-skia';
 import type {TNode} from 'react-native-render-html';
+import VictoryTheme from '@components/Charts/VictoryTheme';
 import {COLOR_KEY, LABEL_KEY, VALUE_KEY, X_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import type {PartialProcessNodeResult, PolarChartData, RawChartData} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
@@ -15,7 +16,7 @@ function parseVictoryPieNode(tnode: TNode): PartialProcessNodeResult {
         data[category.x] = {
             [LABEL_KEY]: category.x,
             [VALUE_KEY]: category.y,
-            [COLOR_KEY]: colorScale[index],
+            [COLOR_KEY]: colorScale.at(index) ?? VictoryTheme.colors.default,
         };
     }
     return {data};
