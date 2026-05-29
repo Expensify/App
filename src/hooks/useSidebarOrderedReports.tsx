@@ -15,6 +15,8 @@ import useResponsiveLayout from './useResponsiveLayout';
 
 const componentsUsingHook = new Map<string, {renderDuration: number}>();
 
+const EMPTY_ORDERED_REPORT_IDS: string[] = [];
+
 type SidebarOrderedReportsContextProviderProps = {
     children: React.ReactNode;
     currentReportIDForTests?: string;
@@ -64,7 +66,7 @@ function SidebarOrderedReportsContextProvider({
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue;
 
-    const baseOrderedReportIDs = derived?.orderedReportIDs ?? [];
+    const baseOrderedReportIDs = derived?.orderedReportIDs ?? EMPTY_ORDERED_REPORT_IDS;
     const baseReportsToDisplay = derived?.reportsToDisplay;
 
     // Web parity: when the active report would not normally pass `shouldDisplayReportInLHN` we still
@@ -81,19 +83,21 @@ function SidebarOrderedReportsContextProvider({
             return baseOrderedReportIDs;
         }
 
-        const reportsToDisplay = SidebarUtils.getReportsToDisplayInLHN({
-            currentReportId: derivedCurrentReportID,
+        const reportsToDisplay = SidebarUtils.updateReportsToDisplayInLHN({
+            displayedReports: baseReportsToDisplay ?? {},
             reports: chatReports,
+            updatedReportsKeys: [`${ONYXKEYS.COLLECTION.REPORT}${derivedCurrentReportID}`],
+            currentReportId: derivedCurrentReportID,
+            isInFocusMode: priorityMode === CONST.PRIORITY_MODE.GSD,
             betas,
-            priorityMode,
-            draftComments: reportsDrafts,
             transactionViolations,
+            reportNameValuePairs,
+            reportAttributes,
+            draftComments: reportsDrafts,
             transactions,
             isOffline,
             currentUserLogin: currentUserLogin ?? '',
             currentUserAccountID: accountID,
-            reportNameValuePairs,
-            reportAttributes,
         });
 
         const hasDraftByReportID: Record<string, boolean> = {};
@@ -108,6 +112,7 @@ function SidebarOrderedReportsContextProvider({
         return SidebarUtils.sortReportsToDisplayInLHN(reportsToDisplay, priorityMode, localeCompare, hasDraftByReportID, reportNameValuePairs, reportAttributes);
     }, [
         baseOrderedReportIDs,
+        baseReportsToDisplay,
         shouldUseNarrowLayout,
         derivedCurrentReportID,
         chatReports,

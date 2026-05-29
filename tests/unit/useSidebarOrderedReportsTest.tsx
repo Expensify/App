@@ -136,11 +136,11 @@ describe('useSidebarOrderedReports', () => {
         renderHook(() => useSidebarOrderedReports(), {wrapper: TestWrapper});
         await waitForBatchedUpdatesWithAct();
 
-        expect(mockSidebarUtils.getReportsToDisplayInLHN).not.toHaveBeenCalled();
+        expect(mockSidebarUtils.updateReportsToDisplayInLHN).not.toHaveBeenCalled();
         expect(mockSidebarUtils.sortReportsToDisplayInLHN).not.toHaveBeenCalled();
     });
 
-    it('runs the SidebarUtils fallback when the current report is missing and the derived list is empty', async () => {
+    it('injects the current report via updateReportsToDisplayInLHN when missing from the derived list', async () => {
         currentReportIDForTest = '2';
         await act(async () => {
             await Onyx.multiSet({
@@ -149,13 +149,18 @@ describe('useSidebarOrderedReports', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue({});
         mockSidebarUtils.sortReportsToDisplayInLHN.mockReturnValue(['2']);
 
-        renderHook(() => useSidebarOrderedReports(), {wrapper: TestWrapper});
+        const {result} = renderHook(() => useSidebarOrderedReports(), {wrapper: TestWrapper});
         await waitForBatchedUpdatesWithAct();
 
-        expect(mockSidebarUtils.getReportsToDisplayInLHN).toHaveBeenCalled();
+        expect(mockSidebarUtils.updateReportsToDisplayInLHN).toHaveBeenCalledWith(
+            expect.objectContaining({
+                currentReportId: '2',
+                updatedReportsKeys: [`${ONYXKEYS.COLLECTION.REPORT}2`],
+            }),
+        );
         expect(mockSidebarUtils.sortReportsToDisplayInLHN).toHaveBeenCalled();
+        expect(result.current.orderedReportIDs).toEqual(['2']);
     });
 });
