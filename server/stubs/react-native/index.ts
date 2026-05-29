@@ -20,10 +20,13 @@ type StyleProp<T> = T | T[] | null | undefined | false;
 type TransformsStyle = Record<string, unknown>;
 
 const View = noopComponent;
+type ImageResolvedAssetSource = {uri: string};
+
 const Image = Object.assign(noopComponent, {
-    resolveAssetSource: (source: unknown) => {
-        if (source && typeof source === 'object' && 'uri' in (source as Record<string, unknown>)) {
-            return source as {uri: string};
+    resolveAssetSource: (source: unknown): ImageResolvedAssetSource => {
+        if (source && typeof source === 'object' && 'uri' in source) {
+            const {uri} = source as {uri: unknown};
+            return {uri: String(uri)};
         }
         return {uri: String(source)};
     },
@@ -33,7 +36,7 @@ const Text = noopComponent;
 const Platform = {
     OS: 'web' as const,
     Version: 0,
-    select: <T>(specifics: {default?: T; web?: T}) => specifics.web ?? specifics.default,
+    select: <T>(specifics: {default?: T; web?: T}): T | undefined => specifics.web ?? specifics.default,
 };
 
 const PixelRatio = {

@@ -8,69 +8,38 @@
 import type {FunctionComponent, PropsWithChildren} from 'react';
 
 class GestureBuilder {
-    onTouchesDown(): this {
-        return this;
-    }
+    // Chainable no-ops: victory-native builds gesture configs during render even in headless mode.
+    onTouchesDown = (): this => this;
 
-    onStart(): this {
-        return this;
-    }
+    onStart = (): this => this;
 
-    onTouchesMove(): this {
-        return this;
-    }
+    onTouchesMove = (): this => this;
 
-    onTouchesUp(): this {
-        return this;
-    }
+    onTouchesUp = (): this => this;
 
-    onEnd(): this {
-        return this;
-    }
+    onEnd = (): this => this;
 
-    onFinalize(): this {
-        return this;
-    }
+    onFinalize = (): this => this;
 
-    onChange(): this {
-        return this;
-    }
+    onChange = (): this => this;
 
-    onUpdate(): this {
-        return this;
-    }
+    onUpdate = (): this => this;
 
-    activateAfterLongPress(): this {
-        return this;
-    }
+    activateAfterLongPress = (): this => this;
 
-    activeOffsetX(): this {
-        return this;
-    }
+    activeOffsetX = (): this => this;
 
-    activeOffsetY(): this {
-        return this;
-    }
+    activeOffsetY = (): this => this;
 
-    failOffsetX(): this {
-        return this;
-    }
+    failOffsetX = (): this => this;
 
-    failOffsetY(): this {
-        return this;
-    }
+    failOffsetY = (): this => this;
 
-    minDistance(): this {
-        return this;
-    }
+    minDistance = (): this => this;
 
-    enabled(): this {
-        return this;
-    }
+    enabled = (): this => this;
 
-    runOnJS(): this {
-        return this;
-    }
+    runOnJS = (): this => this;
 }
 
 const buildGesture = (): GestureBuilder => new GestureBuilder();

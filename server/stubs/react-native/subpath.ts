@@ -7,8 +7,8 @@
 const noopFunction = () => null;
 
 const codegenNativeComponent = noopFunction;
-const registerAsset = (asset: unknown) => asset;
-const getAssetByID = () => null;
+const registerAsset = <T>(asset: T): T => asset;
+const getAssetByID = (): null => null;
 
 export {codegenNativeComponent, registerAsset, getAssetByID};
 export default noopFunction;
