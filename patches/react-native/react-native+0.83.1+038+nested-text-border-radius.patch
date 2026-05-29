@@ -194,7 +194,7 @@ new file mode 100644
 index 0000000..8194ea7
 --- /dev/null
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
-@@ -0,0 +1,123 @@
+@@ -0,0 +1,125 @@
 +/* Copyright (c) Meta Platforms, Inc. and affiliates.
 + *
 + * This source code is licensed under the MIT license found in the
@@ -265,8 +265,10 @@ index 0000000..8194ea7
 +            layout.getPrimaryHorizontal(end)
 +          }
 +
-+      val top = layout.getLineTop(line).toFloat()
-+      val bottom = layout.getLineBottom(line).toFloat()
++      val baseline = layout.getLineBaseline(line).toFloat()
++      val fm = layout.paint.fontMetrics
++      val top = baseline + fm.ascent
++      val bottom = baseline + fm.descent
 +
 +      val actualLeft = minOf(left, right)
 +      val actualRight = maxOf(left, right)
@@ -589,33 +591,42 @@ index dac572b..0c84815 100644
   * Creates `NSTextAttributes` from given `facebook::react::TextAttributes`
   */
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
-index 520a24c..c456084 100644
+index 520a24c..3bec610 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
-@@ -182,6 +182,23 @@ NSMutableDictionary<NSAttributedStringKey, id> *RCTNSTextAttributesFromTextAttri
-     attributes[NSBackgroundColorAttributeName] = RCTEffectiveBackgroundColorFromTextAttributes(textAttributes);
+@@ -178,8 +178,30 @@ NSMutableDictionary<NSAttributedStringKey, id> *RCTNSTextAttributesFromTextAttri
+     attributes[NSForegroundColorAttributeName] = effectiveForegroundColor;
    }
  
+-  if (textAttributes.backgroundColor || !isnan(textAttributes.opacity)) {
+-    attributes[NSBackgroundColorAttributeName] = RCTEffectiveBackgroundColorFromTextAttributes(textAttributes);
 +  {
-+    const bool hasAny = textAttributes.borderRadius.has_value() ||
++    const bool hasAnyRadius = textAttributes.borderRadius.has_value() ||
 +        textAttributes.borderTopLeftRadius.has_value() ||
 +        textAttributes.borderTopRightRadius.has_value() ||
 +        textAttributes.borderBottomLeftRadius.has_value() ||
 +        textAttributes.borderBottomRightRadius.has_value();
-+    if (hasAny) {
-+      const CGFloat fallback = textAttributes.borderRadius.value_or(0.0f);
-+      attributes[RCTTextBorderRadiusAttributeName] = @[
-+        @(textAttributes.borderTopLeftRadius.value_or(fallback)),
-+        @(textAttributes.borderTopRightRadius.value_or(fallback)),
-+        @(textAttributes.borderBottomLeftRadius.value_or(fallback)),
-+        @(textAttributes.borderBottomRightRadius.value_or(fallback)),
-+      ];
-+    }
-+  }
 +
++    if (textAttributes.backgroundColor || !isnan(textAttributes.opacity)) {
++      UIColor *bgColor = RCTEffectiveBackgroundColorFromTextAttributes(textAttributes);
++      if (hasAnyRadius) {
++        // Store color alongside radii and skip NSBackgroundColorAttributeName so
++        // NSLayoutManager doesn't draw a flat rect before our per-line rounded one.
++        const CGFloat fallback = textAttributes.borderRadius.value_or(0.0f);
++        attributes[RCTTextBorderRadiusAttributeName] = @[
++          bgColor,
++          @(textAttributes.borderTopLeftRadius.value_or(fallback)),
++          @(textAttributes.borderTopRightRadius.value_or(fallback)),
++          @(textAttributes.borderBottomLeftRadius.value_or(fallback)),
++          @(textAttributes.borderBottomRightRadius.value_or(fallback)),
++        ];
++      } else {
++        attributes[NSBackgroundColorAttributeName] = bgColor;
++      }
++    }
+   }
+ 
    // Kerning
-   if (!isnan(textAttributes.letterSpacing)) {
-     attributes[NSKernAttributeName] = @(textAttributes.letterSpacing);
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
 index ef50487..d82b6a7 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
@@ -668,10 +679,10 @@ index 0000000..3ca52ac
 +NS_ASSUME_NONNULL_END
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
 new file mode 100644
-index 0000000..e6ec24a
+index 0000000..fd401a9
 --- /dev/null
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
-@@ -0,0 +1,85 @@
+@@ -0,0 +1,116 @@
 +/*
 + * Copyright (c) Meta Platforms, Inc. and affiliates.
 + *
@@ -685,75 +696,106 @@ index 0000000..e6ec24a
 +
 +@implementation RCTTextLayoutManagerWithBorderRadius
 +
-+- (void)fillBackgroundRectArray:(const CGRect *)rectArray
-+                          count:(NSUInteger)rectCount
-+              forCharacterRange:(NSRange)charRange
-+                          color:(UIColor *)color
++- (void)drawBackgroundForGlyphRange:(NSRange)glyphsToShow atPoint:(CGPoint)origin
 +{
-+  NSArray<NSNumber *> *radii = [self.textStorage attribute:RCTTextBorderRadiusAttributeName
-+                                                   atIndex:charRange.location
-+                                            effectiveRange:nil];
++  // Let super handle all spans that use NSBackgroundColorAttributeName (no border radius).
++  [super drawBackgroundForGlyphRange:glyphsToShow atPoint:origin];
 +
-+  if (radii == nil) {
-+    [super fillBackgroundRectArray:rectArray count:rectCount forCharacterRange:charRange color:color];
-+    return;
-+  }
++  NSRange charRange = [self characterRangeForGlyphRange:glyphsToShow actualGlyphRange:nil];
 +
-+  // radii is @[topLeft, topRight, bottomLeft, bottomRight]
-+  CGFloat tl = radii[0].floatValue;
-+  CGFloat tr = radii[1].floatValue;
-+  CGFloat bl = radii[2].floatValue;
-+  CGFloat br = radii[3].floatValue;
++  [self.textStorage enumerateAttribute:RCTTextBorderRadiusAttributeName
++                               inRange:charRange
++                               options:0
++                            usingBlock:^(id value, NSRange attrRange, BOOL *stop) {
++    if (!value) {
++      return;
++    }
 +
-+  BOOL hasAnyRadius = tl > 0 || tr > 0 || bl > 0 || br > 0;
-+  if (!hasAnyRadius) {
-+    [super fillBackgroundRectArray:rectArray count:rectCount forCharacterRange:charRange color:color];
-+    return;
-+  }
++    // attrs is @[UIColor, tlRadius, trRadius, blRadius, brRadius]
++    NSArray *attrs = (NSArray *)value;
++    UIColor *color = attrs[0];
++    CGFloat tl = [attrs[1] floatValue];
++    CGFloat tr = [attrs[2] floatValue];
++    CGFloat bl = [attrs[3] floatValue];
++    CGFloat br = [attrs[4] floatValue];
 +
-+  CGContextRef context = UIGraphicsGetCurrentContext();
-+  if (context == nil) {
-+    return;
-+  }
++    NSRange spanGlyphRange = [self glyphRangeForCharacterRange:attrRange actualCharacterRange:nil];
 +
-+  CGContextSaveGState(context);
-+  CGContextSetFillColorWithColor(context, color.CGColor);
++    __block NSUInteger totalLines = 0;
++    [self enumerateLineFragmentsForGlyphRange:spanGlyphRange
++                                   usingBlock:^(CGRect r, CGRect u, NSTextContainer *tc, NSRange gr, BOOL *s) {
++      totalLines++;
++    }];
 +
-+  for (NSUInteger i = 0; i < rectCount; i++) {
-+    CGRect rect = rectArray[i];
++    UIFont *font = [self.textStorage attribute:NSFontAttributeName
++                                       atIndex:attrRange.location
++                                effectiveRange:nil];
 +
-+    BOOL isFirstRect = (i == 0);
-+    BOOL isLastRect = (i == rectCount - 1);
++    CGContextRef context = UIGraphicsGetCurrentContext();
++    if (!context) {
++      return;
++    }
 +
-+    // Round left corners on the first rect, right corners on the last rect.
-+    // NSLayoutManager provides rects in visual order so this handles LTR and RTL correctly.
-+    CGFloat effectiveTL = isFirstRect ? tl : 0;
-+    CGFloat effectiveBL = isFirstRect ? bl : 0;
-+    CGFloat effectiveTR = isLastRect  ? tr : 0;
-+    CGFloat effectiveBR = isLastRect  ? br : 0;
++    CGContextSaveGState(context);
++    CGContextSetFillColorWithColor(context, color.CGColor);
 +
-+    CGMutablePathRef cgPath = CGPathCreateMutable();
-+    CGFloat x = CGRectGetMinX(rect);
-+    CGFloat y = CGRectGetMinY(rect);
-+    CGFloat w = CGRectGetWidth(rect);
-+    CGFloat h = CGRectGetHeight(rect);
-+    CGPathMoveToPoint(cgPath, NULL, x + effectiveTL, y);
-+    CGPathAddLineToPoint(cgPath, NULL, x + w - effectiveTR, y);
-+    CGPathAddArcToPoint(cgPath, NULL, x + w, y, x + w, y + effectiveTR, effectiveTR);
-+    CGPathAddLineToPoint(cgPath, NULL, x + w, y + h - effectiveBR);
-+    CGPathAddArcToPoint(cgPath, NULL, x + w, y + h, x + w - effectiveBR, y + h, effectiveBR);
-+    CGPathAddLineToPoint(cgPath, NULL, x + effectiveBL, y + h);
-+    CGPathAddArcToPoint(cgPath, NULL, x, y + h, x, y + h - effectiveBL, effectiveBL);
-+    CGPathAddLineToPoint(cgPath, NULL, x, y + effectiveTL);
-+    CGPathAddArcToPoint(cgPath, NULL, x, y, x + effectiveTL, y, effectiveTL);
-+    CGPathCloseSubpath(cgPath);
++    __block NSUInteger lineIdx = 0;
++    [self enumerateLineFragmentsForGlyphRange:spanGlyphRange
++                                   usingBlock:^(CGRect lineRect, CGRect usedRect, NSTextContainer *tc, NSRange lineGlyphRange, BOOL *s) {
++      NSRange intersected = NSIntersectionRange(spanGlyphRange, lineGlyphRange);
++      CGRect spanRect = [self boundingRectForGlyphRange:intersected inTextContainer:tc];
 +
-+    CGContextAddPath(context, cgPath);
-+    CGContextFillPath(context);
-+    CGPathRelease(cgPath);
-+  }
++      // Container coords → view coords
++      spanRect.origin.x += origin.x;
++      spanRect.origin.y += origin.y;
 +
-+  CGContextRestoreGState(context);
++      // Shrink height to em-box (font.lineHeight = ascender + |descender|, no leading).
++      // This creates a leading-sized gap between adjacent line backgrounds, matching web CSS.
++      if (font && intersected.length > 0) {
++          CGPoint glyphLoc = [self locationForGlyphAtIndex:intersected.location];
++          CGFloat baseline = lineRect.origin.y + origin.y + glyphLoc.y;
++          spanRect.origin.y = baseline - font.ascender;
++          spanRect.size.height = font.lineHeight;
++      }
++
++      BOOL isFirst = (lineIdx == 0);
++      BOOL isLast  = (lineIdx == totalLines - 1);
++
++      CGFloat effectiveTL = isFirst ? tl : 0;
++      CGFloat effectiveBL = isFirst ? bl : 0;
++      CGFloat effectiveTR = isLast  ? tr : 0;
++      CGFloat effectiveBR = isLast  ? br : 0;
++
++      CGFloat x = CGRectGetMinX(spanRect);
++      CGFloat y = CGRectGetMinY(spanRect);
++      CGFloat w = CGRectGetWidth(spanRect);
++      CGFloat h = CGRectGetHeight(spanRect);
++
++      BOOL hasAnyRadius = tl > 0 || tr > 0 || bl > 0 || br > 0;
++      if (!hasAnyRadius) {
++        CGContextFillRect(context, spanRect);
++      } else {
++        CGMutablePathRef path = CGPathCreateMutable();
++        CGPathMoveToPoint(path, NULL, x + effectiveTL, y);
++        CGPathAddLineToPoint(path, NULL, x + w - effectiveTR, y);
++        CGPathAddArcToPoint(path, NULL, x + w, y, x + w, y + effectiveTR, effectiveTR);
++        CGPathAddLineToPoint(path, NULL, x + w, y + h - effectiveBR);
++        CGPathAddArcToPoint(path, NULL, x + w, y + h, x + w - effectiveBR, y + h, effectiveBR);
++        CGPathAddLineToPoint(path, NULL, x + effectiveBL, y + h);
++        CGPathAddArcToPoint(path, NULL, x, y + h, x, y + h - effectiveBL, effectiveBL);
++        CGPathAddLineToPoint(path, NULL, x, y + effectiveTL);
++        CGPathAddArcToPoint(path, NULL, x, y, x + effectiveTL, y, effectiveTL);
++        CGPathCloseSubpath(path);
++        CGContextAddPath(context, path);
++        CGContextFillPath(context);
++        CGPathRelease(path);
++      }
++
++      lineIdx++;
++    }];
++
++    CGContextRestoreGState(context);
++  }];
 +}
 +
 +@end
