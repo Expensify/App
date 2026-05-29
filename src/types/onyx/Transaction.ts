@@ -526,7 +526,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The exchange rate of the transaction if the transaction is grouped. Defaults to the exchange rate against the active policy currency if group has no target currency */
         groupExchangeRate?: number;
 
-        /** Used during the creation flow before the transaction is saved to the server */
+        /** The transaction's request type (e.g. manual, scan, distance). */
         iouRequestType?: IOURequestType;
 
         /**
