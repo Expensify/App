@@ -7891,7 +7891,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             copy: 'Kommentar kopieren',
             openDebug: 'Testeinstellungen öffnen',
             expenseReportSearch: 'Spesenberichte suchen',
-            goToWorkspace: 'Zum Arbeitsbereich des aktuellen Berichts wechseln',
+            goToWorkspace: 'Zum Workspace des aktuellen Berichts gehen',
         },
     },
     guides: {
