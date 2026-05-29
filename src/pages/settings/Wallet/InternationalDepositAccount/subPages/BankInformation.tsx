@@ -9,6 +9,7 @@ import ValuePicker from '@components/ValuePicker';
 import useInternationalBankAccountFormSubmit from '@hooks/useInternationalBankAccountFormSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getTextInputAutocorrectProps from '@libs/getTextInputAutocorrectProps';
 import type CustomSubPageProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
 import {getValidationErrors} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
 import Text from '@src/components/Text';
@@ -84,32 +85,36 @@ function BankInformation({isEditing, onNext, formValues, fieldsMap}: CustomSubPa
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.bankInformationStepHeader')}</Text>
                 {Object.values(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION] ?? {})
                     .sort((a, b) => CONST.CORPAY_FIELDS.BANK_INFORMATION_FIELDS.indexOf(a.id) - CONST.CORPAY_FIELDS.BANK_INFORMATION_FIELDS.indexOf(b.id))
-                    .map((field, index) => (
-                        <View
-                            style={getStyle(field, index)}
-                            key={field.id}
-                        >
-                            <InputWrapper
-                                InputComponent={getInputComponent(field)}
-                                inputID={field.id}
-                                defaultValue={formValues[field.id]}
-                                label={field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`)}
-                                items={getItems(field)}
-                                shouldSaveDraft={!isEditing}
-                                renamedInputKeys={{
-                                    street: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION]?.bankAddressLine1) ? '' : 'bankAddressLine1',
-                                    street2: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION]?.bankAddressLine2) ? '' : 'bankAddressLine2',
-                                    city: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION]?.bankCity) ? '' : 'bankCity',
-                                    state: '',
-                                    zipCode: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION]?.bankPostal) ? '' : 'bankPostal',
-                                    country: '',
-                                    lat: '',
-                                    lng: '',
-                                }}
-                                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                            />
-                        </View>
-                    ))}
+                    .map((field, index) => {
+                        const inputComponent = getInputComponent(field);
+                        return (
+                            <View
+                                style={getStyle(field, index)}
+                                key={field.id}
+                            >
+                                <InputWrapper
+                                    InputComponent={inputComponent}
+                                    inputID={field.id}
+                                    defaultValue={formValues[field.id]}
+                                    label={field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`)}
+                                    items={getItems(field)}
+                                    shouldSaveDraft={!isEditing}
+                                    renamedInputKeys={{
+                                        street: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION]?.bankAddressLine1) ? '' : 'bankAddressLine1',
+                                        street2: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION]?.bankAddressLine2) ? '' : 'bankAddressLine2',
+                                        city: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION]?.bankCity) ? '' : 'bankCity',
+                                        state: '',
+                                        zipCode: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION]?.bankPostal) ? '' : 'bankPostal',
+                                        country: '',
+                                        lat: '',
+                                        lng: '',
+                                    }}
+                                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                                    {...(inputComponent === TextInput ? getTextInputAutocorrectProps() : {})}
+                                />
+                            </View>
+                        );
+                    })}
             </View>
         </FormProvider>
     );

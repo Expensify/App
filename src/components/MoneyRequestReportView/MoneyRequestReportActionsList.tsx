@@ -6,7 +6,6 @@ import type {LayoutChangeEvent, ListRenderItemInfo, NativeScrollEvent, NativeSyn
 // eslint-disable-next-line no-restricted-imports
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import FlatListWithScrollKey from '@components/FlatList/FlatListWithScrollKey';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLoadReportActions from '@hooks/useLoadReportActions';
@@ -50,6 +49,7 @@ import Visibility from '@libs/Visibility';
 import isSearchTopmostFullScreenRoute from '@navigation/helpers/isSearchTopmostFullScreenRoute';
 import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
 import getInitialNumToRender from '@pages/inbox/report/getInitialNumReportActionsToRender';
+import ReportActionIndexContext from '@pages/inbox/report/ReportActionIndexContext';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
@@ -59,6 +59,7 @@ import {getOlderActions, openReport, readNewestAction, subscribeToNewActionEvent
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import {getStableReportSelector} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportTransactionList from './MoneyRequestReportTransactionList';
 import MoneyRequestViewReportFields from './MoneyRequestViewReportFields';
@@ -98,6 +99,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     // Self-subscribe to report, policy, metadata, actions, transactions
     // report is guaranteed to exist — callers only render this component when report is loaded
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`) as unknown as [OnyxTypes.Report];
+    const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {selector: getStableReportSelector});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
     const [reportPaginationState] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportIDFromRoute}`);
@@ -125,10 +127,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
     const parentReportAction = useParentReportAction(report);
 
-    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
-    const personalDetails = usePersonalDetails();
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
-    const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
 
@@ -453,7 +451,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         hasNewestReportAction,
         setIsFloatingMessageCounterVisible,
         scrollToEnd: reportScrollManager.scrollToEnd,
-        resetKey: report.reportID,
+        resetKey: report?.reportID ?? reportIDFromRoute ?? '',
     });
 
     /**
@@ -554,43 +552,34 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                 hasNextActionMadeBySameActor(visibleReportActions, index, isOffline);
 
             return (
-                <ReportActionsListItemRenderer
-                    reportAction={reportAction}
-                    parentReportAction={parentReportAction}
-                    parentReportActionForTransactionThread={EmptyParentReportActionForTransactionThread}
-                    index={index}
-                    report={report}
-                    transactionThreadReport={transactionThreadReport}
-                    displayAsGroup={displayAsGroup}
-                    shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
-                    shouldDisplayReplyDivider={visibleReportActions.length > 1}
-                    isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
-                    shouldHideThreadDividerLine
-                    linkedReportActionID={linkedReportActionID}
-                    personalDetails={personalDetails}
-                    userBillingFundID={userBillingFundID}
-                    isReportArchived={isReportArchived}
-                    isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
-                    reportNameValuePairsOrigin={reportNameValuePairs?.origin}
-                    reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
-                />
+                <ReportActionIndexContext.Provider value={index}>
+                    <ReportActionsListItemRenderer
+                        reportAction={reportAction}
+                        parentReportAction={parentReportAction}
+                        parentReportActionForTransactionThread={EmptyParentReportActionForTransactionThread}
+                        report={reportStable}
+                        transactionThreadReport={transactionThreadReport}
+                        displayAsGroup={displayAsGroup}
+                        shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
+                        shouldDisplayReplyDivider={visibleReportActions.length > 1}
+                        isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
+                        shouldHideThreadDividerLine
+                        linkedReportActionID={linkedReportActionID}
+                        isHarvestCreatedExpenseReport={shouldShowHarvestCreatedAction}
+                    />
+                </ReportActionIndexContext.Provider>
             );
         },
         [
             visibleReportActions,
             parentReportAction,
-            report,
+            reportStable,
             isOffline,
             transactionThreadReport,
             unreadMarkerReportActionID,
             firstVisibleReportActionID,
             linkedReportActionID,
-            personalDetails,
-            userBillingFundID,
-            isTryNewDotNVPDismissed,
-            isReportArchived,
-            reportNameValuePairs?.origin,
-            reportNameValuePairs?.originalID,
+            shouldShowHarvestCreatedAction,
         ],
     );
 
