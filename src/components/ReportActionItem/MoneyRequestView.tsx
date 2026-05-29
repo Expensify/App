@@ -458,20 +458,27 @@ function MoneyRequestView({
     const transactionTripID = transaction?.comment?.tripID;
 
     // Spotnana expense reports are parented under the trip room, so try that O(1) hop before scanning.
+    // Narrow the selector output to just the two primitives we render so Onyx's deepEqual stays cheap
+    // on every report collection mutation (PERF-11).
     const grandparentReportID = parentReport?.parentReportID;
     const tripRoomReportSelector = (reports: OnyxCollection<OnyxTypes.Report>) => {
         if (!transactionTripID || !reports) {
             return undefined;
         }
         const grandparent = grandparentReportID ? reports[`${ONYXKEYS.COLLECTION.REPORT}${grandparentReportID}`] : undefined;
-        if (grandparent?.tripData?.tripID === transactionTripID) {
-            return grandparent;
+        const match =
+            grandparent?.tripData?.tripID === transactionTripID ? grandparent : Object.values(reports).find((candidateReport) => candidateReport?.tripData?.tripID === transactionTripID);
+        if (!match?.reportID) {
+            return undefined;
         }
-        return Object.values(reports).find((candidateReport) => candidateReport?.tripData?.tripID === transactionTripID);
+        return {
+            reportID: match.reportID,
+            name: getReportName(match, reportAttributes) || match.reportName,
+        };
     };
-    const [tripRoomReport] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: tripRoomReportSelector}, [transactionTripID, grandparentReportID]);
-    const tripRoomReportID = tripRoomReport?.reportID;
-    const tripRoomName = tripRoomReport ? getReportName(tripRoomReport, reportAttributes) || tripRoomReport.reportName : undefined;
+    const [tripRoomInfo] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: tripRoomReportSelector}, [transactionTripID, grandparentReportID, reportAttributes]);
+    const tripRoomReportID = tripRoomInfo?.reportID;
+    const tripRoomName = tripRoomInfo?.name;
     const shouldShowTripRoomLink = !!tripRoomReportID && !!tripRoomName;
 
     const {getViolationsForField} = useViolations(transactionViolations ?? [], isTransactionScanning || !isPaidGroupPolicy(transactionThreadReport));
