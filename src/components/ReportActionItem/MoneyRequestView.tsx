@@ -2,6 +2,11 @@ import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+// Use the original useOnyx hook to scan the live report collection when resolving the trip room.
+// @hooks/useOnyx redirects collection reads to the search snapshot under Search routes, which
+// typically does not include the grandparent trip room and would leave the Trip row hidden.
+// eslint-disable-next-line no-restricted-imports
+import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import Icon from '@components/Icon';
@@ -458,6 +463,8 @@ function MoneyRequestView({
     const transactionTripID = transaction?.comment?.tripID;
 
     // Spotnana expense reports are parented under the trip room, so try that O(1) hop before scanning.
+    // Use originalUseOnyx so the lookup hits the live report collection - the grandparent trip room
+    // is typically not in the Search snapshot.
     const grandparentReportID = parentReport?.parentReportID;
     const tripRoomReportSelector = (reports: OnyxCollection<OnyxTypes.Report>) => {
         if (!transactionTripID || !reports) {
@@ -474,7 +481,7 @@ function MoneyRequestView({
             name: getReportName(match, reportAttributes) || match.reportName,
         };
     };
-    const [tripRoomInfo] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: tripRoomReportSelector}, [transactionTripID, grandparentReportID, reportAttributes]);
+    const [tripRoomInfo] = originalUseOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: tripRoomReportSelector}, [transactionTripID, grandparentReportID, reportAttributes]);
     const tripRoomReportID = tripRoomInfo?.reportID;
     const tripRoomName = tripRoomInfo?.name;
     const shouldShowTripRoomLink = !!tripRoomReportID && !!tripRoomName;
