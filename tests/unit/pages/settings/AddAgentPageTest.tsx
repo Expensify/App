@@ -7,7 +7,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AddAgentPage from '@pages/settings/Agents/AddAgentPage';
 import {setInitialPresetID, setNavigationToken} from '@pages/settings/Agents/pendingAgentAvatarStore';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 
 jest.mock('@userActions/Agent', () => ({
     createAgent: jest.fn(() => ({optimisticAccountID: -123456, avatarURI: undefined})),
@@ -114,8 +114,8 @@ const mockUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDeta
 
 type AddAgentRouteProp = PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>;
 
-function makeRoute(params: AddAgentRouteProp['params'] = {}): AddAgentRouteProp {
-    return {name: '', key: '', params} as unknown as AddAgentRouteProp;
+function makeRoute(params: AddAgentRouteProp['params'] = {}, name = ''): AddAgentRouteProp {
+    return {name, key: '', params} as unknown as AddAgentRouteProp;
 }
 
 describe('AddAgentPage', () => {
@@ -252,7 +252,7 @@ describe('AddAgentPage', () => {
             // response lands.
             render(
                 <AddAgentPage
-                    route={makeRoute({policyID: 'POL_42', workflowApproverEmail: 'manager@example.com'})}
+                    route={makeRoute({policyID: 'POL_42', workflowApproverEmail: 'manager@example.com'}, SCREENS.WORKSPACE.WORKFLOWS_ADD_AGENT)}
                     navigation={undefined as never}
                 />,
             );
