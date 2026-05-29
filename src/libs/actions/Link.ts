@@ -10,6 +10,7 @@ import asyncOpenURL from '@libs/asyncOpenURL';
 import * as Environment from '@libs/Environment/Environment';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
+import Log from '@libs/Log';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
@@ -420,7 +421,10 @@ function getShortLivedAuthTokenURL(setupLink: string): Promise<string> {
             }
             return Url.appendParam(setupLink, 'authToken', response.shortLivedAuthToken);
         })
-        .catch(() => setupLink);
+        .catch((error) => {
+            Log.warn('[Link] Failed to fetch short-lived auth token', {error});
+            return setupLink;
+        });
 }
 
 export {
