@@ -53,7 +53,7 @@ function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
 
     return (
         <Modal
-            onClose={() => setIsWebViewOpen(false)}
+            onClose={handleBackPress}
             fullscreen
             isVisible={isWebViewOpen}
             type={CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
