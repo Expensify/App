@@ -4973,8 +4973,7 @@ describe('ReportActionsUtils', () => {
             unreadMarkerTime,
             currentUserAccountID,
             prevSortedVisibleReportActionsObjects: {},
-            scrollingVerticalOffset: CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD + 1,
-            prevUnreadMarkerReportActionID: 'some-id',
+            isScrolledOverThreshold: true,
         };
 
         it('returns true when isEarliestReceivedOfflineMessage is true and next message is not unread', () => {
@@ -5035,13 +5034,12 @@ describe('ReportActionsUtils', () => {
             ).toBe(false);
         });
 
-        it('returns false when message is from current user, is new, and no prevUnreadMarkerReportActionID', () => {
+        it('returns false when message is from current user and is new', () => {
             const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'new-action-id'});
             expect(
                 shouldDisplayNewMarkerOnReportAction({
                     ...baseParams,
                     message,
-                    prevUnreadMarkerReportActionID: null,
                     prevSortedVisibleReportActionsObjects: {},
                     isOffline: false,
                 }),
