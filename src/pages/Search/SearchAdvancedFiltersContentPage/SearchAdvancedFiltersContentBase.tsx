@@ -43,6 +43,7 @@ function SearchAdvancedFiltersContentBase() {
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
+            shouldEnableMaxHeight
         >
             {validFilterKey ? (
                 <>
