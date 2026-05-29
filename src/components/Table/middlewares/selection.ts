@@ -1,6 +1,9 @@
 import type {Dispatch, SetStateAction} from 'react';
-import {useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import type {TableData, TableRow} from '@components/Table/types';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import type {MiddlewareHookResult} from './types';
 
 type UseSelectionProps<DataType extends TableData> = {
@@ -37,6 +40,8 @@ type UseSelectionResult<DataType extends TableData> = MiddlewareHookResult<DataT
 };
 
 export default function useSelection<DataType extends TableData>({data, selectedKeys, onRowSelectionChange}: UseSelectionProps<DataType>): UseSelectionResult<DataType> {
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isSelectionModeEnabled = useMobileSelectionMode();
     const lastSelectedRowKeyRef = useRef<string | null>(null);
     const lastSelectedRowIsSelectedRef = useRef<boolean>(false);
 
@@ -45,18 +50,15 @@ export default function useSelection<DataType extends TableData>({data, selected
     const [mobileSelectionModalRowKey, setMobileSelectionModalRowKey] = useState<string | null>(null);
 
     const selectableKeys = data.filter((item) => !item.disabled).map((item) => item.keyForList);
+    const tableRowData: Array<TableRow<DataType>> = data.map((item) => ({...item, selected: selectedKeys.includes(item.keyForList)}));
 
-    let areAllSelectableRowsSelected = true;
-    const tableRowData: Array<TableRow<DataType>> = [];
-
-    for (const item of data) {
-        const isSelected = selectedKeys.includes(item.keyForList);
-        tableRowData.push({...item, selected: isSelected});
-
-        if (!isSelected && !item.disabled) {
-            areAllSelectableRowsSelected = false;
+    useEffect(() => {
+        if (shouldUseNarrowLayout && !isSelectionModeEnabled && selectedKeys.length) {
+            turnOnMobileSelectionMode();
+        } else if (!shouldUseNarrowLayout && isSelectionModeEnabled && !selectedKeys.length) {
+            turnOffMobileSelectionMode();
         }
-    }
+    }, [shouldUseNarrowLayout, isSelectionModeEnabled, selectedKeys.length]);
 
     /**
      * Clear all of the currently selected keys
@@ -70,6 +72,8 @@ export default function useSelection<DataType extends TableData>({data, selected
      * rows in the table
      */
     const handleSelectAll = () => {
+        const areAllSelectableRowsSelected = selectableKeys.every((key) => selectedKeys.includes(key));
+
         if (areAllSelectableRowsSelected) {
             onRowSelectionChange?.([]);
         } else {
