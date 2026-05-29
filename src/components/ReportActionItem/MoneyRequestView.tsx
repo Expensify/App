@@ -458,8 +458,6 @@ function MoneyRequestView({
     const transactionTripID = transaction?.comment?.tripID;
 
     // Spotnana expense reports are parented under the trip room, so try that O(1) hop before scanning.
-    // Narrow the selector output to just the two primitives we render so Onyx's deepEqual stays cheap
-    // on every report collection mutation (PERF-11).
     const grandparentReportID = parentReport?.parentReportID;
     const tripRoomReportSelector = (reports: OnyxCollection<OnyxTypes.Report>) => {
         if (!transactionTripID || !reports) {
