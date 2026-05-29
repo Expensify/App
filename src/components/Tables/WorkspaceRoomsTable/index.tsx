@@ -65,9 +65,7 @@ function WorkspaceRoomsTable({rooms}: WorkspaceRoomsTableProps) {
             title={translate('workspace.common.rooms')}
             keyExtractor={(row, index) => `${row.reportID}-${index}`}
         >
-            <View style={[styles.searchBarMargin, styles.searchBarWidth(shouldUseNarrowTableLayout)]}>
-                <Table.SearchBar label={translate('workspace.common.findRoom')} />
-            </View>
+            <Table.SearchBar label={translate('workspace.common.findRoom')} />
             <Table.Header />
             <Table.Body />
         </Table>
