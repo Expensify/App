@@ -16,7 +16,13 @@ function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const hasOpened = useRef(false);
+    const isDismissed = useRef(false);
     const [isModalOpen, setIsModalOpen] = useState(true);
+
+    const dismiss = () => {
+        isDismissed.current = true;
+        setIsModalOpen(false);
+    };
 
     const openSession = () => {
         if (hasOpened.current) {
@@ -27,7 +33,12 @@ function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
         getShortLivedAuthTokenURL(setupLink)
             // CONST.DEEPLINK_BASE_URL is used as a sentinel so ASWebAuthenticationSession
             // auto-dismisses when the flow redirects back to the app via deep link.
-            .then((url) => openAuthSessionAsync(url, CONST.DEEPLINK_BASE_URL, {preferEphemeralSession: true}))
+            .then((url) => {
+                if (isDismissed.current) {
+                    return;
+                }
+                return openAuthSessionAsync(url, CONST.DEEPLINK_BASE_URL, {preferEphemeralSession: true});
+            })
             .finally(() => {
                 setIsModalOpen(false);
             });
@@ -45,14 +56,14 @@ function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
 
     return (
         <Modal
-            onClose={() => setIsModalOpen(false)}
+            onClose={dismiss}
             fullscreen
             isVisible={isModalOpen}
             type={CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
         >
             <HeaderWithBackButton
                 title={translate('workspace.common.hr')}
-                onBackButtonPress={() => setIsModalOpen(false)}
+                onBackButtonPress={dismiss}
                 shouldDisplayHelpButton={false}
             />
             <FullPageOfflineBlockingView>
