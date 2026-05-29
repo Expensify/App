@@ -22,7 +22,7 @@ type ProcessedEntry = {
  * Renders Skia legend symbols and labels (from `<victorylegend>` nodes) over the chart canvas.
  * Intended for use inside CartesianChart's `renderOutside` callback.
  */
-function VictoryChartLegend({x: startX, y, entries, gutter, symbolSpacer}: VictoryChartLegendProps) {
+function VictoryChartLegend({x, y, entries, gutter, symbolSpacer}: VictoryChartLegendProps) {
     const {regular: regularTypeface, bold: boldTypeface} = useChartDefaultTypeface();
     const processedEntries = entries.reduce(
         (acc, {text, color, fontSize, fontWeight, symbolColor, symbolSize}) => {
@@ -50,7 +50,7 @@ function VictoryChartLegend({x: startX, y, entries, gutter, symbolSpacer}: Victo
             });
             return acc;
         },
-        {entries: [] as ProcessedEntry[], x: startX},
+        {entries: [] as ProcessedEntry[], x},
     );
     return processedEntries.entries.map(({symbolX, symbolY, symbolSize, symbolColor, textX, textY, text, font, color}) => {
         return (

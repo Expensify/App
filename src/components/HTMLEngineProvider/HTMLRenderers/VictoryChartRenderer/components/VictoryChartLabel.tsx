@@ -1,38 +1,64 @@
 import {Skia, Text as SkText} from '@shopify/react-native-skia';
+import type {Color, SkFont} from '@shopify/react-native-skia';
 import React from 'react';
 import {useChartDefaultTypeface} from '@components/Charts/hooks';
 import type {LabelItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import computeTextHorizontalPosition from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeTextHorizontalPosition';
+import computeTextVerticalPosition from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeTextVerticalPosition';
 
 type VictoryChartLabelsProps = LabelItem;
+
+type ProcessedLine = {
+    lineX: number;
+    lineY: number;
+    line: string;
+    lineFont: SkFont | null;
+    lineColor: Color | undefined;
+    lineWidth: number;
+};
 
 /**
  * Renders floating Skia text labels (from `<victorylabel>` nodes) over the chart canvas.
  * Intended for use inside CartesianChart's `renderOutside` callback.
  */
-function VictoryChartLabel({x, y: startY, text, color, fontSize, fontWeight, lineHeight, textAnchor = 'start', verticalAnchor = 'start'}: VictoryChartLabelsProps) {
+function VictoryChartLabel({x, y, text, color, fontSize, fontWeight, lineHeight, textAnchor = 'start', verticalAnchor = 'start'}: VictoryChartLabelsProps) {
     const {regular: regularTypeface, bold: boldTypeface} = useChartDefaultTypeface();
-    let y = startY;
-    return text.split('\n').map((line, index) => {
-        const lineColor = color?.[index];
-        const lineFontSize = fontSize?.[index];
-        const lineFontWeight = fontWeight?.[index];
-        const lineLineHeight = lineHeight?.[index];
-        const typeface = lineFontWeight === 'bold' ? boldTypeface : regularTypeface;
-        const font = typeface ? Skia.Font(typeface, lineFontSize) : null;
-        const fontMetrics = font?.getMetrics();
-        const lineWidth = font?.getGlyphWidths(font.getGlyphIDs(line)).reduce((acc, width) => acc + width, 0) ?? 0;
-        const baseLineHeight = fontMetrics ? Math.abs(fontMetrics.ascent) + Math.abs(fontMetrics.descent) + Math.abs(fontMetrics.leading) : 0;
-        const finalLineHeight = lineLineHeight ? lineLineHeight * (lineFontSize ?? 0) : baseLineHeight;
-        const lineY = y - (fontMetrics?.ascent ?? 0);
-        y += finalLineHeight;
+    const processedLines = text.split('\n').reduce(
+        (acc, line, index) => {
+            const lineColor = color?.[index];
+            const lineFontSize = fontSize?.[index];
+            const lineFontWeight = fontWeight?.[index];
+            const lineLineHeight = lineHeight?.[index];
+            const typeface = lineFontWeight === 'bold' ? boldTypeface : regularTypeface;
+            const lineFont = typeface ? Skia.Font(typeface, lineFontSize) : null;
+            const fontMetrics = lineFont?.getMetrics();
+            const lineWidth = lineFont?.getGlyphWidths(lineFont.getGlyphIDs(line)).reduce((acc, width) => acc + width, 0) ?? 0;
+            const customLineHeight = lineLineHeight ? lineLineHeight * (lineFontSize ?? 0) : 0;
+            const metricsLineHeight = fontMetrics ? -fontMetrics.ascent + fontMetrics.descent + fontMetrics.leading : 0;
+            const lineX = x;
+            const lineY = acc.y - (fontMetrics?.ascent ?? 0);
+            acc.y += customLineHeight || metricsLineHeight;
+
+            acc.lines.push({
+                lineX,
+                lineY,
+                line,
+                lineFont,
+                lineColor,
+                lineWidth,
+            });
+            return acc;
+        },
+        {lines: [] as ProcessedLine[], y},
+    );
+    return processedLines.lines.map(({lineX, lineY, line, lineFont, lineColor, lineWidth}) => {
         return (
             <SkText
-                key={`text-${x}-${y}`}
-                x={computeTextHorizontalPosition(x, lineWidth, textAnchor)}
-                y={computeTextHorizontalPosition(lineY, finalLineHeight, verticalAnchor)}
+                key={`text-${lineX}-${lineY}`}
+                x={computeTextHorizontalPosition(lineX, lineWidth, textAnchor)}
+                y={computeTextVerticalPosition(lineY, processedLines.y, verticalAnchor)}
                 text={line}
-                font={font}
+                font={lineFont}
                 color={lineColor}
             />
         );
