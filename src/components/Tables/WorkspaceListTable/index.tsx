@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
+import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import WorkspacesEmptyStateComponent from '@pages/workspace/WorkspacesEmptyStateComponent';
 import variables from '@styles/variables';
@@ -73,7 +74,7 @@ export default function WorkspaceListTable({ref, workspaces}: WorkspaceListTable
         }
 
         if (activeSorting.columnKey === 'type') {
-            return orderMultiplier * localeCompare(item1.type, item2.type);
+            return orderMultiplier * localeCompare(getUserFriendlyWorkspaceType(item1.type, translate), getUserFriendlyWorkspaceType(item2.type, translate));
         }
 
         return 0;
