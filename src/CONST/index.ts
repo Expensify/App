@@ -4930,6 +4930,7 @@ const CONST = {
         INFO: 'info',
     },
     REPORT_DETAILS_MENU_ITEM: {
+        GO_TO_ROOM: 'goToRoom',
         MEMBERS: 'member',
         INVITE: 'invite',
         SETTINGS: 'settings',

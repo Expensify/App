@@ -178,6 +178,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
         'Camera',
         'Trashcan',
         'ArrowSplit',
+        'ChatBubble',
     ]);
     const backTo = route.params.backTo;
 
@@ -379,6 +380,10 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
     const shouldShowLeaveButton = canLeaveChat(report, policy, currentUserPersonalDetails?.accountID, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending;
 
+    // Only show the "Go to room" row when the Details page was opened from a screen other than the room report itself
+    // (e.g. the Workspace rooms list), i.e. the room report is not the report currently open in the central pane.
+    const shouldShowGoToRoom = isChatRoom && Navigation.getTopmostReportId() !== report?.reportID;
+
     const reportForHeader = useMemo(() => getReportForHeader(report), [report]);
     const shouldParseFullTitle = parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && !isGroupChat;
     const rawReportName = getReportNameFromReportNameUtils(reportForHeader, reportAttributes);
@@ -407,6 +412,19 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
 
         if (isArchivedRoom) {
             return items;
+        }
+
+        if (shouldShowGoToRoom) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.GO_TO_ROOM,
+                translationKey: 'reportDetailsPage.goToRoom',
+                icon: expensifyIcons.ChatBubble,
+                isAnonymousAction: false,
+                shouldShowRightIcon: true,
+                action: () => {
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report?.reportID));
+                },
+            });
         }
 
         // The Members page is only shown when:
@@ -628,6 +646,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
     }, [
         isSelfDM,
         isArchivedRoom,
+        shouldShowGoToRoom,
         isGroupChat,
         isDefaultRoom,
         isChatThread,
@@ -658,6 +677,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
         expensifyIcons.Building,
         expensifyIcons.Exit,
         expensifyIcons.Bug,
+        expensifyIcons.ChatBubble,
         styles.ph2,
         shouldOpenRoomMembersPage,
         backTo,
