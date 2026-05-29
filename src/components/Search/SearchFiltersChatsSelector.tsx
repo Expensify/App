@@ -14,7 +14,7 @@ import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionS
 import useSortedActions from '@hooks/useSortedActions';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {createOptionFromReport, filterAndOrderOptions, formatSectionsFromSearchTerm, getAlternateText, getSearchOptions} from '@libs/OptionsListUtils';
+import {createOptionFromReport, filterAndOrderOptions, getAlternateText, getSearchOptions} from '@libs/OptionsListUtils';
 import type {Option} from '@libs/OptionsListUtils';
 import type {OptionWithKey, SelectionListSections} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
@@ -108,32 +108,29 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     const sections: SelectionListSections = [];
 
     if (!isLoading) {
-        const formattedResults = formatSectionsFromSearchTerm(
-            cleanSearchTerm,
-            selectedOptions,
-            chatOptions.recentReports,
-            chatOptions.personalDetails,
-            privateIsArchivedMap,
-            currentUserAccountID,
-            allPolicies,
-            personalDetails,
-            false,
-            undefined,
-            reportAttributesDerived,
-        );
+        const selectedReportIDsSet = new Set(selectedReportIDs);
+        const visibleReportIDsSet = new Set(chatOptions.recentReports.map((report) => report.reportID));
 
-        sections.push(formattedResults.section);
+        // Selected reports that aren't in the current filtered results (e.g., they no longer match
+        // the search term after server-side search ran). Show them in a dedicated section so they
+        // remain visible.
+        const extraSelectedReports = selectedOptions.filter((report) => !visibleReportIDsSet.has(report.reportID));
+        if (extraSelectedReports.length > 0) {
+            sections.push({
+                data: extraSelectedReports,
+                sectionIndex: 0,
+            });
+        }
 
-        const visibleReportsWhenSearchTermNonEmpty = chatOptions.recentReports.map((report) => (selectedReportIDs.includes(report.reportID) ? getSelectedOptionData(report) : report));
-        const visibleReportsWhenSearchTermEmpty = chatOptions.recentReports.filter((report) => !selectedReportIDs.includes(report.reportID));
-        const reportsFiltered = cleanSearchTerm === '' ? visibleReportsWhenSearchTermEmpty : visibleReportsWhenSearchTermNonEmpty;
-
+        // Keep selected reports in their natural position in the list (marked isSelected) rather than
+        // moving them into a top section, so the user's scroll position isn't disrupted on toggle.
+        const visibleReports = chatOptions.recentReports.map((report) => (selectedReportIDsSet.has(report.reportID) ? getSelectedOptionData(report) : report));
         sections.push({
-            data: reportsFiltered,
+            data: visibleReports,
             sectionIndex: 1,
         });
     }
-    const noResultsFound = didScreenTransitionEnd && sections.at(0)?.data.length === 0 && sections.at(1)?.data.length === 0;
+    const noResultsFound = didScreenTransitionEnd && sections.every((section) => section.data.length === 0);
     const headerMessage = noResultsFound ? translate('common.noResultsFound') : undefined;
 
     useEffect(() => {
@@ -191,6 +188,8 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             footerContent={footerContent}
             canSelectMultiple
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+            shouldUpdateFocusedIndex
+            shouldPreventAutoScrollOnSelect
             textInputOptions={textInputOptions}
             isLoadingNewOptions={isLoadingNewOptions}
             shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
