@@ -1,13 +1,8 @@
-import {Skia} from '@shopify/react-native-skia';
-import {parseDocument} from 'htmlparser2';
 import React from 'react';
 import {type TNode, useAmbientTRenderEngine} from 'react-native-render-html';
-import {Pie, PolarChart} from 'victory-native';
 import type {PieSliceData} from 'victory-native';
-import {useChartDefaultTypeface} from '@components/Charts/hooks';
-import {COLOR_KEY, LABEL_KEY, VALUE_KEY, X_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
-import type {ChartType, PolarChartData, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import type {PolarChartData} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import parseComponent from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseComponent';
 import parseVictoryLabelNode from '../parsers/victoryLabelParser';
