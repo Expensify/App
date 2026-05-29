@@ -69,7 +69,7 @@ You can rotate a receipt to correct its orientation. Rotation is available for u
 
 Each expense has one primary receipt, but you can attach additional receipt images directly on the expense for situations where multiple receipts are needed — for example, the front and back of a paper receipt, or both the credit card slip and the itemized breakdown.
 
-**On web**
+**On web:**
 
 1. In the navigation tabs on the left, click **Spend**.
 2. Click on the expense you want to add an additional receipt to. 
@@ -77,7 +77,7 @@ Each expense has one primary receipt, but you can attach additional receipt imag
 4. Click the icon in the upper right corner of the image to **Add additional receipts**.
 5. Choose a receipt image to upload. 
 
-**On mobile**
+**On mobile:**
 
 1. In the navigation tabs on the bottom, tap **Spend**.
 2. Tap the expense you want to add an additional receipt to. 
