@@ -44,6 +44,7 @@ function HighContrastModeSwitcher() {
                 fill={isHighContrast ? theme.text : theme.icon}
                 width={variables.iconSizeSmall}
                 height={variables.iconSizeSmall}
+                accessibilityLabel={translate('themePage.enableHighContrast')}
             />
             <View style={[styles.ml2, styles.pickerContainer, styles.pickerContainerSmall]}>
                 <Text style={styles.textSmall}>{translate('themePage.enableHighContrast')}</Text>
