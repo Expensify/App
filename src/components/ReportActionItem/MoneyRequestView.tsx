@@ -456,13 +456,19 @@ function MoneyRequestView({
     const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
 
     const transactionTripID = transaction?.comment?.tripID;
+    // Spotnana expense reports are parented under the trip room, so try that O(1) hop before scanning.
+    const grandparentReportID = parentReport?.parentReportID;
     const tripRoomReportSelector = (reports: OnyxCollection<OnyxTypes.Report>) => {
         if (!transactionTripID || !reports) {
             return undefined;
         }
+        const grandparent = grandparentReportID ? reports[`${ONYXKEYS.COLLECTION.REPORT}${grandparentReportID}`] : undefined;
+        if (grandparent?.tripData?.tripID === transactionTripID) {
+            return grandparent;
+        }
         return Object.values(reports).find((candidateReport) => candidateReport?.tripData?.tripID === transactionTripID);
     };
-    const [tripRoomReport] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: tripRoomReportSelector}, [transactionTripID]);
+    const [tripRoomReport] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: tripRoomReportSelector}, [transactionTripID, grandparentReportID]);
     const tripRoomReportID = tripRoomReport?.reportID;
     const tripRoomName = tripRoomReport ? getReportName(tripRoomReport, reportAttributes) || tripRoomReport.reportName : undefined;
     const shouldShowTripRoomLink = !!tripRoomReportID && !!tripRoomName;
@@ -1360,9 +1366,9 @@ function MoneyRequestView({
                             description={translate('travel.trip')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={[styles.flex1, styles.textBlue]}
-                        onPress={() => {
-                            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(tripRoomReportID, undefined, undefined, Navigation.getActiveRoute()));
-                        }}
+                            onPress={() => {
+                                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(tripRoomReportID, undefined, undefined, Navigation.getActiveRoute()));
+                            }}
                             interactive
                         />
                         <View style={styles.reportHorizontalRule} />
