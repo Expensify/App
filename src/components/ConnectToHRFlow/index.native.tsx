@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {WebView} from 'react-native-webview';
 import type {WebViewOpenWindowEvent} from 'react-native-webview/lib/WebViewTypes';
@@ -7,6 +7,7 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getShortLivedAuthTokenURL} from '@userActions/Link';
 import CONST from '@src/CONST';
@@ -20,10 +21,25 @@ function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
     const [isPopupVisible, setIsPopupVisible] = useState(false);
     const [authenticatedUrl, setAuthenticatedUrl] = useState<string | null>(null);
     const [cookiesCleared, setCookiesCleared] = useState(false);
+    const hasFetched = useRef(false);
 
-    useEffect(() => {
+    const fetchAuthUrl = useCallback(() => {
+        if (hasFetched.current) {
+            return;
+        }
+        hasFetched.current = true;
         getShortLivedAuthTokenURL(setupLink).then(setAuthenticatedUrl);
     }, [setupLink]);
+
+    const {isOffline} = useNetwork({onReconnect: fetchAuthUrl});
+
+    useEffect(() => {
+        if (isOffline) {
+            return;
+        }
+        fetchAuthUrl();
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- only fetch once on mount when online
+    }, []);
 
     const renderLoading = () => (
         <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
