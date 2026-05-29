@@ -133,6 +133,7 @@ function GroupHeader({item, groupBy, searchType, columns, canSelectMultiple, isE
                     isIndeterminate={isIndeterminate}
                     onDownArrowClick={onToggle}
                     isExpanded={isExpanded}
+                    isLargeScreenWidth={isLargeScreenWidth}
                 />
             ),
             [CONST.SEARCH.GROUP_BY.CARD]: (
@@ -263,7 +264,6 @@ function GroupHeader({item, groupBy, searchType, columns, canSelectMultiple, isE
         isLargeScreenWidth && {
             ...styles.tableRowHeight,
             borderRadius: 0,
-            paddingVertical: 0,
             ...(isLastItem ? styles.tableBottomRadius : {}),
         },
         isItemSelected && styles.activeComponentBG,
@@ -300,14 +300,18 @@ function GroupHeader({item, groupBy, searchType, columns, canSelectMultiple, isE
                 ]}
             >
                 {() => (
-                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                        <View style={styles.flex1}>{renderHeader()}</View>
-                        {isLargeScreenWidth && (
-                            <ExpandCollapseArrowButton
-                                isExpanded={isExpanded}
-                                onPress={onToggle}
-                            />
-                        )}
+                    <View style={styles.flex1}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                            <View style={styles.flex1}>{renderHeader()}</View>
+                            {isLargeScreenWidth && (
+                                <View style={{paddingRight: 14}}>
+                                    <ExpandCollapseArrowButton
+                                        isExpanded={isExpanded}
+                                        onPress={onToggle}
+                                    />
+                                </View>
+                            )}
+                        </View>
                     </View>
                 )}
             </PressableWithFeedback>
