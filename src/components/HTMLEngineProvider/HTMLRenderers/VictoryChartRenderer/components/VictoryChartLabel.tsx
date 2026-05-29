@@ -3,8 +3,7 @@ import type {Color, SkFont} from '@shopify/react-native-skia';
 import React from 'react';
 import {useChartDefaultTypeface} from '@components/Charts/hooks';
 import type {LabelItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
-import computeTextHorizontalPosition from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeTextHorizontalPosition';
-import computeTextVerticalPosition from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeTextVerticalPosition';
+import computeTextAnchorPosition from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeTextAnchorPosition';
 
 type VictoryChartLabelsProps = LabelItem;
 
@@ -55,8 +54,8 @@ function VictoryChartLabel({x, y, text, color, fontSize, fontWeight, lineHeight,
         return (
             <SkText
                 key={`text-${lineX}-${lineY}`}
-                x={computeTextHorizontalPosition(lineX, lineWidth, textAnchor)}
-                y={computeTextVerticalPosition(lineY, processedLines.y - y, verticalAnchor)}
+                x={computeTextAnchorPosition(lineX, lineWidth, textAnchor)}
+                y={computeTextAnchorPosition(lineY, processedLines.y - y, verticalAnchor)}
                 text={line}
                 font={lineFont}
                 color={lineColor}
