@@ -1,12 +1,15 @@
 import {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
 import {View} from 'react-native';
+import {OnyxEntry} from 'react-native-onyx';
 import Table, {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isControlPolicy} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import {Policy} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import WorkspaceMembersTableRow from './WorkspaceMembersTableRow';
 
@@ -34,6 +37,7 @@ type WorkspaceMemberRowData = TableData & {
 type WorkspaceMembersTableProps = {
     ref?: React.Ref<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey, string>> | undefined;
     members: WorkspaceMemberRowData[];
+    policy: OnyxEntry<Policy>;
     isPolicyAdmin: boolean;
     shouldShowCustomField1Column: boolean;
     shouldShowCustomField2Column: boolean;
@@ -47,7 +51,15 @@ const WORKSPACE_MEMBER_FILTER_VALUES = {
     AUDITORS: 'auditors',
 } as const;
 
-export default function WorkspaceMembersTable({ref, isPolicyAdmin, shouldShowCustomField1Column, shouldShowCustomField2Column, members, onRowSelectionChange}: WorkspaceMembersTableProps) {
+export default function WorkspaceMembersTable({
+    ref,
+    isPolicyAdmin,
+    policy,
+    shouldShowCustomField1Column,
+    shouldShowCustomField2Column,
+    members,
+    onRowSelectionChange,
+}: WorkspaceMembersTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -155,6 +167,13 @@ export default function WorkspaceMembersTable({ref, isPolicyAdmin, shouldShowCus
             ],
         },
     };
+
+    if (isControlPolicy(policy)) {
+        filterConfig.status.options.push({
+            label: translate('workspace.people.auditors'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS,
+        });
+    }
 
     const renderTableItem = ({item, index}: ListRenderItemInfo<WorkspaceMemberRowData>) => {
         return (

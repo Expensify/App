@@ -381,12 +381,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             const memberName = formatPhoneNumber(getDisplayNameOrDefault(details));
 
             return {
-                keyForList: accountID.toString(),
+                keyForList: login,
                 role,
+                login,
                 accountID,
                 name: memberName,
                 email: memberEmail,
-                login: details.login ?? '',
                 employeeUserID: policyEmployee.employeeUserID,
                 employeePayrollID: policyEmployee.employeePayrollID,
                 isDisabled: isPendingDeleteOrError,
@@ -423,57 +423,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         icons.FallbackAvatar,
     ]);
 
-    const filterMember = useCallback((memberOption: MemberOption, searchQuery: string) => {
-        const results = tokenizedSearch([memberOption], searchQuery, (option) => [option.text ?? '', option.alternateText ?? '']);
-        return results.length > 0;
-    }, []);
-
-    const sortMembers = useCallback((memberOptions: MemberOption[]) => sortAlphabetically(memberOptions, 'text', localeCompare), [localeCompare]);
-
-    const roleFilterOptions: WorkspaceMemberFilterOption[] = [
-        {text: translate('workspace.people.allMembers'), value: WORKSPACE_MEMBER_FILTER_VALUES.ALL},
-        {text: translate('workspace.people.admins'), value: WORKSPACE_MEMBER_FILTER_VALUES.ADMINS},
-        {text: translate('workspace.people.approvers'), value: WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS},
-    ];
-
-    if (isControlPolicy(policy)) {
-        roleFilterOptions.push({
-            text: translate('workspace.people.auditors'),
-            value: WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS,
-        });
-    }
-
-    const handleRoleFilterChange = (item: WorkspaceMemberFilterOption | undefined) => {
-        setSelectedEmployees([]);
-
-        if (!item || item.value === WORKSPACE_MEMBER_FILTER_VALUES.ALL) {
-            setSelectedRoleFilter(null);
-            return;
-        }
-
-        setSelectedRoleFilter(item);
-    };
-
-    const rolePreFilter = (member: MemberOption) => {
-        if (!selectedRoleFilter) {
-            return true;
-        }
-
-        const employee = policy?.employeeList?.[member.login];
-
-        switch (selectedRoleFilter.value) {
-            case WORKSPACE_MEMBER_FILTER_VALUES.ADMINS:
-                return member.login === policy?.owner || employee?.role === CONST.POLICY.ROLE.ADMIN;
-            case WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS:
-                return isPolicyApprover(policy, member.login);
-            case WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS:
-                return employee?.role === CONST.POLICY.ROLE.AUDITOR;
-            default:
-                return true;
-        }
-    };
-    const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers, rolePreFilter);
-
     useEffect(() => {
         if (!isFocused) {
             return;
@@ -507,54 +456,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         (isMergeHRSyncInProgress || (connectionSyncProgress?.connectionName === connectedHRProvider?.connectionName && isConnectionInProgress(connectionSyncProgress, policy)));
     const isPendingAddOrDelete =
         isOffline && data?.some((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-    const shouldShowSearchBar = memberCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const prevMemberCount = usePrevious(memberCount);
-
-    useEffect(() => {
-        if (prevMemberCount < CONST.STANDARD_LIST_ITEM_LIMIT || memberCount >= CONST.STANDARD_LIST_ITEM_LIMIT) {
-            return;
-        }
-        setInputValue('');
-    }, [memberCount, prevMemberCount, setInputValue]);
-
-    const debouncedFilteredData = useDebouncedValue(filteredData, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
-    const isFilteringMembers = filteredData?.length < debouncedFilteredData?.length;
-    const displayedFilteredData = isFilteringMembers ? debouncedFilteredData : filteredData;
-    const hasNoDisplayedMembers = displayedFilteredData.length === 0;
-    const shouldShowRoleFilter = data.length > 0;
-    const shouldShowRoleFilterEmptyState = shouldShowRoleFilter && !!selectedRoleFilter && inputValue.length === 0 && hasNoDisplayedMembers;
-    const shouldShowEmptySearchMessage = !shouldShowRoleFilterEmptyState && hasNoDisplayedMembers;
-    const noResultsMessage = translate('common.noResultsFoundMatching', inputValue);
-
-    // SearchBar's built-in empty state also controls screen-reader announcements.
-    // We render a custom no-results message in this page, so we announce it manually
-    // to preserve the same accessibility behavior without using SearchBar's default layout.
-    useDebouncedAccessibilityAnnouncement(noResultsMessage, shouldShowEmptySearchMessage, inputValue);
-
-    const rolePopoverComponent = ({closeOverlay}: PopoverComponentProps) => (
-        <SingleSelectPopup
-            label={translate('common.role')}
-            items={roleFilterOptions}
-            value={selectedRoleFilter ?? roleFilterOptions.at(0)}
-            closeOverlay={closeOverlay}
-            onChange={handleRoleFilterChange}
-            defaultValue={roleFilterOptions.at(0)?.value}
-            itemHeight={variables.optionRowHeightCompact}
-        />
-    );
-
-    const roleFilterDropdown = shouldShowRoleFilter ? (
-        <DropdownButton
-            label={selectedRoleFilter?.text ?? translate('workspace.people.allMembers')}
-            value={null}
-            PopoverComponent={rolePopoverComponent}
-            innerStyles={[styles.gap2, shouldUseNarrowLayout && styles.mw100]}
-            wrapperStyle={shouldUseNarrowLayout ? styles.flexGrow0 : undefined}
-            labelStyle={styles.fontSizeLabel}
-            caretWrapperStyle={styles.gap2}
-            medium
-        />
-    ) : null;
 
     const getHeaderContent = () => (
         <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
@@ -845,6 +746,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
                     <WorkspaceMembersTable
                         members={data}
+                        policy={policy}
                         isPolicyAdmin={isPolicyAdmin}
                         shouldShowCustomField1Column={shouldShowCustomField1Column}
                         shouldShowCustomField2Column={shouldShowCustomField2Column}
