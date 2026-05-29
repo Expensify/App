@@ -737,6 +737,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         members={data}
                         policy={policy}
                         isPolicyAdmin={isPolicyAdmin}
+                        selectedKeys={selectedEmployees}
                         shouldShowCustomField1Column={shouldShowCustomField1Column}
                         shouldShowCustomField2Column={shouldShowCustomField2Column}
                         onRowSelectionChange={(selectedRows) => setSelectedEmployees(selectedRows)}

@@ -39,6 +39,7 @@ type WorkspaceMembersTableProps = {
     members: WorkspaceMemberRowData[];
     policy: OnyxEntry<Policy>;
     isPolicyAdmin: boolean;
+    selectedKeys: string[];
     shouldShowCustomField1Column: boolean;
     shouldShowCustomField2Column: boolean;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
@@ -55,6 +56,7 @@ export default function WorkspaceMembersTable({
     ref,
     isPolicyAdmin,
     policy,
+    selectedKeys,
     shouldShowCustomField1Column,
     shouldShowCustomField2Column,
     members,
@@ -192,6 +194,7 @@ export default function WorkspaceMembersTable({
             ref={ref}
             data={members}
             filters={filterConfig}
+            selectedKeys={selectedKeys}
             selectionEnabled={isPolicyAdmin}
             columns={workspaceMembersColumns}
             title={translate('common.members')}
