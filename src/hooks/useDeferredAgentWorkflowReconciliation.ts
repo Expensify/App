@@ -1,6 +1,7 @@
 import {useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {buildDeferredAgentWorkflowSaveKey, clearDeferredAgentWorkflowSave, updateApprovalWorkflow} from '@libs/actions/Workflow';
+import {resolveOptimisticAgent} from '@libs/WorkflowUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
@@ -100,57 +101,24 @@ function useDeferredAgentWorkflowReconciliation(rawApprovalWorkflows: ApprovalWo
                 clearDeferredAgentWorkflowSave(deferredEntry.policyID, deferredEntry.firstApproverEmail);
                 continue;
             }
-            // Prefer the live personal detail at the optimistic accountID — when CREATE_AGENT
-            // resolves, the optimistic detail is replaced by a real one keyed on the new
-            // accountID. The server echoes a `{optimisticID: realID}` mapping in the response's
-            // onyxData (`OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING`), so the primary resolution is a
-            // direct lookup of the real accountID, then read the email off the personal detail.
-            // We keep a prompt-match fallback so cross-tab scenarios (where the mapping write
-            // landed only on the originating tab) still reconcile — but prompt matching is
-            // ambiguous when multiple agents share the same prompt text, so the mapping wins
-            // whenever it's present.
-            let resolvedEmail = personalDetails[deferredEntry.pendingAgentAccountID]?.login;
-            let resolvedAccountID: number | undefined = deferredEntry.pendingAgentAccountID;
-            const mappedRealAccountID = optimisticAgentAccountIDMapping?.[deferredEntry.pendingAgentAccountID];
-            if (!resolvedEmail && mappedRealAccountID) {
-                const mappedDetail = personalDetails[mappedRealAccountID];
-                if (mappedDetail?.login && policy.employeeList?.[mappedDetail.login]) {
-                    resolvedEmail = mappedDetail.login;
-                    resolvedAccountID = mappedDetail.accountID ?? mappedRealAccountID;
-                }
-            }
-            if (!resolvedEmail && deferredEntry.pendingAgentPrompt && agentPrompts && policy.employeeList) {
-                const optimisticPromptKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${deferredEntry.pendingAgentAccountID}`;
-                const knownEmails = new Set(
-                    deferredEntry.approvalWorkflow.approvers
-                        .filter((approver) => approver?.email && approver.accountID !== deferredEntry.pendingAgentAccountID)
-                        .map((approver) => approver?.email),
-                );
-                // Several agents can share the same prompt text. Pick the highest positive
-                // accountID — server assigns IDs monotonically, so the freshest agent is the
-                // largest, which avoids resolving the pending approver to a pre-existing agent
-                // that happens to use the same default prompt.
-                let bestCandidateAccountID = -Infinity;
-                for (const [promptKey, promptValue] of Object.entries(agentPrompts)) {
-                    if (promptKey === optimisticPromptKey || !promptValue || promptValue.prompt !== deferredEntry.pendingAgentPrompt) {
-                        continue;
-                    }
-                    const candidateAccountID = Number(promptKey.slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length));
-                    if (!Number.isFinite(candidateAccountID) || candidateAccountID <= 0 || candidateAccountID <= bestCandidateAccountID) {
-                        continue;
-                    }
-                    const candidateDetail = personalDetails[candidateAccountID];
-                    if (!candidateDetail?.login || !policy.employeeList?.[candidateDetail.login] || knownEmails.has(candidateDetail.login)) {
-                        continue;
-                    }
-                    resolvedEmail = candidateDetail.login;
-                    resolvedAccountID = candidateDetail.accountID ?? candidateAccountID;
-                    bestCandidateAccountID = candidateAccountID;
-                }
-            }
-            if (!resolvedEmail) {
+            const knownEmails = new Set(
+                deferredEntry.approvalWorkflow.approvers
+                    .filter((approver): approver is NonNullable<typeof approver> => !!approver?.email && approver.accountID !== deferredEntry.pendingAgentAccountID)
+                    .map((approver) => approver.email),
+            );
+            const resolved = resolveOptimisticAgent({
+                optimisticAccountID: deferredEntry.pendingAgentAccountID,
+                pendingAgentPrompt: deferredEntry.pendingAgentPrompt,
+                personalDetails,
+                employeeList: policy.employeeList,
+                agentPrompts,
+                optimisticAccountIDMapping: optimisticAgentAccountIDMapping,
+                knownApproverEmails: knownEmails,
+            });
+            if (!resolved) {
                 continue;
             }
+            const {accountID: resolvedAccountID, email: resolvedEmail} = resolved;
             // Upgrade the deferred workflow with the real email, then fire the save action.
             // `updateApprovalWorkflow` expects `ApprovalWorkflow` (approvers required, no
             // editor-only fields), so filter out the holes in the Onyx representation and

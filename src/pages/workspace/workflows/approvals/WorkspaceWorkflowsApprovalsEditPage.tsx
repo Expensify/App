@@ -19,7 +19,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {canEditWorkspaceSettings, goBackFromInvalidPolicy, isControlPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
-import {convertPolicyEmployeesToApprovalWorkflows, mergeWorkflowMembersWithAvailableMembers} from '@libs/WorkflowUtils';
+import {convertPolicyEmployeesToApprovalWorkflows, mergeWorkflowMembersWithAvailableMembers, resolveOptimisticAgent} from '@libs/WorkflowUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -29,7 +29,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
-import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ApprovalWorkflowEditor from './ApprovalWorkflowEditor';
 
@@ -260,45 +259,19 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         }
 
         const knownApproverEmails = new Set(approvalWorkflow.approvers.map((approver) => approver?.email).filter((email): email is string => !!email));
-        let resolvedPersonalDetail: PersonalDetails | undefined;
-        const mappedRealAccountID = optimisticAgentAccountIDMapping?.[pendingApprover.accountID];
-        if (mappedRealAccountID) {
-            const mappedDetail = personalDetails[mappedRealAccountID];
-            if (mappedDetail?.login && policy.employeeList?.[mappedDetail.login] && !knownApproverEmails.has(mappedDetail.login)) {
-                resolvedPersonalDetail = mappedDetail;
-            }
-        }
-        if (!resolvedPersonalDetail) {
-            const capturedPrompt = capturedPendingAgentPromptsRef.current.get(pendingApprover.accountID);
-            if (!capturedPrompt) {
-                return;
-            }
-            // When several agents share the same prompt text, the loop can match multiple
-            // candidates. Pick the highest positive accountID — the server assigns IDs
-            // monotonically, so the freshest agent (the one CREATE_AGENT just produced) is the
-            // largest. Older agents with the same default prompt get skipped.
-            const optimisticPromptKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${pendingApprover.accountID}`;
-            let bestCandidateAccountID = -Infinity;
-            for (const [promptKey, promptValue] of Object.entries(agentPrompts)) {
-                if (promptKey === optimisticPromptKey || !promptValue || promptValue.prompt !== capturedPrompt) {
-                    continue;
-                }
-                const candidateAccountID = Number(promptKey.slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length));
-                if (!Number.isFinite(candidateAccountID) || candidateAccountID <= 0 || candidateAccountID <= bestCandidateAccountID) {
-                    continue;
-                }
-                const candidateDetail = personalDetails[candidateAccountID];
-                if (!candidateDetail?.login || !policy.employeeList?.[candidateDetail.login] || knownApproverEmails.has(candidateDetail.login)) {
-                    continue;
-                }
-                resolvedPersonalDetail = candidateDetail;
-                bestCandidateAccountID = candidateAccountID;
-            }
-        }
-        if (!resolvedPersonalDetail?.login) {
+        const resolved = resolveOptimisticAgent({
+            optimisticAccountID: pendingApprover.accountID,
+            pendingAgentPrompt: capturedPendingAgentPromptsRef.current.get(pendingApprover.accountID),
+            personalDetails,
+            employeeList: policy.employeeList,
+            agentPrompts,
+            optimisticAccountIDMapping: optimisticAgentAccountIDMapping,
+            knownApproverEmails,
+        });
+        if (!resolved) {
             return;
         }
-        const resolvedEmail = resolvedPersonalDetail.login;
+        const {personalDetail: resolvedPersonalDetail, email: resolvedEmail} = resolved;
 
         const upgradedApprovers = approvalWorkflow.approvers.map((approver) =>
             approver === pendingApprover
