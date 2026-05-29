@@ -62,7 +62,7 @@ function getSpendRuleJoinFilters(items: readonly string[]): string {
     return formatList(items.filter((value) => value !== ''));
 }
 
-function getSpendRuleCategoryDisplayName(translate: LocalizedTranslate, category: ValueOf<typeof CONST.SPEND_RULES.CATEGORIES>): string {
+function getSpendRuleCategoryDisplayName(translate: LocalizedTranslate, category: string): string {
     if (isSpendRuleCategory(category)) {
         return translate(`workspace.rules.spendRules.categoryOptions.${category}`);
     }
@@ -346,7 +346,7 @@ function getUpdateExpensifyCardRuleMessage(translate: LocalizedTranslate, report
     }
 
     const adjective: SpendRulePhraseAdjective = newAction === CONST.SPEND_RULES.ACTION.BLOCK || newAction === CONST.SPEND_RULES.ACTION.ALLOW ? newAction : '';
-    const adjectiveWord = getSpendRuleActionVerb(translate, adjective);
+    const adjectiveWord = adjective === '' ? '' : getSpendRuleActionVerb(translate, adjective);
     const phrases: SpendRulePhrase[] = [
         ...getDiffPhrases(
             merchantDiff,
