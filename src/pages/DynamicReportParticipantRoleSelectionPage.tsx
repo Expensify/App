@@ -20,13 +20,13 @@ import NotFoundPage from './ErrorPage/NotFoundPage';
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
 
-type ReportParticipantRoleSelectionPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DYNAMIC_ROLE>;
+type DynamicReportParticipantRoleSelectionPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DYNAMIC_ROLE>;
 
 type ListItemType = ListItem & {
     value: ValueOf<typeof CONST.REPORT.ROLE>;
 };
 
-function ReportParticipantRoleSelectionPage({report, route}: ReportParticipantRoleSelectionPageProps) {
+function DynamicReportParticipantRoleSelectionPage({report, route}: DynamicReportParticipantRoleSelectionPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -77,4 +77,4 @@ function ReportParticipantRoleSelectionPage({report, route}: ReportParticipantRo
     );
 }
 
-export default withReportOrNotFound()(ReportParticipantRoleSelectionPage);
+export default withReportOrNotFound()(DynamicReportParticipantRoleSelectionPage);

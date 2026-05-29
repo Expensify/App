@@ -30,11 +30,11 @@ import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
-type InviteReportParticipantsPageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps;
+type DynamicReportParticipantsInvitePageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps;
 
 type Sections = Array<Section<OptionData>>;
 
-function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProps) {
+function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipantsInvitePageProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
@@ -206,4 +206,4 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
     );
 }
 
-export default withNavigationTransitionEnd(withReportOrNotFound()(InviteReportParticipantsPage));
+export default withNavigationTransitionEnd(withReportOrNotFound()(DynamicReportParticipantsInvitePage));

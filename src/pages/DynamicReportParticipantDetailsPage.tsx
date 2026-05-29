@@ -34,9 +34,9 @@ import NotFoundPage from './ErrorPage/NotFoundPage';
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
 
-type ReportParticipantDetailsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DYNAMIC_DETAILS>;
+type DynamicReportParticipantDetailsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DYNAMIC_DETAILS>;
 
-function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageProps) {
+function DynamicReportParticipantDetails({report, route}: DynamicReportParticipantDetailsPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Info']);
     const isInLandscapeMode = useIsInLandscapeMode();
     const styles = useThemeStyles();
@@ -146,4 +146,4 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
     );
 }
 
-export default withReportOrNotFound()(ReportParticipantDetails);
+export default withReportOrNotFound()(DynamicReportParticipantDetails);

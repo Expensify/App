@@ -65,8 +65,8 @@ import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 
-type ReportParticipantsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DYNAMIC_ROOT>;
-function ReportParticipantsPage({report}: ReportParticipantsPageProps) {
+type DynamicReportParticipantsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DYNAMIC_ROOT>;
+function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPageProps) {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_PARTICIPANTS.path);
     const navigateBackToReportDetails = useCallback(() => {
         Navigation.goBack(backPath);
@@ -401,4 +401,4 @@ function ReportParticipantsPage({report}: ReportParticipantsPageProps) {
     );
 }
 
-export default withReportOrNotFound()(ReportParticipantsPage);
+export default withReportOrNotFound()(DynamicReportParticipantsPage);

@@ -31,9 +31,9 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type ReportSettingsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.DYNAMIC_ROOT>;
+type DynamicReportSettingsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.DYNAMIC_ROOT>;
 
-function ReportSettingsPage({report, policy}: ReportSettingsPageProps) {
+function DynamicReportSettingsPage({report, policy}: DynamicReportSettingsPageProps) {
     const reportID = report?.reportID;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -59,7 +59,7 @@ function ReportSettingsPage({report, policy}: ReportSettingsPageProps) {
     const shouldShowWriteCapability = !isMoneyRequestReport;
 
     return (
-        <ScreenWrapper testID="ReportSettingsPage">
+        <ScreenWrapper testID="DynamicReportSettingsPage">
             <FullPageNotFoundView shouldShow={shouldDisableSettings}>
                 <HeaderWithBackButton
                     title={translate('common.settings')}
@@ -132,4 +132,4 @@ function ReportSettingsPage({report, policy}: ReportSettingsPageProps) {
     );
 }
 
-export default withReportOrNotFound()(ReportSettingsPage);
+export default withReportOrNotFound()(DynamicReportSettingsPage);
