@@ -11,6 +11,7 @@ import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAgentPromptUpdateError, openProfilePage, updateAgentPrompt} from '@libs/actions/Agent';
@@ -47,6 +48,7 @@ function scrollInputIntoView(parentScrollViewRef: RefObject<RNScrollView | null>
 
 function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSectionProps) {
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
@@ -95,19 +97,23 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [agentPrompt?.promptErrors]);
 
+    const triggerSavedConfirmation = useCallback(() => {
+        setShowSavedConfirmation(true);
+        if (savedConfirmationTimerRef.current) {
+            clearTimeout(savedConfirmationTimerRef.current);
+        }
+        savedConfirmationTimerRef.current = setTimeout(() => {
+            setShowSavedConfirmation(false);
+            savedConfirmationTimerRef.current = null;
+        }, SAVED_CONFIRMATION_DURATION_MS);
+    }, []);
+
     useEffect(() => {
         if (wasSavingRef.current && !isSaving && !hasPromptErrors) {
-            setShowSavedConfirmation(true);
-            if (savedConfirmationTimerRef.current) {
-                clearTimeout(savedConfirmationTimerRef.current);
-            }
-            savedConfirmationTimerRef.current = setTimeout(() => {
-                setShowSavedConfirmation(false);
-                savedConfirmationTimerRef.current = null;
-            }, SAVED_CONFIRMATION_DURATION_MS);
+            triggerSavedConfirmation();
         }
         wasSavingRef.current = isSaving;
-    }, [isSaving, hasPromptErrors]);
+    }, [isSaving, hasPromptErrors, triggerSavedConfirmation]);
 
     useEffect(() => {
         return () => {
@@ -147,6 +153,12 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
         }
         dismissInput();
         updateAgentPrompt(accountID, trimmed, agentPrompt?.prompt ?? '');
+
+        // Offline: treat the optimistic write as the final state for UX purposes. The request will be
+        // replayed on reconnect, so showing "Saved" immediately matches the queued-but-done intent.
+        if (isOffline) {
+            triggerSavedConfirmation();
+        }
     };
 
     const handleChangeText = (text: string) => {
@@ -192,17 +204,17 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
                     testID="ai-prompt-input"
                     onFocus={handleInputFocus}
                 />
+                <Button
+                    success
+                    text={showSavedConfirmation ? translate('profilePage.aiPromptSection.saved') : translate('common.save')}
+                    icon={showSavedConfirmation ? icons.Checkmark : undefined}
+                    onPress={handleSave}
+                    isLoading={isSaving && !isOffline}
+                    isDisabled={hasHtmlTag || (isSaving && !isOffline)}
+                    style={[styles.alignSelfStart]}
+                    testID="save-prompt-button"
+                />
             </OfflineWithFeedback>
-            <Button
-                success
-                text={showSavedConfirmation ? translate('profilePage.aiPromptSection.saved') : translate('common.save')}
-                icon={showSavedConfirmation ? icons.Checkmark : undefined}
-                onPress={handleSave}
-                isLoading={isSaving}
-                isDisabled={hasHtmlTag || isSaving}
-                style={[styles.alignSelfStart]}
-                testID="save-prompt-button"
-            />
         </Section>
     );
 }
