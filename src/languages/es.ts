@@ -5465,6 +5465,9 @@ ${amount} para ${merchant} - ${date}`,
             travel: {
                 title: 'Viajes',
                 subtitle: 'Reserva, gestiona y concilia todos tus viajes de negocios.',
+                disableTravelTitle: 'Desactiva primero la facturación de viajes',
+                disableTravelPrompt: 'La facturación de viajes está activada para este espacio de trabajo. Desactívala antes de poder desactivar Viajes.',
+                disableTravelButton: 'Ir a la configuración de Viajes',
                 getStarted: {
                     title: 'Comienza con Expensify Travel',
                     subtitle: 'Solo necesitamos algunos datos más sobre tu empresa y estarás listo para despegar.',

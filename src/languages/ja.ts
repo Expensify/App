@@ -5564,6 +5564,9 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             travel: {
                 title: '出張',
                 subtitle: '出張の予約、管理、精算をすべて一元管理。',
+                disableTravelTitle: '先に出張請求をオフにしてください',
+                disableTravelPrompt: 'このワークスペースでは出張請求が有効になっています。出張をオフにする前に、出張請求をオフにしてください。',
+                disableTravelButton: '出張設定に移動',
                 getStarted: {
                     title: 'Expensify Travel を使い始める',
                     subtitle: 'ビジネスについてあと少しだけ情報を教えてください。準備が整い次第、すぐに開始できます。',
