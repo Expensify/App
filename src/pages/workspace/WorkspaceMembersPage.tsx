@@ -11,20 +11,13 @@ import {useLockedAccountActions, useLockedAccountState} from '@components/Locked
 import MessagesRow from '@components/MessagesRow';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
-import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
-import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
-import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
-import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
-import {TableHandle} from '@components/Table';
 import WorkspaceMembersTable, {WorkspaceMemberRowData, WorkspaceMembersTableColumnKey} from '@components/Tables/WorkspaceMembersTable';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import TextLink from '@components/TextLink';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
-import useDebouncedValue from '@hooks/useDebouncedValue';
 import useHRSyncResultsModal from '@hooks/useHRSyncResultsModal';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -34,7 +27,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
-import useSearchResults from '@hooks/useSearchResults';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -60,7 +52,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {isPersonalDetailsReady, sortAlphabetically} from '@libs/OptionsListUtils';
+import {isPersonalDetailsReady} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, newGetPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {
     canEditWorkspaceSettings,
@@ -73,19 +65,16 @@ import {
     isPolicyApprover,
 } from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
-import tokenizedSearch from '@libs/tokenizedSearch';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
-import variables from '@styles/variables';
 import {close} from '@userActions/Modal';
 import {dismissAddedWithPrimaryLoginMessages} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetails, PolicyEmployee, PolicyEmployeeList} from '@src/types/onyx';
+import type {PersonalDetails, PolicyEmployee} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import MemberRightIcon from './MemberRightIcon';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
