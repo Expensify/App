@@ -1,4 +1,5 @@
 import type {ParamListBase} from '@react-navigation/native';
+import {CardStyleInterpolators} from '@react-navigation/stack';
 import type {StackCardStyleInterpolator} from '@react-navigation/stack';
 import {useCallback} from 'react';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
@@ -23,8 +24,9 @@ function useWideModalStackScreenOptions() {
 
     return useCallback<({route}: {route: PlatformStackRouteProp<ParamListBase, string>}) => PlatformStackNavigationOptions>(
         ({route}) => {
-            const baseInterpolator: StackCardStyleInterpolator = (props) =>
-                modalCardStyleInterpolator({props, enter: {kind: 'slide-and-fade', distancePx: CONST.MODAL.RHP_ENTER_OFFSET_PX_WEB}});
+            const baseInterpolator: StackCardStyleInterpolator = isSmallScreenWidth
+                ? CardStyleInterpolators.forHorizontalIOS
+                : (props) => modalCardStyleInterpolator({props, enter: {kind: 'slide-and-fade', distancePx: CONST.MODAL.RHP_ENTER_OFFSET_PX_WEB}});
 
             let cardStyleInterpolator: StackCardStyleInterpolator = baseInterpolator;
 
@@ -55,10 +57,12 @@ function useWideModalStackScreenOptions() {
                 web: {
                     cardStyle: styles.navigationScreenCardStyle,
                     cardStyleInterpolator,
-                    transitionSpec: {
-                        open: {animation: 'timing', config: {duration: CONST.MODAL.ANIMATION_TIMING.RHP_DURATION_IN_WEB}},
-                        close: {animation: 'timing', config: {duration: CONST.MODAL.ANIMATION_TIMING.RHP_DURATION_OUT_WEB}},
-                    },
+                    transitionSpec: isSmallScreenWidth
+                        ? undefined
+                        : {
+                              open: {animation: 'timing', config: {duration: CONST.MODAL.ANIMATION_TIMING.RHP_DURATION_IN_WEB}},
+                              close: {animation: 'timing', config: {duration: CONST.MODAL.ANIMATION_TIMING.RHP_DURATION_OUT_WEB}},
+                          },
                 },
             };
         },
