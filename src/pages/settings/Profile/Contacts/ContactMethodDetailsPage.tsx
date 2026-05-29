@@ -198,9 +198,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const turnOnDeleteModal = useCallback(() => {
         const openDeleteModal = async () => {
             const result = await showRemoveContactMethodModal();
-            InteractionManager.runAfterInteractions(() => {
-                validateCodeFormRef.current?.focusLastSelected?.();
-            });
+            validateCodeFormRef.current?.focusLastSelected?.();
             if (result.action !== ModalActions.CONFIRM) {
                 return;
             }
@@ -315,9 +313,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         <ScreenWrapper
             shouldEnableMaxHeight
             onEntryTransitionEnd={() => {
-                InteractionManager.runAfterInteractions(() => {
-                    validateCodeFormRef.current?.focus?.();
-                });
+                validateCodeFormRef.current?.focus?.();
             }}
             testID="ContactMethodDetailsPage"
             focusTrapSettings={{
