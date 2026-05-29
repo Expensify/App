@@ -680,17 +680,6 @@ const CONST = {
             ENABLE: 'enable',
             KYB_DOCS: 'upload-kyb-documents',
         },
-        PAGE_NAMES: {
-            COUNTRY: 'currency-and-country',
-            BANK_ACCOUNT: 'bank-info',
-            REQUESTOR: 'personal-info',
-            VERIFY_IDENTITY: 'verify-identity',
-            COMPANY: 'company',
-            BENEFICIAL_OWNERS: 'business-owner',
-            ACH_CONTRACT: 'ach-contract',
-            VALIDATION: 'validation',
-            ENABLE: 'enable',
-        },
         STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
         BANK_INFO_STEP: {
             SUB_PAGE_NAMES: {
