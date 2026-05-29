@@ -1,4 +1,4 @@
-import React, {Fragment, useImperativeHandle, useRef, useState} from 'react';
+import React, {Fragment, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import AmountWithoutCurrencyInput from '@components/AmountWithoutCurrencyInput';
@@ -9,8 +9,8 @@ import type {SearchAmountFilterKeys, SearchAmountValues} from '@components/Searc
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
@@ -52,6 +52,8 @@ function getFrontendAmount(amount: string | undefined) {
 function AmountInput({ref, filterKey, modifier, value, label, autoFocus}: AmountInputProps) {
     const styles = useThemeStyles();
     const [amount, setAmount] = useState(value);
+    const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
+    const inputRef = useRef<BaseTextInputRef>(null);
 
     useImperativeHandle(ref, () => ({
         getValue: () => {
@@ -60,11 +62,16 @@ function AmountInput({ref, filterKey, modifier, value, label, autoFocus}: Amount
         },
     }));
 
-    const {inputCallbackRef} = useAutoFocusInput();
+    useEffect(() => {
+        if (!didScreenTransitionEnd || !autoFocus) {
+            return;
+        }
+        inputRef.current?.focus();
+    }, [didScreenTransitionEnd, autoFocus]);
 
     return (
         <AmountWithoutCurrencyInput
-            ref={autoFocus ? (inputCallbackRef as (ref: BaseTextInputRef | null) => void) : undefined}
+            ref={inputRef}
             containerStyles={[styles.ph4, styles.mv2]}
             defaultValue={value}
             onInputChange={setAmount}
@@ -90,6 +97,8 @@ function AmountBetweenInput({ref, filterKey, greaterThanValue, lessThanValue, au
     const styles = useThemeStyles();
     const [greaterThanAmount, setGreaterThanAmount] = useState(greaterThanValue);
     const [lessThanAmount, setLessThanAmount] = useState(lessThanValue);
+    const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
+    const inputRef = useRef<BaseTextInputRef>(null);
 
     useImperativeHandle(ref, () => ({
         getValue: () => {
@@ -99,15 +108,20 @@ function AmountBetweenInput({ref, filterKey, greaterThanValue, lessThanValue, au
         },
     }));
 
+    useEffect(() => {
+        if (!didScreenTransitionEnd || !autoFocus) {
+            return;
+        }
+        inputRef.current?.focus();
+    }, [didScreenTransitionEnd, autoFocus]);
+
     const greaterThanLabel = translate('search.filters.amount.greaterThan');
     const lessThanLabel = translate('search.filters.amount.lessThan');
-
-    const {inputCallbackRef} = useAutoFocusInput();
 
     return (
         <View style={[styles.flexRow, styles.gap1, styles.ph4, styles.mv2]}>
             <AmountWithoutCurrencyInput
-                ref={autoFocus ? (inputCallbackRef as (ref: BaseTextInputRef | null) => void) : undefined}
+                ref={inputRef}
                 containerStyles={styles.flex1}
                 defaultValue={greaterThanValue}
                 onInputChange={setGreaterThanAmount}
