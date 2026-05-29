@@ -68,12 +68,12 @@ import {showReportActionNotification} from './Report';
 import {resendValidateCode as sessionResendValidateCode} from './Session';
 import redirectToSignIn from './SignInRedirect';
 
-// `currentUserAccountID` is only used in actions, not during render. So `Onyx.connectWithoutView` is appropriate.
-let currentUserAccountID: number | undefined;
+// `sessionAccountID` is only used in actions, not during render. So `Onyx.connectWithoutView` is appropriate.
+let sessionAccountID: number | undefined;
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
-        currentUserAccountID = value?.accountID;
+        sessionAccountID = value?.accountID;
     },
 });
 
@@ -1224,7 +1224,7 @@ function setContactMethodAsDefault(
 
 function updateTheme(theme: ValueOf<typeof CONST.THEME>, shouldGoBack = true) {
     // When toggling high contrast from the sign-in page, the user is not signed in. So persist the preference locally only.
-    if (!currentUserAccountID) {
+    if (!sessionAccountID) {
         Onyx.set(ONYXKEYS.PREFERRED_THEME, theme);
         return;
     }
@@ -1246,6 +1246,10 @@ function updateTheme(theme: ValueOf<typeof CONST.THEME>, shouldGoBack = true) {
     if (shouldGoBack) {
         Navigation.goBack();
     }
+}
+
+function setHighContrastIntent(hasIntent: boolean | null) {
+    Onyx.set(ONYXKEYS.SIGN_IN_HIGH_CONTRAST_INTENT, hasIntent);
 }
 
 /**
@@ -1937,6 +1941,7 @@ export {
     updateChatPriorityMode,
     setContactMethodAsDefault,
     updateTheme,
+    setHighContrastIntent,
     resetContactMethodValidateCodeSentState,
     updateCustomStatus,
     clearCustomStatus,

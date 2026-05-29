@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import Onyx from 'react-native-onyx';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -8,7 +7,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getBaseTheme, getContrastTheme, isHighContrastTheme} from '@styles/theme/utils';
 import variables from '@styles/variables';
-import {updateTheme} from '@userActions/User';
+import {setHighContrastIntent, updateTheme} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Icon from './Icon';
@@ -28,12 +27,13 @@ function HighContrastModeSwitcher() {
     const toggleHighContrast = () => {
         const baseTheme = getBaseTheme(currentTheme);
         updateTheme(isHighContrast ? baseTheme : getContrastTheme(baseTheme), false);
-        Onyx.set(ONYXKEYS.SIGN_IN_HIGH_CONTRAST_INTENT, !isHighContrast);
+        setHighContrastIntent(!isHighContrast);
     };
 
     return (
         <PressableWithFeedback
             onPress={toggleHighContrast}
+            sentryLabel="HighContrastModeSwitcher-Toggle"
             role={CONST.ROLE.BUTTON}
             accessibilityLabel={translate('themePage.enableHighContrast')}
             accessibilityState={{checked: isHighContrast}}

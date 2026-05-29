@@ -1,6 +1,5 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useEffect, useRef} from 'react';
-import Onyx from 'react-native-onyx';
 import {useInitialURLActions, useInitialURLState} from '@components/InitialURLContextProvider';
 import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -177,7 +176,7 @@ function AuthScreensInitHandler() {
         if (currentTheme !== targetTheme) {
             User.updateTheme(targetTheme, false);
         }
-        Onyx.set(ONYXKEYS.SIGN_IN_HIGH_CONTRAST_INTENT, null);
+        User.setHighContrastIntent(null);
     }, [isLoadingApp, highContrastIntent, preferredTheme, session?.authToken]);
 
     return null;
