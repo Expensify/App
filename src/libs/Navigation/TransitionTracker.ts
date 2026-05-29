@@ -7,7 +7,7 @@ type CancelHandle = {cancel: () => void};
 
 type RunAfterTransitionsOptions = {
     /** The function to invoke once all active transitions have completed. */
-    callback: () => void;
+    callback: () => void | Promise<void>;
 
     /** If true, the callback fires synchronously regardless of any active transitions. Defaults to false. */
     runImmediately?: boolean;
@@ -18,7 +18,7 @@ type RunAfterTransitionsOptions = {
 
 const activeTransitions = new Map<TransitionHandle, ReturnType<typeof setTimeout>>();
 
-let pendingCallbacks: Array<() => void> = [];
+let pendingCallbacks: Array<() => void | Promise<void>> = [];
 
 let nextTransitionStartResolve: (() => void) | null = null;
 let promiseForNextTransitionStart = new Promise<void>((resolve) => {
@@ -34,7 +34,12 @@ function flushCallbacks(): void {
     pendingCallbacks = [];
     for (const callback of callbacks) {
         try {
-            callback();
+            const result = callback();
+            if (result instanceof Promise) {
+                result.catch((error) => {
+                    Log.warn('[TransitionTracker] A pending async callback threw an error', {error});
+                });
+            }
         } catch (error) {
             Log.warn('[TransitionTracker] A pending callback threw an error', {error});
         }

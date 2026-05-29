@@ -193,15 +193,16 @@ function updateSplitTransactions({
     }
     const splitExpenses = transactionData?.splitExpenses ?? [];
 
-    // Get all children once (including orphaned)
-    const originalChildTransactions = getChildTransactions(allTransactionsList, originalTransactionID);
+    const allChildTransactions = getChildTransactions(allTransactionsList, originalTransactionID, false);
+    const originalChildTransactions = allChildTransactions.filter((tx) => tx?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID);
     const processedChildTransactionIDs: string[] = [];
 
     const splitExpensesTotal = transactionData?.splitExpensesTotal ?? 0;
 
     const isCreationOfSplits = originalChildTransactions.length === 0;
     const hasEditableSplitExpensesLeft = splitExpenses.some((expense) => (expense.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.SUBMITTED);
-    const isReverseSplitOperation = splitExpenses.length === 1 && originalChildTransactions.length > 0 && hasEditableSplitExpensesLeft;
+    const isReverseSplitOperation =
+        splitExpenses.length === 1 && originalChildTransactions.length > 0 && hasEditableSplitExpensesLeft && allChildTransactions.length === originalChildTransactions.length;
 
     let splitThreadComments: OnyxTypes.ReportAction[] = [];
     let splitThreadReportAction: OnyxTypes.ReportAction | undefined;
@@ -1248,7 +1249,7 @@ function updateSplitTransactions({
         // resulting in 3 transactions(deleted, undeleted, and original) being shown at the same time when offline.
         // Since original transaction will be reverted and both splits will eventually be deleted, we remove
         // the undeleted split entirely instead of marking it for deletion.
-        const forceDeleteSplitTransactionID = isReverseSplitOperation && !isOffline ? splitExpenses.at(0)?.transactionID : undefined;
+        const forceDeleteSplitTransactionID = isReverseSplitOperation ? splitExpenses.at(0)?.transactionID : undefined;
 
         const {
             optimisticData: deleteExpenseOptimisticData,
@@ -1825,7 +1826,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     // set the navigate-back URL before the deletion to prevent the "Not Found" page.
     const splitExpenses = params.transactionData?.splitExpenses ?? [];
     const originalTransactionID = params.transactionData?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
-    const allChildTransactions = getChildTransactions(params.allTransactionsList, originalTransactionID);
+    const allChildTransactions = getChildTransactions(params.allTransactionsList, originalTransactionID, false);
     const originalChildTransactions = allChildTransactions.filter((tx) => tx?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID);
     const hasEditableSplitExpensesLeft = splitExpenses.some((expense) => (expense.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.SUBMITTED);
     const isReverseSplitOperation =
