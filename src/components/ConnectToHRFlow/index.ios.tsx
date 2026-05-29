@@ -24,6 +24,8 @@ function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
         hasOpened.current = true;
 
         getShortLivedAuthTokenURL(setupLink)
+            // CONST.DEEPLINK_BASE_URL is used as a sentinel so ASWebAuthenticationSession
+            // auto-dismisses when the flow redirects back to the app via deep link.
             .then((url) => openAuthSessionAsync(url, CONST.DEEPLINK_BASE_URL, {preferEphemeralSession: true}))
             .finally(() => {
                 setIsModalOpen(false);

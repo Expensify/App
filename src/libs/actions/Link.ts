@@ -415,8 +415,10 @@ function getShortLivedAuthTokenURL(setupLink: string): Promise<string> {
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK, {}, {})
         .then((response) => {
-            const tokenParam = response?.shortLivedAuthToken ? `&authToken=${response.shortLivedAuthToken}` : '';
-            return setupLink + tokenParam;
+            if (!response?.shortLivedAuthToken) {
+                return setupLink;
+            }
+            return Url.appendParam(setupLink, 'authToken', response.shortLivedAuthToken);
         })
         .catch(() => setupLink);
 }

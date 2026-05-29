@@ -42,6 +42,8 @@ function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
 
     const handleBackPress = () => {
         if (isPopupVisible) {
+            // Keep the popup WebView mounted (hidden) so in-flight OAuth redirects
+            // can complete and shared cookies remain intact for Merge Link.
             setIsPopupVisible(false);
             return;
         }
@@ -69,6 +71,9 @@ function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
                             source={{uri: 'about:blank'}}
                             incognito
                             onLoadEnd={() => {
+                                // Brief delay to ensure the incognito WebView has fully cleared cookies
+                                // before mounting the main WebView. No deterministic completion signal is
+                                // available from the incognito session teardown.
                                 setTimeout(() => setCookiesCleared(true), 500);
                             }}
                             style={styles.opacity0}
@@ -76,6 +81,8 @@ function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
                     )}
                     {!isReady && renderLoading()}
                     {isReady && (
+                        // Not using incognito here so the popup WebView can share cookies
+                        // with the main flow (required for OAuth handoffs).
                         <WebView
                             ref={webViewRef}
                             source={{uri: authenticatedUrl}}
@@ -91,6 +98,7 @@ function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
                         >
                             <WebView
                                 source={{uri: popupUrl}}
+                                onOpenWindow={handleOpenWindow}
                                 startInLoadingState
                                 renderLoading={renderLoading}
                             />
