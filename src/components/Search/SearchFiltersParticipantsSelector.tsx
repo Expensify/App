@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
@@ -87,6 +87,23 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             shouldKeepSelectedInAvailableOptions: true,
         });
 
+    // Frozen snapshot of pre-selected options captured on the first render where options are
+    // initialized and the combined Recents + Contacts list is long enough to warrant pinning
+    // pre-selected items at the top so they're not lost in a long list. `null` means we haven't
+    // captured yet; an empty array means we evaluated and chose not to pin. Captured during
+    // render (per React's "set state during render" pattern) so the snapshot is taken at the
+    // same render where data first becomes available.
+    const [frozenSelectedOptions, setFrozenSelectedOptions] = useState<OptionData[] | null>(null);
+    if (
+        frozenSelectedOptions === null &&
+        areOptionsInitialized &&
+        // Wait until pre-selected options have been hydrated from initialAccountIDs before capturing.
+        (initialAccountIDs.length === 0 || selectedOptions.length > 0)
+    ) {
+        const totalVisible = availableOptions.recentReports.length + availableOptions.personalDetails.length;
+        setFrozenSelectedOptions(totalVisible >= CONST.STANDARD_LIST_ITEM_LIMIT ? selectedOptions : []);
+    }
+
     const {sections, headerMessage} = useMemo(() => {
         const newSections = [];
         if (!areOptionsInitialized) {
@@ -97,16 +114,55 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         const currentUserOption = chatOptions.currentUserOption;
 
         // Ensure current user is not in personalDetails or recentReports to avoid duplication
-        // with the dedicated currentUserOption section shown at the top of the list.
+        // with the dedicated currentUserOption section shown below.
         if (currentUserOption?.accountID) {
             chatOptions.personalDetails = chatOptions.personalDetails.filter((detail) => detail.accountID !== currentUserOption.accountID);
             chatOptions.recentReports = chatOptions.recentReports.filter((report) => report.accountID !== currentUserOption.accountID);
         }
 
+        // Build the frozen "pre-selected" top section. Items keep their original position; their
+        // `isSelected` flag tracks the current selection so toggling them in place updates the
+        // checkmark without moving the row.
+        const frozenAccountIDs = new Set((frozenSelectedOptions ?? []).map((option) => option.accountID).filter((id): id is number => !!id && id !== CONST.DEFAULT_NUMBER_ID));
+        const frozenLogins = new Set((frozenSelectedOptions ?? []).map((option) => option.login).filter((login): login is string => !!login));
+        const isOptionFrozen = (option: Pick<OptionData, 'accountID' | 'login'>) =>
+            (!!option.accountID && option.accountID !== CONST.DEFAULT_NUMBER_ID && frozenAccountIDs.has(option.accountID)) || (!!option.login && frozenLogins.has(option.login));
+
+        const frozenSection = (frozenSelectedOptions ?? []).map((option) => {
+            const isSelected = selectedOptions.some(
+                (selected) =>
+                    (!!selected.accountID && selected.accountID !== CONST.DEFAULT_NUMBER_ID && selected.accountID === option.accountID) ||
+                    (!!selected.login && selected.login === option.login),
+            );
+            return {...option, isSelected};
+        });
+        if (frozenSection.length > 0) {
+            newSections.push({
+                title: '',
+                data: frozenSection,
+                sectionIndex: 0,
+            });
+        }
+
+        // Selected options that aren't in the frozen section, current user section, or visible
+        // Recents / Contacts sections (e.g. name-only attendees for the attendee filter). Show
+        // them in a dedicated section so they remain visible when selected.
+        const visibleLogins = new Set([...chatOptions.personalDetails.map((detail) => detail.login), ...chatOptions.recentReports.map((report) => report.login)].filter(Boolean));
+        const extraSelectedOptions = selectedOptions.filter((option) => option.accountID !== currentUserAccountID && !visibleLogins.has(option.login) && !isOptionFrozen(option));
+        if (extraSelectedOptions.length > 0) {
+            newSections.push({
+                title: '',
+                data: extraSelectedOptions,
+                sectionIndex: 1,
+            });
+        }
+
         const isCurrentUserSelected = !!currentUserAccountID && selectedOptions.some((option) => option.accountID === currentUserAccountID);
 
-        // Show the current user at the top of the list. Falls back to creating from personal details
-        // to handle pagination edge cases.
+        // Show the current user below the frozen and extra-selected sections, but above
+        // Recents / Contacts. Falls back to creating from personal details to handle pagination
+        // edge cases. The current user is skipped here if they were already pinned in the
+        // frozen section above.
         let currentUserOptionToShow = currentUserOption;
         const currentUserDetails = currentUserAccountID ? personalDetails?.[currentUserAccountID] : undefined;
         if (!currentUserOptionToShow && currentUserAccountID && currentUserDetails) {
@@ -117,7 +173,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             }
         }
 
-        if (currentUserOptionToShow) {
+        if (currentUserOptionToShow && !isOptionFrozen(currentUserOptionToShow)) {
             const formattedName = getDisplayNameForParticipant({
                 accountID: currentUserOptionToShow.accountID,
                 shouldAddCurrentUserPostfix: true,
@@ -129,43 +185,36 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             newSections.push({
                 title: '',
                 data: [currentUserOptionToShow],
-                sectionIndex: 0,
+                sectionIndex: 2,
             });
+        } else {
+            currentUserOptionToShow = undefined;
         }
 
-        // Selected options that aren't in the visible Recents / Contacts sections (e.g. name-only
-        // attendees for the attendee filter). Show them in a dedicated section so they remain visible
-        // when selected. The current user is excluded since they already have a dedicated section above.
-        const visibleLogins = new Set([...chatOptions.personalDetails.map((detail) => detail.login), ...chatOptions.recentReports.map((report) => report.login)].filter(Boolean));
-        const extraSelectedOptions = selectedOptions.filter((option) => option.accountID !== currentUserAccountID && !visibleLogins.has(option.login));
-        if (extraSelectedOptions.length > 0) {
-            newSections.push({
-                title: '',
-                data: extraSelectedOptions,
-                sectionIndex: 1,
-            });
-        }
+        // Filter frozen items out of Recents and Contacts to avoid duplication with the top section.
+        const recentReports = frozenSection.length > 0 ? chatOptions.recentReports.filter((report) => !isOptionFrozen(report)) : chatOptions.recentReports;
+        const contacts = frozenSection.length > 0 ? chatOptions.personalDetails.filter((detail) => !isOptionFrozen(detail)) : chatOptions.personalDetails;
 
         newSections.push({
             title: '',
-            data: chatOptions.recentReports,
-            sectionIndex: 2,
-        });
-
-        newSections.push({
-            title: '',
-            data: chatOptions.personalDetails,
+            data: recentReports,
             sectionIndex: 3,
         });
 
-        const noResultsFound = chatOptions.personalDetails.length === 0 && chatOptions.recentReports.length === 0 && !currentUserOptionToShow && extraSelectedOptions.length === 0;
+        newSections.push({
+            title: '',
+            data: contacts,
+            sectionIndex: 4,
+        });
+
+        const noResultsFound = contacts.length === 0 && recentReports.length === 0 && !currentUserOptionToShow && extraSelectedOptions.length === 0 && frozenSection.length === 0;
         const message = noResultsFound ? translate('common.noResultsFound') : undefined;
 
         return {
             sections: newSections,
             headerMessage: message,
         };
-    }, [areOptionsInitialized, availableOptions, debouncedSearchTerm, selectedOptions, currentUserAccountID, personalDetails, translate, formatPhoneNumber]);
+    }, [areOptionsInitialized, availableOptions, debouncedSearchTerm, selectedOptions, frozenSelectedOptions, currentUserAccountID, personalDetails, translate, formatPhoneNumber]);
 
     const resetChanges = useCallback(() => {
         setSelectedOptions([]);

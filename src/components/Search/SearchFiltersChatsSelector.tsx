@@ -1,5 +1,5 @@
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
@@ -105,29 +105,56 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
     });
 
+    // Frozen snapshot of pre-selected reports captured on the first render where options are
+    // initialized and the Recents list is long enough to warrant pinning pre-selected items at
+    // the top so they're not lost in a long list. `null` means we haven't captured yet; an empty
+    // array means we evaluated and chose not to pin. Captured during render (per React's "set
+    // state during render" pattern) so the snapshot is taken at the same render where data first
+    // becomes available.
+    const [frozenSelectedReports, setFrozenSelectedReports] = useState<OptionData[] | null>(null);
+    if (frozenSelectedReports === null && !isLoading) {
+        setFrozenSelectedReports(chatOptions.recentReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? selectedOptions : []);
+    }
+
+    const frozenReportIDsSet = useMemo(() => new Set((frozenSelectedReports ?? []).map((report) => report.reportID)), [frozenSelectedReports]);
+
     const sections: SelectionListSections = [];
 
     if (!isLoading) {
         const selectedReportIDsSet = new Set(selectedReportIDs);
         const visibleReportIDsSet = new Set(chatOptions.recentReports.map((report) => report.reportID));
 
-        // Selected reports that aren't in the current filtered results (e.g., they no longer match
-        // the search term after server-side search ran). Show them in a dedicated section so they
-        // remain visible.
-        const extraSelectedReports = selectedOptions.filter((report) => !visibleReportIDsSet.has(report.reportID));
+        // Frozen pre-selected reports pinned at the top. They keep their order from capture; their
+        // `isSelected` flag tracks the current selection so toggling them in place updates the
+        // checkmark without moving the row.
+        const frozenReports = (frozenSelectedReports ?? []).map((report) => (selectedReportIDsSet.has(report.reportID) ? getSelectedOptionData(report) : {...report, isSelected: false}));
+        if (frozenReports.length > 0) {
+            sections.push({
+                data: frozenReports,
+                sectionIndex: 0,
+            });
+        }
+
+        // Selected reports that aren't pinned in the frozen section and aren't in the current
+        // filtered results (e.g., they no longer match the search term after server-side search
+        // ran). Show them in a dedicated section so they remain visible.
+        const extraSelectedReports = selectedOptions.filter((report) => !visibleReportIDsSet.has(report.reportID) && !frozenReportIDsSet.has(report.reportID));
         if (extraSelectedReports.length > 0) {
             sections.push({
                 data: extraSelectedReports,
-                sectionIndex: 0,
+                sectionIndex: 1,
             });
         }
 
         // Keep selected reports in their natural position in the list (marked isSelected) rather than
         // moving them into a top section, so the user's scroll position isn't disrupted on toggle.
-        const visibleReports = chatOptions.recentReports.map((report) => (selectedReportIDsSet.has(report.reportID) ? getSelectedOptionData(report) : report));
+        // Filter out frozen items to avoid duplication with the top section.
+        const visibleReports = chatOptions.recentReports
+            .filter((report) => !frozenReportIDsSet.has(report.reportID))
+            .map((report) => (selectedReportIDsSet.has(report.reportID) ? getSelectedOptionData(report) : report));
         sections.push({
             data: visibleReports,
-            sectionIndex: 1,
+            sectionIndex: 2,
         });
     }
     const noResultsFound = didScreenTransitionEnd && sections.every((section) => section.data.length === 0);
