@@ -7844,10 +7844,7 @@ ${reportName}
             description: '哇，项目真不少！我们会把它们打包好，Concierge 很快就会给你发送一个文件。',
         },
         exportedTo: '已导出到',
-        exportAll: {
-            selectAllMatchingItems: '选择所有匹配的项目',
-            allMatchingItemsSelected: '已选择所有匹配的项目',
-        },
+        exportAll: {selectAllMatchingItems: '选择所有匹配的项目', allMatchingItemsSelected: '已选择所有匹配的项目', selectAllOnThisPage: '选择本页全部内容'},
         errors: {
             pleaseSelectDatesForBothFromAndTo: '请选择起始和结束日期',
         },

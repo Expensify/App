@@ -8144,6 +8144,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         exportAll: {
             selectAllMatchingItems: 'Sélectionnez tous les éléments correspondants',
             allMatchingItemsSelected: 'Tous les éléments correspondants sont sélectionnés',
+            selectAllOnThisPage: 'Tout sélectionner sur cette page',
         },
         errors: {
             pleaseSelectDatesForBothFromAndTo: 'Veuillez sélectionner des dates pour De et À',

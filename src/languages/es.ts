@@ -7921,6 +7921,7 @@ ${amount} para ${merchant} - ${date}`,
         exportAll: {
             selectAllMatchingItems: 'Seleccionar todos los elementos coincidentes',
             allMatchingItemsSelected: 'Todos los elementos coincidentes seleccionados',
+            selectAllOnThisPage: 'Seleccionar todo en esta página',
         },
         errors: {
             pleaseSelectDatesForBothFromAndTo: 'Por favor, selecciona fechas para Desde y Hasta',
