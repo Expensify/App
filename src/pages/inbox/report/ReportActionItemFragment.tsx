@@ -195,7 +195,7 @@ function ReportActionItemFragment({
         case 'OLD_MESSAGE':
             return <Text>OLD_MESSAGE</Text>;
         default:
-            return <Text>fragment.text</Text>;
+            return <Text>{fragment?.text ?? ''}</Text>;
     }
 }
 
