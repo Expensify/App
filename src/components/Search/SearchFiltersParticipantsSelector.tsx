@@ -122,20 +122,27 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
 
         // Build the frozen "pre-selected" top section. Items keep their original position; their
         // `isSelected` flag tracks the current selection so toggling them in place updates the
-        // checkmark without moving the row.
+        // checkmark without moving the row. The set used to dedupe Recents / Contacts is built
+        // from the unfiltered snapshot so rows hidden by the current search term still don't
+        // duplicate into the lists below.
         const frozenAccountIDs = new Set((frozenSelectedOptions ?? []).map((option) => option.accountID).filter((id): id is number => !!id && id !== CONST.DEFAULT_NUMBER_ID));
         const frozenLogins = new Set((frozenSelectedOptions ?? []).map((option) => option.login).filter((login): login is string => !!login));
         const isOptionFrozen = (option: Pick<OptionData, 'accountID' | 'login'>) =>
             (!!option.accountID && option.accountID !== CONST.DEFAULT_NUMBER_ID && frozenAccountIDs.has(option.accountID)) || (!!option.login && frozenLogins.has(option.login));
 
-        const frozenSection = (frozenSelectedOptions ?? []).map((option) => {
-            const isSelected = selectedOptions.some(
-                (selected) =>
-                    (!!selected.accountID && selected.accountID !== CONST.DEFAULT_NUMBER_ID && selected.accountID === option.accountID) ||
-                    (!!selected.login && selected.login === option.login),
-            );
-            return {...option, isSelected};
-        });
+        const trimmedSearchTerm = debouncedSearchTerm.trim().toLowerCase();
+        const matchesSearchTerm = (option: OptionData) => !trimmedSearchTerm || doesPersonalDetailMatchSearchTerm(option, option.accountID ?? CONST.DEFAULT_NUMBER_ID, trimmedSearchTerm);
+
+        const frozenSection = (frozenSelectedOptions ?? [])
+            .filter((option) => matchesSearchTerm(option))
+            .map((option) => {
+                const isSelected = selectedOptions.some(
+                    (selected) =>
+                        (!!selected.accountID && selected.accountID !== CONST.DEFAULT_NUMBER_ID && selected.accountID === option.accountID) ||
+                        (!!selected.login && selected.login === option.login),
+                );
+                return {...option, isSelected};
+            });
         if (frozenSection.length > 0) {
             newSections.push({
                 title: '',
@@ -146,9 +153,13 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
 
         // Selected options that aren't in the frozen section, current user section, or visible
         // Recents / Contacts sections (e.g. name-only attendees for the attendee filter). Show
-        // them in a dedicated section so they remain visible when selected.
+        // them in a dedicated section so they remain visible when selected. Filtered by the
+        // current search term so they don't appear when the user types something that doesn't
+        // match.
         const visibleLogins = new Set([...chatOptions.personalDetails.map((detail) => detail.login), ...chatOptions.recentReports.map((report) => report.login)].filter(Boolean));
-        const extraSelectedOptions = selectedOptions.filter((option) => option.accountID !== currentUserAccountID && !visibleLogins.has(option.login) && !isOptionFrozen(option));
+        const extraSelectedOptions = selectedOptions.filter(
+            (option) => option.accountID !== currentUserAccountID && !visibleLogins.has(option.login) && !isOptionFrozen(option) && matchesSearchTerm(option),
+        );
         if (extraSelectedOptions.length > 0) {
             newSections.push({
                 title: '',
@@ -167,7 +178,6 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         const currentUserDetails = currentUserAccountID ? personalDetails?.[currentUserAccountID] : undefined;
         if (!currentUserOptionToShow && currentUserAccountID && currentUserDetails) {
             const candidateOption = getParticipantsOption(currentUserDetails, personalDetails) as OptionData;
-            const trimmedSearchTerm = debouncedSearchTerm.trim().toLowerCase();
             if (!trimmedSearchTerm || doesPersonalDetailMatchSearchTerm(candidateOption, currentUserAccountID, trimmedSearchTerm)) {
                 currentUserOptionToShow = candidateOption;
             }
