@@ -9,9 +9,11 @@ import useOnyx from './useOnyx';
 import useSidePanelState from './useSidePanelState';
 
 /**
- * Returns true when thinking/typing indicators should be hidden in the
- * Concierge welcome state — before the user sends their first message
- * in either the side panel or the main DM.
+ * Returns true when thinking/typing indicators should be hidden. Two cases:
+ *   1. The Concierge welcome state — before the user sends their first message
+ *      in either the side panel or the main DM.
+ *   2. The followup-list pending window — between trickle completion and the
+ *      server reply with `<followup-list>`.
  */
 function useShouldSuppressConciergeIndicators(reportID: string | undefined): boolean {
     const isInSidePanel = useIsInSidePanel();
@@ -19,6 +21,7 @@ function useShouldSuppressConciergeIndicators(reportID: string | undefined): boo
     const {sessionStartTime: mainDMSessionStartTime} = useConciergeSessionState();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [pendingFollowupList] = useOnyx(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${reportID}`);
 
     const isConciergeChat = reportID === conciergeReportID;
     const sessionStartTime = isInSidePanel ? sidePanelSessionStartTime : mainDMSessionStartTime;
@@ -32,6 +35,10 @@ function useShouldSuppressConciergeIndicators(reportID: string | undefined): boo
     const [hasUserSentMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         selector: hasUserSentMessageSelector,
     });
+
+    if (pendingFollowupList) {
+        return true;
+    }
 
     return isConciergeChat && !hasUserSentMessage;
 }

@@ -224,6 +224,22 @@ function process(): Promise<void> {
                 sequentialQueueRequestThrottle.clear();
                 return process();
             }
+
+            if (error.message === CONST.ERROR.ALREADY_CREATED) {
+                const onyxUpdates = [...(requestToProcess.successData ?? []), ...(requestToProcess.finallyData ?? [])] as AnyOnyxUpdate[];
+                Log.info('[SequentialQueue] Applying success and finally data on ALREADY_CREATED — resource already exists server-side', false, {
+                    command: requestToProcess.command,
+                    updatesCount: onyxUpdates.length,
+                });
+                Onyx.update(onyxUpdates);
+                Log.info('[SequentialQueue] Removing persisted request because the resource was already created server-side.', false, {
+                    command: requestToProcess.command,
+                    errorMessage: error.message,
+                });
+                endPersistedRequestAndRemoveFromQueue(requestToProcess);
+                sequentialQueueRequestThrottle.clear();
+                return process();
+            }
             // For rate limiting errors (429) on ResendValidateCode, don't retry to prevent spam
             if (error.message === CONST.ERROR.THROTTLED && requestToProcess.command === WRITE_COMMANDS.RESEND_VALIDATE_CODE) {
                 Log.info('[SequentialQueue] RESEND_VALIDATE_CODE throttled, not retrying', false, {
