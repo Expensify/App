@@ -1,20 +1,16 @@
 import sortBy from 'lodash/sortBy';
-import React, {useContext, useRef} from 'react';
+import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import {importEmojiLocale} from '@assets/emojis';
 import type {Emoji} from '@assets/emojis/types';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getEmojiReactionDetails} from '@libs/EmojiUtils';
+import {getEmojiReactionDetails, mergeReactionsByEmoji} from '@libs/EmojiUtils';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
-import {ReactionListContext} from '@pages/inbox/ReportScreenContext';
-import type {ReactionListAnchor, ReactionListEvent} from '@pages/inbox/ReportScreenContext';
-import {toggleEmojiReaction} from '@userActions/Report';
+import {toggleEmojiReaction} from '@userActions/EmojiReactions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import CONST from '@src/CONST';
 import {isFullySupportedLocale} from '@src/CONST/LOCALES';
@@ -23,8 +19,7 @@ import type {ReportAction, ReportActionReactions} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import AddReactionBubble from './AddReactionBubble';
-import EmojiReactionBubble from './EmojiReactionBubble';
-import ReactionTooltipContent from './ReactionTooltipContent';
+import ReportActionReactionBubble from './ReportActionReactionBubble';
 
 type ReportActionItemEmojiReactionsProps = {
     /** The report action that these reactions are for */
@@ -33,14 +28,15 @@ type ReportActionItemEmojiReactionsProps = {
     /** The ID of the chat report this action belongs to */
     reportID: string | undefined;
 
+    /** True when this message is edited inline on a wide layout; right-aligns the reaction row under the composer. */
+    isEditingInline: boolean;
+
     /** We disable reacting with emojis on report actions that have errors */
     shouldBlockReactions?: boolean;
 
     /** Function to update emoji picker state */
     setIsEmojiPickerActive?: (state: boolean) => void;
 };
-
-type PopoverReactionListAnchors = Record<string, ReactionListAnchor>;
 
 type FormattedReaction = {
     /** The emoji codes to display in the bubble */
@@ -61,24 +57,17 @@ type FormattedReaction = {
     /** Callback to fire on press */
     onPress: () => void;
 
-    /** Callback to fire on reaction list open */
-    onReactionListOpen: (event: ReactionListEvent) => void;
-
     /** The name of the emoji */
     reactionEmojiName: string;
 
-    /** The type of action that's pending  */
+    /** The type of action that's pending */
     pendingAction?: PendingAction;
-
-    setIsEmojiPickerActive?: (state: boolean) => void;
 };
 
-function ReportActionItemEmojiReactions({reportAction, reportID, shouldBlockReactions = false, setIsEmojiPickerActive}: ReportActionItemEmojiReactionsProps) {
+function ReportActionItemEmojiReactions({reportAction, reportID, isEditingInline, shouldBlockReactions = false, setIsEmojiPickerActive}: ReportActionItemEmojiReactionsProps) {
     const styles = useThemeStyles();
     const {preferredLocale} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const reactionListRef = useContext(ReactionListContext);
-    const popoverReactionListAnchors = useRef<PopoverReactionListAnchors>({});
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
 
     const reportActionID = reportAction.reportActionID;
@@ -94,7 +83,6 @@ function ReportActionItemEmojiReactions({reportAction, reportID, shouldBlockReac
         if (isAnonymousUser()) {
             hideContextMenu(false);
 
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 signOutAndRedirectToSignIn();
             });
@@ -105,7 +93,7 @@ function ReportActionItemEmojiReactions({reportAction, reportID, shouldBlockReac
 
     // Each emoji is sorted by the oldest timestamp of user reactions so that they will always appear in the same order for everyone
     const formattedReactions: Array<FormattedReaction | null> = sortBy(
-        Object.entries(emojiReactions ?? {}).map(([emojiName, emojiReaction]) => {
+        Object.entries(mergeReactionsByEmoji(emojiReactions ?? {})).map(([emojiName, emojiReaction]) => {
             const {emoji, emojiCodes, reactionCount, hasUserReacted, userAccountIDs, oldestTimestamp} = getEmojiReactionDetails(emojiName, emojiReaction, currentUserAccountID);
 
             if (reactionCount === 0) {
@@ -116,10 +104,6 @@ function ReportActionItemEmojiReactions({reportAction, reportID, shouldBlockReac
                 toggleReaction(emoji, preferredSkinTone, true);
             };
 
-            const onReactionListOpen = (event: ReactionListEvent) => {
-                reactionListRef?.current?.showReactionList(event, popoverReactionListAnchors.current[emojiName], emojiName, reportActionID);
-            };
-
             return {
                 emojiCodes,
                 userAccountIDs,
@@ -127,7 +111,6 @@ function ReportActionItemEmojiReactions({reportAction, reportID, shouldBlockReac
                 hasUserReacted,
                 oldestTimestamp,
                 onPress,
-                onReactionListOpen,
                 reactionEmojiName: emojiName,
                 pendingAction: emojiReaction.pendingAction,
             };
@@ -137,8 +120,14 @@ function ReportActionItemEmojiReactions({reportAction, reportID, shouldBlockReac
 
     const totalReactionCount = formattedReactions.reduce((prev, curr) => (curr === null ? prev : prev + curr.reactionCount), 0);
 
+    if (totalReactionCount === 0) {
+        return null;
+    }
+
+    const wrapperStyle = isEditingInline ? styles.chatItemReactionsDraftRight : {};
+
     return (
-        totalReactionCount > 0 && (
+        <View style={wrapperStyle}>
             <View style={[styles.flexRow, styles.flexWrap, styles.gap1, styles.mt2]}>
                 {formattedReactions.map((reaction) => {
                     if (reaction === null) {
@@ -146,37 +135,20 @@ function ReportActionItemEmojiReactions({reportAction, reportID, shouldBlockReac
                     }
 
                     return (
-                        <Tooltip
-                            renderTooltipContent={() => (
-                                <ReactionTooltipContent
-                                    emojiName={reaction.reactionEmojiName}
-                                    emojiCodes={reaction.emojiCodes}
-                                    accountIDs={reaction.userAccountIDs}
-                                    currentUserAccountID={currentUserAccountID}
-                                />
-                            )}
-                            renderTooltipContentKey={[...reaction.userAccountIDs.map(String), ...reaction.emojiCodes]}
+                        <ReportActionReactionBubble
                             key={reaction.reactionEmojiName}
-                        >
-                            <View>
-                                <OfflineWithFeedback
-                                    pendingAction={reaction.pendingAction}
-                                    shouldDisableOpacity={!!reportAction.pendingAction}
-                                >
-                                    <EmojiReactionBubble
-                                        ref={(ref) => {
-                                            popoverReactionListAnchors.current[reaction.reactionEmojiName] = ref ?? null;
-                                        }}
-                                        count={reaction.reactionCount}
-                                        emojiCodes={reaction.emojiCodes}
-                                        onPress={reaction.onPress}
-                                        hasUserReacted={reaction.hasUserReacted}
-                                        onReactionListOpen={reaction.onReactionListOpen}
-                                        shouldBlockReactions={shouldBlockReactions}
-                                    />
-                                </OfflineWithFeedback>
-                            </View>
-                        </Tooltip>
+                            emojiCodes={reaction.emojiCodes}
+                            reactionCount={reaction.reactionCount}
+                            hasUserReacted={reaction.hasUserReacted}
+                            userAccountIDs={reaction.userAccountIDs}
+                            reactionEmojiName={reaction.reactionEmojiName}
+                            onPress={reaction.onPress}
+                            reportActionID={reportActionID}
+                            reportActionPendingAction={reportAction.pendingAction}
+                            pendingAction={reaction.pendingAction}
+                            currentUserAccountID={currentUserAccountID}
+                            shouldBlockReactions={shouldBlockReactions}
+                        />
                     );
                 })}
                 {!shouldBlockReactions && (
@@ -187,7 +159,7 @@ function ReportActionItemEmojiReactions({reportAction, reportID, shouldBlockReac
                     />
                 )}
             </View>
-        )
+        </View>
     );
 }
 

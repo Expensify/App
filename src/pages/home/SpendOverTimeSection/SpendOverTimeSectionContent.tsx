@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
-import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/constants';
+import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
 import SearchChartView from '@components/Search/SearchChartView';
 import WidgetContainer from '@components/WidgetContainer';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -43,7 +43,7 @@ function SpendOverTimeSectionContent() {
                         shouldShowRightIcon
                         textStyles={styles.pb0}
                         style={styles.widgetItemButton}
-                        isContentCentered
+                        iconWrapperStyles={styles.justifyContentCenter}
                     />
                 ) : null
             }

@@ -26,7 +26,7 @@ const WORKSPACE_ACCOUNT_ID = 999888;
 // We use literal values that match the constants above.
 
 jest.mock('@react-navigation/native', () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actualNav = jest.requireActual('@react-navigation/native');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -58,6 +58,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     default: {
         navigate: jest.fn(),
         getActiveRoute: jest.fn(() => ''),
+        getActiveRouteWithoutParams: jest.fn(() => ''),
+        isNavigationReady: jest.fn(() => Promise.resolve()),
         isTopmostRouteModalScreen: jest.fn(() => false),
     },
 }));
@@ -130,8 +132,8 @@ describe('WorkspaceTravelInvoicingSection', () => {
             // Wait for component to render
             await waitForBatchedUpdatesWithAct();
 
-            // Central Invoicing section should be visible
-            expect(screen.getByText('Central invoicing')).toBeTruthy();
+            // Travel Invoicing section should be visible
+            expect(screen.getByText('Travel invoicing')).toBeTruthy();
         });
 
         it('should render sections when paymentBankAccountID is not set', async () => {
@@ -151,7 +153,7 @@ describe('WorkspaceTravelInvoicingSection', () => {
 
             renderWorkspaceTravelInvoicingSection();
             await waitForBatchedUpdatesWithAct();
-            expect(screen.getByText('Central invoicing')).toBeTruthy();
+            expect(screen.getByText('Travel invoicing')).toBeTruthy();
         });
     });
 
@@ -183,7 +185,7 @@ describe('WorkspaceTravelInvoicingSection', () => {
 
             renderWorkspaceTravelInvoicingSection();
             await waitForBatchedUpdatesWithAct();
-            expect(screen.getByText('Central invoicing')).toBeTruthy();
+            expect(screen.getByText('Travel invoicing')).toBeTruthy();
         });
 
         it('should display current travel spend label when configured', async () => {

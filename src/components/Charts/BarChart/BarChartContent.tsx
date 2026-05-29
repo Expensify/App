@@ -9,8 +9,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
-import {AXIS_LABEL_GAP, CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, GLYPH_PADDING, X_AXIS_LINE_WIDTH, Y_AXIS_LINE_WIDTH, Y_AXIS_TICK_COUNT} from '@components/Charts/constants';
-import type {ComputeGeometryFn, HitTestArgs} from '@components/Charts/hooks';
+import type {HitTestArgs} from '@components/Charts/hooks';
 import {
     useChartFontManager,
     useChartInteractions,
@@ -21,12 +20,13 @@ import {
     useLabelHitTesting,
     useYAxisLabelWidth,
 } from '@components/Charts/hooks';
-import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
-import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, getAdditionalOffset, getChartColor, rotatedLabelYOffset} from '@components/Charts/utils';
+import {calculateMinDomainPadding} from '@components/Charts/utils';
+import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING} from '@components/Charts/VictoryTheme';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
+import type {CartesianChartProps, ChartDataPoint} from '..';
 
 /** Inner padding between bars (0.3 = 30% of bar width) */
 const BAR_INNER_PADDING = 0.3;
@@ -35,29 +35,6 @@ const BAR_INNER_PADDING = 0.3;
  * We need bottom: 1 for proper display of the bottom label
  */
 const BASE_DOMAIN_PADDING = {top: 32, bottom: 1, left: 0, right: 0};
-
-/**
- * Bar chart geometry for label hit-testing.
- * Labels are center-anchored: the 45° parallelogram's upper-right corner is offset
- * by (halfLabelWidth * sinA) right and up, so the box straddles the tick symmetrically.
- */
-const computeBarLabelGeometry: ComputeGeometryFn = ({ascent, descent, sinA, angleRad, labelWidths, padding}) => {
-    const maxLabelWidth = labelWidths.length > 0 ? Math.max(...labelWidths) : 0;
-    const centeredUpwardOffset = angleRad > 0 ? (maxLabelWidth / 2) * sinA : 0;
-    const halfLabelSins = labelWidths.map((w) => (w / 2) * sinA - variables.iconSizeExtraSmall / 3);
-    const halfWidths = labelWidths.map((w) => w / 2);
-    const additionalOffset = getAdditionalOffset(angleRad);
-    return {
-        labelYOffset: AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad) + centeredUpwardOffset - additionalOffset,
-        iconSin: variables.iconSizeExtraSmall * sinA,
-        labelSins: labelWidths.map((w) => w * sinA),
-        halfWidths,
-        cornerAnchorDX: halfLabelSins,
-        cornerAnchorDY: halfLabelSins.map((v) => -v),
-        yMin90Offsets: halfWidths.map((hw) => -hw + padding),
-        yMax90Offsets: halfWidths.map((hw) => hw + padding),
-    };
-};
 
 type BarChartProps = CartesianChartProps & {
     /** Callback when a bar is pressed */
@@ -75,7 +52,7 @@ function BarChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left'
     const [barAreaWidth, setBarAreaWidth] = useState(0);
     const [boundsLeft, setBoundsLeft] = useState(0);
     const [boundsRight, setBoundsRight] = useState(0);
-    const defaultBarColor = DEFAULT_CHART_COLOR;
+    const defaultBarColor = VictoryTheme.colors.default;
 
     const chartData = data.map((point, index) => ({
         x: index,
@@ -141,14 +118,12 @@ function BarChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left'
         labelRotation,
         labelSkipInterval,
         chartBottom,
-        computeGeometry: computeBarLabelGeometry,
     });
 
     const handleChartBoundsChange = (bounds: ChartBounds) => {
         const domainWidth = bounds.right - bounds.left;
         const calculatedBarWidth = ((1 - BAR_INNER_PADDING) * domainWidth) / data.length;
         barWidth.set(calculatedBarWidth);
-        chartBottom.set(bounds.bottom);
         yZero.set(0);
         setBarAreaWidth(domainWidth);
         setBoundsLeft(bounds.left);
@@ -197,7 +172,7 @@ function BarChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left'
     const renderBar = (point: PointsArray[number], chartBounds: ChartBounds, barCount: number) => {
         const dataIndex = point.xValue as number;
         const dataPoint = data.at(dataIndex);
-        const barColor = useSingleColor ? defaultBarColor : getChartColor(dataIndex);
+        const barColor = useSingleColor ? defaultBarColor : VictoryTheme.colors.getColor(dataIndex);
 
         return (
             <Bar
@@ -216,6 +191,10 @@ function BarChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left'
         if (!fontMgr || xAxisLabelHeight === undefined) {
             return null;
         }
+
+        const chartBoundsBottom = args.yScale(Math.min(...args.yTicks));
+        chartBottom.set(chartBoundsBottom);
+
         return (
             <>
                 <ChartXAxisLabels
@@ -231,8 +210,7 @@ function BarChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left'
                     fontMgr={fontMgr}
                     labelColor={theme.textSupporting}
                     xScale={args.xScale}
-                    chartBoundsBottom={args.chartBounds.bottom}
-                    centerRotatedLabels
+                    chartBoundsBottom={chartBoundsBottom}
                 />
                 <ChartYAxisLabels
                     yTicks={args.yTicks}
@@ -248,17 +226,17 @@ function BarChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left'
         );
     };
 
-    const labelSpace = AXIS_LABEL_GAP + (xAxisLabelHeight ?? 0);
+    const labelSpace = VictoryTheme.axis.labelGap + (xAxisLabelHeight ?? 0);
     const dynamicChartStyle = {height: CHART_CONTENT_MIN_HEIGHT + labelSpace};
     const yAxisLabelWidth = useYAxisLabelWidth(
         Math.max(...data.map((p) => p.total), 0),
         Math.min(...data.map((p) => p.total), 0),
-        Y_AXIS_TICK_COUNT,
+        VictoryTheme.axis.tickCount,
         formatValue,
         fontMgr,
         variables.iconSizeExtraSmall,
     );
-    const chartPadding = {...CHART_PADDING, bottom: labelSpace + CHART_PADDING.bottom + variables.iconSizeExtraSmall, left: yAxisLabelWidth + GLYPH_PADDING};
+    const chartPadding = {...VictoryTheme.axis.padding, bottom: labelSpace + VictoryTheme.axis.padding.bottom, left: yAxisLabelWidth + GLYPH_PADDING};
 
     if (isLoading || !fontMgr) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'BarChartContent', isLoading, isFontLoading: !fontMgr};
@@ -293,14 +271,14 @@ function BarChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left'
                         renderOutside={renderOutside}
                         xAxis={{
                             tickCount: data.length,
-                            lineWidth: X_AXIS_LINE_WIDTH,
+                            lineWidth: VictoryTheme.axis.xLineWidth,
                         }}
                         yAxis={[
                             {
-                                tickCount: Y_AXIS_TICK_COUNT,
-                                lineWidth: Y_AXIS_LINE_WIDTH,
+                                tickCount: VictoryTheme.axis.tickCount,
+                                lineWidth: VictoryTheme.axis.yLineWidth,
                                 lineColor: theme.border,
-                                labelOffset: AXIS_LABEL_GAP,
+                                labelOffset: VictoryTheme.axis.labelGap,
                                 domain: yAxisDomain,
                             },
                         ]}
@@ -325,3 +303,4 @@ function BarChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left'
 
 export default BarChartContent;
 export type {BarChartProps};
+export {BAR_INNER_PADDING};

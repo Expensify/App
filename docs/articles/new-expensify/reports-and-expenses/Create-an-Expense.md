@@ -76,9 +76,10 @@ You can create an expense by scanning a receipt, entering details manually, or t
 2. Select **Track distance**.
 3. Select **GPS** and tap **Start**.
 4. Drive to your destination — tracking runs in the background.
-5. Tap **Stop** when you arrive and confirm by selecting **Stop GPS tracking**.
-6. Review the route summary, then tap **Next**.
-7. Review the expense details, then tap **Create expense**.
+5. Tap **Stop** when you arrive.
+6. (Optional) Tap **Resume** to continue the trip from a new location, creating a new segment. Tap **Stop** again when done.
+7. Review the route summary, then tap **Save**.
+8. Review the expense details, then tap **Create expense**.
 
 For more details on all distance methods including manual entry, see [Distance Expenses](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Distance-Expenses).
 
@@ -95,7 +96,7 @@ To create a time expense:
 3. Select **Time**.
 4. Enter the number of hours.
 5. Click **Next**.
-6. Choose the recipient and add expense details like description, category, tags, tax, date, and set whether the expense is reimbursable.
+6. Choose the recipient and add expense details like description, category, tags, date, and set whether the expense is reimbursable.
 7. Click **Create expense**.
 
 The total amount will be calculated automatically using the hourly rate set for the workspace.

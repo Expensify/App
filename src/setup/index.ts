@@ -46,7 +46,6 @@ export default function () {
             [ONYXKEYS.SESSION]: {loading: false},
             [ONYXKEYS.ACCOUNT]: CONST.DEFAULT_ACCOUNT_DATA,
             [ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED]: false,
-            [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,
             [ONYXKEYS.MODAL]: {
                 isVisible: false,
                 willAlertModalBecomeVisible: false,
@@ -69,7 +68,9 @@ export default function () {
             ONYXKEYS.RAM_ONLY_WALLET_ONFIDO,
             ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
             ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN,
+            ONYXKEYS.RAM_ONLY_MERGE_HR_LINK_TOKEN,
             ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD,
+            ONYXKEYS.RAM_ONLY_HAS_DISMISSED_CONCIERGE_NOTIFICATION_BANNER,
         ],
     });
 

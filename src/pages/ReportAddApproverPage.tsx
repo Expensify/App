@@ -121,7 +121,6 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
         setSelectedApproverEmail(approvers.at(0)?.login ?? undefined);
     }, []);
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = !isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report);
 
     return (

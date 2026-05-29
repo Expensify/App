@@ -3,9 +3,10 @@ import React, {useCallback, useEffect, useMemo} from 'react';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
-import {Animated, InteractionManager, ScrollView, View} from 'react-native';
+import {Animated, ScrollView, View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -60,7 +61,7 @@ type MoneyRequestReportViewProps = {
     onLayout?: (event: LayoutChangeEvent) => void;
 };
 
-function goBackFromSearchMoneyRequest() {
+function goBackFromSearchMoneyRequest(options?: {afterTransition?: () => void}) {
     const rootState = navigationRef.getRootState();
     const lastRoute = rootState.routes.at(-1);
 
@@ -70,7 +71,7 @@ function goBackFromSearchMoneyRequest() {
     }
 
     if (lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
-        Navigation.goBack();
+        Navigation.goBack(undefined, options);
         return;
     }
 
@@ -80,11 +81,11 @@ function goBackFromSearchMoneyRequest() {
     }
 
     if (rootState.routes.length > 1) {
-        Navigation.goBack();
+        Navigation.goBack(undefined, options);
         return;
     }
 
-    Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
+    Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}), options);
 }
 
 function InitialLoadingSkeleton({styles, onLayout, reasonAttributes}: {styles: ThemeStyles; onLayout?: (event: LayoutChangeEvent) => void; reasonAttributes: SkeletonSpanReasonAttributes}) {
@@ -143,9 +144,7 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
 
     const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
     const dismissReportCreationError = useCallback(() => {
-        goBackFromSearchMoneyRequest();
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => removeFailedReport(reportID));
+        goBackFromSearchMoneyRequest({afterTransition: () => removeFailedReport(reportID)});
     }, [reportID]);
 
     // Special case handling a report that is a transaction thread
@@ -247,7 +246,7 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
                 needsOffscreenAlphaCompositing
                 shouldShowErrorMessages={false}
             >
-                {reportHeaderView}
+                <CollapsibleHeaderOnKeyboard>{reportHeaderView}</CollapsibleHeaderOnKeyboard>
             </OfflineWithFeedback>
             <OfflineWithFeedback
                 pendingAction={reportPendingAction}

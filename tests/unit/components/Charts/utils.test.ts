@@ -1,4 +1,3 @@
-import {DIAGONAL_ANGLE_RADIAN_THRESHOLD, LABEL_ROTATIONS, SIN_45} from '@components/Charts/constants';
 import type {ChartDataPoint, PieSlice} from '@components/Charts/types';
 import {
     calculateMinDomainPadding,
@@ -8,7 +7,6 @@ import {
     effectiveWidth,
     findSliceAtPosition,
     getAdditionalOffset,
-    getChartColor,
     getNiceLowerBound,
     getNiceUpperBound,
     isAngleInSlice,
@@ -22,6 +20,7 @@ import {
     rotatedLabelYOffset,
     truncateLabel,
 } from '@components/Charts/utils';
+import VictoryTheme, {DIAGONAL_ANGLE_RADIAN_THRESHOLD, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
 
 const LINE_HEIGHT = 16;
 
@@ -98,23 +97,18 @@ describe('maxVisibleCount', () => {
 
 describe('labelOverhang', () => {
     it('returns symmetric halves at 0° (horizontal)', () => {
-        const result = labelOverhang(100, LINE_HEIGHT, LABEL_ROTATIONS.HORIZONTAL, false);
+        const result = labelOverhang(100, LINE_HEIGHT, LABEL_ROTATIONS.HORIZONTAL);
         expect(result.left).toBe(50);
         expect(result.right).toBe(50);
     });
 
-    it('returns symmetric overhang at 45° when centered', () => {
-        const result = labelOverhang(100, LINE_HEIGHT, LABEL_ROTATIONS.DIAGONAL, false);
-        expect(result.left).toBeCloseTo(result.right);
-    });
-
-    it('returns asymmetric overhang at 45° when right-aligned', () => {
-        const result = labelOverhang(100, LINE_HEIGHT, LABEL_ROTATIONS.DIAGONAL, true);
+    it('returns asymmetric overhang at 45°', () => {
+        const result = labelOverhang(100, LINE_HEIGHT, LABEL_ROTATIONS.DIAGONAL);
         expect(result.left).toBeGreaterThan(result.right);
     });
 
     it('returns lineHeight/2 on both sides at 90°', () => {
-        const result = labelOverhang(100, LINE_HEIGHT, LABEL_ROTATIONS.VERTICAL, false);
+        const result = labelOverhang(100, LINE_HEIGHT, LABEL_ROTATIONS.VERTICAL);
         expect(result.left).toBe(LINE_HEIGHT / 2);
         expect(result.right).toBe(LINE_HEIGHT / 2);
     });
@@ -128,7 +122,6 @@ describe('edgeLabelsFit', () => {
         rotation: LABEL_ROTATIONS.HORIZONTAL,
         firstTickLeftSpace: 30,
         lastTickRightSpace: 30,
-        rightAligned: false,
     };
 
     it('returns true when both edges have enough space', () => {
@@ -146,32 +139,26 @@ describe('edgeLabelsFit', () => {
 
 describe('edgeMaxLabelWidth', () => {
     it('returns 2 * edgeSpace at 0°', () => {
-        expect(edgeMaxLabelWidth(50, LINE_HEIGHT, LABEL_ROTATIONS.HORIZONTAL, false, 'first')).toBe(100);
+        expect(edgeMaxLabelWidth(50, LINE_HEIGHT, LABEL_ROTATIONS.HORIZONTAL, 'first')).toBe(100);
     });
 
     it('returns Infinity at 90° (overhang is constant)', () => {
-        expect(edgeMaxLabelWidth(50, LINE_HEIGHT, LABEL_ROTATIONS.VERTICAL, false, 'first')).toBe(Infinity);
+        expect(edgeMaxLabelWidth(50, LINE_HEIGHT, LABEL_ROTATIONS.VERTICAL, 'first')).toBe(Infinity);
     });
 
-    it('returns finite value at 45° for first label when centered', () => {
-        const result = edgeMaxLabelWidth(50, LINE_HEIGHT, LABEL_ROTATIONS.DIAGONAL, false, 'first');
+    it('returns finite value at 45° for first label', () => {
+        const result = edgeMaxLabelWidth(50, LINE_HEIGHT, LABEL_ROTATIONS.DIAGONAL, 'first');
         expect(result).toBeGreaterThan(0);
         expect(result).not.toBe(Infinity);
     });
 
-    it('returns Infinity at 45° for last label when right-aligned', () => {
-        expect(edgeMaxLabelWidth(50, LINE_HEIGHT, LABEL_ROTATIONS.DIAGONAL, true, 'last')).toBe(Infinity);
+    it('returns Infinity at 45° for last label (right-aligned labels never overhang right)', () => {
+        expect(edgeMaxLabelWidth(50, LINE_HEIGHT, LABEL_ROTATIONS.DIAGONAL, 'last')).toBe(Infinity);
     });
 
-    it('returns finite value at 45° for first label when right-aligned', () => {
-        const result = edgeMaxLabelWidth(50, LINE_HEIGHT, LABEL_ROTATIONS.DIAGONAL, true, 'first');
-        expect(result).toBeGreaterThan(0);
-        expect(result).not.toBe(Infinity);
-    });
-
-    it('returns 0 when edgeSpace is too small at 45° centered', () => {
+    it('returns 0 when edgeSpace is too small at 45°', () => {
         // edgeSpace/SIN_45 - halfLH ≤ 0 → Math.max(0, ...) = 0
-        expect(edgeMaxLabelWidth(1, LINE_HEIGHT, LABEL_ROTATIONS.DIAGONAL, false, 'first')).toBe(0);
+        expect(edgeMaxLabelWidth(1, LINE_HEIGHT, LABEL_ROTATIONS.DIAGONAL, 'first')).toBe(0);
     });
 });
 
@@ -275,7 +262,7 @@ describe('findSliceAtPosition', () => {
 
 describe('processDataIntoSlices', () => {
     it('returns empty array for empty data', () => {
-        expect(processDataIntoSlices([], 0, {centerX: 0, centerY: 0, radius: 0})).toEqual([]);
+        expect(processDataIntoSlices([], {centerX: 0, centerY: 0, radius: 0})).toEqual([]);
     });
 
     it('returns empty array when all values are zero', () => {
@@ -283,12 +270,12 @@ describe('processDataIntoSlices', () => {
             {label: 'A', total: 0},
             {label: 'B', total: 0},
         ];
-        expect(processDataIntoSlices(data, 0, {centerX: 0, centerY: 0, radius: 0})).toEqual([]);
+        expect(processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0})).toEqual([]);
     });
 
     it('creates a single slice covering 360 degrees for one data point', () => {
         const data: ChartDataPoint[] = [{label: 'Only', total: 100}];
-        const slices = processDataIntoSlices(data, -90, {centerX: 0, centerY: 0, radius: 0});
+        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0}, -90);
 
         expect(slices).toHaveLength(1);
         expect(slices.at(0)?.label).toBe('Only');
@@ -299,12 +286,27 @@ describe('processDataIntoSlices', () => {
         expect(slices.at(0)?.originalIndex).toBe(0);
     });
 
+    it('uses the provided startAngle for the first slice', () => {
+        const data: ChartDataPoint[] = [{label: 'Only', total: 100}];
+        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0}, 45);
+
+        expect(slices.at(0)?.startAngle).toBe(45);
+        expect(slices.at(0)?.endAngle).toBe(405);
+    });
+
+    it('defaults to VictoryTheme.pie.startAngle when no startAngle is provided', () => {
+        const data: ChartDataPoint[] = [{label: 'Only', total: 100}];
+        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0});
+
+        expect(slices.at(0)?.startAngle).toBe(VictoryTheme.pie.startAngle);
+    });
+
     it('sorts slices by absolute value descending', () => {
         const data: ChartDataPoint[] = [
             {label: 'Small', total: 10},
             {label: 'Large', total: 90},
         ];
-        const slices = processDataIntoSlices(data, 0, {centerX: 0, centerY: 0, radius: 0});
+        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0});
 
         expect(slices.at(0)?.label).toBe('Large');
         expect(slices.at(1)?.label).toBe('Small');
@@ -315,7 +317,7 @@ describe('processDataIntoSlices', () => {
             {label: 'Positive', total: 75},
             {label: 'Negative', total: -25},
         ];
-        const slices = processDataIntoSlices(data, 0, {centerX: 0, centerY: 0, radius: 0});
+        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0});
 
         expect(slices).toHaveLength(2);
         expect(slices.at(0)?.value).toBe(75);
@@ -330,7 +332,7 @@ describe('processDataIntoSlices', () => {
             {label: 'Medium', total: 50},
             {label: 'Large', total: 100},
         ];
-        const slices = processDataIntoSlices(data, 0, {centerX: 0, centerY: 0, radius: 0});
+        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0});
 
         expect(slices.at(0)?.originalIndex).toBe(2); // Large was at index 2
         expect(slices.at(1)?.originalIndex).toBe(1); // Medium was at index 1
@@ -343,7 +345,7 @@ describe('processDataIntoSlices', () => {
             {label: 'B', total: 33},
             {label: 'C', total: 34},
         ];
-        const slices = processDataIntoSlices(data, -90, {centerX: 0, centerY: 0, radius: 0});
+        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0});
 
         const totalSweep = slices.reduce((sum, s) => sum + (s.endAngle - s.startAngle), 0);
         expect(totalSweep).toBeCloseTo(360, 5);
@@ -355,7 +357,7 @@ describe('processDataIntoSlices', () => {
             {label: 'B', total: 30},
             {label: 'C', total: 20},
         ];
-        const slices = processDataIntoSlices(data, -90, {centerX: 0, centerY: 0, radius: 0});
+        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0});
 
         for (let i = 1; i < slices.length; i++) {
             expect(slices.at(i)?.startAngle).toBeCloseTo(slices.at(i - 1)?.endAngle ?? 0, 10);
@@ -369,7 +371,7 @@ describe('processDataIntoSlices', () => {
             {label: 'C', total: 20},
             {label: 'D', total: 10},
         ];
-        const slices = processDataIntoSlices(data, 0, {centerX: 0, centerY: 0, radius: 0});
+        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0});
         const colors = slices.map((s) => s.color);
         const uniqueColors = new Set(colors);
 
@@ -549,28 +551,6 @@ describe('isCursorOverChartLabel', () => {
             expect(isCursorOverChartLabel({...params(), cursorY: 15})).toBe(true);
             expect(isCursorOverChartLabel({...params(), cursorY: 25})).toBe(true);
         });
-    });
-});
-
-describe('getChartColor', () => {
-    it('returns a non-empty string for index 0', () => {
-        const color = getChartColor(0);
-        expect(typeof color).toBe('string');
-        expect(color.length).toBeGreaterThan(0);
-    });
-
-    it('returns different colors for consecutive indices', () => {
-        expect(getChartColor(0)).not.toBe(getChartColor(1));
-        expect(getChartColor(1)).not.toBe(getChartColor(2));
-    });
-
-    it('wraps around to the same color after the full palette (30 entries)', () => {
-        expect(getChartColor(0)).toBe(getChartColor(30));
-        expect(getChartColor(5)).toBe(getChartColor(35));
-    });
-
-    it('handles large indices via modulo wrapping', () => {
-        expect(getChartColor(0)).toBe(getChartColor(300));
     });
 });
 

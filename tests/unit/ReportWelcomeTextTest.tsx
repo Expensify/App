@@ -34,6 +34,9 @@ jest.mock('@hooks/useThemeStyles', () =>
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     getReportRHPActiveRoute: jest.fn(() => ''),
+    getActiveRoute: jest.fn(() => ''),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
     navigate: jest.fn(),
 }));
 
@@ -56,7 +59,6 @@ jest.mock('@hooks/usePreferredPolicy', () =>
 jest.mock('@hooks/useReportIsArchived', () => jest.fn(() => false));
 
 jest.mock('@components/RenderHTML', () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
     const ReactNative = require('react-native') as {Text: React.ComponentType<{children?: React.ReactNode}>};
     const {Text} = ReactNative;
     function MockRenderHTML({html}: {html: string}) {

@@ -1,4 +1,5 @@
 import React from 'react';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
@@ -9,8 +10,12 @@ import FS from '@libs/Fullstory';
 import ReportActionItem from '@pages/inbox/report/ReportActionItem';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {getStableReportSelector} from '@src/selectors/Report';
 import type {ChatListItemProps, ReportActionListItemType} from './types';
 
+/**
+ * A chat message (report action) row in search results.
+ */
 function ChatListItem<TItem extends ListItem>({
     item,
     isFocused,
@@ -22,13 +27,11 @@ function ChatListItem<TItem extends ListItem>({
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
-    userWalletTierName,
-    isUserValidated,
-    personalDetails,
-    userBillingFundID,
 }: ChatListItemProps<TItem>) {
     const reportActionItem = item as unknown as ReportActionListItemType;
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID}`);
+    const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID}`, {selector: getStableReportSelector});
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.childReportID}`);
+    const personalDetails = usePersonalDetails();
     const styles = useThemeStyles();
     const theme = useTheme();
     const animatedHighlightStyle = useAnimatedHighlightStyle({
@@ -49,7 +52,9 @@ function ChatListItem<TItem extends ListItem>({
         item.cursorStyle,
     ];
 
-    const fsClass = FS.getChatFSClass(report);
+    const fsClass = FS.getChatFSClass(reportStable);
+
+    const handlePress = () => onSelectRow(item);
 
     return (
         <BaseListItem
@@ -74,20 +79,16 @@ function ChatListItem<TItem extends ListItem>({
         >
             <ReportActionItem
                 action={reportActionItem}
-                report={report}
-                onPress={() => onSelectRow(item)}
+                report={reportStable}
+                transactionThreadReport={transactionThreadReport}
+                onPress={handlePress}
                 parentReportAction={undefined}
                 displayAsGroup={false}
                 shouldDisplayNewMarker={false}
-                index={item.index ?? 0}
                 isFirstVisibleReportAction={false}
                 shouldDisplayContextMenu={false}
-                shouldShowDraftMessage={false}
                 shouldShowBorder
-                userWalletTierName={userWalletTierName}
-                isUserValidated={isUserValidated}
                 personalDetails={personalDetails}
-                userBillingFundID={userBillingFundID}
             />
         </BaseListItem>
     );

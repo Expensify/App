@@ -2,73 +2,30 @@ import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
-import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactions from '@hooks/useReportTransactions';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIOUReportIDFromReportActionPreview, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {
-    chatIncludesChronosWithID,
-    getIndicatedMissingPaymentMethod,
-    getTransactionsWithReceipts,
-    isArchivedNonExpenseReport,
-    isChatThread,
-    isClosedExpenseReportWithNoExpenses,
-    isCurrentUserTheOnlyParticipant,
-} from '@libs/ReportUtils';
-import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
-import {deleteReportActionDraft, resolveActionableMentionWhisper, resolveActionableReportMentionWhisper} from '@userActions/Report';
-import {clearError} from '@userActions/Transaction';
+import {isClosedExpenseReportWithNoExpenses} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {getStableReportSelector} from '@src/selectors/Report';
 import type {PersonalDetailsList, Transaction} from '@src/types/onyx';
 import type {PureReportActionItemProps} from './PureReportActionItem';
 import PureReportActionItem from './PureReportActionItem';
+import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
 
-type ReportActionItemProps = Omit<PureReportActionItemProps, 'personalPolicyID'> & {
-    /** Whether to show the draft message or not */
-    shouldShowDraftMessage?: boolean;
-
+type ReportActionItemProps = PureReportActionItemProps & {
     /** Draft message for the report action */
     draftMessage?: string;
 
-    /** User wallet tierName */
-    userWalletTierName: string | undefined;
-
-    /** Whether the user is validated */
-    isUserValidated: boolean | undefined;
-
     /** Personal details list */
     personalDetails: OnyxEntry<PersonalDetailsList>;
-
-    /** User billing fund ID */
-    userBillingFundID: number | undefined;
-
-    /** Did the user dismiss trying out NewDot? If true, it means they prefer using OldDot */
-    isTryNewDotNVPDismissed?: boolean;
 };
 
-function ReportActionItem({
-    action,
-    report,
-    draftMessage,
-    userWalletTierName,
-    isUserValidated,
-    personalDetails,
-    userBillingFundID,
-    linkedTransactionRouteError: linkedTransactionRouteErrorProp,
-    isTryNewDotNVPDismissed,
-    ...props
-}: ReportActionItemProps) {
+function ReportActionItem({action, report, draftMessage: draftMessageProp, personalDetails, linkedTransactionRouteError: linkedTransactionRouteErrorProp, ...props}: ReportActionItemProps) {
     const reportID = report?.reportID;
     const originalReportID = useOriginalReportID(reportID, action);
-    const isOriginalReportArchived = useReportIsArchived(originalReportID);
-    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
-    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`);
+    const [stableOriginalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {selector: getStableReportSelector});
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`);
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const transactionsOnIOUReport = useReportTransactions(iouReport?.reportID);
     const transactionID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID;
 
@@ -81,40 +38,22 @@ function ReportActionItem({
 
     const [linkedTransactionRouteError] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {selector: getLinkedTransactionRouteError});
 
-    const targetReport = isChatThread(report) ? parentReport : report;
-    const missingPaymentMethod = getIndicatedMissingPaymentMethod(userWalletTierName, targetReport?.reportID, action, bankAccountList);
+    const {editingMessage, editingReportAction} = useReportActionActiveEdit();
+    const draftMessageFromEditingContext = editingReportAction && action && editingReportAction.reportActionID === action.reportActionID ? (editingMessage ?? undefined) : undefined;
+    const draftMessage = draftMessageProp ?? draftMessageFromEditingContext;
 
     return (
         <PureReportActionItem
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            personalPolicyID={personalPolicyID}
             action={action}
             report={report}
-            policy={policy}
             draftMessage={draftMessage}
             iouReport={iouReport}
             linkedTransactionRouteError={linkedTransactionRouteError}
-            isUserValidated={isUserValidated}
-            parentReport={parentReport}
             personalDetails={personalDetails}
             originalReportID={originalReportID}
-            originalReport={originalReport}
-            deleteReportActionDraft={deleteReportActionDraft}
-            isArchivedRoom={isArchivedNonExpenseReport(originalReport, isOriginalReportArchived)}
-            isChronosReport={chatIncludesChronosWithID(originalReportID)}
-            resolveActionableReportMentionWhisper={resolveActionableReportMentionWhisper}
-            resolveActionableMentionWhisper={resolveActionableMentionWhisper}
+            originalReport={stableOriginalReport}
             isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses(iouReport, transactionsOnIOUReport)}
-            isCurrentUserTheOnlyParticipant={isCurrentUserTheOnlyParticipant}
-            missingPaymentMethod={missingPaymentMethod}
-            getTransactionsWithReceipts={getTransactionsWithReceipts}
-            clearError={clearError}
-            clearAllRelatedReportActionErrors={clearAllRelatedReportActionErrors}
-            userBillingFundID={userBillingFundID}
-            isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
-            bankAccountList={bankAccountList}
-            reportMetadata={reportMetadata}
         />
     );
 }

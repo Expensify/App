@@ -1,9 +1,9 @@
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,22 +23,56 @@ type ApprovalWorkflowSectionProps = {
     approvalWorkflow: ApprovalWorkflow;
 
     /** A function that is called when the section is pressed */
-    onPress: () => void;
+    onPress?: () => void;
 
     /** Currency used for formatting approval limits */
     currency?: string;
+
+    /** Whether the workflow should be shown as read-only */
+    isDisabled?: boolean;
+
+    /** HR provider display name, used in advanced (manager) mode to show "Manager (from {provider})" */
+    hrProviderName?: string;
+
+    /** When true, uses HR advanced (manager) mode labels: "Manager (from {provider})" then "Final approver" */
+    isHRAdvancedMode?: boolean;
+
+    /** Email of the configured final approver in HR advanced (manager) mode, used to correctly label a sole approver who is the final approver */
+    hrFinalApproverEmail?: string;
 };
 
-function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CURRENCY.USD}: ApprovalWorkflowSectionProps) {
+function ApprovalWorkflowSection({
+    approvalWorkflow,
+    onPress,
+    currency = CONST.CURRENCY.USD,
+    isDisabled = false,
+    hrProviderName,
+    isHRAdvancedMode = false,
+    hrFinalApproverEmail,
+}: ApprovalWorkflowSectionProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Lightbulb', 'Users', 'UserCheck']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const personalDetailsByEmail = usePersonalDetailsByEmail();
 
-    const approverTitle = (index: number) =>
-        approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`;
+    const approverTitle = (index: number) => {
+        if (isHRAdvancedMode) {
+            const isLast = index === approvalWorkflow.approvers.length - 1;
+            const approver = approvalWorkflow.approvers.at(index);
+            const isConfiguredFinalApprover = !!hrFinalApproverEmail && approver?.email === hrFinalApproverEmail;
+            if (isLast && isConfiguredFinalApprover) {
+                return translate('workflowsPage.finalApprover');
+            }
+            if (approvalWorkflow.approvers.length <= 1) {
+                return translate('workflowsPage.approver');
+            }
+            const fromProviderSuffix = hrProviderName ? ` (${translate('workflowsPage.approverFromProvider', {provider: hrProviderName})})` : '';
+            return `${translate('workflowsPage.manager')}${fromProviderSuffix}`;
+        }
+        return approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : translate('workflowsPage.approver');
+    };
 
     const sortedMembers = approvalWorkflow.isDefault ? [] : sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare);
 
@@ -49,12 +83,14 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
         displayName: m.displayName,
         email: m.email,
     }));
+    const pressAction = isDisabled ? undefined : onPress;
+
     return (
         <PressableWithoutFeedback
-            accessibilityRole="button"
+            accessibilityRole={isDisabled ? undefined : 'button'}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.APPROVAL_WORKFLOW_SECTION}
             style={[styles.border, shouldUseNarrowLayout ? styles.p3 : styles.p4, styles.flexRow, styles.justifyContentBetween, styles.mt6, styles.mbn3]}
-            onPress={onPress}
+            onPress={pressAction}
             accessibilityLabel={translate('workflowsPage.accessibilityLabel', {
                 members,
                 approvers: approvalWorkflow?.approvers.map((approver) => Str.removeSMSDomain(approver?.displayName ?? '')).join(', '),
@@ -90,7 +126,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
                     iconHeight={20}
                     iconWidth={20}
                     iconFill={theme.icon}
-                    onPress={onPress}
+                    onPress={pressAction}
                     shouldRemoveBackground
                     titleComponent={
                         !approvalWorkflow.isDefault ? (
@@ -118,7 +154,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
                             iconWidth={20}
                             numberOfLinesDescription={1}
                             iconFill={theme.icon}
-                            onPress={onPress}
+                            onPress={pressAction}
                             shouldRemoveBackground
                             titleComponent={
                                 <View style={[styles.ml3, styles.pr3]}>
@@ -130,18 +166,20 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
                                     />
                                 </View>
                             }
-                            helperText={getApprovalLimitDescription({approver, currency, translate, personalDetailsByEmail})}
+                            helperText={getApprovalLimitDescription({approver, currency, translate, convertToDisplayString})}
                             helperTextStyle={styles.workflowApprovalLimitText}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_APPROVER}
                         />
                     </View>
                 ))}
             </View>
-            <Icon
-                src={icons.ArrowRight}
-                fill={theme.icon}
-                additionalStyles={[styles.alignSelfCenter]}
-            />
+            {!isDisabled && (
+                <Icon
+                    src={icons.ArrowRight}
+                    fill={theme.icon}
+                    additionalStyles={[styles.alignSelfCenter]}
+                />
+            )}
         </PressableWithoutFeedback>
     );
 }
