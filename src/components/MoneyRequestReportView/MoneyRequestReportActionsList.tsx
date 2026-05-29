@@ -7,7 +7,6 @@ import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, use
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLoadReportActions from '@hooks/useLoadReportActions';
@@ -153,7 +152,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
     const parentReportAction = useParentReportAction(report);
 
-    const personalDetails = usePersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
 
@@ -594,7 +592,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                         isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                         shouldHideThreadDividerLine
                         linkedReportActionID={linkedReportActionID}
-                        personalDetails={personalDetails}
                         isHarvestCreatedExpenseReport={shouldShowHarvestCreatedAction}
                     />
                 </ReportActionIndexContext.Provider>
@@ -609,7 +606,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             unreadMarkerReportActionID,
             firstVisibleReportActionID,
             linkedReportActionID,
-            personalDetails,
             shouldShowHarvestCreatedAction,
         ],
     );
