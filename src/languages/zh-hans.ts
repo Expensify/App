@@ -2885,6 +2885,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         phoneOrEmail: '电话或邮箱',
         error: {
             invalidFormatEmailLogin: '输入的邮箱无效。请修正格式后重试。',
+            agentSignInBlocked: '代理帐户无法直接登录。要使用代理，请先登录您自己的帐户，然后通过 Copilot 访问该代理。',
         },
         cannotGetAccountDetails: '无法获取账户详情。请尝试重新登录。',
         loginForm: '登录表单',
@@ -9209,6 +9210,12 @@ ${reportName}
             chooseWhereToMove: ({count}: {count: number}) => `选择将 ${count} 个 ${count === 1 ? '成员' : '成员'} 移动到哪里。`,
             domainGroup: '域名组',
             chooseWhereToMoveName: ({name}: {name: string}) => `选择将 ${name} 移动到哪里。`,
+            membersFeatureList: {
+                subtitle: ({domainName}: {domainName: string}) => `<muted-text>验证你的域，以便在 Expensify 中更好地管理 <strong>${domainName}</strong> 成员。</muted-text>`,
+                controlPolicyCreation: '限制创建工作区',
+                enableSamlSso: '启用 SAML 单点登录',
+                enforce2FA: '强制启用双重验证',
+            },
         },
         common: {
             settings: '设置',

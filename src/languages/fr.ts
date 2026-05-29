@@ -2978,6 +2978,8 @@ ${amount} pour ${merchant} - ${date}`,
     loginForm: {
         phoneOrEmail: 'Téléphone ou e-mail',
         error: {
+            agentSignInBlocked:
+                'Les comptes d\u2019agent ne permettent pas de se connecter directement. Pour utiliser un agent, connectez-vous avec votre propre compte et accédez-y via Copilot.',
             invalidFormatEmailLogin: 'L’adresse e-mail saisie est invalide. Veuillez corriger le format et réessayer.',
         },
         cannotGetAccountDetails: 'Impossible de récupérer les détails du compte. Veuillez essayer de vous reconnecter.',
@@ -9526,6 +9528,13 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             chooseWhereToMove: ({count}: {count: number}) => `Choisissez où déplacer ${count} ${count === 1 ? 'membre' : 'membres'}.`,
             domainGroup: 'Groupe de domaines',
             chooseWhereToMoveName: ({name}: {name: string}) => `Choisissez où déplacer ${name}.`,
+            membersFeatureList: {
+                subtitle: ({domainName}: {domainName: string}) =>
+                    `<muted-text>Vérifiez votre domaine pour mieux contrôler les membres de <strong>${domainName}</strong> dans Expensify.</muted-text>`,
+                controlPolicyCreation: "Restreindre la création d'espaces de travail",
+                enableSamlSso: 'Activer SAML SSO',
+                enforce2FA: 'Imposer la 2FA',
+            },
         },
         common: {
             settings: 'Paramètres',

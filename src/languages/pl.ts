@@ -2957,6 +2957,7 @@ ${amount} dla ${merchant} - ${date}`,
         phoneOrEmail: 'Telefon lub e-mail',
         error: {
             invalidFormatEmailLogin: 'Wprowadzony adres e-mail jest nieprawidłowy. Popraw jego format i spróbuj ponownie.',
+            agentSignInBlocked: 'Na konta agenta nie można logować się bezpośrednio. Żeby korzystać z agenta, zaloguj się na własne konto i uzyskaj do niego dostęp przez Copilota.',
         },
         cannotGetAccountDetails: 'Nie można pobrać szczegółów konta. Spróbuj zalogować się ponownie.',
         loginForm: 'Formularz logowania',
@@ -9434,6 +9435,13 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             chooseWhereToMove: ({count}: {count: number}) => `Wybierz, dokąd przenieść ${count} ${count === 1 ? 'członka' : 'członków'}.`,
             domainGroup: 'Grupa domen',
             chooseWhereToMoveName: ({name}: {name: string}) => `Wybierz, dokąd przenieść ${name}.`,
+            membersFeatureList: {
+                subtitle: ({domainName}: {domainName: string}) =>
+                    `<muted-text>Zweryfikuj swoją domenę, aby mieć większą kontrolę nad członkami <strong>${domainName}</strong> w Expensify.</muted-text>`,
+                controlPolicyCreation: 'Ogranicz tworzenie przestrzeni roboczych',
+                enableSamlSso: 'Włącz logowanie SAML SSO',
+                enforce2FA: 'Wymuś 2FA',
+            },
         },
         common: {
             settings: 'Ustawienia',
