@@ -1020,7 +1020,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: ({days}: {days: number}) => `Avaliação gratuita: restam ${days} ${days === 1 ? 'dia' : 'dias'}!`,
             offer50Body: 'Ganhe 50% de desconto no seu primeiro ano',
             offer25Body: 'Ganhe 25% de desconto no seu primeiro ano',
-            addCardBody: 'Não espere! Adicione seu cartão de pagamento agora.',
+            addCardBody: 'Adicionar um cartão de pagamento',
             ctaClaim: 'Solicitação',
             ctaAdd: 'Adicionar cartão',
             timeRemaining: ({formattedTime}: {formattedTime: string}) => `Tempo restante: ${formattedTime}`,
@@ -2807,10 +2807,7 @@ ${amount} para ${merchant} - ${date}`,
     expenseRulesPage: {
         title: 'Regras de despesas',
         findRule: 'Encontrar regra',
-        emptyRules: {
-            title: 'Você não criou nenhuma regra',
-            subtitle: 'Adicione uma regra para automatizar o relatório de despesas.',
-        },
+        emptyRules: {title: 'Ainda não há regras', subtitle: 'Adicione uma regra para automatizar o relatório de despesas.'},
         changes: {
             billableUpdate: (value: boolean) => `Atualizar despesa ${value ? 'faturável' : 'não faturável'}`,
             categoryUpdate: (value: string) => `Atualizar categoria para “${value}”`,
@@ -5541,7 +5538,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             needCategoryForExportToIntegration: (connectionName: string) => `Todas as despesas devem ser categorizadas para serem exportadas para ${connectionName}.`,
             subtitle: 'Tenha uma visão melhor de onde o dinheiro está sendo gasto. Use nossas categorias padrão ou adicione as suas.',
             emptyCategories: {
-                title: 'Você não criou nenhuma categoria',
+                title: 'Ainda não há categorias',
                 subtitle: 'Adicione uma categoria para organizar seus gastos.',
                 subtitleWithAccounting: (accountingPageURL: string) =>
                     `<muted-text><centered-text>Suas categorias estão sendo importadas de uma conexão de contabilidade. Vá até <a href="${accountingPageURL}">contabilidade</a> para fazer qualquer alteração.</centered-text></muted-text>`,
@@ -5848,10 +5845,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             findReportField: 'Encontrar campo de relatório',
             deleteConfirmation: 'Tem certeza de que deseja excluir este campo de relatório?',
             deleteFieldsConfirmation: 'Tem certeza de que deseja excluir esses campos de relatório?',
-            emptyReportFields: {
-                title: 'Você não criou nenhum campo de relatório',
-                subtitle: 'Adicione um campo personalizado (texto, data ou lista suspensa) que apareça nos relatórios.',
-            },
+            emptyReportFields: {title: 'Ainda não há campos de relatório', subtitle: 'Adicione um campo personalizado (texto, data ou lista suspensa) que apareça nos relatórios.'},
             subtitle: 'Os campos de relatório se aplicam a todos os gastos e podem ser úteis quando você quiser solicitar informações extras.',
             disableReportFields: 'Desativar campos de relatório',
             disableReportFieldsConfirmation: 'Tem certeza? Campos de texto e data serão excluídos e listas serão desativadas.',
@@ -5875,10 +5869,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             disableValues: 'Desativar valores',
             enableValue: 'Ativar valor',
             enableValues: 'Ativar valores',
-            emptyReportFieldsValues: {
-                title: 'Você não criou nenhum valor de lista',
-                subtitle: 'Adicione valores personalizados para aparecerem nos relatórios.',
-            },
+            emptyReportFieldsValues: {title: 'Ainda não há valores na lista', subtitle: 'Adicione valores personalizados para aparecerem nos relatórios.'},
             deleteValuePrompt: 'Tem certeza de que deseja excluir este valor da lista?',
             deleteValuesPrompt: 'Tem certeza de que deseja excluir esses valores da lista?',
             listValueRequiredError: 'Insira um nome de valor de lista',
@@ -5914,7 +5905,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             subtitleWithDependentTags: (importSpreadsheetLink: string) =>
                 `<muted-text>As tags acrescentam maneiras mais detalhadas de classificar custos. Você está usando <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">tags dependentes</a>. Você pode <a href="${importSpreadsheetLink}">reimportar uma planilha</a> para atualizar suas tags.</muted-text>`,
             emptyTags: {
-                title: 'Você não criou nenhuma tag',
+                title: 'Ainda não há tags',
                 subtitle: 'Adicione uma tag para acompanhar projetos, locais, departamentos e mais.',
                 subtitleHTML: `<muted-text><centered-text>Adicione tags para acompanhar projetos, locais, departamentos e mais. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Saiba mais</a> sobre como formatar arquivos de tags para importação.</centered-text></muted-text>`,
                 subtitleWithAccounting: (accountingPageURL: string) =>
@@ -6186,7 +6177,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 copyExisting: 'Copiar existente',
                 createNew: 'Criar novo',
                 spendRulesEmptyStateTitle: 'Nenhuma regra para escolher',
-                spendRulesEmptyStateSubtitle: 'Você ainda não criou nenhuma regra. Você pode criar uma na tela anterior.',
+                spendRulesEmptyStateSubtitle: 'Ainda não há regras. Você pode criar uma a partir da tela anterior.',
             },
             deactivateCardModal: {
                 deactivate: 'Desativar',
@@ -7859,30 +7850,23 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 subtitle: `Tente ajustar seus critérios de pesquisa ou criar algo com o botão +.`,
             },
             emptyExpenseResults: {
-                title: 'Você ainda não criou nenhuma despesa',
+                title: 'Ainda não há despesas',
                 subtitle: 'Crie uma despesa ou faça um test drive do Expensify para saber mais.',
                 subtitleWithOnlyCreateButton: 'Use o botão verde abaixo para criar uma despesa.',
             },
             emptyReportResults: {
-                title: 'Você ainda não criou nenhum relatório',
+                title: 'Nenhum relatório ainda',
                 subtitle: 'Crie um relatório ou faça um test drive do Expensify para saber mais.',
                 subtitleWithOnlyCreateButton: 'Use o botão verde abaixo para criar um relatório.',
             },
             emptyInvoiceResults: {
-                title: dedent(`
-                    Você ainda não criou nenhuma
-                    fatura
-                `),
+                title: 'Ainda não há faturas',
                 subtitle: 'Envie uma fatura ou faça um test drive do Expensify para saber mais.',
                 subtitleWithOnlyCreateButton: 'Use o botão verde abaixo para enviar uma fatura.',
                 subtitleCannotSend: 'Você precisa de um espaço de trabalho com Invoices habilitado para enviar faturas.',
                 subtitleCannotSendWithTestDrive: 'Você precisa de um espaço de trabalho com Invoices habilitado para enviar faturas. Faça um test drive do Expensify para saber mais.',
             },
-            emptyTripResults: {
-                title: 'Nenhuma viagem para exibir',
-                subtitle: 'Comece reservando sua primeira viagem abaixo.',
-                buttonText: 'Reservar uma viagem',
-            },
+            emptyTripResults: {title: 'Nenhuma viagem ainda', subtitle: 'Comece reservando sua primeira viagem abaixo.', buttonText: 'Reservar uma viagem'},
             emptySubmitResults: {
                 title: 'Nenhuma despesa para enviar',
                 subtitle: 'Está tudo certo. Pode comemorar!',
