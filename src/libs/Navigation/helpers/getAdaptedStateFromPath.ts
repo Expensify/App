@@ -413,6 +413,14 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldR
         normalizedPath = '/';
     }
 
+    // React Navigation derives `/Home` (capitalized) from the public SignInPage screen because PublicScreens registers it as
+    // `SCREENS.HOME` ('Home') without a path mapping. On HybridApp, OldDot can hand NewDot the literal `/Home` URL at cold start,
+    // which would otherwise fall through the `'*'` wildcard to NOT_FOUND. Normalize it here so every caller (cold-start state
+    // derivation, last-visited-path restoration, etc.) treats it as the root.
+    if (normalizedPath === `/${SCREENS.HOME}`) {
+        normalizedPath = '/';
+    }
+
     const state = getStateFromPath(normalizedPath as RoutePath) as PartialState<NavigationState<RootNavigatorParamList>>;
     if (shouldReplacePathInNestedState) {
         replacePathInNestedState(state, normalizedPath);
