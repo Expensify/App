@@ -55,13 +55,7 @@ function registerPrefetchTokenRefresh(): void {
         },
         body: buildAuthenticateBody(credentials),
         responseType: 'json',
-        mappings: [
-            {
-                jsonPath: CONST.HTTP_HEADER_NAMES.AUTH_TOKEN,
-                header: CONST.HTTP_HEADER_NAMES.AUTH_TOKEN,
-                valueTemplate: '{{value}}',
-            },
-        ],
+        formDataMappings: [{jsonPath: CONST.HTTP_HEADER_NAMES.AUTH_TOKEN, field: CONST.HTTP_HEADER_NAMES.AUTH_TOKEN}],
         onFailure: 'useStoredHeaders',
     });
 
