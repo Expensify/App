@@ -1020,7 +1020,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: ({days}: {days: number}) => `Proefperiode: nog ${days} ${days === 1 ? 'dag' : 'dagen'}!`,
             offer50Body: 'Krijg 50% korting op je eerste jaar',
             offer25Body: 'Krijg 25% korting op je eerste jaar',
-            addCardBody: 'Wacht niet! Voeg nu je betaalkaart toe.',
+            addCardBody: 'Betaalpas toevoegen',
             ctaClaim: 'Declareren',
             ctaAdd: 'Kaart toevoegen',
             timeRemaining: ({formattedTime}: {formattedTime: string}) => `Resterende tijd: ${formattedTime}`,
@@ -2811,10 +2811,7 @@ ${amount} voor ${merchant} - ${date}`,
     expenseRulesPage: {
         title: 'Declaratieregels',
         findRule: 'Regel zoeken',
-        emptyRules: {
-            title: 'Je hebt nog geen regels gemaakt',
-            subtitle: 'Voeg een regel toe om onkostendeclaraties te automatiseren.',
-        },
+        emptyRules: {title: 'Nog geen regels', subtitle: 'Voeg een regel toe om onkostendeclaraties te automatiseren.'},
         changes: {
             billableUpdate: (value: boolean) => `Declaratie ${value ? 'factureerbaar' : 'niet-factureerbaar'} bijwerken`,
             categoryUpdate: (value: string) => `Categorie bijwerken naar ‘${value}’`,
@@ -5547,7 +5544,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             needCategoryForExportToIntegration: (connectionName: string) => `Alle onkosten moeten worden gecategoriseerd om te kunnen exporteren naar ${connectionName}.`,
             subtitle: 'Krijg beter inzicht in waar geld wordt uitgegeven. Gebruik onze standaardcategorieën of voeg je eigen categorieën toe.',
             emptyCategories: {
-                title: 'Je hebt nog geen categorieën aangemaakt',
+                title: 'Nog geen categorieën',
                 subtitle: 'Voeg een categorie toe om je uitgaven te organiseren.',
                 subtitleWithAccounting: (accountingPageURL: string) =>
                     `<muted-text><centered-text>Je categorieën worden momenteel geïmporteerd vanuit een boekhoudkoppeling. Ga naar <a href="${accountingPageURL}">Boekhouding</a> om wijzigingen aan te brengen.</centered-text></muted-text>`,
@@ -5846,10 +5843,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             findReportField: 'Rapportveld zoeken',
             deleteConfirmation: 'Weet je zeker dat je dit rapportveld wilt verwijderen?',
             deleteFieldsConfirmation: 'Weet je zeker dat je deze rapportvelden wilt verwijderen?',
-            emptyReportFields: {
-                title: 'Je hebt nog geen rapportvelden aangemaakt',
-                subtitle: 'Voeg een aangepast veld toe (tekst, datum of keuzemenu) dat op rapporten verschijnt.',
-            },
+            emptyReportFields: {title: 'Nog geen rapportvelden', subtitle: 'Voeg een aangepast veld toe (tekst, datum of keuzemenu) dat op rapporten verschijnt.'},
             subtitle: 'Rapportvelden zijn van toepassing op alle uitgaven en kunnen nuttig zijn wanneer je om extra informatie wilt vragen.',
             disableReportFields: 'Rapportvelden uitschakelen',
             disableReportFieldsConfirmation: 'Weet je het zeker? Tekst- en datumvelden worden verwijderd en lijsten worden uitgeschakeld.',
@@ -5873,10 +5867,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             disableValues: 'Waarden uitschakelen',
             enableValue: 'Waarde inschakelen',
             enableValues: 'Waarden inschakelen',
-            emptyReportFieldsValues: {
-                title: 'Je hebt nog geen lijstwaarden gemaakt',
-                subtitle: 'Voeg aangepaste waarden toe die op rapporten worden weergegeven.',
-            },
+            emptyReportFieldsValues: {title: 'Nog geen lijstwaarden', subtitle: 'Voeg aangepaste waarden toe die op rapporten worden weergegeven.'},
             deleteValuePrompt: 'Weet je zeker dat je deze lijstwaarde wilt verwijderen?',
             deleteValuesPrompt: 'Weet je zeker dat je deze lijstwaarden wilt verwijderen?',
             listValueRequiredError: 'Voer een naam voor de lijstwaarde in',
@@ -5912,7 +5903,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             subtitleWithDependentTags: (importSpreadsheetLink: string) =>
                 `<muted-text>Labels bieden meer gedetailleerde manieren om kosten te classificeren. Je gebruikt <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">afhankelijke labels</a>. Je kunt <a href="${importSpreadsheetLink}">een spreadsheet opnieuw importeren</a> om je labels bij te werken.</muted-text>`,
             emptyTags: {
-                title: 'Je hebt nog geen labels gemaakt',
+                title: 'Nog geen tags',
                 subtitle: 'Voeg een tag toe om projecten, locaties, afdelingen en meer bij te houden.',
                 subtitleHTML: `<muted-text><centered-text>Voeg tags toe om projecten, locaties, afdelingen en meer bij te houden. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Meer informatie</a> over het formatteren van tagbestanden voor import.</centered-text></muted-text>`,
                 subtitleWithAccounting: (accountingPageURL: string) =>
@@ -6184,7 +6175,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 copyExisting: 'Bestaande kopiëren',
                 createNew: 'Nieuw maken',
                 spendRulesEmptyStateTitle: 'Geen regels om uit te kiezen',
-                spendRulesEmptyStateSubtitle: 'Je hebt nog geen regels aangemaakt. Je kunt er een aanmaken vanaf het vorige scherm.',
+                spendRulesEmptyStateSubtitle: 'Nog geen regels. Je kunt er een aanmaken vanaf het vorige scherm.',
             },
             deactivateCardModal: {
                 deactivate: 'Deactiveren',
@@ -7865,29 +7856,23 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 subtitle: `Probeer je zoekcriteria aan te passen of iets te maken met de knop +.`,
             },
             emptyExpenseResults: {
-                title: 'Je hebt nog geen uitgaven aangemaakt',
+                title: 'Nog geen uitgaven',
                 subtitle: 'Maak een uitgave aan of maak een testrit met Expensify om meer te leren.',
                 subtitleWithOnlyCreateButton: 'Gebruik de groene knop hieronder om een uitgave aan te maken.',
             },
             emptyReportResults: {
-                title: 'Je hebt nog geen rapporten gemaakt',
+                title: 'Nog geen rapporten',
                 subtitle: 'Maak een rapport of probeer Expensify uit om meer te weten te komen.',
                 subtitleWithOnlyCreateButton: 'Gebruik de groene knop hieronder om een rapport te maken.',
             },
             emptyInvoiceResults: {
-                title: dedent(`
-                    Je hebt nog geen facturen aangemaakt
-                `),
+                title: 'Nog geen facturen',
                 subtitle: 'Stuur een factuur of maak een testrit met Expensify om meer te weten te komen.',
                 subtitleWithOnlyCreateButton: 'Gebruik de groene knop hieronder om een factuur te versturen.',
                 subtitleCannotSend: 'Je hebt een werkruimte met Invoices ingeschakeld nodig om facturen te versturen.',
                 subtitleCannotSendWithTestDrive: 'Je hebt een werkruimte met Invoices ingeschakeld nodig om facturen te versturen. Maak een testrit met Expensify om meer te weten te komen.',
             },
-            emptyTripResults: {
-                title: 'Geen reizen om weer te geven',
-                subtitle: 'Begin met het boeken van je eerste reis hieronder.',
-                buttonText: 'Boek een reis',
-            },
+            emptyTripResults: {title: 'Nog geen reizen', subtitle: 'Begin met het boeken van je eerste reis hieronder.', buttonText: 'Boek een reis'},
             emptySubmitResults: {
                 title: 'Geen uitgaven om in te dienen',
                 subtitle: 'Alles is in orde. Maak een ererondje!',
