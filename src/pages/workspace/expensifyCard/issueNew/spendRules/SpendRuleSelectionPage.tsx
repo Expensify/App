@@ -54,7 +54,7 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
         }
 
         Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
-    }, [backPath, isLoadingIssueCardForm, issueCardForm?.data, policyID]);
+    }, [isLoadingIssueCardForm, issueCardForm?.data, policyID]);
 
     // We only allow cards that share the same currency to be on a spend rule
     const availableCardRules = cardRules.filter((cardRule) => cardRule.currencyCode === issueCardForm?.data?.currency);
