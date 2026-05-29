@@ -56,7 +56,7 @@ function VictoryChartLabel({x, y, text, color, fontSize, fontWeight, lineHeight,
             <SkText
                 key={`text-${lineX}-${lineY}`}
                 x={computeTextHorizontalPosition(lineX, lineWidth, textAnchor)}
-                y={computeTextVerticalPosition(lineY, processedLines.y, verticalAnchor)}
+                y={computeTextVerticalPosition(lineY, processedLines.y - y, verticalAnchor)}
                 text={line}
                 font={lineFont}
                 color={lineColor}
