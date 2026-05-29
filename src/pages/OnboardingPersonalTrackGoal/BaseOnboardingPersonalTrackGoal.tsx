@@ -4,8 +4,8 @@ import {ScrollView} from 'react-native-gesture-handler';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import type {MenuItemProps} from '@components/MenuItem';
-import MenuItemList from '@components/MenuItemList';
+import Hoverable from '@components/Hoverable';
+import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -31,7 +31,6 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
     const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.PERSONAL_TRACK_GOAL);
     const [selectedGoal, setSelectedGoal] = useState<string | null>(null);
     const [somethingElseText, setSomethingElseText] = useState('');
-    const [error, setError] = useState('');
     const [inputError, setInputError] = useState('');
     const illustrations = useMemoizedLazyIllustrations(['RealEstate', 'HouseMoney', 'TargetWithArrow', 'Binoculars']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Checkmark']);
@@ -47,29 +46,6 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
         }),
         [illustrations.RealEstate, illustrations.HouseMoney, illustrations.TargetWithArrow, illustrations.Binoculars],
     );
-
-    const menuItems: MenuItemProps[] = personalTrackGoalOptions.map((goal) => {
-        const translationKey = `onboarding.personalTrackGoal.${goal}` as const;
-        const isSelected = goal === selectedGoal;
-        return {
-            key: translationKey,
-            title: translate(translationKey),
-            icon: menuIcons[goal],
-            displayInDefaultIconColor: true,
-            iconWidth: variables.menuIconSize,
-            iconHeight: variables.menuIconSize,
-            iconStyles: [styles.mh3],
-            wrapperStyle: [styles.purposeMenuItem, isSelected && styles.activeComponentBG],
-            numberOfLinesTitle: 0,
-            shouldShowRightIcon: isSelected,
-            iconRight: expensifyIcons.Checkmark,
-            onPress: () => {
-                setSelectedGoal(goal);
-                setError('');
-                setInputError('');
-            },
-        };
-    });
 
     const paddingHorizontal = onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5;
 
@@ -97,10 +73,38 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
                             {translate('onboarding.personalTrackGoal.title')}
                         </Text>
                     </View>
-                    <MenuItemList
-                        menuItems={menuItems}
-                        shouldUseSingleExecution
-                    />
+                    {personalTrackGoalOptions.map((goal) => {
+                        const translationKey = `onboarding.personalTrackGoal.${goal}` as const;
+                        const isSelected = goal === selectedGoal;
+                        return (
+                            <Hoverable key={translationKey}>
+                                {(hovered) => (
+                                    <MenuItem
+                                        title={translate(translationKey)}
+                                        icon={menuIcons[goal]}
+                                        displayInDefaultIconColor
+                                        iconWidth={variables.menuIconSize}
+                                        iconHeight={variables.menuIconSize}
+                                        iconStyles={[styles.mh3]}
+                                        wrapperStyle={[styles.purposeMenuItem, (isSelected || hovered) && styles.activeComponentBG]}
+                                        numberOfLinesTitle={0}
+                                        shouldShowRightIcon={isSelected}
+                                        iconRight={expensifyIcons.Checkmark}
+                                        success={isSelected}
+                                        shouldRemoveHoverBackground
+                                        onPress={() => {
+                                            setSelectedGoal(goal);
+                                            setInputError('');
+                                            if (goal !== CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE) {
+                                                setOnboardingPersonalTrackGoal(goal);
+                                                Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
+                                            }
+                                        }}
+                                    />
+                                )}
+                            </Hoverable>
+                        );
+                    })}
                     {isSomethingElseSelected && (
                         <View style={styles.mt4}>
                             <TextInput
@@ -110,7 +114,6 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
                                 value={somethingElseText}
                                 onChangeText={(text) => {
                                     setSomethingElseText(text);
-                                    setError('');
                                     setInputError('');
                                 }}
                             />
@@ -125,34 +128,24 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
                     )}
                 </View>
             </ScrollView>
-            <View style={[styles.w100, styles.mb5, styles.mh0, paddingHorizontal]}>
-                {!!error && (
-                    <FormHelpMessage
-                        style={[styles.ph1, styles.mb2]}
-                        isError
-                        message={error}
+            {isSomethingElseSelected && (
+                <View style={[styles.w100, styles.mb5, styles.mh0, paddingHorizontal]}>
+                    <Button
+                        success
+                        large
+                        text={translate('common.continue')}
+                        onPress={() => {
+                            if (!somethingElseText.trim()) {
+                                setInputError(translate('common.error.fieldRequired'));
+                                return;
+                            }
+                            setOnboardingPersonalTrackGoal(somethingElseText.trim());
+                            Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
+                        }}
+                        pressOnEnter
                     />
-                )}
-                <Button
-                    success
-                    large
-                    text={translate('common.continue')}
-                    onPress={() => {
-                        if (!selectedGoal) {
-                            setError(translate('onboarding.errorSelection'));
-                            return;
-                        }
-                        if (isSomethingElseSelected && !somethingElseText.trim()) {
-                            setInputError(translate('common.error.fieldRequired'));
-                            return;
-                        }
-                        const goalValue = isSomethingElseSelected ? somethingElseText.trim() : selectedGoal;
-                        setOnboardingPersonalTrackGoal(goalValue);
-                        Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
-                    }}
-                    pressOnEnter
-                />
-            </View>
+                </View>
+            )}
         </ScreenWrapper>
     );
 }
