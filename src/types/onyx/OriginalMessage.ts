@@ -1,6 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import type {CardID} from './Card';
 import type {PolicyRuleTaxRate} from './ExpenseRule';
 import type {Attendee} from './IOU';
 import type {OldDotOriginalMessageMap} from './OldDotAction';
@@ -816,7 +817,7 @@ type OriginalMessageSpendRuleChangeLog = {
     /** Cards a spend rule is scoped to */
     cards?: Array<{
         /** Card identifier */
-        cardID: number | string;
+        cardID: CardID;
 
         /** Display name shown when the rule covers a single card */
         displayName?: string;
@@ -825,7 +826,7 @@ type OriginalMessageSpendRuleChangeLog = {
     /** Previous list of cards when a spend rule's card scope was updated */
     oldCards?: Array<{
         /** Card identifier */
-        cardID: number | string;
+        cardID: CardID;
 
         /** Display name shown when the rule covers a single card */
         displayName?: string;

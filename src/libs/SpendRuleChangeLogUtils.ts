@@ -3,6 +3,7 @@ import type {ValueOf} from 'type-fest';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import {isSpendRuleCategory} from '@src/types/form/SpendRuleForm';
+import type {CardID} from '@src/types/onyx/Card';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import {convertAmountToDisplayString} from './CurrencyUtils';
 import {formatList} from './Localize';
@@ -123,7 +124,7 @@ function computeSpendRuleAmountDiff(oldAmounts: SpendRuleAmount[], newAmounts: S
     };
 }
 
-type SpendRuleCard = {cardID?: number | string; displayName?: string};
+type SpendRuleCard = {cardID?: CardID; displayName?: string};
 type SpendRuleCardDiff = {added: SpendRuleCard[]; removed: SpendRuleCard[]};
 
 function getSpendRuleCardID(card: SpendRuleCard): number | undefined {
