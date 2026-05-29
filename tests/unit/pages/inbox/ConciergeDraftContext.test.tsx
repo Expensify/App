@@ -191,10 +191,10 @@ describe('ConciergeDraftContext', () => {
             );
         });
 
-        // Then the completed markdown paces before final HTML is applied
-        expect(getFirstMessageText(result.current.draftReportAction)).toBe('Hell');
+        // Then the completed markdown is held as the next Pusher target and final HTML waits for pacing
         expect(getFirstMessageText(result.current.draftReportAction)).not.toBe('Server final response');
-        expect(getCachedDraft(REPORT_ID)?.pusherTargetBodyMarkdown).toBe(COMPLETED_BODY_MARKDOWN);
+        expect(getCachedDraft(REPORT_ID)?.pusherQueuedTargetEvents?.at(0)?.bodyMarkdown).toBe(COMPLETED_BODY_MARKDOWN);
+        expect(result.current.isDraftPendingCompletion).toBe(true);
 
         await waitFor(() => {
             expect(getCachedDraft(REPORT_ID)?.status).toBe('completed');
@@ -224,7 +224,7 @@ describe('ConciergeDraftContext', () => {
             );
         });
 
-        expect(getFirstMessageText(result.current.draftReportAction)).toBe('He');
+        expect(getFirstMessageText(result.current.draftReportAction)).toBe('H');
         expect(result.current.isDraftPendingCompletion).toBe(true);
 
         // Then the completed markdown becomes fully visible
@@ -250,9 +250,12 @@ describe('ConciergeDraftContext', () => {
             });
         });
 
-        expect(getFirstMessageText(result.current.draftReportAction)).toBe('He');
-        expect(getCachedDraft(REPORT_ID)?.pusherTargetBodyMarkdown).toBe(TARGET_BODY_MARKDOWN);
-        expect(getCachedDraft(REPORT_ID)?.pusherTargetSequence).toBe(2);
+        expect(getFirstMessageText(result.current.draftReportAction)).toBe('H');
+
+        await waitFor(() => {
+            expect(getCachedDraft(REPORT_ID)?.pusherTargetBodyMarkdown).toBe(TARGET_BODY_MARKDOWN);
+            expect(getCachedDraft(REPORT_ID)?.pusherTargetSequence).toBe(2);
+        });
 
         unmount();
     });

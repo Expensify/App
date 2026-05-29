@@ -1,4 +1,11 @@
-import {applyConciergeDraftEvent, getCachedDraft, getNextVisibleConciergeDraftBodyMarkdown, setCachedDraft, stripIncompleteMarkdown} from '@pages/inbox/conciergeDraftState';
+import {
+    applyConciergeDraftEvent,
+    getCachedDraft,
+    getNextVisibleConciergeDraftBodyMarkdown,
+    getNextVisibleConciergeDraftMarkdown,
+    setCachedDraft,
+    stripIncompleteMarkdown,
+} from '@pages/inbox/conciergeDraftState';
 import CONST from '@src/CONST';
 
 const REPORT_ID = '123';
@@ -152,6 +159,53 @@ describe('conciergeDraftState', () => {
             expect(emojiSlice).toBe('Hi 😃');
             expect(longBacklogSlice).toBe('a');
             expect(correctedSlice).toBe('New draft');
+        });
+    });
+
+    describe('getNextVisibleConciergeDraftMarkdown', () => {
+        it('streams complete bold markup by visible characters while keeping the style active', () => {
+            const firstBoldSlice = getNextVisibleConciergeDraftMarkdown('Hello ', 'Hello **world**!', 'Hello '.length, 'Hello ');
+            const secondBoldSlice = getNextVisibleConciergeDraftMarkdown(firstBoldSlice.bodyMarkdown, 'Hello **world**!', firstBoldSlice.sourceOffset, firstBoldSlice.sourceMarkdown);
+
+            expect(firstBoldSlice.bodyMarkdown).toBe('Hello **w**');
+            expect(firstBoldSlice.sourceMarkdown).toBe('Hello **w');
+            expect(secondBoldSlice.bodyMarkdown).toBe('Hello **wo**');
+            expect(secondBoldSlice.sourceMarkdown).toBe('Hello **wo');
+        });
+
+        it('streams complete strikethrough and inline code markup by visible characters', () => {
+            const strikeSlice = getNextVisibleConciergeDraftMarkdown('Remove ', 'Remove ~~this~~', 'Remove '.length, 'Remove ');
+            const codeSlice = getNextVisibleConciergeDraftMarkdown('Run ', 'Run `npm test`', 'Run '.length, 'Run ');
+
+            expect(strikeSlice.bodyMarkdown).toBe('Remove ~~t~~');
+            expect(codeSlice.bodyMarkdown).toBe('Run `n`');
+        });
+
+        it('streams complete links by linked text without exposing the destination URL as plain text', () => {
+            const linkSlice = getNextVisibleConciergeDraftMarkdown('See ', 'See [docs](https://example.com)', 'See '.length, 'See ');
+
+            expect(linkSlice.bodyMarkdown).toBe('See [d](https://example.com)');
+            expect(linkSlice.sourceMarkdown).toBe('See [d');
+        });
+
+        it('does not consume hidden source text while markdown is still incomplete', () => {
+            const boldSlice = getNextVisibleConciergeDraftMarkdown('Hello ', 'Hello **world', 'Hello '.length, 'Hello ');
+            const linkSlice = getNextVisibleConciergeDraftMarkdown('See ', 'See [docs](https://example', 'See '.length, 'See ');
+
+            expect(boldSlice.bodyMarkdown).toBe('Hello ');
+            expect(boldSlice.sourceMarkdown).toBe('Hello ');
+            expect(boldSlice.sourceOffset).toBe('Hello '.length);
+            expect(linkSlice.bodyMarkdown).toBe('See ');
+            expect(linkSlice.sourceMarkdown).toBe('See ');
+            expect(linkSlice.sourceOffset).toBe('See '.length);
+        });
+
+        it('uses source markdown to keep moving smoothly when a previously incomplete span becomes complete', () => {
+            const targetWithCompletedBold = 'Hello **world**';
+            const nextSlice = getNextVisibleConciergeDraftMarkdown('Hello ', targetWithCompletedBold, 'Hello '.length, 'Hello ');
+
+            expect(nextSlice.bodyMarkdown).toBe('Hello **w**');
+            expect(nextSlice.sourceMarkdown).toBe('Hello **w');
         });
     });
 
