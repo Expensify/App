@@ -1,3 +1,4 @@
+import {useNavigation} from '@react-navigation/native';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -69,6 +70,7 @@ function EnablePaymentsPage({route}: EnablePaymentsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const navigation = useNavigation();
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
@@ -103,8 +105,8 @@ function EnablePaymentsPage({route}: EnablePaymentsPageProps) {
         if (!canonicalPage || urlPage === canonicalPage) {
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute({page: canonicalPage}));
-    }, [canonicalPage, urlPage]);
+        navigation.setParams({page: canonicalPage} as Record<string, unknown>);
+    }, [canonicalPage, urlPage, navigation]);
 
     const isUserWalletEmpty = isEmptyObject(userWallet);
     if (isUserWalletEmpty || userWallet?.isLoading || (!hasFreshData && !isOffline)) {
