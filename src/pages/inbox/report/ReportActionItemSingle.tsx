@@ -112,7 +112,7 @@ function ReportActionItemSingle({
         } else {
             // Show participants page IOU report preview
             if (iouReportID && details.shouldDisplayAllActors) {
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS.path, Navigation.getReportRHPActiveRoute()));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS.path));
                 return;
             }
             showUserDetails(Number(primaryAvatar.id));
