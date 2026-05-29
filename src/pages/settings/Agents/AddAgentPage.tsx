@@ -83,11 +83,14 @@ function AddAgentPage({route}: AddAgentPageProps) {
         const presetID = botAvatarIDs.get(avatarSource as BotAvatar);
         setInitialPresetID(presetID);
         setNavigationToken();
-        const returnRoute = isWorkflowSeedFlow
-            ? ROUTES.WORKSPACE_WORKFLOWS_ADD_AGENT.getRoute({policyID, workflowApproverEmail})
-            : isSetApproverSeedFlow
-              ? ROUTES.SETTINGS_AGENTS_ADD.getRoute({policyID, workflowApproverEmail})
-              : ROUTES.SETTINGS_AGENTS_ADD.getRoute();
+        let returnRoute;
+        if (isWorkflowSeedFlow) {
+            returnRoute = ROUTES.WORKSPACE_WORKFLOWS_ADD_AGENT.getRoute({policyID, workflowApproverEmail});
+        } else if (isSetApproverSeedFlow) {
+            returnRoute = ROUTES.SETTINGS_AGENTS_ADD.getRoute({policyID, workflowApproverEmail});
+        } else {
+            returnRoute = ROUTES.SETTINGS_AGENTS_ADD.getRoute();
+        }
         setReturnRoute(returnRoute);
         Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD_AVATAR);
     };

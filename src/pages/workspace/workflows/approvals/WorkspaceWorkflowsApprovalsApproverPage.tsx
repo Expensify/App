@@ -330,7 +330,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         if (!approvalWorkflow || !policy?.employeeList || !personalDetails) {
             return;
         }
-        const pendingApprover = approvalWorkflow.approvers[approverIndex];
+        const pendingApprover = approvalWorkflow.approvers.at(approverIndex);
         if (!pendingApprover || pendingApprover.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || pendingApprover.email || !pendingApprover.accountID) {
             return;
         }
@@ -339,14 +339,15 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
             return;
         }
         const mappedDetail = personalDetails[mappedRealAccountID];
-        if (!mappedDetail?.login || !policy.employeeList?.[mappedDetail.login]) {
+        const mappedLogin = mappedDetail?.login;
+        if (!mappedLogin || !policy.employeeList?.[mappedLogin]) {
             return;
         }
         const upgradedApprovers = approvalWorkflow.approvers.map((approver, index) =>
             index === approverIndex && approver
                 ? {
                       ...approver,
-                      email: mappedDetail.login as string,
+                      email: mappedLogin,
                       accountID: mappedDetail.accountID,
                       avatar: mappedDetail.avatar ?? approver.avatar,
                       displayName: mappedDetail.displayName ?? approver.displayName,
