@@ -359,6 +359,34 @@ describe('MoneyRequest', () => {
             );
         });
 
+        it('should pass the source transaction as existingTransaction to requestMoney for non-TRACK iouType', () => {
+            createTransaction({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.SEND,
+                allTransactionDrafts: {},
+            });
+
+            expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    existingTransaction: fakeTransaction,
+                }),
+            );
+        });
+
+        it('should pass the source transaction as existingTransaction to trackExpense for TRACK iouType', () => {
+            createTransaction({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.TRACK,
+                allTransactionDrafts: {},
+            });
+
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    existingTransaction: fakeTransaction,
+                }),
+            );
+        });
+
         it('should compute draftTransactionIDs from allTransactionDrafts', () => {
             const draft1 = createRandomTransaction(101);
             const draft2 = createRandomTransaction(102);
@@ -1178,6 +1206,7 @@ describe('MoneyRequest', () => {
                     taxCode: '',
                     taxAmount: 0,
                 },
+                existingTransaction: fakeTransaction,
                 shouldHandleNavigation: true,
                 shouldDeferForSearch: false,
                 isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
