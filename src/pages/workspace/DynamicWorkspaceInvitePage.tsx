@@ -1,13 +1,14 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Keyboard} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
-import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -24,33 +25,35 @@ import {appendCountryCode} from '@libs/LoginUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
+import {getHeaderMessage, getUserToInviteOption} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getIneligibleInvitees, getMemberAccountIDsForWorkspace, getSoftExclusionsForGuideAndAccountManager, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
+import type {InvitedEmailsToAccountIDs, Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
-import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
-import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 
-type WorkspaceInvitePageProps = WithPolicyAndFullscreenLoadingProps &
-    WithNavigationTransitionEndProps &
-    PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE>;
+type WorkspaceInvitePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE>;
 
-function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
+type WorkspaceInvitePageContentProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE> & {
+    policy: OnyxEntry<Policy>;
+    invitedEmailsToAccountIDsDraft: OnyxEntry<InvitedEmailsToAccountIDs>;
+};
+
+function DynamicWorkspaceInvitePageContent({route, policy, invitedEmailsToAccountIDsDraft}: WorkspaceInvitePageContentProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_INVITE.path);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID}`);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const openWorkspaceInvitePage = () => {
@@ -84,6 +87,37 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
 
     const initialSelected = useMemo(() => new Set(Object.values(invitedEmailsToAccountIDsDraft ?? {}).map(String)), [invitedEmailsToAccountIDsDraft]);
 
+    const initialExtraOptions = useMemo(() => {
+        if (!invitedEmailsToAccountIDsDraft) {
+            return [];
+        }
+        const filteredNewEmails = [];
+        for (const [email, accountID] of Object.entries(invitedEmailsToAccountIDsDraft)) {
+            if (!email.toLowerCase().trim() || !accountID) {
+                continue;
+            }
+            const personalDetail = personalDetails?.[accountID];
+            if (personalDetail) {
+                continue;
+            }
+            filteredNewEmails.push(email);
+        }
+        const newOptions: OptionData[] = [];
+        for (const email of filteredNewEmails) {
+            const option = getUserToInviteOption({
+                searchValue: email,
+                countryCode,
+                formatPhoneNumber,
+                loginList: {},
+                loginsToExclude: excludedUsers,
+            });
+            if (option) {
+                newOptions.push({...option, isSelected: true});
+            }
+        }
+        return newOptions;
+    }, [countryCode, excludedUsers, formatPhoneNumber, invitedEmailsToAccountIDsDraft, personalDetails]);
+
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, selectedNonExistingOptions, toggleSelection, areOptionsInitialized} =
         usePersonalDetailSearchSelector({
             selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
@@ -93,6 +127,7 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             includeRecentReports: false,
             shouldInitialize: didScreenTransitionEnd,
             initialSelected,
+            initialExtraOptions,
             shouldKeepSelectedInAvailableOptions: true,
         });
 
@@ -246,4 +281,24 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     );
 }
 
-export default withNavigationTransitionEnd(withPolicyAndFullscreenLoading(DynamicWorkspaceInvitePage));
+function DynamicWorkspaceInvitePage(props: WorkspaceInvitePageProps) {
+    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${props.route.params.policyID}`);
+    const [invitedEmailsToAccountIDsDraft, invitedEmailsToAccountIDsDraftMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${props.route.params.policyID}`);
+    if (isLoadingOnyxValue(policyMetadata, invitedEmailsToAccountIDsDraftMetadata)) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'DynamicWorkspaceInvitePage',
+            isLoadingPolicy: !!isLoadingOnyxValue(policyMetadata),
+            isLoadingInvitedEmailsToAccountIDsDraft: !!isLoadingOnyxValue(invitedEmailsToAccountIDsDraftMetadata),
+        };
+        return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+    }
+    return (
+        <DynamicWorkspaceInvitePageContent
+            {...props}
+            policy={policy}
+            invitedEmailsToAccountIDsDraft={invitedEmailsToAccountIDsDraft}
+        />
+    );
+}
+
+export default withNavigationTransitionEnd(DynamicWorkspaceInvitePage);

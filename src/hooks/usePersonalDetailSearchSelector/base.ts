@@ -52,6 +52,9 @@ type UseSearchSelectorConfig = {
     /** Initial selected options */
     initialSelected?: Set<string>;
 
+    /** Initial extra options */
+    initialExtraOptions?: OptionData[];
+
     /** Whether to initialize the hook */
     shouldInitialize?: boolean;
 
@@ -155,6 +158,7 @@ function usePersonalDetailSearchSelectorBase({
     onSelectionChange,
     onSingleSelect,
     initialSelected = new Set<string>(),
+    initialExtraOptions = [],
     shouldInitialize = true,
     contactOptions,
     includeCurrentUser = false,
@@ -175,7 +179,7 @@ function usePersonalDetailSearchSelectorBase({
     })();
     const areOptionsInitialized = (optionsWithContacts?.length ?? 0) > 0;
     const [selectedAccountIDs, setSelectedAccountIDs] = useState<Set<string>>(initialSelected);
-    const [extraOptions, setExtraOptions] = useState<OptionData[]>([]);
+    const [extraOptions, setExtraOptions] = useState<OptionData[]>(initialExtraOptions);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(initialSearchPhrase);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
@@ -253,6 +257,8 @@ function usePersonalDetailSearchSelectorBase({
                     setSelectedAccountIDs(new Set([option.accountID.toString()]));
                     if (!existingAccountIDs.has(option.accountID.toString())) {
                         setExtraOptions([{...option, isSelected: true}]);
+                    } else if (extraOptions.length > 0) {
+                        setExtraOptions([]);
                     }
                 }
             }
