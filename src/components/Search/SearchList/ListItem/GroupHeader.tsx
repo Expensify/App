@@ -1,19 +1,29 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
+import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
+import {easing} from '@components/Modal/ReanimatedModal/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useSearchSelectionContext} from '@components/Search/SearchContext';
+import SearchTableHeader from '@components/Search/SearchTableHeader';
 import type {SearchColumnType, SearchGroupBy} from '@components/Search/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
+import {getColumnsToShow} from '@libs/SearchUIUtils';
+import {isDeletedTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import CardListItemHeader from './CardListItemHeader';
 import CategoryListItemHeader from './CategoryListItemHeader';
@@ -65,9 +75,62 @@ function GroupHeader({item, groupBy, searchType, columns, canSelectMultiple, isE
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {selectedTransactions} = useSearchSelectionContext();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
+    const currentUserDetails = useCurrentUserPersonalDetails();
 
     const groupItem = item as unknown as TransactionGroupListItemType;
     const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+
+    // Compute sub-header columns (same logic as TransactionGroupListExpanded)
+    const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash}`);
+    const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
+
+    let subHeaderColumns = columns ?? [];
+    if (!isExpenseReportType) {
+        if (!transactionsSnapshot?.data) {
+            subHeaderColumns = [];
+        } else {
+            subHeaderColumns = getColumnsToShow({
+                currentAccountID: currentUserDetails.accountID,
+                data: transactionsSnapshot?.data,
+                visibleColumns,
+                type: transactionsSnapshot?.search.type,
+            });
+        }
+    }
+
+    // Compute sub-header column widths from transactions
+    const isSubHeaderAmountColumnWide = groupItem.transactions.some((transaction) => transaction.isAmountColumnWide);
+    const isSubHeaderTaxAmountColumnWide = groupItem.transactions.some((transaction) => transaction.isTaxAmountColumnWide);
+    const shouldSubHeaderShowYear = groupItem.transactions.some((transaction) => transaction.shouldShowYear);
+    const isSubHeaderActionColumnWide = groupItem.transactions.some((transaction) => !!transaction.isActionColumnWide || isDeletedTransaction(transaction));
+
+    // Animated sub-header (SearchTableHeader) height
+    const subHeaderHeight = useSharedValue(0);
+    const hasExpanded = useSharedValue(isExpanded);
+    const [isSubHeaderRendered, setIsSubHeaderRendered] = useState(isExpanded);
+
+    hasExpanded.set(isExpanded);
+    if (isExpanded && !isSubHeaderRendered) {
+        setIsSubHeaderRendered(true);
+    }
+
+    const animatedSubHeaderHeight = useDerivedValue(() => {
+        if (!subHeaderHeight.get()) {
+            return 0;
+        }
+        const target = hasExpanded.get() ? subHeaderHeight.get() : 0;
+        return withTiming(target, {duration: 300, easing}, (finished) => {
+            if (!finished || target) {
+                return;
+            }
+            scheduleOnRN(setIsSubHeaderRendered, false);
+        });
+    }, []);
+
+    const subHeaderAnimatedStyle = useAnimatedStyle(() => ({
+        height: animatedSubHeaderHeight.get(),
+        overflow: 'hidden' as const,
+    }));
 
     const selectedTransactionIDs = Object.keys(selectedTransactions);
     const selectedTransactionIDsSet = new Set(selectedTransactionIDs);
@@ -327,6 +390,39 @@ function GroupHeader({item, groupBy, searchType, columns, canSelectMultiple, isE
                     </View>
                 )}
             </PressableWithFeedback>
+            {isLargeScreenWidth && (
+                <Animated.View style={[subHeaderAnimatedStyle, styles.mh5, {backgroundColor: theme.highlightBG}]}>
+                    {(isExpanded || isSubHeaderRendered) && (
+                        <Animated.View
+                            style={styles.stickToTop}
+                            onLayout={(e) => {
+                                const height = e.nativeEvent.layout.height;
+                                if (height) {
+                                    subHeaderHeight.set(height);
+                                }
+                            }}
+                        >
+                            <View style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl8, styles.borderNone]}>
+                                <SearchTableHeader
+                                    canSelectMultiple
+                                    type={CONST.SEARCH.DATA_TYPES.EXPENSE}
+                                    onSortPress={() => {}}
+                                    sortOrder={undefined}
+                                    sortBy={undefined}
+                                    shouldShowYear={shouldSubHeaderShowYear}
+                                    isAmountColumnWide={isSubHeaderAmountColumnWide}
+                                    isTaxAmountColumnWide={isSubHeaderTaxAmountColumnWide}
+                                    shouldShowSorting={false}
+                                    columns={subHeaderColumns}
+                                    groupBy={groupBy}
+                                    isExpenseReportView
+                                    isActionColumnWide={isSubHeaderActionColumnWide}
+                                />
+                            </View>
+                        </Animated.View>
+                    )}
+                </Animated.View>
+            )}
         </OfflineWithFeedback>
     );
 }

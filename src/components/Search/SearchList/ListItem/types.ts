@@ -448,6 +448,7 @@ type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     isInSingleTransactionReport: boolean;
     searchTransactions: (pageSize?: number) => void;
     onLongPress: (transaction: TransactionListItemType) => void;
+    hideSearchTableHeader?: boolean;
 };
 
 type GroupHeaderItemType = TransactionGroupListItemType & {

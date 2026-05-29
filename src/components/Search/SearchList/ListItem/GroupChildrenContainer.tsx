@@ -268,6 +268,7 @@ function GroupChildrenContainer({
                             onLongPress={onExpandedRowLongPress}
                             nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                             onUndelete={onUndelete}
+                            hideSearchTableHeader
                         />
                     </Animated.View>
                 ) : null}
