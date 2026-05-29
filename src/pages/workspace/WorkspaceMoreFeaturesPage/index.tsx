@@ -14,7 +14,6 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -23,22 +22,18 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {enablePolicyTravel} from '@libs/actions/Policy/Travel';
 import {filterInactiveCards, getAllCardsForWorkspace, getCardSettings, getCompanyFeeds, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import {getConnectedHRProvider, isAnyHRConnected, isGustoConnected, isMergeHRConnected, isZenefitsConnected} from '@libs/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {
     canPolicyAccessFeature,
-    getConnectedHRProvider,
     getDistanceRateCustomUnit,
     getPerDiemCustomUnit,
     hasAccountingConnections,
     hasAccountingFeatureConnection,
-    isAnyHRConnected,
     isControlPolicy,
-    isGustoConnected,
-    isMergeHRConnected,
     isTimeTrackingEnabled,
-    isZenefitsConnected,
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -78,7 +73,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {showConfirmModal} = useConfirmModal();
     const illustrations = useMemoizedLazyIllustrations([
@@ -329,35 +323,33 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
                             }}
                         />
-                        {(isBetaEnabled(CONST.BETAS.GUSTO) || isBetaEnabled(CONST.BETAS.ZENEFITS) || isBetaEnabled(CONST.BETAS.MERGE_HR)) && (
-                            <MoreFeatureToggle
-                                icon={illustrations.Members}
-                                title={translate('workspace.hr.title')}
-                                subtitle={translate('workspace.hr.subtitle')}
-                                isActive={((policy?.isHREnabled === true || isAnyHRConnected(policy)) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED)) ?? false}
-                                pendingAction={policy?.pendingFields?.isHREnabled}
-                                disabled={!canWriteMoreFeatures || isAnyHRConnected(policy)}
-                                disabledAction={getReadOnlyDisabledAction(warnDisconnectHRFirst)}
-                                onToggle={(isEnabled) => {
-                                    if (!policyID) {
-                                        return;
-                                    }
-                                    if (isEnabled && !isControlPolicy(policy)) {
-                                        Navigation.navigate(
-                                            ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)),
-                                        );
-                                        return;
-                                    }
-                                    enablePolicyHR(policyID, isEnabled);
-                                }}
-                                onPress={() => {
-                                    if (!policyID) {
-                                        return;
-                                    }
-                                    Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID));
-                                }}
-                            />
-                        )}
+                        <MoreFeatureToggle
+                            icon={illustrations.Members}
+                            title={translate('workspace.hr.title')}
+                            subtitle={translate('workspace.hr.subtitle')}
+                            isActive={((policy?.isHREnabled === true || isAnyHRConnected(policy)) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED)) ?? false}
+                            pendingAction={policy?.pendingFields?.isHREnabled}
+                            disabled={!canWriteMoreFeatures || isAnyHRConnected(policy)}
+                            disabledAction={getReadOnlyDisabledAction(warnDisconnectHRFirst)}
+                            onToggle={(isEnabled) => {
+                                if (!policyID) {
+                                    return;
+                                }
+                                if (isEnabled && !isControlPolicy(policy)) {
+                                    Navigation.navigate(
+                                        ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)),
+                                    );
+                                    return;
+                                }
+                                enablePolicyHR(policyID, isEnabled);
+                            }}
+                            onPress={() => {
+                                if (!policyID) {
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID));
+                            }}
+                        />
                     </MoreFeaturesSection>
 
                     <MoreFeaturesSection title={translate('workspace.moreFeatures.organizeSection.title')}>

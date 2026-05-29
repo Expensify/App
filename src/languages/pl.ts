@@ -507,6 +507,7 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Zwiń rozumowanie',
         expandReasoning: 'Rozwiń rozumowanie',
+        enableNotifications: {prompt: 'Chcesz otrzymywać powiadomienia, gdy Concierge odpowie?', cta: 'Powiadom'},
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -1021,7 +1022,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: ({days}: {days: number}) => `Darmowy okres próbny: pozostało ${days} ${days === 1 ? 'dzień' : 'dni'}!`,
             offer50Body: 'Zyskaj 50% zniżki na pierwszy rok',
             offer25Body: 'Uzyskaj 25% zniżki na pierwszy rok',
-            addCardBody: 'Nie czekaj! Dodaj teraz swoją kartę płatniczą.',
+            addCardBody: 'Dodaj kartę płatniczą',
             ctaClaim: 'Roszczenie',
             ctaAdd: 'Dodaj kartę',
             timeRemaining: ({formattedTime}: {formattedTime: string}) => `Pozostały czas: ${formattedTime}`,
@@ -1953,6 +1954,8 @@ const translations: TranslationDeepObject<typeof en> = {
         offline: 'Offline',
         syncing: 'Synchronizowanie',
         profileAvatar: 'Awatar profilu',
+        customInstructions: 'Niestandardowe instrukcje',
+        copilotIntoAccount: 'Copilot do konta',
         publicSection: {
             title: 'Public',
             subtitle: 'Te dane są wyświetlane w Twoim publicznym profilu. Każdy może je zobaczyć.',
@@ -2627,6 +2630,9 @@ ${amount} dla ${merchant} - ${date}`,
         hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `Zatwierdzanie jest zarządzane przez Twoją integrację z ${provider}. Aby zaktualizować swój proces zatwierdzania, przejdź do ustawień połączenia z ${provider}.`,
         goToHRSettings: ({provider}: {provider: string}) => `Przejdź do ustawień ${provider}`,
+        approverFromProvider: ({provider}: {provider: string}) => `od ${provider}`,
+        finalApprover: 'Ostateczny akceptujący',
+        manager: 'Menedżer',
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Nie udało się zmienić częstotliwości wysyłania. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
@@ -2799,10 +2805,7 @@ ${amount} dla ${merchant} - ${date}`,
     expenseRulesPage: {
         title: 'Reguły wydatków',
         findRule: 'Znajdź regułę',
-        emptyRules: {
-            title: 'Nie utworzono żadnych reguł',
-            subtitle: 'Dodaj regułę, aby zautomatyzować raportowanie wydatków.',
-        },
+        emptyRules: {title: 'Nie ma jeszcze żadnych zasad', subtitle: 'Dodaj regułę, aby zautomatyzować raportowanie wydatków.'},
         changes: {
             billableUpdate: (value: boolean) => `Zaktualizuj wydatek ${value ? 'rozliczalny' : 'niepodlegające fakturowaniu'}`,
             categoryUpdate: (value: string) => `Zaktualizuj kategorię na „${value}”`,
@@ -2951,6 +2954,7 @@ ${amount} dla ${merchant} - ${date}`,
         phoneOrEmail: 'Telefon lub e-mail',
         error: {
             invalidFormatEmailLogin: 'Wprowadzony adres e-mail jest nieprawidłowy. Popraw jego format i spróbuj ponownie.',
+            agentSignInBlocked: 'Na konta agenta nie można logować się bezpośrednio. Żeby korzystać z agenta, zaloguj się na własne konto i uzyskaj do niego dostęp przez Copilota.',
         },
         cannotGetAccountDetails: 'Nie można pobrać szczegółów konta. Spróbuj zalogować się ponownie.',
         loginForm: 'Formularz logowania',
@@ -4236,6 +4240,7 @@ ${amount} dla ${merchant} - ${date}`,
             workflows: 'Przepływy pracy',
             workspace: 'Przestrzeń robocza',
             findWorkspace: 'Znajdź przestrzeń roboczą',
+            findRoom: 'Znajdź pokój',
             edit: 'Edytuj przestrzeń roboczą',
             enabled: 'Włączone',
             disabled: 'Wyłączone',
@@ -5527,7 +5532,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             needCategoryForExportToIntegration: (connectionName: string) => `Wszystkie wydatki muszą zostać skategoryzowane, aby można je było wyeksportować do ${connectionName}.`,
             subtitle: 'Uzyskaj lepszy wgląd w to, gdzie wydawane są pieniądze. Użyj naszych domyślnych kategorii lub dodaj własne.',
             emptyCategories: {
-                title: 'Nie utworzyłeś(-aś) żadnych kategorii',
+                title: 'Brak kategorii',
                 subtitle: 'Dodaj kategorię, aby uporządkować swoje wydatki.',
                 subtitleWithAccounting: (accountingPageURL: string) =>
                     `<muted-text><centered-text>Twoje kategorie są obecnie importowane z połączenia księgowego. Przejdź do sekcji <a href="${accountingPageURL}">księgowość</a>, aby wprowadzić zmiany.</centered-text></muted-text>`,
@@ -5832,10 +5837,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             findReportField: 'Znajdź pole raportu',
             deleteConfirmation: 'Czy na pewno chcesz usunąć to pole raportu?',
             deleteFieldsConfirmation: 'Czy na pewno chcesz usunąć te pola raportu?',
-            emptyReportFields: {
-                title: 'Nie utworzyłeś żadnych pól raportu',
-                subtitle: 'Dodaj niestandardowe pole (tekstowe, daty lub z listą wyboru), które będzie widoczne w raportach.',
-            },
+            emptyReportFields: {title: 'Brak jeszcze pól raportu', subtitle: 'Dodaj niestandardowe pole (tekstowe, daty lub z listą wyboru), które będzie widoczne w raportach.'},
             subtitle: 'Pola raportu mają zastosowanie do wszystkich wydatków i mogą być pomocne, gdy chcesz poprosić o dodatkowe informacje.',
             disableReportFields: 'Wyłącz pola raportu',
             disableReportFieldsConfirmation: 'Na pewno? Pola tekstowe i daty zostaną usunięte, a listy wyłączone.',
@@ -5859,10 +5861,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             disableValues: 'Wyłącz wartości',
             enableValue: 'Włącz wartość',
             enableValues: 'Włącz wartości',
-            emptyReportFieldsValues: {
-                title: 'Nie utworzyłeś(-aś) żadnych wartości listy',
-                subtitle: 'Dodaj własne wartości, które będą wyświetlane w raportach.',
-            },
+            emptyReportFieldsValues: {title: 'Nie ma jeszcze wartości listy', subtitle: 'Dodaj własne wartości, które będą wyświetlane w raportach.'},
             deleteValuePrompt: 'Czy na pewno chcesz usunąć tę wartość listy?',
             deleteValuesPrompt: 'Czy na pewno chcesz usunąć te wartości listy?',
             listValueRequiredError: 'Wpisz nazwę wartości listy',
@@ -5898,7 +5897,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             subtitleWithDependentTags: (importSpreadsheetLink: string) =>
                 `<muted-text>Tagi umożliwiają bardziej szczegółowe klasyfikowanie kosztów. Używasz <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">zależnych tagów</a>. Możesz <a href="${importSpreadsheetLink}">ponownie zaimportować arkusz kalkulacyjny</a>, aby zaktualizować swoje tagi.</muted-text>`,
             emptyTags: {
-                title: 'Nie utworzono jeszcze żadnych tagów',
+                title: 'Brak tagów',
                 subtitle: 'Dodaj tag, aby śledzić projekty, lokalizacje, działy i inne.',
                 subtitleHTML: `<muted-text><centered-text>Dodaj tagi, aby śledzić projekty, lokalizacje, działy i nie tylko. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Dowiedz się więcej</a> o formatowaniu plików tagów do importu.</centered-text></muted-text>`,
                 subtitleWithAccounting: (accountingPageURL: string) =>
@@ -6171,7 +6170,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 copyExisting: 'Skopiuj istniejący',
                 createNew: 'Utwórz nowy',
                 spendRulesEmptyStateTitle: 'Brak reguł do wyboru',
-                spendRulesEmptyStateSubtitle: 'Nie utworzyłeś jeszcze żadnych reguł. Możesz utworzyć ją na poprzednim ekranie.',
+                spendRulesEmptyStateSubtitle: 'Brak jeszcze żadnych reguł. Możesz utworzyć jedną na poprzednim ekranie.',
             },
             deactivateCardModal: {
                 deactivate: 'Dezaktywuj',
@@ -7847,27 +7846,23 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 subtitle: `Spróbuj zmienić kryteria wyszukiwania lub utworzyć coś za pomocą przycisku +.`,
             },
             emptyExpenseResults: {
-                title: 'Nie utworzyłeś jeszcze żadnych wydatków',
+                title: 'Brak wydatków',
                 subtitle: 'Utwórz wydatek lub wypróbuj Expensify, aby dowiedzieć się więcej.',
                 subtitleWithOnlyCreateButton: 'Użyj zielonego przycisku poniżej, aby utworzyć wydatek.',
             },
             emptyReportResults: {
-                title: 'Nie utworzyłeś jeszcze żadnych raportów',
+                title: 'Brak raportów',
                 subtitle: 'Utwórz raport lub wypróbuj Expensify, aby dowiedzieć się więcej.',
                 subtitleWithOnlyCreateButton: 'Użyj zielonego przycisku poniżej, aby utworzyć raport.',
             },
             emptyInvoiceResults: {
-                title: dedent(`
-                    Nie utworzyłeś(-aś) jeszcze żadnych faktur
-                `),
+                title: 'Brak faktur',
                 subtitle: 'Wyślij fakturę lub wypróbuj Expensify, aby dowiedzieć się więcej.',
                 subtitleWithOnlyCreateButton: 'Użyj zielonego przycisku poniżej, aby wysłać fakturę.',
+                subtitleCannotSend: 'Potrzebujesz przestrzeni roboczej z włączonym Invoices, aby wysyłać faktury.',
+                subtitleCannotSendWithTestDrive: 'Potrzebujesz przestrzeni roboczej z włączonym Invoices, aby wysyłać faktury. Wypróbuj Expensify, aby dowiedzieć się więcej.',
             },
-            emptyTripResults: {
-                title: 'Brak podróży do wyświetlenia',
-                subtitle: 'Zacznij od zarezerwowania swojej pierwszej podróży poniżej.',
-                buttonText: 'Zarezerwuj podróż',
-            },
+            emptyTripResults: {title: 'Brak podróży', subtitle: 'Zacznij od zarezerwowania swojej pierwszej podróży poniżej.', buttonText: 'Zarezerwuj podróż'},
             emptySubmitResults: {
                 title: 'Brak wydatków do przesłania',
                 subtitle: 'Wszystko gotowe. Czas na rundę zwycięstwa!',
@@ -9425,6 +9420,13 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             chooseWhereToMove: ({count}: {count: number}) => `Wybierz, dokąd przenieść ${count} ${count === 1 ? 'członka' : 'członków'}.`,
             domainGroup: 'Grupa domen',
             chooseWhereToMoveName: ({name}: {name: string}) => `Wybierz, dokąd przenieść ${name}.`,
+            membersFeatureList: {
+                subtitle: ({domainName}: {domainName: string}) =>
+                    `<muted-text>Zweryfikuj swoją domenę, aby mieć większą kontrolę nad członkami <strong>${domainName}</strong> w Expensify.</muted-text>`,
+                controlPolicyCreation: 'Ogranicz tworzenie przestrzeni roboczych',
+                enableSamlSso: 'Włącz logowanie SAML SSO',
+                enforce2FA: 'Wymuś 2FA',
+            },
         },
         common: {
             settings: 'Ustawienia',

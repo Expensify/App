@@ -30,6 +30,7 @@ import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
+import {isAnyHRConnected} from '@libs/HRUtils';
 import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -40,7 +41,6 @@ import {
     goBackFromInvalidPolicy,
     hasAccountingFeatureConnection,
     hasPolicyCategoriesError,
-    isAnyHRConnected,
     isGroupPolicy,
     isPendingDeletePolicy,
     isTimeTrackingEnabled,
@@ -184,10 +184,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         [CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED]: policy?.tax?.trackingEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED]: policy?.areCompanyCardsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]: !!policy?.areConnectionsEnabled || hasAccountingFeatureConnection(policy),
-        [CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED]:
-            (isBetaEnabled(CONST.BETAS.GUSTO) || isBetaEnabled(CONST.BETAS.ZENEFITS) || isBetaEnabled(CONST.BETAS.MERGE_HR)) &&
-            (policy?.isHREnabled === true || isAnyHRConnected(policy)) &&
-            canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED),
+        [CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED]: (policy?.isHREnabled === true || isAnyHRConnected(policy)) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED),
         [CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]: policy?.areExpensifyCardsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]: policy?.areReportFieldsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]: policy?.areRulesEnabled,

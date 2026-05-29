@@ -31,7 +31,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
@@ -87,7 +86,6 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const [isFreezeModalVisible, setIsFreezeModalVisible] = useState(false);
     const [isUnfreezeModalVisible, setIsUnfreezeModalVisible] = useState(false);
     const {translate} = useLocalize();
-    const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['FreezeCard', 'MoneySearch', 'Trashcan', 'CreditCardLock']);
     const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage']);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
@@ -306,7 +304,6 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                                 medium
                                 text={translate('workspace.common.viewTransactions')}
                                 icon={expensifyIcons.MoneySearch}
-                                iconFill={theme.icon}
                                 onPress={navigateToTransactions}
                                 innerStyles={styles.ph2}
                                 style={styles.w100}
@@ -321,7 +318,6 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                                 <CardDetailsActionButton
                                     text={translate('cardPage.freezeCard')}
                                     icon={expensifyIcons.FreezeCard}
-                                    iconFill={theme.icon}
                                     onPress={handleFreezePress}
                                     isDisabled={isOffline}
                                 />
@@ -329,7 +325,6 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             <CardDetailsActionButton
                                 text={translate('workspace.common.viewTransactions')}
                                 icon={expensifyIcons.MoneySearch}
-                                iconFill={theme.icon}
                                 onPress={navigateToTransactions}
                             />
                         </CardDetailsActionButtons>
