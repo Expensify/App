@@ -1,5 +1,5 @@
-import type {fetch as nitroFetch} from 'react-native-nitro-fetch';
 import {prefetchOnAppStart} from 'react-native-nitro-fetch';
+import type {fetch as nitroFetch} from 'react-native-nitro-fetch';
 import type {OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
