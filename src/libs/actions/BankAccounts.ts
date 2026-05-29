@@ -170,11 +170,14 @@ function updatePersonalBankAccountInfo(bankAccountID: number, accountData: Perso
 
     type AdditionalDataFields = Pick<BankAccountAdditionalData, 'firstName' | 'lastName' | 'addressStreet' | 'addressCity' | 'addressState' | 'addressZipCode' | 'companyPhone'>;
 
+    // The BE concatenates addressStreet2 into addressStreet with a newline, so mirror that here to match the stored value.
+    const formattedStreet = getFormattedStreet(accountData.addressStreet, accountData.addressStreet2);
+
     // BE stores the update into additionalData.firstName / additionalData.lastName (OldDot field names).
     const additionalDataUpdate: AdditionalDataFields = {
         firstName: accountData.legalFirstName,
         lastName: accountData.legalLastName,
-        addressStreet: accountData.addressStreet,
+        addressStreet: formattedStreet,
         addressCity: accountData.addressCity,
         addressState: accountData.addressState,
         addressZipCode: accountData.addressZipCode,
