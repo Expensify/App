@@ -31,12 +31,13 @@ type WorkspaceCategoryTableRowData = TableData & {
 type WorkspaceCategoriesTableProps = {
     ref?: React.Ref<TableHandle<WorkspaceCategoryTableRowData, WorkspaceCategoryTableColumnKey, string>> | undefined;
     categories: WorkspaceCategoryTableRowData[];
+    shouldShowGLCodeColumn: boolean;
     shouldShowApproverColumn: boolean;
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
-export default function WorkspaceCategoriesTable({ref, categories, selectedKeys, shouldShowApproverColumn, onRowSelectionChange}: WorkspaceCategoriesTableProps) {
+export default function WorkspaceCategoriesTable({ref, categories, selectedKeys, shouldShowGLCodeColumn, shouldShowApproverColumn, onRowSelectionChange}: WorkspaceCategoriesTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
@@ -46,11 +47,15 @@ export default function WorkspaceCategoriesTable({ref, categories, selectedKeys,
             label: translate('common.name'),
             sortable: true,
         },
-        {
-            key: 'glCode',
-            label: translate('workspace.categories.glCode'),
-            sortable: true,
-        },
+        ...(shouldShowGLCodeColumn
+            ? [
+                  {
+                      key: 'glCode' as const,
+                      label: translate('workspace.categories.glCode'),
+                      sortable: true,
+                  },
+              ]
+            : []),
         ...(shouldShowApproverColumn
             ? [
                   {
@@ -107,8 +112,9 @@ export default function WorkspaceCategoriesTable({ref, categories, selectedKeys,
         <WorkspaceCategoriesTableRow
             item={item}
             rowIndex={index}
-            shouldUseNarrowTableLayout={shouldUseNarrowLayout || isMediumScreenWidth}
+            shouldShowGLCodeColumn={shouldShowGLCodeColumn}
             shouldShowApproverColumn={shouldShowApproverColumn}
+            shouldUseNarrowTableLayout={shouldUseNarrowLayout || isMediumScreenWidth}
         />
     );
 

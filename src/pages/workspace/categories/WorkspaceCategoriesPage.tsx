@@ -244,6 +244,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         return approverEmails;
     }, [categories, policy?.rules?.approvalRules]);
 
+    const shouldShowGLCodeColumn = Object.values(policyCategories ?? {}).some((category) => !!category['GL Code']);
     const shouldShowApproverColumn = isControlPolicyWithWideLayout && !!policy?.areRulesEnabled && Object.keys(categoryApproverEmails).length > 0;
 
     const categoryRows = useMemo<WorkspaceCategoryTableRowData[]>(() => {
@@ -644,6 +645,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         <WorkspaceCategoriesTable
                             categories={categoryRows}
                             selectedKeys={selectedCategoryKeys}
+                            shouldShowGLCodeColumn={shouldShowGLCodeColumn}
                             shouldShowApproverColumn={shouldShowApproverColumn}
                             onRowSelectionChange={(selectedRowKeys) => setSelectedCategoryKeys(selectedRowKeys)}
                         />
