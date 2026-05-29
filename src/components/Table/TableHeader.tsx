@@ -1,6 +1,6 @@
 import React, {useRef} from 'react';
 import {View} from 'react-native';
-import type {ViewProps} from 'react-native';
+import type {ViewProps, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
@@ -78,7 +78,7 @@ function TableHeader<T, ColumnKey extends string = string>({style, shouldHideHea
                 styles.gap3,
                 // Use Grid on web when available (will override flex if supported)
                 styles.dGrid,
-                !shouldUseNarrowTableLayout && {gridTemplateColumns: `repeat(${columns.length}, 1fr)`},
+                !shouldUseNarrowTableLayout && {gridTemplateColumns: columns.map((column) => (column.width ? `${column.width}px` : '1fr')).join(' ')},
                 style,
             ]}
             {...props}
@@ -141,13 +141,14 @@ function TableHeaderColumn<T, ColumnKey extends string = string>({column}: {colu
         toggleColumnSorting(columnKey);
     };
 
-    const tableHeaderStyles = [
-        styles.flexRow,
-        styles.alignItemsCenter,
-        styles.tableHeaderContentHeight,
-        column.styling?.flex ? {flex: column.styling.flex} : styles.flex1,
-        column.styling?.containerStyles,
-    ];
+    let columnSizeStyle: ViewStyle | undefined;
+    if (column.width) {
+        columnSizeStyle = {width: column.width};
+    } else if (column.styling?.flex) {
+        columnSizeStyle = {flex: column.styling.flex};
+    }
+
+    const tableHeaderStyles = [styles.flexRow, styles.alignItemsCenter, styles.tableHeaderContentHeight, columnSizeStyle ?? styles.flex1, column.styling?.containerStyles];
 
     return (
         <PressableWithFeedback
