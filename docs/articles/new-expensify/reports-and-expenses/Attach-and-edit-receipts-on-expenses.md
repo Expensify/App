@@ -79,9 +79,9 @@ Each expense has one primary receipt, but you can attach additional receipt imag
 
 **On mobile**
 
-1. In the navigation tabs on the bottom, click **Spend**.
+1. In the navigation tabs on the bottom, tap **Spend**.
 2. Tap the expense you want to add an additional receipt to. 
-4. Tap the icon in the upper right corner of the image to **Add additional receipts**.
+3. Tap the icon in the upper right corner of the image to **Add additional receipts**.
 4. Take a photo or choose a file from your device.
 
 **Note:** Only the first (primary) receipt image is included in exports or downloadable reports. Additional receipt images are visible within Expensify on the expense itself.
