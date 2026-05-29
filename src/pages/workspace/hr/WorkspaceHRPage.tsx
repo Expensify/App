@@ -33,8 +33,6 @@ import HRProviderCard from './HRProviderCard';
 import type {HRCardDescriptor} from './utils';
 import {getHRCards} from './utils';
 
-const HR_BETAS = [CONST.BETAS.GUSTO, CONST.BETAS.ZENEFITS, CONST.BETAS.MERGE_HR] as const;
-
 type WorkspaceHRPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.HR>;
 
 function WorkspaceHRPage({
@@ -86,8 +84,6 @@ function WorkspaceHRPage({
     connectedCards.sort(byName);
     disconnectedCards.sort(byName);
 
-    const shouldBeBlocked = !HR_BETAS.some(isBetaEnabled);
-
     const handleConnect = (setupLink: string | undefined) => {
         if (!setupLink) {
             return;
@@ -113,7 +109,6 @@ function WorkspaceHRPage({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED}
-            shouldBeBlocked={shouldBeBlocked}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
