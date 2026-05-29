@@ -73,16 +73,16 @@ type LabelItem = {
     text: string;
 
     /** The color of the text (per line) */
-    color?: Color[];
+    color?: Record<number, Color>;
 
     /** Font size (per line) */
-    fontSize?: number[];
+    fontSize?: Record<number, number>;
 
     /** Font weight (per line) */
-    fontWeight?: Array<'normal' | 'bold'>;
+    fontWeight?: Record<number, 'normal' | 'bold'>;
 
     /** Line height (per line) */
-    lineHeight?: number[];
+    lineHeight?: Record<number, number>;
 
     /** Text horizontal anchor  */
     textAnchor?: TextAnchor;
