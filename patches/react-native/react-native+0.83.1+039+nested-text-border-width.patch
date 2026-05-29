@@ -1,0 +1,1083 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt
+index 0f1f176..53faf04 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt
+@@ -80,6 +80,54 @@ public class TextAttributeProps private constructor() {
+   public var borderBottomRightRadius: Float = Float.NaN
+     private set
+ 
++  public var isBorderTopColorSet: Boolean = false
++    private set
++
++  public var borderTopColor: Int? = null
++    private set(color) {
++      isBorderTopColorSet = (color != null)
++      if (color != null) { field = color }
++    }
++
++  public var isBorderRightColorSet: Boolean = false
++    private set
++
++  public var borderRightColor: Int? = null
++    private set(color) {
++      isBorderRightColorSet = (color != null)
++      if (color != null) { field = color }
++    }
++
++  public var isBorderBottomColorSet: Boolean = false
++    private set
++
++  public var borderBottomColor: Int? = null
++    private set(color) {
++      isBorderBottomColorSet = (color != null)
++      if (color != null) { field = color }
++    }
++
++  public var isBorderLeftColorSet: Boolean = false
++    private set
++
++  public var borderLeftColor: Int? = null
++    private set(color) {
++      isBorderLeftColorSet = (color != null)
++      if (color != null) { field = color }
++    }
++
++  public var borderTopWidth: Float = Float.NaN
++    private set
++
++  public var borderRightWidth: Float = Float.NaN
++    private set
++
++  public var borderBottomWidth: Float = Float.NaN
++    private set
++
++  public var borderLeftWidth: Float = Float.NaN
++    private set
++
+   public var opacity: Float = Float.NaN
+     private set
+ 
+@@ -392,6 +440,14 @@ public class TextAttributeProps private constructor() {
+     public const val TA_KEY_BORDER_TOP_RIGHT_RADIUS: Int = 31
+     public const val TA_KEY_BORDER_BOTTOM_LEFT_RADIUS: Int = 32
+     public const val TA_KEY_BORDER_BOTTOM_RIGHT_RADIUS: Int = 33
++    public const val TA_KEY_BORDER_TOP_COLOR: Int = 34
++    public const val TA_KEY_BORDER_RIGHT_COLOR: Int = 35
++    public const val TA_KEY_BORDER_BOTTOM_COLOR: Int = 36
++    public const val TA_KEY_BORDER_LEFT_COLOR: Int = 37
++    public const val TA_KEY_BORDER_TOP_WIDTH: Int = 38
++    public const val TA_KEY_BORDER_RIGHT_WIDTH: Int = 39
++    public const val TA_KEY_BORDER_BOTTOM_WIDTH: Int = 40
++    public const val TA_KEY_BORDER_LEFT_WIDTH: Int = 41
+ 
+     public const val UNSET: Int = -1
+ 
+@@ -454,6 +510,18 @@ public class TextAttributeProps private constructor() {
+               result.borderBottomLeftRadius = entry.doubleValue.toFloat()
+           TA_KEY_BORDER_BOTTOM_RIGHT_RADIUS ->
+               result.borderBottomRightRadius = entry.doubleValue.toFloat()
++          TA_KEY_BORDER_TOP_COLOR -> result.borderTopColor = entry.intValue
++          TA_KEY_BORDER_RIGHT_COLOR -> result.borderRightColor = entry.intValue
++          TA_KEY_BORDER_BOTTOM_COLOR -> result.borderBottomColor = entry.intValue
++          TA_KEY_BORDER_LEFT_COLOR -> result.borderLeftColor = entry.intValue
++          TA_KEY_BORDER_TOP_WIDTH ->
++              result.borderTopWidth = entry.doubleValue.toFloat()
++          TA_KEY_BORDER_RIGHT_WIDTH ->
++              result.borderRightWidth = entry.doubleValue.toFloat()
++          TA_KEY_BORDER_BOTTOM_WIDTH ->
++              result.borderBottomWidth = entry.doubleValue.toFloat()
++          TA_KEY_BORDER_LEFT_WIDTH ->
++              result.borderLeftWidth = entry.doubleValue.toFloat()
+         }
+       }
+ 
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
+index 5e7895c..7d2774b 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
+@@ -268,27 +268,44 @@ internal object TextLayoutManager {
+               ?.let { SetSpanOperation(start, end, it) }
+               ?.let { ops.add(it) }
+         }
+-        if (textAttributes.isBackgroundColorSet) {
+-          textAttributes.backgroundColor
+-              ?.let {
+-                val hasBorderRadius = !textAttributes.borderTopLeftRadius.isNaN() ||
+-                    !textAttributes.borderTopRightRadius.isNaN() ||
+-                    !textAttributes.borderBottomLeftRadius.isNaN() ||
+-                    !textAttributes.borderBottomRightRadius.isNaN()
+-                if (hasBorderRadius) {
+-                  ReactBackgroundDrawSpan(
+-                      it,
+-                      PixelUtil.toPixelFromDIP(textAttributes.borderTopLeftRadius.takeIf { r -> !r.isNaN() } ?: 0f),
+-                      PixelUtil.toPixelFromDIP(textAttributes.borderTopRightRadius.takeIf { r -> !r.isNaN() } ?: 0f),
+-                      PixelUtil.toPixelFromDIP(textAttributes.borderBottomLeftRadius.takeIf { r -> !r.isNaN() } ?: 0f),
+-                      PixelUtil.toPixelFromDIP(textAttributes.borderBottomRightRadius.takeIf { r -> !r.isNaN() } ?: 0f),
+-                  )
+-                } else {
+-                  ReactBackgroundColorSpan(it)
+-                }
+-              }
+-              ?.let { SetSpanOperation(start, end, it) }
+-              ?.let { ops.add(it) }
++        if (textAttributes.isBackgroundColorSet ||
++            textAttributes.isBorderTopColorSet || textAttributes.isBorderRightColorSet ||
++            textAttributes.isBorderBottomColorSet || textAttributes.isBorderLeftColorSet) {
++          val hasBorderRadius = !textAttributes.borderTopLeftRadius.isNaN() ||
++              !textAttributes.borderTopRightRadius.isNaN() ||
++              !textAttributes.borderBottomLeftRadius.isNaN() ||
++              !textAttributes.borderBottomRightRadius.isNaN()
++          val hasBorderWidth = !textAttributes.borderTopWidth.isNaN() ||
++              !textAttributes.borderRightWidth.isNaN() ||
++              !textAttributes.borderBottomWidth.isNaN() ||
++              !textAttributes.borderLeftWidth.isNaN()
++          val hasBorderColor = textAttributes.isBorderTopColorSet ||
++              textAttributes.isBorderRightColorSet ||
++              textAttributes.isBorderBottomColorSet ||
++              textAttributes.isBorderLeftColorSet
++          val bgColor = textAttributes.backgroundColor ?: android.graphics.Color.TRANSPARENT
++          val span = if (hasBorderRadius || hasBorderWidth || hasBorderColor) {
++            ReactBackgroundDrawSpan(
++                bgColor,
++                PixelUtil.toPixelFromDIP(textAttributes.borderTopLeftRadius.takeIf { r -> !r.isNaN() } ?: 0f),
++                PixelUtil.toPixelFromDIP(textAttributes.borderTopRightRadius.takeIf { r -> !r.isNaN() } ?: 0f),
++                PixelUtil.toPixelFromDIP(textAttributes.borderBottomLeftRadius.takeIf { r -> !r.isNaN() } ?: 0f),
++                PixelUtil.toPixelFromDIP(textAttributes.borderBottomRightRadius.takeIf { r -> !r.isNaN() } ?: 0f),
++                if (textAttributes.isBorderTopColorSet) textAttributes.borderTopColor else null,
++                if (textAttributes.isBorderRightColorSet) textAttributes.borderRightColor else null,
++                if (textAttributes.isBorderBottomColorSet) textAttributes.borderBottomColor else null,
++                if (textAttributes.isBorderLeftColorSet) textAttributes.borderLeftColor else null,
++                PixelUtil.toPixelFromDIP(textAttributes.borderTopWidth.takeIf { r -> !r.isNaN() } ?: 0f),
++                PixelUtil.toPixelFromDIP(textAttributes.borderRightWidth.takeIf { r -> !r.isNaN() } ?: 0f),
++                PixelUtil.toPixelFromDIP(textAttributes.borderBottomWidth.takeIf { r -> !r.isNaN() } ?: 0f),
++                PixelUtil.toPixelFromDIP(textAttributes.borderLeftWidth.takeIf { r -> !r.isNaN() } ?: 0f),
++            )
++          } else if (textAttributes.isBackgroundColorSet) {
++            textAttributes.backgroundColor?.let { ReactBackgroundColorSpan(it) }
++          } else {
++            null
++          }
++          span?.let { ops.add(SetSpanOperation(start, end, it)) }
+         }
+         if (!textAttributes.opacity.isNaN()) {
+           ops.add(SetSpanOperation(start, end, ReactOpacitySpan(textAttributes.opacity)))
+@@ -454,25 +471,43 @@ internal object TextLayoutManager {
+           )
+         }
+ 
+-        if (fragment.props.isBackgroundColorSet) {
+-          val bgSpan =
+-              fragment.props.backgroundColor?.let {
+-                val hasBorderRadius = !fragment.props.borderTopLeftRadius.isNaN() ||
+-                    !fragment.props.borderTopRightRadius.isNaN() ||
+-                    !fragment.props.borderBottomLeftRadius.isNaN() ||
+-                    !fragment.props.borderBottomRightRadius.isNaN()
+-                if (hasBorderRadius) {
+-                  ReactBackgroundDrawSpan(
+-                      it,
+-                      PixelUtil.toPixelFromDIP(fragment.props.borderTopLeftRadius.takeIf { r -> !r.isNaN() } ?: 0f),
+-                      PixelUtil.toPixelFromDIP(fragment.props.borderTopRightRadius.takeIf { r -> !r.isNaN() } ?: 0f),
+-                      PixelUtil.toPixelFromDIP(fragment.props.borderBottomLeftRadius.takeIf { r -> !r.isNaN() } ?: 0f),
+-                      PixelUtil.toPixelFromDIP(fragment.props.borderBottomRightRadius.takeIf { r -> !r.isNaN() } ?: 0f),
+-                  )
+-                } else {
+-                  ReactBackgroundColorSpan(it)
+-                }
+-              }
++        if (fragment.props.isBackgroundColorSet ||
++            fragment.props.isBorderTopColorSet || fragment.props.isBorderRightColorSet ||
++            fragment.props.isBorderBottomColorSet || fragment.props.isBorderLeftColorSet) {
++          val hasBorderRadius = !fragment.props.borderTopLeftRadius.isNaN() ||
++              !fragment.props.borderTopRightRadius.isNaN() ||
++              !fragment.props.borderBottomLeftRadius.isNaN() ||
++              !fragment.props.borderBottomRightRadius.isNaN()
++          val hasBorderWidth = !fragment.props.borderTopWidth.isNaN() ||
++              !fragment.props.borderRightWidth.isNaN() ||
++              !fragment.props.borderBottomWidth.isNaN() ||
++              !fragment.props.borderLeftWidth.isNaN()
++          val hasBorderColor = fragment.props.isBorderTopColorSet ||
++              fragment.props.isBorderRightColorSet ||
++              fragment.props.isBorderBottomColorSet ||
++              fragment.props.isBorderLeftColorSet
++          val bgColor = fragment.props.backgroundColor ?: android.graphics.Color.TRANSPARENT
++          val bgSpan = if (hasBorderRadius || hasBorderWidth || hasBorderColor) {
++            ReactBackgroundDrawSpan(
++                bgColor,
++                PixelUtil.toPixelFromDIP(fragment.props.borderTopLeftRadius.takeIf { r -> !r.isNaN() } ?: 0f),
++                PixelUtil.toPixelFromDIP(fragment.props.borderTopRightRadius.takeIf { r -> !r.isNaN() } ?: 0f),
++                PixelUtil.toPixelFromDIP(fragment.props.borderBottomLeftRadius.takeIf { r -> !r.isNaN() } ?: 0f),
++                PixelUtil.toPixelFromDIP(fragment.props.borderBottomRightRadius.takeIf { r -> !r.isNaN() } ?: 0f),
++                if (fragment.props.isBorderTopColorSet) fragment.props.borderTopColor else null,
++                if (fragment.props.isBorderRightColorSet) fragment.props.borderRightColor else null,
++                if (fragment.props.isBorderBottomColorSet) fragment.props.borderBottomColor else null,
++                if (fragment.props.isBorderLeftColorSet) fragment.props.borderLeftColor else null,
++                PixelUtil.toPixelFromDIP(fragment.props.borderTopWidth.takeIf { r -> !r.isNaN() } ?: 0f),
++                PixelUtil.toPixelFromDIP(fragment.props.borderRightWidth.takeIf { r -> !r.isNaN() } ?: 0f),
++                PixelUtil.toPixelFromDIP(fragment.props.borderBottomWidth.takeIf { r -> !r.isNaN() } ?: 0f),
++                PixelUtil.toPixelFromDIP(fragment.props.borderLeftWidth.takeIf { r -> !r.isNaN() } ?: 0f),
++            )
++          } else if (fragment.props.isBackgroundColorSet) {
++            fragment.props.backgroundColor?.let { ReactBackgroundColorSpan(it) }
++          } else {
++            null
++          }
+           spannable.setSpan(bgSpan, start, end, spanFlags)
+         }
+ 
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
+index 5f5e392..d2d71ba 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
+@@ -14,11 +14,15 @@ import android.text.Layout
+ import androidx.annotation.ColorInt
+ 
+ /**
+- * A [DrawCommandSpan] that draws a rounded-rectangle background behind inline text spans. When
+- * borderRadius is 0, this draws a plain rectangle identical to [ReactBackgroundColorSpan].
++ * A [DrawCommandSpan] that draws a rounded-rectangle background and optional per-side border
++ * behind inline text spans.
+  *
+  * For multiline spans, only the outer corners are rounded: left corners on the first line, right
+- * corners on the last line (flipped for RTL).
++ * corners on the last line (flipped for RTL). Border sides follow the same rule: the left border
++ * edge is drawn only on the first line and the right border edge only on the last line; top and
++ * bottom edges are drawn on every line.
++ *
++ * Each border side has its own color (null = don't draw that side).
+  */
+ internal class ReactBackgroundDrawSpan(
+     @ColorInt private val backgroundColor: Int,
+@@ -26,17 +30,34 @@ internal class ReactBackgroundDrawSpan(
+     private val borderTopRightRadius: Float,
+     private val borderBottomLeftRadius: Float,
+     private val borderBottomRightRadius: Float,
++    @ColorInt private val borderTopColor: Int?,
++    @ColorInt private val borderRightColor: Int?,
++    @ColorInt private val borderBottomColor: Int?,
++    @ColorInt private val borderLeftColor: Int?,
++    private val borderTopWidth: Float,
++    private val borderRightWidth: Float,
++    private val borderBottomWidth: Float,
++    private val borderLeftWidth: Float,
+ ) : DrawCommandSpan() {
+ 
+-  private val paint =
++  private val fillPaint =
+       Paint().apply {
+         color = backgroundColor
+         isAntiAlias = true
+         style = Paint.Style.FILL
+       }
+ 
++  private val borderPaint =
++      Paint().apply {
++        isAntiAlias = true
++        style = Paint.Style.STROKE
++        strokeCap = Paint.Cap.BUTT
++        strokeJoin = Paint.Join.MITER
++      }
++
+   private val rectF = RectF()
+-  private val path = Path()
++  private val fillPath = Path()
++  private val borderPath = Path()
+ 
+   override fun onPreDraw(start: Int, end: Int, canvas: Canvas, layout: Layout) {
+     if (start >= end) return
+@@ -48,78 +69,144 @@ internal class ReactBackgroundDrawSpan(
+       val lineStart = layout.getLineStart(line)
+       val lineEnd = layout.getLineEnd(line)
+ 
+-      // When the span starts at or before this line, use the line's left edge.
+-      // Otherwise use the actual character position of the span start.
+       val left =
+-          if (start <= lineStart) {
+-            layout.getLineLeft(line)
+-          } else {
+-            layout.getPrimaryHorizontal(start)
+-          }
+-
+-      // When the span extends past this line, use the line's right edge.
+-      // getLineEnd() returns the offset of the first char on the NEXT line for
+-      // soft-wrapped lines, so getPrimaryHorizontal(lineEnd) would incorrectly
+-      // give us the left margin of the next line instead of the right edge.
++          if (start <= lineStart) layout.getLineLeft(line)
++          else layout.getPrimaryHorizontal(start)
++
+       val right =
+-          if (end >= lineEnd) {
+-            layout.getLineRight(line)
+-          } else {
+-            layout.getPrimaryHorizontal(end)
+-          }
++          if (end >= lineEnd) layout.getLineRight(line)
++          else layout.getPrimaryHorizontal(end)
+ 
+       val baseline = layout.getLineBaseline(line).toFloat()
+       val fm = layout.paint.fontMetrics
+       val top = baseline + fm.ascent
+       val bottom = baseline + fm.descent
+ 
+-      val actualLeft = minOf(left, right)
+-      val actualRight = maxOf(left, right)
++      rectF.set(minOf(left, right), top, maxOf(left, right), bottom)
+ 
+-      rectF.set(actualLeft, top, actualRight, bottom)
++      val isFirstLine = line == startLine
++      val isLastLine = line == endLine
++      val rtl = layout.getParagraphDirection(line) == Layout.DIR_RIGHT_TO_LEFT
+ 
+-      val hasAnyRadius = borderTopLeftRadius != 0f || borderTopRightRadius != 0f ||
+-          borderBottomLeftRadius != 0f || borderBottomRightRadius != 0f
+-      if (!hasAnyRadius) {
+-        canvas.drawRect(rectF, paint)
+-      } else {
+-        val isFirstLine = line == startLine
+-        val isLastLine = line == endLine
+-        val rtl = layout.getParagraphDirection(line) == Layout.DIR_RIGHT_TO_LEFT
+-        drawSelectiveRoundRect(canvas, rectF, isFirstLine, isLastLine, rtl)
+-      }
++      drawFill(canvas, rectF, isFirstLine, isLastLine, rtl)
++      drawBorder(canvas, rectF, isFirstLine, isLastLine, rtl)
+     }
+   }
+ 
+-  private fun drawSelectiveRoundRect(
++  private fun drawFill(
+       canvas: Canvas,
+       rect: RectF,
+       isFirstLine: Boolean,
+       isLastLine: Boolean,
+       rtl: Boolean,
+   ) {
+-    // For LTR: first line rounds left corners, last line rounds right corners.
+-    // For RTL: first line rounds right corners, last line rounds left corners.
+-    val roundStart = isFirstLine
+-    val roundEnd = isLastLine
+-    val roundLeft = if (rtl) roundEnd else roundStart
+-    val roundRight = if (rtl) roundStart else roundEnd
+-
+-    val topLeft = if (roundLeft) borderTopLeftRadius else 0f
+-    val bottomLeft = if (roundLeft) borderBottomLeftRadius else 0f
+-    val topRight = if (roundRight) borderTopRightRadius else 0f
+-    val bottomRight = if (roundRight) borderBottomRightRadius else 0f
+-
+-    val radii =
++    val hasAnyRadius = borderTopLeftRadius != 0f || borderTopRightRadius != 0f ||
++        borderBottomLeftRadius != 0f || borderBottomRightRadius != 0f
++    if (!hasAnyRadius) {
++      canvas.drawRect(rect, fillPaint)
++      return
++    }
++
++    val roundLeft = if (rtl) isLastLine else isFirstLine
++    val roundRight = if (rtl) isFirstLine else isLastLine
++
++    fillPath.reset()
++    fillPath.addRoundRect(
++        rect,
+         floatArrayOf(
+-            topLeft, topLeft,
+-            topRight, topRight,
+-            bottomRight, bottomRight,
+-            bottomLeft, bottomLeft,
+-        )
+-
+-    path.reset()
+-    path.addRoundRect(rect, radii, Path.Direction.CW)
+-    canvas.drawPath(path, paint)
++            if (roundLeft) borderTopLeftRadius else 0f,
++            if (roundLeft) borderTopLeftRadius else 0f,
++            if (roundRight) borderTopRightRadius else 0f,
++            if (roundRight) borderTopRightRadius else 0f,
++            if (roundRight) borderBottomRightRadius else 0f,
++            if (roundRight) borderBottomRightRadius else 0f,
++            if (roundLeft) borderBottomLeftRadius else 0f,
++            if (roundLeft) borderBottomLeftRadius else 0f,
++        ),
++        Path.Direction.CW,
++    )
++    canvas.drawPath(fillPath, fillPaint)
++  }
++
++  private fun drawBorder(
++      canvas: Canvas,
++      rect: RectF,
++      isFirstLine: Boolean,
++      isLastLine: Boolean,
++      rtl: Boolean,
++  ) {
++    val drawLeft = if (rtl) isLastLine else isFirstLine
++    val drawRight = if (rtl) isFirstLine else isLastLine
++
++    val roundLeft = drawLeft
++    val roundRight = drawRight
++
++    val tl = if (roundLeft) borderTopLeftRadius else 0f
++    val bl = if (roundLeft) borderBottomLeftRadius else 0f
++    val tr = if (roundRight) borderTopRightRadius else 0f
++    val br = if (roundRight) borderBottomRightRadius else 0f
++
++    val x = rect.left
++    val y = rect.top
++    val w = rect.width()
++    val h = rect.height()
++
++    // Top border
++    if (borderTopColor != null && borderTopWidth > 0f) {
++      borderPaint.color = borderTopColor
++      borderPaint.strokeWidth = borderTopWidth
++      val fromX = x + (if (drawLeft) tl else 0f)
++      val toX = x + w - (if (drawRight) tr else 0f)
++      canvas.drawLine(fromX, y, toX, y, borderPaint)
++    }
++
++    // Bottom border
++    if (borderBottomColor != null && borderBottomWidth > 0f) {
++      borderPaint.color = borderBottomColor
++      borderPaint.strokeWidth = borderBottomWidth
++      val fromX = x + (if (drawLeft) bl else 0f)
++      val toX = x + w - (if (drawRight) br else 0f)
++      canvas.drawLine(fromX, y + h, toX, y + h, borderPaint)
++    }
++
++    // Left border (with TL and BL corner arcs), drawn on the first line only
++    if (drawLeft && borderLeftColor != null && borderLeftWidth > 0f) {
++      borderPaint.color = borderLeftColor
++      borderPaint.strokeWidth = borderLeftWidth
++      borderPath.reset()
++      if (tl > 0f) {
++        // TL arc: from (x+tl, y) counterclockwise to (x, y+tl)
++        borderPath.moveTo(x + tl, y)
++        borderPath.arcTo(RectF(x, y, x + 2f * tl, y + 2f * tl), 270f, -90f)
++      } else {
++        borderPath.moveTo(x, y)
++      }
++      borderPath.lineTo(x, y + h - bl)
++      if (bl > 0f) {
++        // BL arc: from (x, y+h-bl) counterclockwise to (x+bl, y+h)
++        borderPath.arcTo(RectF(x, y + h - 2f * bl, x + 2f * bl, y + h), 180f, -90f)
++      }
++      canvas.drawPath(borderPath, borderPaint)
++    }
++
++    // Right border (with TR and BR corner arcs), drawn on the last line only
++    if (drawRight && borderRightColor != null && borderRightWidth > 0f) {
++      borderPaint.color = borderRightColor
++      borderPaint.strokeWidth = borderRightWidth
++      borderPath.reset()
++      if (tr > 0f) {
++        // TR arc: from (x+w-tr, y) clockwise to (x+w, y+tr)
++        borderPath.moveTo(x + w - tr, y)
++        borderPath.arcTo(RectF(x + w - 2f * tr, y, x + w, y + 2f * tr), 270f, 90f)
++      } else {
++        borderPath.moveTo(x + w, y)
++      }
++      borderPath.lineTo(x + w, y + h - br)
++      if (br > 0f) {
++        // BR arc: from (x+w, y+h-br) clockwise to (x+w-br, y+h)
++        borderPath.arcTo(RectF(x + w - 2f * br, y + h - 2f * br, x + w, y + h), 0f, 90f)
++      }
++      canvas.drawPath(borderPath, borderPaint)
++    }
+   }
+ }
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp
+index 6eb899f..eb0d85b 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp
+@@ -42,6 +42,36 @@ void TextAttributes::apply(TextAttributes textAttributes) {
+   borderBottomRightRadius = textAttributes.borderBottomRightRadius.has_value()
+       ? textAttributes.borderBottomRightRadius
+       : borderBottomRightRadius;
++  borderColor = textAttributes.borderColor
++      ? textAttributes.borderColor
++      : borderColor;
++  borderTopColor = textAttributes.borderTopColor
++      ? textAttributes.borderTopColor
++      : borderTopColor;
++  borderRightColor = textAttributes.borderRightColor
++      ? textAttributes.borderRightColor
++      : borderRightColor;
++  borderBottomColor = textAttributes.borderBottomColor
++      ? textAttributes.borderBottomColor
++      : borderBottomColor;
++  borderLeftColor = textAttributes.borderLeftColor
++      ? textAttributes.borderLeftColor
++      : borderLeftColor;
++  borderWidth = textAttributes.borderWidth.has_value()
++      ? textAttributes.borderWidth
++      : borderWidth;
++  borderTopWidth = textAttributes.borderTopWidth.has_value()
++      ? textAttributes.borderTopWidth
++      : borderTopWidth;
++  borderRightWidth = textAttributes.borderRightWidth.has_value()
++      ? textAttributes.borderRightWidth
++      : borderRightWidth;
++  borderBottomWidth = textAttributes.borderBottomWidth.has_value()
++      ? textAttributes.borderBottomWidth
++      : borderBottomWidth;
++  borderLeftWidth = textAttributes.borderLeftWidth.has_value()
++      ? textAttributes.borderLeftWidth
++      : borderLeftWidth;
+ 
+   // Font
+   fontFamily = !textAttributes.fontFamily.empty() ? textAttributes.fontFamily
+@@ -161,7 +191,17 @@ bool TextAttributes::operator==(const TextAttributes& rhs) const {
+              borderTopLeftRadius,
+              borderTopRightRadius,
+              borderBottomLeftRadius,
+-             borderBottomRightRadius) ==
++             borderBottomRightRadius,
++             borderColor,
++             borderTopColor,
++             borderRightColor,
++             borderBottomColor,
++             borderLeftColor,
++             borderWidth,
++             borderTopWidth,
++             borderRightWidth,
++             borderBottomWidth,
++             borderLeftWidth) ==
+       std::tie(
+              rhs.foregroundColor,
+              rhs.backgroundColor,
+@@ -189,7 +229,17 @@ bool TextAttributes::operator==(const TextAttributes& rhs) const {
+              rhs.borderTopLeftRadius,
+              rhs.borderTopRightRadius,
+              rhs.borderBottomLeftRadius,
+-             rhs.borderBottomRightRadius) &&
++             rhs.borderBottomRightRadius,
++             rhs.borderColor,
++             rhs.borderTopColor,
++             rhs.borderRightColor,
++             rhs.borderBottomColor,
++             rhs.borderLeftColor,
++             rhs.borderWidth,
++             rhs.borderTopWidth,
++             rhs.borderRightWidth,
++             rhs.borderBottomWidth,
++             rhs.borderLeftWidth) &&
+       floatEquality(maxFontSizeMultiplier, rhs.maxFontSizeMultiplier) &&
+       floatEquality(opacity, rhs.opacity) &&
+       floatEquality(fontSize, rhs.fontSize) &&
+@@ -242,6 +292,38 @@ SharedDebugStringConvertibleList TextAttributes::getDebugProps() const {
+           "borderBottomRightRadius",
+           borderBottomRightRadius,
+           textAttributes.borderBottomRightRadius),
++      debugStringConvertibleItem(
++          "borderColor", borderColor, textAttributes.borderColor),
++      debugStringConvertibleItem(
++          "borderTopColor", borderTopColor, textAttributes.borderTopColor),
++      debugStringConvertibleItem(
++          "borderRightColor",
++          borderRightColor,
++          textAttributes.borderRightColor),
++      debugStringConvertibleItem(
++          "borderBottomColor",
++          borderBottomColor,
++          textAttributes.borderBottomColor),
++      debugStringConvertibleItem(
++          "borderLeftColor",
++          borderLeftColor,
++          textAttributes.borderLeftColor),
++      debugStringConvertibleItem(
++          "borderWidth", borderWidth, textAttributes.borderWidth),
++      debugStringConvertibleItem(
++          "borderTopWidth", borderTopWidth, textAttributes.borderTopWidth),
++      debugStringConvertibleItem(
++          "borderRightWidth",
++          borderRightWidth,
++          textAttributes.borderRightWidth),
++      debugStringConvertibleItem(
++          "borderBottomWidth",
++          borderBottomWidth,
++          textAttributes.borderBottomWidth),
++      debugStringConvertibleItem(
++          "borderLeftWidth",
++          borderLeftWidth,
++          textAttributes.borderLeftWidth),
+ 
+       // Font
+       debugStringConvertibleItem(
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.h b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.h
+index 2eaa3bc..af278a3 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.h
++++ b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.h
+@@ -47,6 +47,16 @@ class TextAttributes : public DebugStringConvertible {
+   std::optional<Float> borderTopRightRadius{};
+   std::optional<Float> borderBottomLeftRadius{};
+   std::optional<Float> borderBottomRightRadius{};
++  SharedColor borderColor{};
++  SharedColor borderTopColor{};
++  SharedColor borderRightColor{};
++  SharedColor borderBottomColor{};
++  SharedColor borderLeftColor{};
++  std::optional<Float> borderWidth{};
++  std::optional<Float> borderTopWidth{};
++  std::optional<Float> borderRightWidth{};
++  std::optional<Float> borderBottomWidth{};
++  std::optional<Float> borderLeftWidth{};
+ 
+   // Font
+   std::string fontFamily{""};
+@@ -148,7 +158,17 @@ struct hash<facebook::react::TextAttributes> {
+         textAttributes.borderTopLeftRadius,
+         textAttributes.borderTopRightRadius,
+         textAttributes.borderBottomLeftRadius,
+-        textAttributes.borderBottomRightRadius);
++        textAttributes.borderBottomRightRadius,
++        textAttributes.borderColor,
++        textAttributes.borderTopColor,
++        textAttributes.borderRightColor,
++        textAttributes.borderBottomColor,
++        textAttributes.borderLeftColor,
++        textAttributes.borderWidth,
++        textAttributes.borderTopWidth,
++        textAttributes.borderRightWidth,
++        textAttributes.borderBottomWidth,
++        textAttributes.borderLeftWidth);
+   }
+ };
+ } // namespace std
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/conversions.h b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/conversions.h
+index 48c1fe2..3f7b481 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/conversions.h
++++ b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/conversions.h
+@@ -1031,6 +1031,14 @@ constexpr static MapBuffer::Key TA_KEY_BORDER_TOP_LEFT_RADIUS = 30;
+ constexpr static MapBuffer::Key TA_KEY_BORDER_TOP_RIGHT_RADIUS = 31;
+ constexpr static MapBuffer::Key TA_KEY_BORDER_BOTTOM_LEFT_RADIUS = 32;
+ constexpr static MapBuffer::Key TA_KEY_BORDER_BOTTOM_RIGHT_RADIUS = 33;
++constexpr static MapBuffer::Key TA_KEY_BORDER_TOP_COLOR = 34;
++constexpr static MapBuffer::Key TA_KEY_BORDER_RIGHT_COLOR = 35;
++constexpr static MapBuffer::Key TA_KEY_BORDER_BOTTOM_COLOR = 36;
++constexpr static MapBuffer::Key TA_KEY_BORDER_LEFT_COLOR = 37;
++constexpr static MapBuffer::Key TA_KEY_BORDER_TOP_WIDTH = 38;
++constexpr static MapBuffer::Key TA_KEY_BORDER_RIGHT_WIDTH = 39;
++constexpr static MapBuffer::Key TA_KEY_BORDER_BOTTOM_WIDTH = 40;
++constexpr static MapBuffer::Key TA_KEY_BORDER_LEFT_WIDTH = 41;
+ 
+ // constants for ParagraphAttributes serialization
+ constexpr static MapBuffer::Key PA_KEY_MAX_NUMBER_OF_LINES = 0;
+@@ -1197,6 +1205,49 @@ inline MapBuffer toMapBuffer(const TextAttributes &textAttributes)
+           textAttributes.borderBottomRightRadius.value_or(fallback));
+     }
+   }
++  {
++    const bool hasAnyColor = textAttributes.borderColor ||
++        textAttributes.borderTopColor ||
++        textAttributes.borderRightColor ||
++        textAttributes.borderBottomColor ||
++        textAttributes.borderLeftColor;
++    const bool hasAnyWidth = textAttributes.borderWidth.has_value() ||
++        textAttributes.borderTopWidth.has_value() ||
++        textAttributes.borderRightWidth.has_value() ||
++        textAttributes.borderBottomWidth.has_value() ||
++        textAttributes.borderLeftWidth.has_value();
++    if (hasAnyColor || hasAnyWidth) {
++      // Resolve per-side colors against the uniform fallback; only send when non-null.
++      auto resolveColor = [&](const SharedColor& perSide) -> SharedColor {
++        return perSide ? perSide : textAttributes.borderColor;
++      };
++      if (const auto c = resolveColor(textAttributes.borderTopColor)) {
++        builder.putInt(TA_KEY_BORDER_TOP_COLOR, toAndroidRepr(c));
++      }
++      if (const auto c = resolveColor(textAttributes.borderRightColor)) {
++        builder.putInt(TA_KEY_BORDER_RIGHT_COLOR, toAndroidRepr(c));
++      }
++      if (const auto c = resolveColor(textAttributes.borderBottomColor)) {
++        builder.putInt(TA_KEY_BORDER_BOTTOM_COLOR, toAndroidRepr(c));
++      }
++      if (const auto c = resolveColor(textAttributes.borderLeftColor)) {
++        builder.putInt(TA_KEY_BORDER_LEFT_COLOR, toAndroidRepr(c));
++      }
++      const Float fallback = textAttributes.borderWidth.value_or(0.0f);
++      builder.putDouble(
++          TA_KEY_BORDER_TOP_WIDTH,
++          textAttributes.borderTopWidth.value_or(fallback));
++      builder.putDouble(
++          TA_KEY_BORDER_RIGHT_WIDTH,
++          textAttributes.borderRightWidth.value_or(fallback));
++      builder.putDouble(
++          TA_KEY_BORDER_BOTTOM_WIDTH,
++          textAttributes.borderBottomWidth.value_or(fallback));
++      builder.putDouble(
++          TA_KEY_BORDER_LEFT_WIDTH,
++          textAttributes.borderLeftWidth.value_or(fallback));
++    }
++  }
+   return builder.build();
+ }
+ 
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/text/BaseTextProps.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/text/BaseTextProps.cpp
+index 44ef461..b9ae418 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/text/BaseTextProps.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/text/BaseTextProps.cpp
+@@ -252,6 +252,66 @@ static TextAttributes convertRawProp(
+       "borderBottomRightRadius",
+       sourceTextAttributes.borderBottomRightRadius,
+       defaultTextAttributes.borderBottomRightRadius);
++  textAttributes.borderColor = convertRawProp(
++      context,
++      rawProps,
++      "borderColor",
++      sourceTextAttributes.borderColor,
++      defaultTextAttributes.borderColor);
++  textAttributes.borderTopColor = convertRawProp(
++      context,
++      rawProps,
++      "borderTopColor",
++      sourceTextAttributes.borderTopColor,
++      defaultTextAttributes.borderTopColor);
++  textAttributes.borderRightColor = convertRawProp(
++      context,
++      rawProps,
++      "borderRightColor",
++      sourceTextAttributes.borderRightColor,
++      defaultTextAttributes.borderRightColor);
++  textAttributes.borderBottomColor = convertRawProp(
++      context,
++      rawProps,
++      "borderBottomColor",
++      sourceTextAttributes.borderBottomColor,
++      defaultTextAttributes.borderBottomColor);
++  textAttributes.borderLeftColor = convertRawProp(
++      context,
++      rawProps,
++      "borderLeftColor",
++      sourceTextAttributes.borderLeftColor,
++      defaultTextAttributes.borderLeftColor);
++  textAttributes.borderWidth = convertRawProp(
++      context,
++      rawProps,
++      "borderWidth",
++      sourceTextAttributes.borderWidth,
++      defaultTextAttributes.borderWidth);
++  textAttributes.borderTopWidth = convertRawProp(
++      context,
++      rawProps,
++      "borderTopWidth",
++      sourceTextAttributes.borderTopWidth,
++      defaultTextAttributes.borderTopWidth);
++  textAttributes.borderRightWidth = convertRawProp(
++      context,
++      rawProps,
++      "borderRightWidth",
++      sourceTextAttributes.borderRightWidth,
++      defaultTextAttributes.borderRightWidth);
++  textAttributes.borderBottomWidth = convertRawProp(
++      context,
++      rawProps,
++      "borderBottomWidth",
++      sourceTextAttributes.borderBottomWidth,
++      defaultTextAttributes.borderBottomWidth);
++  textAttributes.borderLeftWidth = convertRawProp(
++      context,
++      rawProps,
++      "borderLeftWidth",
++      sourceTextAttributes.borderLeftWidth,
++      defaultTextAttributes.borderLeftWidth);
+ 
+   return textAttributes;
+ }
+@@ -374,6 +434,26 @@ void BaseTextProps::setProp(
+         defaults, value, textAttributes, borderBottomLeftRadius, "borderBottomLeftRadius");
+     REBUILD_FIELD_SWITCH_CASE(
+         defaults, value, textAttributes, borderBottomRightRadius, "borderBottomRightRadius");
++    REBUILD_FIELD_SWITCH_CASE(
++        defaults, value, textAttributes, borderColor, "borderColor");
++    REBUILD_FIELD_SWITCH_CASE(
++        defaults, value, textAttributes, borderTopColor, "borderTopColor");
++    REBUILD_FIELD_SWITCH_CASE(
++        defaults, value, textAttributes, borderRightColor, "borderRightColor");
++    REBUILD_FIELD_SWITCH_CASE(
++        defaults, value, textAttributes, borderBottomColor, "borderBottomColor");
++    REBUILD_FIELD_SWITCH_CASE(
++        defaults, value, textAttributes, borderLeftColor, "borderLeftColor");
++    REBUILD_FIELD_SWITCH_CASE(
++        defaults, value, textAttributes, borderWidth, "borderWidth");
++    REBUILD_FIELD_SWITCH_CASE(
++        defaults, value, textAttributes, borderTopWidth, "borderTopWidth");
++    REBUILD_FIELD_SWITCH_CASE(
++        defaults, value, textAttributes, borderRightWidth, "borderRightWidth");
++    REBUILD_FIELD_SWITCH_CASE(
++        defaults, value, textAttributes, borderBottomWidth, "borderBottomWidth");
++    REBUILD_FIELD_SWITCH_CASE(
++        defaults, value, textAttributes, borderLeftWidth, "borderLeftWidth");
+   }
+ }
+ 
+@@ -610,6 +690,72 @@ void BaseTextProps::appendTextAttributesProps(
+         ? textAttributes.borderBottomRightRadius.value()
+         : folly::dynamic(nullptr);
+   }
++
++  if (textAttributes.borderColor != oldProps->textAttributes.borderColor) {
++    result["borderColor"] = textAttributes.borderColor
++        ? *textAttributes.borderColor
++        : folly::dynamic(nullptr);
++  }
++
++  if (textAttributes.borderTopColor != oldProps->textAttributes.borderTopColor) {
++    result["borderTopColor"] = textAttributes.borderTopColor
++        ? *textAttributes.borderTopColor
++        : folly::dynamic(nullptr);
++  }
++
++  if (textAttributes.borderRightColor !=
++      oldProps->textAttributes.borderRightColor) {
++    result["borderRightColor"] = textAttributes.borderRightColor
++        ? *textAttributes.borderRightColor
++        : folly::dynamic(nullptr);
++  }
++
++  if (textAttributes.borderBottomColor !=
++      oldProps->textAttributes.borderBottomColor) {
++    result["borderBottomColor"] = textAttributes.borderBottomColor
++        ? *textAttributes.borderBottomColor
++        : folly::dynamic(nullptr);
++  }
++
++  if (textAttributes.borderLeftColor !=
++      oldProps->textAttributes.borderLeftColor) {
++    result["borderLeftColor"] = textAttributes.borderLeftColor
++        ? *textAttributes.borderLeftColor
++        : folly::dynamic(nullptr);
++  }
++
++  if (textAttributes.borderWidth != oldProps->textAttributes.borderWidth) {
++    result["borderWidth"] = textAttributes.borderWidth.has_value()
++        ? textAttributes.borderWidth.value()
++        : folly::dynamic(nullptr);
++  }
++
++  if (textAttributes.borderTopWidth != oldProps->textAttributes.borderTopWidth) {
++    result["borderTopWidth"] = textAttributes.borderTopWidth.has_value()
++        ? textAttributes.borderTopWidth.value()
++        : folly::dynamic(nullptr);
++  }
++
++  if (textAttributes.borderRightWidth !=
++      oldProps->textAttributes.borderRightWidth) {
++    result["borderRightWidth"] = textAttributes.borderRightWidth.has_value()
++        ? textAttributes.borderRightWidth.value()
++        : folly::dynamic(nullptr);
++  }
++
++  if (textAttributes.borderBottomWidth !=
++      oldProps->textAttributes.borderBottomWidth) {
++    result["borderBottomWidth"] = textAttributes.borderBottomWidth.has_value()
++        ? textAttributes.borderBottomWidth.value()
++        : folly::dynamic(nullptr);
++  }
++
++  if (textAttributes.borderLeftWidth !=
++      oldProps->textAttributes.borderLeftWidth) {
++    result["borderLeftWidth"] = textAttributes.borderLeftWidth.has_value()
++        ? textAttributes.borderLeftWidth.value()
++        : folly::dynamic(nullptr);
++  }
+ }
+ 
+ #endif
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
+index 3bec610..ed7ee76 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
++++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
+@@ -184,19 +184,52 @@ NSMutableDictionary<NSAttributedStringKey, id> *RCTNSTextAttributesFromTextAttri
+         textAttributes.borderTopRightRadius.has_value() ||
+         textAttributes.borderBottomLeftRadius.has_value() ||
+         textAttributes.borderBottomRightRadius.has_value();
+-
+-    if (textAttributes.backgroundColor || !isnan(textAttributes.opacity)) {
+-      UIColor *bgColor = RCTEffectiveBackgroundColorFromTextAttributes(textAttributes);
+-      if (hasAnyRadius) {
+-        // Store color alongside radii and skip NSBackgroundColorAttributeName so
+-        // NSLayoutManager doesn't draw a flat rect before our per-line rounded one.
+-        const CGFloat fallback = textAttributes.borderRadius.value_or(0.0f);
++    const bool hasAnyBorderWidth = textAttributes.borderWidth.has_value() ||
++        textAttributes.borderTopWidth.has_value() ||
++        textAttributes.borderRightWidth.has_value() ||
++        textAttributes.borderBottomWidth.has_value() ||
++        textAttributes.borderLeftWidth.has_value();
++    const bool hasBorderColor = textAttributes.borderColor ||
++        textAttributes.borderTopColor ||
++        textAttributes.borderRightColor ||
++        textAttributes.borderBottomColor ||
++        textAttributes.borderLeftColor;
++    const bool useCustomDraw = hasAnyRadius || hasAnyBorderWidth || hasBorderColor;
++
++    if (textAttributes.backgroundColor || !isnan(textAttributes.opacity) || useCustomDraw) {
++      const bool hasBackground = textAttributes.backgroundColor || !isnan(textAttributes.opacity);
++      UIColor *bgColor = hasBackground
++          ? RCTEffectiveBackgroundColorFromTextAttributes(textAttributes)
++          : [UIColor clearColor];
++      if (useCustomDraw) {
++        // Store color alongside radii and per-side border info; skip NSBackgroundColorAttributeName
++        // so NSLayoutManager doesn't draw a flat rect before our per-line custom drawing.
++        const CGFloat radiusFallback = textAttributes.borderRadius.value_or(0.0f);
++        const CGFloat widthFallback = textAttributes.borderWidth.value_or(0.0f);
++
++        // Resolve per-side border colors against the uniform fallback; use NSNull when absent.
++        auto borderUIColor = [&](const facebook::react::SharedColor& perSide) -> id {
++          const auto resolved = perSide ? perSide : textAttributes.borderColor;
++          return resolved ? (id)RCTUIColorFromSharedColor(resolved) : (id)[NSNull null];
++        };
++
++        // attrs: @[bgColor, tlR, trR, blR, brR,
++        //          topBorderColor, rightBorderColor, bottomBorderColor, leftBorderColor,
++        //          topW, rightW, bottomW, leftW]
+         attributes[RCTTextBorderRadiusAttributeName] = @[
+           bgColor,
+-          @(textAttributes.borderTopLeftRadius.value_or(fallback)),
+-          @(textAttributes.borderTopRightRadius.value_or(fallback)),
+-          @(textAttributes.borderBottomLeftRadius.value_or(fallback)),
+-          @(textAttributes.borderBottomRightRadius.value_or(fallback)),
++          @(textAttributes.borderTopLeftRadius.value_or(radiusFallback)),
++          @(textAttributes.borderTopRightRadius.value_or(radiusFallback)),
++          @(textAttributes.borderBottomLeftRadius.value_or(radiusFallback)),
++          @(textAttributes.borderBottomRightRadius.value_or(radiusFallback)),
++          borderUIColor(textAttributes.borderTopColor),
++          borderUIColor(textAttributes.borderRightColor),
++          borderUIColor(textAttributes.borderBottomColor),
++          borderUIColor(textAttributes.borderLeftColor),
++          @(textAttributes.borderTopWidth.value_or(widthFallback)),
++          @(textAttributes.borderRightWidth.value_or(widthFallback)),
++          @(textAttributes.borderBottomWidth.value_or(widthFallback)),
++          @(textAttributes.borderLeftWidth.value_or(widthFallback)),
+         ];
+       } else {
+         attributes[NSBackgroundColorAttributeName] = bgColor;
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
+index fd401a9..91346e8 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
++++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
+@@ -26,13 +26,32 @@
+       return;
+     }
+ 
+-    // attrs is @[UIColor, tlRadius, trRadius, blRadius, brRadius]
++    // attrs: @[bgColor, tlR, trR, blR, brR,
++    //          topBorderColor, rightBorderColor, bottomBorderColor, leftBorderColor,
++    //          topW, rightW, bottomW, leftW]
+     NSArray *attrs = (NSArray *)value;
+-    UIColor *color = attrs[0];
+-    CGFloat tl = [attrs[1] floatValue];
+-    CGFloat tr = [attrs[2] floatValue];
+-    CGFloat bl = [attrs[3] floatValue];
+-    CGFloat br = [attrs[4] floatValue];
++    UIColor *bgColor = attrs[0];
++    CGFloat tl       = [attrs[1] floatValue];
++    CGFloat tr       = [attrs[2] floatValue];
++    CGFloat bl       = [attrs[3] floatValue];
++    CGFloat br       = [attrs[4] floatValue];
++
++    id topColorRaw    = attrs[5];
++    id rightColorRaw  = attrs[6];
++    id bottomColorRaw = attrs[7];
++    id leftColorRaw   = attrs[8];
++    UIColor *topBorderColor    = [topColorRaw    isKindOfClass:[UIColor class]] ? topColorRaw    : nil;
++    UIColor *rightBorderColor  = [rightColorRaw  isKindOfClass:[UIColor class]] ? rightColorRaw  : nil;
++    UIColor *bottomBorderColor = [bottomColorRaw isKindOfClass:[UIColor class]] ? bottomColorRaw : nil;
++    UIColor *leftBorderColor   = [leftColorRaw   isKindOfClass:[UIColor class]] ? leftColorRaw   : nil;
++
++    CGFloat topW    = [attrs[9]  floatValue];
++    CGFloat rightW  = [attrs[10] floatValue];
++    CGFloat bottomW = [attrs[11] floatValue];
++    CGFloat leftW   = [attrs[12] floatValue];
++
++    BOOL hasBorder = (topBorderColor && topW > 0) || (rightBorderColor && rightW > 0) ||
++                     (bottomBorderColor && bottomW > 0) || (leftBorderColor && leftW > 0);
+ 
+     NSRange spanGlyphRange = [self glyphRangeForCharacterRange:attrRange actualCharacterRange:nil];
+ 
+@@ -52,7 +71,6 @@
+     }
+ 
+     CGContextSaveGState(context);
+-    CGContextSetFillColorWithColor(context, color.CGColor);
+ 
+     __block NSUInteger lineIdx = 0;
+     [self enumerateLineFragmentsForGlyphRange:spanGlyphRange
+@@ -76,6 +94,7 @@
+       BOOL isFirst = (lineIdx == 0);
+       BOOL isLast  = (lineIdx == totalLines - 1);
+ 
++      // Left/right corners follow the same rule as fill: left on first line, right on last.
+       CGFloat effectiveTL = isFirst ? tl : 0;
+       CGFloat effectiveBL = isFirst ? bl : 0;
+       CGFloat effectiveTR = isLast  ? tr : 0;
+@@ -86,6 +105,8 @@
+       CGFloat w = CGRectGetWidth(spanRect);
+       CGFloat h = CGRectGetHeight(spanRect);
+ 
++      // --- Fill ---
++      CGContextSetFillColorWithColor(context, bgColor.CGColor);
+       BOOL hasAnyRadius = tl > 0 || tr > 0 || bl > 0 || br > 0;
+       if (!hasAnyRadius) {
+         CGContextFillRect(context, spanRect);
+@@ -106,6 +127,64 @@
+         CGPathRelease(path);
+       }
+ 
++      // --- Border ---
++      if (hasBorder) {
++        CGContextSetLineCap(context, kCGLineCapButt);
++
++        BOOL drawLeft  = isFirst;
++        BOOL drawRight = isLast;
++
++        // Top border
++        if (topBorderColor && topW > 0) {
++          CGContextSetStrokeColorWithColor(context, topBorderColor.CGColor);
++          CGContextSetLineWidth(context, topW);
++          CGFloat fromX = x + (drawLeft  ? effectiveTL : 0);
++          CGFloat toX   = x + w - (drawRight ? effectiveTR : 0);
++          CGContextMoveToPoint(context, fromX, y);
++          CGContextAddLineToPoint(context, toX, y);
++          CGContextStrokePath(context);
++        }
++
++        // Bottom border
++        if (bottomBorderColor && bottomW > 0) {
++          CGContextSetStrokeColorWithColor(context, bottomBorderColor.CGColor);
++          CGContextSetLineWidth(context, bottomW);
++          CGFloat fromX = x + (drawLeft  ? effectiveBL : 0);
++          CGFloat toX   = x + w - (drawRight ? effectiveBR : 0);
++          CGContextMoveToPoint(context, fromX, y + h);
++          CGContextAddLineToPoint(context, toX, y + h);
++          CGContextStrokePath(context);
++        }
++
++        // Left border (with TL and BL arcs via ArcToPoint), drawn on first line only
++        if (drawLeft && leftBorderColor && leftW > 0) {
++          CGContextSetStrokeColorWithColor(context, leftBorderColor.CGColor);
++          CGContextSetLineWidth(context, leftW);
++          CGMutablePathRef path = CGPathCreateMutable();
++          CGPathMoveToPoint(path, NULL, x + effectiveTL, y);
++          CGPathAddArcToPoint(path, NULL, x, y, x, y + effectiveTL, effectiveTL);
++          CGPathAddLineToPoint(path, NULL, x, y + h - effectiveBL);
++          CGPathAddArcToPoint(path, NULL, x, y + h, x + effectiveBL, y + h, effectiveBL);
++          CGContextAddPath(context, path);
++          CGContextStrokePath(context);
++          CGPathRelease(path);
++        }
++
++        // Right border (with TR and BR arcs via ArcToPoint), drawn on last line only
++        if (drawRight && rightBorderColor && rightW > 0) {
++          CGContextSetStrokeColorWithColor(context, rightBorderColor.CGColor);
++          CGContextSetLineWidth(context, rightW);
++          CGMutablePathRef path = CGPathCreateMutable();
++          CGPathMoveToPoint(path, NULL, x + w - effectiveTR, y);
++          CGPathAddArcToPoint(path, NULL, x + w, y, x + w, y + effectiveTR, effectiveTR);
++          CGPathAddLineToPoint(path, NULL, x + w, y + h - effectiveBR);
++          CGPathAddArcToPoint(path, NULL, x + w, y + h, x + w - effectiveBR, y + h, effectiveBR);
++          CGContextAddPath(context, path);
++          CGContextStrokePath(context);
++          CGPathRelease(path);
++        }
++      }
++
+       lineIdx++;
+     }];
+ 
