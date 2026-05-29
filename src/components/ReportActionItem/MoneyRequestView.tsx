@@ -456,6 +456,7 @@ function MoneyRequestView({
     const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
 
     const transactionTripID = transaction?.comment?.tripID;
+
     // Spotnana expense reports are parented under the trip room, so try that O(1) hop before scanning.
     const grandparentReportID = parentReport?.parentReportID;
     const tripRoomReportSelector = (reports: OnyxCollection<OnyxTypes.Report>) => {
