@@ -33,7 +33,6 @@ type FooterCurrencyState = {
     searchHash: number | undefined;
     selectedCurrency: string | undefined;
     defaultCurrency: string | undefined;
-    pendingCurrency: string | undefined;
 };
 
 function SearchPage({route}: SearchPageProps) {
@@ -55,7 +54,6 @@ function SearchPage({route}: SearchPageProps) {
         searchHash: undefined,
         selectedCurrency: undefined,
         defaultCurrency: undefined,
-        pendingCurrency: undefined,
     });
     const isCurrentFooterState = footerCurrencyState.searchHash === currentSearchHash;
     const selectedCurrency = isCurrentFooterState ? footerCurrencyState.selectedCurrency : undefined;
@@ -147,7 +145,6 @@ function SearchPage({route}: SearchPageProps) {
                 searchHash: currentSearchHash,
                 selectedCurrency: currency,
                 defaultCurrency: fallbackDefaultCurrency,
-                pendingCurrency: nextCurrency,
             });
             handleSearchAction({
                 queryJSON: currentSearchQueryJSON,
