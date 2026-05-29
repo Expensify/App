@@ -24,6 +24,7 @@ import type {CorpayFormField} from '@src/types/onyx';
 const STEP_INDEXES = CONST.CORPAY_FIELDS.INDEXES.MAPPING;
 
 type MenuItemProps = {
+    id: string;
     description: string;
     title: string;
     shouldShowRightIcon: boolean;
@@ -85,6 +86,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
 
     const summaryItems: MenuItemProps[] = [
         {
+            id: 'bankCountry',
             description: translate('common.country'),
             title: translate(`allCountries.${formValues.bankCountry}` as TranslationPaths),
             shouldShowRightIcon: true,
@@ -94,6 +96,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
             disabled: isOffline,
         },
         {
+            id: 'bankCurrency',
             description: translate('common.currency'),
             title: `${formValues.bankCurrency} - ${getCurrencySymbol(formValues.bankCurrency)}`,
             shouldShowRightIcon: true,
@@ -106,6 +109,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
 
     for (const [fieldName, field] of Object.entries(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS] ?? {})) {
         summaryItems.push({
+            id: `${CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS}-${fieldName}`,
             description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
             title: getTitle(field, fieldName),
             shouldShowRightIcon: true,
@@ -117,6 +121,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
 
     for (const [fieldName, field] of Object.entries(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_TYPE] ?? {})) {
         summaryItems.push({
+            id: `${CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_TYPE}-${fieldName}`,
             description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
             title: getTitle(field, fieldName),
             shouldShowRightIcon: true,
@@ -130,6 +135,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
         ([field1], [field2]) => CONST.CORPAY_FIELDS.BANK_INFORMATION_FIELDS.indexOf(field1) - CONST.CORPAY_FIELDS.BANK_INFORMATION_FIELDS.indexOf(field2),
     )) {
         summaryItems.push({
+            id: `${CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION}-${fieldName}`,
             description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
             title: getTitle(field, fieldName),
             shouldShowRightIcon: true,
@@ -143,6 +149,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
         ([field1], [field2]) => CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.indexOf(field1) - CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.indexOf(field2),
     )) {
         summaryItems.push({
+            id: `${CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS}-${fieldName}`,
             description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
             title: fieldName === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? translate(`allCountries.${formValues.bankCountry}` as TranslationPaths) : getTitle(field, fieldName),
             shouldShowRightIcon: fieldName !== CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY,
@@ -170,9 +177,9 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
         <ScrollView contentContainerStyle={styles.flexGrow1}>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('addPersonalBankAccount.confirmationStepHeader')}</Text>
             <Text style={[styles.mb6, styles.ph5, styles.textSupporting]}>{translate('addPersonalBankAccount.confirmationStepSubHeader')}</Text>
-            {summaryItems.map(({description, title, shouldShowRightIcon, interactive, disabled, onPress}) => (
+            {summaryItems.map(({id, description, title, shouldShowRightIcon, interactive, disabled, onPress}) => (
                 <MenuItemWithTopDescription
-                    key={description}
+                    key={id}
                     description={description}
                     title={title}
                     shouldShowRightIcon={shouldShowRightIcon}
