@@ -28,18 +28,21 @@ type SelectionMethods = {
     clearSelection: () => void;
 
     /** Set whether or not the mobile selection modal is visible */
-    setIsMobileSelectionModalVisible: Dispatch<SetStateAction<boolean>>;
+    setMobileSelectionModalRowKey: Dispatch<SetStateAction<string | null>>;
 };
 
 type UseSelectionResult<DataType extends TableData> = MiddlewareHookResult<DataType, SelectionMethods, TableRow<DataType>> & {
     /** Whether or not the mobile selection modal is visible */
-    isMobileSelectionModalVisible: boolean;
+    mobileSelectionModalRowKey: string | null;
 };
 
 export default function useSelection<DataType extends TableData>({data, selectedKeys, onRowSelectionChange}: UseSelectionProps<DataType>): UseSelectionResult<DataType> {
     const lastSelectedRowKeyRef = useRef<string | null>(null);
     const lastSelectedRowIsSelectedRef = useRef<boolean>(false);
-    const [isMobileSelectionModalVisible, setIsMobileSelectionModalVisible] = useState(false);
+
+    // When a user long-presses a row on mobile, store the key of the row that will be selected if
+    // the user confirms the selection
+    const [mobileSelectionModalRowKey, setMobileSelectionModalRowKey] = useState<string | null>(null);
 
     const selectableKeys = data.filter((item) => !item.disabled).map((item) => item.keyForList);
 
@@ -153,13 +156,13 @@ export default function useSelection<DataType extends TableData>({data, selected
 
     return {
         middleware,
-        isMobileSelectionModalVisible,
+        mobileSelectionModalRowKey,
         methods: {
             handleSelectAll,
             handleMultipleRowSelection,
             handleSingleRowSelection,
             clearSelection,
-            setIsMobileSelectionModalVisible,
+            setMobileSelectionModalRowKey,
         },
     };
 }

@@ -168,7 +168,7 @@ export default function TableRow({
             return;
         }
 
-        tableMethods.setIsMobileSelectionModalVisible(true);
+        tableMethods.setMobileSelectionModalRowKey(item.keyForList);
     };
 
     return (
