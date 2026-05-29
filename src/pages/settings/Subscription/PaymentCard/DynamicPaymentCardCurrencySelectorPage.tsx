@@ -1,5 +1,6 @@
 import React, {useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
+import PaymentCardCurrencyHeader from '@components/AddPaymentCard/PaymentCardCurrencyHeader';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -14,7 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {setPaymentMethodCurrency} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ChangeBillingCurrencyForm';
 
 type Currency = ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>;
@@ -24,6 +25,9 @@ function DynamicPaymentCardCurrencySelectorPage() {
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.PAYMENT_CARD_CURRENCY_SELECTOR.path);
+    // The change-billing-currency screen already renders this note above its own form, so we only show it on the
+    // selector for the other entry points (add payment card / workspace owner change) where it isn't displayed yet.
+    const shouldShowCurrencyNote = backPath !== ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY;
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM_DRAFT);
     const [addCardForm] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
@@ -60,6 +64,7 @@ function DynamicPaymentCardCurrencySelectorPage() {
             <SelectionList
                 data={currencyOptions}
                 ListItem={SingleSelectListItem}
+                customListHeader={shouldShowCurrencyNote ? <PaymentCardCurrencyHeader isSectionList /> : undefined}
                 onSelectRow={(option) => {
                     setDraftValues(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM, {[INPUT_IDS.CURRENCY]: option.value});
                     setPaymentMethodCurrency(option.value);

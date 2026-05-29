@@ -1,5 +1,6 @@
 import {render} from '@testing-library/react-native';
 import React from 'react';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {setDraftValues} from '@libs/actions/FormActions';
@@ -12,6 +13,7 @@ type CurrencyOption = {text: string; value: string; keyForList: string; isSelect
 
 let capturedData: CurrencyOption[] = [];
 let capturedOnSelectRow: ((option: CurrencyOption) => void) | undefined;
+let capturedCustomListHeader: React.ReactNode;
 
 jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: () => false})));
 
@@ -64,9 +66,10 @@ jest.mock('@components/HeaderWithBackButton', () => {
 });
 
 jest.mock('@components/SelectionList', () => {
-    function MockSelectionList({data, onSelectRow}: {data: CurrencyOption[]; onSelectRow: (option: CurrencyOption) => void}) {
+    function MockSelectionList({data, onSelectRow, customListHeader}: {data: CurrencyOption[]; onSelectRow: (option: CurrencyOption) => void; customListHeader?: React.ReactNode}) {
         capturedData = data ?? [];
         capturedOnSelectRow = onSelectRow;
+        capturedCustomListHeader = customListHeader;
         return (data ?? []).map((item) => item.text).join(',');
     }
     return MockSelectionList;
@@ -74,8 +77,11 @@ jest.mock('@components/SelectionList', () => {
 
 jest.mock('@components/SelectionList/ListItem/SingleSelectListItem', () => 'SingleSelectListItem');
 
+jest.mock('@components/AddPaymentCard/PaymentCardCurrencyHeader', () => 'PaymentCardCurrencyHeader');
+
 const mockUsePermissions = jest.mocked(usePermissions);
 const mockUseOnyx = jest.mocked(useOnyx);
+const mockUseDynamicBackPath = jest.mocked(useDynamicBackPath);
 const mockSetDraftValues = jest.mocked(setDraftValues);
 const mockSetPaymentMethodCurrency = jest.mocked(setPaymentMethodCurrency);
 const mockGoBack = jest.mocked(Navigation.goBack);
@@ -106,7 +112,9 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
         jest.clearAllMocks();
         capturedData = [];
         capturedOnSelectRow = undefined;
+        capturedCustomListHeader = undefined;
         mockUsePermissions.mockReturnValue({isBetaEnabled: () => false});
+        mockUseDynamicBackPath.mockReturnValue('settings/subscription/change-billing-currency');
         mockOnyx();
     });
 
@@ -163,5 +171,23 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
         expect(mockSetDraftValues).toHaveBeenCalledWith(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM, {currency: 'AUD'});
         expect(mockSetPaymentMethodCurrency).toHaveBeenCalledWith('AUD');
         expect(mockGoBack).toHaveBeenCalledWith('settings/subscription/change-billing-currency');
+    });
+
+    it('shows the currency note when opened from a flow that does not already display it (e.g. add payment card)', () => {
+        mockUseDynamicBackPath.mockReturnValue('settings/subscription/add-payment-card');
+
+        render(<DynamicPaymentCardCurrencySelectorPage />);
+
+        const header = capturedCustomListHeader as React.ReactElement<{isSectionList?: boolean}>;
+        expect(header).toBeTruthy();
+        expect(header.type).toBe('PaymentCardCurrencyHeader');
+        expect(header.props.isSectionList).toBe(true);
+    });
+
+    it('hides the currency note when opened from change billing currency, which already shows it on the form', () => {
+        // The default mocked back path is the change-billing-currency screen.
+        render(<DynamicPaymentCardCurrencySelectorPage />);
+
+        expect(capturedCustomListHeader).toBeUndefined();
     });
 });

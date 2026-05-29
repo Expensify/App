@@ -13,7 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearDraftValues} from '@libs/actions/FormActions';
+import {clearDraftValues, clearErrors} from '@libs/actions/FormActions';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFieldRequiredErrors, isValidSecurityCode} from '@libs/ValidationUtils';
@@ -49,7 +49,12 @@ function ChangeBillingCurrency() {
         Navigation.goBack();
     }, [formDataComplete, prevFormDataComplete, prevIsLoading]);
 
-    useEffect(() => () => clearDraftValues(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM), []);
+    useEffect(() => {
+        // Clear any stale submission error (e.g. an incorrect security code from a previous attempt) so reopening the page starts clean,
+        // and drop the currency draft when leaving the flow.
+        clearErrors(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM);
+        return () => clearDraftValues(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM);
+    }, []);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM> => {
         const errors = getFieldRequiredErrors(values, REQUIRED_FIELDS, translate);
