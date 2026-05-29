@@ -2942,6 +2942,8 @@ ${date} の ${merchant} への ${amount}`,
         phoneOrEmail: '電話番号またはメールアドレス',
         error: {
             invalidFormatEmailLogin: '入力されたメールアドレスが無効です。形式を修正して、もう一度お試しください。',
+            agentSignInBlocked:
+                'エージェントアカウントには直接サインインすることはできません。エージェントを利用するには、ご自身のアカウントでサインインし、Copilot 経由でアクセスしてください。',
         },
         cannotGetAccountDetails: 'アカウントの詳細を取得できませんでした。もう一度サインインしてください。',
         loginForm: 'ログインフォーム',
@@ -9379,6 +9381,13 @@ ${reportName}
             chooseWhereToMove: ({count}: {count: number}) => `${count} ${count === 1 ? 'メンバー' : 'メンバー'} を移動する先を選択してください。`,
             domainGroup: 'ドメイングループ',
             chooseWhereToMoveName: ({name}: {name: string}) => `${name} をどこに移動するか選択してください。`,
+            membersFeatureList: {
+                subtitle: ({domainName}: {domainName: string}) =>
+                    `<muted-text>Expensify で <strong>${domainName}</strong> メンバーをより細かく管理できるように、ドメインを確認してください。</muted-text>`,
+                controlPolicyCreation: 'ワークスペースの作成を制限',
+                enableSamlSso: 'SAML SSO を有効にする',
+                enforce2FA: '2 要素認証を必須にする',
+            },
         },
         common: {
             settings: '設定',

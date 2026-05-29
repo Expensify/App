@@ -3041,6 +3041,7 @@ const translations = {
         phoneOrEmail: 'Phone or email',
         error: {
             invalidFormatEmailLogin: 'The email entered is invalid. Please fix the format and try again.',
+            agentSignInBlocked: "Agent accounts can't be signed into directly. To use an agent, sign in with your own account and access it via Copilot.",
         },
         cannotGetAccountDetails: "Couldn't retrieve account details. Please try to sign in again.",
         loginForm: 'Login form',
@@ -9519,6 +9520,12 @@ const translations = {
             reportSuspiciousActivityPrompt: (email: string) =>
                 `Are you sure? This will lock <strong>${email}'s</strong> account. <br /><br /> Our team will then review the account and remove any unauthorized access. To regain access, they'll need to work with Concierge.`,
             reportSuspiciousActivityConfirmationPrompt: 'We’ll review the account to verify it’s safe to unlock and reach out via Concierge with any questions.',
+            membersFeatureList: {
+                subtitle: ({domainName}: {domainName: string}) => `<muted-text>Verify your domain for more control over <strong>${domainName}</strong> members in Expensify.</muted-text>`,
+                controlPolicyCreation: 'Restrict workspace creation',
+                enableSamlSso: 'Enable SAML SSO',
+                enforce2FA: 'Enforce 2FA',
+            },
         },
         common: {
             settings: 'Settings',
