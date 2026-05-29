@@ -47,15 +47,15 @@ To grant someone access to your account:
 
 ---
 
-## How to Remove or Change a Copilot’s Access
+## How to Remove a Copilot
 
-To **remove a Copilot**:
+To remove a Copilot
 
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Account > Security**.
 2. In the **Copilot: Delegated Access** section, click the **three-dot menu** next to their name.
 3. Select **Remove Copilot**, then confirm.
 
-To **change a Copilot's access level**:
+## How to Change a Copilot's access
 
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Account > Security**.
 2. In the **Copilot: Delegated Access** section, click the **three-dot menu** next to their name.
