@@ -676,6 +676,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         expensifyIcons.Building,
         expensifyIcons.Exit,
         expensifyIcons.Bug,
+        expensifyIcons.Hashtag,
         styles.ph2,
         shouldOpenRoomMembersPage,
         navigateBackFromReportDetailsPath,
