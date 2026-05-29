@@ -81,7 +81,7 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
                 shouldShowRightIcon
                 iconRight={icons.DownArrow}
                 iconRightFill={theme.icon}
-                sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_GROUP_CURRENCY}
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_TOTAL_CURRENCY}
                 onPress={props.onPress}
             />
         ),
@@ -109,7 +109,7 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
                 <Text style={styles.textLabelSupporting}>{`${translate('common.totalSpend')}:`}</Text>
                 <DropdownButton
                     label={translate('common.currency')}
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_GROUP_CURRENCY}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_TOTAL_CURRENCY}
                     value={currency ?? null}
                     PopoverComponent={renderCurrencyPopup}
                     ButtonComponent={totalButton}
