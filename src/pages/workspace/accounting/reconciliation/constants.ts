@@ -1,6 +1,0 @@
-const RECONCILIATION_ACCOUNT_SETTINGS_TYPE = {
-    EXPENSIFY_CARD: 'expensifyCard',
-    TRAVEL_INVOICING: 'travelInvoicing',
-} as const;
-
-export default RECONCILIATION_ACCOUNT_SETTINGS_TYPE;
