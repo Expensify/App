@@ -164,7 +164,7 @@ export default function TableRow({
     };
 
     const handleRowLongPress = () => {
-        if (!isInteractive || !selectionEnabled || isMobileSelectionEnabled) {
+        if (!isInteractive || !selectionEnabled || isMobileSelectionEnabled || !shouldUseNarrowLayout) {
             return;
         }
 
