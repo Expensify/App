@@ -15,6 +15,7 @@ import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEnvironment from '@hooks/useEnvironment';
 import type {ActionHandledType} from '@hooks/useHoldMenuSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
@@ -125,10 +126,11 @@ function mapTransactionItemToSelectedEntry(
     originalItemTransaction: OnyxEntry<Transaction>,
     currentUserLogin: string,
     currentUserAccountID: number,
-    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
-    allowNegativeAmount = true,
-    parentReport?: OnyxEntry<Report>,
-    selfDMReport?: OnyxEntry<Report>,
+    outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue | undefined,
+    allowNegativeAmount: boolean,
+    parentReport: OnyxEntry<Report> | undefined,
+    selfDMReport: OnyxEntry<Report> | undefined,
+    isProduction: boolean,
 ): [string, SelectedTransactionInfo] {
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy, currentUserAccountID);
     const canRejectRequest = item.report ? canRejectReportAction(currentUserLogin, item.report) : false;
@@ -145,7 +147,7 @@ function mapTransactionItemToSelectedEntry(
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
             canUnhold: canUnholdRequest,
-            canSplit: isSplitAction(reportForSplit, [itemTransaction], originalItemTransaction, currentUserLogin, currentUserAccountID, item.policy, parentReport),
+            canSplit: isSplitAction(reportForSplit, [itemTransaction], originalItemTransaction, currentUserLogin, currentUserAccountID, item.policy, parentReport, isProduction),
             hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
             canChangeReport: canEditFieldOfMoneyRequest({
                 reportAction: item.reportAction,
@@ -201,9 +203,10 @@ function prepareTransactionsList(
     selectedTransactions: SelectedTransactions,
     currentUserLogin: string,
     currentUserAccountID: number,
-    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
-    parentReport?: OnyxEntry<Report>,
-    selfDMReport?: OnyxEntry<Report>,
+    outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue | undefined,
+    parentReport: OnyxEntry<Report> | undefined,
+    selfDMReport: OnyxEntry<Report> | undefined,
+    isProduction: boolean,
 ) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
         const {[item.keyForList]: omittedTransaction, ...transactions} = selectedTransactions;
@@ -221,6 +224,7 @@ function prepareTransactionsList(
         false,
         parentReport,
         selfDMReport,
+        isProduction,
     );
 
     return {
@@ -246,6 +250,7 @@ function Search({
     const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
 
     const {isOffline} = useNetwork();
+    const {isProduction} = useEnvironment();
     const prevIsOffline = usePrevious(isOffline);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth, isLargeScreenWidth, isInLandscapeMode} = useResponsiveLayout();
@@ -821,7 +826,7 @@ function Search({
                         canHold: canHoldRequest,
                         isHeld: isOnHold(transactionItem),
                         canUnhold: canUnholdRequest,
-                        canSplit: isSplitAction(reportForSplit, [itemTransaction], originalItemTransaction, login ?? '', accountID, transactionItem.policy, itemParentReport),
+                        canSplit: isSplitAction(reportForSplit, [itemTransaction], originalItemTransaction, login ?? '', accountID, transactionItem.policy, itemParentReport, isProduction),
                         hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
                         canChangeReport: canEditFieldOfMoneyRequest({
                             reportAction: transactionItem.reportAction,
@@ -880,7 +885,7 @@ function Search({
                     canHold: canHoldRequest,
                     isHeld: isOnHold(transactionItem),
                     canUnhold: canUnholdRequest,
-                    canSplit: isSplitAction(reportForSplit, [itemTransaction], originalItemTransaction, login ?? '', accountID, transactionItem.policy, itemParentReport),
+                    canSplit: isSplitAction(reportForSplit, [itemTransaction], originalItemTransaction, login ?? '', accountID, transactionItem.policy, itemParentReport, isProduction),
                     hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
                     canChangeReport: canEditFieldOfMoneyRequest({
                         reportAction: transactionItem.reportAction,
@@ -1047,6 +1052,7 @@ function Search({
                     outstandingReportsByPolicyID,
                     itemParentReport,
                     selfDMReport,
+                    isProduction,
                 );
                 setSelectedTransactions(updatedTransactions);
                 updateSelectAllMatchingItemsState(updatedTransactions);
@@ -1123,6 +1129,7 @@ function Search({
                                 true,
                                 itemParentReport,
                                 selfDMReport,
+                                isProduction,
                             );
                         }),
                 ),
@@ -1130,7 +1137,18 @@ function Search({
             setSelectedTransactions(updatedTransactions);
             updateSelectAllMatchingItemsState(updatedTransactions);
         },
-        [selectedTransactions, setSelectedTransactions, updateSelectAllMatchingItemsState, transactions, email, accountID, outstandingReportsByPolicyID, searchResults?.data, selfDMReport],
+        [
+            selectedTransactions,
+            setSelectedTransactions,
+            updateSelectAllMatchingItemsState,
+            transactions,
+            searchResults?.data,
+            email,
+            accountID,
+            outstandingReportsByPolicyID,
+            selfDMReport,
+            isProduction,
+        ],
     );
 
     const onSelectRowInMobileSelectionMode = (item: SearchListItem) => {
@@ -1446,6 +1464,7 @@ function Search({
                             true,
                             itemParentReport,
                             selfDMReport,
+                            isProduction,
                         );
                     });
             });
@@ -1469,6 +1488,7 @@ function Search({
                             true,
                             itemParentReport,
                             selfDMReport,
+                            isProduction,
                         );
                     }),
             );
@@ -1488,6 +1508,7 @@ function Search({
         outstandingReportsByPolicyID,
         searchResults?.data,
         selfDMReport,
+        isProduction,
     ]);
 
     const onLayoutBase = useCallback(() => {
