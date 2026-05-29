@@ -77,6 +77,8 @@ const MCP_PLATFORM_DISPLAY_NAMES: Record<string, string> = {
     openai: 'OpenAI',
 };
 
+const MCP_PARTNER_USER_ID_PATTERN = /^mcp-([a-z0-9]+)-/;
+
 /**
  * Returns a human-readable display name for a device login.
  *
@@ -93,7 +95,7 @@ function getDeviceDisplayName(
     osVersion: string | undefined,
     unknownDeviceLabel: string,
 ): string {
-    const mcpMatch = login.partnerUserID ? /^mcp-([a-z0-9]+)-/.exec(login.partnerUserID) : null;
+    const mcpMatch = login.partnerUserID ? MCP_PARTNER_USER_ID_PATTERN.exec(login.partnerUserID) : null;
     if (mcpMatch) {
         const slug = deviceName ?? mcpMatch[1];
         const platformName = MCP_PLATFORM_DISPLAY_NAMES[slug];
