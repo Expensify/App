@@ -114,7 +114,9 @@ describe('NetSuiteCustomListSelectorPage', () => {
             [INPUT_IDS.INTERNAL_ID]: '123',
         });
         expect(mockedNavigationGoBack).toHaveBeenCalledTimes(1);
-        expect(mockedNavigationGoBack).toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_ADD.getRoute('P1', CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_LIST.PAGE_NAME.NAME));
+        expect(mockedNavigationGoBack).toHaveBeenCalledWith(
+            ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_ADD.getRoute('P1', CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_LIST.PAGE_NAME.NAME),
+        );
     });
 
     it('renders an empty option set with a no-results header message when search filters everything out', () => {
