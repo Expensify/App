@@ -189,7 +189,12 @@ const usePanGesture = ({
 
             // TODO: this needs tuning to work properly
             const previousTouchValue = previousTouch.get();
-            if (!shouldDisableTransformationGestures.get() && zoomScale.get() === 1 && previousTouchValue !== null) {
+            if (
+                onSwipeDown &&
+                !shouldDisableTransformationGestures.get() &&
+                zoomScale.get() === 1 &&
+                previousTouchValue !== null
+            ) {
                 const velocityX = Math.abs((evt.allTouches.at(0)?.x ?? 0) - previousTouchValue.x);
                 const velocityY = (evt.allTouches.at(0)?.y ?? 0) - previousTouchValue.y;
 

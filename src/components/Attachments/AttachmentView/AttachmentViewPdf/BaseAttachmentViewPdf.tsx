@@ -13,6 +13,7 @@ function BaseAttachmentViewPdf({
     onToggleKeyboard,
     onLoadComplete,
     style,
+    isUsedInAttachmentModal,
     isUsedAsChatAttachment,
     onLoadError,
 }: AttachmentViewPdfProps) {
@@ -76,6 +77,7 @@ function BaseAttachmentViewPdf({
             onToggleKeyboard={onToggleKeyboard}
             onScaleChanged={onScaleChanged}
             onLoadComplete={onLoadComplete}
+            isUsedInAttachmentModal={isUsedInAttachmentModal}
             isUsedAsChatAttachment={isUsedAsChatAttachment}
             onLoadError={onLoadError}
         />

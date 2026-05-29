@@ -1,9 +1,16 @@
 // eslint-disable-next-line no-restricted-imports
-import type {CSSProperties} from 'react';
+import type {CSSProperties, ReactNode} from 'react';
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import {PDFPreviewer} from 'react-fast-pdf';
+import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
+import {useSharedValue} from 'react-native-reanimated';
+import {
+    useAttachmentCarouselPagerActions,
+    useAttachmentCarouselPagerState,
+} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import LoadingIndicator from '@components/LoadingIndicator';
+import MultiGestureCanvas from '@components/MultiGestureCanvas';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -12,17 +19,99 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Browser from '@libs/Browser';
 import variables from '@styles/variables';
 import {retrieveMaxCanvasArea, retrieveMaxCanvasHeight, retrieveMaxCanvasWidth} from '@userActions/CanvasSize';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Dimensions} from '@src/types/utils/Layout';
 import PDFPasswordForm from './PDFPasswordForm';
 import type {PDFViewProps} from './types';
 
 const LOADING_THUMBNAIL_HEIGHT = 250;
 const LOADING_THUMBNAIL_WIDTH = 250;
+const PDF_ZOOM_RANGE = {max: 5};
 
-function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, style, isUsedAsChatAttachment, onLoadError, rotation}: PDFViewProps) {
+type MobilePDFGestureCanvasProps = {
+    children: (canvasSize: Dimensions) => ReactNode;
+    onScaleChanged?: (scale: number) => void;
+};
+
+function MobilePDFGestureCanvas({children, onScaleChanged}: MobilePDFGestureCanvasProps) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const [canvasSize, setCanvasSize] = useState<Dimensions>();
+    const isPagerScrollingFallback = useSharedValue(false);
+    const isScrollEnabledFallback = useSharedValue(true);
+    const state = useAttachmentCarouselPagerState();
+    const actions = useAttachmentCarouselPagerActions();
+
+    const updateCanvasSize = ({
+        nativeEvent: {
+            layout: {width, height},
+        },
+    }: LayoutChangeEvent) => {
+        if (!width || !height) {
+            return;
+        }
+
+        setCanvasSize((prevCanvasSize) => {
+            if (prevCanvasSize?.width === width && prevCanvasSize.height === height) {
+                return prevCanvasSize;
+            }
+
+            return {width, height};
+        });
+    };
+
+    const scaleChange = useCallback(
+        (scale: number) => {
+            onScaleChanged?.(scale);
+            actions?.onScaleChanged?.(scale);
+        },
+        [actions, onScaleChanged],
+    );
+
+    return (
+        <View
+            style={[styles.flex1, styles.w100, styles.h100]}
+            onLayout={updateCanvasSize}
+        >
+            {!!canvasSize && (
+                <MultiGestureCanvas
+                    canvasSize={canvasSize}
+                    contentSize={canvasSize}
+                    zoomRange={PDF_ZOOM_RANGE}
+                    pagerRef={state?.pagerRef}
+                    isUsedInCarousel={!!state?.pagerRef}
+                    shouldDisableTransformationGestures={state?.isPagerScrolling ?? isPagerScrollingFallback}
+                    isPagerScrollEnabled={state?.isScrollEnabled ?? isScrollEnabledFallback}
+                    onTap={actions?.onTap}
+                    onScaleChanged={scaleChange}
+                    externalGestureHandler={state?.externalGestureHandler}
+                >
+                    <View style={StyleUtils.getWidthAndHeightStyle(canvasSize.width, canvasSize.height)}>
+                        {children(canvasSize)}
+                    </View>
+                </MultiGestureCanvas>
+            )}
+        </View>
+    );
+}
+
+function PDFView({
+    onToggleKeyboard,
+    fileName,
+    onPress,
+    isFocused,
+    onScaleChanged,
+    sourceURL,
+    style,
+    isUsedInAttachmentModal,
+    isUsedAsChatAttachment,
+    onLoadError,
+    rotation,
+}: PDFViewProps) {
     const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -34,6 +123,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, sty
     const [maxCanvasArea] = useOnyx(ONYXKEYS.MAX_CANVAS_AREA);
     const [maxCanvasHeight] = useOnyx(ONYXKEYS.MAX_CANVAS_HEIGHT);
     const [maxCanvasWidth] = useOnyx(ONYXKEYS.MAX_CANVAS_WIDTH);
+    const shouldUsePDFGestureZoom = Browser.isMobile() && !!isUsedInAttachmentModal && !isUsedAsChatAttachment;
 
     /**
      * On small screens notify parent that the keyboard has opened or closed.
@@ -91,42 +181,52 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, sty
     const renderPDFView = () => {
         const outerContainerStyle = [styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter];
 
+        const pdfPreviewer = (
+            <PDFPreviewer
+                contentContainerStyle={style as CSSProperties}
+                file={sourceURL}
+                pageMaxWidth={variables.pdfPageMaxWidth}
+                isSmallScreen={shouldUseNarrowLayout}
+                maxCanvasWidth={maxCanvasWidth}
+                maxCanvasHeight={maxCanvasHeight}
+                maxCanvasArea={maxCanvasArea}
+                LoadingComponent={
+                    <LoadingIndicator
+                        style={
+                            isUsedAsChatAttachment && [
+                                styles.chatItemPDFAttachmentLoading,
+                                StyleUtils.getWidthAndHeightStyle(LOADING_THUMBNAIL_WIDTH, LOADING_THUMBNAIL_HEIGHT),
+                                styles.pRelative,
+                            ]
+                        }
+                    />
+                }
+                shouldShowErrorComponent={false}
+                onLoadError={onLoadError}
+                rotation={rotation}
+                renderPasswordForm={({isPasswordInvalid, onSubmit, onPasswordChange}) => (
+                    <PDFPasswordForm
+                        isFocused={!!isFocused}
+                        isPasswordInvalid={isPasswordInvalid}
+                        onSubmit={onSubmit}
+                        onPasswordUpdated={onPasswordChange}
+                    />
+                )}
+            />
+        );
+
         return (
             <View
                 style={outerContainerStyle}
                 tabIndex={0}
             >
-                <PDFPreviewer
-                    contentContainerStyle={style as CSSProperties}
-                    file={sourceURL}
-                    pageMaxWidth={variables.pdfPageMaxWidth}
-                    isSmallScreen={shouldUseNarrowLayout}
-                    maxCanvasWidth={maxCanvasWidth}
-                    maxCanvasHeight={maxCanvasHeight}
-                    maxCanvasArea={maxCanvasArea}
-                    LoadingComponent={
-                        <LoadingIndicator
-                            style={
-                                isUsedAsChatAttachment && [
-                                    styles.chatItemPDFAttachmentLoading,
-                                    StyleUtils.getWidthAndHeightStyle(LOADING_THUMBNAIL_WIDTH, LOADING_THUMBNAIL_HEIGHT),
-                                    styles.pRelative,
-                                ]
-                            }
-                        />
-                    }
-                    shouldShowErrorComponent={false}
-                    onLoadError={onLoadError}
-                    rotation={rotation}
-                    renderPasswordForm={({isPasswordInvalid, onSubmit, onPasswordChange}) => (
-                        <PDFPasswordForm
-                            isFocused={!!isFocused}
-                            isPasswordInvalid={isPasswordInvalid}
-                            onSubmit={onSubmit}
-                            onPasswordUpdated={onPasswordChange}
-                        />
-                    )}
-                />
+                {shouldUsePDFGestureZoom ? (
+                    <MobilePDFGestureCanvas onScaleChanged={onScaleChanged}>
+                        {() => pdfPreviewer}
+                    </MobilePDFGestureCanvas>
+                ) : (
+                    pdfPreviewer
+                )}
             </View>
         );
     };
