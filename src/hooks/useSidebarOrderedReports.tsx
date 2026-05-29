@@ -23,7 +23,6 @@ type SidebarOrderedReportsContextProviderProps = {
 };
 
 type SidebarOrderedReportsStateContextValue = {
-    orderedReports: OnyxTypes.Report[];
     orderedReportIDs: string[];
     currentReportID: string | undefined;
     chatTabBrickRoad: BrickRoad;
@@ -32,7 +31,6 @@ type SidebarOrderedReportsStateContextValue = {
 type ReportsToDisplayInLHN = Record<string, OnyxTypes.Report & {hasErrorsOtherThanFailedReceipt?: boolean; requiresAttention?: boolean}>;
 
 const SidebarOrderedReportsStateContext = createContext<SidebarOrderedReportsStateContextValue>({
-    orderedReports: [],
     orderedReportIDs: [],
     currentReportID: '',
     chatTabBrickRoad: undefined,
@@ -129,28 +127,13 @@ function SidebarOrderedReportsContextProvider({
         localeCompare,
     ]);
 
-    const orderedReports = useMemo(() => {
-        if (!chatReports) {
-            return [];
-        }
-        const result: OnyxTypes.Report[] = [];
-        for (const reportID of orderedReportIDs) {
-            const report = chatReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? baseReportsToDisplay?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-            if (report) {
-                result.push(report);
-            }
-        }
-        return result;
-    }, [orderedReportIDs, chatReports, baseReportsToDisplay]);
-
     const stateValue: SidebarOrderedReportsStateContextValue = useMemo(
         () => ({
-            orderedReports,
             orderedReportIDs,
             currentReportID: derivedCurrentReportID,
             chatTabBrickRoad: getChatTabBrickRoad(orderedReportIDs, reportAttributes),
         }),
-        [orderedReports, orderedReportIDs, derivedCurrentReportID, reportAttributes],
+        [orderedReportIDs, derivedCurrentReportID, reportAttributes],
     );
 
     return <SidebarOrderedReportsStateContext.Provider value={stateValue}>{children}</SidebarOrderedReportsStateContext.Provider>;

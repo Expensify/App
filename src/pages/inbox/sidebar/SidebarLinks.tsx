@@ -26,7 +26,7 @@ type SidebarLinksProps = {
     insets: EdgeInsets;
 
     /** List of options to display */
-    optionListItems: Report[];
+    optionListItems: string[];
 
     /** The chat priority mode */
     priorityMode?: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>;

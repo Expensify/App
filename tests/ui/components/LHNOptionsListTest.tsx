@@ -80,7 +80,7 @@ describe('LHNOptionsList', () => {
     const mockReport = getFakeReport([1, 2], 0, false);
 
     const defaultProps: LHNOptionsListProps = {
-        data: [mockReport],
+        data: [mockReport.reportID],
         onSelectRow: jest.fn(),
         optionMode: CONST.OPTION_MODE.DEFAULT,
         onFirstItemRendered: jest.fn(),
@@ -108,7 +108,7 @@ describe('LHNOptionsList', () => {
         );
     };
 
-    beforeEach(() => {
+    beforeEach(async () => {
         act(() => {
             Onyx.init({
                 keys: ONYXKEYS,
@@ -116,6 +116,11 @@ describe('LHNOptionsList', () => {
         });
 
         jest.clearAllMocks();
+
+        // LHNOptionsList resolves each row's report from Onyx by ID, so the default report must be present.
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
+        });
     });
 
     afterEach(() => {
@@ -255,7 +260,7 @@ describe('LHNOptionsList', () => {
             });
 
             // When the LHNOptionsList is rendered
-            render(getLHNOptionsListElement({data: [report]}));
+            render(getLHNOptionsListElement({data: [report.reportID]}));
 
             // Then the queued message should be displayed because DEW submissions are processed async and the user needs feedback
             const reportItem = await waitFor(() => getReportItem(reportID));
@@ -312,7 +317,7 @@ describe('LHNOptionsList', () => {
             });
 
             // When the LHNOptionsList is rendered
-            render(getLHNOptionsListElement({data: [report]}));
+            render(getLHNOptionsListElement({data: [report.reportID]}));
 
             // Then the queued message should NOT appear because the server processes DEW submissions immediately when online
             const reportItem = await waitFor(() => getReportItem(reportID));
@@ -379,7 +384,7 @@ describe('LHNOptionsList', () => {
             });
 
             // When the LHNOptionsList renders the workspace thread
-            render(getLHNOptionsListElement({data: [threadReport]}));
+            render(getLHNOptionsListElement({data: [threadReport.reportID]}));
 
             // Then it should render a single avatar, not a diagonal (multiple) avatar
             await waitFor(() => {
@@ -455,7 +460,7 @@ describe('LHNOptionsList', () => {
             });
 
             // When the LHNOptionsList renders the expense request thread
-            render(getLHNOptionsListElement({data: [threadReport]}));
+            render(getLHNOptionsListElement({data: [threadReport.reportID]}));
 
             // Then it should render a subscript avatar (workspace expense requests preserve subscript)
             await waitFor(() => {
@@ -520,7 +525,7 @@ describe('LHNOptionsList', () => {
             });
 
             // When the LHNOptionsList renders the task report
-            render(getLHNOptionsListElement({data: [taskReport]}));
+            render(getLHNOptionsListElement({data: [taskReport.reportID]}));
 
             // Then it should render a subscript avatar (Large User + Small Workspace)
             await waitFor(() => {
@@ -584,7 +589,7 @@ describe('LHNOptionsList', () => {
             });
 
             // When the LHNOptionsList renders the invoice report
-            render(getLHNOptionsListElement({data: [invoiceReport]}));
+            render(getLHNOptionsListElement({data: [invoiceReport.reportID]}));
 
             // Then it should render a subscript avatar (workspace icon + user avatar)
             await waitFor(() => {
@@ -633,7 +638,7 @@ describe('LHNOptionsList', () => {
             });
 
             // When the LHNOptionsList renders the IOU report
-            render(getLHNOptionsListElement({data: [report]}));
+            render(getLHNOptionsListElement({data: [report.reportID]}));
 
             // Then it should render diagonal (multiple) avatars
             await waitFor(() => {

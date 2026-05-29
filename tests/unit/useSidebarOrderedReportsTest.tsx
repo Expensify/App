@@ -95,7 +95,7 @@ describe('useSidebarOrderedReports', () => {
         );
     }
 
-    it('surfaces orderedReportIDs and orderedReports from the derived Onyx value', async () => {
+    it('surfaces orderedReportIDs from the derived Onyx value', async () => {
         currentReportIDForTest = '1';
         const report1 = makeReport('1');
         const report2 = makeReport('2');
@@ -115,7 +115,6 @@ describe('useSidebarOrderedReports', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(result.current.orderedReportIDs).toEqual(['2', '1']);
-        expect(result.current.orderedReports.map((r) => r.reportID)).toEqual(['2', '1']);
         expect(result.current.currentReportID).toBe('1');
     });
 
