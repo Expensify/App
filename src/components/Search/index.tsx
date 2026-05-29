@@ -1177,7 +1177,6 @@ function Search({
             isProduction,
             areItemsGrouped,
             filteredData,
-            selfDMReport,
         ],
     );
 
