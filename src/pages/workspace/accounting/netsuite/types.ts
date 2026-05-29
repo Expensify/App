@@ -82,7 +82,7 @@ type CustomFieldSubPageWithPolicy = SubPageProps & {
     policy: Policy | undefined;
 
     /** Policy ID from the parent route's URL params (set before the policy Onyx record finishes hydrating) */
-    policyIDParam: string | undefined;
+    policyIDParam?: string;
 
     /** Whether the page is a custom segment or custom list */
     importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>;

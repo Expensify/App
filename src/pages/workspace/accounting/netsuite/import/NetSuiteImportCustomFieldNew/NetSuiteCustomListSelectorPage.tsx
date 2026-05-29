@@ -16,6 +16,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {CustomListSelectorType} from '@pages/workspace/accounting/netsuite/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 
@@ -66,12 +67,15 @@ function NetSuiteCustomListSelectorPage({
 
     const label = translate('workspace.netsuite.import.importCustomFields.customLists.fields.listName');
 
+    // Fall back to the custom list "name" sub-page so the RHP isn't dismissed when this page is opened via a direct deeplink/refresh (empty navigation stack).
+    const goBackRoute = ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_ADD.getRoute(policyID, CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_LIST.PAGE_NAME.NAME);
+
     const onSelectRow = (item: CustomListSelectorType) => {
         setDraftValues(ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM, {
             [INPUT_IDS.LIST_NAME]: item.value,
             [INPUT_IDS.INTERNAL_ID]: item.id,
         });
-        Navigation.goBack();
+        Navigation.goBack(goBackRoute);
     };
 
     return (
@@ -88,7 +92,7 @@ function NetSuiteCustomListSelectorPage({
                 <HeaderWithBackButton
                     title={label}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={() => Navigation.goBack(goBackRoute)}
                 />
                 <SelectionList
                     data={options}

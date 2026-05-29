@@ -6,7 +6,9 @@ import {setDraftValues} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
 import NetSuiteCustomListSelectorPage from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomListSelectorPage';
 import type {CustomListSelectorType} from '@pages/workspace/accounting/netsuite/types';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 
 const mockUseState = React.useState;
@@ -112,6 +114,7 @@ describe('NetSuiteCustomListSelectorPage', () => {
             [INPUT_IDS.INTERNAL_ID]: '123',
         });
         expect(mockedNavigationGoBack).toHaveBeenCalledTimes(1);
+        expect(mockedNavigationGoBack).toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_ADD.getRoute('P1', CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_LIST.PAGE_NAME.NAME));
     });
 
     it('renders an empty option set with a no-results header message when search filters everything out', () => {

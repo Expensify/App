@@ -145,7 +145,6 @@ function NetSuiteImportAddCustomSegmentContent({policy, policyIDParam, draftValu
                     onNext={handleNextScreen}
                     onMove={moveTo}
                     policy={policy}
-                    policyIDParam={policyIDParam}
                     importCustomField={CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS}
                     customSegmentType={customSegmentType}
                     setCustomSegmentType={setCustomSegmentType}
