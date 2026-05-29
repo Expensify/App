@@ -121,7 +121,7 @@ function AccountHolderInformation({isEditing, onNext, formValues, fieldsMap}: Cu
                                         lng: '',
                                     }}
                                     forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                                    {...(inputComponent === TextInput ? getTextInputAutocorrectProps(TextInput) : {})}
+                                    {...(inputComponent === TextInput ? getTextInputAutocorrectProps() : {})}
                                 />
                             </View>
                         );

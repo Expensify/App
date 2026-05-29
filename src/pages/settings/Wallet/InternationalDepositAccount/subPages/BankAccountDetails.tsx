@@ -97,7 +97,7 @@ function BankAccountDetails({isEditing, onNext, onMove, formValues, fieldsMap}: 
                                 items={(field.valueSet ?? []).map(({id, text}) => ({value: id, label: text}))}
                                 shouldSaveDraft={!isEditing}
                                 forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                                {...(isValuePicker ? {} : getTextInputAutocorrectProps(TextInput))}
+                                {...(isValuePicker ? {} : getTextInputAutocorrectProps())}
                             />
                         </View>
                     );
