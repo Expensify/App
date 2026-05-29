@@ -667,6 +667,31 @@ const DYNAMIC_ROUTES = {
         path: 'details',
         entryScreens: [SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.SEARCH.ROOT],
     },
+    REPORT_PARTICIPANTS: {
+        path: 'participants',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.SEARCH.ROOT,
+            SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
+        ],
+    },
+    REPORT_PARTICIPANTS_INVITE: {
+        path: 'participants/invite',
+        entryScreens: [SCREENS.REPORT_PARTICIPANTS.DYNAMIC_ROOT],
+    },
+    REPORT_PARTICIPANTS_DETAILS: {
+        path: 'participants/:accountID',
+        entryScreens: [SCREENS.REPORT_PARTICIPANTS.DYNAMIC_ROOT],
+        getRoute: (accountID: number) => `participants/${accountID}` as const,
+    },
+    REPORT_PARTICIPANTS_ROLE: {
+        path: 'participants/:accountID/role',
+        entryScreens: [SCREENS.REPORT_PARTICIPANTS.DYNAMIC_DETAILS],
+        getRoute: (accountID: number) => `participants/${accountID}/role` as const,
+    },
     REPORT_DETAILS_SHARE_CODE: {
         path: 'share-code',
         entryScreens: [
@@ -1418,26 +1443,6 @@ const ROUTES = {
     EXPENSE_REPORT_VERIFY_ACCOUNT: {
         route: `e/:reportID/${VERIFY_ACCOUNT}`,
         getRoute: (reportID: string) => `e/${reportID}/${VERIFY_ACCOUNT}` as const,
-    },
-    REPORT_PARTICIPANTS: {
-        route: 'r/:reportID/participants',
-
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/participants` as const, backTo),
-    },
-    REPORT_PARTICIPANTS_INVITE: {
-        route: 'r/:reportID/participants/invite',
-
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/participants/invite` as const, backTo),
-    },
-    REPORT_PARTICIPANTS_DETAILS: {
-        route: 'r/:reportID/participants/:accountID',
-
-        getRoute: (reportID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/participants/${accountID}` as const, backTo),
-    },
-    REPORT_PARTICIPANTS_ROLE_SELECTION: {
-        route: 'r/:reportID/participants/:accountID/role',
-
-        getRoute: (reportID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/participants/${accountID}/role` as const, backTo),
     },
     REPORT_SETTINGS: {
         route: 'r/:reportID/settings',

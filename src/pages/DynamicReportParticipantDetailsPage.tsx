@@ -11,6 +11,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -26,14 +27,14 @@ import Navigation from '@navigation/Navigation';
 import type {ParticipantsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails} from '@src/types/onyx';
 import NotFoundPage from './ErrorPage/NotFoundPage';
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
 
-type ReportParticipantDetailsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DETAILS>;
+type ReportParticipantDetailsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DYNAMIC_DETAILS>;
 
 function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Info']);
@@ -47,7 +48,7 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = React.useState(false);
 
     const accountID = Number(route.params.accountID);
-    const backTo = ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID, route.params.backTo);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_DETAILS.path);
 
     const member = report?.participants?.[accountID];
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
@@ -58,7 +59,7 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
     const removeUser = () => {
         setIsRemoveMemberConfirmModalVisible(false);
         removeFromGroupChat(report, [accountID]);
-        Navigation.goBack(backTo);
+        Navigation.goBack(backPath);
     };
 
     const navigateToProfile = () => {
@@ -66,7 +67,7 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
     };
 
     const openRoleSelectionModal = () => {
-        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_ROLE_SELECTION.getRoute(report.reportID, accountID, route.params.backTo));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_ROLE.getRoute(accountID)));
     };
 
     if (!member) {
@@ -74,10 +75,10 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
     }
 
     return (
-        <ScreenWrapper testID="ReportParticipantDetails">
+        <ScreenWrapper testID="DynamicReportParticipantDetails">
             <HeaderWithBackButton
                 title={displayName}
-                onBackButtonPress={() => Navigation.goBack(backTo)}
+                onBackButtonPress={() => Navigation.goBack(backPath)}
             />
             <ScrollView contentContainerStyle={[!isInLandscapeMode && [styles.containerWithSpaceBetween, styles.justifyContentStart], styles.pointerEventsBoxNone]}>
                 <View style={[styles.avatarSectionWrapper, styles.pb0]}>

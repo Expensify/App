@@ -1,4 +1,3 @@
-import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -8,6 +7,7 @@ import SelectionListWithSections from '@components/SelectionList/SelectionListWi
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchSelector from '@hooks/useSearchSelector';
@@ -17,8 +17,6 @@ import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomM
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
@@ -27,8 +25,7 @@ import type {OptionData} from '@libs/ReportUtils';
 import {getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
@@ -38,11 +35,11 @@ type InviteReportParticipantsPageProps = WithReportOrNotFoundProps & WithNavigat
 type Sections = Array<Section<OptionData>>;
 
 function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProps) {
-    const route = useRoute<PlatformStackRouteProp<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.INVITE>>();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_INVITE.path);
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers: Record<string, boolean> = {
@@ -112,11 +109,10 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
         toggleSelection(option);
     };
 
-    const reportID = report.reportID;
     const reportName = getGroupChatName(formatPhoneNumber, undefined, true, report);
 
     const goBack = () => {
-        Navigation.goBack(ROUTES.REPORT_PARTICIPANTS.getRoute(reportID, route.params.backTo));
+        Navigation.goBack(backPath);
     };
 
     const inviteUsers = () => {
@@ -182,7 +178,7 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
-            testID="InviteReportParticipantsPage"
+            testID="DynamicReportParticipantsInvitePage"
             onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
         >
             <HeaderWithBackButton

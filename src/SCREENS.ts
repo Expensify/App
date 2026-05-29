@@ -989,10 +989,10 @@ const SCREENS = {
     REPORT_DESCRIPTION_ROOT: 'Report_Description_Root',
     CHRONOS_SCHEDULE_OOO_ROOT: 'Chronos_Schedule_OOO_Root',
     REPORT_PARTICIPANTS: {
-        ROOT: 'ReportParticipants_Root',
-        INVITE: 'ReportParticipants_Invite',
-        DETAILS: 'ReportParticipants_Details',
-        ROLE: 'ReportParticipants_Role',
+        DYNAMIC_ROOT: 'Dynamic_ReportParticipants_Root',
+        DYNAMIC_INVITE: 'Dynamic_ReportParticipants_Invite',
+        DYNAMIC_DETAILS: 'Dynamic_ReportParticipants_Details',
+        DYNAMIC_ROLE: 'Dynamic_ReportParticipants_Role',
     },
     ROOM_MEMBERS: {
         ROOT: 'RoomMembers_Root',

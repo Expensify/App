@@ -435,7 +435,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     if (shouldOpenRoomMembersPage) {
                         Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(report?.reportID, Navigation.getActiveRoute()));
                     } else {
-                        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID, Navigation.getActiveRoute()));
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS.path));
                     }
                 },
             });

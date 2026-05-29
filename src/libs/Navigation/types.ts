@@ -1772,27 +1772,19 @@ type ChronosScheduleOOONavigatorParamList = {
 };
 
 type ParticipantsNavigatorParamList = {
-    [SCREENS.REPORT_PARTICIPANTS.ROOT]: {
+    [SCREENS.REPORT_PARTICIPANTS.DYNAMIC_ROOT]: {
         reportID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
-    [SCREENS.REPORT_PARTICIPANTS.INVITE]: {
+    [SCREENS.REPORT_PARTICIPANTS.DYNAMIC_INVITE]: {
         reportID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
-    [SCREENS.REPORT_PARTICIPANTS.DETAILS]: {
+    [SCREENS.REPORT_PARTICIPANTS.DYNAMIC_DETAILS]: {
         reportID: string;
         accountID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
-    [SCREENS.REPORT_PARTICIPANTS.ROLE]: {
+    [SCREENS.REPORT_PARTICIPANTS.DYNAMIC_ROLE]: {
         reportID: string;
         accountID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
 };
 

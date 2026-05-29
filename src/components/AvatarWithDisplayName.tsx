@@ -38,7 +38,7 @@ import {
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 import {getButtonRole} from './Button/utils';
 import DisplayNames from './DisplayNames';
@@ -253,7 +253,7 @@ function AvatarWithDisplayName({
         }
 
         if (isIOUReport(report) && report?.reportID) {
-            Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report.reportID));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS.path));
             return;
         }
 
