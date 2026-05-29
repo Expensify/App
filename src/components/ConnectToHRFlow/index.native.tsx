@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {WebView} from 'react-native-webview';
 import type {WebViewOpenWindowEvent} from 'react-native-webview/lib/WebViewTypes';
@@ -15,7 +15,6 @@ import type ConnectToHRFlowProps from './types';
 function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const webViewRef = useRef<WebView>(null);
     const [isWebViewOpen, setIsWebViewOpen] = useState(true);
     const [popupUrl, setPopupUrl] = useState<string | null>(null);
     const [isPopupVisible, setIsPopupVisible] = useState(false);
@@ -74,7 +73,7 @@ function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
                                 // Brief delay to ensure the incognito WebView has fully cleared cookies
                                 // before mounting the main WebView. No deterministic completion signal is
                                 // available from the incognito session teardown.
-                                setTimeout(() => setCookiesCleared(true), 500);
+                                setTimeout(() => setCookiesCleared(true), CONST.MERGE_HR.COOKIE_CLEAR_DELAY_MS);
                             }}
                             style={styles.opacity0}
                         />
@@ -84,7 +83,6 @@ function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
                         // Not using incognito here so the popup WebView can share cookies
                         // with the main flow (required for OAuth handoffs).
                         <WebView
-                            ref={webViewRef}
                             source={{uri: authenticatedUrl}}
                             onOpenWindow={handleOpenWindow}
                             startInLoadingState

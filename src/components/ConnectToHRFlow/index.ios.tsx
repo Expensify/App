@@ -6,6 +6,7 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getShortLivedAuthTokenURL} from '@userActions/Link';
 import CONST from '@src/CONST';
@@ -17,7 +18,7 @@ function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
     const hasOpened = useRef(false);
     const [isModalOpen, setIsModalOpen] = useState(true);
 
-    useEffect(() => {
+    const openSession = () => {
         if (hasOpened.current) {
             return;
         }
@@ -30,7 +31,17 @@ function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
             .finally(() => {
                 setIsModalOpen(false);
             });
-    }, [setupLink]);
+    };
+
+    const {isOffline} = useNetwork({onReconnect: openSession});
+
+    useEffect(() => {
+        if (isOffline) {
+            return;
+        }
+        openSession();
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- only the initial setupLink should be used; re-opening the auth session on prop change is not desired
+    }, []);
 
     return (
         <Modal
