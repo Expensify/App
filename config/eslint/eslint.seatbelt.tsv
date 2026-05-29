@@ -533,7 +533,6 @@
 "../../src/pages/media/AttachmentModalScreen/routes/hooks/useReportAttachmentModalType.ts"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/settings/AboutPage/AboutPage.tsx"	"react-hooks/refs"	1
 "../../src/pages/settings/PaymentCard/ChangeCurrency/index.tsx"	"no-restricted-syntax"	1
-"../../src/pages/settings/Profile/Contacts/ContactMethodDetailsPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	2
 "../../src/pages/settings/Profile/Contacts/ContactMethodDetailsPage.tsx"	"react-hooks/refs"	3
 "../../src/pages/settings/Profile/Contacts/ContactMethodDetailsPage.tsx"	"react-hooks/set-state-in-effect"	3
 "../../src/pages/settings/Profile/CustomStatus/StatusClearAfterPage.tsx"	"react-hooks/set-state-in-effect"	1
