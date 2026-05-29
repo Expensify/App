@@ -163,7 +163,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
 
     const pendingOptimisticDetailDisplayName = pendingOptimisticDetail?.displayName;
     const pendingOptimisticDetailAvatar = pendingOptimisticDetail?.avatar;
-    const pendingOptimisticApproverRow = useMemo<SelectionListApprover | undefined>(() => {
+    const pendingOptimisticApproverRow: SelectionListApprover | undefined = (() => {
         if (!pendingOptimisticApprover || !pendingOptimisticAccountID) {
             return undefined;
         }
@@ -179,7 +179,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
             errors: pendingOptimisticErrors ?? undefined,
             isInteractive: false,
         };
-    }, [pendingOptimisticApprover, pendingOptimisticAccountID, pendingOptimisticDetailDisplayName, pendingOptimisticDetailAvatar, pendingOptimisticErrors, icons.FallbackAvatar]);
+    })();
 
     // Once CREATE_AGENT resolves, the server echoes `{optimisticID: realID}` in
     // `OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING` and the real agent lands in `policy.employeeList`,
@@ -191,7 +191,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const reconciledLogin = reconciledRealAccountID ? personalDetails?.[reconciledRealAccountID]?.login : undefined;
     const isOptimisticReconciled = !!reconciledLogin && !!policy?.employeeList?.[reconciledLogin];
 
-    const allApproversWithOptimistic = useMemo(() => {
+    const allApproversWithOptimistic = (() => {
         if (isOptimisticReconciled && reconciledLogin) {
             return allApprovers.map((approver) => (approver.keyForList === reconciledLogin ? {...approver, isSelected: true} : approver));
         }
@@ -199,14 +199,14 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
             return [pendingOptimisticApproverRow, ...allApprovers];
         }
         return allApprovers;
-    }, [pendingOptimisticApproverRow, allApprovers, isOptimisticReconciled, reconciledLogin]);
+    })();
 
-    const onDismissOptimisticApprover = useCallback(() => {
+    const onDismissOptimisticApprover = () => {
         if (!pendingOptimisticAccountID) {
             return;
         }
         clearOptimisticAgentFromApprovalWorkflow(route.params.policyID, approverIndex, approvalWorkflow, pendingOptimisticAccountID);
-    }, [pendingOptimisticAccountID, route.params.policyID, approverIndex, approvalWorkflow]);
+    };
 
     const shouldShowListEmptyContent = !!approvalWorkflow && !isApprovalWorkflowLoading && !removingApproverEmail;
 
@@ -293,33 +293,28 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
 
     const shouldShowCreateAgentRow = isCustomAgentEnabled && approverIndex === 0;
 
-    const onCreateAgentPress = useCallback(() => {
+    const onCreateAgentPress = () => {
         Navigation.navigate(
             ROUTES.SETTINGS_AGENTS_ADD.getRoute({
                 policyID: route.params.policyID,
                 workflowApproverEmail: firstApprover,
             }),
         );
-    }, [route.params.policyID, firstApprover]);
+    };
 
-    const headerContent = useMemo(() => {
-        if (!shouldShowCreateAgentRow) {
-            return null;
-        }
-        return (
-            <MenuItem
-                icon={icons.Bot}
-                iconWidth={variables.avatarSizeSubscript}
-                iconHeight={variables.avatarSizeSubscript}
-                iconStyles={[styles.avatarAgentApprover]}
-                iconFill={colors.productLight100}
-                title={translate('workflowsApproverPage.createNewAgent')}
-                description={translate('workflowsApproverPage.createNewAgentDescription')}
-                onPress={onCreateAgentPress}
-                shouldShowRightIcon
-            />
-        );
-    }, [shouldShowCreateAgentRow, icons.Bot, translate, onCreateAgentPress, styles.avatarAgentApprover]);
+    const headerContent = !shouldShowCreateAgentRow ? null : (
+        <MenuItem
+            icon={icons.Bot}
+            iconWidth={variables.avatarSizeSubscript}
+            iconHeight={variables.avatarSizeSubscript}
+            iconStyles={[styles.avatarAgentApprover]}
+            iconFill={colors.productLight100}
+            title={translate('workflowsApproverPage.createNewAgent')}
+            description={translate('workflowsApproverPage.createNewAgentDescription')}
+            onPress={onCreateAgentPress}
+            shouldShowRightIcon
+        />
+    );
 
     // Reconcile the optimistic agent approver once the server-side CREATE_AGENT response lands.
     // The new agent is written to `approvalWorkflow.approvers[approverIndex]` with `accountID` set
