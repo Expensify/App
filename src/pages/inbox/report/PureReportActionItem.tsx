@@ -85,7 +85,7 @@ type PureReportActionItemProps = {
     report: OnyxEntry<OnyxTypes.Report>;
 
     /** The transaction thread report associated with the report for this action, if any */
-    transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
+    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
 
     /** Report action belonging to the report's parent */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
@@ -155,9 +155,6 @@ type PureReportActionItemProps = {
 
     /** Whether the action is the "Created" action of a harvest-created expense report */
     isHarvestCreatedExpenseReport?: boolean;
-
-    /** Whether the user is a track intent user */
-    isTrackIntentUser?: boolean;
 };
 
 function PureReportActionItem({
@@ -185,7 +182,6 @@ function PureReportActionItem({
     shouldShowBorder,
     shouldHighlight = false,
     isHarvestCreatedExpenseReport = false,
-    isTrackIntentUser,
 }: PureReportActionItemProps) {
     const isConciergeGreeting = action.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID;
     const shouldDisplayContextMenuValue = shouldDisplayContextMenu && !isConciergeGreeting;
@@ -238,7 +234,7 @@ function PureReportActionItem({
     const dismissError = () => {
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
         if (isSendingMoney && transactionID && reportID) {
-            cleanUpMoneyRequest(transactionID, action, reportID, report, chatReport, undefined, originalReportID, true);
+            cleanUpMoneyRequest(transactionID, action, reportID, transactionThreadReport, report, chatReport, undefined, originalReportID, true);
             return;
         }
         if (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && isReportActionLinked) {
@@ -609,7 +605,6 @@ function PureReportActionItem({
                                                                 shouldShowBorder={shouldShowBorder}
                                                                 isOnSearch={isOnSearch}
                                                                 setIsPaymentMethodPopoverActive={setIsPaymentMethodPopoverActive}
-                                                                isTrackIntentUser={isTrackIntentUser ?? false}
                                                             />
                                                             {Permissions.canUseLinkPreviews() && !isHidden && (action.linkMetadata?.length ?? 0) > 0 && (
                                                                 <View style={hasDraft ? styles.chatItemReactionsDraftRight : {}}>
