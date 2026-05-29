@@ -321,8 +321,8 @@ const CONST = {
     },
 
     RECEIPT_CAMERA: {
-        PHOTO_WIDTH: 4032,
-        PHOTO_HEIGHT: 3024,
+        PHOTO_WIDTH: 2880,
+        PHOTO_HEIGHT: 2160,
         PHOTO_ASPECT_RATIO: 4 / 3,
         // Limit how long the shutter handler waits for thumbnail pre-generation before navigating
         // to the confirmation screen. Past this, we navigate and let the confirm-side hook
@@ -981,7 +981,6 @@ const CONST = {
         EUR_BILLING: 'eurBilling',
         PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
-        GUSTO: 'gustoNewDot',
         ZENEFITS: 'zenefitsNewDot',
         BULK_EDIT: 'bulkEdit',
         BULK_EDIT_WORKSPACES: 'bulkEditWorkspaces',
@@ -2000,6 +1999,8 @@ const CONST = {
             FAB_OUT: ANIMATION_TIMING_FAB_OUT,
             RHP_DURATION_IN_WEB: 150,
             RHP_DURATION_OUT_WEB: 100,
+            CENTERED_DURATION_IN_WEB: 120,
+            CENTERED_DURATION_OUT_WEB: 80,
         },
         RHP_ENTER_OFFSET_PX_WEB: 60,
     },
@@ -4954,6 +4955,7 @@ const CONST = {
     WORKSPACE_NAME_CHARACTER_LIMIT: 80,
     STATE_CHARACTER_LIMIT: 32,
     REPORT_TITLE_FORMULA_LIMIT: 500,
+    AGENT_PROMPT_LIMIT: 300,
 
     // Test receipt data
     TEST_RECEIPT: {

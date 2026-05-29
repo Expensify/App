@@ -1,7 +1,7 @@
 ---
 title: Troubleshoot SmartScan Issues
 description: Fix common SmartScan problems, including failed, stuck and incorrect scans. 
-keywords: [New Expensify, SmartScan, scan failed, receipt not scanning, illegible receipt, blurry receipt, stuck scanning, SmartScan error, scan not working, SmartScan troubleshooting, SCANREADY, wrong amount, wrong merchant, wrong date, SmartScan incorrect]
+keywords: [New Expensify, SmartScan, scan failed, receipt not scanning, illegible receipt, blurry receipt, stuck scanning, SmartScan error, scan not working, SmartScan troubleshooting, SCANREADY, wrong amount, wrong merchant, wrong date, SmartScan incorrect, missing fields, missing date, missing merchant, missing amount]
 internalScope: Audience is all Expensify members. Covers troubleshooting SmartScan failures, image quality tips, and what to do when SmartScan returns incorrect data. Does not cover how to attach, replace, or crop receipts.
 ---
 
