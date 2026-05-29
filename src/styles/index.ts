@@ -713,7 +713,7 @@ const staticStyles = (theme: ThemeColors) =>
             flexDirection: 'row',
             height: variables.bottomTabHeight,
             borderTopWidth: 1,
-            borderTopColor: theme.border,
+            borderTopColor: theme.borderLight,
             backgroundColor: theme.appBG,
         },
 

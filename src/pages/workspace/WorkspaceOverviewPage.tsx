@@ -684,7 +684,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             shouldCenterContent
         >
             <View style={[styles.flex1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5, styles.pb5]}>{headerButtons}</View>}
+                {shouldDisplayButtonsInSeparateLine && <View style={[styles.pb5]}>{headerButtons}</View>}
                 <Section
                     isCentralPane
                     title=""
