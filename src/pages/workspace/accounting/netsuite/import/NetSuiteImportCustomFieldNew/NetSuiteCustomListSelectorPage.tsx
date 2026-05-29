@@ -1,4 +1,3 @@
-import {useNavigation} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -25,11 +24,10 @@ type NetSuiteCustomListSelectorPageProps = PlatformStackScreenProps<SettingsNavi
 
 function NetSuiteCustomListSelectorPage({
     route: {
-        params: {policyID},
+        params: {policyID, action},
     },
 }: NetSuiteCustomListSelectorPageProps) {
     const {translate} = useLocalize();
-    const {canGoBack} = useNavigation();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const policy = usePolicy(policyID);
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM_DRAFT);
@@ -69,13 +67,11 @@ function NetSuiteCustomListSelectorPage({
 
     const label = translate('workspace.netsuite.import.importCustomFields.customLists.fields.listName');
 
-    // Return to the page that opened the selector (e.g. the confirm step when editing). Only when there is no
-    // screen to go back to — a direct deeplink/refresh onto this page — fall back to the custom list "name"
-    // sub-page so the RHP isn't dismissed.
+    // Go back to the custom list "name" sub-page that opened this selector, carrying over its edit state via the
+    // `action` param. On a normal push this pops back to that page; on a direct deeplink/refresh (when it isn't on
+    // the stack) Navigation.goBack replaces this page with it, so the RHP isn't dismissed.
     const goBack = () =>
-        canGoBack()
-            ? Navigation.goBack()
-            : Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_ADD.getRoute(policyID, CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_LIST.PAGE_NAME.NAME));
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_ADD.getRoute(policyID, CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_LIST.PAGE_NAME.NAME, action));
 
     const onSelectRow = (item: CustomListSelectorType) => {
         setDraftValues(ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM, {

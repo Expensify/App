@@ -14,9 +14,12 @@ type NetSuiteCustomListPickerProps = {
 
     /** Form Error description */
     errorText?: string;
+
+    /** Whether the parent step is in edit mode, so the selector returns to the correct step on back */
+    isEditing?: boolean;
 };
 
-function NetSuiteCustomListPicker({value, policyID, errorText}: NetSuiteCustomListPickerProps) {
+function NetSuiteCustomListPicker({value, policyID, errorText, isEditing}: NetSuiteCustomListPickerProps) {
     const {translate} = useLocalize();
 
     return (
@@ -28,7 +31,7 @@ function NetSuiteCustomListPicker({value, policyID, errorText}: NetSuiteCustomLi
                 if (!policyID) {
                     return;
                 }
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_SELECTOR.getRoute(policyID));
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_SELECTOR.getRoute(policyID, isEditing ? 'edit' : undefined));
             }}
             brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
             errorText={errorText}

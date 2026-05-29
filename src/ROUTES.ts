@@ -3624,12 +3624,12 @@ const ROUTES = {
         },
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_SELECTOR: {
-        route: 'workspaces/:policyID/accounting/netsuite/import/custom-list/list-selector',
-        getRoute: (policyID: string | undefined) => {
+        route: 'workspaces/:policyID/accounting/netsuite/import/custom-list/list-selector/:action?',
+        getRoute: (policyID: string | undefined, action?: 'edit') => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_SELECTOR route');
             }
-            return `workspaces/${policyID}/accounting/netsuite/import/custom-list/list-selector` as const;
+            return `workspaces/${policyID}/accounting/netsuite/import/custom-list/list-selector${action ? `/${action}` : ''}` as const;
         },
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_SEGMENT_ADD: {
