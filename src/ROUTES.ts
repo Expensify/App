@@ -742,6 +742,11 @@ const DYNAMIC_ROUTES = {
             SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
         ],
     },
+    SPLIT_BILL_DETAILS: {
+        path: 'split/:reportActionID',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+        getRoute: (reportActionID: string) => `split/${reportActionID}` as const,
+    },
     TASK_ASSIGNEE: {
         path: 'assignee',
         entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
@@ -1459,16 +1464,6 @@ const ROUTES = {
     CHRONOS_SCHEDULE_OOO: {
         route: 'r/:reportID/chronos/schedule-ooo',
         getRoute: (reportID: string) => `r/${reportID}/chronos/schedule-ooo` as const,
-    },
-    SPLIT_BILL_DETAILS: {
-        route: 'r/:reportID/split/:reportActionID',
-        getRoute: (reportID: string | undefined, reportActionID: string, backTo?: string) => {
-            if (!reportID) {
-                Log.warn('Invalid reportID is used to build the SPLIT_BILL_DETAILS route');
-            }
-
-            return getUrlWithBackToParam(`r/${reportID}/split/${reportActionID}` as const, backTo);
-        },
     },
     ROOM_MEMBERS: {
         route: 'r/:reportID/members',

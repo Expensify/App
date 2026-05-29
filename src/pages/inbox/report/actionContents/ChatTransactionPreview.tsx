@@ -7,11 +7,12 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUReportIDFromReportActionPreview, isSplitBillAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {createTransactionThreadReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
 type ChatTransactionPreviewProps = {
@@ -20,9 +21,6 @@ type ChatTransactionPreviewProps = {
 
     /** The ID of the current report where the preview is rendered */
     reportID: string | undefined;
-
-    /** The ID of the associated chat report, used when navigating to split bill details */
-    chatReportID: string | undefined;
 
     /** The IOU report linked to this transaction, used when creating a transaction thread on demand */
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -34,7 +32,7 @@ type ChatTransactionPreviewProps = {
     transactionID: string | undefined;
 };
 
-function ChatTransactionPreview({action, reportID, chatReportID, iouReport, shouldShowSplitPreview, transactionID}: ChatTransactionPreviewProps) {
+function ChatTransactionPreview({action, reportID, iouReport, shouldShowSplitPreview, transactionID}: ChatTransactionPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -57,7 +55,7 @@ function ChatTransactionPreview({action, reportID, chatReportID, iouReport, shou
                 transactionPreviewWidth={reportPreviewStyles.transactionPreviewStandaloneStyle.width}
                 onPreviewPressed={() => {
                     if (shouldShowSplitPreview) {
-                        Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReportID, action.reportActionID, Navigation.getReportRHPActiveRoute()));
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SPLIT_BILL_DETAILS.getRoute(action.reportActionID)));
                         return;
                     }
 

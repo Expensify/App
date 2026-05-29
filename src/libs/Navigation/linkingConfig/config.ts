@@ -1874,7 +1874,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.SPLIT_DETAILS]: {
                     screens: {
-                        [SCREENS.SPLIT_DETAILS.ROOT]: ROUTES.SPLIT_BILL_DETAILS.route,
+                        [SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT]: DYNAMIC_ROUTES.SPLIT_BILL_DETAILS.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.TASK_DETAILS]: {

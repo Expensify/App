@@ -164,7 +164,6 @@ function ActionContentRouter({
                     <ChatTransactionPreview
                         action={action}
                         reportID={reportID}
-                        chatReportID={chatReportID}
                         iouReport={iouReport}
                         shouldShowSplitPreview={shouldShowSplitPreview}
                         transactionID={shouldShowSplitPreview ? moneyRequestOriginalMessage?.IOUTransactionID : undefined}

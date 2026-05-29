@@ -2301,11 +2301,9 @@ type EnablePaymentsNavigatorParamList = {
 };
 
 type SplitDetailsNavigatorParamList = {
-    [SCREENS.SPLIT_DETAILS.ROOT]: {
+    [SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT]: {
         reportID: string;
         reportActionID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.SPLIT_DETAILS.EDIT_REQUEST]: {
         field: string;

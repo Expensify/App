@@ -932,7 +932,7 @@ const SCREENS = {
     },
 
     SPLIT_DETAILS: {
-        ROOT: 'SplitDetails_Root',
+        DYNAMIC_ROOT: 'Dynamic_SplitDetails_Root',
         EDIT_REQUEST: 'SplitDetails_Edit_Request',
         EDIT_CURRENCY: 'SplitDetails_Edit_Currency',
     },

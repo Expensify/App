@@ -275,7 +275,7 @@ const TravelModalStackNavigator = createModalStackNavigator<TravelNavigatorParam
 });
 
 const SplitDetailsModalStackNavigator = createModalStackNavigator<SplitDetailsNavigatorParamList>({
-    [SCREENS.SPLIT_DETAILS.ROOT]: () => require<ReactComponentModule>('../../../../pages/iou/SplitBillDetailsPage').default,
+    [SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT]: () => require<ReactComponentModule>('../../../../pages/iou/DynamicSplitBillDetailsPage').default,
 });
 
 const ProfileModalStackNavigator = createModalStackNavigator<ProfileNavigatorParamList>({
