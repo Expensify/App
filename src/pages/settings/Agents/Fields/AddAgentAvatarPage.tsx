@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import Navigation from '@libs/Navigation/Navigation';
 import {consumeNavigationToken, getInitialPresetID, getReturnRoute, setPendingAvatar} from '@pages/settings/Agents/pendingAgentAvatarStore';
 import ROUTES from '@src/ROUTES';
@@ -23,17 +23,14 @@ function AddAgentAvatarPage() {
 
     const initialPresetID = getInitialPresetID();
 
-    const handleSave = useCallback(
-        (params: OnSaveParams) => {
-            if ('customExpensifyAvatarID' in params) {
-                setPendingAvatar({type: 'preset', id: params.customExpensifyAvatarID});
-            } else {
-                setPendingAvatar({type: 'file', file: params.file, uri: params.uri});
-            }
-            Navigation.goBack(returnRoute);
-        },
-        [returnRoute],
-    );
+    const handleSave = (params: OnSaveParams) => {
+        if ('customExpensifyAvatarID' in params) {
+            setPendingAvatar({type: 'preset', id: params.customExpensifyAvatarID});
+        } else {
+            setPendingAvatar({type: 'file', file: params.file, uri: params.uri});
+        }
+        Navigation.goBack(returnRoute);
+    };
 
     return (
         <EditAgentAvatarContent

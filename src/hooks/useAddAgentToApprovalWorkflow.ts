@@ -1,4 +1,3 @@
-import {useCallback, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
@@ -23,11 +22,11 @@ type OwnedAgent = {accountID: number; email: string; displayName: string; avatar
  */
 function useAddAgentToApprovalWorkflow(policy: OnyxEntry<Policy>, policyID: string) {
     const {formatPhoneNumber} = useLocalize();
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [agentPrompts] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT);
 
-    const ownedAgents = useMemo<OwnedAgent[]>(() => {
+    const ownedAgents: OwnedAgent[] = (() => {
         if (!agentPrompts || !personalDetails) {
             return [];
         }
@@ -46,47 +45,41 @@ function useAddAgentToApprovalWorkflow(policy: OnyxEntry<Policy>, policyID: stri
                 };
             })
             .filter((agent): agent is OwnedAgent => !!agent);
-    }, [agentPrompts, personalDetails]);
+    })();
 
-    return useCallback(
-        (workflow: ApprovalWorkflow) => {
-            const workflowApproverEmail = workflow.approvers.at(0)?.email ?? '';
+    return (workflow: ApprovalWorkflow) => {
+        const workflowApproverEmail = workflow.approvers.at(0)?.email ?? '';
 
-            // Prefer the first owned agent that isn't already an approver on this workflow.
-            // If every owned agent is already in the workflow there's nothing to seed, so we
-            // route the admin to create a new agent instead of duplicating an existing one.
-            const agentToSeed = ownedAgents.find((candidate) => !workflow.approvers.some((approver) => approver.email === candidate.email));
-            if (!agentToSeed) {
-                Navigation.navigate(
-                    ROUTES.WORKSPACE_WORKFLOWS_ADD_AGENT.getRoute({
-                        policyID,
-                        workflowApproverEmail,
-                    }),
-                );
-                return;
-            }
+        // Prefer the first owned agent that isn't already an approver on this workflow.
+        // If every owned agent is already in the workflow there's nothing to seed, so we
+        // route the admin to create a new agent instead of duplicating an existing one.
+        const agentToSeed = ownedAgents.find((candidate) => !workflow.approvers.some((approver) => approver.email === candidate.email));
+        if (!agentToSeed) {
+            Navigation.navigate(
+                ROUTES.WORKSPACE_WORKFLOWS_ADD_AGENT.getRoute({
+                    policyID,
+                    workflowApproverEmail,
+                }),
+            );
+            return;
+        }
 
-            // Ensure the agent is a workspace member before they show up as an approver. The
-            // server makes this idempotent so it's safe to call even if the agent was added via
-            // the API's `policyID` parameter when CREATE_AGENT was first called.
-            const isAlreadyMember = !!policy?.employeeList?.[agentToSeed.email];
-            if (!isAlreadyMember && policy) {
-                const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy.employeeList, false, false));
-                addMembersToWorkspace(
-                    {[agentToSeed.email]: agentToSeed.accountID},
-                    '',
-                    policy,
-                    policyMemberAccountIDs,
-                    CONST.POLICY.ROLE.USER,
-                    formatPhoneNumber,
-                    currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
-                );
-            }
+        // Ensure the agent is a workspace member before they show up as an approver. The
+        // server makes this idempotent so it's safe to call even if the agent was added via
+        // the API's `policyID` parameter when CREATE_AGENT was first called.
+        const isAlreadyMember = !!policy?.employeeList?.[agentToSeed.email];
+        if (!isAlreadyMember && policy) {
+            const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy.employeeList, false, false));
+            addMembersToWorkspace({[agentToSeed.email]: agentToSeed.accountID}, '', policy, policyMemberAccountIDs, CONST.POLICY.ROLE.USER, formatPhoneNumber, {
+                accountID: currentUserPersonalDetails.accountID,
+                displayName: currentUserPersonalDetails.displayName,
+                email: currentUserPersonalDetails.login,
+                avatar: currentUserPersonalDetails.avatar,
+            });
+        }
 
-            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, workflowApproverEmail, agentToSeed.email));
-        },
-        [ownedAgents, policy, policyID, formatPhoneNumber, currentUserAccountID],
-    );
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, workflowApproverEmail, agentToSeed.email));
+    };
 }
 
 export default useAddAgentToApprovalWorkflow;

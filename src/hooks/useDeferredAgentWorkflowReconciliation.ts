@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useRef} from 'react';
+import {useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {buildDeferredAgentWorkflowSaveKey, clearDeferredAgentWorkflowSave, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import CONST from '@src/CONST';
@@ -35,7 +35,7 @@ function useDeferredAgentWorkflowReconciliation(rawApprovalWorkflows: ApprovalWo
 
     const addAgentErrors = policy?.errorFields?.[CONST.POLICY.COLLECTION_KEYS.ADD_AGENT];
 
-    const approvalWorkflows = useMemo<ApprovalWorkflowWithRouting[]>(() => {
+    const approvalWorkflows: ApprovalWorkflowWithRouting[] = (() => {
         if (!deferredAgentWorkflowSaves || isEmptyObject(deferredAgentWorkflowSaves)) {
             return rawApprovalWorkflows.map((workflow) => ({...workflow, routingFirstApproverEmail: workflow.approvers.at(0)?.email ?? ''}));
         }
@@ -61,7 +61,7 @@ function useDeferredAgentWorkflowReconciliation(rawApprovalWorkflows: ApprovalWo
                 routingFirstApproverEmail: firstApproverEmail,
             };
         });
-    }, [rawApprovalWorkflows, deferredAgentWorkflowSaves, policyID, addAgentErrors]);
+    })();
 
     // Tracks deferred-save keys we've already reconciled in this mount. `updateApprovalWorkflow`'s
     // optimistic write to `policy.employeeList` re-renders the page before the matching
