@@ -23,7 +23,7 @@ import type {
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
 } from '@components/Search/SearchList/ListItem/types';
-import type {SelectedTransactionInfo} from '@components/Search/types';
+import type {SearchQueryJSON, SelectedTransactionInfo} from '@components/Search/types';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@navigation/Navigation';
 import type * as ReportUserActions from '@userActions/Report';
@@ -35,7 +35,7 @@ import IntlStore from '@src/languages/IntlStore';
 import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
 import {getCardDescriptionForSearchTable} from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
-import {getDateRangeForPreset, getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
+import {buildSearchQueryJSON, getDateRangeForPreset, getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -2444,6 +2444,62 @@ describe('SearchUIUtils', () => {
             ).at(0);
             expect(action).not.toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
+
+        test('Should show `View` as primary action instead of `Submit` when the current user is not the report owner (transaction view)', async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: submitterAccountID});
+            // report1 has ownerAccountID: adminAccountID, so submitterAccountID is not the owner
+            const [sections] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: searchResults.data,
+                currentAccountID: submitterAccountID,
+                currentUserEmail: submitterEmail,
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                allReportMetadata: {},
+                conciergeReportID: undefined,
+                convertToDisplayString,
+            });
+            const transaction = (sections as TransactionListItemType[]).find((item) => item.transactionID === transactionID);
+            expect(transaction?.action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
+        });
+
+        test('Should show `View` as primary action instead of `Submit` when the current user is not the report owner (report view)', async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: submitterAccountID});
+            const [sections] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                data: searchResults.data,
+                currentAccountID: submitterAccountID,
+                currentUserEmail: submitterEmail,
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                allReportMetadata: {},
+                conciergeReportID: undefined,
+                convertToDisplayString,
+            });
+            const reportSection = (sections as TransactionReportGroupListItemType[]).find((item) => item.reportID === reportID);
+            expect(reportSection?.action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
+        });
+
+        test('Should still show `Submit` as primary action when the current user IS the report owner', async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: adminAccountID});
+            // report1 has ownerAccountID: adminAccountID, so adminAccountID is the owner
+            const [sections] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: searchResults.data,
+                currentAccountID: adminAccountID,
+                currentUserEmail: adminEmail,
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                allReportMetadata: {},
+                conciergeReportID: undefined,
+                convertToDisplayString,
+            });
+            const transaction = (sections as TransactionListItemType[]).find((item) => item.transactionID === transactionID);
+            expect(transaction?.action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
+        });
     });
 
     describe('Test getListItem', () => {
@@ -4670,11 +4726,11 @@ describe('SearchUIUtils', () => {
             expect(result.some((item) => item.tag === CONST.SEARCH.TAG_EMPTY_VALUE)).toBe(true);
         });
 
-        it('should handle "(untagged)" value from backend', () => {
+        it('should handle backend untagged value', () => {
             const dataWithUntagged: OnyxTypes.SearchResults['data'] = {
                 personalDetailsList: {},
                 [`${CONST.SEARCH.GROUP_PREFIX}untagged` as const]: {
-                    tag: '(untagged)',
+                    tag: CONST.SEARCH.TAG_UNTAGGED_VALUE,
                     count: 3,
                     currency: 'USD',
                     total: 100,
@@ -4697,7 +4753,42 @@ describe('SearchUIUtils', () => {
             }) as [TransactionTagGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(1);
-            expect(result.at(0)?.tag).toBe('(untagged)');
+            expect(result.at(0)?.tag).toBe(CONST.SEARCH.TAG_UNTAGGED_VALUE);
+        });
+
+        it('should build missing tag query for empty tag group drill-down', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense has:receipt groupBy:tag');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const dataWithEmptyTag: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}empty` as const]: {
+                    tag: '',
+                    count: 2,
+                    currency: 'USD',
+                    total: 50,
+                },
+            };
+
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: dataWithEmptyTag,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                groupBy: CONST.SEARCH.GROUP_BY.TAG,
+                allReportMetadata: {},
+                conciergeReportID: undefined,
+                queryJSON: queryJSON as SearchQueryJSON,
+                convertToDisplayString,
+            }) as [TransactionTagGroupListItemType[], number, boolean];
+
+            expect(result.at(0)?.transactionsQueryJSON?.inputQuery).toBe('type:expense sortBy:groupTag sortOrder:asc has:receipt -has:tag');
         });
 
         it('should return isTransactionTagGroupListItemType true for tag group items', () => {
@@ -6474,6 +6565,148 @@ describe('SearchUIUtils', () => {
             expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.EXPORT);
         });
 
+        it('should hide submit, approve, pay, export, and top spenders for track intent users without workflows enabled', () => {
+            const mockPolicies = {
+                policy1: {
+                    id: 'policy1',
+                    name: 'Test Policy',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    isPolicyExpenseChatEnabled: true,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    approver: adminEmail,
+                    exporter: adminEmail,
+                    areWorkflowsEnabled: false,
+                    achAccount: {
+                        bankAccountID: 1,
+                        reimburser: adminEmail,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        accountNumber: '1234567890',
+                        routingNumber: '1234567890',
+                        addressName: 'Test Address',
+                        bankName: 'Test Bank',
+                    },
+                    areExpensifyCardsEnabled: true,
+                    areCompanyCardsEnabled: true,
+                    employeeList: {
+                        [adminEmail]: {
+                            email: adminEmail,
+                            role: CONST.POLICY.ROLE.ADMIN,
+                            submitsTo: approverEmail,
+                        },
+                        [approverEmail]: {
+                            email: approverEmail,
+                            role: CONST.POLICY.ROLE.USER,
+                            submitsTo: adminEmail,
+                        },
+                    },
+                },
+            };
+
+            const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {
+                policy1: [
+                    {
+                        id: 'card1',
+                        feed: 'Expensify Card' as const,
+                        fundID: 'fund1',
+                        name: 'Test Card Feed',
+                    },
+                ],
+            };
+
+            const sections = SearchUIUtils.createTypeMenuSections({
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: mockCardFeedsByPolicy,
+                defaultCardFeed: undefined,
+                policies: mockPolicies,
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                draftTransactionIDs: [],
+                isTrackIntentUser: true,
+            });
+
+            const allMenuItemKeys = sections.flatMap((section) => section.menuItems.map((item) => item.key));
+            expect(allMenuItemKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.SUBMIT);
+            expect(allMenuItemKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.APPROVE);
+            expect(allMenuItemKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.PAY);
+            expect(allMenuItemKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.EXPORT);
+            expect(allMenuItemKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS);
+        });
+
+        it('should show submit, approve, pay, and export for track intent users when workflows are enabled', () => {
+            const mockPolicies = {
+                policy1: {
+                    id: 'policy1',
+                    name: 'Test Policy',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    isPolicyExpenseChatEnabled: true,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    approver: adminEmail,
+                    exporter: adminEmail,
+                    areWorkflowsEnabled: true,
+                    achAccount: {
+                        bankAccountID: 1,
+                        reimburser: adminEmail,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        accountNumber: '1234567890',
+                        routingNumber: '1234567890',
+                        addressName: 'Test Address',
+                        bankName: 'Test Bank',
+                    },
+                    areExpensifyCardsEnabled: true,
+                    areCompanyCardsEnabled: true,
+                    employeeList: {
+                        [adminEmail]: {
+                            email: adminEmail,
+                            role: CONST.POLICY.ROLE.ADMIN,
+                            submitsTo: approverEmail,
+                        },
+                        [approverEmail]: {
+                            email: approverEmail,
+                            role: CONST.POLICY.ROLE.USER,
+                            submitsTo: adminEmail,
+                        },
+                    },
+                },
+            };
+
+            const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {
+                policy1: [
+                    {
+                        id: 'card1',
+                        feed: 'Expensify Card' as const,
+                        fundID: 'fund1',
+                        name: 'Test Card Feed',
+                    },
+                ],
+            };
+
+            const sections = SearchUIUtils.createTypeMenuSections({
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: mockCardFeedsByPolicy,
+                defaultCardFeed: undefined,
+                policies: mockPolicies,
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                draftTransactionIDs: [],
+                isTrackIntentUser: true,
+            });
+
+            const allMenuItemKeys = sections.flatMap((section) => section.menuItems.map((item) => item.key));
+            expect(allMenuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.SUBMIT);
+            expect(allMenuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.APPROVE);
+            expect(allMenuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.EXPORT);
+        });
+
         it('should show monthly accrual and reconciliation sections with expected items', () => {
             const mockPolicies = {
                 policy1: {
@@ -7036,7 +7269,7 @@ describe('SearchUIUtils', () => {
             expect(sectionKeys).toContain(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
         });
 
-        it('should not show todo items or export for track-intent users', () => {
+        it('should show submit/approve/pay/export when policy has approvals and payments enabled', () => {
             const mockPolicies = {
                 policy1: {
                     id: 'policy1',
@@ -7049,6 +7282,8 @@ describe('SearchUIUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     approver: adminEmail,
                     exporter: adminEmail,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    reimburser: adminEmail,
                     achAccount: {
                         bankAccountID: 1,
                         reimburser: adminEmail,
@@ -7096,16 +7331,16 @@ describe('SearchUIUtils', () => {
                 isOffline: false,
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
-                isTrackIntentUser: true,
+                isTrackIntentUser: false,
             });
 
             const allMenuItems = sections.flatMap((section) => section.menuItems);
             const allKeys = allMenuItems.map((item) => item.key);
 
-            expect(allKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.SUBMIT);
-            expect(allKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.APPROVE);
-            expect(allKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.PAY);
-            expect(allKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.EXPORT);
+            expect(allKeys).toContain(CONST.SEARCH.SEARCH_KEYS.SUBMIT);
+            expect(allKeys).toContain(CONST.SEARCH.SEARCH_KEYS.APPROVE);
+            expect(allKeys).toContain(CONST.SEARCH.SEARCH_KEYS.PAY);
+            expect(allKeys).toContain(CONST.SEARCH.SEARCH_KEYS.EXPORT);
         });
 
         it('should generate correct routes', () => {

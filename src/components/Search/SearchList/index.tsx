@@ -343,6 +343,19 @@ function SearchList({
         horizontalScrollViewRef.current?.scrollTo({x: savedHorizontalScrollOffset, animated: false});
     }, [data, shouldScrollHorizontally]);
 
+    const handleLongPressRowInMobileSelectionMode = (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => {
+        const currentRoute = navigationRef.current?.getCurrentRoute();
+        if (currentRoute && route.key !== currentRoute.key) {
+            return;
+        }
+
+        if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return;
+        }
+
+        onCheckboxPress(item, itemTransactions);
+    };
+
     const handleLongPressRow = useCallback(
         (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => {
             const currentRoute = navigationRef.current?.getCurrentRoute();
@@ -354,15 +367,11 @@ function SearchList({
                 return;
             }
 
-            if (isMobileSelectionModeEnabled) {
-                onCheckboxPress(item, itemTransactions);
-                return;
-            }
             setLongPressedItem(item);
             setLongPressedItemTransactions(itemTransactions);
             setIsModalVisible(true);
         },
-        [route.key, shouldPreventLongPressRow, isSmallScreenWidth, isMobileSelectionModeEnabled, onCheckboxPress],
+        [route.key, shouldPreventLongPressRow, isSmallScreenWidth],
     );
 
     const turnOnSelectionMode = useCallback(() => {
@@ -439,7 +448,7 @@ function SearchList({
                         showTooltip
                         isFocused={isItemFocused}
                         onSelectRow={onSelectRow}
-                        onLongPressRow={handleLongPressRow}
+                        onLongPressRow={isMobileSelectionModeEnabled ? handleLongPressRowInMobileSelectionMode : handleLongPressRow}
                         onSelectionButtonPress={onCheckboxPress}
                         canSelectMultiple={canSelectMultiple}
                         item={itemWithSelection}
@@ -474,6 +483,8 @@ function SearchList({
             ListItem,
             onSelectRow,
             handleLongPressRow,
+            handleLongPressRowInMobileSelectionMode,
+            isMobileSelectionModeEnabled,
             onCheckboxPress,
             canSelectMultiple,
             columns,
