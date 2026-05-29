@@ -51,9 +51,16 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
 
     const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);
     const [isMenuVisible, setMenuVisibility] = useState(false);
-    const [text, setText] = useState(() => {
+    const getInitialText = () => {
         return draftComment ?? '';
-    });
+    };
+    const textRef = useRef<string>(getInitialText());
+    const [text, setTextState] = useState(getInitialText);
+
+    const setText = (v: string) => {
+        setTextState(v);
+        textRef.current = v;
+    };
 
     const containerRef = useRef<View>(null);
     const suggestionsRef = useRef<SuggestionsRef>(null);
@@ -72,6 +79,15 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         reportID,
         isEditing: !!editingReportAction,
     });
+
+    // Prime the debounce so flush() returns a valid result for restored drafts.
+    // Initialize to true (skip) when there's no draft, false (run) when there is.
+    const [hasInitialValidationRun, setHasInitialValidationRun] = useState(!draftComment);
+    if (!hasInitialValidationRun && draftComment) {
+        setHasInitialValidationRun(true);
+        debouncedCommentMaxLengthValidation(draftComment);
+        debouncedCommentMaxLengthValidation.flush();
+    }
 
     const originalReportID = useOriginalReportID(editingReportID ?? undefined, editingReportAction);
 
@@ -108,6 +124,7 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
     };
 
     const composerState = {
+        reportID,
         isFocused,
         isMenuVisible,
         isFullComposerAvailable,
@@ -161,6 +178,7 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         actionButtonRef,
         isNextModalWillOpenRef,
         attachmentFileRef,
+        textRef,
     };
 
     return (

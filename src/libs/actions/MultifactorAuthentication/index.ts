@@ -294,6 +294,31 @@ async function changePINForCard({cardID, pin, signedChallenge, authenticationMet
     }
 }
 
+async function revealCardDetailsWithSCA({cardID, signedChallenge, authenticationMethod}: MultifactorAuthenticationScenarioParameters['REVEAL-CARD-DETAILS']) {
+    try {
+        const response = await makeRequestWithSideEffects(
+            SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_EXPENSIFY_CARD_DETAILS_WITH_SCA,
+            {cardID, signedChallenge: JSON.stringify(signedChallenge), authenticationMethod},
+            {},
+        );
+
+        const {jsonCode, message, pan, expiration, cvv} = response ?? {};
+        const parsed = parseHttpResponse(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVEAL_CARD_DETAILS_WITH_SCA, message);
+
+        return {
+            ...parsed,
+            body: {
+                pan: typeof pan === 'string' ? pan : '',
+                expiration: typeof expiration === 'string' ? expiration : '',
+                cvv: typeof cvv === 'string' ? cvv : '',
+            },
+        };
+    } catch (error) {
+        Log.hmmm('[MultifactorAuthentication] Failed to reveal card details for card', {error});
+        return parseHttpResponse(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVEAL_CARD_DETAILS_WITH_SCA, undefined);
+    }
+}
+
 /** Check whether a given transaction is still pending review and update the transactionsPending3DSReview key in Onyx */
 async function isTransactionStillPending3DSReview(transactionID: string) {
     const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_TRANSACTIONS_PENDING_3DS_REVIEW, null, {});
@@ -401,6 +426,7 @@ export {
     setPersonalDetailsAndShipExpensifyCardsWithPIN,
     revealPINForCard,
     changePINForCard,
+    revealCardDetailsWithSCA,
     isTransactionStillPending3DSReview,
     denyTransaction,
     authorizeTransaction,
