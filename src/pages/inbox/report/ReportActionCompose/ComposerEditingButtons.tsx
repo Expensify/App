@@ -2,12 +2,16 @@ import React from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import {useComposerEditActions, useComposerState} from './ComposerContext';
+import {useComposerEditActions} from './ComposerContext';
 import ComposerExpandCollapseButton from './ComposerExpandCollapseButton';
 import MessageEditCancelButton from './MessageEditCancelButton';
 
-function ComposerEditingButtons() {
-    const {reportID} = useComposerState();
+type ComposerEditingButtonsProps = {
+    /** The report ID */
+    reportID: string;
+};
+
+function ComposerEditingButtons({reportID}: ComposerEditingButtonsProps) {
     const styles = useThemeStyles();
 
     const {deleteDraft} = useComposerEditActions();

@@ -5,7 +5,6 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ComposerLocalTime from '@pages/inbox/report/ReportActionCompose/ComposerLocalTime';
-import ComposerProvider from '@pages/inbox/report/ReportActionCompose/ComposerProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Report} from '@src/types/onyx';
@@ -38,12 +37,8 @@ function buildReport(participantAccountIDs: number[]): Report {
     } as Report;
 }
 
-function renderWithProviders(component: React.ReactElement, reportID: string) {
-    return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <ComposerProvider reportID={reportID}>{component}</ComposerProvider>
-        </ComposeProviders>,
-    );
+function renderWithProviders(component: React.ReactElement) {
+    return render(<ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>{component}</ComposeProviders>);
 }
 
 describe('ComposerLocalTime', () => {
@@ -72,7 +67,7 @@ describe('ComposerLocalTime', () => {
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
         await waitForBatchedUpdates();
 
-        renderWithProviders(<ComposerLocalTime />, REPORT_ID);
+        renderWithProviders(<ComposerLocalTime reportID={REPORT_ID} />);
 
         await waitForBatchedUpdates();
 
@@ -122,7 +117,7 @@ describe('ComposerLocalTime', () => {
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
         await waitForBatchedUpdates();
 
-        const {toJSON} = renderWithProviders(<ComposerLocalTime />, REPORT_ID);
+        const {toJSON} = renderWithProviders(<ComposerLocalTime reportID={REPORT_ID} />);
 
         await waitForBatchedUpdates();
 

@@ -22,7 +22,7 @@ import CONST from '@src/CONST';
  * chatItemComposeSecondaryRow, and icons [Plus, Emoji, Send].
  * If the real composer changes its layout or icon set, update this placeholder to match.
  */
-function ComposerPlaceholder() {
+function ReportActionComposePlaceholder() {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -86,4 +86,4 @@ function ComposerPlaceholder() {
     );
 }
 
-export default ComposerPlaceholder;
+export default ReportActionComposePlaceholder;

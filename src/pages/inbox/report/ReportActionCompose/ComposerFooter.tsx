@@ -1,11 +1,14 @@
 import React from 'react';
-import type {PropsWithChildren} from 'react';
 import {View} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-function ComposerFooter({children}: PropsWithChildren) {
+type ComposerFooterProps = {
+    children: React.ReactNode;
+};
+
+function ComposerFooter({children}: ComposerFooterProps) {
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();

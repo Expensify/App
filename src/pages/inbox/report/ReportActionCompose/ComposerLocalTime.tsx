@@ -9,10 +9,12 @@ import {isAgentEmail} from '@libs/SessionUtils';
 import ParticipantLocalTime from '@pages/inbox/report/ParticipantLocalTime';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {useComposerState} from './ComposerContext';
 
-function ComposerLocalTime() {
-    const {reportID} = useComposerState();
+type ComposerLocalTimeProps = {
+    reportID: string;
+};
+
+function ComposerLocalTime({reportID}: ComposerLocalTimeProps) {
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);

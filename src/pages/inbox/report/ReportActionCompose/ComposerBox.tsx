@@ -1,13 +1,16 @@
 import React from 'react';
-import type {PropsWithChildren} from 'react';
 import {View} from 'react-native';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {useComposerMeta, useComposerSendState, useComposerState} from './ComposerContext';
 
-function ComposerBox({children}: PropsWithChildren) {
-    const {reportID} = useComposerState();
+type ComposerBoxProps = {
+    reportID: string;
+    children: React.ReactNode;
+};
+
+function ComposerBox({reportID, children}: ComposerBoxProps) {
     const styles = useThemeStyles();
     const {isFocused} = useComposerState();
     const {isExceedingMaxLength, isBlockedFromConcierge} = useComposerSendState();
