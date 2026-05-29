@@ -15,6 +15,8 @@ import {calculateAmount as calculateIOUAmount, updateIOUOwnerAndTotal} from '@li
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import {showExpenseAddedGrowl} from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import * as NumberUtils from '@libs/NumberUtils';
@@ -2164,6 +2166,14 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             transactionID: parameters.transactionID,
             transactionThreadReportID: parameters.transactionThreadReportID,
             shouldAddPendingNewTransactionIDs: navigationActiveReportID === parameters.chatReportID,
+        });
+    } else if (isFromGlobalCreate && isSearchTopmostFullScreenRoute()) {
+        // Dismiss-first paths (orchestrator owns navigation); still surface the "Expense added"
+        // growl with "View" when the user lands on Spend.
+        showExpenseAddedGrowl({
+            iouReportID: parameters.iouReportID,
+            transactionID: parameters.transactionID,
+            transactionThreadReportID: parameters.transactionThreadReportID,
         });
     }
 

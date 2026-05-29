@@ -1,4 +1,3 @@
-/* eslint-disable no-console -- temporary debug instrumentation for [growl-view] POC */
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useState} from 'react';
 import {setIsReady} from '@libs/Growl';
@@ -38,8 +37,6 @@ function GrowlNotification({ref}: GrowlNotificationProps) {
     const handleDismissed = useCallback(() => {
         setContent(null);
     }, []);
-
-    console.log('[growl-view] OUTER render', {hasContent: !!content});
 
     if (!content) {
         return null;

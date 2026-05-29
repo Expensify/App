@@ -22,6 +22,8 @@ import isFileUploadable from '@libs/isFileUploadable';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import {showExpenseAddedGrowl} from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -1895,6 +1897,15 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                 isFromGlobalCreate,
                 shouldAddPendingNewTransactionIDs: navigationReportID === chatReport.reportID,
             });
+        } else if (isFromGlobalCreate && isSearchTopmostFullScreenRoute()) {
+            // Navigation is owned by SubmitExpenseOrchestrator (dismiss-first paths). The
+            // "Expense added" growl with the "View" deep link still needs to fire when the user
+            // ends up on Spend after the dismissal.
+            showExpenseAddedGrowl({
+                iouReportID: iouReport?.reportID,
+                transactionID: transaction.transactionID,
+                transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID,
+            });
         }
     }
 
@@ -2711,6 +2722,12 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID,
                 isFromGlobalCreate,
                 shouldAddPendingNewTransactionIDs: action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE,
+            });
+        } else if (isFromGlobalCreate && isSearchTopmostFullScreenRoute()) {
+            showExpenseAddedGrowl({
+                iouReportID: iouReport?.reportID,
+                transactionID: transaction?.transactionID,
+                transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID,
             });
         }
     }

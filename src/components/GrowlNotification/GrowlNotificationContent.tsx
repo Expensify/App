@@ -1,4 +1,3 @@
-/* eslint-disable no-console -- temporary debug instrumentation for [growl-view] POC */
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {Directions, Gesture, GestureDetector} from 'react-native-gesture-handler';
@@ -158,8 +157,6 @@ function GrowlNotificationContent({bodyText, type, duration, action, onDismissed
         [useBottomPosition, triggerDismiss],
     );
 
-    console.log('[growl-view] INNER render', {bodyText, type, duration, hasAction: !!action, useBottomPosition, shouldUseNarrowLayout});
-
     return (
         <View style={[styles.growlNotificationWrapper]}>
             <GrowlNotificationContainer
@@ -189,13 +186,10 @@ function GrowlNotificationContent({bodyText, type, duration, action, onDismissed
                                     sentryLabel="GrowlNotification-Action"
                                     onPress={() => {
                                         if (isActionPressedRef.current) {
-                                            console.log('[growl-view] action button pressed again – ignoring (already dismissing)');
                                             return;
                                         }
                                         isActionPressedRef.current = true;
-                                        console.log('[growl-view] action button pressed', {actionLabel: action.label});
                                         triggerDismiss();
-                                        console.log('[growl-view] calling action.onPress() (navigates)');
                                         action.onPress();
                                     }}
                                     style={[styles.mlAuto, styles.p2]}
