@@ -102,7 +102,7 @@ function IOURequestStepDescription({
         [translate],
     );
 
-    const {navigateBack, armNavigateBack} = useNavigateBackOnSave(isSaved, backTo);
+    const {navigateBack, armNavigateBack} = useNavigateBackOnSave(isSaved, backTo, {shouldSkipFocusRestore: !isEditing});
 
     const updateDescriptionRef = (value: string) => {
         setCurrentDescription(value);

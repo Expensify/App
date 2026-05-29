@@ -74,7 +74,7 @@ function IOURequestStepMerchant({
 
     const isMerchantRequired = isPolicyExpenseChat(report) || isExpenseRequest(report) || transaction?.participants?.some((participant) => !!participant.isPolicyExpenseChat);
 
-    const {navigateBack, armNavigateBack} = useNavigateBackOnSave(isSaved, backTo);
+    const {navigateBack, armNavigateBack} = useNavigateBackOnSave(isSaved, backTo, {shouldSkipFocusRestore: !isEditing});
 
     const validate = useCallback(
         (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {

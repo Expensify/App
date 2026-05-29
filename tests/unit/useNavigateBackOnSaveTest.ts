@@ -19,8 +19,8 @@ const mockSkip = skipNextFocusRestore as jest.Mock;
 
 const BACK_TO = 'settings/profile' as Route;
 
-function renderSave(initialIsSaved = false, backTo: Route | undefined = BACK_TO) {
-    return renderHook(({isSaved}: {isSaved: boolean}) => useNavigateBackOnSave(isSaved, backTo), {initialProps: {isSaved: initialIsSaved}});
+function renderSave(initialIsSaved = false, backTo: Route | undefined = BACK_TO, shouldSkipFocusRestore = true) {
+    return renderHook(({isSaved}: {isSaved: boolean}) => useNavigateBackOnSave(isSaved, backTo, {shouldSkipFocusRestore}), {initialProps: {isSaved: initialIsSaved}});
 }
 
 beforeEach(() => {
@@ -50,6 +50,16 @@ describe('useNavigateBackOnSave', () => {
         rerender({isSaved: true});
 
         expect(order).toEqual(['skip', 'goBack']);
+    });
+
+    it('does NOT skip focus restore when shouldSkipFocusRestore is false (editing an existing expense), but still navigates back', () => {
+        const {result, rerender} = renderSave(false, BACK_TO, false);
+        act(() => result.current.armNavigateBack());
+        rerender({isSaved: true});
+
+        expect(mockSkip).not.toHaveBeenCalled();
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+        expect(mockGoBack).toHaveBeenCalledWith(BACK_TO);
     });
 
     it('does nothing when isSaved flips true without arming (an unrelated save elsewhere must not navigate)', () => {

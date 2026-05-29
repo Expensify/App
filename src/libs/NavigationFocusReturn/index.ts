@@ -93,7 +93,10 @@ function notifyPushParamsBackward(routeKey: string, targetParams: unknown): void
     scheduleRestore(compoundParamsKey(routeKey, targetParams), {waitForUpcomingTransition: false});
 }
 
-/** Skips the focus restore for the next back navigation. Call it before a form-submit goBack so the re-focused row doesn't eat the next Enter (which should hit the page's submit). Back and Esc don't call it, so they still restore focus. */
+/*
+ * Skips the focus restore for the next back navigation. Call it before a form-submit goBack so the re-focused row
+ * doesn't eat the next Enter (which should hit the page's submit). Back and Esc don't call it, so they still restore focus.
+ */
 function skipNextFocusRestore(): void {
     skipNextRestore = true;
 }

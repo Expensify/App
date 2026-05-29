@@ -4,11 +4,15 @@ import {skipNextFocusRestore} from '@libs/NavigationFocusReturn';
 import type {Route} from '@src/ROUTES';
 
 /**
- * Save-and-close flow for IOU step forms. `armNavigateBack()` from a submit handler navigates back once `isSaved` flips,
- * skipping focus-restore so the re-focused row doesn't swallow the next Enter. The returned `navigateBack` (for the Back
- * button) keeps restore intact.
+ * Save-and-close flow for IOU step forms: `armNavigateBack()` navigates back once `isSaved` flips. Pass
+ * `shouldSkipFocusRestore` true only when the destination has a submit Enter a re-focused row would hijack (create flow);
+ * editing an existing expense passes false so focus returns. `navigateBack` (the Back button) always restores.
  */
-function useNavigateBackOnSave(isSaved: boolean, backTo: Route | undefined): {navigateBack: () => void; armNavigateBack: () => void} {
+function useNavigateBackOnSave(
+    isSaved: boolean,
+    backTo: Route | undefined,
+    {shouldSkipFocusRestore}: {shouldSkipFocusRestore: boolean},
+): {navigateBack: () => void; armNavigateBack: () => void} {
     const shouldNavigateAfterSaveRef = useRef(false);
 
     const navigateBack = useCallback(() => {
@@ -24,9 +28,11 @@ function useNavigateBackOnSave(isSaved: boolean, backTo: Route | undefined): {na
             return;
         }
         shouldNavigateAfterSaveRef.current = false;
-        skipNextFocusRestore();
+        if (shouldSkipFocusRestore) {
+            skipNextFocusRestore();
+        }
         navigateBack();
-    }, [isSaved, navigateBack]);
+    }, [isSaved, navigateBack, shouldSkipFocusRestore]);
 
     return {navigateBack, armNavigateBack};
 }
