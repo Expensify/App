@@ -741,6 +741,7 @@
         "onloaderror",
         "onopentag",
         "onplayerror",
+        "ontext",
         "onxy",
         "openxmlformats",
         "ordinality",
