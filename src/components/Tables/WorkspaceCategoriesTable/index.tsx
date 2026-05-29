@@ -22,6 +22,7 @@ type WorkspaceCategoryTableRowData = TableData & {
     disabled: boolean;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
+    isLocked: boolean;
     action: () => void;
     dismissError: () => void;
     onToggleEnabled: (enabled: boolean) => void;
@@ -30,11 +31,13 @@ type WorkspaceCategoryTableRowData = TableData & {
 type WorkspaceCategoriesTableProps = {
     ref?: React.Ref<TableHandle<WorkspaceCategoryTableRowData, WorkspaceCategoryTableColumnKey, string>> | undefined;
     categories: WorkspaceCategoryTableRowData[];
+    shouldShowGLCodeColumn: boolean;
     shouldShowApproverColumn: boolean;
-    onRowSelectionChange: (selectedRows: WorkspaceCategoryTableRowData[]) => void;
+    selectedKeys: string[];
+    onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
-export default function WorkspaceCategoriesTable({ref, categories, shouldShowApproverColumn, onRowSelectionChange}: WorkspaceCategoriesTableProps) {
+export default function WorkspaceCategoriesTable({ref, categories, selectedKeys, shouldShowGLCodeColumn, shouldShowApproverColumn, onRowSelectionChange}: WorkspaceCategoriesTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
@@ -44,11 +47,15 @@ export default function WorkspaceCategoriesTable({ref, categories, shouldShowApp
             label: translate('common.name'),
             sortable: true,
         },
-        {
-            key: 'glCode',
-            label: translate('workspace.categories.glCode'),
-            sortable: true,
-        },
+        ...(shouldShowGLCodeColumn
+            ? [
+                  {
+                      key: 'glCode' as const,
+                      label: translate('workspace.categories.glCode'),
+                      sortable: true,
+                  },
+              ]
+            : []),
         ...(shouldShowApproverColumn
             ? [
                   {
@@ -105,8 +112,9 @@ export default function WorkspaceCategoriesTable({ref, categories, shouldShowApp
         <WorkspaceCategoriesTableRow
             item={item}
             rowIndex={index}
-            shouldUseNarrowTableLayout={shouldUseNarrowLayout || isMediumScreenWidth}
+            shouldShowGLCodeColumn={shouldShowGLCodeColumn}
             shouldShowApproverColumn={shouldShowApproverColumn}
+            shouldUseNarrowTableLayout={shouldUseNarrowLayout || isMediumScreenWidth}
         />
     );
 
@@ -120,6 +128,7 @@ export default function WorkspaceCategoriesTable({ref, categories, shouldShowApp
             compareItems={compareItems}
             isItemInSearch={isItemInSearch}
             renderItem={renderCategoryItem}
+            selectedKeys={selectedKeys}
             onRowSelectionChange={onRowSelectionChange}
         >
             {categories.length > CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.categories.findCategory')} />}

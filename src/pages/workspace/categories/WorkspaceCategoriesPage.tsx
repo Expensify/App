@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
@@ -12,8 +12,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import type {TableHandle} from '@components/Table';
-import type {WorkspaceCategoryTableColumnKey, WorkspaceCategoryTableRowData} from '@components/Tables/WorkspaceCategoriesTable';
+import type {WorkspaceCategoryTableRowData} from '@components/Tables/WorkspaceCategoriesTable';
 import WorkspaceCategoriesTable from '@components/Tables/WorkspaceCategoriesTable';
 import Text from '@components/Text';
 import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
@@ -61,7 +60,6 @@ type WorkspaceCategoriesPageProps =
     | PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT>;
 
 function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
-    const tableRef = useRef<TableHandle<WorkspaceCategoryTableRowData, WorkspaceCategoryTableColumnKey, string>>(null);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -123,9 +121,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const clearTableSelection = useCallback(() => {
-        tableRef.current?.clearSelection();
-    }, []);
+    const clearTableSelection = () => {
+        setSelectedCategoryKeys([]);
+    };
 
     useCleanupSelectedOptions(clearTableSelection);
 
@@ -246,6 +244,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         return approverEmails;
     }, [categories, policy?.rules?.approvalRules]);
 
+    const shouldShowGLCodeColumn = Object.values(policyCategories ?? {}).some((category) => !!category['GL Code']);
     const shouldShowApproverColumn = isControlPolicyWithWideLayout && !!policy?.areRulesEnabled && Object.keys(categoryApproverEmails).length > 0;
 
     const categoryRows = useMemo<WorkspaceCategoryTableRowData[]>(() => {
@@ -272,6 +271,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 enabled: value.enabled,
                 errors: value.errors ?? undefined,
                 pendingAction: value.pendingAction,
+                isLocked: isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value]),
                 action: () => navigateToCategory(value),
                 onToggleEnabled: (enabled: boolean) => handleCategoryToggle(enabled, value),
                 dismissError: () => clearCategoryErrors(policyId, value.name, policyCategories),
@@ -279,13 +279,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
             return acc;
         }, []);
-    }, [categories, isOffline, shouldShowApproverColumn, categoryApproverEmails, navigateToCategory, handleCategoryToggle, policyId, policyCategories]);
+    }, [categories, isOffline, shouldShowApproverColumn, categoryApproverEmails, policy, policyCategories, navigateToCategory, handleCategoryToggle, policyId]);
 
     useAutoTurnSelectionModeOffWhenHasNoActiveOption(categoryRows);
-
-    const handleCategorySelectionChange = (selectedCategories: WorkspaceCategoryTableRowData[]) => {
-        setSelectedCategoryKeys(selectedCategories.map((category) => category.keyForList));
-    };
 
     const navigateToCategoriesSettings = useCallback(() => {
         Navigation.navigate(createDynamicRoute(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_CATEGORIES_SETTINGS.path : DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_SETTINGS.path));
@@ -620,10 +616,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         Navigation.goBack();
                     }}
                 >
-                    {/* eslint-disable-next-line react-hooks/refs -- Ref is used in a callback when an action is taken */}
                     {!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
                 </HeaderWithBackButton>
-                {/* eslint-disable-next-line react-hooks/refs -- Ref is used in a callback when an action is taken */}
                 {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 {(!hasVisibleCategories || isLoading) && headerContent}
                 {isLoading && (
@@ -634,12 +628,28 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     />
                 )}
                 {hasVisibleCategories && !isLoading && (
-                    <WorkspaceCategoriesTable
-                        ref={tableRef}
-                        categories={categoryRows}
-                        shouldShowApproverColumn={shouldShowApproverColumn}
-                        onRowSelectionChange={handleCategorySelectionChange}
-                    />
+                    <>
+                        <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                            {!hasSyncError && isConnectionVerified && currentConnectionName ? (
+                                <ImportedFromAccountingSoftware
+                                    policyID={policyId}
+                                    currentConnectionName={currentConnectionName}
+                                    connectedIntegration={connectedIntegration}
+                                    translatedText={translate('workspace.categories.importedFromAccountingSoftware')}
+                                />
+                            ) : (
+                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
+                            )}
+                        </View>
+
+                        <WorkspaceCategoriesTable
+                            categories={categoryRows}
+                            selectedKeys={selectedCategoryKeys}
+                            shouldShowGLCodeColumn={shouldShowGLCodeColumn}
+                            shouldShowApproverColumn={shouldShowApproverColumn}
+                            onRowSelectionChange={(selectedRowKeys) => setSelectedCategoryKeys(selectedRowKeys)}
+                        />
+                    </>
                 )}
                 {!hasVisibleCategories && !isLoading && (
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>

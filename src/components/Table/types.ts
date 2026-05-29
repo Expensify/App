@@ -141,6 +141,9 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
         /** Optional initial search string to apply on mount. */
         initialSearchString?: string;
 
+        /** The list of selected keys for the table, if selection is enabled */
+        selectedKeys?: string[];
+
         /**
          * Comparison function for sorting items.
          * Receives two items and the current sorting configuration, returns a number
@@ -164,7 +167,7 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
         ref?: React.Ref<TableHandle<DataType, ColumnKey, FilterKey>>;
 
         /** Callback when an option is selected */
-        onRowSelectionChange?: (selectedRows: Array<TableRow<DataType>>) => void;
+        onRowSelectionChange?: (selectedRowKeys: string[]) => void;
     }>;
 
 export type {

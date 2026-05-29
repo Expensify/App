@@ -110,6 +110,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.tableHeaderContentHeight, styles.gap3]}>
                     {!!isSelectionCheckboxVisible && (
                         <Checkbox
+                            containerStyle={styles.m0}
                             isChecked={isEverySelectableRowSelected}
                             isIndeterminate={isSelectionIndeterminate && !isEverySelectableRowSelected}
                             onPress={tableMethods.handleSelectAll}

@@ -24,11 +24,14 @@ type WorkspaceCategoriesTableRowProps = {
     /** Whether to use narrow table row layout */
     shouldUseNarrowTableLayout: boolean;
 
+    /** Whether the GL Code column is visible on web screens or not */
+    shouldShowGLCodeColumn: boolean;
+
     /** Whether the approver column is visible on web screens or not */
     shouldShowApproverColumn: boolean;
 };
 
-export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTableLayout, shouldShowApproverColumn, item}: WorkspaceCategoriesTableRowProps) {
+export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTableLayout, shouldShowGLCodeColumn, shouldShowApproverColumn, item}: WorkspaceCategoriesTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -53,7 +56,7 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
                         <Text>{item.name}</Text>
                     </View>
 
-                    {!shouldUseNarrowTableLayout && (
+                    {!shouldUseNarrowTableLayout && shouldShowGLCodeColumn && (
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                             <Text>{item.glCode}</Text>
                         </View>
@@ -79,6 +82,7 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
                         <Switch
                             isOn={item.enabled}
                             disabled={item.disabled}
+                            showLockIcon={item.isLocked}
                             accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${item.name}`}
                             onToggle={item.onToggleEnabled}
                         />

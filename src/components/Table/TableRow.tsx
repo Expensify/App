@@ -168,7 +168,7 @@ export default function TableRow({
             return;
         }
 
-        tableMethods.setIsMobileSelectionModalVisible(true);
+        tableMethods.setMobileSelectionModalRowKey(item.keyForList);
     };
 
     return (
@@ -206,6 +206,7 @@ export default function TableRow({
                             <View style={tableRowContentStyles}>
                                 {!!isSelectionCheckboxVisible && (
                                     <Checkbox
+                                        containerStyle={styles.m0}
                                         style={styles.flex1}
                                         disabled={item.disabled}
                                         isChecked={!!item.selected}

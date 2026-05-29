@@ -126,7 +126,7 @@ export default {
     optionRowHeightCompact: 52,
     tableHeaderContentHeight: 20,
     tableRowHeight: 56,
-    tableRowHeightCompact: 72,
+    tableRowHeightCompact: 60,
     tableRowPaddingVertical: 8,
     tableRowPaddingHorizontal: 12,
     tableGroupRowPaddingVertical: 4,
@@ -337,6 +337,8 @@ export default {
     eReceiptBackgroundImageMinWidth: 217,
 
     searchTypeColumnWidth: 52,
+    workspaceRoomsMembersColumnWidth: 80,
+    workspaceRoomsActionsColumnWidth: 40,
 
     gbrTooltipShiftHorizontal: -14,
     gbrTooltipShiftVertical: -16,

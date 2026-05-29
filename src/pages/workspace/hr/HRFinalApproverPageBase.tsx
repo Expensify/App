@@ -18,7 +18,7 @@ import type Policy from '@src/types/onyx/Policy';
 
 type HRFinalApproverProviderConfig = {
     testID: string;
-    beta: Beta;
+    beta?: Beta;
     isConnected: (policy: OnyxEntry<Policy>) => boolean;
     getCurrentFinalApprover: (policy: OnyxEntry<Policy>) => string | null;
     getHeaderTitle: (providerName: string) => string;
@@ -44,7 +44,7 @@ function HRFinalApproverPageBase({policyID, config}: HRFinalApproverPageBaseProp
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED}
-            shouldBeBlocked={!isBetaEnabled(config.beta) || (!!policy && !config.isConnected(policy))}
+            shouldBeBlocked={(!!config.beta && !isBetaEnabled(config.beta)) || (!!policy && !config.isConnected(policy))}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding

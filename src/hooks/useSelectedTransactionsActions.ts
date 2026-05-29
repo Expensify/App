@@ -486,7 +486,7 @@ function useSelectedTransactionsActions({
                 icon: expensifyIcons.ArrowSplit,
                 value: SPLIT,
                 onSelected: () => {
-                    initSplitExpense(firstTransaction, policy, report);
+                    initSplitExpense(firstTransaction, policy, report, currentUserAccountID);
                 },
             });
         }
