@@ -242,9 +242,11 @@ function GroupChildrenContainer({
                             }
                         }}
                     >
-                        <View style={isLargeScreenWidth ? [styles.pv2, styles.ph3, styles.pb1, styles.pt1] : styles.ph3}>
-                            <View style={[styles.borderBottom, isLargeScreenWidth && styles.borderNone]} />
-                        </View>
+                        {!isLargeScreenWidth && (
+                            <View style={styles.ph3}>
+                                <View style={styles.borderBottom} />
+                            </View>
+                        )}
                         <TransactionGroupListExpandedItem
                             showTooltip
                             canSelectMultiple={canSelectMultiple}

@@ -402,6 +402,9 @@ function GroupHeader({item, groupBy, searchType, columns, canSelectMultiple, isE
                                 }
                             }}
                         >
+                            <View style={[styles.pv2, styles.ph3, styles.pb1, styles.pt1]}>
+                                <View style={[styles.borderBottom, styles.borderNone]} />
+                            </View>
                             <View style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl8, styles.borderNone]}>
                                 <SearchTableHeader
                                     canSelectMultiple
@@ -419,6 +422,7 @@ function GroupHeader({item, groupBy, searchType, columns, canSelectMultiple, isE
                                     isActionColumnWide={isSubHeaderActionColumnWide}
                                 />
                             </View>
+                            <View style={[StyleUtils.getSelectedBorderBottomStyle(groupItem.transactions.at(0)?.isSelected), styles.ml3, styles.mr3]} />
                         </Animated.View>
                     )}
                 </Animated.View>
