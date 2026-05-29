@@ -64,25 +64,25 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
                             fallbackDisplayName={item.name ?? item.email}
                             secondaryAvatarContainerStyle={getSecondaryAvatarContainerStyle(!!hovered)}
                         />
-                        <View>
+                        <View style={[shouldUseNarrowTableLayout && styles.gap1]}>
                             <Text style={[styles.optionDisplayName, styles.pre]}>{item.name}</Text>
                             <Text style={[styles.textLabelSupporting, styles.lh16, styles.pre]}>{item.login}</Text>
                         </View>
                     </View>
 
-                    {shouldShowCustomField1Column && (
+                    {shouldUseNarrowTableLayout && shouldShowCustomField1Column && (
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                             <Text numberOfLines={1}>{item.employeeUserID}</Text>
                         </View>
                     )}
 
-                    {shouldShowCustomField2Column && (
+                    {shouldUseNarrowTableLayout && shouldShowCustomField2Column && (
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                             <Text numberOfLines={1}>{item.employeePayrollID}</Text>
                         </View>
                     )}
 
-                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                    <View style={[!shouldUseNarrowTableLayout && styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter]}>
                         <Badge
                             text={item.role}
                             badgeStyles={styles.ml0}
