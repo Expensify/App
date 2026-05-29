@@ -40,7 +40,7 @@ function LocalePicker({size = 'normal'}: LocalePickerProps) {
     const shouldDisablePicker = AccountUtils.isValidateCodeFormSubmitting(account);
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
             <Icon
                 src={icons.Globe}
                 fill={theme.icon}
@@ -48,7 +48,7 @@ function LocalePicker({size = 'normal'}: LocalePickerProps) {
                 height={variables.iconSizeSmall}
                 accessibilityLabel={translate('languagePage.language')}
             />
-            <View style={styles.ml2}>
+            <View style={[styles.ml2, styles.flex1]}>
                 <Picker
                     label={size === 'normal' ? translate('languagePage.language') : null}
                     accessibilityLabel={`${translate('common.select')} ${translate('languagePage.language')}`}
@@ -59,7 +59,7 @@ function LocalePicker({size = 'normal'}: LocalePickerProps) {
                     shouldShowOnlyTextWhenDisabled={false}
                     size={size}
                     value={preferredLocale}
-                    containerStyles={size === 'small' ? styles.pickerContainerSmall : {}}
+                    containerStyles={size === 'small' ? [styles.pickerContainerSmall, styles.w100] : {}}
                     backgroundColor={theme.signInPage}
                 />
             </View>
