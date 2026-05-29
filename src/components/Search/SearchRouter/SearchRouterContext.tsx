@@ -41,7 +41,7 @@ type HistoryState = {
 };
 
 const defaultSearchRouterActionsContext: SearchRouterActionsContextType = {
-    openSearchRouter: (_query?: string) => {},
+    openSearchRouter: () => {},
     closeSearchRouter: () => {},
     toggleSearch: () => {},
     registerSearchPageInput: () => {},

@@ -1214,6 +1214,7 @@ const CONST = {
                 [PLATFORM_OS_MACOS]: {input: 'u', modifierFlags: keyModifierCommand},
                 [PLATFORM_IOS]: {input: 'u', modifierFlags: keyModifierCommand},
             },
+            type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
         },
         GO_TO_WORKSPACE: {
             descriptionKey: 'goToWorkspace',
@@ -1224,6 +1225,7 @@ const CONST = {
                 [PLATFORM_OS_MACOS]: {input: 'b', modifierFlags: keyModifierCommand},
                 [PLATFORM_IOS]: {input: 'b', modifierFlags: keyModifierCommand},
             },
+            type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
         },
     },
     KEYBOARD_SHORTCUTS_TYPES: {
