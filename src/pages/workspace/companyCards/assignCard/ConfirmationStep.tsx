@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import Button from '@components/Button';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItem from '@components/MenuItem';
@@ -78,12 +78,16 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
             return;
         }
 
-        Navigation.dismissModal();
         if (backTo) {
-            Navigation.navigate(backTo);
+            Navigation.dismissModal();
+            Navigation.navigate(backTo, {
+                afterTransition: () => clearAssignCardStepAndData(),
+            });
+        } else {
+            Navigation.dismissModal({
+                afterTransition: () => clearAssignCardStepAndData(),
+            });
         }
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => clearAssignCardStepAndData());
     }, [assignCard?.isAssignmentFinished, backTo]);
 
     const submit = () => {

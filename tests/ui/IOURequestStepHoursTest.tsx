@@ -2,6 +2,7 @@ import type * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -19,6 +20,8 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
     goBack: jest.fn(),
     setNavigationActionToMicrotaskQueue: jest.fn((callback: () => void) => callback()),
 }));
@@ -83,10 +86,10 @@ describe('IOURequestStepHours', () => {
         jest.clearAllMocks();
         await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
 
-        setMoneyRequestAmountSpy = jest.spyOn(require('@libs/actions/IOU'), 'setMoneyRequestAmount');
-        setMoneyRequestMerchantSpy = jest.spyOn(require('@libs/actions/IOU'), 'setMoneyRequestMerchant');
-        setMoneyRequestTimeCountSpy = jest.spyOn(require('@libs/actions/IOU'), 'setMoneyRequestTimeCount');
-        setMoneyRequestTimeRateSpy = jest.spyOn(require('@libs/actions/IOU'), 'setMoneyRequestTimeRate');
+        setMoneyRequestAmountSpy = jest.spyOn(require('@libs/actions/IOU/MoneyRequest'), 'setMoneyRequestAmount');
+        setMoneyRequestMerchantSpy = jest.spyOn(require('@libs/actions/IOU/MoneyRequest'), 'setMoneyRequestMerchant');
+        setMoneyRequestTimeCountSpy = jest.spyOn(require('@libs/actions/IOU/MoneyRequest'), 'setMoneyRequestTimeCount');
+        setMoneyRequestTimeRateSpy = jest.spyOn(require('@libs/actions/IOU/MoneyRequest'), 'setMoneyRequestTimeRate');
 
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, createPolicyWithTimeTracking());
@@ -109,21 +112,23 @@ describe('IOURequestStepHours', () => {
             <OnyxListItemProvider>
                 <CurrentUserPersonalDetailsProvider>
                     <LocaleContextProvider>
-                        <IOURequestStepHours
-                            route={{
-                                key: 'IOURequestStepHours',
-                                params: {
-                                    iouType,
-                                    reportID: REPORT_ID,
-                                    transactionID: TRANSACTION_ID,
-                                    action,
-                                    reportActionID: '1',
-                                },
-                                name: routeName,
-                            }}
-                            // @ts-expect-error we don't need navigation param here
-                            navigation={undefined}
-                        />
+                        <CurrencyListContextProvider>
+                            <IOURequestStepHours
+                                route={{
+                                    key: 'IOURequestStepHours',
+                                    params: {
+                                        iouType,
+                                        reportID: REPORT_ID,
+                                        transactionID: TRANSACTION_ID,
+                                        action,
+                                        reportActionID: '1',
+                                    },
+                                    name: routeName,
+                                }}
+                                // @ts-expect-error we don't need navigation param here
+                                navigation={undefined}
+                            />
+                        </CurrencyListContextProvider>
                     </LocaleContextProvider>
                 </CurrentUserPersonalDetailsProvider>
             </OnyxListItemProvider>,

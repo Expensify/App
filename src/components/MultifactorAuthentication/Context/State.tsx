@@ -73,4 +73,3 @@ MultifactorAuthenticationStateProvider.displayName = 'MultifactorAuthenticationS
 
 export default MultifactorAuthenticationStateProvider;
 export {DEFAULT_STATE, useMultifactorAuthenticationState, useMultifactorAuthenticationActions};
-export type {MultifactorAuthenticationState, MultifactorAuthenticationStateContextType, MultifactorAuthenticationActionsContextType, Action} from './types';

@@ -1,17 +1,17 @@
 import React, {useCallback, useContext, useMemo, useRef} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
-import Search from '@components/Search';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchResultsContext} from '@components/Search/SearchContext';
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
 import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchActionsBarWide from '@components/Search/SearchPageHeader/SearchActionsBarWide';
 import SearchPageHeaderWide from '@components/Search/SearchPageHeader/SearchPageHeaderWide';
+import SearchWithNavigationDeferredMount from '@components/Search/SearchWithNavigationDeferredMount';
 import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
 import useNetwork from '@hooks/useNetwork';
@@ -40,6 +40,10 @@ type SearchPageWideProps = {
     onSortPressedCallback: () => void;
     route: PlatformStackRouteProp<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
     shouldShowFooter: boolean;
+    /** Overlay rendered above Search content during expense-creation flows (SearchStaticList or null). */
+    searchOverlayContent: React.ReactNode;
+    /** Callback for Search to signal that real content is ready and the overlay can be dismissed. */
+    onSearchContentReady: () => void;
 };
 
 function SearchPageWide({
@@ -52,11 +56,13 @@ function SearchPageWide({
     onSortPressedCallback,
     route,
     shouldShowFooter,
+    searchOverlayContent,
+    onSearchContentReady,
 }: SearchPageWideProps) {
     const shouldShowLoadingSkeleton = useSearchLoadingState(queryJSON, searchResults);
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {shouldUseLiveData} = useSearchStateContext();
+    const {shouldUseLiveData} = useSearchResultsContext();
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const receiptDropTargetRef = useRef<View>(null);
 
@@ -109,33 +115,37 @@ function SearchPageWide({
                                 onSort={onSortPressedCallback}
                                 handleSearch={handleSearchAction}
                             />
-                            {shouldShowLoadingSkeleton ? (
-                                <SearchLoadingSkeleton
-                                    containerStyle={styles.mt3}
-                                    reasonAttributes={{
-                                        context: 'SearchPage',
-                                        isOffline,
-                                        isDataLoaded: shouldUseLiveData || isSearchDataLoaded(searchResults, queryJSON),
-                                        isSearchLoading: !!searchResults?.search?.isLoading,
-                                        hasEmptyData: Array.isArray(searchResults?.data) && searchResults?.data.length === 0,
-                                        hasErrors: Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline,
-                                        hasPendingResponse: searchRequestResponseStatusCode === null,
-                                        shouldUseLiveData,
-                                    }}
-                                />
-                            ) : (
-                                <Search
-                                    key={queryJSON.hash}
-                                    queryJSON={queryJSON}
-                                    searchResults={searchResults}
-                                    handleSearch={handleSearchAction}
-                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                    onSearchListScroll={scrollHandler}
-                                    onSortPressedCallback={onSortPressedCallback}
-                                    searchRequestResponseStatusCode={searchRequestResponseStatusCode}
-                                    onDestinationVisible={endSubmitNavigationSpans}
-                                />
-                            )}
+                            <View style={styles.flex1}>
+                                {shouldShowLoadingSkeleton ? (
+                                    <SearchLoadingSkeleton
+                                        containerStyle={styles.mt3}
+                                        reasonAttributes={{
+                                            context: 'SearchPage',
+                                            isOffline,
+                                            isDataLoaded: shouldUseLiveData || isSearchDataLoaded(searchResults, queryJSON),
+                                            isSearchLoading: !!searchResults?.search?.isLoading,
+                                            hasEmptyData: Array.isArray(searchResults?.data) && searchResults?.data.length === 0,
+                                            hasErrors: Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline,
+                                            hasPendingResponse: searchRequestResponseStatusCode === null,
+                                            shouldUseLiveData,
+                                        }}
+                                    />
+                                ) : (
+                                    <SearchWithNavigationDeferredMount
+                                        key={queryJSON.hash}
+                                        queryJSON={queryJSON}
+                                        searchResults={searchResults}
+                                        handleSearch={handleSearchAction}
+                                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                        onSearchListScroll={scrollHandler}
+                                        onSortPressedCallback={onSortPressedCallback}
+                                        searchRequestResponseStatusCode={searchRequestResponseStatusCode}
+                                        onDestinationVisible={endSubmitNavigationSpans}
+                                        onContentReady={onSearchContentReady}
+                                    />
+                                )}
+                                {!!searchOverlayContent && <View style={[StyleSheet.absoluteFill, styles.appBG]}>{searchOverlayContent}</View>}
+                            </View>
                             {shouldShowFooter && (
                                 <SearchPageFooter
                                     count={footerData.count}

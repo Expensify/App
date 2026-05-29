@@ -41,7 +41,6 @@ const optimisticAction = {
 const CURRENT_USER_EMAIL = 'test@example.com';
 const CURRENT_USER_ACCOUNT_ID = 1;
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => ({
         email: CURRENT_USER_EMAIL,

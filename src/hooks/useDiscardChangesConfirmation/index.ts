@@ -77,7 +77,6 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
      */
     useEffect(() => {
         const unsubscribe = navigation.addListener('transitionStart', ({data: {closing}}) => {
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             if (!getHasUnsavedChanges()) {
                 return;
             }

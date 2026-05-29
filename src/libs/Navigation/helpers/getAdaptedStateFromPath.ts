@@ -12,7 +12,7 @@ import type {Route as RoutePath} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Screen} from '@src/SCREENS';
-import findMatchingDynamicSuffix from './dynamicRoutesUtils/findMatchingDynamicSuffix';
+import findAllMatchingDynamicSuffixes from './dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 import getDynamicRouteAdaptedState from './dynamicRoutesUtils/getDynamicRouteAdaptedState';
 import getPathWithoutDynamicSuffix from './dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 import isDynamicRouteScreen from './dynamicRoutesUtils/isDynamicRouteScreen';
@@ -33,6 +33,23 @@ const getRoutesWithIndex = (routes: NavigationPartialRoute[]): PartialState<Navi
 
 /** All tab routes derived from the shared TAB_SCREENS constant. */
 const TAB_NAVIGATOR_ROUTES: NavigationPartialRoute[] = TAB_SCREENS.map((name) => ({name}));
+
+/**
+ * Screens that are registered in PublicScreens (unauthenticated navigator) and should not
+ * have TabNavigator prepended, because when the user is unauthenticated TabNavigator does
+ * not exist in the navigator tree and the RESET action would fail.
+ *
+ * Keep in sync with the screens registered in PublicScreens.tsx (excluding SCREENS.HOME,
+ * which doubles as the authenticated home tab, and navigator entries).
+ */
+const PUBLIC_SCREENS = new Set<string>([
+    SCREENS.VALIDATE_LOGIN,
+    SCREENS.TRANSITION_BETWEEN_APPS,
+    SCREENS.CONNECTION_COMPLETE,
+    SCREENS.BANK_CONNECTION_COMPLETE,
+    SCREENS.UNLINK_LOGIN,
+    SCREENS.SAML_SIGN_IN,
+]);
 
 /**
  * Builds TabNavigator state with all tabs and the correct selected tab.
@@ -212,16 +229,18 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
         return getTabNavigatorState(splitState);
     }
 
-    // Handle dynamic routes: find the appropriate full screen route
+    // Handle dynamic routes: find the appropriate full screen route.
+    // Iterate all candidates so that a false-positive first match (e.g. a tag named "gl-code"
+    // colliding with the registered static suffix) does not produce a NOT_FOUND state.
     if (route.path) {
-        const suffixMatch = findMatchingDynamicSuffix(route.path);
-        if (suffixMatch) {
+        const allSuffixMatches = findAllMatchingDynamicSuffixes(route.path);
+        for (const suffixMatch of allSuffixMatches) {
             // Strip the suffix from the URL. For parametric routes we pass both the actual URL
             // suffix and the registered pattern so query params can be resolved correctly.
             const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(route.path, suffixMatch.actualSuffix, suffixMatch.pattern);
 
             if (!pathWithoutDynamicSuffix) {
-                return undefined;
+                continue;
             }
 
             // Parse the base path (without dynamic suffix) into a navigation state
@@ -230,7 +249,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
             const lastRoute = stateUnderDynamicRoute?.routes.at(-1);
 
             if (!stateUnderDynamicRoute || !lastRoute || lastRoute.name === SCREENS.NOT_FOUND) {
-                return undefined;
+                continue;
             }
 
             const isLastRouteFullScreen = isFullScreenName(lastRoute.name);
@@ -242,7 +261,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
             const focusedRouteUnderDynamicRoute = findFocusedRouteWithOnyxTabGuard(stateUnderDynamicRoute);
 
             if (!focusedRouteUnderDynamicRoute) {
-                return undefined;
+                continue;
             }
 
             // Recursively find the matching full screen route for the focused dynamic route
@@ -261,7 +280,7 @@ function getDefaultFullScreenRoute(route?: NavigationPartialRoute) {
     if (route && isRouteWithReportID(route)) {
         const reportID = route.params.reportID;
 
-        // Only allReports should be checked here
+        // Only allReports should be checked here — TODO: Passing undefined in follow-up PRs of https://github.com/Expensify/App/issues/66414
         if (!getReportOrDraftReport(reportID, undefined, undefined, {})) {
             return getTabNavigatorState({name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR});
         }
@@ -353,6 +372,14 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
 
         if (isRightModalNavigator) {
             return getRoutesWithIndex([getTabNavigatorState({name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}), ...currentState.routes]);
+        }
+
+        // Public screens (e.g. ValidateLogin) exist in both PublicScreens and AuthScreens navigators.
+        // Don't prepend TabNavigator because when the user is unauthenticated, PublicScreens is active
+        // and TabNavigator doesn't exist — causing the RESET action to fail.
+        const hasOnlyPublicScreens = currentState.routes.every((route) => PUBLIC_SCREENS.has(route.name));
+        if (hasOnlyPublicScreens) {
+            return currentState;
         }
 
         const defaultFullScreenRoute = getDefaultFullScreenRoute(focusedRoute);

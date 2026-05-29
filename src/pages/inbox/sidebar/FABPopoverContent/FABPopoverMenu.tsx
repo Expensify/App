@@ -1,6 +1,7 @@
 import React, {Activity, useState} from 'react';
 import type {ActivityProps, RefObject} from 'react';
 import {View} from 'react-native';
+import CompactMenuContext from '@components/CompactMenuContext';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
@@ -127,11 +128,13 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
                     active={isVisible}
                     shouldReturnFocus
                 >
-                    <Activity mode={contentActivityMode}>
-                        <View style={shouldUseNarrowLayout ? styles.flexGrow1 : [styles.createMenuContainer, styles.pv0, styles.flex1]}>
-                            <View style={styles.pv4}>{children}</View>
-                        </View>
-                    </Activity>
+                    <CompactMenuContext.Provider value>
+                        <Activity mode={contentActivityMode}>
+                            <View style={shouldUseNarrowLayout ? styles.flexGrow1 : [styles.createMenuContainer, styles.pv0, styles.flex1]}>
+                                <View style={shouldUseNarrowLayout ? styles.pv4 : styles.pv2}>{children}</View>
+                            </View>
+                        </Activity>
+                    </CompactMenuContext.Provider>
                 </FocusTrapForModal>
             </PopoverWithMeasuredContent>
         </FABMenuContext.Provider>

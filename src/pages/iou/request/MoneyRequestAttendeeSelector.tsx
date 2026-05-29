@@ -29,6 +29,7 @@ import {
     getPolicyExpenseReportOption,
     isCurrentUser,
     orderOptions,
+    sortAlphabetically,
 } from '@libs/OptionsListUtils';
 import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
@@ -59,7 +60,7 @@ type MoneyRequestAttendeesSelectorProps = {
 };
 
 function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdded, iouType, action}: MoneyRequestAttendeesSelectorProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
@@ -80,7 +81,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const isPaidGroupPolicy = isPaidGroupPolicyFn(policy);
     const recentAttendeeLists = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees ?? [], currentUserEmail, currentUserAccountID);
 
-    const initialSelectedOptions = attendees.map((attendee) => ({
+    const initialSelectedOptions = sortAlphabetically([...attendees], 'displayName', localeCompare).map((attendee) => ({
         ...attendee,
         reportID: CONST.DEFAULT_NUMBER_ID.toString(),
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

@@ -5,7 +5,7 @@ import Log from '@libs/Log';
 import buildTabNavigatorNestedState from '@libs/Navigation/helpers/buildTabNavigatorNestedState';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
-import {SIDEBAR_TO_SPLIT} from '@libs/Navigation/linkingConfig/RELATIONS';
+import {SIDEBAR_TO_SPLIT, SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -41,14 +41,48 @@ const MODAL_ROUTES_TO_DISMISS = new Set<string>([
     SCREENS.TRANSACTION_RECEIPT,
     SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW,
     SCREENS.MONEY_REQUEST.ODOMETER_PREVIEW,
-    SCREENS.PROFILE_AVATAR,
+    SCREENS.DYNAMIC_PROFILE_AVATAR,
     SCREENS.WORKSPACE_AVATAR,
+    SCREENS.WORKSPACE_DOCUMENT,
     SCREENS.REPORT_AVATAR,
     SCREENS.CONCIERGE,
     SCREENS.SEARCH_ROUTER.ROOT,
 ]);
 
 const screensWithEnteringAnimation = new Set<string>();
+
+// RN's deep-link initial-state hint keys, per `getStateFromParams` in
+// @react-navigation/core/src/useNavigationBuilder.tsx. Stripped only when `params.screen` is
+// set so legitimate user keys (e.g. `path`, `initial`) on non-hydrated routes survive.
+const STALE_DEEP_LINK_PARAM_KEYS = new Set(['state', 'screen', 'params', 'path', 'initial']);
+
+/** Removes the RN deep-link hint chain from `route.params` when triggered by `params.screen`. */
+function withSanitizedDeepLinkParams<R extends {params?: unknown}>(route: R, focusParams: Record<string, unknown> | undefined): R {
+    const rParamsRecord = route.params as Record<string, unknown> | undefined;
+
+    // RN stores nested deep-link instructions under params.screen/params.params.
+    const looksLikeDeepLinkInitialState = !!rParamsRecord && typeof rParamsRecord.screen === 'string';
+    const shouldSanitizeExistingParams = looksLikeDeepLinkInitialState && !!rParamsRecord;
+
+    // Remove only RN's hint keys; keep any real params that were stored next to them.
+    const sanitizedExistingParams = shouldSanitizeExistingParams ? Object.fromEntries(Object.entries(rParamsRecord).filter(([key]) => !STALE_DEEP_LINK_PARAM_KEYS.has(key))) : rParamsRecord;
+    const hasSanitizedExistingParams = !!sanitizedExistingParams && Object.keys(sanitizedExistingParams).length > 0;
+    const fallbackParams = hasSanitizedExistingParams ? sanitizedExistingParams : undefined;
+
+    // The new focused tab params win; otherwise keep the cleaned existing params.
+    const nextParams = focusParams ?? fallbackParams;
+
+    if (nextParams !== undefined) {
+        return {...route, params: nextParams};
+    }
+    if (looksLikeDeepLinkInitialState) {
+        // If params only contained stale RN hints, remove params entirely.
+        const routeWithoutParams = {...route};
+        delete (routeWithoutParams as {params?: unknown}).params;
+        return routeWithoutParams;
+    }
+    return {...route};
+}
 
 /**
  * Stores the original TAB_NAVIGATOR route before a tab-switch pre-insertion
@@ -364,19 +398,26 @@ function handleReplaceFullscreenUnderRHP(
             }
             // Prepend the existing sidebar/root route (e.g. Inbox) to the incoming state when
             // it starts with a different screen, so back navigation from the new screen
-            // lands on the sidebar.
+            // lands on the sidebar. When the existing tab doesn't have nested
+            // routes (e.g. cold-start through a deep link that opens straight into a modal),
+            // fall back to the split navigator's default sidebar route so there is still
+            // something to pop back to.
             let mergedNestedState = focusedTargetTab.state;
             const existingNestedRoutes = (r.state as PartialState<NavigationState> | undefined)?.routes;
             const newNestedRoutes = focusedTargetTab.state?.routes;
             const existingFirstRoute = existingNestedRoutes?.at(0);
             const newFirstRoute = newNestedRoutes?.at(0);
-            if (existingFirstRoute && newFirstRoute && existingFirstRoute.name !== newFirstRoute.name) {
-                const prependedRoutes = [existingFirstRoute, ...(newNestedRoutes ?? [])];
+            const defaultSidebarRouteName = r.name in SPLIT_TO_SIDEBAR ? SPLIT_TO_SIDEBAR[r.name as keyof typeof SPLIT_TO_SIDEBAR] : undefined;
+            const sidebarRoute: NavigationPartialRoute | undefined = existingFirstRoute ?? (defaultSidebarRouteName ? {name: defaultSidebarRouteName} : undefined);
+            if (sidebarRoute && newFirstRoute && sidebarRoute.name !== newFirstRoute.name) {
+                const prependedRoutes = [sidebarRoute, ...(newNestedRoutes ?? [])];
                 mergedNestedState = {...focusedTargetTab.state, routes: prependedRoutes, index: prependedRoutes.length - 1};
             }
+            // Strip any RN deep-link hint chain from `r.params`; otherwise RN would run a
+            // follow-up NAVIGATE from it and override the `state` we splice below.
+            const sanitizedRoute = withSanitizedDeepLinkParams(r, focusedTargetTab.params as Record<string, unknown> | undefined);
             return {
-                ...r,
-                ...(focusedTargetTab.params !== undefined ? {params: focusedTargetTab.params} : {}),
+                ...sanitizedRoute,
                 ...(mergedNestedState !== undefined ? {state: mergedNestedState as typeof r.state} : {}),
             };
         });
@@ -536,4 +577,6 @@ export {
     handleToggleSidePanelWithHistoryAction,
     getPreInsertedOriginalTabRoute,
     clearPreInsertedOriginalTabRoute,
+    // Exported for unit-test access; not used outside of testing.
+    withSanitizedDeepLinkParams,
 };

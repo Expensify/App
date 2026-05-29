@@ -9,7 +9,7 @@ import Icon from '@components/Icon';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RenderHTML from '@components/RenderHTML';
-import {showContextMenuForReport, useShowContextMenuState} from '@components/ShowContextMenuContext';
+import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
@@ -28,13 +28,14 @@ import {canActionTask, completeTask, getTaskAssigneeAccountID, reopenTask} from 
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportRouteForCurrentContext';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
+import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import {isCanceledTaskReport, isOpenTaskReport, isReportManager} from '@libs/ReportUtils';
-import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -42,9 +43,6 @@ type TaskPreviewProps = WithCurrentUserPersonalDetailsProps & {
     /** The ID of the associated policy */
     // eslint-disable-next-line react/no-unused-prop-types
     policyID: string | undefined;
-
-    /** The task report associated with this action, if any */
-    taskReport: OnyxEntry<Report>;
 
     /** Whether the task preview is hovered so we can modify its style */
     isHovered: boolean;
@@ -55,40 +53,21 @@ type TaskPreviewProps = WithCurrentUserPersonalDetailsProps & {
     /** The chat report associated with taskReport */
     chatReportID: string | undefined;
 
-    /** Popover context menu anchor, used for showing context menu */
-    contextMenuAnchor: ContextMenuAnchor;
-
-    /** Callback for updating context menu active state, used for showing context menu */
-    checkIfContextMenuActive: () => void;
-
-    /** Callback that will do measure of necessary layout elements and run provided callback */
-    onShowContextMenu: (callback: () => void) => void;
-
     /** Style for the task preview container */
     style: StyleProp<ViewStyle>;
-
-    /** Whether  context menu should be shown on press */
-    shouldDisplayContextMenu?: boolean;
 };
 
-function TaskPreview({
-    taskReport,
-    action,
-    contextMenuAnchor,
-    chatReportID,
-    checkIfContextMenuActive,
-    currentUserPersonalDetails,
-    onShowContextMenu,
-    isHovered = false,
-    style,
-    shouldDisplayContextMenu = true,
-}: TaskPreviewProps) {
+function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovered = false, style}: TaskPreviewProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'DotIndicator', 'FallbackAvatar']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const theme = useTheme();
-    const {originalReportID} = useShowContextMenuState();
+    const {originalReportID, anchor: contextMenuAnchorRef, shouldDisplayContextMenu = true} = useShowContextMenuState();
+    const {checkIfContextMenuActive, onShowContextMenu} = useShowContextMenuActions();
+    const originalMessage = getOriginalMessage(action);
+    const taskReportIDFromOriginalMessage = originalMessage && 'taskReportID' in originalMessage ? originalMessage.taskReportID : undefined;
+    const [taskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(taskReportIDFromOriginalMessage)}`);
     const taskReportID = taskReport?.reportID ?? action?.childReportID;
     // Prefer the live task report name so offline title edits are reflected immediately.
     const taskTitle = taskReport?.reportName ?? action?.childReportName ?? '';
@@ -142,7 +121,7 @@ function TaskPreview({
     return (
         <View style={[styles.chatItemMessage, !hasAssignee && styles.mv1]}>
             <PressableWithoutFeedback
-                onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(taskReportID, undefined, undefined, Navigation.getActiveRoute()))}
+                onPress={() => Navigation.navigate(getReportRouteForCurrentContext({reportID: taskReportID}))}
                 onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
                 onLongPress={(event) =>
@@ -150,7 +129,7 @@ function TaskPreview({
                         if (!shouldDisplayContextMenu) {
                             return;
                         }
-                        return showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive, false, originalReportID);
+                        return showContextMenuForReport(event, contextMenuAnchorRef, chatReportID, action, checkIfContextMenuActive, originalReportID);
                     })
                 }
                 shouldUseHapticsOnLongPress

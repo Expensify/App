@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import CompactMenuContext from '@components/CompactMenuContext';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScrollView from '@components/ScrollView';
@@ -52,7 +53,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
     const groupBySections = getGroupBySections(translate);
     const groupBy = groupBySections.flatMap((section) => section.options).find((option) => option.value === queryJSON.groupBy) ?? null;
     const viewOptions = getViewOptions(translate);
-    const view = viewOptions.find((option) => option.value === queryJSON.view) ?? viewOptions.at(0) ?? null;
+    const view = viewOptions.find((option) => option.value === queryJSON.view) ?? viewOptions.at(0);
     const shouldShowColumnsButton = isLargeScreenWidth && (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE || queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT);
 
     const limitValue = searchAdvancedFilters[CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT];
@@ -116,15 +117,17 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                     />
                 )}
                 {shouldShowColumnsButton && (
-                    <MenuItem
-                        icon={expensifyIcons.Columns}
-                        title={translate('search.editColumns')}
-                        onPress={() => {
-                            closeOverlay();
-                            openSearchColumns();
-                        }}
-                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMNS_BUTTON}
-                    />
+                    <CompactMenuContext.Provider value>
+                        <MenuItem
+                            icon={expensifyIcons.Columns}
+                            title={translate('search.editColumns')}
+                            onPress={() => {
+                                closeOverlay();
+                                openSearchColumns();
+                            }}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMNS_BUTTON}
+                        />
+                    </CompactMenuContext.Provider>
                 )}
             </ScrollView>
         );

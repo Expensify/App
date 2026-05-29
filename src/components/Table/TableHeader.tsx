@@ -1,6 +1,6 @@
 import React, {useRef} from 'react';
 import {View} from 'react-native';
-import type {ViewProps} from 'react-native';
+import type {ViewProps, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
@@ -50,8 +50,13 @@ type TableHeaderProps = ViewProps & {
  * ```
  */
 function TableHeader<T, ColumnKey extends string = string>({style, shouldHideHeaderWhenEmptySearch = true, ...props}: TableHeaderProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
-    const {columns, isEmptyResult} = useTableContext<T, ColumnKey>();
+    const {columns, isEmptyResult, title, shouldUseNarrowTableLayout} = useTableContext<T, ColumnKey>();
+
+    if (shouldUseNarrowTableLayout && !title) {
+        return null;
+    }
 
     if (shouldHideHeaderWhenEmptySearch && isEmptyResult) {
         return null;
@@ -60,9 +65,12 @@ function TableHeader<T, ColumnKey extends string = string>({style, shouldHideHea
     return (
         <View
             style={[
-                styles.appBG,
+                styles.pv2,
+                styles.ph3,
                 styles.mh5,
-                styles.p4,
+                styles.highlightBG,
+                styles.borderBottom,
+                styles.tableTopRadius,
                 // Flexbox fallback for browsers / native devices wider than 1024px which don't support grid
                 styles.dFlex,
                 styles.flexRow,
@@ -70,20 +78,30 @@ function TableHeader<T, ColumnKey extends string = string>({style, shouldHideHea
                 styles.gap3,
                 // Use Grid on web when available (will override flex if supported)
                 styles.dGrid,
-                {gridTemplateColumns: `repeat(${columns.length}, 1fr)`},
+                !shouldUseNarrowTableLayout && {gridTemplateColumns: columns.map((column) => (column.width ? `${column.width}px` : '1fr')).join(' ')},
                 style,
             ]}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
-            {columns.map((column) => {
-                return (
-                    <TableHeaderColumn
-                        column={column}
-                        key={column.key}
-                    />
-                );
-            })}
+            {shouldUseNarrowTableLayout && (
+                <Text
+                    numberOfLines={1}
+                    color={theme.textSupporting}
+                    style={[styles.lh16, styles.textMicroSupporting, styles.pr1]}
+                >
+                    {title}
+                </Text>
+            )}
+
+            {!shouldUseNarrowTableLayout &&
+                columns.map((column) => {
+                    return (
+                        <TableHeaderColumn
+                            column={column}
+                            key={column.key}
+                        />
+                    );
+                })}
         </View>
     );
 }
@@ -123,13 +141,22 @@ function TableHeaderColumn<T, ColumnKey extends string = string>({column}: {colu
         toggleColumnSorting(columnKey);
     };
 
+    let columnSizeStyle: ViewStyle | undefined;
+    if (column.width) {
+        columnSizeStyle = {width: column.width};
+    } else if (column.styling?.flex) {
+        columnSizeStyle = {flex: column.styling.flex};
+    }
+
+    const tableHeaderStyles = [styles.flexRow, styles.alignItemsCenter, styles.tableHeaderContentHeight, columnSizeStyle ?? styles.flex1, column.styling?.containerStyles];
+
     return (
         <PressableWithFeedback
             accessible
             accessibilityLabel={column.label}
             accessibilityRole="button"
             sentryLabel={CONST.SENTRY_LABEL.TABLE_HEADER.SORTABLE_COLUMN}
-            style={[styles.flexRow, styles.alignItemsCenter, column.styling?.flex ? {flex: column.styling.flex} : styles.flex1, column.styling?.containerStyles]}
+            style={tableHeaderStyles}
             onPress={() => toggleSorting(column.key)}
         >
             <Text
