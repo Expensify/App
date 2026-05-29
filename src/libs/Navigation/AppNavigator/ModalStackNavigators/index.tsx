@@ -400,9 +400,9 @@ const ReportParticipantsModalStackNavigator = createModalStackNavigator<Particip
 });
 
 const RoomMembersModalStackNavigator = createModalStackNavigator<RoomMembersNavigatorParamList>({
-    [SCREENS.ROOM_MEMBERS.ROOT]: () => require<ReactComponentModule>('../../../../pages/RoomMembersPage').default,
-    [SCREENS.ROOM_MEMBERS.INVITE]: () => require<ReactComponentModule>('../../../../pages/RoomInvitePage').default,
-    [SCREENS.ROOM_MEMBERS.DETAILS]: () => require<ReactComponentModule>('../../../../pages/RoomMemberDetailsPage').default,
+    [SCREENS.ROOM_MEMBERS.DYNAMIC_ROOT]: () => require<ReactComponentModule>('../../../../pages/DynamicRoomMembersPage').default,
+    [SCREENS.ROOM_MEMBERS.DYNAMIC_INVITE]: () => require<ReactComponentModule>('../../../../pages/DynamicRoomInvitePage').default,
+    [SCREENS.ROOM_MEMBERS.DYNAMIC_DETAILS]: () => require<ReactComponentModule>('../../../../pages/DynamicRoomMemberDetailsPage').default,
 });
 
 const NewChatModalStackNavigator = createModalStackNavigator<NewChatNavigatorParamList>({
