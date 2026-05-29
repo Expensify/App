@@ -941,7 +941,9 @@
         "Gclid",
         "autocorrection",
         "BambooHr",
-        "HiBob"
+        "HiBob",
+        "claudedesktop",
+        "claudecodeex"
     ],
     "ignorePaths": [
         ".gitignore",
