@@ -119,7 +119,6 @@ type WorkspaceMemberFilterOption = SingleSelectItem<WorkspaceMemberFilterValue>;
 
 function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembersPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'common.members');
-    const tableRef = useRef<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey>>(null);
     const icons = useMemoizedLazyExpensifyIcons(['Download', 'FallbackAvatar', 'MakeAdmin', 'Plus', 'RemoveMembers', 'Sync', 'Table', 'User', 'UserEye']);
     const policyMemberEmailsToAccountIDs = useMemo(() => getMemberAccountIDsForWorkspace(policy?.employeeList, true), [policy?.employeeList]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -269,7 +268,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             }
         }
 
-        tableRef.current?.clearSelection();
+        setSelectedEmployees([]);
         removeMembers(policy, selectedEmployees, policyMemberEmailsToAccountIDs);
     };
 
@@ -445,7 +444,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     }
 
     const handleRoleFilterChange = (item: WorkspaceMemberFilterOption | undefined) => {
-        tableRef.current?.clearSelection();
+        setSelectedEmployees([]);
 
         if (!item || item.value === WORKSPACE_MEMBER_FILTER_VALUES.ALL) {
             setSelectedRoleFilter(null);
@@ -590,7 +589,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     );
 
     useSearchBackPress({
-        onClearSelection: () => tableRef.current?.clearSelection(),
+        onClearSelection: () => setSelectedEmployees([]),
         onNavigationCallBack: () => Navigation.goBack(),
     });
 
@@ -601,7 +600,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
         const accountIDsToUpdate = loginsToUpdate.map((login) => policyMemberEmailsToAccountIDs[login]).filter((id) => id !== undefined);
 
-        tableRef.current?.clearSelection();
+        setSelectedEmployees([]);
         updateWorkspaceMembersRole(policy, loginsToUpdate, accountIDsToUpdate, role);
     };
 
@@ -812,7 +811,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             shouldShowNonAdmin
             onBackButtonPress={() => {
                 if (isMobileSelectionModeEnabled) {
-                    tableRef.current?.clearSelection();
+                    setSelectedEmployees([]);
                     turnOffMobileSelectionMode();
                     return;
                 }
@@ -845,7 +844,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     )}
 
                     <WorkspaceMembersTable
-                        ref={tableRef}
                         members={data}
                         isPolicyAdmin={isPolicyAdmin}
                         shouldShowCustomField1Column={shouldShowCustomField1Column}
