@@ -100,7 +100,7 @@ Actions taken by a Copilot are clearly labeled as performed “on behalf of” t
 Yes! You can add as many Copilots as you like. (You just need to wait one minute between additions.)
 
 ---
-
+## How to decide between a Copilot and a Vacation Delegate
 # Copilot vs. Vacation Delegate
 
 Not sure whether you need a **Copilot** or a **Vacation Delegate**? Here's a quick comparison:
@@ -114,4 +114,4 @@ Not sure whether you need a **Copilot** or a **Vacation Delegate**? Here's a qui
 | **Best for** | Executive assistants, accountants, or anyone who regularly helps manage your expenses | Covering approvals during vacation or leave |
 
 If you need someone to **temporarily handle approvals** while you're out of office, see [Delegate When Out of Office](https://help.expensify.com/articles/new-expensify/settings/Delegate-when-out-of-office) instead.
-
+If you need someone to temporarily handle approvals while you're out of office, see [Delegate When Out of Office](/articles/new-expensify/settings/Delegate-when-out-of-office) instead.

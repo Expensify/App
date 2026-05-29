@@ -72,7 +72,7 @@ No, only the account owner can assign additional Copilots.
 
 ---
 
-# Copilot vs. Vacation Delegate
+## How to decide between a Copilot and a Vacation Delegate
 
 | | Copilot | Vacation Delegate |
 |---|---|---|

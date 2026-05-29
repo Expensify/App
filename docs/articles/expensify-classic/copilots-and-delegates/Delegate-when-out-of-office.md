@@ -54,4 +54,4 @@ Your delegate can also pick their own Vacation Delegate. This way, expense repor
 ## I need someone to permanently manage my expenses, not just approvals while I'm away. What should I use?
 
 A Vacation Delegate is designed for **temporary** approval coverage. If you need someone to have **ongoing access** to your account -- for example, an executive assistant or accountant who regularly manages your expenses -- use a [Copilot](https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Assign-or-remove-a-Copilot) instead.
-
+A Vacation Delegate is designed for **temporary** approval coverage. If you need someone to have **ongoing access** to your account -- for example, an executive assistant or accountant who regularly manages your expenses -- use a [Copilot](/articles/expensify-classic/copilots-and-delegates/Assign-or-remove-a-Copilot) instead.
