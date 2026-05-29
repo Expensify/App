@@ -972,6 +972,12 @@ const staticStyles = (theme: ThemeColors) =>
             ...wordBreak.breakWord,
         },
 
+        actionableItemButtonSkeleton: {
+            alignItems: 'flex-start',
+            borderRadius: 20,
+            backgroundColor: theme.buttonDefaultBG,
+        },
+
         hoveredComponentBG: {
             backgroundColor: theme.hoverComponentBG,
         },
@@ -5099,7 +5105,6 @@ const staticStyles = (theme: ThemeColors) =>
             left: 16,
             bottom: 16,
             width: variables.cardNameWidth,
-            color: theme.textLight,
             fontSize: variables.fontSizeSmall,
             lineHeight: variables.lineHeightLarge,
         },

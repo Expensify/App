@@ -321,8 +321,8 @@ const CONST = {
     },
 
     RECEIPT_CAMERA: {
-        PHOTO_WIDTH: 4032,
-        PHOTO_HEIGHT: 3024,
+        PHOTO_WIDTH: 2880,
+        PHOTO_HEIGHT: 2160,
         PHOTO_ASPECT_RATIO: 4 / 3,
         // Limit how long the shutter handler waits for thumbnail pre-generation before navigating
         // to the confirmation screen. Past this, we navigate and let the confirm-side hook
@@ -981,7 +981,6 @@ const CONST = {
         EUR_BILLING: 'eurBilling',
         PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
-        GUSTO: 'gustoNewDot',
         ZENEFITS: 'zenefitsNewDot',
         BULK_EDIT: 'bulkEdit',
         BULK_EDIT_WORKSPACES: 'bulkEditWorkspaces',
@@ -992,6 +991,7 @@ const CONST = {
         WORKSPACE_ROOMS_PAGE: 'workspaceRoomsPage',
         CERTINIA: 'financialForceNewDot',
         MERGE_HR: 'mergeHRConnections',
+        VENDOR_MATCHING: 'vendorMatching',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1999,6 +1999,8 @@ const CONST = {
             FAB_OUT: ANIMATION_TIMING_FAB_OUT,
             RHP_DURATION_IN_WEB: 150,
             RHP_DURATION_OUT_WEB: 100,
+            CENTERED_DURATION_IN_WEB: 120,
+            CENTERED_DURATION_OUT_WEB: 80,
         },
         RHP_ENTER_OFFSET_PX_WEB: 60,
     },
@@ -2809,6 +2811,7 @@ const CONST = {
         REIMBURSABLE_EXPENSES_ACCOUNT: 'reimbursableExpensesAccount',
         REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'reimbursableExpensesExportDestination',
         NON_REIMBURSABLE_BILL_DEFAULT_VENDOR: 'nonReimbursableBillDefaultVendor',
+        NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR: 'nonReimbursableCreditCardDefaultVendor',
         NON_REIMBURSABLE_EXPENSE_EXPORT_DESTINATION: 'nonReimbursableExpensesExportDestination',
         NON_REIMBURSABLE_EXPENSE_ACCOUNT: 'nonReimbursableExpensesAccount',
         RECEIVABLE_ACCOUNT: 'receivableAccount',
@@ -4952,6 +4955,7 @@ const CONST = {
     WORKSPACE_NAME_CHARACTER_LIMIT: 80,
     STATE_CHARACTER_LIMIT: 32,
     REPORT_TITLE_FORMULA_LIMIT: 500,
+    AGENT_PROMPT_LIMIT: 300,
 
     // Test receipt data
     TEST_RECEIPT: {
@@ -6888,6 +6892,7 @@ const CONST = {
         MODIFIED_AMOUNT: 'modifiedAmount',
         MODIFIED_DATE: 'modifiedDate',
         INCREASED_DISTANCE: 'increasedDistance',
+        INACTIVE_VENDOR: 'inactiveVendor',
         PROHIBITED_EXPENSE: 'prohibitedExpense',
         NON_EXPENSIWORKS_EXPENSE: 'nonExpensiworksExpense',
         OVER_AUTO_APPROVAL_LIMIT: 'overAutoApprovalLimit',

@@ -182,7 +182,7 @@ function MoneyRequestView({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
-    const {environmentURL} = useEnvironment();
+    const {environmentURL, isProduction} = useEnvironment();
     const {translate, toLocaleDigit, localeCompare} = useLocalize();
     const {convertToDisplayString, getCurrencySymbol} = useCurrencyListActions();
     const {getReportRHPActiveRoute} = useActiveRoute();
@@ -294,7 +294,7 @@ function MoneyRequestView({
     } = getTransactionDetails(transaction, undefined, undefined, allowNegativeAmount, false, currentUserPersonalDetails) ?? {};
     const isEmptyMerchant = isInvalidMerchantValue(transactionMerchant);
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
-    const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction, !!mergeTransactionID);
+    const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
     const isGPSDistanceRequest = isGPSDistanceRequestTransactionUtils(transaction);
     const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
     const isMapDistanceRequest = isMapDistanceRequestTransactionUtils(transaction) || isDistanceTypeRequest(transaction);
@@ -359,7 +359,7 @@ function MoneyRequestView({
     const isSplitAvailable =
         moneyRequestReport &&
         transaction &&
-        isSplitAction(moneyRequestReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.accountID, policy);
+        isSplitAction(moneyRequestReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.accountID, policy, undefined, isProduction);
 
     const canEditTaxFields = canEdit && !isDistanceRequest;
     const canEditAmount =
@@ -966,7 +966,7 @@ function MoneyRequestView({
                             }
 
                             if (shouldShowSplitIndicator && isSplitAvailable) {
-                                initSplitExpense(transaction, policy, transactionThreadReport);
+                                initSplitExpense(transaction, policy, transactionThreadReport, currentUserAccountIDParam, {isProduction});
                                 return;
                             }
 
