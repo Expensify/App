@@ -9015,9 +9015,6 @@ function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEnt
     // If the user was mentioned and the comment got deleted the lastMentionedTime will be more recent than the lastVisibleActionCreated
     const isUnreadFromTimestamp = lastReadTime < (lastVisibleActionCreated ?? '') || lastReadTime < lastMentionedTime;
 
-    // Use the actor from whichever report is actually driving the unread condition (parent or transaction thread).
-    // If we always checked report.lastActorAccountID, a comment by another user in the transaction thread would be
-    // incorrectly suppressed when the parent report's last actor happens to be the current user.
     const drivingActorAccountID =
         (oneTransactionThreadReport?.lastVisibleActionCreated ?? '') > (report?.lastVisibleActionCreated ?? '')
             ? oneTransactionThreadReport?.lastActorAccountID
