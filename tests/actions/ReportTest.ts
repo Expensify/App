@@ -117,7 +117,9 @@ jest.mock('@libs/Sound', () => ({
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
-    navigate: jest.fn(),
+    navigate: jest.fn((_route: string, options?: {afterTransition?: () => void}) => {
+        options?.afterTransition?.();
+    }),
     getActiveRoute: jest.fn().mockReturnValue(''),
     getActiveRouteWithoutParams: jest.fn(() => ''),
     dismissModalWithReport: jest.fn(),
@@ -2780,7 +2782,6 @@ describe('actions/Report', () => {
                 userReportedIntegration: null,
                 introSelected: {choice: engagementChoice},
                 isSelfTourViewed: false,
-                betas: [CONST.BETAS.ALL],
             });
 
             await waitForBatchedUpdates();
@@ -2820,7 +2821,6 @@ describe('actions/Report', () => {
                 selectedInterestedFeatures,
                 introSelected: {choice: engagementChoice},
                 isSelfTourViewed: false,
-                betas: [CONST.BETAS.ALL],
             });
 
             await waitForBatchedUpdates();
@@ -4398,7 +4398,6 @@ describe('actions/Report', () => {
             userReportedIntegration: null,
             introSelected: {choice: engagementChoice},
             isSelfTourViewed: false,
-            betas: [CONST.BETAS.ALL],
         });
 
         await waitForBatchedUpdates();
@@ -7351,14 +7350,13 @@ describe('actions/Report', () => {
             expect(result?.failureData).toBeDefined();
         });
 
-        it('should return guided setup data when betas are explicitly passed', async () => {
+        it('should return guided setup data for ADMIN choice', async () => {
             await setupUserWithConciergeChat();
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
             await waitForBatchedUpdates();
 
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
-            const betas: OnyxTypes.Beta[] = [CONST.BETAS.SUGGESTED_FOLLOWUPS];
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, betas);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected);
 
             expect(result).toBeDefined();
             expect(result?.guidedSetupData).toBeDefined();
@@ -7376,7 +7374,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.SUBMIT, isInviteOnboardingComplete: false};
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, undefined, isSelfTourViewed);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, isSelfTourViewed);
 
             expect(result).toBeDefined();
             const guidedSetupData = JSON.parse(result?.guidedSetupData ?? '[]') as Array<{type: string; task?: string; completedTaskReportActionID?: string}>;

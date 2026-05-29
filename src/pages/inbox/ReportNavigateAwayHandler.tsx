@@ -30,7 +30,8 @@ type ReportScreenRoute =
 const reportDetailScreens = [
     ...Object.values(SCREENS.REPORT_DETAILS),
     ...Object.values(SCREENS.REPORT_SETTINGS),
-    ...Object.values(SCREENS.PRIVATE_NOTES),
+    SCREENS.DYNAMIC_PRIVATE_NOTES_LIST,
+    SCREENS.DYNAMIC_PRIVATE_NOTES_EDIT,
     ...Object.values(SCREENS.REPORT_PARTICIPANTS),
 ];
 

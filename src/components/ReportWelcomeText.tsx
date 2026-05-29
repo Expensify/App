@@ -8,6 +8,7 @@ import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getReportName} from '@libs/ReportNameUtils';
@@ -26,7 +27,7 @@ import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
@@ -87,7 +88,9 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK) ||
         moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT);
 
-    const reportDetailsLink = report?.reportID ? `${environmentURL}/${ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, Navigation.getReportRHPActiveRoute())}` : '';
+    const reportRHPActiveRoute = Navigation.getReportRHPActiveRoute();
+    const reportDetailsPath = reportRHPActiveRoute ? createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, reportRHPActiveRoute) : createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path);
+    const reportDetailsLink = report?.reportID ? `${environmentURL}/${reportDetailsPath}` : '';
 
     let welcomeHeroText = translate('reportActionsView.sayHello');
     if (isConciergeChat) {
