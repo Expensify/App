@@ -17,7 +17,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Attendee} from '@src/types/onyx/IOU';
-import getEmptyArray from '@src/types/utils/getEmptyArray';
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 
 /**
@@ -73,31 +72,20 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         [personalDetails, recentAttendees, currentUserEmail, currentUserAccountID, shouldAllowNameOnlyOptions],
     );
 
-    const {
-        searchTerm,
-        debouncedSearchTerm,
-        setSearchTerm,
-        availableOptions,
-        selectedOptions,
-        selectedNonExistingOptions = getEmptyArray<OptionData>(),
-        setSelectedOptions,
-        toggleSelection,
-        areOptionsInitialized,
-        onListEndReached,
-    } = useSearchSelector({
-        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
-        maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-        includeUserToInvite: true,
-        excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-        includeRecentReports: true,
-        shouldInitialize: didScreenTransitionEnd,
-        includeCurrentUser: true,
-        recentAttendees: recentAttendeeLists,
-        shouldAllowNameOnlyOptions,
-        shouldKeepSelectedInAvailableOptions: true,
-        shouldSeparateNonExistingSelectedOptions: true,
-    });
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, setSelectedOptions, toggleSelection, areOptionsInitialized, onListEndReached} =
+        useSearchSelector({
+            selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+            searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+            includeUserToInvite: true,
+            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            includeRecentReports: true,
+            shouldInitialize: didScreenTransitionEnd,
+            includeCurrentUser: true,
+            recentAttendees: recentAttendeeLists,
+            shouldAllowNameOnlyOptions,
+            shouldKeepSelectedInAvailableOptions: true,
+        });
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections = [];
@@ -145,18 +133,6 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             });
         }
 
-        // Selected options not present in personalDetails / recentReports (e.g. name-only attendees
-        // for the attendee filter). These need their own section so they stay visible. The current
-        // user is excluded since they already have a dedicated section above.
-        const extraSelectedOptions = selectedNonExistingOptions.filter((option) => !option.accountID || option.accountID !== currentUserAccountID);
-        if (extraSelectedOptions.length > 0) {
-            newSections.push({
-                title: '',
-                data: extraSelectedOptions,
-                sectionIndex: 1,
-            });
-        }
-
         newSections.push({
             title: '',
             data: chatOptions.recentReports,
@@ -169,14 +145,14 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             sectionIndex: 3,
         });
 
-        const noResultsFound = chatOptions.personalDetails.length === 0 && chatOptions.recentReports.length === 0 && !currentUserOptionToShow && extraSelectedOptions.length === 0;
+        const noResultsFound = chatOptions.personalDetails.length === 0 && chatOptions.recentReports.length === 0 && !currentUserOptionToShow;
         const message = noResultsFound ? translate('common.noResultsFound') : undefined;
 
         return {
             sections: newSections,
             headerMessage: message,
         };
-    }, [areOptionsInitialized, availableOptions, debouncedSearchTerm, selectedOptions, selectedNonExistingOptions, currentUserAccountID, personalDetails, translate, formatPhoneNumber]);
+    }, [areOptionsInitialized, availableOptions, debouncedSearchTerm, selectedOptions, currentUserAccountID, personalDetails, translate, formatPhoneNumber]);
 
     const resetChanges = useCallback(() => {
         setSelectedOptions([]);
