@@ -32,7 +32,7 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
         return updatedFilterFormValues;
     }
 
-    function updateFilterQueryParams(values: Partial<SearchAdvancedFiltersForm>) {
+    function setFilterQueryParams(values: Partial<SearchAdvancedFiltersForm>) {
         const queryString =
             buildFilterQueryWithSortDefaults(
                 values,
@@ -46,7 +46,11 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
         Navigation.setParams({q: queryString, rawQuery: undefined});
     }
 
-    return {getUpdatedFilterFormValues, updateFilterQueryParams};
+    function updateFilterQueryParams(values: Partial<SearchAdvancedFiltersForm>) {
+        setFilterQueryParams(getUpdatedFilterFormValues(searchAdvancedFiltersForm, values));
+    }
+
+    return {getUpdatedFilterFormValues, setFilterQueryParams, updateFilterQueryParams};
 }
 
 export default useUpdateFilterQuery;

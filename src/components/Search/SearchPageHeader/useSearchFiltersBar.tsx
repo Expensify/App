@@ -123,10 +123,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
     const {isOffline} = useNetwork();
     const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const {shouldShowFiltersBarLoading, currentSearchResults} = useSearchResultsContext();
-    const {getUpdatedFilterFormValues, updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
-    const updateFilterForm = (values: Partial<SearchAdvancedFiltersForm>) => {
-        updateFilterQueryParams(getUpdatedFilterFormValues(searchAdvancedFiltersForm, values));
-    };
+    const {setFilterQueryParams, updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
     const filters = mapFiltersFormToLabelValueList<FilterItem>(
         searchAdvancedFiltersForm,
         queryJSON.policyID,
@@ -143,7 +140,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                         queryJSON={queryJSON}
                         closeOverlay={closeOverlay}
                         setPopoverWidth={setPopoverWidth}
-                        updateFilterForm={updateFilterForm}
+                        updateFilterForm={updateFilterQueryParams}
                     />
                 </ListFilterHeightContextProvider>
             ),
@@ -153,7 +150,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                     const equalToKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`;
                     const greaterThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`;
                     const lessThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`;
-                    updateFilterForm({[equalToKey]: undefined, [greaterThanKey]: undefined, [lessThanKey]: undefined});
+                    updateFilterQueryParams({[equalToKey]: undefined, [greaterThanKey]: undefined, [lessThanKey]: undefined});
                     return;
                 }
 
@@ -162,7 +159,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                     const beforeKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`;
                     const afterKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`;
                     const rangeKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.RANGE}`;
-                    updateFilterForm({[onKey]: undefined, [beforeKey]: undefined, [afterKey]: undefined, [rangeKey]: undefined});
+                    updateFilterQueryParams({[onKey]: undefined, [beforeKey]: undefined, [afterKey]: undefined, [rangeKey]: undefined});
                     return;
                 }
 
@@ -173,17 +170,17 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                         }
                         return acc;
                     }, {} as Partial<SearchAdvancedFiltersForm>);
-                    updateFilterForm(formValues);
+                    updateFilterQueryParams(formValues);
                     return;
                 }
 
-                updateFilterForm({[filterKey]: undefined});
+                updateFilterQueryParams({[filterKey]: undefined});
             },
         }),
     );
 
     const clearFilters = () => {
-        updateFilterQueryParams(getAdvancedFiltersToReset(searchAdvancedFiltersForm ?? {}));
+        setFilterQueryParams(getAdvancedFiltersToReset(searchAdvancedFiltersForm ?? {}));
     };
 
     return {

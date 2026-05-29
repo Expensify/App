@@ -25,7 +25,7 @@ function AdvancedFiltersPopup({queryJSON}: AdvancedFiltersPopupProps) {
     const filterContentRef = useRef<View>(null);
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
-    const {getUpdatedFilterFormValues, updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
+    const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
 
     return (
         <SafeTriangle submenuRef={filterContentRef}>
@@ -46,7 +46,7 @@ function AdvancedFiltersPopup({queryJSON}: AdvancedFiltersPopupProps) {
                         values={searchAdvancedFiltersForm}
                         filterKey={selectedFilter}
                         policyIDQuery={queryJSON.policyID}
-                        onChange={(values) => updateFilterQueryParams(getUpdatedFilterFormValues(searchAdvancedFiltersForm ?? {}, values))}
+                        onChange={(values) => updateFilterQueryParams(values)}
                     />
                 </View>
             </View>
