@@ -35,7 +35,7 @@ function SearchAdvancedFiltersContentBase() {
 
     const goBack = () => {
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
-    }
+    };
 
     return (
         <ScreenWrapper
