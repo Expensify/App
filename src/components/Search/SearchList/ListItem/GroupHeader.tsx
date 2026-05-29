@@ -1,11 +1,13 @@
 import React from 'react';
 import {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
+import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {SearchColumnType, SearchGroupBy} from '@components/Search/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -15,7 +17,6 @@ import CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import CardListItemHeader from './CardListItemHeader';
 import CategoryListItemHeader from './CategoryListItemHeader';
-import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
 import MemberListItemHeader from './MemberListItemHeader';
 import MerchantListItemHeader from './MerchantListItemHeader';
 import MonthListItemHeader from './MonthListItemHeader';
@@ -63,6 +64,7 @@ function GroupHeader({item, groupBy, searchType, columns, canSelectMultiple, isE
     const StyleUtils = useStyleUtils();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {selectedTransactions} = useSearchSelectionContext();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
 
     const groupItem = item as unknown as TransactionGroupListItemType;
     const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
@@ -304,12 +306,22 @@ function GroupHeader({item, groupBy, searchType, columns, canSelectMultiple, isE
                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                             <View style={styles.flex1}>{renderHeader()}</View>
                             {isLargeScreenWidth && (
-                                <View style={{paddingRight: 14}}>
-                                    <ExpandCollapseArrowButton
-                                        isExpanded={isExpanded}
-                                        onPress={onToggle}
-                                    />
-                                </View>
+                                <PressableWithFeedback
+                                    onPress={onToggle}
+                                    style={[styles.p3Half, styles.justifyContentCenter, styles.alignItemsCenter, styles.pv2]}
+                                    accessibilityRole={CONST.ROLE.BUTTON}
+                                    accessibilityLabel={isExpanded ? CONST.ACCESSIBILITY_LABELS.COLLAPSE : CONST.ACCESSIBILITY_LABELS.EXPAND}
+                                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_EXPAND_TOGGLE}
+                                >
+                                    {({hovered}) => (
+                                        <Icon
+                                            src={isExpanded ? expensifyIcons.UpArrow : expensifyIcons.DownArrow}
+                                            fill={theme.icon}
+                                            additionalStyles={!hovered && styles.opacitySemiTransparent}
+                                            small
+                                        />
+                                    )}
+                                </PressableWithFeedback>
                             )}
                         </View>
                     </View>

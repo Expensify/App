@@ -242,8 +242,8 @@ function GroupChildrenContainer({
                             }
                         }}
                     >
-                        <View style={isLargeScreenWidth ? [styles.pv2, styles.ph3, styles.pb1] : styles.ph3}>
-                            <View style={styles.borderBottom} />
+                        <View style={isLargeScreenWidth ? [styles.pv2, styles.ph3, styles.pb1, styles.pt1] : styles.ph3}>
+                            <View style={[styles.borderBottom, isLargeScreenWidth && styles.borderNone]} />
                         </View>
                         <TransactionGroupListExpandedItem
                             showTooltip
