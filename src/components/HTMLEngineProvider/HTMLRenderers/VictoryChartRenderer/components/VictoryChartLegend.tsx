@@ -27,7 +27,7 @@ function VictoryChartLegend({x, y, entries, gutter, symbolSpacer}: VictoryChartL
     const processedEntries = entries.reduce(
         (acc, {text, color, fontSize, fontWeight, symbolColor, symbolSize}) => {
             const typeface = fontWeight === 'bold' ? boldTypeface : regularTypeface;
-            const font = typeface ? Skia.Font(typeface, fontSize) : null;
+            const font = typeface && fontSize ? Skia.Font(typeface, fontSize) : null;
             const fontMetrics = font?.getMetrics();
             const lineHeight = fontMetrics ? fontMetrics.ascent + fontMetrics.descent + fontMetrics.leading : 0;
             const symbolX = acc.x;

@@ -29,7 +29,7 @@ function VictoryChartLabel({x, y, text, color, fontSize, fontWeight, lineHeight,
             const lineFontWeight = fontWeight?.[index];
             const lineLineHeight = lineHeight?.[index];
             const typeface = lineFontWeight === 'bold' ? boldTypeface : regularTypeface;
-            const lineFont = typeface ? Skia.Font(typeface, lineFontSize) : null;
+            const lineFont = typeface && lineFontSize ? Skia.Font(typeface, lineFontSize) : null;
             const fontMetrics = lineFont?.getMetrics();
             const lineWidth = lineFont?.getGlyphWidths(lineFont.getGlyphIDs(line)).reduce((totalWidth, width) => totalWidth + width, 0) ?? 0;
             const customLineHeight = lineLineHeight ? lineLineHeight * (lineFontSize ?? 0) : 0;

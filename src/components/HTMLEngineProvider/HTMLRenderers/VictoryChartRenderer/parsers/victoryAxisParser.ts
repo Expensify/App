@@ -23,7 +23,7 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
     const labelColor = style?.tickLabels?.fill !== undefined ? String(style.tickLabels.fill) : undefined;
     const labelOffset = style?.tickLabels?.padding !== undefined ? Number(style.tickLabels.padding) : undefined;
     const fontSize = style?.tickLabels?.fontSize !== undefined ? Number(style.tickLabels.fontSize) : undefined;
-    const font = typeface ? Skia.Font(typeface, fontSize) : null;
+    const font = typeface && fontSize ? Skia.Font(typeface, fontSize) : null;
 
     if (isDependentAxis) {
         return isHorizontal
