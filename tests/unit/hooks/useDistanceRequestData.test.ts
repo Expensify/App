@@ -42,6 +42,7 @@ const baseParams: Params = {
     customUnitRateID: 'rate1',
     transactionID: 'txn1',
     isSplitRequest: false,
+    currentUserAccountID: 1,
 };
 
 const personalParticipant: Participant = {accountID: 1, isPolicyExpenseChat: false};
@@ -74,7 +75,7 @@ describe('useDistanceRequestData', () => {
         result.current([personalParticipant, otherParticipant]);
 
         expect(mockSetSplitShares).toHaveBeenCalledTimes(1);
-        expect(mockSetSplitShares).toHaveBeenCalledWith(baseParams.transaction, 300, 'USD', [1, 2]);
+        expect(mockSetSplitShares).toHaveBeenCalledWith(baseParams.transaction, 300, 'USD', [1, 2], 1);
     });
 
     it('skips setSplitShares for split requests against a policy expense chat', () => {
