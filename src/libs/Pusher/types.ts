@@ -51,6 +51,12 @@ type ConciergeDraftEvent = {
     startedAt?: string;
     terminalReason?: string;
     updatedAt?: string;
+    /**
+     * Persona accountID the streamed draft should be attributed to — Concierge for Concierge
+     * runs, the custom agent's accountID for agent runs. Optional for backward compatibility;
+     * absent payloads default to Concierge.
+     */
+    actorAccountID?: number;
 };
 
 type PusherEventMap = {
@@ -121,7 +127,6 @@ export type {
     UserIsTypingEvent,
     UserIsLeavingRoomEvent,
     PingPongEvent,
-    ConciergeReasoningEvent,
     ConciergeDraftEvent,
     EventData,
     EventCallbackError,

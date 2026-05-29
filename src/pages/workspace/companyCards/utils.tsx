@@ -106,7 +106,7 @@ function getExportMenuItem(
                 title: isDefaultTitle ? defaultCard : selectedAccount?.name,
                 exportType,
                 shouldShowMenuItem,
-                exportPageLink: createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.path, basePath),
+                exportPageLink: createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.path, backTo ?? basePath),
                 data: resultData.map((card) => ({
                     value: card.id,
                     text: card.name,
@@ -343,7 +343,7 @@ function getExportMenuItem(
                 title,
                 exportType,
                 shouldShowMenuItem,
-                exportPageLink: createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID)),
+                exportPageLink: createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.path),
                 data: resultData.map((card) => ({
                     value: card.id,
                     text: card.name,

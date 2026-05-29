@@ -63,12 +63,12 @@ import {
     isExpiredCard,
     isMatchingCard,
     isPersonalCard,
+    isUkEuExpensifyCard,
     lastFourNumbersFromCardName,
     maskCardNumber,
     sortCardsByCardholderName,
     splitCardFeedWithDomainID,
     splitMaskedCardNumber,
-    supportsPINManagementFeatures,
 } from '@src/libs/CardUtils';
 import type {CardProgramKey} from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
@@ -1164,7 +1164,7 @@ describe('CardUtils', () => {
                     },
                 },
             };
-            expect(buildFeedKeysWithAssignedCards(allWorkspaceCards as unknown as OnyxCollection<WorkspaceCardsList>, [CONST.BETAS.CSV_CARD_IMPORT])).toStrictEqual({
+            expect(buildFeedKeysWithAssignedCards(allWorkspaceCards as unknown as OnyxCollection<WorkspaceCardsList>)).toStrictEqual({
                 [`12345_${csvFeed}`]: true,
             });
         });
@@ -2342,7 +2342,7 @@ describe('CardUtils', () => {
             expect(description).toBe(CONST.EXPENSIFY_CARD.BANK);
         });
 
-        it('should return Central invoicing for travel invoicing cards', () => {
+        it('should return Travel invoicing for travel invoicing cards', () => {
             const card: Card = {
                 accountID: 18439984,
                 bank: CONST.EXPENSIFY_CARD.BANK,
@@ -2359,7 +2359,7 @@ describe('CardUtils', () => {
                 } as Card['nameValuePairs'],
             };
             const description = getCardDescription(card, translateLocal);
-            expect(description).toBe('Central invoicing');
+            expect(description).toBe('Travel invoicing');
         });
 
         it('should return the correct card description for personal card', () => {
@@ -2381,7 +2381,7 @@ describe('CardUtils', () => {
     });
 
     describe('getCardDescriptionForSearchTable', () => {
-        it('should return Central invoicing for travel invoicing cards when translate is provided', () => {
+        it('should return Travel invoicing for travel invoicing cards when translate is provided', () => {
             const card: Card = {
                 accountID: 18439984,
                 bank: CONST.EXPENSIFY_CARD.BANK,
@@ -2398,7 +2398,7 @@ describe('CardUtils', () => {
                 } as Card['nameValuePairs'],
             };
             const description = getCardDescriptionForSearchTable(card, translateLocal, 'John Doe');
-            expect(description).toBe('Central invoicing');
+            expect(description).toBe('Travel invoicing');
         });
 
         it('should return normal description for non-travel Expensify cards', () => {
@@ -2768,6 +2768,83 @@ describe('CardUtils', () => {
             expect(result).toHaveLength(1);
             expect(result.at(0)?.cardID).toBe(2);
         });
+
+        it('should exclude pending-issue (STATE_NOT_ISSUED) Expensify cards from the displayable list', () => {
+            const cardList: CardList = {
+                1: {
+                    accountID: 1,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardID: 1,
+                    cardName: 'Pending Issue Expensify Card',
+                    domainName: 'test.com',
+                    fraud: 'none',
+                    lastFourPAN: '1234',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED,
+                },
+            };
+            const result = getDisplayableExpensifyCards(cardList);
+            expect(result).toEqual([]);
+        });
+
+        it('should exclude pending-activation (NOT_ACTIVATED) Expensify cards from the displayable list', () => {
+            const cardList: CardList = {
+                1: {
+                    accountID: 1,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardID: 1,
+                    cardName: 'Pending Activation Expensify Card',
+                    domainName: 'test.com',
+                    fraud: 'none',
+                    lastFourPAN: '1234',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED,
+                },
+            };
+            const result = getDisplayableExpensifyCards(cardList);
+            expect(result).toEqual([]);
+        });
+
+        it('should include OPEN Expensify cards with a normal limit', () => {
+            const cardList: CardList = {
+                1: {
+                    accountID: 1,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardID: 1,
+                    cardName: 'Open Expensify Card',
+                    domainName: 'test.com',
+                    fraud: 'none',
+                    lastFourPAN: '1234',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                },
+            };
+            const result = getDisplayableExpensifyCards(cardList);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.cardID).toBe(1);
+        });
+
+        it('should exclude STATE_DEACTIVATED Expensify cards from the displayable list', () => {
+            const cardList: CardList = {
+                1: {
+                    accountID: 1,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardID: 1,
+                    cardName: 'Deactivated Expensify Card',
+                    domainName: 'test.com',
+                    fraud: 'none',
+                    lastFourPAN: '1234',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED,
+                },
+            };
+            const result = getDisplayableExpensifyCards(cardList);
+            expect(result).toEqual([]);
+        });
     });
 
     describe('PersonalCard (isPersonalCard)', () => {
@@ -2846,7 +2923,7 @@ describe('CardUtils', () => {
         });
     });
 
-    describe('supportsPINManagementFeatures', () => {
+    describe('isUkEuExpensifyCard', () => {
         it('should return true for UK/EU Expensify Card with feedCountry GB', () => {
             const card: Card = {
                 accountID: 18439984,
@@ -2863,7 +2940,7 @@ describe('CardUtils', () => {
                     feedCountry: CONST.COUNTRY.GB,
                 } as Card['nameValuePairs'],
             };
-            expect(supportsPINManagementFeatures(card)).toBe(true);
+            expect(isUkEuExpensifyCard(card)).toBe(true);
         });
 
         it('should return false for US Expensify Card (no feedCountry)', () => {
@@ -2879,7 +2956,7 @@ describe('CardUtils', () => {
                 lastUpdated: '',
                 state: 2,
             };
-            expect(supportsPINManagementFeatures(card)).toBe(false);
+            expect(isUkEuExpensifyCard(card)).toBe(false);
         });
 
         it('should return false for US Expensify Card (feedCountry US)', () => {
@@ -2898,11 +2975,11 @@ describe('CardUtils', () => {
                     feedCountry: CONST.COUNTRY.US,
                 } as Card['nameValuePairs'],
             };
-            expect(supportsPINManagementFeatures(card)).toBe(false);
+            expect(isUkEuExpensifyCard(card)).toBe(false);
         });
 
         it('should return false for undefined card', () => {
-            expect(supportsPINManagementFeatures(undefined)).toBe(false);
+            expect(isUkEuExpensifyCard(undefined)).toBe(false);
         });
 
         it('should return false for non-Expensify Card even with feedCountry GB', () => {
@@ -2921,7 +2998,7 @@ describe('CardUtils', () => {
                     feedCountry: CONST.COUNTRY.GB,
                 } as Card['nameValuePairs'],
             };
-            expect(supportsPINManagementFeatures(card)).toBe(false);
+            expect(isUkEuExpensifyCard(card)).toBe(false);
         });
     });
 
@@ -2983,8 +3060,8 @@ describe('CardUtils', () => {
 
     describe('getCompanyCardDescription', () => {
         const mockTranslate = ((key: string) => {
-            if (key === 'cardTransactions.centralInvoicing') {
-                return 'Central invoicing';
+            if (key === 'cardTransactions.travelInvoicing') {
+                return 'Travel invoicing';
             }
             return key;
         }) as LocalizedTranslate;
@@ -3025,7 +3102,7 @@ describe('CardUtils', () => {
             expect(description).toBe('Test');
         });
 
-        it('should return "Central invoicing" for a travel card', () => {
+        it('should return "Travel invoicing" for a travel card', () => {
             const travelCardList = {
                 '99999': {
                     cardID: 99999,
@@ -3036,7 +3113,7 @@ describe('CardUtils', () => {
                 },
             } as unknown as CardList;
             const description = getCompanyCardDescription(mockTranslate, 'Expensify Card - 6909', 99999, travelCardList);
-            expect(description).toBe('Central invoicing');
+            expect(description).toBe('Travel invoicing');
         });
     });
 
@@ -3441,10 +3518,12 @@ describe('CardUtils', () => {
             } as unknown as CardList;
 
             const ids = Object.values(filterAllInactiveCards(cards, true)).map((c) => c.cardID);
-            expect(ids).toEqual(expect.arrayContaining([1, 3, 5]));
+            // All suspended cards are kept when includeDeactivated is true (admins can view/edit them)
+            expect(ids).toEqual(expect.arrayContaining([1, 5, 6]));
             expect(ids).not.toContain(2);
+            // STATE_DEACTIVATED cards are always excluded (server rejects limit updates with 403)
+            expect(ids).not.toContain(3);
             expect(ids).not.toContain(4);
-            expect(ids).not.toContain(6);
             expect(ids).not.toContain(7);
             expect(ids).not.toContain(8);
         });
@@ -3495,11 +3574,13 @@ describe('CardUtils', () => {
 
             const result = filterInactiveCardsForWorkspace(cardsList);
             expect(result.active).toBeDefined();
-            expect(result.adminZeroedDeactivated).toBeDefined();
+            // All suspended cards are kept so admins can view and edit them
             expect(result.adminZeroedSuspended).toBeDefined();
+            expect(result.nonZeroSuspended).toBeDefined();
             expect(result.closed).toBeUndefined();
+            // STATE_DEACTIVATED cards are always excluded (server rejects limit updates with 403)
+            expect(result.adminZeroedDeactivated).toBeUndefined();
             expect(result.deactivatedNonZero).toBeUndefined();
-            expect(result.nonZeroSuspended).toBeUndefined();
             expect(result.deactivatedNoCustomFlag).toBeUndefined();
             expect(result.cardList).toBeDefined();
         });
