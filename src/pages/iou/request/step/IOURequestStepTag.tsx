@@ -55,7 +55,7 @@ function IOURequestStepTag({
     const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.participants?.at(0)?.reportID)}`);
     const {policy: policyFromTransaction} = usePolicyForTransaction({
         transaction,
-        reportPolicyID: getIOURequestPolicyID(transaction, report ?? participantReport),
+        reportPolicyID: getIOURequestPolicyID(transaction, report?.policyID ? report : participantReport),
         action,
         iouType,
         isPerDiemRequest: isPerDiemRequest(transaction),
