@@ -345,7 +345,7 @@ const ONYXKEYS = {
     /** Object containing Onfido SDK Token + applicantID */
     RAM_ONLY_WALLET_ONFIDO: 'walletOnfido',
 
-    /** Stores information whether wallet data is stale and needs to be refetched */
+    /** Stores information whether wallet data is stale */
     RAM_ONLY_HAS_FRESH_WALLET_DATA: 'hasFreshWalletData',
 
     /** Stores information about additional details form entry */
