@@ -29,7 +29,7 @@ import {
 } from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
-import CONST from '@src/CONST';
+import CONST, {SUBMIT_FEATURE_IDS} from '@src/CONST';
 import {
     enableAutoApprovalOptions,
     enableCompanyCards,
@@ -172,8 +172,11 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }
 
         if (canAccessSubmitWorkspaceFeatures) {
-            const isPerDiemUpgrade = feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id;
-            const targetType = isPerDiemUpgrade ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
+            const isCorporateUpgrade =
+                feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id ||
+                feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id ||
+                feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.id;
+            const targetType = isCorporateUpgrade ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
             upgradeSubmit(policy, targetType, email, accountID, priorFirstDayFreeTrial, priorLastDayFreeTrial);
             return;
         }
@@ -303,19 +306,31 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         categoryId,
     ]);
 
-    const confirmUpgradeOnBlurRef = useRef({isUpgraded, canPerformUpgrade, confirmUpgrade});
+    const confirmUpgradeOnBlurRef = useRef({isUpgraded, canPerformUpgrade, upgradingFromSubmit, featureID: feature?.id, confirmUpgrade});
 
     useEffect(() => {
-        confirmUpgradeOnBlurRef.current = {isUpgraded, canPerformUpgrade, confirmUpgrade};
+        confirmUpgradeOnBlurRef.current = {isUpgraded, canPerformUpgrade, upgradingFromSubmit, featureID: feature?.id, confirmUpgrade};
     });
 
     useFocusEffect(
         useCallback(() => {
             return () => {
-                const {isUpgraded: wasUpgraded, canPerformUpgrade: couldPerformUpgrade, confirmUpgrade: confirmUpgradeOnBlur} = confirmUpgradeOnBlurRef.current;
+                const {
+                    isUpgraded: wasUpgraded,
+                    canPerformUpgrade: couldPerformUpgrade,
+                    upgradingFromSubmit: wasUpgradingFromSubmit,
+                    featureID,
+                    confirmUpgrade: confirmUpgradeOnBlur,
+                } = confirmUpgradeOnBlurRef.current;
                 if (!wasUpgraded || !couldPerformUpgrade) {
                     return;
                 }
+
+                // UpgradeSubmit enables Collect-tier features on the backend; skip the redundant client-side enable.
+                if (wasUpgradingFromSubmit && featureID && SUBMIT_FEATURE_IDS.has(featureID)) {
+                    return;
+                }
+
                 confirmUpgradeOnBlur();
             };
         }, []),

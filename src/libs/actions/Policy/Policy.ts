@@ -5747,6 +5747,10 @@ function upgradeSubmit(
     priorLastDayFreeTrial: string | undefined,
     reportID?: string | undefined,
 ) {
+    if (!policy) {
+        return;
+    }
+
     type UpgradeSubmitOnyxKey = typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL | typeof ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL;
 
     const now = new Date();
@@ -5856,7 +5860,7 @@ function upgradeSubmit(
             value: {
                 isPendingUpgrade: false,
                 type: policy?.type,
-                canDowngrade: true,
+                canDowngrade: policy?.canDowngrade ?? null,
                 areCompanyCardsEnabled: policy?.areCompanyCardsEnabled,
                 pendingFields: {type: null},
                 reimbursementChoice: policy?.reimbursementChoice,
