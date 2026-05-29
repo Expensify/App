@@ -133,19 +133,32 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             });
         }
 
+        // Selected options that aren't in the visible Recents / Contacts sections (e.g. name-only
+        // attendees for the attendee filter). Show them in a dedicated section so they remain visible
+        // when selected. The current user is excluded since they already have a dedicated section above.
+        const visibleLogins = new Set([...chatOptions.personalDetails.map((detail) => detail.login), ...chatOptions.recentReports.map((report) => report.login)].filter(Boolean));
+        const extraSelectedOptions = selectedOptions.filter((option) => option.accountID !== currentUserAccountID && !visibleLogins.has(option.login));
+        if (extraSelectedOptions.length > 0) {
+            newSections.push({
+                title: '',
+                data: extraSelectedOptions,
+                sectionIndex: 1,
+            });
+        }
+
         newSections.push({
             title: '',
             data: chatOptions.recentReports,
-            sectionIndex: 1,
+            sectionIndex: 2,
         });
 
         newSections.push({
             title: '',
             data: chatOptions.personalDetails,
-            sectionIndex: 2,
+            sectionIndex: 3,
         });
 
-        const noResultsFound = chatOptions.personalDetails.length === 0 && chatOptions.recentReports.length === 0 && !currentUserOptionToShow;
+        const noResultsFound = chatOptions.personalDetails.length === 0 && chatOptions.recentReports.length === 0 && !currentUserOptionToShow && extraSelectedOptions.length === 0;
         const message = noResultsFound ? translate('common.noResultsFound') : undefined;
 
         return {
