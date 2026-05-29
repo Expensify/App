@@ -343,12 +343,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
 
+    const hasUnreportedSelectedTransaction = useMemo(
+        () => Object.values(selectedTransactions).some((transaction) => transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID),
+        [selectedTransactions],
+    );
+
     const selectedTransactionReportIDs = useMemo(
         () => [
             ...new Set(
                 Object.values(selectedTransactions)
                     .map((transaction) => transaction.reportID)
-                    .filter((reportID) => reportID !== undefined),
+                    .filter((reportID): reportID is string => reportID !== undefined && reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && reportID !== CONST.REPORT.TRASH_REPORT_ID),
             ),
         ],
         [selectedTransactions],
@@ -1048,7 +1053,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const includeReportLevelExport = ((isExpenseReportType || typeInvoice) && areFullReportsSelected) || (typeExpense && !isExpenseReportType && isAllOneTransactionReport);
 
             const policy = selectedPolicyIDs.length === 1 ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyIDs.at(0)}`] : undefined;
-            const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy, includeReportLevelExport);
+            const exportTemplates = getExportTemplates(
+                integrationsExportTemplates ?? [],
+                csvExportLayouts ?? {},
+                translate,
+                policy,
+                includeReportLevelExport,
+                !hasUnreportedSelectedTransaction,
+            );
 
             const exportOptions: PopoverMenuItem[] = [];
 
@@ -1668,6 +1680,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         searchResults,
         currentSearchResults?.data,
         selectedTransactionReportIDs,
+        hasUnreportedSelectedTransaction,
         selectedPolicyIDs,
         policies,
         allReportActions,

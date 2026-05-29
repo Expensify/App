@@ -124,6 +124,7 @@ function useSelectedTransactionsActions({
         }
         return acc;
     }, [] as Transaction[]);
+    const hasUnreportedSelectedTransaction = selectedTransactionsList.some((transaction) => transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
 
     const knownOwnerIDs = new Set<number>();
     let hasUnknownOwner = false;
@@ -400,7 +401,14 @@ function useSelectedTransactionsActions({
             const includeReportLevelExport = allTransactionsLength === selectedTransactionIDs.length;
 
             // If the user has any custom integration export templates, add them as export options
-            const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy, includeReportLevelExport);
+            const exportTemplates = getExportTemplates(
+                integrationsExportTemplates ?? [],
+                csvExportLayouts ?? {},
+                translate,
+                policy,
+                includeReportLevelExport,
+                !hasUnreportedSelectedTransaction,
+            );
             const standardTemplateNames = new Set<string>([CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT]);
             for (const template of exportTemplates) {
                 const isStandardTemplate = standardTemplateNames.has(template.templateName);
