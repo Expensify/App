@@ -1,5 +1,6 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useEffect, useRef} from 'react';
+import Onyx from 'react-native-onyx';
 import {useInitialURLActions, useInitialURLState} from '@components/InitialURLContextProvider';
 import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -18,6 +19,7 @@ import {getReportIDFromLink} from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getSearchParamFromUrl} from '@libs/Url';
+import {getBaseTheme, getContrastTheme} from '@styles/theme/utils';
 import {openAgentsPage} from '@userActions/Agent';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
@@ -60,6 +62,10 @@ function AuthScreensInitHandler() {
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
+    const [highContrastIntent] = useOnyx(ONYXKEYS.SIGN_IN_HIGH_CONTRAST_INTENT);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const wasLoadingApp = useRef<boolean | undefined>(undefined);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
@@ -156,6 +162,24 @@ function AuthScreensInitHandler() {
         // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // When a logged-out user enabled high contrast on the sign-in page, apply it to whatever base theme
+    // the server returns once they sign in. OpenApp merges the server's nvp_preferredTheme before flipping
+    // IS_LOADING_APP back to false, so the true -> false edge is when the server base theme is available.
+    // The intent is a one-shot bridge across the auth boundary, so it is cleared after reconciling.
+    useEffect(() => {
+        const justFinishedLoading = !!wasLoadingApp.current && !isLoadingApp;
+        wasLoadingApp.current = isLoadingApp;
+        if (!justFinishedLoading || !highContrastIntent || !session?.authToken) {
+            return;
+        }
+        const currentTheme = preferredTheme ?? CONST.THEME.DEFAULT;
+        const targetTheme = getContrastTheme(getBaseTheme(currentTheme));
+        if (currentTheme !== targetTheme) {
+            User.updateTheme(targetTheme, false);
+        }
+        Onyx.set(ONYXKEYS.SIGN_IN_HIGH_CONTRAST_INTENT, null);
+    }, [isLoadingApp, highContrastIntent, preferredTheme, session?.authToken]);
 
     return null;
 }

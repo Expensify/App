@@ -2896,6 +2896,7 @@ ${date} の ${merchant} への ${amount}`,
             },
         },
         highContrastMode: 'ハイコントラストモード',
+        enableHighContrast: 'ハイコントラストを有効にする',
         chooseThemeBelowOrSync: '以下からテーマを選択するか、デバイスの設定と同期してください。',
     },
     termsOfUse: {

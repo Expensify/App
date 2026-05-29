@@ -68,6 +68,15 @@ import {showReportActionNotification} from './Report';
 import {resendValidateCode as sessionResendValidateCode} from './Session';
 import redirectToSignIn from './SignInRedirect';
 
+// `currentUserAccountID` is only used in actions, not during render. So `Onyx.connectWithoutView` is appropriate.
+let currentUserAccountID: number | undefined;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SESSION,
+    callback: (value) => {
+        currentUserAccountID = value?.accountID;
+    },
+});
+
 type DomainOnyxUpdate =
     | OnyxUpdate<`${typeof ONYXKEYS.COLLECTION.DOMAIN}${string}`>
     | OnyxUpdate<`${typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${string}`>
@@ -1214,6 +1223,12 @@ function setContactMethodAsDefault(
 }
 
 function updateTheme(theme: ValueOf<typeof CONST.THEME>, shouldGoBack = true) {
+    // If the user is not signed in (e.g. toggling high contrast from the sign-in page), persist the preference locally only.
+    if (!currentUserAccountID) {
+        Onyx.set(ONYXKEYS.PREFERRED_THEME, theme);
+        return;
+    }
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PREFERRED_THEME>> = [
         {
             onyxMethod: Onyx.METHOD.SET,

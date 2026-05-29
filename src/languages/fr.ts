@@ -2932,6 +2932,7 @@ ${amount} pour ${merchant} - ${date}`,
             },
         },
         highContrastMode: 'Mode contraste élevé',
+        enableHighContrast: 'Activer le contraste élevé',
         chooseThemeBelowOrSync: 'Choisissez un thème ci-dessous ou synchronisez avec les réglages de votre appareil.',
     },
     termsOfUse: {
