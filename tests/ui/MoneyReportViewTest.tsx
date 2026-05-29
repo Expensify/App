@@ -249,7 +249,7 @@ describe('MoneyReportView reimbursable/non-reimbursable breakdown rows', () => {
             name: 'Policy',
             outputCurrency: CONST.CURRENCY.USD,
             areReportFieldsEnabled: false,
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            // eslint-disable-next-line @typescript-eslint/naming-convention -- the field key uses snake_case to match the backend API format
             fieldList: {expensify_field_text_1: reportField},
         } as unknown as OnyxTypes.Policy;
 
