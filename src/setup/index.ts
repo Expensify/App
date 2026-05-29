@@ -8,6 +8,7 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import addUtilsToWindow from './addUtilsToWindow';
+import installJsonParserBenchmark from './jsonParserBenchmark';
 import platformSetup from './platformSetup';
 import telemetry from './telemetry';
 
@@ -15,6 +16,8 @@ const enableDevTools = Config?.USE_REDUX_DEVTOOLS ? Config.USE_REDUX_DEVTOOLS ==
 
 export default function () {
     telemetry();
+
+    installJsonParserBenchmark();
 
     toSortedPolyfill.shim();
 

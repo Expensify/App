@@ -47,6 +47,132 @@ index 87d163f..1971cd2 100644
 -    getCallbackToStateMapping,
  };
  exports.default = OnyxUtils;
+diff --git a/node_modules/react-native-onyx/dist/storage/providers/SQLiteProvider.js b/node_modules/react-native-onyx/dist/storage/providers/SQLiteProvider.js
+index 2a5ebe5..6b7f123 100644
+--- a/node_modules/react-native-onyx/dist/storage/providers/SQLiteProvider.js
++++ b/node_modules/react-native-onyx/dist/storage/providers/SQLiteProvider.js
+@@ -7,6 +7,35 @@ const react_native_nitro_sqlite_1 = require("react-native-nitro-sqlite");
+ const react_native_device_info_1 = require("react-native-device-info");
+ const utils_1 = __importDefault(require("../../utils"));
+ const DB_NAME = 'OnyxDB';
++// Benchmark for https://github.com/Expensify/App/issues/89652 — accumulate JSON.stringify cost during
++// the startup window. App code reads `__onyxStringifyStats` and flips `__onyxStringifyActive` to false
++// when SPAN_APP_STARTUP ends to freeze the totals before forwarding to Sentry.
++if (typeof globalThis !== 'undefined') {
++    if (!globalThis.__onyxStringifyStats) {
++        globalThis.__onyxStringifyStats = {totalMs: 0, callCount: 0, totalBytes: 0, maxMs: 0, maxBytes: 0};
++    }
++    if (typeof globalThis.__onyxStringifyActive === 'undefined') {
++        globalThis.__onyxStringifyActive = true;
++    }
++}
++function __benchmarkStringify(value, replacer) {
++    if (typeof globalThis === 'undefined' || !globalThis.__onyxStringifyActive) {
++        return replacer ? JSON.stringify(value, replacer) : JSON.stringify(value);
++    }
++    const __start = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
++    const __result = replacer ? JSON.stringify(value, replacer) : JSON.stringify(value);
++    const __ms = ((typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now()) - __start;
++    const __bytes = __result ? __result.length : 0;
++    const __stats = globalThis.__onyxStringifyStats;
++    __stats.totalMs += __ms;
++    __stats.callCount += 1;
++    __stats.totalBytes += __bytes;
++    if (__ms > __stats.maxMs) {
++        __stats.maxMs = __ms;
++        __stats.maxBytes = __bytes;
++    }
++    return __result;
++}
+ /**
+  * Prevents the stringifying of the object markers.
+  */
+@@ -21,7 +50,7 @@ function objectMarkRemover(key, value) {
+ function generateJSONReplaceSQLQueries(key, patches) {
+     const queries = patches.map(([pathArray, value]) => {
+         const jsonPath = `$.${pathArray.join('.')}`;
+-        return [jsonPath, JSON.stringify(value), key];
++        return [jsonPath, __benchmarkStringify(value), key];
+     });
+     return queries;
+ }
+@@ -74,14 +103,14 @@ const provider = {
+         if (!provider.store) {
+             throw new Error('Store is not initialized!');
+         }
+-        return provider.store.executeAsync('REPLACE INTO keyvaluepairs (record_key, valueJSON) VALUES (?, ?);', [key, JSON.stringify(value)]).then(() => undefined);
++        return provider.store.executeAsync('REPLACE INTO keyvaluepairs (record_key, valueJSON) VALUES (?, ?);', [key, __benchmarkStringify(value)]).then(() => undefined);
+     },
+     multiSet(pairs) {
+         if (!provider.store) {
+             throw new Error('Store is not initialized!');
+         }
+         const query = 'REPLACE INTO keyvaluepairs (record_key, valueJSON) VALUES (?, ?);';
+-        const params = pairs.map((pair) => [pair[0], JSON.stringify(pair[1] === undefined ? null : pair[1])]);
++        const params = pairs.map((pair) => [pair[0], __benchmarkStringify(pair[1] === undefined ? null : pair[1])]);
+         if (utils_1.default.isEmptyObject(params)) {
+             return Promise.resolve();
+         }
+@@ -111,7 +140,7 @@ const provider = {
+         const replaceQueryArguments = [];
+         const nonNullishPairs = pairs.filter((pair) => pair[1] !== undefined);
+         for (const [key, value, replaceNullPatches] of nonNullishPairs) {
+-            const changeWithoutMarkers = JSON.stringify(value, objectMarkRemover);
++            const changeWithoutMarkers = __benchmarkStringify(value, objectMarkRemover);
+             patchQueryArguments.push([key, changeWithoutMarkers]);
+             const patches = replaceNullPatches !== null && replaceNullPatches !== void 0 ? replaceNullPatches : [];
+             if (patches.length > 0) {
+@@ -147,8 +176,48 @@ const provider = {
+         }
+         return provider.store.executeAsync('SELECT record_key, valueJSON FROM keyvaluepairs;').then(({ rows }) => {
+             // eslint-disable-next-line no-underscore-dangle
+-            const result = rows === null || rows === void 0 ? void 0 : rows._array.map((row) => [row.record_key, JSON.parse(row.valueJSON)]);
+-            return (result !== null && result !== void 0 ? result : []);
++            const rawRows = rows === null || rows === void 0 ? void 0 : rows._array;
++            // Benchmark for https://github.com/Expensify/App/issues/89652 — time the JSON.parse loop only
++            // (not the SQL query) during Onyx's initial bulk hydration. Stash totals on a global so app
++            // code can forward them to Sentry. No-op if rows are missing.
++            if (!rawRows) {
++                return [];
++            }
++            const __parseStart = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
++            let __totalBytes = 0;
++            let __maxRowMs = 0;
++            let __maxRowBytes = 0;
++            let __maxRowKey = '';
++            const result = rawRows.map((row) => {
++                const __bytes = (row.valueJSON && row.valueJSON.length) || 0;
++                __totalBytes += __bytes;
++                const __rowStart = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
++                const __parsed = JSON.parse(row.valueJSON);
++                const __rowMs = ((typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now()) - __rowStart;
++                if (__rowMs > __maxRowMs) {
++                    __maxRowMs = __rowMs;
++                    __maxRowBytes = __bytes;
++                    __maxRowKey = row.record_key || '';
++                }
++                return [row.record_key, __parsed];
++            });
++            const __parseEnd = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
++            const __stats = {totalMs: __parseEnd - __parseStart, rowCount: rawRows.length, totalBytes: __totalBytes, maxRowMs: __maxRowMs, maxRowBytes: __maxRowBytes, maxRowKey: __maxRowKey};
++            // Only record the first invocation — Onyx.init's bulk hydration is the one we care about.
++            if (typeof globalThis !== 'undefined' && !globalThis.__onyxInitialParse) {
++                globalThis.__onyxInitialParse = __stats;
++                if (typeof globalThis.__onOnyxInitialParse === 'function') {
++                    try { globalThis.__onOnyxInitialParse(__stats); } catch (e) { /* swallow */ }
++                }
++                // Native-parser benchmark hook — app code installs `__benchmarkOnyxNativeParse` to
++                // re-parse the same JSON strings with a non-Hermes parser (e.g. simdjson via
++                // react-native-fast-json) and forward end-to-end timings to Sentry. Fired once,
++                // immediately after Hermes parse, on the same raw row data still resident in memory.
++                if (typeof globalThis.__benchmarkOnyxNativeParse === 'function') {
++                    try { globalThis.__benchmarkOnyxNativeParse(rawRows); } catch (e) { /* swallow */ }
++                }
++            }
++            return result;
+         });
+     },
+     removeItem(key) {
 diff --git a/node_modules/react-native-onyx/dist/useOnyx.js b/node_modules/react-native-onyx/dist/useOnyx.js
 index 9213cff..2e48c73 100644
 --- a/node_modules/react-native-onyx/dist/useOnyx.js

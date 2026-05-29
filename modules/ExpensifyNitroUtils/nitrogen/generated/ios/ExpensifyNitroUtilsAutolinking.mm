@@ -12,6 +12,7 @@
 
 #include "HybridContactsModuleSpecSwift.hpp"
 #include "HybridAppStartTimeModuleSpecSwift.hpp"
+#include "HybridJsonParser.hpp"
 
 @interface ExpensifyNitroUtilsAutolinking : NSObject
 @end
@@ -34,6 +35,15 @@
     []() -> std::shared_ptr<HybridObject> {
       std::shared_ptr<HybridAppStartTimeModuleSpec> hybridObject = ExpensifyNitroUtils::ExpensifyNitroUtilsAutolinking::createAppStartTimeModule();
       return hybridObject;
+    }
+  );
+  HybridObjectRegistry::registerHybridObjectConstructor(
+    "JsonParser",
+    []() -> std::shared_ptr<HybridObject> {
+      static_assert(std::is_default_constructible_v<HybridJsonParser>,
+                    "The HybridObject \"HybridJsonParser\" is not default-constructible! "
+                    "Create a public constructor that takes zero arguments to be able to autolink this HybridObject.");
+      return std::make_shared<HybridJsonParser>();
     }
   );
 }

@@ -25,12 +25,19 @@ Pod::Spec.new do |s|
   s.pod_target_xcconfig = {
     "HEADER_SEARCH_PATHS" => [
       "${PODS_ROOT}/RCT-Folly",
+      "$(PODS_TARGET_SRCROOT)/cpp/third_party/glaze/include",
     ],
     "GCC_PREPROCESSOR_DEFINITIONS" => "$(inherited) FOLLY_NO_CONFIG FOLLY_CFG_NO_COROUTINES",
+    "CLANG_CXX_LANGUAGE_STANDARD" => "c++23",
   }
 
   load 'nitrogen/generated/ios/ExpensifyNitroUtils+autolinking.rb'
   add_nitrogen_files(s)
+
+  # Glaze (cpp/third_party/glaze) requires C++23 — override nitrogen's c++20 default.
+  s.pod_target_xcconfig = (s.attributes_hash['pod_target_xcconfig'] || {}).merge({
+    "CLANG_CXX_LANGUAGE_STANDARD" => "c++23",
+  })
 
   install_modules_dependencies(s)
 end
