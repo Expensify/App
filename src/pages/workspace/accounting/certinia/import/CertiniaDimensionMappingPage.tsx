@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
@@ -58,33 +58,26 @@ function CertiniaDimensionMappingPage({
     const currentValue = dimensionKey ? coding?.[dimensionKey] : undefined;
     const selectedValue = currentValue ?? CONST.CERTINIA_MAPPING_VALUE.DEFAULT;
 
-    const inputSectionData: MappingListItem[] = useMemo(
-        () =>
-            MAPPING_OPTIONS.map((mappingValue) => {
-                const {title, subtitle} = MAPPING_OPTION_LABELS[mappingValue];
-                return {
-                    text: translate(title),
-                    alternateText: translate(subtitle),
-                    keyForList: mappingValue,
-                    isSelected: selectedValue === mappingValue,
-                    value: mappingValue,
-                };
-            }),
-        [selectedValue, translate],
-    );
+    const inputSectionData: MappingListItem[] = MAPPING_OPTIONS.map((mappingValue) => {
+        const {title, subtitle} = MAPPING_OPTION_LABELS[mappingValue];
+        return {
+            text: translate(title),
+            alternateText: translate(subtitle),
+            keyForList: mappingValue,
+            isSelected: selectedValue === mappingValue,
+            value: mappingValue,
+        };
+    });
 
-    const updateMapping = useCallback(
-        ({value}: MappingListItem) => {
-            if (!policyID || !dimensionKey || value === selectedValue) {
-                Navigation.goBack(ROUTES.POLICY_ACCOUNTING_CERTINIA_IMPORT.getRoute(policyID));
-                return;
-            }
-
-            updateFinancialForceDimensionMapping(policyID, dimensionKey, value, currentValue ?? null);
+    const updateMapping = ({value}: MappingListItem) => {
+        if (!policyID || !dimensionKey || value === selectedValue) {
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_CERTINIA_IMPORT.getRoute(policyID));
-        },
-        [currentValue, dimensionKey, policyID, selectedValue],
-    );
+            return;
+        }
+
+        updateFinancialForceDimensionMapping(policyID, dimensionKey, value, currentValue ?? null);
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_CERTINIA_IMPORT.getRoute(policyID));
+    };
 
     return (
         <SelectionScreen
