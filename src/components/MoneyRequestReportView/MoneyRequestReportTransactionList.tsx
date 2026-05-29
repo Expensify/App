@@ -14,7 +14,7 @@ import Modal from '@components/Modal';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {SearchCustomColumnIds, SortOrder} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -62,7 +62,7 @@ import {
 import type {SortableColumnName} from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, getTableMinWidth, hasFlexColumn, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
-import {compareByRBR} from '@libs/TransactionPreviewUtils';
+import {transactionHasRBR} from '@libs/TransactionPreviewUtils';
 import {getTransactionPendingAction, isTransactionPendingDelete, shouldShowExpenseBreakdown} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import isReportOpenInSuperWideRHP from '@navigation/helpers/isReportOpenInSuperWideRHP';
@@ -218,8 +218,8 @@ function MoneyRequestReportTransactionList({
         return hasPendingDeletionTransaction || transactions.some(getTransactionPendingAction);
     }, [hasPendingDeletionTransaction, transactions]);
 
-    const {selectedTransactionIDs} = useSearchStateContext();
-    const {setSelectedTransactions, clearSelectedTransactions} = useSearchActionsContext();
+    const {selectedTransactionIDs} = useSearchSelectionContext();
+    const {setSelectedTransactions, clearSelectedTransactions} = useSearchSelectionActions();
     useHandleSelectionMode(selectedTransactionIDs);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
@@ -302,30 +302,39 @@ function MoneyRequestReportTransactionList({
     const {sortBy, sortOrder} = sortConfig;
     const isDefaultSort = sortBy === CONST.SEARCH.TABLE_COLUMNS.DATE && sortOrder === CONST.SEARCH.SORT_ORDER.ASC;
 
-    // Convert reportActions array to a record keyed by reportActionID for compareByRBR
+    // Convert reportActions array to a record keyed by reportActionID for transactionHasRBR
     const reportActionsMap = useMemo(() => Object.fromEntries(reportActions.map((ra) => [ra.reportActionID, ra])), [reportActions]);
+
+    // Precompute the set of RBR-flagged transaction IDs
+    const rbrTransactionIDs = useMemo(() => {
+        if (!isDefaultSort || !allTransactionViolations) {
+            return null;
+        }
+        const login = currentUserDetails?.login ?? '';
+        const accountID = currentUserDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+        const ids = new Set<string>();
+        for (const transaction of transactions) {
+            const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
+            if (transactionHasRBR(transaction, violations, login, accountID, report, policy, reportActionsMap)) {
+                ids.add(transaction.transactionID);
+            }
+        }
+        return ids;
+    }, [isDefaultSort, allTransactionViolations, currentUserDetails?.login, currentUserDetails?.accountID, transactions, report, policy, reportActionsMap]);
 
     const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
         return [...transactions].sort((a, b) => {
             // When on default sort (Date/ASC), prioritize RBR-flagged transactions
-            if (isDefaultSort && allTransactionViolations) {
-                const rbrComparison = compareByRBR(
-                    a,
-                    b,
-                    allTransactionViolations,
-                    currentUserDetails?.login ?? '',
-                    currentUserDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    report,
-                    policy,
-                    reportActionsMap,
-                );
-                if (rbrComparison !== 0) {
-                    return rbrComparison;
+            if (rbrTransactionIDs) {
+                const aHasRBR = rbrTransactionIDs.has(a.transactionID);
+                const bHasRBR = rbrTransactionIDs.has(b.transactionID);
+                if (aHasRBR !== bHasRBR) {
+                    return aHasRBR ? -1 : 1;
                 }
             }
             return compareValues(getTransactionSortValue(a, sortBy, report, policy), getTransactionSortValue(b, sortBy, report, policy), sortOrder, sortBy, localeCompare, true);
         });
-    }, [sortBy, sortOrder, transactions, localeCompare, report, policy, isDefaultSort, allTransactionViolations, currentUserDetails?.login, currentUserDetails?.accountID, reportActionsMap]);
+    }, [sortBy, sortOrder, transactions, localeCompare, report, policy, rbrTransactionIDs]);
 
     const resolvedTransactions = useMemo(() => resolveTransactionCardFields(sortedTransactions, cardList, translate), [sortedTransactions, cardList, translate]);
 

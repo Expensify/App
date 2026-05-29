@@ -7,6 +7,7 @@ import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -34,9 +35,6 @@ type ReportActionItemParentActionProps = {
     /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine?: boolean;
 
-    /** Position index of the report parent action in the overall report FlatList view */
-    index: number;
-
     /** The id of the report */
 
     reportID: string;
@@ -61,15 +59,6 @@ type ReportActionItemParentActionProps = {
 
     /** Personal details list */
     personalDetails: OnyxEntry<PersonalDetailsList>;
-
-    /** User billing fund ID */
-    userBillingFundID: number | undefined;
-
-    /** Did the user dismiss trying out NewDot? If true, it means they prefer using OldDot */
-    isTryNewDotNVPDismissed: boolean | undefined;
-
-    /** Whether the report is archived */
-    isReportArchived: boolean;
 };
 
 function ReportActionItemParentAction({
@@ -77,15 +66,11 @@ function ReportActionItemParentAction({
     action,
     transactionThreadReport,
     parentReportAction,
-    index = 0,
     shouldHideThreadDividerLine = false,
     shouldDisplayReplyDivider,
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
     personalDetails,
-    userBillingFundID,
-    isTryNewDotNVPDismissed = false,
-    isReportArchived = false,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const ancestors = useAncestors(report, shouldExcludeAncestorReportAction);
@@ -93,6 +78,8 @@ function ReportActionItemParentAction({
     const {isInNarrowPaneModal} = useResponsiveLayout();
     const transactionID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID;
     const [allBetas] = useOnyx(ONYXKEYS.BETAS);
+    const isReportArchived = useReportIsArchived(report?.reportID);
+
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
     const {accountID: currentUserAccountID} = currentUserPersonalDetail;
     const conciergePersonalDetail = personalDetails ? Object.values(personalDetails).find((detail) => detail?.login === CONST.EMAIL.CONCIERGE) : undefined;
@@ -202,14 +189,11 @@ function ReportActionItemParentAction({
                                 action={ancestorReportAction}
                                 displayAsGroup={false}
                                 shouldDisplayNewMarker={ancestor.shouldDisplayNewMarker}
-                                index={index}
                                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                                 isThreadReportParentAction
                                 personalDetails={personalDetails}
                                 linkedTransactionRouteError={linkedTransactionRouteError}
-                                userBillingFundID={userBillingFundID}
-                                isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                             />
                         </OfflineWithFeedback>
                     );
