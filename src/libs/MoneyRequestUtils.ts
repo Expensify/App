@@ -2,6 +2,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Report, Transaction} from '@src/types/onyx';
+import {convertToFrontendAmountAsInteger} from './CurrencyUtils';
 import {isInvoiceReport, isIOUReport} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {isExpenseUnreported} from './TransactionUtils';
@@ -160,6 +161,18 @@ function isValidMoneyRequestAmount(amount: number | undefined, iouType: ValueOf<
 }
 
 /**
+ * Whether a manually entered tax amount exceeds the maximum allowed tax amount (the tax computed from the
+ * selected tax rate and the expense amount). `0` is a valid tax amount.
+ *
+ * @param currentAmount - The entered tax amount, as a frontend string (e.g. "1.50")
+ * @param maxTaxAmount - The maximum allowed tax amount, in the smallest currency units
+ * @param decimals - Number of decimals for the currency
+ */
+function isTaxAmountInvalid(currentAmount: string, maxTaxAmount: number, decimals: number): boolean {
+    return Number.parseFloat(currentAmount) > convertToFrontendAmountAsInteger(Math.abs(maxTaxAmount), decimals);
+}
+
+/**
  * Validates a merchant value according to business rules.
  *
  * @param merchant - The merchant name to validate
@@ -204,5 +217,6 @@ export {
     validatePercentage,
     handleNegativeAmountFlipping,
     isValidMoneyRequestAmount,
+    isTaxAmountInvalid,
     isValidMerchant,
 };

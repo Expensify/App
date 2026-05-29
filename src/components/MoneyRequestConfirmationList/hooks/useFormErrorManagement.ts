@@ -228,6 +228,10 @@ function useFormErrorManagement({
         if (formError === 'violations.missingAttendees') {
             return undefined;
         }
+        // The tax amount error is a parameterized message surfaced inline on the tax amount field, so skip it here.
+        if (formError === 'iou.error.invalidTaxAmount') {
+            return undefined;
+        }
         return formError ? translate(formError) : undefined;
     };
     const errorMessage = computeErrorMessage();
