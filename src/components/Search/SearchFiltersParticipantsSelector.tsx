@@ -136,13 +136,13 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         newSections.push({
             title: '',
             data: chatOptions.recentReports,
-            sectionIndex: 2,
+            sectionIndex: 1,
         });
 
         newSections.push({
             title: '',
             data: chatOptions.personalDetails,
-            sectionIndex: 3,
+            sectionIndex: 2,
         });
 
         const noResultsFound = chatOptions.personalDetails.length === 0 && chatOptions.recentReports.length === 0 && !currentUserOptionToShow;
