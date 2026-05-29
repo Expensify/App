@@ -497,6 +497,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Année précédente',
         nextYear: 'L’an prochain',
         avatar: 'Avatar',
+        agent: 'Agent',
     },
     socials: {
         podcast: 'Suivez-nous sur Podcast',
@@ -2681,6 +2682,8 @@ ${amount} pour ${merchant} - ${date}`,
         genericErrorMessage: 'L’approbateur n’a pas pu être modifié. Veuillez réessayer ou contacter l’assistance.',
         title: 'Définir l’approbateur',
         description: 'Cette personne approuvera les dépenses.',
+        createNewAgent: 'Créer un nouvel agent',
+        createNewAgentDescription: 'Automatisez vos approbations avec l’IA',
     },
     workflowsApprovalLimitPage: {
         title: 'Approbateur',
@@ -2978,7 +2981,7 @@ ${amount} pour ${merchant} - ${date}`,
         phoneOrEmail: 'Téléphone ou e-mail',
         error: {
             agentSignInBlocked:
-                'Les comptes d\u2019agent ne permettent pas de se connecter directement. Pour utiliser un agent, connectez-vous avec votre propre compte et accédez-y via Copilot.',
+                'Les comptes d’agent ne permettent pas de se connecter directement. Pour utiliser un agent, connectez-vous avec votre propre compte et accédez-y via Copilot.',
             invalidFormatEmailLogin: 'L’adresse e-mail saisie est invalide. Veuillez corriger le format et réessayer.',
         },
         cannotGetAccountDetails: 'Impossible de récupérer les détails du compte. Veuillez essayer de vous reconnecter.',

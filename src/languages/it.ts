@@ -497,6 +497,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Anno precedente',
         nextYear: "L'anno prossimo",
         avatar: 'Avatar',
+        agent: 'Agente',
     },
     socials: {
         podcast: 'Seguici su Podcast',
@@ -2669,6 +2670,8 @@ ${amount} per ${merchant} - ${date}`,
         genericErrorMessage: "Non è stato possibile modificare l'approvatore. Riprova o contatta l'assistenza.",
         title: 'Imposta approvatore',
         description: 'Questa persona approverà le spese.',
+        createNewAgent: 'Crea nuovo agente',
+        createNewAgentDescription: 'Automatizza le tue approvazioni con prompt',
     },
     workflowsApprovalLimitPage: {
         title: 'Approvante',

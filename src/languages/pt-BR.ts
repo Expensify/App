@@ -495,6 +495,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Ano anterior',
         nextYear: 'Ano que vem',
         avatar: 'Avatar',
+        agent: 'Agente',
     },
     socials: {
         podcast: 'Siga-nos no Podcast',
@@ -2660,6 +2661,8 @@ ${amount} para ${merchant} - ${date}`,
         genericErrorMessage: 'O aprovador não pôde ser alterado. Tente novamente ou entre em contato com o suporte.',
         title: 'Definir aprovador',
         description: 'Essa pessoa vai aprovar as despesas.',
+        createNewAgent: 'Criar novo agente',
+        createNewAgentDescription: 'Automatize suas aprovações com agilidade',
     },
     workflowsApprovalLimitPage: {
         title: 'Aprovador',

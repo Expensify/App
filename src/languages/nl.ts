@@ -496,6 +496,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Vorig jaar',
         nextYear: 'Volgend jaar',
         avatar: 'Avatar',
+        agent: 'Agent',
     },
     socials: {
         podcast: 'Volg ons op Podcast',
@@ -2666,6 +2667,8 @@ ${amount} voor ${merchant} - ${date}`,
         genericErrorMessage: 'De fiatteur kon niet worden gewijzigd. Probeer het opnieuw of neem contact op met support.',
         title: 'Stel fiatteur in',
         description: 'Deze persoon keurt de declaraties goed.',
+        createNewAgent: 'Nieuwe agent toevoegen',
+        createNewAgentDescription: 'Automatiseer je goedkeuringen met prompt',
     },
     workflowsApprovalLimitPage: {
         title: 'Fiatteur',

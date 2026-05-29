@@ -496,6 +496,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Poprzedni rok',
         nextYear: 'W przyszłym roku',
         avatar: 'Avatar',
+        agent: 'Agent',
     },
     socials: {
         podcast: 'Śledź nas na Podcast',
@@ -2662,6 +2663,8 @@ ${amount} dla ${merchant} - ${date}`,
         genericErrorMessage: 'Nie udało się zmienić osoby zatwierdzającej. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
         title: 'Ustaw zatwierdzającego',
         description: 'Ta osoba będzie zatwierdzać wydatki.',
+        createNewAgent: 'Utwórz nowego agenta',
+        createNewAgentDescription: 'Automatyzuj swoje akceptacje za pomocą promptów',
     },
     workflowsApprovalLimitPage: {
         title: 'Osoba zatwierdzająca',

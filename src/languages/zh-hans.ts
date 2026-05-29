@@ -492,6 +492,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: '上一年',
         nextYear: '明年',
         avatar: '头像',
+        agent: '代理人',
     },
     socials: {
         podcast: '在播客上关注我们',
@@ -2594,6 +2595,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         genericErrorMessage: '无法更改审批人。请重试或联系支持。',
         title: '设置审批人',
         description: '此人将审核并批准这些报销。',
+        createNewAgent: '创建新代理',
+        createNewAgentDescription: '使用 Prompt 自动化您的审批',
     },
     workflowsApprovalLimitPage: {
         title: '审批人',

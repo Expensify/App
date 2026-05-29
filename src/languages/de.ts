@@ -497,6 +497,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Vorheriges Jahr',
         nextYear: 'Nächstes Jahr',
         avatar: 'Avatar',
+        agent: 'Agent',
     },
     socials: {
         podcast: 'Folgen Sie uns auf Podcast',
@@ -2674,6 +2675,8 @@ ${amount} für ${merchant} – ${date}`,
         genericErrorMessage: 'Die genehmigende Person konnte nicht geändert werden. Bitte versuche es erneut oder kontaktiere den Support.',
         title: 'Genehmigenden festlegen',
         description: 'Diese Person wird die Ausgaben genehmigen.',
+        createNewAgent: 'Neue Agent:in erstellen',
+        createNewAgentDescription: 'Automatisieren Sie Ihre Genehmigungen mit Prompt',
     },
     workflowsApprovalLimitPage: {
         title: 'Genehmiger',

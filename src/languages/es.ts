@@ -449,6 +449,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expensifyLogo: 'Logo de Expensify',
         approver: 'Aprobador',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `introducir dígito ${digitIndex} de ${totalDigits}`,
+        agent: 'Agente',
     },
     socials: {
         podcast: 'Síguenos en Podcast',
@@ -2550,7 +2551,7 @@ ${amount} para ${merchant} - ${date}`,
         title: 'Establecer aprobador',
         description: 'Esta persona aprobará los gastos.',
         createNewAgent: 'Crear nuevo agente',
-        createNewAgentDescription: 'Automatiza tus aprobaciones con un prompt',
+        createNewAgentDescription: 'Automatiza tus aprobaciones con rapidez',
     },
     workflowsApprovalLimitPage: {
         title: 'Aprobador',
