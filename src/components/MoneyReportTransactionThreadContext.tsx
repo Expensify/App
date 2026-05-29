@@ -9,9 +9,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
 type MoneyReportTransactionThreadContextValue = {
+    /** The transaction ID from the parent IOU report action */
     iouTransactionID: string | undefined;
+    /** The parent IOU report action for the transaction thread */
     requestParentReportAction: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> | null;
+    /** The transaction thread report ID */
     transactionThreadReportID: string | undefined;
+    /** Filtered report actions for the transaction thread */
     reportActions: OnyxTypes.ReportAction[];
 };
 
@@ -25,7 +29,9 @@ const defaultValue: MoneyReportTransactionThreadContextValue = {
 const MoneyReportTransactionThreadContext = createContext<MoneyReportTransactionThreadContextValue>(defaultValue);
 
 type MoneyReportTransactionThreadProviderProps = {
+    /** The money request report ID */
     reportID: string | undefined;
+    /** The children */
     children: ReactNode;
 };
 
