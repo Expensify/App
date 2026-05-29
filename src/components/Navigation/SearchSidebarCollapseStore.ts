@@ -1,7 +1,10 @@
-import {useMemo, useSyncExternalStore} from 'react';
+import {useCallback, useMemo, useSyncExternalStore} from 'react';
 import {Platform} from 'react-native';
 import type {ViewStyle} from 'react-native';
+import useOnyx from '@hooks/useOnyx';
+import SearchSidebarActions from '@libs/actions/SearchSidebar';
 import variables from '@styles/variables';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS = 220;
 const SEARCH_SIDEBAR_COLLAPSE_TRANSLATE_X = -8;
@@ -12,7 +15,6 @@ const layoutTransitionStyle: ViewStyle =
 const fadeTransitionStyle: ViewStyle =
     Platform.OS === 'web' ? {transition: `opacity ${SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS}ms ease, transform ${SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS}ms ease`} : {};
 
-let isCollapsed = false;
 let isPeeking = false;
 
 const listeners = new Set<() => void>();
@@ -30,10 +32,6 @@ function notify() {
     }
 }
 
-function getCollapseSnapshot() {
-    return isCollapsed;
-}
-
 function getPeekSnapshot() {
     return isPeeking;
 }
@@ -42,13 +40,13 @@ function getSearchSidebarWidth(progress: number) {
     return variables.searchSidebarExpandedWidth + (variables.searchSidebarCollapsedWidth - variables.searchSidebarExpandedWidth) * progress;
 }
 
-function toggleSidebar() {
-    isCollapsed = !isCollapsed;
+function setSearchSidebarCollapsed(collapsed: boolean) {
     isPeeking = false;
     notify();
+    SearchSidebarActions.setCollapsed(collapsed);
 }
 
-function startPeek() {
+function startPeek(isCollapsed: boolean) {
     if (!isCollapsed || isPeeking) {
         return;
     }
@@ -67,15 +65,18 @@ function endPeek() {
 }
 
 function useSearchSidebarCollapse() {
-    const collapsed = useSyncExternalStore(subscribe, getCollapseSnapshot, getCollapseSnapshot);
+    const [searchSidebarNVP] = useOnyx(ONYXKEYS.NVP_SEARCH_SIDEBAR);
+    const collapsed = searchSidebarNVP?.isCollapsed ?? false;
     const peeking = useSyncExternalStore(subscribe, getPeekSnapshot, getPeekSnapshot);
+    const toggleSidebar = useCallback(() => setSearchSidebarCollapsed(!collapsed), [collapsed]);
+    const startSidebarPeek = useCallback(() => startPeek(collapsed), [collapsed]);
 
     return {
         isCollapsed: collapsed,
         isPeeking: peeking,
         isVisuallyCollapsed: collapsed && !peeking,
         toggleSidebar,
-        startPeek,
+        startPeek: startSidebarPeek,
         endPeek,
     };
 }
@@ -124,8 +125,7 @@ function useSearchSidebarToggleButtonStyle() {
 }
 
 export {
-    toggleSidebar,
-    startPeek,
+    setSearchSidebarCollapsed,
     endPeek,
     useSearchSidebarCollapse,
     useSearchSidebarLayoutWidthStyle,
