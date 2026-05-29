@@ -89,8 +89,11 @@ jest.mock('@libs/Navigation/Navigation', () => {
         getReportRouteByID: jest.fn(() => undefined),
         removeScreenByKey: jest.fn(),
         getActiveRouteWithoutParams: jest.fn(() => ''),
+        isNavigationReady: jest.fn(() => Promise.resolve()),
     };
 });
+
+jest.mock('@libs/actions/IOU/submitWithDismissFirst', () => jest.requireActual('../__mocks__/submitWithDismissFirst'));
 
 jest.mock('@react-navigation/native', () => {
     const mockRef = {

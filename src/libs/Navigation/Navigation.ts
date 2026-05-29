@@ -13,7 +13,9 @@ import SidePanelActions from '@libs/actions/SidePanel';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import clearSelectedTextIfComposerBlurred from '@libs/clearSelectedTextIfComposerBlurred/clearSelectedTextIfComposerBlurred';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import {setupHadTabNavigation} from '@libs/hadTabNavigation';
 import Log from '@libs/Log';
+import {setupNavigationFocusReturn} from '@libs/NavigationFocusReturn';
 import {shallowCompare} from '@libs/ObjectUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import variables from '@styles/variables';
@@ -35,6 +37,7 @@ import {isFullScreenName, isOnboardingFlowName, isSplitNavigatorName} from './he
 import isReportOpenInRHP from './helpers/isReportOpenInRHP';
 import isReportTopmostSplitNavigator from './helpers/isReportTopmostSplitNavigator';
 import isSideModalNavigator from './helpers/isSideModalNavigator';
+import isTabNavigatorReady from './helpers/isTabNavigatorReady';
 import linkTo from './helpers/linkTo';
 import getMinimalAction from './helpers/linkTo/getMinimalAction';
 import type {LinkToOptions} from './helpers/linkTo/types';
@@ -43,7 +46,6 @@ import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionTo
 import {linkingConfig} from './linkingConfig';
 import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
 import navigationRef from './navigationRef';
-// eslint-disable-next-line no-restricted-imports
 import TransitionTracker from './TransitionTracker';
 import type {
     NavigationPartialRoute,
@@ -61,11 +63,16 @@ type FocusedScreen = {
     params?: Record<string, unknown>;
 };
 
+// Installs the modality flag (keydown/mousedown) and focus-return listeners (focusin/click); NavigationRoot.onReady attaches the state listener once live.
+setupHadTabNavigation();
+setupNavigationFocusReturn();
+
 // Screens which are part of the 2FA setup flow - used to determine when to hide the RequireTwoFactorAuthOverlay
 const SET_UP_2FA_SCREENS = new Set<string>([
-    SCREENS.TWO_FACTOR_AUTH.ROOT,
-    SCREENS.TWO_FACTOR_AUTH.VERIFY,
-    SCREENS.TWO_FACTOR_AUTH.VERIFY_ACCOUNT,
+    SCREENS.TWO_FACTOR_AUTH.DYNAMIC_ROOT,
+    SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY,
+    SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY_ACCOUNT,
+    SCREENS.TWO_FACTOR_AUTH.DYNAMIC_SUCCESS,
     SCREENS.TWO_FACTOR_AUTH.SUCCESS,
     SCREENS.TWO_FACTOR_AUTH.DISABLED,
     SCREENS.TWO_FACTOR_AUTH.DISABLE,
@@ -692,8 +699,16 @@ function navContainsProtectedRoutes(state: State | undefined): boolean {
         return false;
     }
 
-    // If one protected screen is in the routeNames then other screens are there as well.
-    return state?.routeNames.includes(PROTECTED_SCREENS.CONCIERGE);
+    if (!state.routeNames.includes(PROTECTED_SCREENS.CONCIERGE)) {
+        return false;
+    }
+
+    // routeNames only tells us screens are declared on the root navigator.
+    // We also need TabNavigator to be mounted (its child router has run
+    // useNavigationBuilder and produced a non-stale nested state), otherwise a
+    // deferred NAVIGATE targeting a screen inside TabNavigator will be dispatched
+    // before any child router is registered to handle it.
+    return isTabNavigatorReady(state);
 }
 
 /**
@@ -819,7 +834,7 @@ function dismissModal({ref = navigationRef, afterTransition, waitForTransition}:
 const dismissModalWithReport = (
     {reportID, reportActionID, referrer, backTo}: ReportsSplitNavigatorParamList[typeof SCREENS.REPORT],
     ref = navigationRef,
-    options?: {onBeforeNavigate?: (willOpenReport: boolean) => void},
+    options?: {onBeforeNavigate?: (willOpenReport: boolean) => void; afterTransition?: () => void},
 ) => {
     const dismissAndOpenReport = () => {
         const topmostSuperWideRHPReportID = getTopmostSuperWideRHPReportID();
@@ -827,7 +842,7 @@ const dismissModalWithReport = (
 
         if (topmostSuperWideRHPReportID === reportID && areReportsIDsDefined) {
             options?.onBeforeNavigate?.(false);
-            dismissToSuperWideRHP();
+            dismissToSuperWideRHP({afterTransition: options?.afterTransition});
             return;
         }
 
@@ -836,14 +851,14 @@ const dismissModalWithReport = (
         const isReportsSplitTopmostFullScreen = isReportTopmostSplitNavigator();
         if (topmostReportID === reportID && areReportsIDsDefined && isReportsSplitTopmostFullScreen) {
             options?.onBeforeNavigate?.(false);
-            dismissModal();
+            dismissModal({afterTransition: options?.afterTransition});
             return;
         }
         options?.onBeforeNavigate?.(true);
         const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID, referrer, backTo);
         dismissModal({
             afterTransition: () => {
-                navigate(reportRoute);
+                navigate(reportRoute, {afterTransition: options?.afterTransition});
             },
         });
     };
@@ -974,12 +989,6 @@ function navigateBackToLastSuperWideRHPScreen(options: {afterTransition?: () => 
 }
 
 function dismissToSuperWideRHP(options: {afterTransition?: () => void} = {}) {
-    // On narrow layouts (mobile), Super Wide RHP doesn't exist, so just dismiss the modal completely
-    if (getIsNarrowLayout()) {
-        dismissModal(options);
-        return;
-    }
-    // On wide layouts, dismiss back to the Super Wide RHP modal stack
     navigateBackToLastSuperWideRHPScreen(options);
 }
 
@@ -1008,9 +1017,11 @@ function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransiti
         });
         // Nested rAF: the first frame commits the route insertion, the second
         // frame starts the dismiss. This ensures React processes the two dispatches
-        // in separate renders so the dismiss animation is preserved.
+        // in separate renders so the dismiss animation is preserved. On narrow,
+        // wait for the hidden destination transition first so the RHP slides out
+        // over the final page instead of briefly revealing the previous page.
         requestAnimationFrame(() => {
-            dismissModal({afterTransition: options?.afterTransition});
+            dismissModal({afterTransition: options?.afterTransition, waitForTransition: getIsNarrowLayout()});
         });
     });
 }

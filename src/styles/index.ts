@@ -11,7 +11,7 @@ import type {SharedValue} from 'react-native-reanimated';
 import {interpolate} from 'react-native-reanimated';
 import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
 import type {ValueOf} from 'type-fest';
-import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/constants';
+import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
 import {animatedReceiptPaneRHPWidth, animatedSuperWideRHPWidth, animatedWideRHPWidth} from '@components/WideRHPContextProvider';
@@ -324,6 +324,14 @@ const staticStyles = (theme: ThemeColors) =>
             fontStyle: FontUtils.fontFamily.platform.EXP_NEUE_ITALIC.fontStyle,
         },
 
+        numberedListItemMarker: {
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.fontSizeNormalHeight,
+            minWidth: 32,
+            textAlign: 'right',
+            paddingHorizontal: 8,
+        },
+
         autoCompleteSuggestionContainer: {
             flexDirection: 'row',
             alignItems: 'center',
@@ -563,6 +571,11 @@ const staticStyles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeXLarge,
         },
 
+        textXLargeThemeText: {
+            color: theme.text,
+            fontSize: variables.fontSizeXLarge,
+        },
+
         textXXLarge: {
             fontSize: variables.fontSizeXXLarge,
         },
@@ -687,6 +700,13 @@ const staticStyles = (theme: ThemeColors) =>
 
         bottomTabBarSpacer: {
             height: variables.bottomTabHeight,
+        },
+
+        tabNavigatorBarContainer: {
+            zIndex: 1,
+            width: variables.navigationTabBarSize + variables.sideBarWithLHBWidth,
+            marginRight: -variables.sideBarWithLHBWidth,
+            overflow: 'visible',
         },
 
         navigationTabBarContainer: {
@@ -952,6 +972,12 @@ const staticStyles = (theme: ThemeColors) =>
             ...wordBreak.breakWord,
         },
 
+        actionableItemButtonSkeleton: {
+            alignItems: 'flex-start',
+            borderRadius: 20,
+            backgroundColor: theme.buttonDefaultBG,
+        },
+
         hoveredComponentBG: {
             backgroundColor: theme.hoverComponentBG,
         },
@@ -988,6 +1014,13 @@ const staticStyles = (theme: ThemeColors) =>
 
         visibilityVisible: {
             ...visibility.visible,
+        },
+
+        // Visually invisible but kept in the accessibility tree — opacity:0 (not `visibility:hidden`) so screen-reader linear navigation can still reach it.
+        screenReaderOnlyAnchor: {
+            width: 1,
+            height: 1,
+            opacity: 0,
         },
 
         loadingVBAAnimation: {
@@ -1111,6 +1144,18 @@ const staticStyles = (theme: ThemeColors) =>
             ...whiteSpace.noWrap,
         },
 
+        agentPromotionalBannerBadge: {
+            // The Badge (a View) is rendered inline inside a <Text> so it flows with the title
+            // and wraps after the last word. View-in-Text vertical alignment is platform-specific:
+            //  - web: we need to translate the badge up so its center lines up with text.
+            //  - native: the inline-view attachment defaults to aligning the badge's top with the
+            //    line top (badge sits high). Translate it down so its center lines up with text.
+            ...Platform.select({
+                web: {marginLeft: 4, transform: [{translateY: -2}]},
+                default: {transform: [{translateY: 4}, {translateX: 4}]},
+            }),
+        },
+
         cardBadgeText: {
             color: colors.white,
             fontSize: variables.fontSizeExtraSmall,
@@ -1125,6 +1170,57 @@ const staticStyles = (theme: ThemeColors) =>
             borderWidth: 1,
             borderRadius: variables.componentBorderRadius,
             borderColor: theme.bordersBold,
+        },
+
+        /**
+         * Matches the border and padding of editableCell so column headers stay
+         * visually aligned with their editable cells.
+         */
+        editableCellHeader: {
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: 'transparent',
+            paddingHorizontal: 4,
+        },
+
+        editableCell: {
+            width: '100%',
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: 'transparent',
+            padding: 4,
+            height: 'auto',
+            minHeight: variables.editableCellHeight,
+            overflow: 'hidden',
+            justifyContent: 'center',
+        },
+
+        editableCellHover: {
+            borderColor: theme.buttonHoveredBG,
+        },
+
+        editableCellFocus: {
+            borderColor: theme.borderFocus,
+            backgroundColor: theme.appBG,
+        },
+
+        /** Suppresses all visual styling on TextInput when rendered inside EditableCell */
+        editableCellInputStyle: {
+            padding: 0,
+            borderWidth: 0,
+            borderColor: 'transparent',
+            borderRadius: 0,
+            backgroundColor: 'transparent',
+            height: '100%',
+            minHeight: 0,
+            fontSize: variables.fontSizeNormal,
+        },
+
+        editableCellSymbolStyle: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            color: theme.textSupporting,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.fontSizeNormalHeight,
         },
 
         borderColorFocus: {
@@ -2523,18 +2619,26 @@ const staticStyles = (theme: ThemeColors) =>
             borderBottomRightRadius: variables.componentBorderRadiusNormal,
         },
 
-        searchTableTopRadius: {
+        tableTopRadius: {
             borderTopLeftRadius: variables.componentBorderRadius,
             borderTopRightRadius: variables.componentBorderRadius,
         },
 
-        searchTableBottomRadius: {
+        tableBottomRadius: {
             borderBottomLeftRadius: variables.componentBorderRadius,
             borderBottomRightRadius: variables.componentBorderRadius,
         },
 
-        searchTableRowHeight: {
+        tableRowHeightCompact: {
+            minHeight: variables.tableRowHeightCompact,
+        },
+
+        tableRowHeight: {
             minHeight: variables.tableRowHeight,
+        },
+
+        tableHeaderContentHeight: {
+            minHeight: variables.tableHeaderContentHeight,
         },
 
         borderBottom: {
@@ -2704,14 +2808,6 @@ const staticStyles = (theme: ThemeColors) =>
             ...display.dFlex,
             ...flex.flexColumn,
             ...flex.alignItemsCenter,
-            paddingHorizontal: 20,
-        },
-
-        reportDetailsRoomInfo: {
-            ...flex.flex1,
-            ...display.dFlex,
-            ...flex.flexColumn,
-            ...flex.alignItemsCenter,
         },
 
         reportSettingsVisibilityText: {
@@ -2732,6 +2828,7 @@ const staticStyles = (theme: ThemeColors) =>
         twoFactorAuthSection: {
             backgroundColor: theme.appBG,
             padding: 0,
+            paddingTop: 8,
         },
 
         twoFactorLoadingContainer: {
@@ -2754,16 +2851,12 @@ const staticStyles = (theme: ThemeColors) =>
             textAlign: 'center',
         },
 
-        twoFactorAuthCodesButtonsContainer: {
-            flexDirection: 'row',
-            justifyContent: 'center',
-            gap: 12,
-            marginTop: 20,
-            flexWrap: 'wrap',
+        twoFactorAuthCodesButton: {
+            alignSelf: 'stretch',
         },
 
-        twoFactorAuthCodesButton: {
-            minWidth: 112,
+        twoFactorAuthCodesButtonWrapper: {
+            marginTop: 20,
         },
 
         twoFactorAuthCopyCodeButton: {
@@ -4039,7 +4132,7 @@ const staticStyles = (theme: ThemeColors) =>
         footerRow: {
             paddingVertical: 4,
             marginBottom: 8,
-            color: theme.textLight,
+            color: theme.text,
             fontSize: variables.fontSizeMedium,
         },
 
@@ -4165,7 +4258,7 @@ const staticStyles = (theme: ThemeColors) =>
         loginHeroBody: {
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeSignInHeroBody,
-            color: theme.textLight,
+            color: theme.text,
             textAlign: 'center',
         },
 
@@ -5012,7 +5105,6 @@ const staticStyles = (theme: ThemeColors) =>
             left: 16,
             bottom: 16,
             width: variables.cardNameWidth,
-            color: theme.textLight,
             fontSize: variables.fontSizeSmall,
             lineHeight: variables.lineHeightLarge,
         },
@@ -5364,9 +5456,12 @@ const staticStyles = (theme: ThemeColors) =>
             height: 170,
         },
 
-        travelCCVIllustration: {
-            width: 240,
-            height: 100,
+        travelCVVDigitBox: {
+            width: variables.componentSizeLarge,
+            height: variables.componentSizeLarge,
+            borderWidth: 1,
+            borderColor: theme.border,
+            borderRadius: variables.componentBorderRadiusMedium,
         },
 
         travelInvoicingIcon: {
@@ -5922,6 +6017,13 @@ const staticStyles = (theme: ThemeColors) =>
             width: 174,
             height: 156,
         },
+        copilotsIllustration: {
+            width: 272,
+            height: 138,
+        },
+        copilotRoleBadge: {
+            marginLeft: 6,
+        },
         aboutStaticIllustration: {
             width: 100,
             height: 106,
@@ -6124,7 +6226,7 @@ const dynamicStyles = (theme: ThemeColors) =>
                 left: positionLeftValue,
                 right: positionRightValue,
                 opacity: progress.interpolate({
-                    inputRange: [0, 1],
+                    inputRange: [0, 0.5],
                     outputRange: [0, variables.overlayOpacity],
                     extrapolate: 'clamp',
                 }),
@@ -6544,14 +6646,25 @@ const plainStyles = (theme: ThemeColors) =>
                 },
             }) satisfies CustomPickerStyle,
         mapDirection: {
-            lineColor: theme.success,
-            lineWidth: 7,
+            lineColor: colors.green400,
+            lineWidth: 6,
+            lineCap: 'round',
+        },
+
+        mapDirectionBorder: {
+            lineColor: colors.green600,
+            lineWidth: 8,
             lineCap: 'round',
         },
 
         mapDirectionLayer: {
             layout: {'line-join': 'round', 'line-cap': 'round'},
-            paint: {'line-color': theme.success, 'line-width': 7},
+            paint: {'line-color': colors.green400, 'line-width': 6},
+        },
+
+        mapDirectionLayerBorder: {
+            layout: {'line-join': 'round', 'line-cap': 'round'},
+            paint: {'line-color': colors.green600, 'line-width': 8},
         },
         searchTopBarZIndexStyle: {
             zIndex: variables.searchTopBarZIndex,

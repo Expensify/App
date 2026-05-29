@@ -1584,8 +1584,11 @@ function clearShareBankAccount() {
     Onyx.set(ONYXKEYS.SHARE_BANK_ACCOUNT, null);
 }
 
-function clearShareBankAccountErrors() {
+function clearShareBankAccountErrors(bankAccountID?: number) {
     Onyx.merge(ONYXKEYS.SHARE_BANK_ACCOUNT, {errors: null});
+    if (bankAccountID) {
+        Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {[bankAccountID]: {errors: null}});
+    }
 }
 
 function setShareBankAccountAdmins(admins?: MemberForList[]) {

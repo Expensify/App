@@ -17,25 +17,21 @@ type DebugReportActionPreviewProps = {
 
 function DebugReportActionPreview({reportAction, reportID}: DebugReportActionPreviewProps) {
     const personalDetails = usePersonalDetails();
-    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
-    const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction?.childReportID}`);
 
     return (
         <ScrollView>
             <ReportActionItem
                 action={reportAction ?? ({} as ReportAction)}
+                transactionThreadReport={transactionThreadReport}
                 report={report ?? ({} as Report)}
                 parentReportAction={undefined}
                 displayAsGroup={false}
                 shouldDisplayNewMarker={false}
-                index={0}
                 isFirstVisibleReportAction={false}
                 shouldDisplayContextMenu={false}
                 personalDetails={personalDetails}
-                userBillingFundID={userBillingFundID}
-                isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
             />
         </ScrollView>
     );
