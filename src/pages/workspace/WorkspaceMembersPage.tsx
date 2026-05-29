@@ -799,32 +799,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
 
-    const headerContent = (
-        <>
-            {shouldUseNarrowLayout && data.length > 0 && <View style={[styles.pr5]}>{getHeaderContent()}</View>}
-            {!shouldUseNarrowLayout && (
-                <>
-                    {!!headerMessage && (
-                        <View style={[styles.ph5, styles.pb5]}>
-                            <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
-                        </View>
-                    )}
-                    {getHeaderContent()}
-                </>
-            )}
-            {(shouldShowRoleFilter || shouldShowSearchBar) && (
-                <View style={styles.flexColumn}>
-                    <View style={[styles.mh5, styles.gap3, styles.mb5, styles.flexRow, styles.alignItemsCenter]}>{!!roleFilterDropdown && roleFilterDropdown}</View>
-                    {shouldShowEmptySearchMessage && (
-                        <View style={[styles.ph5, styles.pb5]}>
-                            <Text style={[styles.textNormal, styles.colorMuted]}>{noResultsMessage}</Text>
-                        </View>
-                    )}
-                </View>
-            )}
-        </>
-    );
-
     return (
         <WorkspacePageWithSections
             headerText={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
@@ -857,6 +831,18 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         isVisible={isDownloadFailureModalVisible}
                         onClose={() => setIsDownloadFailureModalVisible(false)}
                     />
+
+                    {shouldUseNarrowLayout && data.length > 0 && <View style={[styles.pr5]}>{getHeaderContent()}</View>}
+                    {!shouldUseNarrowLayout && (
+                        <>
+                            {!!headerMessage && (
+                                <View style={[styles.ph5, styles.pb5]}>
+                                    <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
+                                </View>
+                            )}
+                            {getHeaderContent()}
+                        </>
+                    )}
 
                     <WorkspaceMembersTable
                         ref={tableRef}
