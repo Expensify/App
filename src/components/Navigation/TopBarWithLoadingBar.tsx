@@ -9,15 +9,7 @@ type TopBarWithLoadingBarProps = Omit<TopBarProps, 'shouldShowLoadingBar'>;
  * A thin wrapper around TopBar that encapsulates useLoadingBarVisibility().
  * Use this in places where shouldShowLoadingBar is NOT passed explicitly by the parent.
  */
-function TopBarWithLoadingBar({
-    breadcrumbLabel,
-    shouldDisplaySearch,
-    shouldDisplayHelpButton,
-    cancelSearch,
-    leadingContent,
-    children,
-    breadcrumbWrapperStyle,
-}: TopBarWithLoadingBarProps) {
+function TopBarWithLoadingBar({breadcrumbLabel, shouldDisplaySearch, shouldDisplayHelpButton, cancelSearch, children}: TopBarWithLoadingBarProps) {
     const shouldShowLoadingBar = useLoadingBarVisibility();
     return (
         <TopBar
@@ -26,8 +18,6 @@ function TopBarWithLoadingBar({
             shouldDisplayHelpButton={shouldDisplayHelpButton}
             cancelSearch={cancelSearch}
             shouldShowLoadingBar={shouldShowLoadingBar}
-            leadingContent={leadingContent}
-            breadcrumbWrapperStyle={breadcrumbWrapperStyle}
         >
             {children}
         </TopBar>

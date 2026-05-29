@@ -26,25 +26,13 @@ type TopBarProps = {
     shouldDisplayHelpButton?: boolean;
     shouldShowLoadingBar?: boolean;
     cancelSearch?: () => void;
-    leadingContent?: React.ReactNode;
     children?: React.ReactNode;
-    breadcrumbWrapperStyle?: StyleProp<ViewStyle>;
     breadcrumbAnimatedStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 };
 
 const authTokenTypeSelector = (session: OnyxEntry<Session>) => session && {authTokenType: session.authTokenType};
 
-function TopBar({
-    breadcrumbLabel,
-    shouldDisplaySearch = true,
-    shouldDisplayHelpButton = false,
-    cancelSearch,
-    shouldShowLoadingBar,
-    leadingContent,
-    children,
-    breadcrumbWrapperStyle,
-    breadcrumbAnimatedStyle,
-}: TopBarProps) {
+function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpButton = false, cancelSearch, shouldShowLoadingBar, children, breadcrumbAnimatedStyle}: TopBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
@@ -65,8 +53,7 @@ function TopBar({
                 onTouchStart={isInLandscapeMode ? () => Keyboard.dismiss() : undefined}
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.pr2]}>
-                    {leadingContent}
-                    <Animated.View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, breadcrumbWrapperStyle, breadcrumbAnimatedStyle]}>
+                    <Animated.View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, breadcrumbAnimatedStyle]}>
                         <Text
                             numberOfLines={1}
                             style={[styles.flexShrink1, styles.topBarLabel]}

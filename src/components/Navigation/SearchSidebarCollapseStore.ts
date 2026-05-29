@@ -8,6 +8,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 const SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS = 220;
 const SEARCH_SIDEBAR_COLLAPSE_TRANSLATE_X = -8;
+const TOGGLE_BUTTON_COLLAPSED_TRANSLATE_X = -10;
 
 const layoutTransitionStyle: ViewStyle =
     Platform.OS === 'web' ? {transition: `width ${SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS}ms ease, margin-left ${SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS}ms ease`} : {};
@@ -111,6 +112,18 @@ function useSearchSidebarCollapseFadeStyle() {
     );
 }
 
+function useSearchSidebarToggleButtonStyle() {
+    const {isVisuallyCollapsed} = useSearchSidebarCollapse();
+
+    return useMemo<ViewStyle>(
+        () => ({
+            ...fadeTransitionStyle,
+            transform: [{translateX: isVisuallyCollapsed ? TOGGLE_BUTTON_COLLAPSED_TRANSLATE_X : 0}],
+        }),
+        [isVisuallyCollapsed],
+    );
+}
+
 export {
     setSearchSidebarCollapsed,
     endPeek,
@@ -119,4 +132,5 @@ export {
     useSearchSidebarVisualWidthStyle,
     useSearchSidebarContentOffsetStyle,
     useSearchSidebarCollapseFadeStyle,
+    useSearchSidebarToggleButtonStyle,
 };
