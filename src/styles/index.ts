@@ -1189,26 +1189,6 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
-        editableCellHoverIcon: {
-            position: 'absolute',
-            right: 4,
-            top: 0,
-            bottom: 0,
-            justifyContent: 'center',
-        },
-
-        editableCellHoverIconButton: {
-            padding: 4,
-            borderRadius: '50%',
-            backgroundColor: theme.buttonDefaultBG,
-            justifyContent: 'center',
-            alignItems: 'center',
-        },
-
-        editableCellHoverIconButtonActive: {
-            backgroundColor: theme.buttonHoveredBG,
-        },
-
         editableCellFocus: {
             borderColor: theme.borderFocus,
             backgroundColor: theme.appBG,

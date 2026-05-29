@@ -15,7 +15,7 @@ type CategoryCellProps = TransactionDataCellProps &
         policyID?: string;
     };
 
-function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem, canEdit, onSave, policyID}: CategoryCellProps) {
+function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem, canEdit, onSave, onPress, policyID}: CategoryCellProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Folder']);
     const styles = useThemeStyles();
 
@@ -56,6 +56,7 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
             canEdit={canEdit}
             isEditing={isEditing}
             onStartEditing={startEditing}
+            onPress={onPress}
             anchorRef={anchorRef}
             popoverContent={
                 <CategoryPickerModal

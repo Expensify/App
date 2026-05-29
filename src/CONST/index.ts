@@ -2039,6 +2039,8 @@ const CONST = {
         ACTIVITY_INDICATOR_TIMEOUT: 10000,
         GET_INITIAL_URL_TIMEOUT: 10000,
         MIN_SMOOTH_SCROLL_EVENT_THROTTLE: 16,
+        /** Max gap between two presses on an editable cell to register a double-click (which enters edit mode). */
+        EDITABLE_CELL_DOUBLE_CLICK_THRESHOLD: 220,
     },
     DEFERRED_LAYOUT_WRITE_KEYS: {
         SEARCH: 'search',

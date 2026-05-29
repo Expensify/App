@@ -20,7 +20,7 @@ type MerchantOrDescriptionCellProps = {
     isDescription?: boolean;
 } & EditableProps<string>;
 
-function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, shouldUseNarrowLayout, isDescription, canEdit, onSave}: MerchantOrDescriptionCellProps) {
+function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, shouldUseNarrowLayout, isDescription, canEdit, onSave, onPress}: MerchantOrDescriptionCellProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const inputRef = useRef<RNTextInput | null>(null);
@@ -82,6 +82,7 @@ function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, sh
             canEdit={canEdit}
             isEditing={isEditing}
             onStartEditing={startEditing}
+            onPress={onPress}
             editContent={
                 <TextInput
                     ref={handleRef}

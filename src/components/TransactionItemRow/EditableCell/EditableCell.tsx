@@ -1,12 +1,9 @@
-import React, {useDeferredValue, useEffect, useId, useState} from 'react';
+import React, {useDeferredValue, useEffect, useId, useRef} from 'react';
 import type {ReactNode, RefObject} from 'react';
 import {View} from 'react-native';
-import Pencil from '@assets/images/pencil.svg';
-import Hoverable from '@components/Hoverable';
-import Icon from '@components/Icon';
+import type {GestureResponderEvent} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import {useEditingCellActions} from './EditingCellContext';
@@ -31,15 +28,18 @@ type EditableCellProps = {
      */
     canEdit?: boolean;
 
-    /** Callback when edit mode should be activated */
+    /** Callback when edit mode should be activated (double-click) */
     onStartEditing: () => void;
+
+    /** Callback for a single press of the cell — opens the expense/report. Double press enters edit mode instead. */
+    onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
 
     /** Ref attached to the cell wrapper — used as popover anchor for date/category pickers */
     anchorRef?: RefObject<View | null>;
 };
 
 /**
- * A stateless wrapper that handles hover highlight + click-to-edit for table cells.
+ * A stateless wrapper that handles hover highlight, single-click-to-open and double-click-to-edit for table cells.
  * Does not manage editing state — the consumer controls that via hooks.
  *
  * Modes:
@@ -47,17 +47,19 @@ type EditableCellProps = {
  *   2. isEditing + editContent    → replaces children with editContent (inline edit)
  *   3. isEditing + no editContent → shows children with active border (popover edit)
  *   4. canEdit=false              → styled container View, no pressable (transient: loading / no permission)
- *   5. default                    → PressableWithFeedback (hover border, click triggers edit)
+ *   5. default                    → PressableWithFeedback (hover border; single click opens the row, double click edits)
  */
-function EditableCell({children, editContent, popoverContent, isEditing, canEdit, onStartEditing, anchorRef}: EditableCellProps) {
+function EditableCell({children, editContent, popoverContent, isEditing, canEdit, onStartEditing, onPress, anchorRef}: EditableCellProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
-    const [isIconHovered, setIsIconHovered] = useState(false);
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
     const isEditable = isLargeScreenWidth && !shouldUseNarrowLayout;
     const cellId = useId();
     const {setIsEditingCell, setFocusedCellId} = useEditingCellActions();
     const isInteractive = useDeferredValue(true, false);
+
+    // Pending single-click timer. A second press before it fires is treated as a double-click (edit);
+    // otherwise the timer opens the row. See CONST.TIMING.EDITABLE_CELL_DOUBLE_CLICK_THRESHOLD.
+    const singleClickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         if (!isEditable || !isEditing) {
@@ -66,6 +68,36 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
         setIsEditingCell(true);
         return () => setIsEditingCell(false);
     }, [isEditing, isEditable, setIsEditingCell]);
+
+    useEffect(
+        () => () => {
+            if (!singleClickTimerRef.current) {
+                return;
+            }
+            clearTimeout(singleClickTimerRef.current);
+        },
+        [],
+    );
+
+    const handlePress = (event?: GestureResponderEvent | KeyboardEvent) => {
+        // Second press within the threshold — enter edit mode and cancel the pending open.
+        if (singleClickTimerRef.current) {
+            clearTimeout(singleClickTimerRef.current);
+            singleClickTimerRef.current = null;
+            onStartEditing();
+            return;
+        }
+
+        // First press — defer opening the row so a follow-up press can be detected as a double-click.
+        // Persist so the event (modifier keys for cmd/ctrl-click) stays readable inside the timer.
+        if (event && 'persist' in event) {
+            event.persist();
+        }
+        singleClickTimerRef.current = setTimeout(() => {
+            singleClickTimerRef.current = null;
+            onPress?.(event);
+        }, CONST.TIMING.EDITABLE_CELL_DOUBLE_CLICK_THRESHOLD);
+    };
 
     // Architectural exclusion (e.g. narrow layout) — no container, no padding.
     if (!isEditable) {
@@ -101,38 +133,19 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
     }
 
     return (
-        <Hoverable>
-            {(isCellHovered) => (
-                <View style={styles.editableCell}>
-                    {children}
-                    {isCellHovered && (
-                        <View
-                            style={styles.editableCellHoverIcon}
-                            pointerEvents="box-none"
-                        >
-                            <PressableWithFeedback
-                                accessibilityRole={CONST.ROLE.BUTTON}
-                                accessibilityLabel="Edit cell"
-                                sentryLabel={CONST.SENTRY_LABEL.TABLE.EDITABLE_CELL}
-                                onPress={onStartEditing}
-                                onFocus={() => setFocusedCellId(cellId)}
-                                onBlur={() => setFocusedCellId(null)}
-                                onHoverIn={() => setIsIconHovered(true)}
-                                onHoverOut={() => setIsIconHovered(false)}
-                                style={[styles.editableCellHoverIconButton, isIconHovered && styles.editableCellHoverIconButtonActive]}
-                            >
-                                <Icon
-                                    src={Pencil}
-                                    width={12}
-                                    height={12}
-                                    fill={theme.icon}
-                                />
-                            </PressableWithFeedback>
-                        </View>
-                    )}
-                </View>
-            )}
-        </Hoverable>
+        <PressableWithFeedback
+            accessibilityRole={CONST.ROLE.BUTTON}
+            accessibilityLabel="Edit cell"
+            sentryLabel={CONST.SENTRY_LABEL.TABLE.EDITABLE_CELL}
+            onPress={handlePress}
+            onFocus={() => setFocusedCellId(cellId)}
+            onBlur={() => setFocusedCellId(null)}
+            style={styles.editableCell}
+            wrapperStyle={styles.w100}
+            focusStyle={styles.editableCellFocus}
+        >
+            {children}
+        </PressableWithFeedback>
     );
 }
 

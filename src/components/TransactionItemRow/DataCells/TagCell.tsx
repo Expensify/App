@@ -18,7 +18,7 @@ type TagCellProps = TransactionDataCellProps &
         policyID?: string;
     };
 
-function TagCell({canEdit, onSave, shouldUseNarrowLayout, shouldShowTooltip, transactionItem, policyID}: TagCellProps) {
+function TagCell({canEdit, onSave, onPress, shouldUseNarrowLayout, shouldShowTooltip, transactionItem, policyID}: TagCellProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Tag']);
     const styles = useThemeStyles();
 
@@ -57,6 +57,7 @@ function TagCell({canEdit, onSave, shouldUseNarrowLayout, shouldShowTooltip, tra
             canEdit={canEdit}
             isEditing={isEditing}
             onStartEditing={startEditing}
+            onPress={onPress}
             anchorRef={anchorRef}
             popoverContent={
                 <TagPickerModal
