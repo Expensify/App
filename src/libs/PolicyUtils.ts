@@ -2314,6 +2314,7 @@ export {
     canPolicyAccessFeature,
     escapeTagName,
     getActivePolicies,
+    getActivePoliciesWithExpenseChat,
     getAdminEmployees,
     getCleanedTagName,
     getCommaSeparatedTagNameWithSanitizedColons,

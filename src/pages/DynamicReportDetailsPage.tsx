@@ -52,7 +52,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {ReportDetailsNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
-import {isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getActivePoliciesWithExpenseChat, isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getOneTransactionThreadReportID, getOriginalMessage, getTrackExpenseActionableWhisper, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getReportName as getReportNameFromReportNameUtils} from '@libs/ReportNameUtils';
 import {
@@ -325,6 +325,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
     const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const [iouOriginalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransaction?.comment?.originalTransactionID)}`);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(iouTransactionID ? [iouTransactionID] : []);
     const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({
         report: parentReport,
@@ -470,32 +471,37 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
             const whisperAction = getTrackExpenseActionableWhisper(iouTransactionID, moneyRequestReport?.reportID);
             const actionableWhisperReportActionID = whisperAction?.reportActionID;
             const currentUserLocalCurrency = currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD;
-            items.push({
-                key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.SUBMIT,
-                translationKey: 'actionableMentionTrackExpense.submit',
-                icon: expensifyIcons.Send,
-                isAnonymousAction: false,
-                shouldShowRightIcon: true,
-                action: () => {
-                    createDraftTransactionAndNavigateToParticipantSelector({
-                        reportID: actionReportID,
-                        actionName: CONST.IOU.ACTION.SUBMIT,
-                        reportActionID: actionableWhisperReportActionID,
-                        introSelected,
-                        draftTransactionIDs,
-                        activePolicy,
-                        userBillingGracePeriodEnds,
-                        amountOwed,
-                        ownerBillingGracePeriodEnd,
-                        isRestrictedToPreferredPolicy,
-                        preferredPolicyID,
-                        transaction: iouTransaction,
-                        currentUserAccountID: currentUserPersonalDetails.accountID,
-                        currentUserEmail: currentUserPersonalDetails.email ?? '',
-                        currentUserLocalCurrency,
-                    });
-                },
-            });
+            const {isExpenseSplit: isSelfDMExpenseSplit} = getOriginalTransactionWithSplitInfo(iouTransaction, iouOriginalTransaction);
+            // Split expenses can only be submitted to a workspace, so hide the "Submit it to someone" option when the user isn't a member of any workspace.
+            const hasWorkspaceToSubmitTo = getActivePoliciesWithExpenseChat(allPolicies, currentUserPersonalDetails.login).length > 0;
+            if (!isSelfDMExpenseSplit || hasWorkspaceToSubmitTo) {
+                items.push({
+                    key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.SUBMIT,
+                    translationKey: 'actionableMentionTrackExpense.submit',
+                    icon: expensifyIcons.Send,
+                    isAnonymousAction: false,
+                    shouldShowRightIcon: true,
+                    action: () => {
+                        createDraftTransactionAndNavigateToParticipantSelector({
+                            reportID: actionReportID,
+                            actionName: CONST.IOU.ACTION.SUBMIT,
+                            reportActionID: actionableWhisperReportActionID,
+                            introSelected,
+                            draftTransactionIDs,
+                            activePolicy,
+                            userBillingGracePeriodEnds,
+                            amountOwed,
+                            ownerBillingGracePeriodEnd,
+                            isRestrictedToPreferredPolicy,
+                            preferredPolicyID,
+                            transaction: iouTransaction,
+                            currentUserAccountID: currentUserPersonalDetails.accountID,
+                            currentUserEmail: currentUserPersonalDetails.email ?? '',
+                            currentUserLocalCurrency,
+                        });
+                    },
+                });
+            }
             if (Permissions.canUseTrackFlows()) {
                 items.push({
                     key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.CATEGORIZE,
@@ -669,6 +675,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         currentUserPersonalDetails.accountID,
         currentUserPersonalDetails.email,
         currentUserPersonalDetails.localCurrencyCode,
+        currentUserPersonalDetails.login,
         isTaskActionable,
         isRootGroupChat,
         leaveChat,
@@ -683,6 +690,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         amountOwed,
         ownerBillingGracePeriodEnd,
         iouTransaction,
+        iouOriginalTransaction,
+        allPolicies,
         parentReport,
         delegateEmail,
     ]);

@@ -194,15 +194,14 @@ function updateSplitTransactions({
     const splitExpenses = transactionData?.splitExpenses ?? [];
 
     const allChildTransactions = getChildTransactions(allTransactionsList, originalTransactionID, false);
-    const originalChildTransactions = allChildTransactions.filter((tx) => tx?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID);
+    const originalChildTransactions = allChildTransactions;
     const processedChildTransactionIDs: string[] = [];
 
     const splitExpensesTotal = transactionData?.splitExpensesTotal ?? 0;
 
     const isCreationOfSplits = originalChildTransactions.length === 0;
     const hasEditableSplitExpensesLeft = splitExpenses.some((expense) => (expense.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.SUBMITTED);
-    const isReverseSplitOperation =
-        splitExpenses.length === 1 && originalChildTransactions.length > 0 && hasEditableSplitExpensesLeft && allChildTransactions.length === originalChildTransactions.length;
+    const isReverseSplitOperation = splitExpenses.length === 1 && originalChildTransactions.length > 0 && hasEditableSplitExpensesLeft;
 
     let splitThreadComments: OnyxTypes.ReportAction[] = [];
     let splitThreadReportAction: OnyxTypes.ReportAction | undefined;
@@ -1827,10 +1826,9 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     const splitExpenses = params.transactionData?.splitExpenses ?? [];
     const originalTransactionID = params.transactionData?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const allChildTransactions = getChildTransactions(params.allTransactionsList, originalTransactionID, false);
-    const originalChildTransactions = allChildTransactions.filter((tx) => tx?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID);
+    const originalChildTransactions = allChildTransactions;
     const hasEditableSplitExpensesLeft = splitExpenses.some((expense) => (expense.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.SUBMITTED);
-    const isReverseSplitOperation =
-        splitExpenses.length === 1 && originalChildTransactions.length > 0 && hasEditableSplitExpensesLeft && allChildTransactions.length === originalChildTransactions.length;
+    const isReverseSplitOperation = splitExpenses.length === 1 && originalChildTransactions.length > 0 && hasEditableSplitExpensesLeft;
     const expenseReportID = params.expenseReport?.reportID;
 
     // Detect whether the expense report the user is editing from will be emptied by this save.

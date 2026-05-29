@@ -9,7 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {endSpan} from '@libs/telemetry/activeSpans';
-import {getRequestType, hasRoute, isCorporateCardTransaction, isDistanceRequest, isPerDiemRequest, isTimeRequest as isTimeRequestUtil} from '@libs/TransactionUtils';
+import {getRequestType, hasRoute, isCorporateCardTransaction, isDistanceRequest, isPerDiemRequest, isSplitChildTransaction, isTimeRequest as isTimeRequestUtil} from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 import {navigateToStartStepIfScanFileCannotBeRead} from '@userActions/IOU/Receipt';
 import CONST from '@src/CONST';
@@ -117,6 +117,11 @@ function IOURequestStepParticipants({
     };
 
     const getIsWorkspacesOnly = () => {
+        // Split expenses can only be submitted to a workspace, so restrict the recipient list to workspaces.
+        if (action === CONST.IOU.ACTION.SUBMIT && isSplitChildTransaction(initialTransaction)) {
+            return true;
+        }
+
         if (isDistanceRequest(initialTransaction)) {
             if (!hasRoute(initialTransaction, true)) {
                 return false;

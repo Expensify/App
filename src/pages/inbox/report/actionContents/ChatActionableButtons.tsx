@@ -13,6 +13,7 @@ import {resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
+import {getActivePoliciesWithExpenseChat} from '@libs/PolicyUtils';
 import {containsActionableFollowUps, parseFollowupsFromHtml} from '@libs/ReportActionFollowupUtils';
 import {
     getOriginalMessage,
@@ -28,6 +29,7 @@ import type {CreateDraftTransactionParams} from '@libs/ReportUtils';
 import {createDraftTransactionAndNavigateToParticipantSelector} from '@libs/ReportUtils';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
 import {doesUserHavePaymentCardAdded} from '@libs/SubscriptionUtils';
+import {isSplitChildTransaction} from '@libs/TransactionUtils';
 import {dismissTrackExpenseActionableWhisper, resolveConciergeCategoryOptions, resolveConciergeDescriptionOptions} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -59,6 +61,7 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const trackExpenseTransactionID = isActionableTrackExpense(action) ? getOriginalMessage(action)?.transactionID : undefined;
     const [trackExpenseTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(trackExpenseTransactionID)}`);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const delegateAccountID = useDelegateAccountID();
 
     const actionableItemButtons = ((): ActionableItem[] => {
@@ -191,7 +194,9 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
                     });
                 },
             });
-            const options = [prepareTrackExpenseButton('submit', {isRestrictedToPreferredPolicy, preferredPolicyID})];
+            const isSplitExpense = isSplitChildTransaction(trackExpenseTransaction);
+            const hasWorkspaceToSubmitTo = getActivePoliciesWithExpenseChat(allPolicies, personalDetail.login).length > 0;
+            const options = !isSplitExpense || hasWorkspaceToSubmitTo ? [prepareTrackExpenseButton('submit', {isRestrictedToPreferredPolicy, preferredPolicyID})] : [];
 
             if (Permissions.canUseTrackFlows()) {
                 options.push(prepareTrackExpenseButton('categorize'), prepareTrackExpenseButton('share'));
