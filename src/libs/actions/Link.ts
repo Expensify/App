@@ -407,6 +407,20 @@ function getTravelDotLink(policyID: OnyxEntry<string>) {
     });
 }
 
+/**
+ * Fetches a short-lived auth token and appends it to the given setup link.
+ * Falls back to returning the original link if the token request fails.
+ */
+function getShortLivedAuthTokenURL(setupLink: string): Promise<string> {
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK, {}, {})
+        .then((response) => {
+            const tokenParam = response?.shortLivedAuthToken ? `&authToken=${response.shortLivedAuthToken}` : '';
+            return setupLink + tokenParam;
+        })
+        .catch(() => setupLink);
+}
+
 export {
     openOldDotLink,
     openExternalLink,
@@ -418,4 +432,5 @@ export {
     getTravelDotLink,
     buildOldDotURL,
     openReportFromDeepLink,
+    getShortLivedAuthTokenURL,
 };
