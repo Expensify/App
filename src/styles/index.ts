@@ -973,7 +973,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         hoveredComponentBG: {
-            backgroundColor: theme.hoverComponentBG,
+            backgroundColor: theme.hoverLight,
         },
 
         activeComponentBG: {
@@ -2970,13 +2970,13 @@ const staticStyles = (theme: ThemeColors) =>
 
         borderedContentCard: {
             borderWidth: 1,
-            borderColor: theme.border,
-            borderRadius: variables.componentBorderRadiusNormal,
+            borderColor: theme.borderLight,
+            borderRadius: variables.componentBorderRadiusLarge,
         },
 
         borderedContentCardLarge: {
             borderWidth: 1,
-            borderColor: theme.border,
+            borderColor: theme.borderLight,
             borderRadius: variables.componentBorderRadiusLarge,
         },
 
@@ -3273,7 +3273,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         moneyRequestPreviewBox: {
-            backgroundColor: theme.cardBG,
+            backgroundColor: theme.appBG,
             borderRadius: variables.componentBorderRadiusLarge,
             maxWidth: variables.reportPreviewMaxWidth,
             width: '100%',
@@ -3382,7 +3382,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         smallEditIconWorkspace: {
-            borderColor: theme.cardBG,
+            borderColor: theme.appBG,
         },
 
         smallEditIconAccount: {
@@ -3809,7 +3809,7 @@ const staticStyles = (theme: ThemeColors) =>
             marginRight: 8,
             width: variables.w44,
             borderRadius: variables.componentBorderRadiusSmall,
-            backgroundColor: theme.hoverComponentBG,
+            backgroundColor: theme.hoverLight,
         },
 
         receiptsSubmitButtonLandscape: {
@@ -3824,7 +3824,7 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 8,
             width: variables.w44,
             borderRadius: variables.componentBorderRadiusSmall,
-            backgroundColor: theme.hoverComponentBG,
+            backgroundColor: theme.hoverLight,
         },
 
         isDraggingOver: {
@@ -3832,8 +3832,10 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         cardSectionContainer: {
-            backgroundColor: theme.cardBG,
+            backgroundColor: theme.appBG,
             borderRadius: variables.componentBorderRadiusLarge,
+            borderWidth: 1,
+            borderColor: theme.borderLight,
             width: 'auto',
             textAlign: 'left',
             overflow: 'hidden',
@@ -3842,8 +3844,10 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         widgetContainer: {
-            backgroundColor: theme.cardBG,
+            backgroundColor: theme.appBG,
             borderRadius: variables.componentBorderRadiusLarge,
+            borderWidth: 1,
+            borderColor: theme.borderLight,
             overflow: 'hidden',
         },
 
@@ -4559,7 +4563,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         reportPreviewBoxHoverBorder: {
             borderColor: theme.cardBG,
-            backgroundColor: theme.cardBG,
+            backgroundColor: theme.appBG,
         },
 
         reportPreviewBoxHoverBorderColor: {
@@ -4713,7 +4717,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         profilePageAvatar: {
-            borderColor: theme.highlightBG,
+            borderColor: theme.appBG,
         },
 
         settlementButtonListContainer: {
@@ -4776,7 +4780,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         moneyRequestAttachReceiptThumbnail: {
-            backgroundColor: theme.hoverComponentBG,
+            backgroundColor: theme.hoverLight,
             borderWidth: 0,
             width: '100%',
         },
@@ -5132,8 +5136,10 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         workspaceSectionMoreFeaturesItem: {
-            backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusNormal,
+            backgroundColor: theme.appBG,
+            borderRadius: variables.componentBorderRadiusLarge,
+            borderWidth: 1,
+            borderColor: theme.borderLight,
             paddingHorizontal: 16,
             paddingVertical: 20,
             minWidth: 350,
@@ -5778,7 +5784,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         thumbnailImageContainerHover: {
-            backgroundColor: theme.hoverComponentBG,
+            backgroundColor: theme.hoverLight,
         },
 
         thumbnailImageContainerHighlight: {
@@ -6049,7 +6055,7 @@ const staticStyles = (theme: ThemeColors) =>
             flex: 1,
             justifyContent: 'center',
             alignItems: 'center',
-            backgroundColor: theme.highlightBG,
+            backgroundColor: theme.appBG,
             borderRadius: variables.componentBorderRadiusLarge,
             padding: 20,
             minHeight: CHART_CONTENT_MIN_HEIGHT,
@@ -6089,6 +6095,9 @@ const staticStyles = (theme: ThemeColors) =>
         },
         chartContainer: {
             borderRadius: variables.componentBorderRadiusLarge,
+            backgroundColor: theme.appBG,
+            borderWidth: 1,
+            borderColor: theme.borderLight,
         },
         chartContent: {
             height: CHART_CONTENT_MIN_HEIGHT,

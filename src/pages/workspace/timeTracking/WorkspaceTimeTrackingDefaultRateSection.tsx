@@ -26,6 +26,7 @@ function WorkspaceTimeTrackingDefaultRateSection({policyID}: {policyID: string})
             subtitle={translate('workspace.moreFeatures.timeTracking.subtitle')}
             titleStyles={styles.accountSettingsSectionTitle}
             childrenStyles={styles.pt6}
+            containerStyles={{marginHorizontal: 0}}
             subtitleMuted
             isCentralPane
         >

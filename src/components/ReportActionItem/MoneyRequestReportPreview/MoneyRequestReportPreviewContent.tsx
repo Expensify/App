@@ -641,8 +641,8 @@ function MoneyRequestReportPreviewContent({
                         style={[
                             styles.flexRow,
                             styles.justifyContentBetween,
-                            StyleUtils.getBackgroundColorStyle(theme.cardBG),
-                            shouldShowBorder ? styles.borderedContentCardLarge : styles.reportContainerBorderRadius,
+                            StyleUtils.getBackgroundColorStyle(theme.appBG),
+                            styles.borderedContentCardLarge,
                             isReportDeleted && styles.pointerEventsNone,
                         ]}
                         role={getButtonRole(true)}
@@ -652,7 +652,7 @@ function MoneyRequestReportPreviewContent({
                     >
                         <View
                             style={[
-                                StyleUtils.getBackgroundColorStyle(theme.cardBG),
+                                StyleUtils.getBackgroundColorStyle(theme.appBG),
                                 styles.reportContainerBorderRadius,
                                 styles.w100,
                                 (isHovered || isScanning || isWhisper) && styles.reportPreviewBoxHoverBorder,

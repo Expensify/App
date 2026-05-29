@@ -58,7 +58,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
         <PressableWithoutFeedback
             accessibilityRole={isDisabled ? undefined : 'button'}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.APPROVAL_WORKFLOW_SECTION}
-            style={[styles.border, shouldUseNarrowLayout ? styles.p3 : styles.p4, styles.flexRow, styles.justifyContentBetween, styles.mt6, styles.mbn3]}
+            style={[styles.borderedContentCard, shouldUseNarrowLayout ? styles.p3 : styles.p4, styles.flexRow, styles.justifyContentBetween, styles.mt6, styles.mbn3]}
             onPress={pressAction}
             accessibilityLabel={translate('workflowsPage.accessibilityLabel', {
                 members,

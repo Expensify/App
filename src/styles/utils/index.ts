@@ -1799,7 +1799,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         display: 'flex',
         justifyContent: 'space-between',
         backgroundColor: isHovered
-            ? theme.hoverComponentBG
+            ? theme.hoverLight
             : // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
               theme.transparent,
         opacity: 1,

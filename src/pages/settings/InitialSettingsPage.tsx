@@ -398,9 +398,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
      */
     const signOutTranslationKey = isSupportAuthToken() && hasStashedSession(stashedSession, stashedCredentials) ? 'initialSettingsPage.restoreStashed' : 'initialSettingsPage.signOut';
     const generalMenuItemsData: Menu = {
-        sectionStyle: {
-            ...styles.pt4,
-        },
+        sectionStyle: {},
         sectionTranslationKey: 'initialSettingsPage.general',
         items: [
             ...(classicRedirectMenuItem && tryNewDot?.nudgeMigration ? [classicRedirectMenuItem] : []),

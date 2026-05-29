@@ -5,12 +5,12 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useTheme from '@hooks/useTheme';
 import {openPolicyCompanyCardsPage} from '@libs/actions/CompanyCards';
 import {getCustomOrFormattedFeedName} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -35,6 +35,7 @@ type FixCompanyCardConnectionProps = {
 
 function FixCompanyCardConnection({card, policyID, policyName}: FixCompanyCardConnectionProps) {
     const {translate} = useLocalize();
+    const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['Connect']);
     const policy = usePolicy(policyID);
 
@@ -98,8 +99,8 @@ function FixCompanyCardConnection({card, policyID, policyName}: FixCompanyCardCo
     return (
         <BaseWidgetItem
             icon={icons.Connect}
-            iconBackgroundColor={colors.tangerine100}
-            iconFill={colors.tangerine500}
+            iconBackgroundColor={theme.widgetIconUrgentBG}
+            iconFill={theme.widgetIconUrgentFill}
             title={translate('homePage.timeSensitiveSection.fixCompanyCardConnection.title', {feedName})}
             subtitle={subtitle}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}

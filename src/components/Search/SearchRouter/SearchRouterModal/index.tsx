@@ -49,6 +49,7 @@ function SearchRouterModal() {
             shouldApplySidePanelOffset={!shouldUseNarrowLayout}
             shouldForceBackdrop={!shouldUseNarrowLayout}
             enableEdgeToEdgeBottomSafeAreaPadding
+            innerContainerStyle={shouldUseNarrowLayout ? undefined : {borderWidth: 0}}
         >
             <ScreenWrapperContainer
                 testID="SearchRouterModal"

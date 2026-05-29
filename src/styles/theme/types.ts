@@ -110,6 +110,8 @@ type ThemeColors = {
     trialBannerBackgroundColor: Color;
     widgetIconBG: Color;
     widgetIconFill: Color;
+    widgetIconUrgentBG: Color;
+    widgetIconUrgentFill: Color;
     skeletonLHNIn: Color;
     skeletonLHNOut: Color;
     QRLogo: Color;

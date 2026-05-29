@@ -252,11 +252,16 @@ function TransactionPreviewContent({
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight,
         highlightColor: theme.messageHighlightBG,
-        backgroundColor: theme.cardBG,
+        backgroundColor: theme.appBG,
         shouldApplyOtherStyles: false,
     });
 
-    const transactionWrapperStyles = [styles.border, styles.moneyRequestPreviewBox, (isIOUSettled || isApproved) && isSettlementOrApprovalPartial && styles.offlineFeedbackPending];
+    const transactionWrapperStyles = [
+        styles.border,
+        {borderColor: theme.borderLight},
+        styles.moneyRequestPreviewBox,
+        (isIOUSettled || isApproved) && isSettlementOrApprovalPartial && styles.offlineFeedbackPending,
+    ];
 
     const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'TransactionPreviewContent',

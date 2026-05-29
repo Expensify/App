@@ -99,7 +99,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
         if (selectedTab === NAVIGATION_TABS.INSIGHTS) {
             return;
         }
-        Navigation.navigate(ROUTES.INSIGHTS_TOP_SPENDERS.getRoute());
+        Navigation.navigate(ROUTES.INSIGHTS_SPEND_OVER_TIME.getRoute());
     };
 
     const navigateToChats = () => {

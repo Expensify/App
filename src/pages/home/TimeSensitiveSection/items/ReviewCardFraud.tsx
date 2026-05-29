@@ -3,8 +3,8 @@ import ExpensifyCardIcon from '@assets/images/expensify-card-icon.svg';
 import BaseWidgetItem from '@components/BaseWidgetItem';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import Navigation from '@libs/Navigation/Navigation';
-import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {PossibleFraudData} from '@src/types/onyx/Card';
@@ -19,6 +19,7 @@ type ReviewCardFraudProps = {
 function ReviewCardFraud({possibleFraud}: ReviewCardFraudProps) {
     const {convertToDisplayString} = useCurrencyListActions();
     const {translate} = useLocalize();
+    const theme = useTheme();
 
     const fraudAlertReportID = possibleFraud?.fraudAlertReportID ?? CONST.DEFAULT_NUMBER_ID;
     const triggerAmount = possibleFraud?.triggerAmount ?? 0;
@@ -47,8 +48,8 @@ function ReviewCardFraud({possibleFraud}: ReviewCardFraudProps) {
     return (
         <BaseWidgetItem
             icon={ExpensifyCardIcon}
-            iconBackgroundColor={colors.tangerine100}
-            iconFill={colors.tangerine700}
+            iconBackgroundColor={theme.widgetIconUrgentBG}
+            iconFill={theme.widgetIconUrgentFill}
             title={title}
             subtitle={translate('homePage.timeSensitiveSection.reviewCardFraud.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.reviewCardFraud.cta')}

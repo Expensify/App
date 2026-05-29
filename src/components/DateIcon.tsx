@@ -20,7 +20,7 @@ function DateIcon({date}: DateIconProps) {
     const StyleUtils = useStyleUtils();
 
     return (
-        <View style={[styles.br2, styles.alignItemsCenter, styles.justifyContentCenter, styles.dateIconSize, StyleUtils.getBackgroundColorStyle(theme.border)]}>
+        <View style={[styles.br2, styles.alignItemsCenter, styles.justifyContentCenter, styles.dateIconSize, StyleUtils.getBackgroundColorStyle(theme.hoverComponentBG)]}>
             <Text style={[styles.textMicro, styles.textSupporting]}>{monthAbbr}</Text>
             <Text style={[styles.textStrong, styles.fontSizeNormal, styles.textSupporting]}>{dayNumber}</Text>
         </View>

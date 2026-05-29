@@ -36,6 +36,7 @@ function WorkspaceTimeTrackingPage({route}: WorkspaceTimeTrackingPageProps) {
                 route={route}
                 addBottomSafeAreaPadding
                 shouldEnableMaxHeight={false}
+                shouldCenterContent
             >
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <WorkspaceTimeTrackingDefaultRateSection policyID={policyID} />

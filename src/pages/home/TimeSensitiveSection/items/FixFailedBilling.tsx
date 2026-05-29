@@ -2,18 +2,19 @@ import React from 'react';
 import BaseWidgetItem from '@components/BaseWidgetItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import navigateToSubscriptionPayment from '@pages/home/common/navigateToSubscriptionPayment';
-import colors from '@styles/theme/colors';
 
 function FixFailedBilling() {
     const {translate} = useLocalize();
+    const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['CreditCard']);
 
     return (
         <BaseWidgetItem
             icon={icons.CreditCard}
-            iconBackgroundColor={colors.tangerine100}
-            iconFill={colors.tangerine500}
+            iconBackgroundColor={theme.widgetIconUrgentBG}
+            iconFill={theme.widgetIconUrgentFill}
             title={translate('homePage.timeSensitiveSection.fixFailedBilling.title')}
             subtitle={translate('homePage.timeSensitiveSection.fixFailedBilling.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}

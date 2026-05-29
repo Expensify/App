@@ -2,8 +2,8 @@ import React from 'react';
 import BaseWidgetItem from '@components/BaseWidgetItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import Navigation from '@libs/Navigation/Navigation';
-import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {PolicyConnectionName} from '@src/types/onyx/Policy';
@@ -21,6 +21,7 @@ type FixAccountingConnectionProps = {
 
 function FixAccountingConnection({connectionName, policyID, policyName}: FixAccountingConnectionProps) {
     const {translate} = useLocalize();
+    const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['Connect']);
 
     const integrationName = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
@@ -31,8 +32,8 @@ function FixAccountingConnection({connectionName, policyID, policyName}: FixAcco
     return (
         <BaseWidgetItem
             icon={icons.Connect}
-            iconBackgroundColor={colors.tangerine100}
-            iconFill={colors.tangerine500}
+            iconBackgroundColor={theme.widgetIconUrgentBG}
+            iconFill={theme.widgetIconUrgentFill}
             title={translate('homePage.timeSensitiveSection.fixAccountingConnection.title', {integrationName})}
             subtitle={subtitle}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}

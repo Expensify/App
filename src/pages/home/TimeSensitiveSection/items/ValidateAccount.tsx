@@ -2,20 +2,21 @@ import React from 'react';
 import BaseWidgetItem from '@components/BaseWidgetItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import colors from '@styles/theme/colors';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 function ValidateAccount() {
     const {translate} = useLocalize();
+    const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['EnvelopeOpenStar']);
 
     return (
         <BaseWidgetItem
             icon={icons.EnvelopeOpenStar}
-            iconBackgroundColor={colors.green100}
-            iconFill={colors.green500}
+            iconBackgroundColor={theme.widgetIconBG}
+            iconFill={theme.widgetIconFill}
             title={translate('homePage.timeSensitiveSection.validateAccount.title')}
             subtitle={translate('homePage.timeSensitiveSection.validateAccount.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.validateAccount.cta')}
