@@ -166,11 +166,10 @@ function AuthScreensInitHandler() {
     // When a logged-out user enabled high contrast on the sign-in page, apply it to whatever base theme
     // the server returns once they sign in. OpenApp merges the server's nvp_preferredTheme before flipping
     // IS_LOADING_APP back to false, so the true -> false edge is when the server base theme is available.
-    // The intent is a one-shot bridge across the auth boundary, so it is cleared after reconciling.
     useEffect(() => {
-        const justFinishedLoading = !!wasLoadingApp.current && !isLoadingApp;
+        const hasFinishedLoading = !!wasLoadingApp.current && !isLoadingApp;
         wasLoadingApp.current = isLoadingApp;
-        if (!justFinishedLoading || !highContrastIntent || !session?.authToken) {
+        if (!hasFinishedLoading || !highContrastIntent || !session?.authToken) {
             return;
         }
         const currentTheme = preferredTheme ?? CONST.THEME.DEFAULT;

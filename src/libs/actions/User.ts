@@ -1223,7 +1223,7 @@ function setContactMethodAsDefault(
 }
 
 function updateTheme(theme: ValueOf<typeof CONST.THEME>, shouldGoBack = true) {
-    // If the user is not signed in (e.g. toggling high contrast from the sign-in page), persist the preference locally only.
+    // When toggling high contrast from the sign-in page, the user is not signed in. So persist the preference locally only.
     if (!currentUserAccountID) {
         Onyx.set(ONYXKEYS.PREFERRED_THEME, theme);
         return;
