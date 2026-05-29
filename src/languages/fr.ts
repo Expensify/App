@@ -508,6 +508,7 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Réduire le raisonnement',
         expandReasoning: 'Développer le raisonnement',
+        enableNotifications: {prompt: 'Vous souhaitez être averti lorsque Concierge répond ?', cta: 'Notifier'},
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -1965,6 +1966,8 @@ const translations: TranslationDeepObject<typeof en> = {
         offline: 'Hors ligne',
         syncing: 'Synchronisation en cours',
         profileAvatar: 'Avatar de profil',
+        customInstructions: 'Instructions personnalisées',
+        copilotIntoAccount: 'Copilot dans le compte',
         publicSection: {
             title: 'Public',
             subtitle: 'Ces informations sont affichées sur votre profil public. Tout le monde peut les voir.',
@@ -2646,6 +2649,9 @@ ${amount} pour ${merchant} - ${date}`,
         hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `Les validations sont gérées par votre intégration ${provider}. Pour mettre à jour votre workflow de validation, accédez aux paramètres de connexion ${provider}.`,
         goToHRSettings: ({provider}: {provider: string}) => `Aller aux paramètres ${provider}`,
+        approverFromProvider: ({provider}: {provider: string}) => `de la part de ${provider}`,
+        finalApprover: 'Approbateur final',
+        manager: 'Manager',
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: "La fréquence de soumission n'a pas pu être modifiée. Veuillez réessayer ou contacter l'assistance.",
@@ -2972,6 +2978,8 @@ ${amount} pour ${merchant} - ${date}`,
     loginForm: {
         phoneOrEmail: 'Téléphone ou e-mail',
         error: {
+            agentSignInBlocked:
+                'Les comptes d\u2019agent ne permettent pas de se connecter directement. Pour utiliser un agent, connectez-vous avec votre propre compte et accédez-y via Copilot.',
             invalidFormatEmailLogin: 'L’adresse e-mail saisie est invalide. Veuillez corriger le format et réessayer.',
         },
         cannotGetAccountDetails: 'Impossible de récupérer les détails du compte. Veuillez essayer de vous reconnecter.',
@@ -4273,6 +4281,7 @@ ${amount} pour ${merchant} - ${date}`,
             workflows: 'Workflows',
             workspace: 'Espace de travail',
             findWorkspace: 'Trouver un espace de travail',
+            findRoom: 'Trouver un salon',
             edit: 'Modifier l’espace de travail',
             enabled: 'Activé',
             disabled: 'Désactivé',
@@ -7943,6 +7952,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 `),
                 subtitle: 'Envoyez une facture ou faites un essai d’Expensify pour en savoir plus.',
                 subtitleWithOnlyCreateButton: 'Utilisez le bouton vert ci-dessous pour envoyer une facture.',
+                subtitleCannotSend: "Vous avez besoin d'un espace de travail avec Invoices activé pour envoyer des factures.",
+                subtitleCannotSendWithTestDrive: "Vous avez besoin d'un espace de travail avec Invoices activé pour envoyer des factures. Faites un essai d'Expensify pour en savoir plus.",
             },
             emptyTripResults: {
                 title: 'Aucun voyage à afficher',
