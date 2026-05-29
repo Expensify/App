@@ -37,7 +37,7 @@ function serializeLoggingData<T extends Record<string, unknown> | undefined>(log
 }
 
 function logRequestDetails<TKey extends OnyxKey>(message: string, request: Request<TKey>, response?: Response<TKey> | void) {
-    // Don't log about log or else we'd cause an infinite loop.
+    // Don't log about log or else we'd cause an infinite loop
     if (request.command === 'Log') {
         return;
     }
