@@ -3062,6 +3062,7 @@ const translations = {
         phoneOrEmail: 'Phone or email',
         error: {
             invalidFormatEmailLogin: 'The email entered is invalid. Please fix the format and try again.',
+            agentSignInBlocked: "Agent accounts can't be signed into directly. To use an agent, sign in with your own account and access it via Copilot.",
         },
         cannotGetAccountDetails: "Couldn't retrieve account details. Please try to sign in again.",
         loginForm: 'Login form',

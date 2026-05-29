@@ -85,7 +85,7 @@ type PureReportActionItemProps = {
     report: OnyxEntry<OnyxTypes.Report>;
 
     /** The transaction thread report associated with the report for this action, if any */
-    transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
+    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
 
     /** Report action belonging to the report's parent */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
@@ -238,7 +238,7 @@ function PureReportActionItem({
     const dismissError = () => {
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
         if (isSendingMoney && transactionID && reportID) {
-            cleanUpMoneyRequest(transactionID, action, reportID, report, chatReport, undefined, originalReportID, true);
+            cleanUpMoneyRequest(transactionID, action, reportID, transactionThreadReport, report, chatReport, undefined, originalReportID, true);
             return;
         }
         if (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && isReportActionLinked) {

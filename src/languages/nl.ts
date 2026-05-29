@@ -2982,6 +2982,7 @@ ${amount} voor ${merchant} - ${date}`,
         phoneOrEmail: 'Telefoon of e-mail',
         error: {
             invalidFormatEmailLogin: 'Het ingevoerde e-mailadres is ongeldig. Corrigeer de notatie en probeer het opnieuw.',
+            agentSignInBlocked: 'Je kunt niet rechtstreeks inloggen op agent-accounts. Log in met je eigen account en gebruik de agent via Copilot.',
         },
         cannotGetAccountDetails: 'Accountgegevens konden niet worden opgehaald. Probeer opnieuw in te loggen.',
         loginForm: 'Aanmeldformulier',

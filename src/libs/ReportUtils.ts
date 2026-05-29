@@ -4255,22 +4255,7 @@ function getReasonAndReportActionThatRequiresAttention(
     const invoiceReceiverPolicy = invoiceReceiverPolicyID ? getPolicy(invoiceReceiverPolicyID) : undefined;
     const actionTypeForAssigneeToComplete = getActionTypeForAssigneeToComplete(optionOrReport, parentReportAction);
 
-    if (actionTypeForAssigneeToComplete) {
-        const isAssigneeExpenseAction = actionTypeForAssigneeToComplete === CONST.REPORT.ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE.EXPENSE;
-        const assigneeBadge = isAssigneeExpenseAction
-            ? getBadgeFromIOUReport(optionOrReport, undefined, policy, optionReportMetadata, invoiceReceiverPolicy, currentUserLogin, currentUserAccountID)
-            : CONST.REPORT.ACTION_BADGE.TASK;
-        return {
-            reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
-            reportAction: Object.values(reportActions)
-                .filter((action) => action.childType === CONST.REPORT.TYPE.TASK && !isTaskCompleted(action) && action.childManagerAccountID === deprecatedCurrentUserAccountID)
-                // eslint-disable-next-line rulesdir/prefer-locale-compare-from-context
-                .sort((a, b) => (!a.created || !b.created ? 0 : a.created.localeCompare(b.created)))
-                .at(0),
-            ...(assigneeBadge ? {actionBadge: assigneeBadge} : {}),
-        };
-    }
-
+    // Compute IOU candidate upfront so we can compare timestamps with task candidate
     const {reportAction: iouReportActionToApproveOrPay, actionBadge} = getIOUReportActionWithBadge(
         optionOrReport,
         policy,
@@ -4286,11 +4271,44 @@ function getReasonAndReportActionThatRequiresAttention(
 
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
     const hasStaleChildRequest = isTripRoom(optionOrReport) && (optionOrReport.transactionCount ?? 0) === 0;
-
-    if (
+    const hasValidIOUAction =
         ((optionOrReport.hasOutstandingChildRequest === true && !hasStaleChildRequest) || iouReportActionToApproveOrPay?.reportActionID) &&
-        (policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO || !hasOnlyPendingTransactions)
-    ) {
+        (policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO || !hasOnlyPendingTransactions);
+
+    if (actionTypeForAssigneeToComplete) {
+        const isAssigneeExpenseAction = actionTypeForAssigneeToComplete === CONST.REPORT.ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE.EXPENSE;
+        if (isAssigneeExpenseAction) {
+            const assigneeBadge = getBadgeFromIOUReport(optionOrReport, undefined, policy, optionReportMetadata, invoiceReceiverPolicy, currentUserLogin, currentUserAccountID);
+            return {
+                reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
+                ...(assigneeBadge ? {actionBadge: assigneeBadge} : {}),
+            };
+        }
+
+        // Task badge candidate - compare with IOU candidate and pick the oldest report action
+        const oldestTaskAction = Object.values(reportActions)
+            .filter((action) => action.childType === CONST.REPORT.TYPE.TASK && !isTaskCompleted(action) && action.childManagerAccountID === deprecatedCurrentUserAccountID)
+            // eslint-disable-next-line rulesdir/prefer-locale-compare-from-context
+            .sort((a, b) => (!a.created || !b.created ? 0 : a.created.localeCompare(b.created)))
+            .at(0);
+
+        // If there's a valid IOU action that is older than the task, use the IOU badge instead
+        if (hasValidIOUAction && iouReportActionToApproveOrPay?.created && (!oldestTaskAction || iouReportActionToApproveOrPay.created < oldestTaskAction.created)) {
+            return {
+                reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION,
+                reportAction: iouReportActionToApproveOrPay,
+                actionBadge,
+            };
+        }
+
+        return {
+            reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
+            reportAction: oldestTaskAction,
+            actionBadge: CONST.REPORT.ACTION_BADGE.TASK,
+        };
+    }
+
+    if (hasValidIOUAction) {
         return {
             reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION,
             reportAction: iouReportActionToApproveOrPay,
