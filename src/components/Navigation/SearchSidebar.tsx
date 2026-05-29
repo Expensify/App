@@ -24,7 +24,6 @@ import {
     useSearchSidebarCollapse,
     useSearchSidebarCollapseFadeStyle,
     useSearchSidebarLayoutWidthStyle,
-    useSearchSidebarToggleButtonStyle,
     useSearchSidebarVisualWidthStyle,
 } from './SearchSidebarCollapseStore';
 import TopBar from './TopBar';
@@ -44,7 +43,6 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const layoutSpacerStyle = useSearchSidebarLayoutWidthStyle();
     const visualSidebarWidthStyle = useSearchSidebarVisualWidthStyle();
     const breadcrumbAnimatedStyle = useSearchSidebarCollapseFadeStyle();
-    const toggleButtonAnimatedStyle = useSearchSidebarToggleButtonStyle();
 
     const route = state.routes.at(-1);
     const {lastSearchType, currentSearchResults} = useSearchResultsContext();
@@ -79,21 +77,19 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const toggleButtonLabel = translate(isCollapsed ? 'reportActionCompose.expand' : 'reportActionCompose.collapse');
     const toggleButton = (
         <Tooltip text={toggleButtonLabel}>
-            <Animated.View style={toggleButtonAnimatedStyle}>
-                <PressableWithoutFeedback
-                    accessibilityLabel={toggleButtonLabel}
-                    onPress={toggleSidebar}
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.SIDEBAR_TOGGLE}
-                    style={[styles.p2, styles.br2]}
-                >
-                    <Icon
-                        src={isCollapsed ? SidebarRightIcon : SidebarLeftIcon}
-                        width={variables.iconSizeNormal}
-                        height={variables.iconSizeNormal}
-                        fill={theme.icon}
-                    />
-                </PressableWithoutFeedback>
-            </Animated.View>
+            <PressableWithoutFeedback
+                accessibilityLabel={toggleButtonLabel}
+                onPress={toggleSidebar}
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.SIDEBAR_TOGGLE}
+                style={[styles.p2, styles.br2]}
+            >
+                <Icon
+                    src={isCollapsed ? SidebarRightIcon : SidebarLeftIcon}
+                    width={variables.iconSizeNormal}
+                    height={variables.iconSizeNormal}
+                    fill={theme.icon}
+                />
+            </PressableWithoutFeedback>
         </Tooltip>
     );
 
@@ -111,9 +107,9 @@ function SearchSidebar({state}: SearchSidebarProps) {
                             breadcrumbAnimatedStyle={breadcrumbAnimatedStyle}
                             shouldDisplaySearch={false}
                             shouldDisplayHelpButton={false}
-                        >
-                            {toggleButton}
-                        </TopBar>
+                            leadingContent={toggleButton}
+                            breadcrumbWrapperStyle={styles.ml1}
+                        />
                         <SearchTypeMenuWide queryJSON={currentSearchQueryJSON} />
                     </View>
                 </Animated.View>
