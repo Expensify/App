@@ -503,6 +503,10 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: '收起推理',
         expandReasoning: '展开推理',
+        enableNotifications: {
+            prompt: '希望在Concierge回复时收到通知吗？',
+            cta: '通知',
+        },
     },
     supportalNoAccess: {
         title: '先别急',
@@ -1898,6 +1902,8 @@ const translations: TranslationDeepObject<typeof en> = {
         offline: '离线',
         syncing: '正在同步',
         profileAvatar: '个人头像',
+        customInstructions: '自定义指令',
+        copilotIntoAccount: 'Copilot 到账户',
         publicSection: {
             title: '公开',
             subtitle: '这些详细信息会显示在你的公开资料中，任何人都可以看到。',
@@ -2556,6 +2562,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         configureViaHR: ({provider}: {provider: string}) => `通过 ${provider} 配置。`,
         hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) => `审批由你的 ${provider} 集成管理。若要更新审批流程，请前往 ${provider} 连接设置。`,
         goToHRSettings: ({provider}: {provider: string}) => `前往 ${provider} 设置`,
+        approverFromProvider: ({provider}: {provider: string}) => `来自 ${provider}`,
+        finalApprover: '最终审批人',
+        manager: '经理',
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: '提交频率无法更改。请重试或联系支持团队。',
@@ -2876,6 +2885,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         phoneOrEmail: '电话或邮箱',
         error: {
             invalidFormatEmailLogin: '输入的邮箱无效。请修正格式后重试。',
+            agentSignInBlocked: '代理帐户无法直接登录。要使用代理，请先登录您自己的帐户，然后通过 Copilot 访问该代理。',
         },
         cannotGetAccountDetails: '无法获取账户详情。请尝试重新登录。',
         loginForm: '登录表单',
@@ -4141,6 +4151,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             workflows: '工作流程',
             workspace: '工作区',
             findWorkspace: '查找工作区',
+            findRoom: '查找房间',
             edit: '编辑工作区',
             enabled: '已启用',
             disabled: '已禁用',
@@ -7251,6 +7262,7 @@ ${reportName}
             }
             return `已将“${newValue}”的可退税部分添加到距离费率“${customUnitRateName}”中`;
         },
+        updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `已将 ${customUnitName} 费率名称从“${oldValue}”重命名为“${newValue}”`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
             return `${newValue ? '已启用' : '已禁用'}${customUnitName}费率“${customUnitRateName}”`;
         },
@@ -7660,6 +7672,8 @@ ${reportName}
                 `),
                 subtitle: '发送发票或试用 Expensify，了解更多信息。',
                 subtitleWithOnlyCreateButton: '使用下方的绿色按钮发送发票。',
+                subtitleCannotSend: '您需要一个启用了Invoices的工作区才能发送发票。',
+                subtitleCannotSendWithTestDrive: '您需要一个启用了Invoices的工作区才能发送发票。试用 Expensify，了解更多信息。',
             },
             emptyTripResults: {
                 title: '没有行程可显示',
@@ -9196,6 +9210,12 @@ ${reportName}
             chooseWhereToMove: ({count}: {count: number}) => `选择将 ${count} 个 ${count === 1 ? '成员' : '成员'} 移动到哪里。`,
             domainGroup: '域名组',
             chooseWhereToMoveName: ({name}: {name: string}) => `选择将 ${name} 移动到哪里。`,
+            membersFeatureList: {
+                subtitle: ({domainName}: {domainName: string}) => `<muted-text>验证你的域，以便在 Expensify 中更好地管理 <strong>${domainName}</strong> 成员。</muted-text>`,
+                controlPolicyCreation: '限制创建工作区',
+                enableSamlSso: '启用 SAML 单点登录',
+                enforce2FA: '强制启用双重验证',
+            },
         },
         common: {
             settings: '设置',

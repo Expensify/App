@@ -206,6 +206,7 @@ function createTransaction({
                     taxCode,
                     taxAmount,
                 },
+                existingTransaction: transaction,
                 ...(policyParams ?? {}),
                 shouldHandleNavigation: shouldHandleNav,
                 shouldDeferForSearch,
@@ -255,6 +256,7 @@ function createTransaction({
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 existingTransactionDraft,
+                existingTransaction: transaction,
                 draftTransactionIDs,
                 isSelfTourViewed,
                 personalDetails,
@@ -444,6 +446,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             taxCode: distanceTaxCode,
                             taxAmount: distanceTaxAmount,
                         },
+                        existingTransaction: transaction,
                         shouldHandleNavigation: overrides.shouldHandleNavigation,
                         shouldDeferForSearch: overrides.shouldDeferForSearch,
                         isASAPSubmitBetaEnabled,
@@ -524,7 +527,7 @@ function handleMoneyRequestStepDistanceNavigation({
 
     // If there was no reportID, then that means the user started this flow from the global menu
     // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
-    if (defaultExpensePolicy && shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd)) {
+    if (defaultExpensePolicy && shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, currentUserAccountID)) {
         const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || isAutoReporting;
         const targetReport = shouldAutoReport ? getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id) : selfDMReport;
         const isSelfDMReport = isSelfDM(targetReport);

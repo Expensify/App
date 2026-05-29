@@ -346,6 +346,34 @@ describe('MoneyRequest', () => {
             );
         });
 
+        it('should pass the source transaction as existingTransaction to requestMoney for non-TRACK iouType', () => {
+            createTransaction({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.SEND,
+                allTransactionDrafts: {},
+            });
+
+            expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    existingTransaction: fakeTransaction,
+                }),
+            );
+        });
+
+        it('should pass the source transaction as existingTransaction to trackExpense for TRACK iouType', () => {
+            createTransaction({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.TRACK,
+                allTransactionDrafts: {},
+            });
+
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    existingTransaction: fakeTransaction,
+                }),
+            );
+        });
+
         it('should compute draftTransactionIDs from allTransactionDrafts', () => {
             const draft1 = createRandomTransaction(101);
             const draft2 = createRandomTransaction(102);
@@ -677,6 +705,7 @@ describe('MoneyRequest', () => {
                     taxCode: '',
                     taxAmount: 0,
                 },
+                existingTransaction: fakeTransaction,
                 shouldHandleNavigation: true,
                 shouldDeferForSearch: false,
                 isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
@@ -1142,7 +1171,7 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: true,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined)).toBe(true);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined, policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID)).toBe(true);
         });
 
         it('should return false when iouType is not CREATE', () => {
@@ -1152,9 +1181,9 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: true,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.SUBMIT, policy, 0, undefined, undefined)).toBe(false);
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.TRACK, policy, 0, undefined, undefined)).toBe(false);
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.SPLIT, policy, 0, undefined, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.SUBMIT, policy, 0, undefined, undefined, policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.TRACK, policy, 0, undefined, undefined, policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.SPLIT, policy, 0, undefined, undefined, policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID)).toBe(false);
         });
 
         it('should return false when policy is not a paid group policy', () => {
@@ -1164,7 +1193,7 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: true,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined, policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID)).toBe(false);
         });
 
         it('should return false when isPolicyExpenseChatEnabled is false', () => {
@@ -1174,15 +1203,15 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: false,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined, policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID)).toBe(false);
         });
 
         it('should return false when policy is undefined', () => {
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, undefined, 0, undefined, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, undefined, 0, undefined, undefined, currentUserAccountID)).toBe(false);
         });
 
         it('should return false when policy is null', () => {
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, null, 0, undefined, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, null, 0, undefined, undefined, currentUserAccountID)).toBe(false);
         });
 
         it('should handle amountOwed being undefined', () => {
@@ -1192,7 +1221,7 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: true,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, undefined, undefined, undefined)).toBe(true);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, undefined, undefined, undefined, policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID)).toBe(true);
         });
 
         it('should pass ownerBillingGracePeriodEnd through to shouldRestrictUserBillableActions', async () => {
@@ -1207,7 +1236,7 @@ describe('MoneyRequest', () => {
             await Onyx.set(ONYXKEYS.SESSION, {accountID: TEST_USER_ACCOUNT_ID});
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 100, undefined, pastDate)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 100, undefined, pastDate, TEST_USER_ACCOUNT_ID)).toBe(false);
 
             await Onyx.clear();
         });

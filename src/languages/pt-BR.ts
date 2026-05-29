@@ -506,6 +506,7 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Recolher raciocínio',
         expandReasoning: 'Expandir raciocínio',
+        enableNotifications: {prompt: 'Quer ser avisado quando o Concierge responder?', cta: 'Notificar'},
     },
     supportalNoAccess: {
         title: 'Calma aí',
@@ -1950,6 +1951,8 @@ const translations: TranslationDeepObject<typeof en> = {
         offline: 'Offline',
         syncing: 'Sincronizando',
         profileAvatar: 'Avatar do perfil',
+        customInstructions: 'Instruções personalizadas',
+        copilotIntoAccount: 'Copilot na conta',
         publicSection: {
             title: 'Público',
             subtitle: 'Esses detalhes são exibidos no seu perfil público. Qualquer pessoa pode vê-los.',
@@ -2625,6 +2628,9 @@ ${amount} para ${merchant} - ${date}`,
         hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `As aprovações são gerenciadas pela sua integração com o ${provider}. Para atualizar seu fluxo de aprovação, vá até as configurações de conexão do ${provider}.`,
         goToHRSettings: ({provider}: {provider: string}) => `Ir para as configurações do ${provider}`,
+        approverFromProvider: ({provider}: {provider: string}) => `de ${provider}`,
+        finalApprover: 'Aprovador final',
+        manager: 'Gerente',
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Não foi possível alterar a frequência de envio. Tente novamente ou entre em contato com o suporte.',
@@ -2951,6 +2957,7 @@ ${amount} para ${merchant} - ${date}`,
         phoneOrEmail: 'Telefone ou e-mail',
         error: {
             invalidFormatEmailLogin: 'O e-mail inserido é inválido. Corrija o formato e tente novamente.',
+            agentSignInBlocked: 'Contas de agente não podem ser acessadas diretamente. Para usar um agente, entre com a sua própria conta e acesse-o via Copilot.',
         },
         cannotGetAccountDetails: 'Não foi possível recuperar os detalhes da conta. Tente entrar novamente.',
         loginForm: 'Formulário de login',
@@ -4238,6 +4245,7 @@ ${amount} para ${merchant} - ${date}`,
             workflows: 'Fluxos de trabalho',
             workspace: 'Espaço de trabalho',
             findWorkspace: 'Encontrar espaço de trabalho',
+            findRoom: 'Encontrar sala',
             edit: 'Editar espaço de trabalho',
             enabled: 'Ativado',
             disabled: 'Desativado',
@@ -7442,6 +7450,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             }
             return `adicionou uma parte recuperável de impostos de "${newValue}" à taxa de distância "${customUnitRateName}"`;
         },
+        updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `renomeou a taxa de ${customUnitName} de "${oldValue}" para "${newValue}"`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
             return `${newValue ? 'ativado' : 'desativado'} a taxa de ${customUnitName} "${customUnitRateName}"`;
         },
@@ -7864,6 +7873,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 `),
                 subtitle: 'Envie uma fatura ou faça um test drive do Expensify para saber mais.',
                 subtitleWithOnlyCreateButton: 'Use o botão verde abaixo para enviar uma fatura.',
+                subtitleCannotSend: 'Você precisa de um espaço de trabalho com Invoices habilitado para enviar faturas.',
+                subtitleCannotSendWithTestDrive: 'Você precisa de um espaço de trabalho com Invoices habilitado para enviar faturas. Faça um test drive do Expensify para saber mais.',
             },
             emptyTripResults: {
                 title: 'Nenhuma viagem para exibir',
@@ -9433,6 +9444,13 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             chooseWhereToMove: ({count}: {count: number}) => `Escolha para onde mover ${count} ${count === 1 ? 'membro' : 'membros'}.`,
             domainGroup: 'Grupo de domínio',
             chooseWhereToMoveName: ({name}: {name: string}) => `Escolha para onde mover ${name}.`,
+            membersFeatureList: {
+                subtitle: ({domainName}: {domainName: string}) =>
+                    `<muted-text>Verifique seu domínio para ter mais controle sobre os membros de <strong>${domainName}</strong> no Expensify.</muted-text>`,
+                controlPolicyCreation: 'Restringir criação de espaço de trabalho',
+                enableSamlSso: 'Ativar SSO SAML',
+                enforce2FA: 'Exigir 2FA',
+            },
         },
         common: {
             settings: 'Configurações',
