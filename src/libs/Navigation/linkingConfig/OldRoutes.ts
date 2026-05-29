@@ -16,7 +16,6 @@ const oldRoutes: Record<string, string> = {
     '/r/*/settings/name': '/r/$1/details/settings/name',
     '/r/*/participants/invite': '/r/$1/participants/participants-invite',
     '/r/*/participants/*/role': '/r/$1/participants/participants-details/$2/participants-role',
-    '/r/*/participants/$1': '/r/$1/participants/participants-details/$2',
     '/r/*/title': '/r/$1/title',
     '/r/*/description': '/r/$1/description',
     '/r/*/assignee': '/r/$1/assignee',

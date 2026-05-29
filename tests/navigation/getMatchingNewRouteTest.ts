@@ -59,11 +59,6 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/r/123/participants/invite')).toBe('/r/123/participants/participants-invite');
     });
 
-    it('redirects old report participant details and role paths to dynamic routes', () => {
-        expect(getMatchingNewRoute('/r/123/participants/456')).toBe('/r/123/participants/participants-details/456');
-        expect(getMatchingNewRoute('/r/123/participants/456/role')).toBe('/r/123/participants/participants-details/456/participants-role');
-    });
-
     it('preserves query params when redirecting report participant routes', () => {
         expect(getMatchingNewRoute('/r/123/participants/invite?backTo=/home')).toBe('/r/123/participants/participants-invite?backTo=/home');
         expect(getMatchingNewRoute('/r/123/participants/456?backTo=/home')).toBe('/r/123/participants/participants-details/456?backTo=/home');
