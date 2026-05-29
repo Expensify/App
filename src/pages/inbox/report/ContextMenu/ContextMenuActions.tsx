@@ -160,6 +160,7 @@ import {
     isTripPreview,
     isUnapprovedAction,
     isWhisperAction as isWhisperActionReportActionsUtils,
+    wasActionTakenByCurrentUser,
 } from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
@@ -176,15 +177,17 @@ import {
     getPolicyChangeMessage,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
+    getReportOrDraftReport,
     getReportPreviewMessage,
     getUnreportedTransactionMessage,
     getWorkspaceNameUpdatedMessage,
     isExpenseReport,
+    isSelfDM,
     shouldDisableThread,
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesReportUtils,
-    shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
+import {isExpenseSplit, isPerDiemRequest} from '@libs/TransactionUtils';
 import {setDownload} from '@userActions/Download';
 import {toggleEmojiReaction} from '@userActions/EmojiReactions';
 import {
@@ -199,6 +202,7 @@ import {
 } from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {
     BankAccountList,
@@ -293,7 +297,6 @@ type ContextMenuActionPayload = {
     originalReport: OnyxEntry<ReportType>;
     isHarvestReport?: boolean;
     isTryNewDotNVPDismissed?: boolean;
-    isTrackIntentUser?: boolean;
     childReport?: OnyxEntry<ReportType>;
     movedFromReport?: OnyxEntry<ReportType>;
     movedToReport?: OnyxEntry<ReportType>;
@@ -833,7 +836,6 @@ const ContextMenuActions: ContextMenuAction[] = [
                 originalReport,
                 isHarvestReport,
                 isTryNewDotNVPDismissed,
-                isTrackIntentUser,
                 movedFromReport,
                 movedToReport,
                 childReport,
@@ -1027,15 +1029,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     if (harvesting) {
                         setClipboardMessage(translate('iou.automaticallySubmitted'));
                     } else {
-                        Clipboard.setString(
-                            shouldShowMarkAsDone({
-                                policy,
-                                isTrackIntentUser,
-                                report,
-                            })
-                                ? translate('iou.markedAsDone', getOriginalMessage(reportAction)?.message)
-                                : translate('iou.submitted', getOriginalMessage(reportAction)?.message),
-                        );
+                        Clipboard.setString(translate('iou.submitted', getOriginalMessage(reportAction)?.message));
                     }
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
                     const {automaticAction} = getOriginalMessage(reportAction) ?? {};
@@ -1207,6 +1201,10 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getDynamicExternalWorkflowSubmitFailedActionMessage(translate, reportAction));
                 } else if (isDynamicExternalWorkflowApproveFailedAction(reportAction)) {
                     setClipboardMessage(getDynamicExternalWorkflowApproveFailedActionMessage(translate, reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED)) {
+                    const iouAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+                    const missingFields = getOriginalMessage(reportAction)?.missingFields;
+                    setClipboardMessage(translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction), missingFields}));
                 } else if (content) {
                     setClipboardMessage(
                         content.replaceAll(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {
@@ -1372,7 +1370,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'common.delete',
         icon: 'Trashcan',
-        shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, reportID: reportIDParam, moneyRequestAction, iouTransaction, transactions, childReportActions}) => {
+        shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, reportID: reportIDParam, moneyRequestAction, iouTransaction, transactions, childReportActions, isProduction}) => {
             // Until deleting parent threads is supported in FE, we will prevent the user from deleting a thread parent
             let reportID = reportIDParam;
 
@@ -1381,6 +1379,19 @@ const ContextMenuActions: ContextMenuAction[] = [
             } else if (isReportPreviewActionReportActionsUtils(reportAction)) {
                 reportID = reportAction?.childReportID;
             }
+
+            // Hide Delete for per-diem expense split children in selfDM — users must edit the
+            // splits instead (matches the secondary "More" menu behavior)
+            if (!isProduction) {
+                const chatReport = getReportOrDraftReport(reportIDParam);
+                if (isSelfDM(chatReport) && iouTransaction) {
+                    const originalTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${iouTransaction.comment?.originalTransactionID}`];
+                    if (isExpenseSplit(iouTransaction, originalTransaction) && isPerDiemRequest(originalTransaction ?? iouTransaction)) {
+                        return false;
+                    }
+                }
+            }
+
             return (
                 !!reportIDParam &&
                 type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&

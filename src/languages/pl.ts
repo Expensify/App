@@ -108,9 +108,7 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: 'Wielokrotny wybór',
         saveChanges: 'Zapisz zmiany',
         submit: 'Wyślij',
-        markAsDone: 'Oznacz jako wykonane',
         submitted: 'Przesłano',
-        markedAsDoneStatus: 'Oznaczone jako ukończone',
         rotate: 'Obróć',
         zoom: 'Powiększenie',
         password: 'Hasło',
@@ -510,6 +508,7 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Zwiń rozumowanie',
         expandReasoning: 'Rozwiń rozumowanie',
+        enableNotifications: {prompt: 'Chcesz otrzymywać powiadomienia, gdy Concierge odpowie?', cta: 'Powiadom'},
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -849,7 +848,6 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistory: (users: string) => `Ten czat jest z ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName: string, submitterDisplayName: string) =>
             `Tutaj <strong>${submitterDisplayName}</strong> będzie przesyłać wydatki do <strong>${workspaceName}</strong>. Po prostu użyj przycisku +.`,
-        beginningOfChatHistoryPolicyExpenseChatTrack: 'Tutaj będziesz śledzić wydatki',
         beginningOfChatHistorySelfDM: 'To Twoja osobista przestrzeń. Używaj jej na notatki, zadania, szkice i przypomnienia.',
         beginningOfChatHistorySystemDM: 'Witamy! Zacznijmy konfigurację.',
         chatWithAccountManager: 'Porozmawiaj tutaj z opiekunem konta',
@@ -1343,7 +1341,6 @@ const translations: TranslationDeepObject<typeof en> = {
         sendInvoice: (amount: string) => `Wyślij fakturę na ${amount}`,
         expenseAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? `za ${comment}` : ''}`,
         submitted: (memo?: string) => `przesłano${memo ? `, wpisując ${memo}` : ''}`,
-        markedAsDone: (memo) => `oznaczono jako zakończone${memo ? `, z adnotacją: ${memo}` : ''}`,
         automaticallySubmitted: `przesłano przez <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">opóźnianie wysyłania</a>`,
         queuedToSubmitViaDEW: 'w kolejce do przesłania przez niestandardowy proces zatwierdzania',
         queuedToApproveViaDEW: 'oczekuje na zatwierdzenie w niestandardowym procesie akceptacji',
@@ -1784,21 +1781,6 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Oczekiwanie, aż administrator złoży wydatki.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Czekamy, aż <strong>Ty</strong> oznaczysz to jako wykonane.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Oczekiwanie, aż <strong>${actor}</strong> oznaczy to jako wykonane.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Oczekiwanie, aż administrator oznaczy to jako wykonane.`;
-                }
-            },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -1973,6 +1955,8 @@ const translations: TranslationDeepObject<typeof en> = {
         offline: 'Offline',
         syncing: 'Synchronizowanie',
         profileAvatar: 'Awatar profilu',
+        customInstructions: 'Niestandardowe instrukcje',
+        copilotIntoAccount: 'Copilot do konta',
         publicSection: {
             title: 'Public',
             subtitle: 'Te dane są wyświetlane w Twoim publicznym profilu. Każdy może je zobaczyć.',
@@ -1980,6 +1964,14 @@ const translations: TranslationDeepObject<typeof en> = {
         privateSection: {
             title: 'Prywatne',
             subtitle: 'Te dane są używane do podróży i płatności. Nigdy nie są wyświetlane w Twoim publicznym profilu.',
+        },
+        aiPromptSection: {
+            title: 'Prompt AI',
+            subtitle: 'Napisz niestandardowe instrukcje',
+            prompt: 'Zachęta',
+            editPrompt: 'Edytuj podpowiedź',
+            promptCannotBeEmpty: 'Pole nie może być puste',
+            saved: 'Zapisano',
         },
     },
     securityPage: {
@@ -2639,6 +2631,9 @@ ${amount} dla ${merchant} - ${date}`,
         hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `Zatwierdzanie jest zarządzane przez Twoją integrację z ${provider}. Aby zaktualizować swój proces zatwierdzania, przejdź do ustawień połączenia z ${provider}.`,
         goToHRSettings: ({provider}: {provider: string}) => `Przejdź do ustawień ${provider}`,
+        approverFromProvider: ({provider}: {provider: string}) => `od ${provider}`,
+        finalApprover: 'Ostateczny akceptujący',
+        manager: 'Menedżer',
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Nie udało się zmienić częstotliwości wysyłania. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
@@ -2799,6 +2794,8 @@ ${amount} dla ${merchant} - ${date}`,
         title: 'Edytuj agenta',
         agentName: 'Nazwa agenta',
         instructions: 'Napisz własne instrukcje',
+        chatWithAgent: 'Czat z agentem',
+        copilotIntoAccount: 'Copilot na konto',
         deleteAgent: 'Usuń agenta',
         deleteAgentTitle: 'Usunąć agenta?',
         deleteAgentMessage: 'Czy na pewno chcesz usunąć tego agenta? Tej akcji nie można cofnąć.',
@@ -2961,6 +2958,7 @@ ${amount} dla ${merchant} - ${date}`,
         phoneOrEmail: 'Telefon lub e-mail',
         error: {
             invalidFormatEmailLogin: 'Wprowadzony adres e-mail jest nieprawidłowy. Popraw jego format i spróbuj ponownie.',
+            agentSignInBlocked: 'Na konta agenta nie można logować się bezpośrednio. Żeby korzystać z agenta, zaloguj się na własne konto i uzyskaj do niego dostęp przez Copilota.',
         },
         cannotGetAccountDetails: 'Nie można pobrać szczegółów konta. Spróbuj zalogować się ponownie.',
         loginForm: 'Formularz logowania',
@@ -4246,6 +4244,7 @@ ${amount} dla ${merchant} - ${date}`,
             workflows: 'Przepływy pracy',
             workspace: 'Przestrzeń robocza',
             findWorkspace: 'Znajdź przestrzeń roboczą',
+            findRoom: 'Znajdź pokój',
             edit: 'Edytuj przestrzeń roboczą',
             enabled: 'Włączone',
             disabled: 'Wyłączone',
@@ -6131,6 +6130,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
         card: {
             getStartedIssuing: 'Zacznij od wydania swojej pierwszej wirtualnej lub fizycznej karty.',
             issueCard: 'Wydaj kartę',
+            chooseRule: 'Wybierz regułę',
             issueNewCard: {
                 whoNeedsCard: 'Kto potrzebuje karty?',
                 inviteNewMember: 'Zaproś nowego członka',
@@ -6172,16 +6172,22 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 enterValidDate: 'Wprowadź prawidłową datę',
                 expirationDate: 'Data ważności',
                 limitAmount: 'Kwota limitu',
-                setExpiryOptions: 'Ustaw opcje wygaśnięcia',
-                setExpiryDate: 'Ustaw datę wygaśnięcia',
-                setExpiryDateDescription: 'Karta wygaśnie zgodnie z informacją na karcie',
+                setCardRules: 'Ustaw zasady karty',
+                addSpendRule: 'Dodaj regułę wydatków',
+                addExpirationDate: 'Dodaj datę ważności',
+                addExpirationDateDescription: 'Jeśli nie ustawiono konkretnej daty, karta wygaśnie zgodnie z jej obecną datą ważności.',
                 amount: 'Kwota',
+                copyExisting: 'Skopiuj istniejący',
+                createNew: 'Utwórz nowy',
+                spendRulesEmptyStateTitle: 'Brak reguł do wyboru',
+                spendRulesEmptyStateSubtitle: 'Nie utworzyłeś jeszcze żadnych reguł. Możesz utworzyć ją na poprzednim ekranie.',
             },
             deactivateCardModal: {
                 deactivate: 'Dezaktywuj',
                 deactivateCard: 'Dezaktywuj kartę',
                 deactivateConfirmation: 'Dezaktywacja tej karty spowoduje odrzucenie wszystkich przyszłych transakcji i nie będzie można jej cofnąć.',
             },
+            searchRules: 'Znajdź regułę wydatków',
         },
         accounting: {
             settings: 'ustawienia',
@@ -6270,6 +6276,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `Czy na pewno chcesz połączyć ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'ta integracja księgowa'}? Spowoduje to usunięcie wszystkich istniejących połączeń księgowych.`,
             enterCredentials: 'Wprowadź swoje dane logowania',
+            updateCredentials: 'Zaktualizuj dane logowania',
             claimOffer: {
                 badgeText: 'Oferta dostępna!',
                 xero: {
@@ -7439,6 +7446,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             }
             return `dodano odzyskiwalną część podatku w wysokości „${newValue}” do stawki za dystans „${customUnitRateName}”`;
         },
+        updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `zmienił nazwę stawki ${customUnitName} z „${oldValue}” na „${newValue}”`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
             return `${newValue ? 'włączone' : 'wyłączone'} stawkę jednostki niestandardowej ${customUnitName} „${customUnitRateName}”`;
         },
@@ -7863,6 +7871,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 `),
                 subtitle: 'Wyślij fakturę lub wypróbuj Expensify, aby dowiedzieć się więcej.',
                 subtitleWithOnlyCreateButton: 'Użyj zielonego przycisku poniżej, aby wysłać fakturę.',
+                subtitleCannotSend: 'Potrzebujesz przestrzeni roboczej z włączonym Invoices, aby wysyłać faktury.',
+                subtitleCannotSendWithTestDrive: 'Potrzebujesz przestrzeni roboczej z włączonym Invoices, aby wysyłać faktury. Wypróbuj Expensify, aby dowiedzieć się więcej.',
             },
             emptyTripResults: {
                 title: 'Brak podróży do wyświetlenia',
@@ -8582,6 +8592,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         duplicatedTransaction: 'Potencjalny duplikat',
         fieldRequired: 'Pola raportu są wymagane',
         futureDate: 'Przyszła data jest niedozwolona',
+        inactiveVendor: 'Dostawca nie jest już prawidłowy',
         invoiceMarkup: (invoiceMarkup: number) => `Podwyższono o ${invoiceMarkup}%`,
         maxAge: (maxAge: number) => `Data starsza niż ${maxAge} dni`,
         missingCategory: 'Brak kategorii',
@@ -9261,6 +9272,20 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         expenseLevelExport: 'Wszystkie dane – poziom wydatku',
         exportInProgress: 'Trwa eksport',
         conciergeWillSend: 'Concierge wkrótce wyśle Ci plik.',
+    },
+    exportDownload: {
+        preparingTitle: 'Preparing download...',
+        preparingBody: 'You can either wait for the download to finish or Concierge can send it to you via chat.',
+        sendFromConcierge: "Send me the file when it's ready",
+        conciergeTitle: 'You bet!',
+        conciergeBody: 'Concierge will send you a message when the file is ready.',
+        goToConcierge: 'Go to Concierge',
+        dismiss: 'Dismiss',
+        readyTitle: 'Your file is ready!',
+        readyBody: "If it didn't automatically download, use the button below.",
+        downloadFile: 'Download file',
+        failedTitle: 'Export failed',
+        close: 'Close',
     },
     domain: {
         notVerified: 'Niezweryfikowane',

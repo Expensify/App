@@ -108,9 +108,7 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: 'Meerdere selecteren',
         saveChanges: 'Wijzigingen opslaan',
         submit: 'Verzenden',
-        markAsDone: 'Markeren als voltooid',
         submitted: 'Ingediend',
-        markedAsDoneStatus: 'Als voltooid gemarkeerd',
         rotate: 'Draaien',
         zoom: 'Zoom',
         password: 'Wachtwoord',
@@ -510,6 +508,7 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Redenering inklappen',
         expandReasoning: 'Redenering uitklappen',
+        enableNotifications: {prompt: 'Wil je een melding krijgen wanneer Concierge reageert?', cta: 'Melden'},
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -848,7 +847,6 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistory: (users: string) => `Deze chat is met ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName: string, submitterDisplayName: string) =>
             `Dit is waar <strong>${submitterDisplayName}</strong> declaraties indient bij <strong>${workspaceName}</strong>. Gebruik gewoon de +-knop.`,
-        beginningOfChatHistoryPolicyExpenseChatTrack: 'Hier houd je je uitgaven bij',
         beginningOfChatHistorySelfDM: 'Dit is je persoonlijke ruimte. Gebruik het voor notities, taken, concepten en herinneringen.',
         beginningOfChatHistorySystemDM: 'Welkom! Laten we je instellen.',
         chatWithAccountManager: 'Chat hier met je accountmanager',
@@ -1343,7 +1341,6 @@ const translations: TranslationDeepObject<typeof en> = {
         sendInvoice: (amount: string) => `Verzend factuur van ${amount}`,
         expenseAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? `voor ${comment}` : ''}`,
         submitted: (memo?: string) => `ingediend${memo ? `, met de omschrijving ${memo}` : ''}`,
-        markedAsDone: (memo) => `gemarkeerd als voltooid${memo ? `, met als omschrijving ${memo}` : ''}`,
         automaticallySubmitted: `ingediend via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">uitgestelde indieningen</a>`,
         queuedToSubmitViaDEW: 'in wachtrij om via aangepast goedkeuringsproces in te dienen',
         queuedToApproveViaDEW: 'in de wachtrij gezet voor goedkeuring via aangepaste goedkeuringsworkflow',
@@ -1783,21 +1780,6 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Wachten tot een beheerder de onkosten indient.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Er wordt gewacht tot <strong>jij</strong> dit als voltooid markeert.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Wachten tot <strong>${actor}</strong> dit als voltooid markeert.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Wachten tot een beheerder dit als voltooid markeert.`;
-                }
-            },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -1972,6 +1954,8 @@ const translations: TranslationDeepObject<typeof en> = {
         offline: 'Offline',
         syncing: 'Synchroniseren',
         profileAvatar: 'Profielavatar',
+        customInstructions: 'Aangepaste instructies',
+        copilotIntoAccount: 'Copilot naar account',
         publicSection: {
             title: 'Openbaar',
             subtitle: 'Deze gegevens worden weergegeven op je openbare profiel. Iedereen kan ze zien.',
@@ -1979,6 +1963,14 @@ const translations: TranslationDeepObject<typeof en> = {
         privateSection: {
             title: 'Privé',
             subtitle: 'Deze gegevens worden gebruikt voor reizen en betalingen. Ze worden nooit getoond op je openbare profiel.',
+        },
+        aiPromptSection: {
+            title: 'AI-prompt',
+            subtitle: 'Schrijf aangepaste instructies',
+            prompt: 'Prompt',
+            editPrompt: 'Prompt bewerken',
+            promptCannotBeEmpty: 'Prompt mag niet leeg zijn',
+            saved: 'Opgeslagen',
         },
     },
     securityPage: {
@@ -2643,6 +2635,9 @@ ${amount} voor ${merchant} - ${date}`,
         hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `Goedkeuringen worden beheerd door je ${provider}-integratie. Ga naar je ${provider}-verbindingsinstellingen om je goedkeuringsworkflow bij te werken.`,
         goToHRSettings: ({provider}: {provider: string}) => `Ga naar ${provider}-instellingen`,
+        approverFromProvider: ({provider}: {provider: string}) => `van ${provider}`,
+        finalApprover: 'Laatste fiatteur',
+        manager: 'Manager',
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Indienfrequentie kon niet worden gewijzigd. Probeer het opnieuw of neem contact op met support.',
@@ -2805,6 +2800,8 @@ ${amount} voor ${merchant} - ${date}`,
         title: 'Agent bewerken',
         agentName: 'Naam medewerker',
         instructions: 'Aangepaste instructies schrijven',
+        chatWithAgent: 'Chat met agent',
+        copilotIntoAccount: 'Copilot in account',
         deleteAgent: 'Agent verwijderen',
         deleteAgentTitle: 'Agent verwijderen?',
         deleteAgentMessage: 'Weet je zeker dat je deze agent wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.',
@@ -2967,6 +2964,7 @@ ${amount} voor ${merchant} - ${date}`,
         phoneOrEmail: 'Telefoon of e-mail',
         error: {
             invalidFormatEmailLogin: 'Het ingevoerde e-mailadres is ongeldig. Corrigeer de notatie en probeer het opnieuw.',
+            agentSignInBlocked: 'Je kunt niet rechtstreeks inloggen op agent-accounts. Log in met je eigen account en gebruik de agent via Copilot.',
         },
         cannotGetAccountDetails: 'Accountgegevens konden niet worden opgehaald. Probeer opnieuw in te loggen.',
         loginForm: 'Aanmeldformulier',
@@ -4254,6 +4252,7 @@ ${amount} voor ${merchant} - ${date}`,
             workflows: 'Workflows',
             workspace: 'Werkruimte',
             findWorkspace: 'Werkruimte zoeken',
+            findRoom: 'Kamer zoeken',
             edit: 'Werkruimte bewerken',
             enabled: 'Ingeschakeld',
             disabled: 'Uitgeschakeld',
@@ -6136,6 +6135,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
         card: {
             getStartedIssuing: 'Begin met het uitgeven van je eerste virtuele of fysieke kaart.',
             issueCard: 'Kaart uitgeven',
+            chooseRule: 'Kies een regel',
             issueNewCard: {
                 whoNeedsCard: 'Wie heeft er een kaart nodig?',
                 inviteNewMember: 'Nieuw lid uitnodigen',
@@ -6177,16 +6177,22 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 enterValidDate: 'Voer een geldige datum in',
                 expirationDate: 'Vervaldatum',
                 limitAmount: 'Limietbedrag',
-                setExpiryOptions: 'Vervalopties instellen',
-                setExpiryDate: 'Vervaldatum instellen',
-                setExpiryDateDescription: 'De kaart verloopt zoals vermeld op de kaart',
+                setCardRules: 'Kaartregels instellen',
+                addSpendRule: 'Uitgavenregel toevoegen',
+                addExpirationDate: 'Vervaldatum toevoegen',
+                addExpirationDateDescription: 'Als er geen specifieke datum is ingesteld, verloopt de kaart op basis van de bestaande vervaldatum op de kaart',
                 amount: 'Bedrag',
+                copyExisting: 'Bestaande kopiëren',
+                createNew: 'Nieuw maken',
+                spendRulesEmptyStateTitle: 'Geen regels om uit te kiezen',
+                spendRulesEmptyStateSubtitle: 'Je hebt nog geen regels aangemaakt. Je kunt er een aanmaken vanaf het vorige scherm.',
             },
             deactivateCardModal: {
                 deactivate: 'Deactiveren',
                 deactivateCard: 'Kaart deactiveren',
                 deactivateConfirmation: 'Als je deze kaart deactiveert, worden alle toekomstige transacties geweigerd en dit kan niet ongedaan worden gemaakt.',
             },
+            searchRules: 'Uitgavenregel zoeken',
         },
         accounting: {
             settings: 'instellingen',
@@ -6275,6 +6281,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `Weet je zeker dat je ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'deze boekhoudkoppeling'} wilt koppelen? Hierdoor worden alle bestaande boekhoudkundige koppelingen verwijderd.`,
             enterCredentials: 'Voer je inloggegevens in',
+            updateCredentials: 'Inloggegevens bijwerken',
             claimOffer: {
                 badgeText: 'Aanbieding beschikbaar!',
                 xero: {
@@ -7446,6 +7453,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             }
             return `heeft een terugvorderbaar belastingdeel van „${newValue}” toegevoegd aan het kilometertarief „${customUnitRateName}”`;
         },
+        updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `heeft het tarief voor ${customUnitName} hernoemd van „${oldValue}” naar „${newValue}”`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
             return `${newValue ? 'ingeschakeld' : 'uitgeschakeld'} het ${customUnitName}-tarief "${customUnitRateName}"`;
         },
@@ -7873,6 +7881,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 `),
                 subtitle: 'Stuur een factuur of maak een testrit met Expensify om meer te weten te komen.',
                 subtitleWithOnlyCreateButton: 'Gebruik de groene knop hieronder om een factuur te versturen.',
+                subtitleCannotSend: 'Je hebt een werkruimte met Invoices ingeschakeld nodig om facturen te versturen.',
+                subtitleCannotSendWithTestDrive: 'Je hebt een werkruimte met Invoices ingeschakeld nodig om facturen te versturen. Maak een testrit met Expensify om meer te weten te komen.',
             },
             emptyTripResults: {
                 title: 'Geen reizen om weer te geven',
@@ -8597,6 +8607,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         duplicatedTransaction: 'Mogelijke duplicaat',
         fieldRequired: 'Rapportvelden zijn verplicht',
         futureDate: 'Toekomstige datum niet toegestaan',
+        inactiveVendor: 'Leverancier niet meer geldig',
         invoiceMarkup: (invoiceMarkup: number) => `Met ${invoiceMarkup}% verhoogd`,
         maxAge: (maxAge: number) => `Datum ouder dan ${maxAge} dagen`,
         missingCategory: 'Ontbrekende categorie',
@@ -9279,6 +9290,20 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         expenseLevelExport: 'Alle gegevens - uitgaveniveau',
         exportInProgress: 'Export bezig',
         conciergeWillSend: 'Concierge stuurt je het bestand zo meteen.',
+    },
+    exportDownload: {
+        preparingTitle: 'Preparing download...',
+        preparingBody: 'You can either wait for the download to finish or Concierge can send it to you via chat.',
+        sendFromConcierge: "Send me the file when it's ready",
+        conciergeTitle: 'You bet!',
+        conciergeBody: 'Concierge will send you a message when the file is ready.',
+        goToConcierge: 'Go to Concierge',
+        dismiss: 'Dismiss',
+        readyTitle: 'Your file is ready!',
+        readyBody: "If it didn't automatically download, use the button below.",
+        downloadFile: 'Download file',
+        failedTitle: 'Export failed',
+        close: 'Close',
     },
     domain: {
         notVerified: 'Niet geverifieerd',
