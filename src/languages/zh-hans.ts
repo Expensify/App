@@ -7587,7 +7587,10 @@ ${reportName}
             amountOperator: {over: '结束', under: '在……之下'},
             amountFilter: ({operator, amount}: {operator: string; amount: string}) => `金额 ${operator} ${amount}`,
             theCard: '该卡',
-            multipleCards: ({count}: {count: number}) => `${count} 张卡片`,
+            multipleCards: ({count}: {count: number}) => ({
+                one: '1 张卡片',
+                other: `${count} 张卡片`,
+            }),
             addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
                 let text = verb;
                 if (filters !== '') {
@@ -7614,7 +7617,10 @@ ${reportName}
                 bodyMaxAmount: '最大金额',
                 bodyMaxAmountSet: ({value}: {value: string}) => `最大金额至 ${value}`,
                 bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `最大金额从 ${oldValue} 变为 ${newValue}`,
-                bodyAppliedToAdditionalCards: ({count}: {count: number}) => `将消费规则应用到另外 ${count} 张卡片`,
+                bodyAppliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: '将消费规则应用到另外 1 张卡片',
+                    other: `将消费规则应用到另外 ${count} 张卡片`,
+                }),
                 bodyRemovedFromCards: ({cards}: {cards: string}) => `来自 ${cards} 的消费规则`,
                 composeOnCards: ({content, cards}: {content: string; cards: string}) => `${cards} 上的 ${content}`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `来自 ${cards} 的 ${content}`,

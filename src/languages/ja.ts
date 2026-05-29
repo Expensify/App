@@ -7736,7 +7736,10 @@ ${reportName}
             },
             amountFilter: ({operator, amount}: {operator: string; amount: string}) => `金額が ${amount} を${operator}`,
             theCard: 'カード',
-            multipleCards: ({count}: {count: number}) => `${count} 枚のカード`,
+            multipleCards: ({count}: {count: number}) => ({
+                one: '1 枚のカード',
+                other: `${count} 枚のカード`,
+            }),
             addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
                 let text = verb;
                 if (filters !== '') {
@@ -7763,7 +7766,10 @@ ${reportName}
                 bodyMaxAmount: '最大金額',
                 bodyMaxAmountSet: ({value}: {value: string}) => `最大金額を${value}に設定`,
                 bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `最大金額を${oldValue}から${newValue}に変更しました`,
-                bodyAppliedToAdditionalCards: ({count}: {count: number}) => `${count}枚の追加カードに支出ルールを適用します`,
+                bodyAppliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: '1枚の追加カードに支出ルールを適用します',
+                    other: `${count}枚の追加カードに支出ルールを適用します`,
+                }),
                 bodyRemovedFromCards: ({cards}: {cards: string}) => `${cards} からの支出ルール`,
                 composeOnCards: ({content, cards}: {content: string; cards: string}) => `${cards} 上の ${content}`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${cards} からの ${content}`,

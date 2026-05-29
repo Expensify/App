@@ -772,13 +772,16 @@ type OriginalMessagePolicyChangeLog = {
     didJoinPolicy?: boolean;
 };
 
+/** Amount operators for spend rules */
+type SpendRuleAmountOperator = typeof CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN | typeof CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO;
+
 /** Model of an Expensify card spend rule change log action (add, update, or remove) */
 type OriginalMessageSpendRuleChangeLog = {
-    /** Spend rule action (`block` or `allow`) */
-    action?: string;
+    /** Spend rule action */
+    action?: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
 
     /** Previous spend rule action when the rule's restriction type was updated */
-    oldAction?: string;
+    oldAction?: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
 
     /** Merchants included in a spend rule */
     merchants?: string[];
@@ -795,7 +798,7 @@ type OriginalMessageSpendRuleChangeLog = {
     /** Max-amount filters in a spend rule */
     amounts?: Array<{
         /** Operator (`gt` for "over", `lte` for "under") */
-        operator: string;
+        operator: SpendRuleAmountOperator;
 
         /** Amount value as a decimal dollar string array (e.g. `['100.40']`) */
         value: string[];
@@ -804,7 +807,7 @@ type OriginalMessageSpendRuleChangeLog = {
     /** Previous list of max-amount filters when a spend rule was updated */
     oldAmounts?: Array<{
         /** Operator (`gt` for "over", `lte` for "under") */
-        operator: string;
+        operator: SpendRuleAmountOperator;
 
         /** Amount value as a decimal dollar string array (e.g. `['100.40']`) */
         value: string[];

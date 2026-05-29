@@ -7787,7 +7787,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             amountOperator: {over: 'acima', under: 'abaixo'},
             amountFilter: ({operator, amount}: {operator: string; amount: string}) => `valores ${operator} ${amount}`,
             theCard: 'o cartão',
-            multipleCards: ({count}: {count: number}) => `${count} cartões`,
+            multipleCards: ({count}: {count: number}) => ({
+                one: '1 cartão',
+                other: `${count} cartões`,
+            }),
             addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
                 let text = verb;
                 if (filters !== '') {
@@ -7816,7 +7819,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 bodyMaxAmount: 'valor máximo',
                 bodyMaxAmountSet: ({value}: {value: string}) => `valor máximo até ${value}`,
                 bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `valor máximo de ${oldValue} para ${newValue}`,
-                bodyAppliedToAdditionalCards: ({count}: {count: number}) => `regra de gasto para mais ${count} cartões`,
+                bodyAppliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: 'regra de gasto para mais 1 cartão',
+                    other: `regra de gasto para mais ${count} cartões`,
+                }),
                 bodyRemovedFromCards: ({cards}: {cards: string}) => `regra de gasto de ${cards}`,
                 composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} em ${cards}`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} de ${cards}`,

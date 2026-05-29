@@ -7795,7 +7795,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             amountOperator: {over: 'over', under: 'onder'},
             amountFilter: ({operator, amount}: {operator: string; amount: string}) => `bedragen ${operator} ${amount}`,
             theCard: 'de kaart',
-            multipleCards: ({count}: {count: number}) => `${count} kaarten`,
+            multipleCards: ({count}: {count: number}) => ({
+                one: '1 kaart',
+                other: `${count} kaarten`,
+            }),
             addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
                 let text = verb;
                 if (filters !== '') {
@@ -7824,7 +7827,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 bodyMaxAmount: 'maximum bedrag',
                 bodyMaxAmountSet: ({value}: {value: string}) => `maximumbedrag tot ${value}`,
                 bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `maximumbedrag van ${oldValue} naar ${newValue}`,
-                bodyAppliedToAdditionalCards: ({count}: {count: number}) => `bestedingsregel naar ${count} extra kaarten`,
+                bodyAppliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: 'bestedingsregel naar 1 extra kaart',
+                    other: `bestedingsregel naar ${count} extra kaarten`,
+                }),
                 bodyRemovedFromCards: ({cards}: {cards: string}) => `bestedingsregel van ${cards}`,
                 composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} op ${cards}`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} van ${cards}`,

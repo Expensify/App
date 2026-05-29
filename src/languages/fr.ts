@@ -7867,7 +7867,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             amountOperator: {over: 'terminé', under: 'sous'},
             amountFilter: ({operator, amount}: {operator: string; amount: string}) => `montants ${operator} ${amount}`,
             theCard: 'la carte',
-            multipleCards: ({count}: {count: number}) => `${count} cartes`,
+            multipleCards: ({count}: {count: number}) => ({
+                one: '1 carte',
+                other: `${count} cartes`,
+            }),
             addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
                 let text = verb;
                 if (filters !== '') {
@@ -7896,7 +7899,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 bodyMaxAmount: 'montant maximal',
                 bodyMaxAmountSet: ({value}: {value: string}) => `montant maximum à ${value}`,
                 bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `montant maximal de ${oldValue} à ${newValue}`,
-                bodyAppliedToAdditionalCards: ({count}: {count: number}) => `règle de dépense pour ${count} cartes supplémentaires`,
+                bodyAppliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: 'règle de dépense pour 1 carte supplémentaire',
+                    other: `règle de dépense pour ${count} cartes supplémentaires`,
+                }),
                 bodyRemovedFromCards: ({cards}: {cards: string}) => `règle de dépense provenant de ${cards}`,
                 composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} sur ${cards}`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} de ${cards}`,

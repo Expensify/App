@@ -1,4 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import {isSpendRuleCategory} from '@src/types/form/SpendRuleForm';
@@ -11,13 +12,14 @@ import {getOriginalMessage, isActionOfType} from './ReportActionsUtils';
 
 function getSpendRuleFallbackReportActionText(reportAction: OnyxEntry<ReportAction>): string {
     const message = Array.isArray(reportAction?.message) ? reportAction?.message.at(0) : reportAction?.message;
+
     // We intentionally use || here because empty strings from stripFollowupListFromHtml should also fall through to the text fallback
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const text = stripFollowupListFromHtml(message?.html) || (message?.text ?? '');
     return text ? Parser.htmlToText(text) : '';
 }
 
-function getSpendRuleActionVerb(translate: LocalizedTranslate, action: string): string {
+function getSpendRuleActionVerb(translate: LocalizedTranslate, action: ValueOf<typeof CONST.SPEND_RULES.ACTION>): string {
     if (action === CONST.SPEND_RULES.ACTION.BLOCK) {
         return translate('workspaceActions.expensifyCardRule.actionVerb.block');
     }
@@ -27,7 +29,7 @@ function getSpendRuleActionVerb(translate: LocalizedTranslate, action: string): 
     return '';
 }
 
-function getSpendRuleAmountOperatorWord(translate: LocalizedTranslate, operator: string): string {
+function getSpendRuleAmountOperatorWord(translate: LocalizedTranslate, operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>): string {
     if (operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO) {
         return translate('workspaceActions.expensifyCardRule.amountOperator.under');
     }
@@ -37,11 +39,11 @@ function getSpendRuleAmountOperatorWord(translate: LocalizedTranslate, operator:
     return '';
 }
 
-function getSpendRuleAmountString(translate: LocalizedTranslate, amount: {operator: string; value: string[]}, currency: string): string {
-    const operatorWord = getSpendRuleAmountOperatorWord(translate, amount.operator);
+function getSpendRuleAmountString(translate: LocalizedTranslate, amount: {operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>; value: string[]}, currency: string): string {
     if (amount.value.length === 0) {
         return '';
     }
+    const operatorWord = getSpendRuleAmountOperatorWord(translate, amount.operator);
     return translate('workspaceActions.expensifyCardRule.amountFilter', {operator: operatorWord, amount: formatSpendRuleAmount(amount.value, currency)});
 }
 
@@ -60,14 +62,14 @@ function getSpendRuleJoinFilters(items: readonly string[]): string {
     return formatList(items.filter((value) => value !== ''));
 }
 
-function getSpendRuleCategoryDisplayName(translate: LocalizedTranslate, category: string): string {
+function getSpendRuleCategoryDisplayName(translate: LocalizedTranslate, category: ValueOf<typeof CONST.SPEND_RULES.CATEGORIES>): string {
     if (isSpendRuleCategory(category)) {
         return translate(`workspace.rules.spendRules.categoryOptions.${category}`);
     }
     return category;
 }
 
-function getSpendRuleRestrictionVerb(translate: LocalizedTranslate, action: string): string {
+function getSpendRuleRestrictionVerb(translate: LocalizedTranslate, action: ValueOf<typeof CONST.SPEND_RULES.ACTION>): string {
     if (action === CONST.SPEND_RULES.ACTION.BLOCK) {
         return translate('workspaceActions.expensifyCardRule.restrictionVerb.block');
     }
@@ -91,7 +93,7 @@ function computeSpendRuleStringDiff(oldValues: string[], newValues: string[]): S
     return {added, removed};
 }
 
-type SpendRuleAmount = {operator: string; value: string[]};
+type SpendRuleAmount = {operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>; value: string[]};
 type SpendRuleAmountDiff = {added: SpendRuleAmount[]; removed: SpendRuleAmount[]};
 
 function getSpendRuleValueInCents(value: string[]): number {
@@ -301,7 +303,7 @@ function getUpdateExpensifyCardRuleMessage(translate: LocalizedTranslate, report
     const message = getOriginalMessage(reportAction) ?? {};
     const oldAction = message.oldAction ?? CONST.SPEND_RULES.ACTION.ALLOW;
     const newAction = message.action ?? CONST.SPEND_RULES.ACTION.ALLOW;
-    const actionChanged = oldAction !== '' && oldAction !== newAction;
+    const actionChanged = oldAction !== newAction;
     const currency = message.currency ?? CONST.CURRENCY.USD;
 
     const oldMerchants = message.oldMerchants ?? [];

@@ -7334,7 +7334,10 @@ ${amount} para ${merchant} - ${date}`,
             amountOperator: {over: 'más de', under: 'debajo'},
             amountFilter: ({operator, amount}: {operator: string; amount: string}) => `cantidades ${operator} ${amount}`,
             theCard: 'la tarjeta',
-            multipleCards: ({count}: {count: number}) => `${count} tarjetas`,
+            multipleCards: ({count}: {count: number}) => ({
+                one: '1 tarjeta',
+                other: `${count} tarjetas`,
+            }),
             addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
                 let text = verb;
                 if (filters !== '') {
@@ -7362,7 +7365,10 @@ ${amount} para ${merchant} - ${date}`,
                 bodyMaxAmount: 'importe máximo',
                 bodyMaxAmountSet: ({value}: {value: string}) => `importe máximo hasta ${value}`,
                 bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `importe máximo de ${oldValue} a ${newValue}`,
-                bodyAppliedToAdditionalCards: ({count}: {count: number}) => `regla de gasto para ${count} tarjetas adicionales`,
+                bodyAppliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: 'regla de gasto para 1 tarjeta adicional',
+                    other: `regla de gasto para ${count} tarjetas adicionales`,
+                }),
                 bodyRemovedFromCards: ({cards}: {cards: string}) => `regla de gasto de ${cards}`,
                 composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} en ${cards}`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} de ${cards}`,
