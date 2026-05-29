@@ -55,8 +55,8 @@ function GenericPressable({
     const internalRef = useRef<View | null>(null);
     const composedRef = useMemo(() => mergeRefs(ref, internalRef), [ref]);
     const routeKey = useContext(NavigationRouteContext)?.key ?? null;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- `||` lets empty-string ids fall through; the identifier must be content-stable to survive a remount for the registry rescue.
-    const focusIdentifier = rest.id || rest.nativeID || rest.testID || rest.accessibilityLabel || undefined;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- `||` falls empty-string ids through to the next identity prop; the registry rescue must key off a stable identity prop, never the (often value-derived) accessibility label.
+    const focusIdentifier = rest.id || rest.nativeID || rest.testID || undefined;
 
     useEffect(() => {
         if (!isScreenReaderActive || !routeKey || !focusIdentifier) {
