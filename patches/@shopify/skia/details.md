@@ -1,0 +1,7 @@
+### [@shopify+react-native-skia+2.4.14+001+fix-runtime-aware-cache-uaf.patch](@shopify+react-native-skia+2.4.14+001+fix-runtime-aware-cache-uaf.patch)
+
+- Reason: Prevents `EXC_BAD_ACCESS` / segfault when the primary Hermes `jsi::Runtime` is destroyed before Skia C++ host objects finish tearing down (HybridApp NewDot → Classic, Metro reload, and other JS-runtime teardown flows). `~RuntimeAwareCache` previously destroyed `_primaryCache` entries (e.g. `std::map<std::string, jsi::Function>`), and each `~jsi::Function` dereferenced an already-freed runtime. The patch registers `MainRuntimeWatcher` on the main runtime via `RuntimeLifecycleMonitor`, sets `_mainRuntimeAlive` to false in `onRuntimeDestroyed`, and in `~RuntimeAwareCache` skips normal destruction when the runtime is dead by moving `_primaryCache` onto the heap (`new T(std::move(_primaryCache))`) so JSI handles are not torn down after UAF. That intentional, bounded teardown-time leak is preferable to a guaranteed crash; orphaned cache memory is not reused in Classic or on the next NewDot open (fresh runtime and empty caches).
+- Files changed: `cpp/jsi/RuntimeAwareCache.cpp` and `cpp/jsi/RuntimeAwareCache.h`.
+- Upstream PR/issue: https://github.com/Shopify/react-native-skia/issues/3478 (related `RuntimeAwareCache` lifecycle work; this primary-runtime teardown fix is Expensify-specific — verify on Skia upgrades)
+- E/App issue: https://github.com/Expensify/App/issues/90135
+- PR introducing patch: https://github.com/Expensify/App/pull/91828

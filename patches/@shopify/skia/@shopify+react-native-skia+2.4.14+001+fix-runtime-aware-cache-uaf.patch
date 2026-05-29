@@ -1,0 +1,99 @@
+diff --git a/node_modules/@shopify/react-native-skia/cpp/jsi/RuntimeAwareCache.cpp b/node_modules/@shopify/react-native-skia/cpp/jsi/RuntimeAwareCache.cpp
+index 1111111..2222222 100644
+--- a/node_modules/@shopify/react-native-skia/cpp/jsi/RuntimeAwareCache.cpp
++++ b/node_modules/@shopify/react-native-skia/cpp/jsi/RuntimeAwareCache.cpp
+@@ -1,7 +1,33 @@
+ #include "RuntimeAwareCache.h"
+ 
++#include "RuntimeLifecycleMonitor.h"
++
+ namespace RNJsi {
+ 
+ jsi::Runtime *BaseRuntimeAwareCache::_mainRuntime = nullptr;
++std::atomic<bool> BaseRuntimeAwareCache::_mainRuntimeAlive{false};
++BaseRuntimeAwareCache::MainRuntimeWatcher
++    BaseRuntimeAwareCache::_mainRuntimeWatcher;
++
++void BaseRuntimeAwareCache::MainRuntimeWatcher::onRuntimeDestroyed(
++    jsi::Runtime * /*rt*/) {
++  // The primary jsi::Runtime is going away. Any jsi::Object/jsi::Function
++  // still held by RuntimeAwareCache<T>::_primaryCache from now on points
++  // into freed memory - destroying them would dereference the dead Runtime.
++  // We flip the flag so ~RuntimeAwareCache can intentionally leak those
++  // entries instead of crashing on segfault.
++  BaseRuntimeAwareCache::_mainRuntimeAlive.store(false);
++  BaseRuntimeAwareCache::_mainRuntime = nullptr;
++}
++
++void BaseRuntimeAwareCache::setMainJsRuntime(jsi::Runtime *rt) {
++  _mainRuntime = rt;
++  if (rt != nullptr) {
++    _mainRuntimeAlive.store(true);
++    RuntimeLifecycleMonitor::addListener(*rt, &_mainRuntimeWatcher);
++  } else {
++    _mainRuntimeAlive.store(false);
++  }
++}
+ 
+ } // namespace RNJsi
+diff --git a/node_modules/@shopify/react-native-skia/cpp/jsi/RuntimeAwareCache.h b/node_modules/@shopify/react-native-skia/cpp/jsi/RuntimeAwareCache.h
+index 1111111..2222222 100644
+--- a/node_modules/@shopify/react-native-skia/cpp/jsi/RuntimeAwareCache.h
++++ b/node_modules/@shopify/react-native-skia/cpp/jsi/RuntimeAwareCache.h
+@@ -2,6 +2,7 @@
+ 
+ #include <jsi/jsi.h>
+ 
++#include <atomic>
+ #include <memory>
+ #include <unordered_map>
+ #include <utility>
+@@ -14,7 +15,12 @@ namespace jsi = facebook::jsi;
+ 
+ class BaseRuntimeAwareCache {
+ public:
+-  static void setMainJsRuntime(jsi::Runtime *rt) { _mainRuntime = rt; }
++  static void setMainJsRuntime(jsi::Runtime *rt);
++
++  // Returns true while the primary jsi::Runtime is alive. Used by
++  // ~RuntimeAwareCache to decide whether destroying _primaryCache would
++  // dereference a dead Runtime (UAF) and so should be skipped (leaked).
++  static bool isMainJsRuntimeAlive() { return _mainRuntimeAlive.load(); }
+ 
+ protected:
+   static jsi::Runtime *getMainJsRuntime() {
+@@ -27,6 +33,12 @@ protected:
+ 
+ private:
+   static jsi::Runtime *_mainRuntime;
++  static std::atomic<bool> _mainRuntimeAlive;
++
++  struct MainRuntimeWatcher : public RuntimeLifecycleListener {
++    void onRuntimeDestroyed(jsi::Runtime *rt) override;
++  };
++  static MainRuntimeWatcher _mainRuntimeWatcher;
+ };
+ 
+ /**
+@@ -63,6 +75,21 @@ public:
+   }
+ 
+   ~RuntimeAwareCache() {
++    // FIX (Expensify): Protect against use-after-free when the primary
++    // jsi::Runtime is torn down BEFORE its owning JsiHostObject. The
++    // default destructor of _primaryCache (e.g. std::map<string,
++    // jsi::Function>) would invoke ~jsi::Function on every entry, and
++    // each jsi::Function dereferences its owning Runtime - which is
++    // already gone. We move the contents into a heap allocation that
++    // is deliberately leaked: the moved-from _primaryCache is left in
++    // a valid empty state and its automatic destructor is a no-op.
++    // A bounded teardown-time leak is preferable to a guaranteed
++    // segfault on every HybridApp swap / JS reload.
++    if (!BaseRuntimeAwareCache::isMainJsRuntimeAlive()) {
++      // Intentional leak - see comment above.
++      new T(std::move(_primaryCache));
++    }
++
+     for (auto &cache : _secondaryRuntimeCaches) {
+       RuntimeLifecycleMonitor::removeListener(
+           *static_cast<jsi::Runtime *>(cache.first), this);
