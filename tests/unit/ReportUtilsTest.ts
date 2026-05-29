@@ -18075,7 +18075,7 @@ describe('ReportUtils', () => {
             expect(getBankAccountRoute(report, undefined)).toBe(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, backTo: 'mock-route'}));
         });
 
-        it('returns the workspace invoices route when the report is a business invoice room and invoiceReceiverPolicy.areInvoicesEnabled is true', () => {
+        it('returns the workspace invoices route when the report is a business invoice room and areInvoicesEnabled is true', () => {
             const invoiceReceiverPolicyID = 'POLICY_INVOICE_1';
             const report = {
                 reportID: '2',
@@ -18085,12 +18085,11 @@ describe('ReportUtils', () => {
                     policyID: invoiceReceiverPolicyID,
                 },
             } as Report;
-            const invoiceReceiverPolicy = {id: invoiceReceiverPolicyID, areInvoicesEnabled: true} as Policy;
 
-            expect(getBankAccountRoute(report, invoiceReceiverPolicy)).toBe(ROUTES.WORKSPACE_INVOICES.getRoute(invoiceReceiverPolicyID));
+            expect(getBankAccountRoute(report, true)).toBe(ROUTES.WORKSPACE_INVOICES.getRoute(invoiceReceiverPolicyID));
         });
 
-        it('returns the personal add bank account route when the report is a business invoice room and invoiceReceiverPolicy.areInvoicesEnabled is false', () => {
+        it('returns the personal add bank account route when the report is a business invoice room and areInvoicesEnabled is false', () => {
             const invoiceReceiverPolicyID = 'POLICY_INVOICE_2';
             const report = {
                 reportID: '3',
@@ -18100,9 +18099,8 @@ describe('ReportUtils', () => {
                     policyID: invoiceReceiverPolicyID,
                 },
             } as Report;
-            const invoiceReceiverPolicy = {id: invoiceReceiverPolicyID, areInvoicesEnabled: false} as Policy;
 
-            expect(getBankAccountRoute(report, invoiceReceiverPolicy)).toBe(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route);
+            expect(getBankAccountRoute(report, false)).toBe(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route);
         });
     });
 });

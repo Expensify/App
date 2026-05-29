@@ -1,3 +1,4 @@
+import {areInvoicesEnabledSelector} from '@selectors/Policy';
 import truncate from 'lodash/truncate';
 import type {TupleToUnion} from 'type-fest';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -26,7 +27,6 @@ import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
-import usePolicy from './usePolicy';
 import useThemeStyles from './useThemeStyles';
 
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
@@ -70,7 +70,7 @@ function useBulkPayOptions({
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`);
     const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(chatReport);
-    const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
+    const [areInvoicesEnabled] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`, {selector: areInvoicesEnabledSelector});
     const {isBetaEnabled} = usePermissions();
     const isPayInvoiceViaExpensifyBetaEnabled = isBetaEnabled(CONST.BETAS.PAY_INVOICE_VIA_EXPENSIFY);
     const activeAdminPolicies = useActiveAdminPolicies();
@@ -197,7 +197,7 @@ function useBulkPayOptions({
                     text: translate('bankAccount.addBankAccount'),
                     icon: icons.Bank,
                     onSelected: () => {
-                        const bankAccountRoute = getBankAccountRoute(chatReport, invoiceReceiverPolicy);
+                        const bankAccountRoute = getBankAccountRoute(chatReport, areInvoicesEnabled);
                         Navigation.navigate(bankAccountRoute);
                     },
                 };

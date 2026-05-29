@@ -1,3 +1,4 @@
+import {areInvoicesEnabledSelector} from '@selectors/Policy';
 import {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
@@ -72,7 +73,7 @@ function usePaymentOptions({
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`);
     const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(chatReport);
-    const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
+    const [areInvoicesEnabled] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`, {selector: areInvoicesEnabledSelector});
     const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
@@ -199,7 +200,7 @@ function usePaymentOptions({
                 text: translate('bankAccount.addBankAccount'),
                 icon: icons.Bank,
                 onSelected: () => {
-                    const bankAccountRoute = getBankAccountRoute(chatReport, invoiceReceiverPolicy);
+                    const bankAccountRoute = getBankAccountRoute(chatReport, areInvoicesEnabled);
                     Navigation.navigate(bankAccountRoute);
                 },
             };
@@ -266,7 +267,7 @@ function usePaymentOptions({
         shouldShowPayWithExpensifyOption,
         shouldShowPayElsewhereOption,
         chatReport,
-        invoiceReceiverPolicy,
+        areInvoicesEnabled,
         onPress,
         onlyShowPayElsewhere,
         icons,
