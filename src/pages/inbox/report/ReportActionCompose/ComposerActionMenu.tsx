@@ -8,16 +8,14 @@ import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userA
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
-import {useComposerActions, useComposerMeta, useComposerSendState, useComposerState} from './ComposerContext';
+import {useComposerActions, useComposerEditState, useComposerMeta, useComposerSendState, useComposerState} from './ComposerContext';
 import useAttachmentPicker from './useAttachmentPicker';
 
-type ComposerActionMenuProps = {
-    reportID: string;
-};
-
-function ComposerActionMenu({reportID}: ComposerActionMenuProps) {
+function ComposerActionMenu() {
+    const {reportID} = useComposerState();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {isMenuVisible, isFullComposerAvailable, draftComment} = useComposerState();
+    const {isMenuVisible, isFullComposerAvailable} = useComposerState();
+    const {draftComment} = useComposerEditState();
     const {exceededMaxLength} = useComposerSendState();
     const {setMenuVisibility, onAddActionPressed, onItemSelected, onTriggerAttachmentPicker} = useComposerActions();
     const {actionButtonRef, composerRef} = useComposerMeta();

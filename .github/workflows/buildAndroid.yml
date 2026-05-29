@@ -67,8 +67,7 @@ jobs:
       PROGUARD_MAPPING_FILENAME: mapping.txt
     steps:
       - name: Checkout
-        # v6
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           submodules: true
           ref: ${{ inputs.ref }}
@@ -123,9 +122,9 @@ jobs:
           distribution: oracle
           java-version: ${{ steps.get-java-version.outputs.version }}
 
+      # v6.1.0
       - name: Setup Gradle
-        # v4
-        uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244
+        uses: gradle/actions/setup-gradle@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e
 
       - name: Setup 1Password CLI and certificates
         uses: Expensify/GitHub-Actions/setup-certificate-1p@main

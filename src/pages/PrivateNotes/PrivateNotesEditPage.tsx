@@ -13,6 +13,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -28,7 +29,7 @@ import variables from '@styles/variables';
 import {clearPrivateNotesError, handleUserDeletedLinksInHtml, savePrivateNotesDraft, updatePrivateNotes} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PrivateNotesForm';
 import type {Report} from '@src/types/onyx';
@@ -37,7 +38,7 @@ import type {Note} from '@src/types/onyx/Report';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type PrivateNotesEditPageProps = WithReportAndPrivateNotesOrNotFoundProps &
-    PlatformStackScreenProps<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.EDIT> & {
+    PlatformStackScreenProps<PrivateNotesNavigatorParamList, typeof SCREENS.DYNAMIC_PRIVATE_NOTES_EDIT> & {
         /** The report currently being looked at */
         report: Report;
     };
@@ -48,7 +49,7 @@ type PrivateNotesEditPageInternalProps = PrivateNotesEditPageProps & {
 };
 
 function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraft}: PrivateNotesEditPageInternalProps) {
-    const backTo = route.params.backTo;
+    const privateNotesListBackPath = useDynamicBackPath(DYNAMIC_ROUTES.PRIVATE_NOTES_EDIT.path);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const personalDetailsList = usePersonalDetails();
@@ -104,9 +105,10 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
 
         const hasNewNoteBeenAdded = !originalNote && editedNote;
         if (!Object.values<Note>({...report.privateNotes, [route.params.accountID]: {note: editedNote}}).some((item) => item.note) || hasNewNoteBeenAdded) {
-            goBackToDetailsPage(report, backTo, true);
+            // First note (or no notes left): user opened edit directly, not via the list — return to details/profile.
+            Navigation.setNavigationActionToMicrotaskQueue(() => goBackToDetailsPage(report, undefined, true));
         } else {
-            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID, backTo)));
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(privateNotesListBackPath));
         }
     };
 
@@ -128,7 +130,7 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
         >
             <HeaderWithBackButton
                 title={translate('privateNotes.title')}
-                onBackButtonPress={() => goBackFromPrivateNotes(report, accountID, backTo)}
+                onBackButtonPress={() => goBackFromPrivateNotes(report, accountID)}
                 shouldShowBackButton
                 onCloseButtonPress={() => Navigation.dismissModal()}
             />
@@ -201,7 +203,6 @@ function PrivateNotesEditPage({report, ...rest}: PrivateNotesEditPageProps) {
         <PrivateNotesEditPageInternal
             report={report}
             privateNoteDraft={privateNoteDraft ?? ''}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         />
     );

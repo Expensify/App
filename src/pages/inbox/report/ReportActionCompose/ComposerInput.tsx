@@ -23,10 +23,6 @@ import ComposerWithSuggestions from './ComposerWithSuggestions';
 import useAttachmentPicker from './useAttachmentPicker';
 import useComposerSubmit from './useComposerSubmit';
 
-type ComposerInputProps = {
-    reportID: string;
-};
-
 const AI_PLACEHOLDER_KEYS = ['reportActionCompose.askConciergeToUpdate', 'reportActionCompose.askConciergeToCorrect', 'reportActionCompose.askConciergeForHelp'] as const;
 
 function getRandomPlaceholder(translate: LocalizedTranslate): string {
@@ -34,11 +30,12 @@ function getRandomPlaceholder(translate: LocalizedTranslate): string {
     return translate(AI_PLACEHOLDER_KEYS[randomIndex]);
 }
 
-function ComposerInput({reportID}: ComposerInputProps) {
+function ComposerInput() {
+    const {reportID} = useComposerState();
     const {translate, preferredLocale} = useLocalize();
     const {isMenuVisible} = useComposerState();
     const {isBlockedFromConcierge, debouncedCommentMaxLengthValidation} = useComposerSendState();
-    const {setIsFullComposerAvailable, onBlur, onFocus, setComposerRef, setText} = useComposerActions();
+    const {setIsFullComposerAvailable, onBlur, onFocus, setComposerRef} = useComposerActions();
     const {containerRef, suggestionsRef, isNextModalWillOpenRef} = useComposerMeta();
 
     const {submitDraftAndClearComposer, validateAndSubmitDraft} = useComposerSubmit(reportID);
@@ -49,7 +46,6 @@ function ComposerInput({reportID}: ComposerInputProps) {
     const userBlockedFromConcierge = isBlockedFromConciergeUserAction(blockedFromConcierge);
 
     const onValueChange = (v: string) => {
-        setText(v);
         if (v.length === 0 && isComposerFullSize) {
             setIsComposerFullSize(reportID, false);
         }
