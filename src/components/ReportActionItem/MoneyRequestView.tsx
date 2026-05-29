@@ -1352,9 +1352,9 @@ function MoneyRequestView({
                             description={translate('travel.trip')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={[styles.flex1, styles.textBlue]}
-                            onPress={() => {
-                                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(tripRoomReportID));
-                            }}
+                        onPress={() => {
+                            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(tripRoomReportID, undefined, undefined, Navigation.getActiveRoute()));
+                        }}
                             interactive
                         />
                         <View style={styles.reportHorizontalRule} />
