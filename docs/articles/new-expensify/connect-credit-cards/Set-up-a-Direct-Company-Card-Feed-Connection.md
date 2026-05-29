@@ -9,7 +9,7 @@ internalScope: Audience is Workspace Admins. Covers connecting a company card fe
 
 Setting up a direct company card feed connection allows you to automatically import card transactions into Expensify.
 
-You can connect company cards using a direct connection with your bank, or through Plaid, depending on your bank and country.
+You can connect company cards using a direct connection with your bank, or through Plaid, depending on your bank and country. If your bank isn't supported, you can also [learn how to import company card transactions from a spreadsheet](/articles/new-expensify/connect-credit-cards/Import-Company-Card-Transactions-From-a-Spreadsheet).
 
 ---
 
