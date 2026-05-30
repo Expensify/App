@@ -22,6 +22,7 @@ import type {PolicyCopySettingsNavigatorParamList} from '@libs/Navigation/types'
 import {getDistanceRateCustomUnit, getMemberAccountIDsForWorkspace, getPerDiemCustomUnit, isCollectPolicy} from '@libs/PolicyUtils';
 import {formatAddressToString} from '@libs/ReportActionsUtils';
 import {getReportFieldsByPolicyID} from '@libs/ReportUtils';
+import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {getAllValidConnectedIntegration, getWorkflowRules, getWorkspaceRules} from '@pages/workspace/duplicate/utils';
 import CONST from '@src/CONST';
@@ -78,10 +79,9 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const formattedAddress = !isEmptyObject(sourcePolicy) && !isEmptyObject(sourcePolicy.address) ? formatAddressToString(sourcePolicy.address) : '';
     const workflows = getWorkflowRules(sourcePolicy, translate);
     const rules = getWorkspaceRules(sourcePolicy, translate);
-    const invoiceCompany =
-        sourcePolicy?.invoice?.companyName && sourcePolicy?.invoice?.companyWebsite
-            ? `${sourcePolicy.invoice.companyName}, ${sourcePolicy.invoice.companyWebsite}`
-            : (sourcePolicy?.invoice?.companyName ?? sourcePolicy?.invoice?.companyWebsite ?? '');
+    const invoiceCompany = [sourcePolicy?.invoice?.companyName, sourcePolicy?.invoice?.companyWebsite].filter(Boolean).join(', ');
+
+    const workspaceBankAccountsCount = getEligibleExistingBusinessBankAccounts(bankAccountList, sourcePolicy?.outputCurrency).length;
 
     const sourceFeatureContext = {
         policy: sourcePolicy,
@@ -96,7 +96,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
         hasWorkflowRules: !!workflows?.length,
         hasWorkspaceRules: !!rules?.length,
         codingRulesCount,
-        hasInvoiceConfiguration: !!(bankAccountList && Object.keys(bankAccountList).length) || !!invoiceCompany,
+        hasInvoiceConfiguration: (!!sourcePolicy?.areInvoicesEnabled && workspaceBankAccountsCount > 0) || !!invoiceCompany,
         isCollectPolicy: isCollectPolicy(sourcePolicy),
     };
 
@@ -162,8 +162,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
             case 'perDiem':
                 return perDiemCount > 0 ? `${perDiemCount} ${translate('workspace.common.perDiem').toLowerCase()}` : undefined;
             case 'invoices': {
-                const bankCount = bankAccountList ? Object.keys(bankAccountList).length : 0;
-                const bankAccountsText = bankCount > 0 ? `${bankCount} ${translate('common.bankAccounts').toLowerCase()}` : '';
+                const bankAccountsText = workspaceBankAccountsCount > 0 ? `${workspaceBankAccountsCount} ${translate('common.bankAccounts').toLowerCase()}` : '';
                 if (bankAccountsText && invoiceCompany) {
                     return `${bankAccountsText}, ${invoiceCompany}`;
                 }
