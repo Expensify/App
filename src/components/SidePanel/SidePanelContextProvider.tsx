@@ -33,7 +33,7 @@ type SidePanelStateContextProps = {
 
 type SidePanelActionsContextProps = {
     openSidePanel: () => void;
-    closeSidePanel: (options?: {afterTransition?: () => void}) => void;
+    closeSidePanel: () => void;
 };
 
 const SidePanelStateContext = createContext<SidePanelStateContextProps>({
@@ -88,7 +88,6 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
 
     const reportID = (isRHPAdminsRoom || isRHPHomePage) && isUserAdmin && isPolicyActive && adminsChatReportID ? adminsChatReportID : conciergeReportID;
 
-    const onCloseCompleteRef = useRef<(() => void) | undefined>(undefined);
     const [sessionStartTime, setSessionStartTime] = useState<string | null>(null);
     const [prevShouldHideSidePanel, setPrevShouldHideSidePanel] = useState(shouldHideSidePanel);
 
@@ -122,22 +121,17 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
                 duration: CONST.SIDE_PANEL_ANIMATED_TRANSITION,
                 useNativeDriver: true,
             }),
-        ]).start(() => {
-            setIsSidePanelTransitionEnded(true);
-            onCloseCompleteRef.current?.();
-            onCloseCompleteRef.current = undefined;
-        });
+        ]).start(() => setIsSidePanelTransitionEnded(true));
     }, [shouldHideSidePanel, shouldApplySidePanelOffset]);
 
-    const closeSidePanel = (options?: {afterTransition?: () => void}) => {
+    const closeSidePanel = (shouldUpdateNarrow = false) => {
         // User shouldn't be able to close side panel if side panel NVP is undefined
         if (!sidePanelNVP) {
             return;
         }
 
-        onCloseCompleteRef.current = options?.afterTransition;
         setIsSidePanelTransitionEnded(false);
-        SidePanelActions.closeSidePanel(!isExtraLargeScreenWidth);
+        SidePanelActions.closeSidePanel(!isExtraLargeScreenWidth || shouldUpdateNarrow);
 
         // Focus the composer after closing the Side Panel
         focusComposerWithDelay(ReportActionComposeFocusManager.composerRef.current, CONST.SIDE_PANEL_ANIMATED_TRANSITION + CONST.COMPOSER_FOCUS_DELAY)(true);
