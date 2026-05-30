@@ -11,7 +11,8 @@ const shortList = CONST.STANDARD_LIST_ITEM_LIMIT - 1;
 
 describe('useFrozenPreSelection', () => {
     it('does not capture until the list is ready', () => {
-        const selectedOptions: Option[] = [{accountID: 1, login: 'a@example.com'}];
+        const onlyOption: Option = {accountID: 1, login: 'a@example.com'};
+        const selectedOptions: Option[] = [onlyOption];
 
         const {result} = renderHook(() =>
             useFrozenPreSelection<Option>({
@@ -23,7 +24,7 @@ describe('useFrozenPreSelection', () => {
         );
 
         expect(result.current.frozen).toEqual([]);
-        expect(result.current.isFrozen(selectedOptions.at(0) as Option)).toBe(false);
+        expect(result.current.isFrozen(onlyOption)).toBe(false);
     });
 
     it('snapshots the selection on the first ready render when the list is long enough', () => {
@@ -48,7 +49,8 @@ describe('useFrozenPreSelection', () => {
     });
 
     it('skips pinning when the list is below the threshold', () => {
-        const selectedOptions: Option[] = [{accountID: 1, login: 'a@example.com'}];
+        const onlyOption: Option = {accountID: 1, login: 'a@example.com'};
+        const selectedOptions: Option[] = [onlyOption];
 
         const {result} = renderHook(() =>
             useFrozenPreSelection<Option>({
@@ -60,7 +62,7 @@ describe('useFrozenPreSelection', () => {
         );
 
         expect(result.current.frozen).toEqual([]);
-        expect(result.current.isFrozen(selectedOptions.at(0) as Option)).toBe(false);
+        expect(result.current.isFrozen(onlyOption)).toBe(false);
     });
 
     it('respects a custom threshold', () => {
