@@ -901,6 +901,7 @@ describe('TransactionPreviewUtils', () => {
         it('should return true for a distance request with MODIFIED_AMOUNT violation', () => {
             const distanceTransaction = {
                 ...basicProps.transaction,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
                 comment: {
                     type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                     customUnit: {customUnitRateID: 'rate1', name: CONST.CUSTOM_UNITS.NAME_DISTANCE},
@@ -946,6 +947,7 @@ describe('TransactionPreviewUtils', () => {
         it('should return false for a distance request with missing merchant (guarded by hasMissingSmartscanFields)', () => {
             const distanceTransaction = {
                 ...basicProps.transaction,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
                 merchant: '',
                 modifiedMerchant: '',
                 comment: {

@@ -1,5 +1,4 @@
 import React from 'react';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
@@ -31,7 +30,6 @@ function ChatListItem<TItem extends ListItem>({
     const reportActionItem = item as unknown as ReportActionListItemType;
     const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID}`, {selector: getStableReportSelector});
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.childReportID}`);
-    const personalDetails = usePersonalDetails();
     const styles = useThemeStyles();
     const theme = useTheme();
     const animatedHighlightStyle = useAnimatedHighlightStyle({
@@ -79,8 +77,8 @@ function ChatListItem<TItem extends ListItem>({
         >
             <ReportActionItem
                 action={reportActionItem}
-                transactionThreadReport={transactionThreadReport}
                 report={reportStable}
+                transactionThreadReport={transactionThreadReport}
                 onPress={handlePress}
                 parentReportAction={undefined}
                 displayAsGroup={false}
@@ -88,7 +86,6 @@ function ChatListItem<TItem extends ListItem>({
                 isFirstVisibleReportAction={false}
                 shouldDisplayContextMenu={false}
                 shouldShowBorder
-                personalDetails={personalDetails}
             />
         </BaseListItem>
     );
