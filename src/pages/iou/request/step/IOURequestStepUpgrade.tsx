@@ -6,7 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
 import useActivePolicy from '@hooks/useActivePolicy';
@@ -80,8 +80,8 @@ function IOURequestStepUpgrade({
     const createReportForCurrentUser = useCreateNewReport();
 
     // Hooks for bulk move functionality
-    const {selectedTransactions} = useSearchStateContext();
-    const {clearSelectedTransactions} = useSearchActionsContext();
+    const {selectedTransactions} = useSearchSelectionContext();
+    const {clearSelectedTransactions} = useSearchSelectionActions();
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
@@ -185,15 +185,20 @@ function IOURequestStepUpgrade({
 
                 Navigation.goBack(backToRoute, {compareParams: false});
 
-                // For track expense, we want to create the expense inside self dm (which is not expenseReportID).
-                if (!isTrack) {
+                // For track or split-expense, the existing transaction must stay anchored to its current
+                // (self-DM) report — the new workspace only owns the freshly-created rate, not the expense
+                // itself. Only the submit flow needs to relocate the optimistic transaction.
+                const shouldKeepOriginalReport = isTrack || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
+                if (!shouldKeepOriginalReport) {
                     setTransactionReport(transactionID, {reportID: expenseReportID}, true);
                     // Let the confirmation step decide the distance rate because policy data is not fully available at this step
                     setCustomUnitRateID(transactionID, '-1', undefined, undefined);
                     Navigation.setParams({reportID: expenseReportID});
                 }
 
-                navigateWithMicrotask(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE_UPGRADE.getRoute(policyID, transactionID, isTrack ? reportID : expenseReportID, iouType, action));
+                navigateWithMicrotask(
+                    ROUTES.WORKSPACE_CREATE_DISTANCE_RATE_UPGRADE.getRoute(policyID, transactionID, shouldKeepOriginalReport ? reportID : expenseReportID, iouType, action),
+                );
                 break;
             }
             case CONST.UPGRADE_PATHS.REPORTS:
