@@ -12,7 +12,18 @@ import type {SidebarOrderedReportsDerivedValue, SidebarReportForLHN} from '@src/
 
 const EMPTY_VALUE: SidebarOrderedReportsDerivedValue = {reportsToDisplay: {}, orderedReportIDs: []};
 
-const COLLATOR_OPTIONS: Intl.CollatorOptions = {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'};
+// Cache the collator across computes so we only rebuild it when the locale actually changes.
+let cachedCollator: Intl.Collator | undefined;
+let cachedCollatorLocale: string | undefined;
+
+function getLocaleCompare(locale: string): (a: string, b: string) => number {
+    if (!cachedCollator || cachedCollatorLocale !== locale) {
+        cachedCollator = new Intl.Collator(locale, CONST.COLLATOR_OPTIONS);
+        cachedCollatorLocale = locale;
+    }
+    const collator = cachedCollator;
+    return (a, b) => collator.compare(a, b);
+}
 
 const COLLECTION_DEP_KEYS = [
     ONYXKEYS.COLLECTION.REPORT,
@@ -179,8 +190,7 @@ export default createOnyxDerivedValueConfig({
             });
         }
 
-        const collator = new Intl.Collator(locale ?? IntlStore.getCurrentLocale() ?? undefined, COLLATOR_OPTIONS);
-        const localeCompare = (a: string, b: string) => collator.compare(a, b);
+        const localeCompare = getLocaleCompare(locale ?? IntlStore.getCurrentLocale() ?? CONST.LOCALES.DEFAULT);
         const hasDraftByReportID = buildHasDraftMap(reportsDrafts);
 
         const nextOrderedReportIDs = SidebarUtils.sortReportsToDisplayInLHN(
