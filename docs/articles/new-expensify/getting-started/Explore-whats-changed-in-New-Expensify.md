@@ -77,7 +77,7 @@ Approvers can see their direct reports' expense reports in every status — not 
 This makes it easier to:
 
 - Review draft reports before submission
-- Follow up onoOutstanding reports
+- Follow up on outstanding reports
 - Track reimbursement progress
 - Review historical activity
 
