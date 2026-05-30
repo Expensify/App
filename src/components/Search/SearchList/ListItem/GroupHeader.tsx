@@ -1,5 +1,8 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+// eslint-disable-next-line no-restricted-imports
+import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import {getButtonRole} from '@components/Button/utils';
@@ -18,12 +21,15 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {TransactionPreviewData} from '@libs/actions/Search';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getColumnsToShow} from '@libs/SearchUIUtils';
 import {isDeletedTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
+import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import CardListItemHeader from './CardListItemHeader';
 import CategoryListItemHeader from './CategoryListItemHeader';
@@ -35,6 +41,7 @@ import ReportListItemHeader from './ReportListItemHeader';
 import TagListItemHeader from './TagListItemHeader';
 import type {
     GroupHeaderItemType,
+    SearchListActionProps,
     SearchListItem,
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
@@ -53,7 +60,7 @@ import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
 import YearListItemHeader from './YearListItemHeader';
 
-type GroupHeaderProps = {
+type GroupHeaderProps = SearchListActionProps & {
     item: GroupHeaderItemType;
     groupBy?: SearchGroupBy;
     searchType?: SearchDataTypes;
@@ -61,14 +68,31 @@ type GroupHeaderProps = {
     canSelectMultiple: boolean;
     isExpanded: boolean;
     onToggle: () => void;
-    onSelectRow: (item: SearchListItem, event?: ModifiedMouseEvent) => void;
+    onSelectRow: (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
     onCheckboxPress: (item: GroupHeaderItemType) => void;
     isFocused?: boolean;
     isFirstItem: boolean;
     isLastItem: boolean;
 };
 
-function GroupHeader({item, groupBy, searchType, columns, canSelectMultiple, isExpanded, onToggle, onSelectRow, onCheckboxPress, isFocused, isFirstItem, isLastItem}: GroupHeaderProps) {
+function GroupHeader({
+    item,
+    groupBy,
+    searchType,
+    columns,
+    canSelectMultiple,
+    isExpanded,
+    onToggle,
+    onSelectRow,
+    onCheckboxPress,
+    isFocused,
+    isFirstItem,
+    isLastItem,
+    lastPaymentMethod,
+    personalPolicyID,
+    userBillingGracePeriodEnds,
+    ownerBillingGracePeriodEnd,
+}: GroupHeaderProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -79,6 +103,21 @@ function GroupHeader({item, groupBy, searchType, columns, canSelectMultiple, isE
 
     const groupItem = item as unknown as TransactionGroupListItemType;
     const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+
+    const oneTransactionItem = groupItem.isOneTransactionReport ? groupItem.transactions.at(0) : undefined;
+    const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(oneTransactionItem?.reportID)}`);
+    const [oneTransactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionItem?.reportAction?.childReportID}`);
+    const [oneTransaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(oneTransactionItem?.transactionID)}`);
+    const parentReportActionSelector = (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${oneTransactionItem?.reportAction?.reportActionID}`];
+    const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(oneTransactionItem?.reportID)}`, {selector: parentReportActionSelector}, [
+        oneTransactionItem,
+    ]);
+    const transactionPreviewData: TransactionPreviewData = {
+        hasParentReport: !!parentReport,
+        hasTransaction: !!oneTransaction,
+        hasParentReportAction: !!parentReportAction,
+        hasTransactionThreadReport: !!oneTransactionThreadReport,
+    };
 
     // Compute sub-header columns (same logic as TransactionGroupListExpanded)
     const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash}`);
@@ -162,7 +201,7 @@ function GroupHeader({item, groupBy, searchType, columns, canSelectMultiple, isE
             : undefined);
 
     const handleSelectRow = (rowItem: SearchListItem, event?: ModifiedMouseEvent) => {
-        onSelectRow(rowItem, event);
+        onSelectRow(rowItem, transactionPreviewData, event);
     };
 
     const renderHeader = () => {
@@ -178,6 +217,10 @@ function GroupHeader({item, groupBy, searchType, columns, canSelectMultiple, isE
                     isIndeterminate={isIndeterminate}
                     onDownArrowClick={onToggle}
                     isExpanded={isExpanded}
+                    lastPaymentMethod={lastPaymentMethod}
+                    personalPolicyID={personalPolicyID}
+                    userBillingGracePeriodEnds={userBillingGracePeriodEnds}
+                    ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
                 />
             );
         }
@@ -336,10 +379,19 @@ function GroupHeader({item, groupBy, searchType, columns, canSelectMultiple, isE
         isItemSelected && styles.activeComponentBG,
     ];
 
+    const handlePress = (event?: ModifiedMouseEvent) => {
+        if (isExpenseReportType) {
+            onSelectRow(item, transactionPreviewData, event);
+        }
+        if (!isExpenseReportType) {
+            onToggle();
+        }
+    };
+
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
             <PressableWithFeedback
-                onPress={onToggle}
+                onPress={handlePress}
                 disabled={false}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_GROUP_LIST_ITEM}
                 accessibilityLabel={item.text ?? ''}

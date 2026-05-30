@@ -481,11 +481,15 @@ function SearchList({
                         canSelectMultiple={canSelectMultiple}
                         isExpanded={expandedGroups.has(originalKey)}
                         onToggle={() => onToggleGroup(originalKey)}
-                        onSelectRow={(val, event) => onSelectRow(val, undefined, event)}
+                        onSelectRow={onSelectRow}
                         onCheckboxPress={(val) => onCheckboxPress(val as SearchListItem)}
                         isFocused={isItemFocused}
                         isFirstItem={index === firstVisibleIndex}
                         isLastItem={index + 1 >= lastVisibleIndex && !ListFooterComponent}
+                        lastPaymentMethod={lastPaymentMethod}
+                        personalPolicyID={personalPolicyID}
+                        userBillingGracePeriodEnds={userBillingGracePeriodEnds}
+                        ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
                     />
                 );
             }
