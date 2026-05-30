@@ -171,7 +171,6 @@ import {
     isChatThread,
     isConciergeChatReport,
     isDeprecatedGroupDM,
-    isDM,
     isDomainRoom,
     isExpenseReport,
     isExpenseRequest,
@@ -180,7 +179,6 @@ import {
     isInvoiceReport,
     isInvoiceRoom,
     isIOUOwnedByCurrentUser,
-    isIOUReport,
     isJoinRequestInAdminRoom,
     isMoneyRequestReport,
     isOneOnOneChat,
@@ -1505,14 +1503,13 @@ function filterReportsForInboxTab(
         }
 
         switch (activeTab) {
+            case CONST.INBOX_TAB.TODO:
+                // Reports with an outstanding GBR (requiresAttention) or RBR (errors) require the user's action.
+                return !!report.requiresAttention || !!report.hasErrorsOtherThanFailedReceipt;
             case CONST.INBOX_TAB.UNREAD: {
                 const isReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`]);
                 return isUnread(report, undefined, isReportArchived) && getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
             }
-            case CONST.INBOX_TAB.EXPENSES:
-                return isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report) || isPolicyExpenseChat(report);
-            case CONST.INBOX_TAB.DMS:
-                return isDM(report) || isSelfDM(report) || isGroupChatUtil(report);
             default:
                 return true;
         }

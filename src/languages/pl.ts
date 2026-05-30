@@ -2883,9 +2883,8 @@ ${amount} dla ${merchant} - ${date}`,
     },
     inboxTabs: {
         all: 'All',
+        todo: 'To-do',
         unread: 'Unread',
-        expenses: 'Expenses',
-        dms: 'DMs',
     },
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `w ${policyName}`,
