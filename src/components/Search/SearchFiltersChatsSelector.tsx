@@ -110,7 +110,8 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     const {frozen: frozenSelectedReports, isFrozen: isReportFrozen} = useFrozenPreSelection<OptionData>({
         selectedOptions,
         isReady: !isLoading,
-        visibleCount: chatOptions.recentReports.length,
+        // Threshold is based on the unfiltered list so a search term active at first ready render doesn't permanently disable pinning.
+        visibleCount: defaultOptions.recentReports.length,
         getKeys: (option) => [option.reportID],
     });
 
@@ -119,9 +120,12 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     if (!isLoading) {
         const selectedReportIDsSet = new Set(selectedReportIDs);
         const visibleReportIDsSet = new Set(chatOptions.recentReports.map((report) => report.reportID));
+        const matchesSearchTerm = (report: OptionData) =>
+            cleanSearchTerm === '' || !!report.text?.toLowerCase().includes(cleanSearchTerm) || !!report.login?.toLowerCase().includes(cleanSearchTerm);
 
         // Pre-selected reports pinned at the top. Row order is frozen; the checkmark updates on toggle.
-        const frozenReports = buildFrozenSection(frozenSelectedReports, (report) => selectedReportIDsSet.has(report.reportID));
+        // Search-filtered rows are hidden from view but stay in the snapshot so they still dedupe Recents below.
+        const frozenReports = buildFrozenSection(frozenSelectedReports.filter(matchesSearchTerm), (report) => selectedReportIDsSet.has(report.reportID));
         if (frozenReports.length > 0) {
             sections.push({
                 data: frozenReports,
@@ -129,8 +133,8 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             });
         }
 
-        // Selected reports that don't show up anywhere else (e.g. dropped out of the current results). Surface them so they stay visible.
-        const extraSelectedReports = selectedOptions.filter((report) => !visibleReportIDsSet.has(report.reportID) && !isReportFrozen(report));
+        // Selected reports that don't show up anywhere else (e.g. dropped out of the current results). Surface them so they stay visible, but still respect the search term.
+        const extraSelectedReports = selectedOptions.filter((report) => !visibleReportIDsSet.has(report.reportID) && !isReportFrozen(report) && matchesSearchTerm(report));
         if (extraSelectedReports.length > 0) {
             sections.push({
                 data: extraSelectedReports,
