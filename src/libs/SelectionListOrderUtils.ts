@@ -31,8 +31,7 @@ function buildFrozenSection<T extends {isSelected?: boolean}>(frozen: T[], isCur
 }
 
 /**
- * Excludes items that already appear in the frozen pre-selection section so they don't render
- * twice when reused in Recents / Contacts sections below.
+ * Excludes items that already appear in the frozen pre-selection section so they don't render twice.
  */
 function excludeFrozenItems<T>(items: T[], isFrozen: (item: T) => boolean): T[] {
     return items.filter((item) => !isFrozen(item));
