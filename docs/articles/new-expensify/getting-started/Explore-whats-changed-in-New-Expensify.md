@@ -64,7 +64,7 @@ On mobile, you can create Distance expenses by plotting your start, stop, and wa
 
 [Learn how to create a map-based Distance expense](/articles/new-expensify/reports-and-expenses/Distance-Expenses#how-to-create-a-map-based-distance-expense-web-and-mobile).
 
-## What workflows are improved in New Expensify?
+## What workflows are improved in New Expensify
 
 ### Pay reports in bulk 
 
