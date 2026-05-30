@@ -67,9 +67,6 @@ function NetSuiteCustomListSelectorPage({
 
     const label = translate('workspace.netsuite.import.importCustomFields.customLists.fields.listName');
 
-    // Go back to the custom list "name" sub-page that opened this selector, carrying over its edit state via the
-    // `action` param. On a normal push this pops back to that page; on a direct deeplink/refresh (when it isn't on
-    // the stack) Navigation.goBack replaces this page with it, so the RHP isn't dismissed.
     const goBack = () =>
         Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_ADD.getRoute(policyID, CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_LIST.PAGE_NAME.NAME, action));
 
