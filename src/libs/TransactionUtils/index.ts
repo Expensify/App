@@ -42,6 +42,7 @@ import {
     isOpenExpenseReport,
     isProcessingReport,
     isReportIDApproved,
+    isSelfDM,
     isSettled,
     isThread,
 } from '@libs/ReportUtils';
@@ -1616,6 +1617,28 @@ function mergeProhibitedViolations(transactionViolations: TransactionViolations)
 }
 
 /**
+ * Returns transaction violations visible to the current user after applying dismiss/show filters
+ * and merging prohibited-expense violations.
+ */
+function getVisibleTransactionViolations(
+    transaction: OnyxEntry<Transaction>,
+    transactionViolations: TransactionViolations,
+    currentUserEmail: string,
+    currentUserAccountID: number,
+    iouReport: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    shouldShowRterForSettledReport = true,
+): TransactionViolations {
+    return mergeProhibitedViolations(
+        transactionViolations.filter(
+            (violation) =>
+                !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy) &&
+                shouldShowViolation(iouReport, policy, violation.name, currentUserEmail, shouldShowRterForSettledReport, transaction),
+        ),
+    );
+}
+
+/**
  * Check if the user should see the violation
  */
 function shouldShowViolation(
@@ -2633,17 +2656,24 @@ const getOriginalTransactionWithSplitInfo = (transaction: OnyxEntry<Transaction>
     return {isBillSplit: !!originalTransaction?.comment?.splits, isExpenseSplit: isExpenseSplit(transaction, originalTransaction), originalTransaction: originalTransaction ?? transaction};
 };
 
-function shouldRedirectDeleteToSplitExpenseEdit(transaction: OnyxEntry<Transaction>, originalTransaction: OnyxEntry<Transaction>, isSelfDMSplit?: boolean): boolean {
+function shouldRedirectDeleteToSplitExpenseEdit(
+    transaction: OnyxEntry<Transaction>,
+    originalTransaction: OnyxEntry<Transaction>,
+    isSelfDMSplit: boolean | undefined,
+    isProduction: boolean,
+): boolean {
     const {isExpenseSplit: isExpenseSplitTransaction, originalTransaction: sourceTransaction} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
+
+    if (isProduction) {
+        return isExpenseSplitTransaction && !isExpenseUnreported(transaction ?? undefined) && !isExpenseUnreported(originalTransaction ?? undefined) && isPerDiemRequest(sourceTransaction);
+    }
 
     if (!isExpenseSplitTransaction || !isPerDiemRequest(sourceTransaction)) {
         return false;
     }
-
     if (isSelfDMSplit) {
         return true;
     }
-
     return !isExpenseUnreported(transaction ?? undefined) && !isExpenseUnreported(originalTransaction ?? undefined);
 }
 
@@ -2665,10 +2695,13 @@ function isTransactionPendingDelete(transaction: OnyxEntry<Transaction>): boolea
 /**
  * Retrieves all "child" transactions associated with a given original transaction.
  */
-function getChildTransactions(transactions: OnyxCollection<Transaction>, originalTransactionID: string | undefined) {
+function getChildTransactions(transactions: OnyxCollection<Transaction>, originalTransactionID: string | undefined, isProduction: boolean) {
     return Object.values(transactions ?? {}).filter((currentTransaction) => {
         const isSplitChild = currentTransaction?.comment?.originalTransactionID === originalTransactionID;
         if (!isSplitChild || currentTransaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return false;
+        }
+        if (isProduction && (currentTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || isSelfDM(getReportOrDraftReport(currentTransaction?.reportID)))) {
             return false;
         }
         return currentTransaction?.comment?.source === CONST.IOU.TYPE.SPLIT;
@@ -2946,6 +2979,7 @@ export {
     isCorporateCardTransaction,
     isExpenseUnreported,
     mergeProhibitedViolations,
+    getVisibleTransactionViolations,
     getOriginalAttendees,
     getReportOwnerAsAttendee,
     isFromCreditCardImport,

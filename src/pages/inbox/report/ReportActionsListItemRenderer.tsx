@@ -3,7 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isChatThread} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
 
@@ -47,9 +47,6 @@ type ReportActionsListItemRendererProps = {
     /** Animate highlight action in few seconds */
     shouldHighlight?: boolean;
 
-    /** Personal details list */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-
     /** Whether the action is the "Created" action of a harvest-created expense report */
     isHarvestCreatedExpenseReport?: boolean;
 };
@@ -68,7 +65,6 @@ function ReportActionsListItemRenderer({
     shouldUseThreadDividerLine = false,
     shouldHighlight = false,
     parentReportActionForTransactionThread,
-    personalDetails,
     isHarvestCreatedExpenseReport = false,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
@@ -158,7 +154,6 @@ function ReportActionsListItemRenderer({
                 transactionThreadReport={transactionThreadReport}
                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-                personalDetails={personalDetails}
             />
         );
     }
@@ -177,7 +172,6 @@ function ReportActionsListItemRenderer({
             isFirstVisibleReportAction={isFirstVisibleReportAction}
             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
             shouldHighlight={shouldHighlight}
-            personalDetails={personalDetails}
             isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReport}
         />
     );
