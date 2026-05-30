@@ -2897,6 +2897,17 @@ ${amount} pour ${merchant} - ${date}`,
             },
         },
     },
+    focusModeUpdateModal: {
+        title: 'Bienvenue en mode #focus !',
+        prompt: (priorityModePageUrl: string) =>
+            `Gardez le contrôle en affichant uniquement les discussions non lues ou celles qui nécessitent votre attention. Ne vous inquiétez pas, vous pouvez modifier ce paramètre à tout moment dans les <a href="${priorityModePageUrl}">paramètres</a>.`,
+    },
+    inboxTabs: {
+        all: 'All',
+        unread: 'Unread',
+        expenses: 'Expenses',
+        dms: 'DMs',
+    },
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `dans ${policyName}`,
         generatingPDF: 'Générer le PDF',
@@ -3452,11 +3463,6 @@ ${amount} pour ${merchant} - ${date}`,
     yearPickerPage: {
         year: 'Année',
         selectYear: 'Veuillez sélectionner une année',
-    },
-    focusModeUpdateModal: {
-        title: 'Bienvenue en mode #focus !',
-        prompt: (priorityModePageUrl: string) =>
-            `Gardez le contrôle en affichant uniquement les discussions non lues ou celles qui nécessitent votre attention. Ne vous inquiétez pas, vous pouvez modifier ce paramètre à tout moment dans les <a href="${priorityModePageUrl}">paramètres</a>.`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'La discussion que vous recherchez est introuvable.',

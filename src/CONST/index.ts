@@ -2243,6 +2243,12 @@ const CONST = {
         GSD: 'gsd',
         DEFAULT: 'default',
     },
+    INBOX_TAB: {
+        ALL: 'all',
+        UNREAD: 'unread',
+        EXPENSES: 'expenses',
+        DMS: 'dms',
+    },
     THEME: {
         DEFAULT: 'system',
         FALLBACK: 'dark',

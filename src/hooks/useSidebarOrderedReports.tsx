@@ -1,5 +1,7 @@
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+import {setInboxTab} from '@libs/actions/User';
 import Log from '@libs/Log';
 import {getTransactionThreadReportID} from '@libs/MergeTransactionUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
@@ -33,10 +35,12 @@ type SidebarOrderedReportsStateContextValue = {
     orderedReportIDs: string[];
     currentReportID: string | undefined;
     chatTabBrickRoad: BrickRoad;
+    activeTab: ValueOf<typeof CONST.INBOX_TAB>;
 };
 
 type SidebarOrderedReportsActionsContextValue = {
     clearLHNCache: () => void;
+    setActiveTab: (tab: ValueOf<typeof CONST.INBOX_TAB>) => void;
 };
 
 type ReportsToDisplayInLHN = Record<string, OnyxTypes.Report & {hasErrorsOtherThanFailedReceipt?: boolean; requiresAttention?: boolean}>;
@@ -46,10 +50,12 @@ const SidebarOrderedReportsStateContext = createContext<SidebarOrderedReportsSta
     orderedReportIDs: [],
     currentReportID: '',
     chatTabBrickRoad: undefined,
+    activeTab: CONST.INBOX_TAB.ALL,
 });
 
 const SidebarOrderedReportsActionsContext = createContext<SidebarOrderedReportsActionsContextValue>({
     clearLHNCache: () => {},
+    setActiveTab: () => {},
 });
 
 const policyMapper = (policy: OnyxEntry<OnyxTypes.Policy>): PartialPolicyForSidebar =>
@@ -74,6 +80,8 @@ function SidebarOrderedReportsContextProvider({
 }: SidebarOrderedReportsContextProviderProps) {
     const {localeCompare} = useLocalize();
     const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
+    const [inboxTab = CONST.INBOX_TAB.ALL] = useOnyx(ONYXKEYS.NVP_INBOX_TAB);
+    const activeTab = inboxTab ?? CONST.INBOX_TAB.ALL;
     const [chatReports, {sourceValue: reportUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [, {sourceValue: policiesUpdates}] = useMappedPolicies(policyMapper);
     const [transactions, {sourceValue: transactionsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -286,7 +294,14 @@ function SidebarOrderedReportsContextProvider({
 
     const orderedReportIDs = useMemo(() => getOrderedReportIDs(), [getOrderedReportIDs]);
 
-    // Get the actual reports based on the ordered IDs
+    // Narrow the ordered reports down to the ones belonging to the active Inbox tab. The "All" tab
+    // returns everything (still honoring Most Recent / Focus mode from the ordering above).
+    const filteredReportIDs = useMemo(
+        () => SidebarUtils.filterReportsForInboxTab(orderedReportIDs, reportsToDisplayInLHN, activeTab, reportNameValuePairs),
+        [orderedReportIDs, reportsToDisplayInLHN, activeTab, reportNameValuePairs],
+    );
+
+    // Get the actual reports based on the filtered IDs
     const getOrderedReports = useCallback(
         (reportIDs: string[]): OnyxTypes.Report[] => {
             if (!chatReports) {
@@ -297,12 +312,16 @@ function SidebarOrderedReportsContextProvider({
         [chatReports],
     );
 
-    const orderedReports = useMemo(() => getOrderedReports(orderedReportIDs), [getOrderedReports, orderedReportIDs]);
+    const orderedReports = useMemo(() => getOrderedReports(filteredReportIDs), [getOrderedReports, filteredReportIDs]);
 
     const clearLHNCache = useCallback(() => {
         Log.info('[useSidebarOrderedReports] Clearing sidebar cache manually via debug modal');
         setCurrentReportsToDisplay({});
         setClearCacheDummyCounter((current) => current + 1);
+    }, []);
+
+    const setActiveTab = useCallback((tab: ValueOf<typeof CONST.INBOX_TAB>) => {
+        setInboxTab(tab);
     }, []);
 
     const stateValue: SidebarOrderedReportsStateContextValue = useMemo(() => {
@@ -317,30 +336,45 @@ function SidebarOrderedReportsContextProvider({
         // any expense, a new LHN item is added in the list and is visible on web. But on mobile, we
         // just navigate to the screen with expense details, so there seems no point to execute this logic on mobile.
         if (
-            (!shouldUseNarrowLayout || orderedReportIDs.length === 0) &&
+            (!shouldUseNarrowLayout || filteredReportIDs.length === 0) &&
             derivedCurrentReportID &&
             derivedCurrentReportID !== '-1' &&
-            orderedReportIDs.indexOf(derivedCurrentReportID) === -1
+            filteredReportIDs.indexOf(derivedCurrentReportID) === -1
         ) {
             const updatedReportIDs = getOrderedReportIDs();
-            const updatedReports = getOrderedReports(updatedReportIDs);
+            const updatedFilteredIDs = SidebarUtils.filterReportsForInboxTab(updatedReportIDs, reportsToDisplayInLHN, activeTab, reportNameValuePairs);
+            const updatedReports = getOrderedReports(updatedFilteredIDs);
             return {
                 orderedReports: updatedReports,
-                orderedReportIDs: updatedReportIDs,
+                orderedReportIDs: updatedFilteredIDs,
                 currentReportID: derivedCurrentReportID,
                 chatTabBrickRoad: getChatTabBrickRoad(updatedReportIDs, reportAttributes),
+                activeTab,
             };
         }
 
         return {
             orderedReports,
-            orderedReportIDs,
+            orderedReportIDs: filteredReportIDs,
             currentReportID: derivedCurrentReportID,
             chatTabBrickRoad: getChatTabBrickRoad(orderedReportIDs, reportAttributes),
+            activeTab,
         };
-    }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID, shouldUseNarrowLayout, getOrderedReports, orderedReports, reportAttributes]);
+    }, [
+        getOrderedReportIDs,
+        orderedReportIDs,
+        filteredReportIDs,
+        derivedCurrentReportID,
+        shouldUseNarrowLayout,
+        getOrderedReports,
+        orderedReports,
+        reportAttributes,
+        activeTab,
+        reportsToDisplayInLHN,
+        reportNameValuePairs,
+    ]);
 
-    const actionsValue: SidebarOrderedReportsActionsContextValue = useMemo(() => ({clearLHNCache}), [clearLHNCache]);
+    const actionsValue: SidebarOrderedReportsActionsContextValue = useMemo(() => ({clearLHNCache, setActiveTab}), [clearLHNCache, setActiveTab]);
 
     useEffect(() => {
         const hookExecutionDuration = performance.now() - hookStartTime.current;

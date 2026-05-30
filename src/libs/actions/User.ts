@@ -1011,6 +1011,10 @@ function updatePreferredSkinTone(skinTone: number) {
     API.write(WRITE_COMMANDS.UPDATE_PREFERRED_EMOJI_SKIN_TONE, parameters, {optimisticData});
 }
 
+function setInboxTab(tab: ValueOf<typeof CONST.INBOX_TAB>) {
+    Onyx.merge(ONYXKEYS.NVP_INBOX_TAB, tab);
+}
+
 /**
  * Sync user chat priority mode with Onyx and Server
  * @param mode
@@ -1914,12 +1918,13 @@ export {
     isBlockedFromConcierge,
     subscribeToUserEvents,
     updatePreferredSkinTone,
+    setInboxTab,
+    updateChatPriorityMode,
     setShouldUseStagingServer,
     togglePlatformMute,
     joinScreenShare,
     clearScreenShareRequest,
     generateStatementPDF,
-    updateChatPriorityMode,
     setContactMethodAsDefault,
     updateTheme,
     resetContactMethodValidateCodeSentState,

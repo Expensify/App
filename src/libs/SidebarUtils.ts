@@ -171,6 +171,7 @@ import {
     isChatThread,
     isConciergeChatReport,
     isDeprecatedGroupDM,
+    isDM,
     isDomainRoom,
     isExpenseReport,
     isExpenseRequest,
@@ -179,6 +180,7 @@ import {
     isInvoiceReport,
     isInvoiceRoom,
     isIOUOwnedByCurrentUser,
+    isIOUReport,
     isJoinRequestInAdminRoom,
     isMoneyRequestReport,
     isOneOnOneChat,
@@ -1481,6 +1483,42 @@ function getRoomWelcomeMessage(
     return welcomeMessage;
 }
 
+/**
+ * Filters the already-ordered LHN report IDs down to the ones that belong to the active Inbox tab.
+ * The "All" tab returns everything (and still honors Most Recent / Focus mode upstream); the other
+ * tabs narrow that same set to unread, expense-related, or direct-message reports.
+ */
+function filterReportsForInboxTab(
+    reportIDs: string[],
+    reportsToDisplay: ReportsToDisplayInLHN,
+    activeTab: ValueOf<typeof CONST.INBOX_TAB>,
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+): string[] {
+    if (activeTab === CONST.INBOX_TAB.ALL) {
+        return reportIDs;
+    }
+
+    return reportIDs.filter((reportID) => {
+        const report = reportsToDisplay[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+        if (!report) {
+            return false;
+        }
+
+        switch (activeTab) {
+            case CONST.INBOX_TAB.UNREAD: {
+                const isReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`]);
+                return isUnread(report, undefined, isReportArchived) && getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
+            }
+            case CONST.INBOX_TAB.EXPENSES:
+                return isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report) || isPolicyExpenseChat(report);
+            case CONST.INBOX_TAB.DMS:
+                return isDM(report) || isSelfDM(report) || isGroupChatUtil(report);
+            default:
+                return true;
+        }
+    });
+}
+
 // Exported for unit testing only. Do not use directly in production code.
 export {
     categorizeReportsForLHN as _categorizeReportsForLHN,
@@ -1497,4 +1535,5 @@ export default {
     getReportsToDisplayInLHN,
     updateReportsToDisplayInLHN,
     shouldDisplayReportInLHN,
+    filterReportsForInboxTab,
 };

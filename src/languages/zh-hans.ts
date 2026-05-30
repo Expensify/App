@@ -2804,6 +2804,16 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             },
         },
     },
+    focusModeUpdateModal: {
+        title: '欢迎进入 #focus 模式！',
+        prompt: (priorityModePageUrl: string) => `通过仅查看未读聊天或需要你关注的聊天来随时掌握进展。别担心，你可以随时在<a href="${priorityModePageUrl}">设置</a>中更改此项。`,
+    },
+    inboxTabs: {
+        all: 'All',
+        unread: 'Unread',
+        expenses: 'Expenses',
+        dms: 'DMs',
+    },
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `在 ${policyName} 中`,
         generatingPDF: '生成 PDF',
@@ -3346,10 +3356,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     yearPickerPage: {
         year: '年份',
         selectYear: '请选择年份',
-    },
-    focusModeUpdateModal: {
-        title: '欢迎进入 #focus 模式！',
-        prompt: (priorityModePageUrl: string) => `通过仅查看未读聊天或需要你关注的聊天来随时掌握进展。别担心，你可以随时在<a href="${priorityModePageUrl}">设置</a>中更改此项。`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: '找不到您要查找的聊天。',

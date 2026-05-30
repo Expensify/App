@@ -2885,6 +2885,17 @@ ${amount} per ${merchant} - ${date}`,
             },
         },
     },
+    focusModeUpdateModal: {
+        title: 'Benvenuto/a nella modalità #focus!',
+        prompt: (priorityModePageUrl: string) =>
+            `Resta sempre aggiornato vedendo solo le chat non lette o quelle che richiedono la tua attenzione. Non preoccuparti, puoi modificare questa impostazione in qualsiasi momento nelle <a href="${priorityModePageUrl}">impostazioni</a>.`,
+    },
+    inboxTabs: {
+        all: 'All',
+        unread: 'Unread',
+        expenses: 'Expenses',
+        dms: 'DMs',
+    },
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `in ${policyName}`,
         generatingPDF: 'Genera PDF',
@@ -3433,11 +3444,6 @@ ${amount} per ${merchant} - ${date}`,
     yearPickerPage: {
         year: 'Anno',
         selectYear: 'Seleziona un anno',
-    },
-    focusModeUpdateModal: {
-        title: 'Benvenuto/a nella modalità #focus!',
-        prompt: (priorityModePageUrl: string) =>
-            `Resta sempre aggiornato vedendo solo le chat non lette o quelle che richiedono la tua attenzione. Non preoccuparti, puoi modificare questa impostazione in qualsiasi momento nelle <a href="${priorityModePageUrl}">impostazioni</a>.`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'La chat che stai cercando non può essere trovata.',

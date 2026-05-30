@@ -5,6 +5,7 @@ import type {StyleProp, TextStyle} from 'react-native';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import type {TabSelectorSize} from './types';
 
 type TabLabelProps = {
     /** Title of the tab */
@@ -21,16 +22,20 @@ type TabLabelProps = {
 
     /** Text style */
     textStyle?: StyleProp<TextStyle>;
+
+    /** Size variant */
+    size?: TabSelectorSize;
 };
 
-function TabLabel({title = '', activeOpacity = 0, inactiveOpacity = 1, hasIcon = false, textStyle}: TabLabelProps) {
+function TabLabel({title = '', activeOpacity = 0, inactiveOpacity = 1, hasIcon = false, textStyle, size}: TabLabelProps) {
     const styles = useThemeStyles();
+    const smallTextStyle = size === 'small' ? styles.tabTextSmall : undefined;
     return (
         <View style={{maxWidth: variables.tabSelectorMaxTabLabelWidth}}>
             <Animated.View style={[{opacity: activeOpacity}]}>
                 <Text
                     numberOfLines={1}
-                    style={[styles.tabText(true, hasIcon), textStyle]}
+                    style={[styles.tabText(true, hasIcon), smallTextStyle, textStyle]}
                 >
                     {title}
                 </Text>
@@ -38,7 +43,7 @@ function TabLabel({title = '', activeOpacity = 0, inactiveOpacity = 1, hasIcon =
             <Animated.View style={[StyleSheet.absoluteFill, {opacity: inactiveOpacity}]}>
                 <Text
                     numberOfLines={1}
-                    style={[styles.tabText(false, hasIcon), textStyle]}
+                    style={[styles.tabText(false, hasIcon), smallTextStyle, textStyle]}
                 >
                     {title}
                 </Text>

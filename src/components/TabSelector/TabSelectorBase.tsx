@@ -26,6 +26,7 @@ function TabSelectorBase({
     position,
     shouldShowLabelWhenInactive = true,
     equalWidth = false,
+    size,
     shouldShowProductTrainingTooltip = false,
     renderProductTrainingTooltip,
 }: TabSelectorBaseProps) {
@@ -63,7 +64,7 @@ function TabSelectorBase({
             }}
             ref={containerRef}
             style={styles.scrollableTabSelector}
-            contentContainerStyle={styles.tabSelectorContentContainer}
+            contentContainerStyle={[styles.tabSelectorContentContainer, size === 'small' && styles.tabSelectorContentContainerSmall]}
             horizontal
             showsHorizontalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
@@ -122,6 +123,7 @@ function TabSelectorBase({
                         shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
                         renderProductTrainingTooltip={renderProductTrainingTooltip}
                         equalWidth={equalWidth}
+                        size={size}
                         badgeText={tab.badgeText}
                         pendingAction={tab.pendingAction}
                         isDisabled={tab.isDisabled}

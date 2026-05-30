@@ -2861,6 +2861,17 @@ ${date} の ${merchant} への ${amount}`,
             },
         },
     },
+    focusModeUpdateModal: {
+        title: '#focusモードへようこそ！',
+        prompt: (priorityModePageUrl: string) =>
+            `未読のチャットや対応が必要なチャットだけを表示して、常に状況を把握しましょう。いつでも<a href="${priorityModePageUrl}">設定</a>から変更できます。`,
+    },
+    inboxTabs: {
+        all: 'All',
+        unread: 'Unread',
+        expenses: 'Expenses',
+        dms: 'DMs',
+    },
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `${policyName} 内`,
         generatingPDF: 'PDFを生成',
@@ -3408,11 +3419,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
     yearPickerPage: {
         year: '年',
         selectYear: '年を選択してください',
-    },
-    focusModeUpdateModal: {
-        title: '#focusモードへようこそ！',
-        prompt: (priorityModePageUrl: string) =>
-            `未読のチャットや対応が必要なチャットだけを表示して、常に状況を把握しましょう。いつでも<a href="${priorityModePageUrl}">設定</a>から変更できます。`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'お探しのチャットが見つかりません。',

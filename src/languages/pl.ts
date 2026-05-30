@@ -2876,6 +2876,17 @@ ${amount} dla ${merchant} - ${date}`,
             },
         },
     },
+    focusModeUpdateModal: {
+        title: 'Witamy w trybie #focus!',
+        prompt: (priorityModePageUrl: string) =>
+            `Miej wszystko pod kontrolą, wyświetlając tylko nieprzeczytane czaty lub czaty wymagające Twojej uwagi. Nie martw się, możesz to zmienić w dowolnym momencie w <a href="${priorityModePageUrl}">ustawieniach</a>.`,
+    },
+    inboxTabs: {
+        all: 'All',
+        unread: 'Unread',
+        expenses: 'Expenses',
+        dms: 'DMs',
+    },
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `w ${policyName}`,
         generatingPDF: 'Wygeneruj PDF',
@@ -3420,11 +3431,6 @@ ${amount} dla ${merchant} - ${date}`,
     yearPickerPage: {
         year: 'Rok',
         selectYear: 'Wybierz rok',
-    },
-    focusModeUpdateModal: {
-        title: 'Witamy w trybie #focus!',
-        prompt: (priorityModePageUrl: string) =>
-            `Miej wszystko pod kontrolą, wyświetlając tylko nieprzeczytane czaty lub czaty wymagające Twojej uwagi. Nie martw się, możesz to zmienić w dowolnym momencie w <a href="${priorityModePageUrl}">ustawieniach</a>.`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'Nie można znaleźć czatu, którego szukasz.',

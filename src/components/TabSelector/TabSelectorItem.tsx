@@ -34,6 +34,7 @@ function TabSelectorItem({
     shouldShowProductTrainingTooltip = false,
     renderProductTrainingTooltip,
     equalWidth = false,
+    size,
     badgeText,
     isDisabled = false,
     pendingAction,
@@ -58,6 +59,7 @@ function TabSelectorItem({
             accessibilityRole={CONST.ROLE.TAB}
             style={[
                 styles.tabSelectorButton,
+                size === 'small' && styles.tabSelectorButtonSmall,
                 styles.tabBackground(isHovered, isActive, isDisabled, backgroundColor),
                 styles.userSelectNone,
                 isOfflineWithPendingAction ? styles.offlineFeedbackPending : undefined,
@@ -89,6 +91,7 @@ function TabSelectorItem({
                     activeOpacity={styles.tabOpacity(isDisabled, isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
                     inactiveOpacity={styles.tabOpacity(isDisabled, isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
                     hasIcon={!!icon}
+                    size={size}
                 />
             )}
             {!!badgeText && (
