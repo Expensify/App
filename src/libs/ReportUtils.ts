@@ -9016,9 +9016,7 @@ function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEnt
     const isUnreadFromTimestamp = lastReadTime < (lastVisibleActionCreated ?? '') || lastReadTime < lastMentionedTime;
 
     const drivingActorAccountID =
-        (oneTransactionThreadReport?.lastVisibleActionCreated ?? '') > (report?.lastVisibleActionCreated ?? '')
-            ? oneTransactionThreadReport?.lastActorAccountID
-            : report?.lastActorAccountID;
+        (oneTransactionThreadReport?.lastVisibleActionCreated ?? '') > (report?.lastVisibleActionCreated ?? '') ? oneTransactionThreadReport?.lastActorAccountID : report?.lastActorAccountID;
 
     if (isUnreadFromTimestamp && drivingActorAccountID === deprecatedCurrentUserAccountID && !(lastReadTime < lastMentionedTime)) {
         return false;
