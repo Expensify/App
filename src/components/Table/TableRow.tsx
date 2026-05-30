@@ -56,7 +56,6 @@ export default function TableRow({
     const styles = useThemeStyles();
     const {processedData, columns, shouldUseNarrowTableLayout} = useTableContext();
 
-    const columnCount = columns.length;
     const rowCount = processedData.length;
     const isLastRow = rowIndex === rowCount - 1;
     const isInteractive = interactive && !isLoading;
@@ -81,7 +80,7 @@ export default function TableRow({
         styles.gap3,
         styles.dFlex,
         // Use Grid on web when available (will override flex if supported)
-        !shouldUseNarrowTableLayout && [styles.dGrid, {gridTemplateColumns: `repeat(${columnCount}, 1fr)`}],
+        !shouldUseNarrowTableLayout && [styles.dGrid, {gridTemplateColumns: columns.map((column) => (column.width ? `${column.width}px` : '1fr')).join(' ')}],
     ];
 
     const renderChildren = (state: PressableStateCallbackType) => {

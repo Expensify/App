@@ -366,6 +366,7 @@ function IOURequestStepAmount({
                             merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                             reimbursable: defaultReimbursable,
                         },
+                        existingTransaction: storedTransaction ?? transaction,
                         isASAPSubmitBetaEnabled,
                         currentUser: {accountID: currentUserAccountIDParam, email: currentUserEmailParam},
                         introSelected,
@@ -457,7 +458,7 @@ function IOURequestStepAmount({
         if (!isEditing) {
             // Edits to the amount from the splits page should reset the split shares.
             if (transaction?.splitShares) {
-                resetSplitShares(transaction, newAmount, selectedCurrency, true);
+                resetSplitShares(transaction, newAmount, selectedCurrency, currentUserAccountIDParam, true);
             }
             navigateToNextPage({amount, paymentMethod});
             return;
@@ -485,7 +486,7 @@ function IOURequestStepAmount({
 
         // Reset split shares for non-split-bill edits (split-bill share recalculation is handled by the confirmation list).
         if (transaction?.splitShares) {
-            resetSplitShares(transaction, newAmount, selectedCurrency, false);
+            resetSplitShares(transaction, newAmount, selectedCurrency, currentUserAccountIDParam, false);
         }
 
         updateMoneyRequestAmountAndCurrency({
@@ -570,8 +571,8 @@ function IOURequestStepAmount({
 /**
  * Check if the participant is a P2P chat
  */
-function isParticipantP2P(participant: {accountID?: number; isPolicyExpenseChat?: boolean} | undefined): boolean {
-    return !!(participant?.accountID && !participant.isPolicyExpenseChat);
+function isParticipantP2P(participant: {accountID?: number; isPolicyExpenseChat?: boolean; isSelfDM?: boolean} | undefined): boolean {
+    return !!(participant?.accountID && !participant.isPolicyExpenseChat && !participant.isSelfDM);
 }
 
 const IOURequestStepAmountWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepAmount, true);

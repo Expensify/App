@@ -119,6 +119,7 @@ function IOURequestStepDistanceManual({
         transaction,
         policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy,
         useTransactionDistanceUnit: isEditing,
+        personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
     });
     const unit = mileageRate.unit;
     const rate = mileageRate.rate ?? 0;
@@ -163,7 +164,6 @@ function IOURequestStepDistanceManual({
 
     const navigateToNextPage = (amount: string) => {
         const distanceAsFloat = roundToTwoDecimalPlaces(parseFloat(amount));
-        setMoneyRequestDistance(transactionID, distanceAsFloat, isTransactionDraft, unit);
 
         if (action === CONST.IOU.ACTION.EDIT) {
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
@@ -201,6 +201,8 @@ function IOURequestStepDistanceManual({
             Navigation.goBack(backTo);
             return;
         }
+
+        setMoneyRequestDistance(transactionID, distanceAsFloat, isTransactionDraft, unit);
 
         handleMoneyRequestStepDistanceNavigation({
             iouType,

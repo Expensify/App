@@ -226,7 +226,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WorkspaceViewTagsPage', isOffline, isPolicyTagsUndefined: policyTags === undefined};
 
     const listHeaderContent =
-        tagList.length > CONST.SEARCH_ITEM_LIMIT ? (
+        tagList.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? (
             <SearchBar
                 inputValue={inputValue}
                 onChangeText={setInputValue}
