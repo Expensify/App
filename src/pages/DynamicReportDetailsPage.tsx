@@ -1023,7 +1023,17 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
             setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
             navigateBackOnDeleteTransaction(urlToNavigateBack as Route);
         }
-    }, [requestParentReportAction, route.params.reportID, moneyRequestReport, iouTransactionID, iouReport, chatIOUReport, isChatIOUReportArchived, isSingleTransactionView]);
+    }, [
+        requestParentReportAction,
+        route.params.reportID,
+        moneyRequestReport,
+        iouTransactionID,
+        iouReport,
+        chatIOUReport,
+        isChatIOUReportArchived,
+        isSingleTransactionView,
+        requestParentReportActionChildReport,
+    ]);
 
     const showDeleteModal = useCallback(async () => {
         const {action} = await showConfirmModal({
