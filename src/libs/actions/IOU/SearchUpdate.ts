@@ -1,4 +1,4 @@
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {SearchQueryJSON} from '@components/Search/types';
@@ -12,6 +12,15 @@ import type {Participant} from '@src/types/onyx/IOU';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchMemberGroup, SearchResultDataType} from '@src/types/onyx/SearchResults';
 import {getCurrentUserPersonalDetails} from './index';
+
+let allSnapshots: OnyxCollection<OnyxTypes.SearchResults> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.SNAPSHOT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allSnapshots = value ?? {};
+    },
+});
 
 type ExpenseReportStatusPredicate = (expenseReport: OnyxEntry<OnyxTypes.Report>, transactionReportID?: string) => boolean;
 
@@ -203,12 +212,13 @@ function getSearchOnyxUpdate({
 
         if (currentSearchQueryJSON.groupBy === CONST.SEARCH.GROUP_BY.FROM) {
             const groupKey = `${CONST.SEARCH.GROUP_PREFIX}${fromAccountID}`;
-            const existingGroup = optimisticSnapshotData[groupKey] as SearchMemberGroup | undefined;
+            const currentSnapshot = allSnapshots[`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`];
+            const existingGroup = currentSnapshot?.data?.[groupKey] as SearchMemberGroup | undefined;
             optimisticSnapshotData[groupKey] = {
                 accountID: fromAccountID,
                 count: (existingGroup?.count ?? 0) + 1,
                 total: (existingGroup?.total ?? 0) + (transaction.amount ?? 0),
-                currency: transaction.currency ?? CONST.CURRENCY.USD,
+                currency: existingGroup?.currency ?? transaction.currency ?? CONST.CURRENCY.USD,
             };
 
             const newFlatFilters = currentSearchQueryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
