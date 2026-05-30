@@ -52,6 +52,16 @@ const TIMEZONE_UPDATE_THROTTLE_MINUTES = 5;
 
 type IntlFormatKey = keyof typeof CONST.DATE.INTL_FORMATS;
 
+/** Narrows an arbitrary timezone string to one our backward-mapping table knows about. */
+function isKnownTimezone(tz: string): tz is SelectedTimezone {
+    return tz in timezoneNewToBackwardMap;
+}
+
+const WEEK_DAYS = [0, 1, 2, 3, 4, 5, 6] as const satisfies readonly WeekDay[];
+function isWeekDay(value: number): value is WeekDay {
+    return (WEEK_DAYS as readonly number[]).includes(value);
+}
+
 /**
  * LRU-bounded (Intl.DateTimeFormat holds 10-50 KB ICU state per entry); retries with the backward-mapped IANA name on
  * older iOS/macOS (e.g. `Europe/Kyiv`); throws when no mapping exists — silent runtime-default fallback would produce wrong output.
@@ -63,7 +73,7 @@ const getIntlDateTimeFormat = memoize(
         try {
             return new Intl.DateTimeFormat(locale, options);
         } catch (error) {
-            const backwardTimeZone = timeZone ? timezoneNewToBackwardMap[timeZone as SelectedTimezone] : undefined;
+            const backwardTimeZone = timeZone && isKnownTimezone(timeZone) ? timezoneNewToBackwardMap[timeZone] : undefined;
             if (!backwardTimeZone || backwardTimeZone === timeZone) {
                 Log.warn('[DateUtils] Intl.DateTimeFormat construction failed and no backward timezone mapping exists', {locale, formatKey, timeZone, error});
                 throw error;
@@ -89,13 +99,14 @@ function getWeekStartsOn(locale: Locale): WeekDay {
         return 1;
     }
     try {
-        const intlLocale = new Intl.Locale(locale) as Intl.Locale & {weekInfo?: Intl.WeekInfo};
+        const intlLocale = new Intl.Locale(locale);
         const weekInfo = typeof intlLocale.getWeekInfo === 'function' ? intlLocale.getWeekInfo() : intlLocale.weekInfo;
         if (!weekInfo) {
             return CONST.WEEK_STARTS_ON;
         }
         // Intl: Mon=1..Sun=7; date-fns: Sun=0..Sat=6
-        return (weekInfo.firstDay === 7 ? 0 : weekInfo.firstDay) as WeekDay;
+        const dateFnsDay = weekInfo.firstDay === 7 ? 0 : weekInfo.firstDay;
+        return isWeekDay(dateFnsDay) ? dateFnsDay : CONST.WEEK_STARTS_ON;
     } catch {
         return CONST.WEEK_STARTS_ON;
     }
@@ -105,7 +116,7 @@ function getWeekStartsOn(locale: Locale): WeekDay {
  * Get the day of the week that the week ends on for the given locale (derived from `getWeekStartsOn` so they stay in lockstep).
  */
 function getWeekEndsOn(locale: Locale): WeekDay {
-    return ((getWeekStartsOn(locale) + 6) % 7) as WeekDay;
+    return WEEK_DAYS[(getWeekStartsOn(locale) + 6) % 7];
 }
 
 /**
@@ -1113,7 +1124,7 @@ function formatInTimeZoneWithFallback(date: Date | string | number, timeZone: st
     try {
         return formatInTimeZone(date, timeZone, formatStr, options);
     } catch (error) {
-        const backwardTimeZone = timezoneNewToBackwardMap[timeZone as SelectedTimezone];
+        const backwardTimeZone = isKnownTimezone(timeZone) ? timezoneNewToBackwardMap[timeZone] : undefined;
         if (backwardTimeZone) {
             try {
                 Log.warn('[DateUtils] formatInTimeZone failed; falling back to backward-mapped timezone', {timeZone, backwardTimeZone, error});
