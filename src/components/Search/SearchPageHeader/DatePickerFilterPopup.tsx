@@ -31,7 +31,7 @@ function DatePickerFilterPopup({closeOverlay, setPopoverWidth, filterKey, value,
             onChange={onChange}
             closeOverlay={closeOverlay}
             setPopoverWidth={setPopoverWidth}
-            presets={getDatePresets(filterKey, true)}
+            presets={getDatePresets(filterKey, hasFeed)}
         />
     );
 }
