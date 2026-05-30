@@ -62,14 +62,11 @@ Set up default or custom approval workflows to route expenses through one or mor
 
 ## Set a Custom Agent as Approver
 
-You can select a Custom Agent — an AI-powered virtual member you create and configure — as an approver in any workflow. Custom Agents are useful when your approval logic is more complex than what the standard Rules engine supports.
+You can select a Custom Agent as an approver in any workflow. Custom Agents are AI-powered virtual members that review reports and approve or reject them based on instructions you define.
 
-You'll see prompts to create or add an agent in two places:
+Custom Agents are added to workspaces and assigned as approvers the same way as other workspace members. Once a Custom Agent is a member of the workspace, you can select it anywhere you would normally choose an approver.
 
-- A banner on the **Approvals** section of the **Workflows** page advertising automated approvals.
-- An **agent+** button on each workflow card that lets you add an existing agent or create a new one inline.
-
-To learn more, see [Learn how to use Custom Agents in Expensify](/articles/new-expensify/agents/Custom-Agents).
+[Learn how to create and use Custom Agents](/articles/new-expensify/ai-agents/docs/articles/Create-and-Use-Custom-Agents).
 
 ---
 
