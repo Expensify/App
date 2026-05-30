@@ -393,7 +393,7 @@ function GroupHeader({item, groupBy, searchType, columns, canSelectMultiple, isE
                 )}
             </PressableWithFeedback>
             {isLargeScreenWidth && (
-                <Animated.View style={[subHeaderAnimatedStyle, styles.mh5, {backgroundColor: theme.highlightBG}]}>
+                <Animated.View style={[subHeaderAnimatedStyle, styles.mh5, {backgroundColor: isItemSelected ? theme.activeComponentBG : theme.highlightBG}]}>
                     {(isExpanded || isSubHeaderRendered) && (
                         <PressableWithFeedback
                             onPress={onToggle}
@@ -428,7 +428,14 @@ function GroupHeader({item, groupBy, searchType, columns, canSelectMultiple, isE
                                     isActionColumnWide={isSubHeaderActionColumnWide}
                                 />
                             </View>
-                            <View style={[StyleUtils.getSelectedBorderBottomStyle(groupItem.transactions.at(0)?.isSelected), styles.ml3, styles.mr3]} />
+                            <View
+                                style={[
+                                    StyleUtils.getSelectedBorderBottomStyle(isItemSelected),
+                                    styles.ml3,
+                                    styles.mr3,
+                                    {marginBottom: 1},
+                                ]}
+                            />
                         </PressableWithFeedback>
                     )}
                 </Animated.View>
