@@ -84,7 +84,6 @@ function initializePusherForDelegateTransition(): Promise<void> {
     });
 }
 
-
 type WithDelegatedAccess = {
     // Optional keeps call sites clean, but still encourages passing `account?.delegatedAccess`.
     delegatedAccess: DelegatedAccess | undefined;
