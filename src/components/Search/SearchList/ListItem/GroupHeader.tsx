@@ -377,11 +377,11 @@ function GroupHeader({
     const pressableStyle = [
         styles.transactionGroupListItemStyle,
         isLargeScreenWidth && {
-            ...styles.tableRowHeight,
             borderRadius: 0,
             ...(isLastItemCollapsed ? styles.tableBottomRadius : {}),
         },
         isItemSelected && styles.activeComponentBG,
+        {minHeight: 0},
     ];
 
     const handlePress = (event?: ModifiedMouseEvent) => {
@@ -430,7 +430,7 @@ function GroupHeader({
             >
                 {({hovered}) => (
                     <View style={styles.flex1}>
-                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth && styles.tableRowHeight]}>
                             <View style={styles.flex1}>{renderHeader(hovered)}</View>
                             {isLargeScreenWidth && (
                                 <PressableWithFeedback
@@ -463,7 +463,7 @@ function GroupHeader({
                                             }
                                         }}
                                     >
-                                        <View style={[styles.pv2, styles.ph3, styles.pb1, styles.pt1]}>
+                                        <View style={[styles.ph3, styles.pb1]}>
                                             <View style={[styles.borderBottom, styles.borderNone]} />
                                         </View>
                                         <View style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl8, styles.borderNone]}>
