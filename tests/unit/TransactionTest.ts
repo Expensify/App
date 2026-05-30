@@ -1343,6 +1343,7 @@ describe('Transaction', () => {
                 reportID: FAKE_OLD_REPORT_ID,
                 amount: -500,
                 currency: 'USD',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
                 comment: {
                     type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                     customUnit: {
@@ -1419,6 +1420,7 @@ describe('Transaction', () => {
                 reportID: FAKE_OLD_REPORT_ID,
                 amount: -500,
                 currency: 'USD',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
                 comment: {
                     type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                     customUnit: {
@@ -1500,6 +1502,7 @@ describe('Transaction', () => {
                 reportID: FAKE_OLD_REPORT_ID,
                 amount: -500,
                 currency: 'USD',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
                 comment: {
                     type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                     customUnit: {
@@ -1575,6 +1578,7 @@ describe('Transaction', () => {
                 reportID: FAKE_OLD_REPORT_ID,
                 amount: -500,
                 currency: 'USD',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
                 comment: {
                     type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                     customUnit: {

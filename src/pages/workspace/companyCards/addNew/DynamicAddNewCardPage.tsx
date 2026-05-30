@@ -34,7 +34,7 @@ import SelectBankStep from './SelectBankStep';
 import SelectCountryStep from './SelectCountryStep';
 import SelectFeedType from './SelectFeedType';
 
-function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
+function DynamicAddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const policyID = policy?.id;
     const styles = useThemeStyles();
     const [addNewCardFeed, addNewCardFeedMetadata] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
@@ -163,4 +163,4 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     );
 }
 
-export default withPolicyAndFullscreenLoading(AddNewCardPage);
+export default withPolicyAndFullscreenLoading(DynamicAddNewCardPage);
