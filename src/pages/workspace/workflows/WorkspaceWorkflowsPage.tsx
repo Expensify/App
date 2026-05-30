@@ -20,10 +20,12 @@ import SearchBar from '@components/SearchBar';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useAddAgentToApprovalWorkflow from '@hooks/useAddAgentToApprovalWorkflow';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
+import useDeferredAgentWorkflowReconciliation from '@hooks/useDeferredAgentWorkflowReconciliation';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -35,6 +37,7 @@ import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
+import {clearPendingAgentFromApprovalWorkflow} from '@libs/actions/Agent';
 import {
     clearPolicyErrorField,
     isCurrencySupportedForDirectReimbursement,
@@ -49,6 +52,7 @@ import {setApprovalWorkflow} from '@libs/actions/Workflow';
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import {getAllCardsForWorkspace, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import {getConnectedHRProvider, getHRFinalApprover, isAnyHRConnected, isAnyHRReadOnlyWorkflowMode, isHRAdvancedMode} from '@libs/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
@@ -56,11 +60,8 @@ import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalD
 import {
     canAccessSubmitWorkspaceFeatures,
     canEditWorkspaceSettings,
-    getConnectedHRProvider,
     getCorrectedAutoReportingFrequency,
     hasDynamicExternalWorkflow,
-    isAnyHRConnected,
-    isAnyHRReadOnlyWorkflowMode,
     isControlPolicy,
     isGroupPolicy as isGroupPolicyUtil,
     isPolicyAdmin as isPolicyAdminUtil,
@@ -148,12 +149,18 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const delegateAccountID = useDelegateAccountID();
     const {accountID: currentUserAccountID, email: currentUserEmail = ''} = useCurrentUserPersonalDetails();
     const isUserReimburser = policy?.achAccount?.reimburser !== undefined && account?.primaryLogin !== undefined && policy?.achAccount?.reimburser === account?.primaryLogin;
-    const {approvalWorkflows, availableMembers, usedApproverEmails} = convertPolicyEmployeesToApprovalWorkflows({
+    const {
+        approvalWorkflows: rawApprovalWorkflows,
+        availableMembers,
+        usedApproverEmails,
+    } = convertPolicyEmployeesToApprovalWorkflows({
         policy,
         personalDetails: personalDetails ?? {},
         localeCompare,
         currentUserLogin: currentUserEmail,
     });
+
+    const approvalWorkflows = useDeferredAgentWorkflowReconciliation(rawApprovalWorkflows, policy, route.params.policyID);
     const canAccessSubmit2026Features = canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled);
     const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true).length > 0;
 
@@ -261,8 +268,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID));
     }, [policy, route.params.policyID, availableMembers, usedApproverEmails, canAccessSubmit2026Features, navigateToSubmitWorkspaceApprovalsUpgrade]);
 
+    const handleAddAgentPress = useAddAgentToApprovalWorkflow(policy, route.params.policyID);
+    const isHRAdvancedModeEnabled = isHRAdvancedMode(policy);
+    const hrFinalApproverEmail = getHRFinalApprover(policy) ?? undefined;
+
     const filteredApprovalWorkflows =
-        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED || policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL
+        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED || policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL || isHRAdvancedModeEnabled
             ? approvalWorkflows
             : approvalWorkflows.filter((workflow) => workflow.isDefault);
 
@@ -465,7 +476,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         />
                         {searchFilteredWorkflows.map((workflow) => (
                             <OfflineWithFeedback
-                                key={workflow.approvers.at(0)?.email}
+                                key={workflow.routingFirstApproverEmail}
                                 pendingAction={workflow.pendingAction}
                             >
                                 <ApprovalWorkflowSection
@@ -473,10 +484,21 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                     onPress={
                                         shouldBlockApprovalWorkflowEditing
                                             ? undefined
-                                            : () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, workflow.approvers.at(0)?.email ?? ''))
+                                            : () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, workflow.routingFirstApproverEmail))
                                     }
+                                    onAddAgentPress={() => handleAddAgentPress(workflow)}
+                                    onDismissApproverError={(approver) => {
+                                        if (approver.accountID === undefined) {
+                                            return;
+                                        }
+                                        clearPendingAgentFromApprovalWorkflow(route.params.policyID, workflow.routingFirstApproverEmail, approver.accountID);
+                                    }}
+                                    canAddAgent={!shouldBlockApprovalWorkflowEditing && isPolicyAdmin}
                                     currency={policy?.outputCurrency}
                                     isDisabled={shouldBlockApprovalWorkflowEditing}
+                                    hrProviderName={isHRConnected ? hrProviderName : undefined}
+                                    isHRAdvancedMode={isHRAdvancedModeEnabled}
+                                    hrFinalApproverEmail={isHRAdvancedModeEnabled ? hrFinalApproverEmail : undefined}
                                 />
                             </OfflineWithFeedback>
                         ))}
@@ -678,6 +700,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         onPressAutoReportingFrequency,
         isSmartLimitEnabled,
         isHRConnected,
+        hrProviderName,
+        isHRAdvancedModeEnabled,
+        hrFinalApproverEmail,
         shouldBlockApprovalWorkflowEditing,
         approvalSubtitle,
         navigateToSubmitWorkspaceApprovalsUpgrade,
@@ -719,6 +744,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         confirmCurrencyChangeAndHideModal,
         delegateAccountID,
         canAccessSubmit2026Features,
+        handleAddAgentPress,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
