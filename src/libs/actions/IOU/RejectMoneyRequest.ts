@@ -846,6 +846,7 @@ function prepareRejectMoneyRequestData(
             value: {
                 lastReadTime,
                 lastVisibleActionCreated,
+                lastActorAccountID: currentUserAccountIDParam,
             },
         });
     }
