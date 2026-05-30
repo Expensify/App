@@ -26,10 +26,9 @@ function isValidKey(key: string | number | undefined | null): key is string | nu
 }
 
 /**
- * Pins the items that were pre-selected on first load to the top of a long list, so they don't
- * get lost when the user starts toggling things. Returns the frozen snapshot and an `isFrozen`
- * predicate for deduping rows elsewhere. Captures during render so callers can use it on the
- * same render where data first becomes available — no extra renders.
+ * Pins items that were pre-selected on first load to the top of a long list, so they don't get lost
+ * when the user starts toggling. Returns the snapshot plus an `isFrozen` predicate for deduping.
+ * Captures during render — no extra renders.
  */
 function useFrozenPreSelection<T>({selectedOptions, isReady, visibleCount, canCapture = true, threshold = CONST.STANDARD_LIST_ITEM_LIMIT, getKeys}: UseFrozenPreSelectionOptions<T>): {
     frozen: T[];
@@ -41,9 +40,8 @@ function useFrozenPreSelection<T>({selectedOptions, isReady, visibleCount, canCa
         setFrozen(visibleCount >= threshold ? selectedOptions : []);
     }
 
-    // Explicit useMemo / useCallback so isFrozen stays referentially stable for consumer useMemo deps,
-    // even if React Compiler bails on the imperative Set build. Both depend on `getKeys`, so callers
-    // should let React Compiler memoize the arrow they pass (or wrap it in useCallback themselves).
+    // Explicit useMemo / useCallback so isFrozen stays stable for consumer useMemo deps —
+    // React Compiler can bail on the imperative Set build.
     const frozenKeys = useMemo(() => {
         const keys = new Set<string | number>();
         for (const option of frozen ?? []) {

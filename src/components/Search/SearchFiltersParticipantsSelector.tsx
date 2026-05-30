@@ -89,17 +89,15 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             shouldKeepSelectedInAvailableOptions: true,
         });
 
-    // Flips true after the hydration effect at L259 has run at least once. Used to gate snapshot
-    // capture so we don't mistake "still hydrating" for "user has no pre-selection" — important when
-    // every initialAccountID is stale / paged out and the hydration effect yields an empty list
-    // (otherwise canCapture would stay false until the user toggles a row, then snapshot that row).
+    // Set once the hydration effect runs, so the snapshot waits for it. Without this, a fully stale
+    // initialAccountIDs list would let the snapshot fire on the first toggled row and pin it.
     const [hasAttemptedHydration, setHasAttemptedHydration] = useState(initialAccountIDs.length === 0);
 
     const {frozen: frozenSelectedOptions, isFrozen: isOptionFrozen} = useFrozenPreSelection<OptionData>({
         selectedOptions,
         isReady: areOptionsInitialized,
-        // Gate on hydration (so stale-filter cases don't pin the first toggled row) AND on an empty
-        // search term (so visibleCount below reflects the unfiltered list, matching the chats selector).
+        // Wait for hydration (so a toggled row isn't mistaken for pre-selection) and an empty search
+        // term (so visibleCount reflects the full list).
         canCapture: hasAttemptedHydration && debouncedSearchTerm.trim() === '',
         visibleCount: availableOptions.recentReports.length + availableOptions.personalDetails.length,
         getKeys: (option) => [option.accountID, option.login],
@@ -123,8 +121,8 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         const trimmedSearchTerm = debouncedSearchTerm.trim().toLowerCase();
         const matchesSearchTerm = (option: OptionData) => !trimmedSearchTerm || doesPersonalDetailMatchSearchTerm(option, option.accountID ?? CONST.DEFAULT_NUMBER_ID, trimmedSearchTerm);
 
-        // Pre-selected items pinned at the top. Row order is frozen; the checkmark updates on toggle.
-        // Search-filtered rows are hidden from view but stay in the snapshot so they still dedupe Recents / Contacts below.
+        // Pinned pre-selection: order is frozen, checkmark tracks live selection. Search-filtered rows
+        // stay in the snapshot so they still dedupe Recents / Contacts below.
         const isOptionCurrentlySelected = (option: OptionData) =>
             selectedOptions.some(
                 (selected) =>
@@ -140,7 +138,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             });
         }
 
-        // Selected items that don't show up anywhere else (e.g. name-only attendees). Surface them so they stay visible, but still respect the search term.
+        // Selected items that don't show up anywhere else (e.g. name-only attendees) — surface them but respect the search term.
         const visibleLogins = new Set([...chatOptions.personalDetails.map((detail) => detail.login), ...chatOptions.recentReports.map((report) => report.login)].filter(Boolean));
         const extraSelectedOptions = selectedOptions.filter(
             (option) => option.accountID !== currentUserAccountID && !visibleLogins.has(option.login) && !isOptionFrozen(option) && matchesSearchTerm(option),
@@ -309,7 +307,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         }
 
         setSelectedOptions(preSelectedOptions);
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot flag so the snapshot in useFrozenPreSelection doesn't fire before the hydration effect has run; derivable state isn't enough because the effect can resolve to an empty array.
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot flag so the snapshot waits for hydration; derivable state isn't enough since the effect can resolve to an empty array.
         setHasAttemptedHydration(true);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- this should react only to changes in form data
     }, [initialAccountIDs, personalDetails, recentAttendees, shouldAllowNameOnlyOptions]);

@@ -73,9 +73,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
     const sortedActions = useSortedActions();
 
-    // Build an OptionData for a reportID from current Onyx state. Used for both the live selectedOptions
-    // list and the frozen section, so frozen rows pick up text / alternateText updates as Onyx hydrates
-    // rather than rendering the captured-at-snapshot-time values forever.
+    // Reads from current Onyx state, so frozen rows refresh their text when reports hydrate.
     const buildOptionFromReportID = (id: string): OptionData => {
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${id}`];
         const reportData = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`];
@@ -115,18 +113,14 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     const {frozen: frozenSelectedReports, isFrozen: isReportFrozen} = useFrozenPreSelection<OptionData>({
         selectedOptions,
         isReady: !isLoading,
-        // Mirrors the participants selector — don't snapshot before the pre-selection has hydrated.
-        // Safe today (selectedReportIDs is seeded from useState(initialReportIDs)), but explicit so a
-        // future async initialReportIDs source doesn't silently snapshot an empty list.
+        // Wait for the pre-selection to hydrate before snapshotting, so a future async source can't snapshot an empty list.
         canCapture: initialReportIDs.length === 0 || selectedReportIDs.length > 0,
-        // Threshold is based on the unfiltered list so a search term active at first ready render doesn't permanently disable pinning.
+        // Use the unfiltered count so an active search at first render doesn't disable pinning.
         visibleCount: defaultOptions.recentReports.length,
         getKeys: (option) => [option.reportID],
     });
 
-    // Rebuild frozen rows from current Onyx state each render. The snapshot only fixes which reports
-    // are pinned and their order; the display values stay live so a row captured before reports /
-    // personalDetails hydrated still picks up the correct text once data arrives.
+    // Rebuild each render — the snapshot fixes which reports are pinned, not what they display.
     const liveFrozenReports = frozenSelectedReports.map((frozen) => buildOptionFromReportID(frozen.reportID));
 
     const sections: SelectionListSections = [];
@@ -135,15 +129,13 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         const selectedReportIDsSet = new Set(selectedReportIDs);
         const visibleReportIDsSet = new Set(chatOptions.recentReports.map((report) => report.reportID));
 
-        // Use the same matcher as filterAndOrderOptions (filterReports) so the frozen / extra-selected
-        // sections agree with Recents on what "matches" the search term — including dot-stripped login,
-        // alternateText, subtitle, and accent-normalized text.
+        // Use filterReports so frozen / extra-selected sections match Recents on what counts as a hit.
         const reportIDsMatchingSearch =
             cleanSearchTerm === '' ? null : new Set(filterReports([...liveFrozenReports, ...selectedOptions] as SearchOptionData[], [cleanSearchTerm]).map((report) => report.reportID));
         const matchesSearchTerm = (report: OptionData) => reportIDsMatchingSearch === null || reportIDsMatchingSearch.has(report.reportID);
 
-        // Pre-selected reports pinned at the top. Row order is frozen; the checkmark updates on toggle.
-        // Search-filtered rows are hidden from view but stay in the snapshot so they still dedupe Recents below.
+        // Pinned pre-selection: order is frozen, checkmark tracks live selection. Search-filtered rows
+        // stay in the snapshot so they still dedupe Recents below.
         const frozenReports = buildFrozenSection(liveFrozenReports.filter(matchesSearchTerm), (report) => selectedReportIDsSet.has(report.reportID));
         if (frozenReports.length > 0) {
             sections.push({
@@ -152,7 +144,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             });
         }
 
-        // Selected reports that don't show up anywhere else (e.g. dropped out of the current results). Surface them so they stay visible, but still respect the search term.
+        // Selected reports that don't show up anywhere else — surface them but respect the search term.
         const extraSelectedReports = selectedOptions.filter((report) => !visibleReportIDsSet.has(report.reportID) && !isReportFrozen(report) && matchesSearchTerm(report));
         if (extraSelectedReports.length > 0) {
             sections.push({
@@ -161,7 +153,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             });
         }
 
-        // The rest of Recents in their natural position. Selected rows just get the checkmark — moving them would jump the scroll.
+        // Rest of Recents in their natural position. Selected rows just get the checkmark — moving them would jump the scroll.
         const visibleReports = excludeFrozenItems(chatOptions.recentReports, isReportFrozen).map((report) =>
             selectedReportIDsSet.has(report.reportID) ? getSelectedOptionData(report) : report,
         );
