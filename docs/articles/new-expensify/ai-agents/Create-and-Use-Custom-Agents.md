@@ -27,7 +27,7 @@ To add a Custom Agent as an approver on a workspace:
 
 ## How to create a Custom Agent
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Account**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account**.
 2. Click **Agents**.
 3. Click **New agent**.
 4. Review the auto-generated profile image and display name. If needed, you can edit these later.
@@ -85,7 +85,7 @@ When rejecting a report, leave a comment explaining what information is missing.
 
 To open a direct conversation with a Custom Agent:
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Account**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account**.
 2. Click **Agents**.
 3. Find the agent in the list and click **Chat**.
 
@@ -99,11 +99,11 @@ Each Custom Agent is its own Expensify account with a profile, inbox, chats, and
 
 Use Copilot to see what the agent has done, review its activity, and inspect any actions it has taken on reports.
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Account**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account**.
 2. Click **Agents**.
 3. Find the agent in the list and click **Copilot**.
 
-[Learn more about Copilot](/articles/new-expensify/settings/Add-or-Act-as-a-Copilot).
+[Learn more about Copilot](/articles/new-expensify/settings/Copilot-Access.md).
 
 ---
 
@@ -111,7 +111,7 @@ Use Copilot to see what the agent has done, review its activity, and inspect any
 
 You can edit an agent's profile image, display name, and instructions at any time.
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Account**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account**.
 2. Click **Agents**.
 3. Click **Edit** on the agent you want to update.
 4. Update the profile image, display name, or instructions.
@@ -138,21 +138,23 @@ If the agent is currently set as an approver on any workflow, remove it from tho
 
 Before you can select a Custom Agent as an approver, the agent must be a member of the workspace.
 
-If the agent was created from a workflow setup flow, Expensify automatically adds it to the workspace. Otherwise, add the agent as a workspace member first: [Learn how to add a Custom Agent to a Workspace](/articles/new-expensify/workspaces/Managing-Workspace-Members#invite-members-to-a-workspace).
+If the agent was created from a workflow setup flow, Expensify automatically adds it to the workspace. Otherwise, add the agent as a workspace member first.
+
+[Learn how to add a Custom Agent to a Workspace](/articles/new-expensify/workspaces/Managing-Workspace-Members#invite-members-to-a-workspace).
 
 Once an agent is added to a workspace as a member, you can select it as an approver anywhere you'd choose a person:
 
-1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Workspaces**.
 2. Click your workspace name.
 3. Click **Workflows**.
-4. Open the workflow you want to edit, or click **Add approval workflow** to create a new one.
+4. Click the workflow you want to edit, or click **Add approval workflow** to create a new one.
 5. Click **Approver**.
 6. Choose the agent from the list of workspace members.
 7. Click **Save**.
 
 The agent will receive each report submitted into the workflow and decide whether to **Approve** or **Reject** it based on its instructions.
 
-For details on configuring approval workflows generally, see [Learn how to add approvals to a workspace](/articles/new-expensify/workspaces/Add-Approvals).
+For details on configuring approval workflows generally, [learn how to add approvals to a workspace](/articles/new-expensify/workspaces/Add-Approvals).
 
 ## What happens after a Custom Agent reviews a report
 
