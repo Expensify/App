@@ -300,12 +300,17 @@ function SubmitExpenseOrchestrator({
         });
     };
 
+    // A global-create submit off the inbox lands on Search — reserve the channel so the optimistic write defers behind the skeleton.
+    const reserveSearchChannelIfGlobalCreate = () => {
+        if (!isFromGlobalCreate || isReportTopmostSplitNavigator()) {
+            return;
+        }
+        reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+    };
+
     const handleDefaultSubmit = (listOfParticipants: Participant[]) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
-        // A global-create submit off the inbox lands on Search — reserve the channel so the optimistic write defers behind the skeleton.
-        if (isFromGlobalCreate && !isReportTopmostSplitNavigator()) {
-            reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-        }
+        reserveSearchChannelIfGlobalCreate();
         requestAnimationFrame(() => {
             createTransaction(listOfParticipants);
             requestAnimationFrame(() => {
@@ -406,6 +411,7 @@ function SubmitExpenseOrchestrator({
                     onGrant={() => {
                         startSubmitSpans();
                         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
+                        reserveSearchChannelIfGlobalCreate();
                         navigateAfterInteraction(() => {
                             createTransaction(selectedParticipantList, true);
                         });
@@ -414,6 +420,7 @@ function SubmitExpenseOrchestrator({
                         startSubmitSpans();
                         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
                         updateLastLocationPermissionPrompt();
+                        reserveSearchChannelIfGlobalCreate();
                         navigateAfterInteraction(() => {
                             createTransaction(selectedParticipantList, false);
                         });

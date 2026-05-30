@@ -53,6 +53,15 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
 }));
 
+// Pass-through spy so behavior is unchanged but the call args (incl. currentUserAccountID) are assertable.
+jest.mock('@libs/shouldUseDefaultExpensePolicy', () => {
+    const actual = jest.requireActual<{default: typeof shouldUseDefaultExpensePolicy}>('@libs/shouldUseDefaultExpensePolicy');
+    return {
+        __esModule: true,
+        default: jest.fn((...args: Parameters<typeof shouldUseDefaultExpensePolicy>) => actual.default(...args)),
+    };
+});
+
 jest.mock('@libs/getCurrentPosition');
 
 // Fire executeWrite synchronously so downstream writes can be asserted.
@@ -1055,6 +1064,18 @@ describe('MoneyRequest', () => {
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.CREATE, baseParams.transactionID, baseParams.reportID));
+        });
+
+        it('should pass currentUserAccountID to shouldUseDefaultExpensePolicy so the billing restriction uses the explicit account, not the deprecated session value', () => {
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                report: undefined,
+                defaultExpensePolicy: fakePolicy,
+                iouType: CONST.IOU.TYPE.CREATE,
+            });
+
+            const lastCallArgs = jest.mocked(shouldUseDefaultExpensePolicy).mock.calls.at(-1) ?? [];
+            expect(lastCallArgs.at(5)).toBe(baseParams.currentUserAccountID);
         });
 
         it('should pass conciergeReportID through to getMoneyRequestParticipantOptions when report exists', async () => {
