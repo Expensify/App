@@ -652,7 +652,6 @@
 "../../src/pages/workspace/taxes/WorkspaceTaxesPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/travel/WorkspaceTravelInvoicingSection.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	3
 "../../src/pages/workspace/workflows/WorkspaceWorkflowsPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
-"../../src/pages/workspace/workflows/WorkspaceWorkflowsPage.tsx"	"react-hooks/preserve-manual-memoization"	3
 "../../src/pages/workspace/workflows/WorkspaceWorkflowsPayerPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	2
 "../../src/stories/ReportActionItemImages.stories.tsx"	"no-restricted-syntax"	1
 "../../src/stories/TextInput.stories.tsx"	"react-hooks/set-state-in-effect"	1
