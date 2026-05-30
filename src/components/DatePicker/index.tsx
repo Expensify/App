@@ -176,6 +176,7 @@ function DatePicker({
                 anchorPosition={popoverPosition}
                 shouldPositionFromTop={!isInverted}
                 forwardedFSClass={forwardedFSClass}
+                shouldCloseWhenBrowserNavigationChanged
             />
         </>
     );
