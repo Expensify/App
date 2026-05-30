@@ -2108,7 +2108,7 @@ const translations: TranslationDeepObject<typeof en> = {
             conciergeChatDescription: 'Je persoonlijke AI-agent',
             accountManagerDescription: 'Je accountmanager',
             partnerManagerDescription: 'Je partnerbeheerder',
-            guideDescription: 'Je instelspecialist',
+            guideDescription: 'Je accountmanager',
         },
     },
     closeAccountPage: {
@@ -3028,7 +3028,7 @@ ${amount} voor ${merchant} - ${date}`,
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Maak](${workspaceConfirmationLink}) een workspace`,
-                description: 'Maak een workspace aan en configureer de instellingen met hulp van je set-up specialist!',
+                description: 'Maak een workspace en stel de instellingen in met hulp van je accountmanager!',
             },
             createWorkspaceTask: {
                 title: ({workspaceSettingsLink}) => `Maak een [werkruimte](${workspaceSettingsLink})`,
@@ -3246,11 +3246,11 @@ ${amount} voor ${merchant} - ${date}`,
                 isOnboardingFlow
                     ? dedent(`
                         # Je gratis proefperiode is gestart! Laten we je account instellen.
-                        👋 Hoi, ik ben je Expensify-configuratiespecialist. Ik heb al een workspace aangemaakt om de bonnetjes en uitgaven van je team te beheren. Volg gewoon de resterende configuratiestappen hieronder om het meeste uit je gratis proefperiode van 30 dagen te halen!
+                        👋 Hoi, ik ben je Expensify accountmanager. Ik heb al een workspace aangemaakt om de bonnen en uitgaven van je team te beheren. Volg de resterende configuratiestappen hieronder om het meeste uit je 30 dagen gratis proefperiode te halen!
                     `)
                     : dedent(`
-                        # Je gratis proefperiode is gestart! Laten we je account instellen.
-                        👋 Hallo, ik ben je Expensify-specialist voor de installatie. Nu je een workspace hebt aangemaakt, haal het meeste uit je gratis proefperiode van 30 dagen door de onderstaande stappen te volgen!
+                        # Je gratis proefperiode is begonnen! Laten we je account instellen.
+                        👋 Hoi, ik ben je Expensify accountmanager. Nu je een workspace hebt aangemaakt, haal alles uit je gratis proefperiode van 30 dagen door de onderstaande stappen te volgen!
                     `),
             onboardingTrackWorkspaceMessage: 'Haal het meeste uit je gratis proefperiode van 30 dagen door de volgende stappen te volgen:',
             onboardingChatSplitMessage: 'Rekeningen splitsen met vrienden is net zo makkelijk als het sturen van een bericht. Zo werkt het.',
@@ -6106,7 +6106,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
-            talkYourOnboardingSpecialist: 'Chat met je installatiespecialist.',
+            talkYourOnboardingSpecialist: 'Chat met je accountmanager.',
             talkYourAccountManager: 'Chat met je accountmanager.',
             talkToConcierge: 'Chat met Concierge.',
             needAnotherAccounting: 'Nog een boekhoudprogramma nodig?',
@@ -8426,7 +8426,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
     },
     systemChatFooterMessage: {
         [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({adminReportName, href}: {adminReportName: string; href: string}) =>
-            `Chat met je setupspecificus in <a href="${href}">${adminReportName}</a> voor hulp`,
+            `Chat met je accountmanager in <a href="${href}">${adminReportName}</a> voor hulp`,
         default: `Stuur een bericht naar <concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link> voor hulp bij de installatie`,
     },
     violations: {
@@ -9065,7 +9065,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         confirmation: {
             title: 'Gesprek bevestigen',
             description: 'Controleer of de onderstaande gegevens er goed uitzien. Zodra je het gesprek bevestigt, sturen we een uitnodiging met meer informatie.',
-            setupSpecialist: 'Je configuratiespecialist',
+            setupSpecialist: 'Je accountmanager',
             meetingLength: 'Vergaderduur',
             dateTime: 'Datum en tijd',
             minutes: '30 minuten',

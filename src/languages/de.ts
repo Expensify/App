@@ -2115,7 +2115,7 @@ const translations: TranslationDeepObject<typeof en> = {
             conciergeChatDescription: 'Ihr persönlicher KI-Agent',
             accountManagerDescription: 'Ihre Kundenbetreuung',
             partnerManagerDescription: 'Ihre Partnermanagerin / Ihr Partnermanager',
-            guideDescription: 'Ihre Einrichtungsfachkraft',
+            guideDescription: 'Ihre Kundenbetreuerin/Ihr Kundenbetreuer',
         },
     },
     closeAccountPage: {
@@ -3039,7 +3039,7 @@ ${amount} für ${merchant} – ${date}`,
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Erstelle](${workspaceConfirmationLink}) einen Workspace`,
-                description: 'Erstelle einen Arbeitsbereich und konfiguriere die Einstellungen mit Hilfe deiner Einrichtungsexpertin/deines Einrichtungsexperten!',
+                description: 'Erstellen Sie einen Arbeitsbereich und konfigurieren Sie die Einstellungen mit Hilfe Ihrer Account Executive!',
             },
             createWorkspaceTask: {
                 title: ({workspaceSettingsLink}) => `[Workspace] erstellen (${workspaceSettingsLink})`,
@@ -3256,12 +3256,12 @@ ${amount} für ${merchant} – ${date}`,
             onboardingManageTeamMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
                 isOnboardingFlow
                     ? dedent(`
-                        # Ihre kostenlose Testphase hat begonnen! Lassen Sie uns mit der Einrichtung starten.
-                        👋 Hallo, ich bin Ihre Expensify-Einrichtungsspezialist*in. Ich habe bereits einen Arbeitsbereich erstellt, um die Belege und Ausgaben Ihres Teams zu verwalten. Um Ihre 30-tägige kostenlose Testphase optimal zu nutzen, folgen Sie einfach den restlichen untenstehenden Einrichtungsschritten!
+                        # Ihre kostenlose Testversion hat begonnen! Lassen Sie uns mit der Einrichtung starten.
+                        👋 Hallo, ich bin Ihre Expensify Account Executive. Ich habe bereits einen Arbeitsbereich erstellt, um die Belege und Ausgaben Ihres Teams zu verwalten. Um das Beste aus Ihrer 30-tägigen kostenlosen Testversion herauszuholen, folgen Sie einfach den verbleibenden Einrichtungsschritten unten!
                     `)
                     : dedent(`
-                        # Deine kostenlose Testversion hat begonnen! Lass uns alles einrichten.
-                        👋 Hallo, ich bin deine Expensify-Einrichtungsspezialist*in. Nachdem du jetzt einen Arbeitsbereich erstellt hast, nutze deine 30-tägige kostenlose Testversion optimal, indem du die folgenden Schritte befolgst!
+                        # Ihre kostenlose Testversion hat begonnen! Lassen Sie uns mit der Einrichtung starten.
+                        👋 Hallo, ich bin Ihre Expensify-Ansprechperson. Jetzt, da Sie einen Workspace erstellt haben, nutzen Sie Ihre 30-tägige kostenlose Testversion optimal, indem Sie die folgenden Schritte ausführen!
                     `),
             onboardingTrackWorkspaceMessage: 'Um das Beste aus Ihrer 30-tägigen kostenlosen Testversion zu machen, folgen Sie den verbleibenden Schritten unten:',
             onboardingChatSplitMessage: 'Rechnungen mit Freund*innen zu teilen ist so einfach wie das Senden einer Nachricht. So geht’s.',
@@ -6138,7 +6138,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
-            talkYourOnboardingSpecialist: 'Chatte mit deiner Einrichtungsexpertin/deinem Einrichtungsexperten.',
+            talkYourOnboardingSpecialist: 'Chatten Sie mit Ihrer Kundenbetreuung.',
             talkYourAccountManager: 'Chatte mit deiner/deinem Account Manager/in.',
             talkToConcierge: 'Chatte mit Concierge.',
             needAnotherAccounting: 'Benötigen Sie eine weitere Buchhaltungssoftware?',
@@ -8464,8 +8464,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
     },
     systemChatFooterMessage: {
         [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({adminReportName, href}: {adminReportName: string; href: string}) =>
-            `Chatte mit deiner Setup-Fachperson in <a href="${href}">${adminReportName}</a>, um Hilfe zu erhalten`,
-        default: `Sende eine Nachricht an <concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link>, um Hilfe bei der Einrichtung zu erhalten`,
+            `Chatten Sie mit Ihrer Kundenbetreuung in <a href="${href}">${adminReportName}</a>, um Hilfe zu erhalten`,
+        default: `Schreiben Sie eine Nachricht an <concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link> für Hilfe bei der Einrichtung`,
     },
     violations: {
         allTagLevelsRequired: 'Alle Tags erforderlich',
@@ -9105,7 +9105,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         confirmation: {
             title: 'Anruf bestätigen',
             description: 'Stell sicher, dass die Details unten für dich gut aussehen. Sobald du den Anruf bestätigst, senden wir dir eine Einladung mit weiteren Informationen.',
-            setupSpecialist: 'Ihre*e*r Einrichtungsspezialist*in',
+            setupSpecialist: 'Ihre Kundenbetreuerin/Ihr Kundenbetreuer',
             meetingLength: 'Meetingdauer',
             dateTime: 'Datum & Uhrzeit',
             minutes: '30 Minuten',
