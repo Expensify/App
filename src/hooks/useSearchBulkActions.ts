@@ -478,6 +478,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
 
+            const selectedPolicyID = selectedPolicyIDs.length === 1 ? selectedPolicyIDs.at(0) : undefined;
+            const queryPolicyID = queryJSON?.policyID?.length === 1 ? queryJSON.policyID.at(0) : undefined;
+            const exportPolicyID = policyID ?? (areAllMatchingItemsSelected ? queryPolicyID : selectedPolicyID);
+
             if (areAllMatchingItemsSelected) {
                 queueExportSearchWithTemplate({
                     templateName,
@@ -485,7 +489,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     jsonQuery: queryJSON ? serializeQueryJSONForBackend(queryJSON) : JSON.stringify(queryJSON),
                     reportIDList: [],
                     transactionIDList: [],
-                    policyID,
+                    policyID: exportPolicyID,
                 });
             } else {
                 queueExportSearchWithTemplate({
@@ -494,7 +498,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     jsonQuery: '{}',
                     reportIDList: selectedTransactionReportIDs,
                     transactionIDList: selectedTransactionsKeys,
-                    policyID,
+                    policyID: exportPolicyID,
                 });
             }
 
@@ -520,6 +524,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             queryJSON,
             selectedTransactionReportIDs,
             selectedTransactionsKeys,
+            selectedPolicyIDs,
         ],
     );
 
