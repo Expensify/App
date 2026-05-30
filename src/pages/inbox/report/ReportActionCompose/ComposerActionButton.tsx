@@ -1,4 +1,3 @@
-import React from 'react';
 import ComposerActionMenu from './ComposerActionMenu';
 import {useComposerEditState} from './ComposerContext';
 import ComposerEditingButtons from './ComposerEditingButtons';
