@@ -226,10 +226,10 @@ platforms:
         icon: /assets/images/simple-illustration__concierge-bot.svg
         description: Learn about Concierge AI and what it can do.
 
-      - href: agents
-        title: Agents
+      - href: ai-agents
+        title: AI Agents
         icon: /assets/images/simple-illustration__concierge-bot.svg
-        description: Create and configure AI-powered Custom Agents that act as approvers in your workspace.
+        description: Learn about Custom Agents and what they can do. 
 
       - href: workspaces
         title: Workspaces
