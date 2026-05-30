@@ -266,7 +266,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
             optimisticChatReportID,
         };
 
-        const scanDestinationReportID = iouType === CONST.IOU.TYPE.TRACK ? selfDMReport?.reportID : report?.reportID;
+        const scanDestinationReportID = iouType === CONST.IOU.TYPE.TRACK ? (report?.reportID ?? selfDMReport?.reportID) : report?.reportID;
         submitWithDismissFirst({
             executeWrite: (overrides) => {
                 // GPS path is async; the reserved write channel's 5s safety timeout covers typical resolution (<2s).

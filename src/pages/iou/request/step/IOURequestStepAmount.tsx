@@ -395,7 +395,7 @@ function IOURequestStepAmount({
                 };
                 submitWithDismissFirst({
                     executeWrite: executeExpenseWrite,
-                    destinationReportID: isTrackExpenseSubmit ? selfDMReport?.reportID : report?.reportID,
+                    destinationReportID: isTrackExpenseSubmit ? (report?.reportID ?? selfDMReport?.reportID) : report?.reportID,
                     telemetryContext: {
                         scenario: isTrackExpenseSubmit ? CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.TRACK_EXPENSE : CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.REQUEST_MONEY_MANUAL,
                         iouType,
