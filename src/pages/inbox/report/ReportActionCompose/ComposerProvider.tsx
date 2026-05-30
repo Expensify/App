@@ -124,7 +124,6 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
     };
 
     const composerState = {
-        reportID,
         isFocused,
         isMenuVisible,
         isFullComposerAvailable,

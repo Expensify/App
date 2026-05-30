@@ -6,10 +6,13 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction} from '@userActions/EmojiPickerAction';
 import CONST from '@src/CONST';
-import {useComposerMeta, useComposerSendState, useComposerState} from './ComposerContext';
+import {useComposerMeta, useComposerSendState} from './ComposerContext';
 
-function ComposerEmojiPicker() {
-    const {reportID} = useComposerState();
+type ComposerEmojiPickerProps = {
+    reportID: string;
+};
+
+function ComposerEmojiPicker({reportID}: ComposerEmojiPickerProps) {
     const styles = useThemeStyles();
 
     const {isMediumScreenWidth} = useResponsiveLayout();
