@@ -1,4 +1,3 @@
-/* eslint-disable react/jsx-props-no-spreading */
 import {Str} from 'expensify-common';
 import React from 'react';
 import type {ViewStyle} from 'react-native';
@@ -15,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getReportIDForExpense} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {hasEReceipt, hasReceiptSource, isDistanceRequest, isFetchingWaypointsFromServer, isManualDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
@@ -143,10 +143,13 @@ function ReportActionItemImage({
     const localSource = transaction?.receipt?.localSource;
     const effectiveIsLocalFile = isLocalFile || !!localSource;
     const effectiveThumbnail = localSource ?? thumbnail;
+    const receiptURIs = transaction ? getThumbnailAndImageURIs(transaction, null, null) : undefined;
+    const effectivePreviewUri = localSource ? undefined : receiptURIs?.thumbnail320;
     const effectiveImage = localSource != null && typeof image === 'string' ? localSource : image;
 
     const originalImageSource = tryResolveUrlFromApiRoot(effectiveImage ?? '');
     const thumbnailSource = tryResolveUrlFromApiRoot(effectiveThumbnail ?? '');
+    const previewUriSource = effectivePreviewUri ? tryResolveUrlFromApiRoot(effectivePreviewUri) : undefined;
     const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
     const isPDF = filename && Str.isPDF(filename);
 
@@ -208,6 +211,7 @@ function ReportActionItemImage({
                     onLoad={onLoad}
                     shouldUseFullHeight={shouldUseFullHeight}
                     onLoadFailure={onLoadFailure}
+                    previewUri={previewUriSource}
                 />
             </PressableWithoutFocus>
         );
@@ -220,6 +224,7 @@ function ReportActionItemImage({
             thumbnailContainerStyles={styles.thumbnailImageContainerHover}
             onLoad={onLoad}
             onLoadFailure={onLoadFailure}
+            previewUri={previewUriSource}
         />
     );
 }

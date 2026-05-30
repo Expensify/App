@@ -26,8 +26,8 @@ type GestureHandlerProps = {
     swipeDirection?: SwipeDirection | SwipeDirection[];
 };
 
-type AnimationIn = 'fadeIn' | 'slideInUp' | 'slideInRight';
-type AnimationOut = 'fadeOut' | 'slideOutDown' | 'slideOutRight';
+type AnimationIn = 'fadeIn' | 'slideInUp' | 'slideInRight' | 'slideAndFadeInRight';
+type AnimationOut = 'fadeOut' | 'slideOutDown' | 'slideOutRight' | 'slideAndFadeOutRight';
 
 type ReanimatedModalProps = ViewProps &
     GestureProps &

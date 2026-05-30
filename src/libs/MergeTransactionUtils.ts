@@ -9,6 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction, Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import SafeString from '@src/utils/SafeString';
+import {getDecodedLeafCategoryName} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
 import Parser from './Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
@@ -395,6 +396,7 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
         taxAmount: mergeTransaction.taxAmount,
         taxCode: mergeTransaction.taxCode,
         taxName: mergeTransaction.taxName,
+        ...(mergeTransaction.iouRequestType && {iouRequestType: mergeTransaction.iouRequestType}),
     };
 }
 
@@ -541,6 +543,10 @@ function getDisplayValue(
 
     if (field === 'taxValue') {
         return getTaxName(policy, transaction) ?? transaction.taxValue ?? '';
+    }
+
+    if (field === 'category') {
+        return getDecodedLeafCategoryName(SafeString(fieldValue));
     }
 
     return SafeString(fieldValue);

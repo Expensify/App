@@ -31,7 +31,7 @@ function UpdateDelegateMagicCodePage({route}: UpdateDelegateMagicCodePageProps) 
         }
 
         // Dismiss modal on successful magic code verification
-        Navigation.goBack(ROUTES.SETTINGS_SECURITY);
+        Navigation.goBack(ROUTES.SETTINGS_COPILOT);
     }, [login, currentDelegate?.role, currentDelegate?.pendingFields?.role, updateDelegateErrors, newRole]);
 
     const clearError = () => {

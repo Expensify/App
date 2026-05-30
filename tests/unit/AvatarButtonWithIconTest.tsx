@@ -1,4 +1,3 @@
-/* eslint-disable react/jsx-props-no-spreading */
 import {fireEvent, render, renderHook, screen} from '@testing-library/react-native';
 import React, {createRef} from 'react';
 import {View} from 'react-native';

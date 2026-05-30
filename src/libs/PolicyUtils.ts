@@ -35,6 +35,7 @@ import type {
     PolicyFeatureName,
     Rate,
     Tenant,
+    Vendor,
 } from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -45,6 +46,7 @@ import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
 import {getApiRoot} from './ApiUtils';
 import {getCategoryApproverRule} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
+import {isAnyHRConnected} from './HRUtils';
 import Navigation from './Navigation/Navigation';
 import {getIsOffline} from './NetworkState';
 import {formatMemberForList} from './OptionsListUtils';
@@ -56,10 +58,10 @@ import {isPublicDomain, isValidAccountRoute} from './ValidationUtils';
 type MemberEmailsToAccountIDs = Record<string, number>;
 
 type TravelStep = ValueOf<typeof CONST.TRAVEL.STEPS>;
+type PolicyFeature = ValueOf<typeof CONST.POLICY.POLICY_FEATURE>;
+type PolicyFeatureAccess = ValueOf<typeof CONST.POLICY.POLICY_FEATURE_ACCESS>;
 
 type AccountingConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES>;
-type HRConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES>;
-
 type WorkspaceDetails = {
     policyID: string | undefined;
     name: string;
@@ -127,6 +129,69 @@ function getActivePoliciesWithExpenseChatAndTimeEnabled(policies: OnyxCollection
  */
 const isPolicyAdmin = (policy: OnyxInputOrEntry<Policy>, login?: string, shouldCheckGlobalPolicyRole = true): boolean =>
     getPolicyRole(policy, login, shouldCheckGlobalPolicyRole) === CONST.POLICY.ROLE.ADMIN;
+
+const WRITE_ALL_POLICY_FEATURES = Object.fromEntries(Object.values(CONST.POLICY.POLICY_FEATURE).map((feature) => [feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE])) as Record<
+    PolicyFeature,
+    PolicyFeatureAccess
+>;
+
+const READ_ALL_POLICY_FEATURES = Object.fromEntries(Object.values(CONST.POLICY.POLICY_FEATURE).map((feature) => [feature, CONST.POLICY.POLICY_FEATURE_ACCESS.READ])) as Record<
+    PolicyFeature,
+    PolicyFeatureAccess
+>;
+
+const EDITOR_POLICY_FEATURES = Object.fromEntries(
+    Object.values(CONST.POLICY.POLICY_FEATURE)
+        .filter((feature) => feature !== CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES)
+        .map((feature) => [feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE]),
+) as Partial<Record<PolicyFeature, PolicyFeatureAccess>>;
+
+const ROLE_PERMISSION_BUNDLES: Record<string, Partial<Record<PolicyFeature, PolicyFeatureAccess>>> = {
+    [CONST.POLICY.ROLE.ADMIN]: WRITE_ALL_POLICY_FEATURES,
+    [CONST.POLICY.ROLE.EDITOR]: EDITOR_POLICY_FEATURES,
+    [CONST.POLICY.ROLE.AUDITOR]: READ_ALL_POLICY_FEATURES,
+    [CONST.POLICY.ROLE.USER]: {
+        [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+    },
+    [CONST.POLICY.ROLE.CARD_ADMIN]: {
+        [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+        [CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+    },
+    [CONST.POLICY.ROLE.PEOPLE_ADMIN]: {
+        [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+        [CONST.POLICY.POLICY_FEATURE.WORKFLOWS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+    },
+    [CONST.POLICY.ROLE.PAYMENTS_ADMIN]: {
+        [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.WORKFLOWS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+    },
+};
+
+function hasPolicyFeaturePermission(policy: OnyxInputOrEntry<Policy>, login: string, feature: PolicyFeature, requiredAccess: PolicyFeatureAccess): boolean {
+    const role = getPolicyRole(policy, login, false);
+    const access = role ? ROLE_PERMISSION_BUNDLES[role]?.[feature] : undefined;
+
+    if (requiredAccess === CONST.POLICY.POLICY_FEATURE_ACCESS.READ) {
+        return access === CONST.POLICY.POLICY_FEATURE_ACCESS.READ || access === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE;
+    }
+
+    return access === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE;
+}
+
+function canMemberRead(policy: OnyxInputOrEntry<Policy>, login: string, feature: PolicyFeature): boolean {
+    return hasPolicyFeaturePermission(policy, login, feature, CONST.POLICY.POLICY_FEATURE_ACCESS.READ);
+}
+
+function canMemberWrite(policy: OnyxInputOrEntry<Policy>, login: string, feature: PolicyFeature): boolean {
+    return hasPolicyFeaturePermission(policy, login, feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE);
+}
 
 /**
  * Checks if we have any errors stored within the policy?.employeeList. Determines whether we should show a red brick road error or not.
@@ -854,10 +919,11 @@ function getTagNamesFromTagsLists(policyTagLists: PolicyTagLists): string[] {
 }
 
 /**
- * Cleans up escaping of colons (used to create multi-level tags, e.g. "Parent: Child") in the tag name we receive from the backend
+ * Cleans up escaping of colons used to create multi-level tags (e.g. "Parent: Child"),
+ * and HTML-decodes the result so tags stored with encoded entities display correctly (e.g. `R&amp;D`, renders as `R&D`)
  */
 function getCleanedTagName(tag: string) {
-    return tag?.replaceAll('\\:', CONST.COLON);
+    return Str.htmlDecode(tag?.replaceAll('\\:', CONST.COLON) ?? '');
 }
 
 /**
@@ -932,15 +998,26 @@ function isSubmitPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.SUBMIT;
 }
 
-function isPolicyEditor(policy: OnyxEntry<Policy>): boolean {
-    return policy?.role === CONST.POLICY.ROLE.EDITOR;
+/**
+ * We only allow users to access Submit feature if they have the SUBMIT_2026 beta enabled.
+ *
+ * @param isSubmit2026BetaEnabled - Prefer `isBetaEnabled(CONST.BETAS.SUBMIT_2026)` from `usePermissions()`, not raw betas from Onyx.
+ */
+function canAccessSubmitWorkspaceFeatures(policy: OnyxInputOrEntry<Policy>, isSubmit2026BetaEnabled: boolean): boolean {
+    return isSubmitPolicy(policy) && isSubmit2026BetaEnabled;
 }
 
+const isPolicyEditor = (policy: OnyxInputOrEntry<Policy>, login?: string): boolean => getPolicyRole(policy, login) === CONST.POLICY.ROLE.EDITOR;
+
 /**
- * Returns true if the user can edit workspace settings — admins on any workspace, or editors on Submit workspaces.
+ * Returns true if the current user can edit workspace settings — admins on any workspace,
+ * or editors on Submit workspaces (Submit has no admin role, so editors manage it).
+ *
+ * `login` enables the per-employee role fallback in `getPolicyRole`, so partially-loaded/summary
+ * policies (where `policy.role` isn't populated yet) don't incorrectly route admins/editors away.
  */
-function canEditWorkspaceSettings(policy: OnyxEntry<Policy>): boolean {
-    return isPolicyAdmin(policy) || isPolicyEditor(policy);
+function canEditWorkspaceSettings(policy: OnyxInputOrEntry<Policy>, login?: string): boolean {
+    return isPolicyAdmin(policy, login) || (isSubmitPolicy(policy) && isPolicyEditor(policy, login));
 }
 
 /**
@@ -960,6 +1037,19 @@ function getOwnedPaidPolicies(policies: OnyxCollection<Policy> | null, currentUs
 
 function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.CORPORATE;
+}
+
+/**
+ * For Submit workspaces, certain features require upgrading the plan before enabling.
+ * When conditions match, navigates to the workspace upgrade flow and returns true (caller should not enable the feature).
+ * @returns true if upgrade navigation was performed; false otherwise
+ */
+function tryNavigateToSubmitWorkspaceUpgrade(policy: OnyxEntry<Policy>, isEnabling: boolean, upgradeFeatureAlias: string): boolean {
+    if (!policy?.id || !isEnabling || !isSubmitPolicy(policy)) {
+        return false;
+    }
+    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policy?.id, upgradeFeatureAlias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policy?.id)));
+    return true;
 }
 
 /**
@@ -1058,6 +1148,10 @@ function isSubmitAndClose(policy: OnyxInputOrEntry<Policy>): boolean {
 
 function arePaymentsEnabled(policy: OnyxEntry<Policy>): boolean {
     return policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+}
+
+function hasApprovalFlow(policy: OnyxInputOrEntry<Policy>): boolean {
+    return isPaidGroupPolicy(policy) && !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 
 function isControlOnAdvancedApprovalMode(policy: OnyxInputOrEntry<Policy>): boolean {
@@ -1166,7 +1260,7 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFe
         return policy?.[featureName] ? !!policy?.[featureName] : hasAccountingFeatureConnection(policy);
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED) {
-        return policy?.isHREnabled === true || !!policy?.connections?.gusto;
+        return policy?.isHREnabled === true || isAnyHRConnected(policy);
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED) {
         return policy?.receiptPartners?.enabled ?? false;
@@ -1798,16 +1892,47 @@ function isAccountingConnectionName(connectionName?: ConnectionName): connection
     return connectionName !== undefined && getAccountingConnectionNames().some((accountingConnectionName) => accountingConnectionName === connectionName);
 }
 
-function getHRConnectionNames(): HRConnectionName[] {
-    return [...CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES];
-}
-
-function isGustoConnected(policy?: OnyxEntry<Policy>) {
-    return !!policy?.connections?.gusto;
-}
-
 function getConnectedIntegration(policy: Policy | undefined, connectionNames: readonly ConnectionName[] = getAccountingConnectionNames()) {
     return connectionNames.find((integration) => !!policy?.connections?.[integration]);
+}
+
+/**
+ * QBO vendor feature gate. Returns true when the workspace has the `vendorMatching` beta enabled
+ * AND QBO is connected with an individual card transaction non-reimbursable export type — the only
+ * scope the Vendor field is shown for. Mirrors `QuickbooksOnline::hasVendorFeature` on the PHP side
+ * so the App and backend agree on which workspaces see the field.
+ */
+function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
+    if (!isVendorMatchingBetaEnabled || !policy) {
+        return false;
+    }
+    const qboConnection = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO];
+    if (!qboConnection) {
+        return false;
+    }
+    const exportDestination = qboConnection.config?.nonReimbursableExpensesExportDestination;
+    return exportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD || exportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD;
+}
+
+/**
+ * Returns the QBO vendor list imported into the workspace (empty array when QBO isn't connected or
+ * the sync hasn't populated vendors yet). Source of truth for the workspace Vendors tab and the
+ * vendor selector RHP.
+ */
+function getQBOVendors(policy: OnyxEntry<Policy>): Vendor[] {
+    return policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]?.data?.vendors ?? [];
+}
+
+/**
+ * Look up a single QBO vendor by `externalID`. Used to resolve the vendor name for display when
+ * only the ID is stored on the transaction NVP. Returns undefined when the ID isn't found
+ * (which happens after a vendor is deleted from QBO — see the inactive-vendor violation).
+ */
+function getQBOVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined): Vendor | undefined {
+    if (!vendorID) {
+        return undefined;
+    }
+    return getQBOVendors(policy).find((vendor) => vendor.id === vendorID);
 }
 
 function getValidConnectedIntegration(policy: Policy | undefined, connectionNames: readonly ConnectionName[] = getAccountingConnectionNames()) {
@@ -1906,6 +2031,8 @@ function getUserFriendlyWorkspaceType(workspaceType: ValueOf<typeof CONST.POLICY
             return translate('workspace.type.control');
         case CONST.POLICY.TYPE.TEAM:
             return translate('workspace.type.collect');
+        case CONST.POLICY.TYPE.SUBMIT:
+            return translate('workspace.type.submit');
         default:
             return translate('workspace.type.free');
     }
@@ -2193,6 +2320,9 @@ export {
     getConnectedIntegration,
     getConnectedIntegrationNamesForPolicies,
     getConnectionExporters,
+    getQBOVendorByID,
+    getQBOVendors,
+    hasVendorFeature,
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
@@ -2231,6 +2361,8 @@ export {
     getCorrectedAutoReportingFrequency,
     isPaidGroupPolicy,
     canEditWorkspaceSettings,
+    canMemberRead,
+    canMemberWrite,
     isGroupPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin,
@@ -2245,6 +2377,7 @@ export {
     isPolicyMember,
     isPolicyPayer,
     arePaymentsEnabled,
+    hasApprovalFlow,
     isSubmitAndClose,
     isTaxTrackingEnabled,
     shouldShowPolicy,
@@ -2348,9 +2481,11 @@ export {
     isPolicyTaxEnabled,
     sortPoliciesByName,
     isPolicyApprover,
+    tryNavigateToSubmitWorkspaceUpgrade,
+    canAccessSubmitWorkspaceFeatures,
     getRulesDocumentSourceURL,
-    getHRConnectionNames,
-    isGustoConnected,
+    isSubmitPolicy,
+    isPolicyEditor,
 };
 
-export type {MemberEmailsToAccountIDs};
+export type {MemberEmailsToAccountIDs, PolicyFeature, PolicyFeatureAccess};

@@ -35,6 +35,12 @@ type DatePickerBaseProps = ForwardedFSClassProps & {
 
     /** ID of the wrapping form */
     formID?: keyof OnyxFormValuesMapping;
+
+    /**
+     * Whether Month/Year right-docked picker modals should keep backdrop in narrow pane context.
+     * Used by inline editing flows that require background dimming.
+     */
+    shouldEnableMonthYearBackdropInNarrowPane?: boolean;
 };
 
 type DateInputWithPickerProps = DatePickerBaseProps &
@@ -93,6 +99,12 @@ type DatePickerProps = {
 
     /** If the popover will be positioned from the top */
     shouldPositionFromTop?: boolean;
+
+    /**
+     * Whether Month/Year right-docked picker modals should keep backdrop in narrow pane context.
+     * Used by inline editing flows that require background dimming.
+     */
+    shouldEnableMonthYearBackdropInNarrowPane?: boolean;
 } & Omit<BaseTextInputProps & PopoverWithMeasuredContentProps, 'anchorRef' | 'children'>;
 
 export type {DateInputWithPickerProps, DatePickerProps};
