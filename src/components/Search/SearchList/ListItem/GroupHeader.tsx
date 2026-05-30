@@ -324,7 +324,7 @@ function GroupHeader({item, groupBy, searchType, columns, canSelectMultiple, isE
         return headers[groupBy];
     };
 
-    const isLastItemCollapsed = isLastItem && !isExpanded;
+    const isLastItemCollapsed = isLastItem && !isExpanded && !isSubHeaderRendered;
 
     const pressableStyle = [
         styles.transactionGroupListItemStyle,
@@ -395,14 +395,17 @@ function GroupHeader({item, groupBy, searchType, columns, canSelectMultiple, isE
             {isLargeScreenWidth && (
                 <Animated.View style={[subHeaderAnimatedStyle, styles.mh5, {backgroundColor: theme.highlightBG}]}>
                     {(isExpanded || isSubHeaderRendered) && (
-                        <Animated.View
-                            style={styles.stickToTop}
+                        <PressableWithFeedback
+                            onPress={onToggle}
+                            style={[styles.stickToTop, styles.cursorPointer]}
                             onLayout={(e) => {
                                 const height = e.nativeEvent.layout.height;
                                 if (height) {
                                     subHeaderHeight.set(height);
                                 }
                             }}
+                            accessibilityRole={CONST.ROLE.BUTTON}
+                            accessibilityLabel={isExpanded ? CONST.ACCESSIBILITY_LABELS.COLLAPSE : CONST.ACCESSIBILITY_LABELS.EXPAND}
                         >
                             <View style={[styles.pv2, styles.ph3, styles.pb1, styles.pt1]}>
                                 <View style={[styles.borderBottom, styles.borderNone]} />
@@ -425,7 +428,7 @@ function GroupHeader({item, groupBy, searchType, columns, canSelectMultiple, isE
                                 />
                             </View>
                             <View style={[StyleUtils.getSelectedBorderBottomStyle(groupItem.transactions.at(0)?.isSelected), styles.ml3, styles.mr3]} />
-                        </Animated.View>
+                        </PressableWithFeedback>
                     )}
                 </Animated.View>
             )}
