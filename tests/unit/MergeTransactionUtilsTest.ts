@@ -690,6 +690,33 @@ describe('MergeTransactionUtils', () => {
                 taxName: 'Tax 10%',
             });
         });
+
+        it('should propagate the merge transaction iouRequestType over the target transaction type when set', () => {
+            const targetTransaction = {
+                ...createRandomTransaction(0),
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+            };
+            const mergeTransaction = {
+                ...createRandomMergeTransaction(0),
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+            };
+
+            const result = buildMergedTransactionData(targetTransaction, mergeTransaction);
+
+            expect(result?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL);
+        });
+
+        it('should inherit the target transaction iouRequestType when the merge transaction has none', () => {
+            const targetTransaction = {
+                ...createRandomTransaction(0),
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+            };
+            const mergeTransaction = createRandomMergeTransaction(0);
+
+            const result = buildMergedTransactionData(targetTransaction, mergeTransaction);
+
+            expect(result?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_MAP);
+        });
     });
 
     describe('selectTargetAndSourceTransactionsForMerge', () => {

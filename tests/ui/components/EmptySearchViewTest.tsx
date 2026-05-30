@@ -246,11 +246,22 @@ describe('EmptySearchView', () => {
 
     describe('type is Invoice', () => {
         const dataType = CONST.SEARCH.DATA_TYPES.INVOICE;
+        const INVOICE_POLICY_ID = 'invoicePolicy';
+        const createInvoiceEnabledPolicy = () => ({
+            id: INVOICE_POLICY_ID,
+            name: 'Invoice Workspace',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+            areInvoicesEnabled: true,
+            isPolicyExpenseChatEnabled: true,
+        });
 
         it('should display correct buttons and subtitle when user has not clicked on "Take a test drive"', async () => {
-            // Given user hasn't clicked on "Take a test drive" yet
+            // Given user hasn't clicked on "Take a test drive" yet and has an invoice-enabled workspace
             await act(async () => {
                 await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {selfTourViewed: false});
+                await Onyx.merge(ONYXKEYS.SESSION, SESSION);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${INVOICE_POLICY_ID}`, createInvoiceEnabledPolicy());
             });
 
             // Render component
@@ -273,9 +284,11 @@ describe('EmptySearchView', () => {
         });
 
         it('should display correct buttons and subtitle when user already did "Take a test drive"', async () => {
-            // Given user clicked on "Take a test drive"
+            // Given user clicked on "Take a test drive" and has an invoice-enabled workspace
             await act(async () => {
                 await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {selfTourViewed: true});
+                await Onyx.merge(ONYXKEYS.SESSION, SESSION);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${INVOICE_POLICY_ID}`, createInvoiceEnabledPolicy());
             });
 
             // Render component
@@ -295,6 +308,32 @@ describe('EmptySearchView', () => {
 
             // And correct modal subtitle
             expect(screen.getByText(translateLocal('search.searchResults.emptyInvoiceResults.subtitleWithOnlyCreateButton'))).toBeVisible();
+        });
+
+        it('should hide Send invoice button when user cannot send invoices', async () => {
+            // Given user has no invoice-enabled workspace
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {selfTourViewed: true});
+                await Onyx.merge(ONYXKEYS.SESSION, SESSION);
+            });
+
+            // Render component
+            render(
+                <Wrapper>
+                    <EmptySearchView
+                        similarSearchHash={1}
+                        type={dataType}
+                        hasResults={false}
+                    />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it should not display Send invoice button
+            expect(screen.queryByText(translateLocal('workspace.invoices.sendInvoice'))).not.toBeOnTheScreen();
+
+            // And should show the cannot-send subtitle
+            expect(screen.getByText(translateLocal('search.searchResults.emptyInvoiceResults.subtitleCannotSend'))).toBeVisible();
         });
     });
 });

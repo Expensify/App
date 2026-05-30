@@ -2,12 +2,12 @@ import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
-import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactions from '@hooks/useReportTransactions';
 import {getIOUReportIDFromReportActionPreview, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {isArchivedNonExpenseReport, isClosedExpenseReportWithNoExpenses} from '@libs/ReportUtils';
+import {isClosedExpenseReportWithNoExpenses} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Transaction} from '@src/types/onyx';
+import {getStableReportSelector} from '@src/selectors/Report';
+import type {Transaction} from '@src/types/onyx';
 import type {PureReportActionItemProps} from './PureReportActionItem';
 import PureReportActionItem from './PureReportActionItem';
 import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
@@ -15,31 +15,12 @@ import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
 type ReportActionItemProps = PureReportActionItemProps & {
     /** Draft message for the report action */
     draftMessage?: string;
-
-    /** Personal details list */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-
-    /** User billing fund ID */
-    userBillingFundID: number | undefined;
-
-    /** Did the user dismiss trying out NewDot? If true, it means they prefer using OldDot */
-    isTryNewDotNVPDismissed?: boolean;
 };
 
-function ReportActionItem({
-    action,
-    report,
-    draftMessage: draftMessageProp,
-    personalDetails,
-    userBillingFundID,
-    linkedTransactionRouteError: linkedTransactionRouteErrorProp,
-    isTryNewDotNVPDismissed,
-    ...props
-}: ReportActionItemProps) {
+function ReportActionItem({action, report, draftMessage: draftMessageProp, linkedTransactionRouteError: linkedTransactionRouteErrorProp, ...props}: ReportActionItemProps) {
     const reportID = report?.reportID;
     const originalReportID = useOriginalReportID(reportID, action);
-    const isOriginalReportArchived = useReportIsArchived(originalReportID);
-    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`);
+    const [stableOriginalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {selector: getStableReportSelector});
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`);
 
     const transactionsOnIOUReport = useReportTransactions(iouReport?.reportID);
@@ -66,13 +47,9 @@ function ReportActionItem({
             draftMessage={draftMessage}
             iouReport={iouReport}
             linkedTransactionRouteError={linkedTransactionRouteError}
-            personalDetails={personalDetails}
             originalReportID={originalReportID}
-            originalReport={originalReport}
-            isArchivedRoom={isArchivedNonExpenseReport(originalReport, isOriginalReportArchived)}
+            originalReport={stableOriginalReport}
             isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses(iouReport, transactionsOnIOUReport)}
-            userBillingFundID={userBillingFundID}
-            isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
         />
     );
 }
