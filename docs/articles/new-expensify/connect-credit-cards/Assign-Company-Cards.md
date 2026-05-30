@@ -29,7 +29,7 @@ If you haven’t set up a feed yet, learn how to set one up:
 4. Click **Assign card** on the card you want to assign. 
 5. Enter the assignee's name, email address, or phone number. 
 7. If needed, update the **Transaction start date** to choose the date from which Expensify starts importing transactions for the card.
-8. Cick **Assign card** to finalize the assignment.
+8. Click **Assign card** to finalize the assignment.
 
 ---
 
