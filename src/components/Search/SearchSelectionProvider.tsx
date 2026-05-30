@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {getReimbursableTotal, isMoneyRequestReport} from '@libs/ReportUtils';
+import {isMoneyRequestReport} from '@libs/ReportUtils';
 import {isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 import {hasValidModifiedAmount} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -44,27 +44,35 @@ function deriveSelectedReports(
                 }
                 return item.transactions.every(({keyForList}) => transactionIDs[keyForList]?.isSelected);
             })
-            .map((item) => ({
-                reportID: item.reportID,
-                action: item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW,
-                // Prefer the freshly computed reimbursableTotal over the (sometimes stale) stored
-                // total column so bulk-pay and bulk-action summaries reflect the current sum of
-                // reimbursable transactions.
-                total: getReimbursableTotal({
-                    total: item.total ?? CONST.DEFAULT_NUMBER_ID,
-                    nonReimbursableTotal: item.nonReimbursableTotal,
-                    reimbursableTotal: item.reimbursableTotal,
+            .map(
+                ({
+                    reportID,
+                    action = CONST.SEARCH.ACTION_TYPES.VIEW,
+                    total = CONST.DEFAULT_NUMBER_ID,
+                    policyID,
+                    allActions = [action],
+                    currency,
+                    chatReportID,
+                    managerID,
+                    ownerAccountID,
+                    parentReportActionID,
+                    parentReportID,
+                    type,
+                }) => ({
+                    reportID,
+                    action,
+                    total,
+                    policyID,
+                    allActions,
+                    currency,
+                    chatReportID,
+                    managerID,
+                    ownerAccountID,
+                    parentReportActionID,
+                    parentReportID,
+                    type,
                 }),
-                policyID: item.policyID,
-                allActions: item.allActions ?? [item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW],
-                currency: item.currency,
-                chatReportID: item.chatReportID,
-                managerID: item.managerID,
-                ownerAccountID: item.ownerAccountID,
-                parentReportActionID: item.parentReportActionID,
-                parentReportID: item.parentReportID,
-                type: item.type,
-            }));
+            );
     }
     if (data.length && data.every(isTransactionListItemType)) {
         return data
@@ -97,7 +105,6 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
 
     const areTransactionsEmpty = useRef(true);
     const [areAllMatchingItemsSelected, selectAllMatchingItems] = useState(false);
-    const [shouldShowSelectAllMatchingItems, setShouldShowSelectAllMatchingItems] = useState(false);
     const [selectionState, setSelectionState] = useState<SelectionState>(defaultSelectionState);
 
     const currentSearchHashRef = useRef(currentSearchHash);
@@ -186,7 +193,6 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
             };
         });
 
-        setShouldShowSelectAllMatchingItems(false);
         selectAllMatchingItems(false);
     };
 
@@ -226,7 +232,6 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
     const selectionValue: SearchSelectionContextValue = {
         ...selectionState,
         hasSelectedTransactions,
-        shouldShowSelectAllMatchingItems,
         areAllMatchingItemsSelected,
     };
 
@@ -236,7 +241,6 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
         setCurrentSelectedTransactionReportID,
         clearSelectedTransactions,
         removeTransaction,
-        setShouldShowSelectAllMatchingItems,
         selectAllMatchingItems,
     };
 
