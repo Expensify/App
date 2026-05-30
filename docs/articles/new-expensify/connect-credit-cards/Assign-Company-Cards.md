@@ -28,13 +28,15 @@ If you haven’t set up a feed yet, learn how to set one up:
 3. Select the card connection name. 
 4. Click **Assign card** on the card you want to assign. 
 5. Enter the assignee's name, email address, or phone number. 
-6. Review the details and click **Assign card** to finalize the assignment.
+7. If needed, update the **Transaction start date** to choose the date from which Expensify starts importing transactions for the card.
+8. Cick **Assign card** to finalize the assignment.
 
 ---
 
 ## What happens after you assign company cards
 
  - Posted transactions from the assigned card import automatically into the member's account as expenses.
+ - Expensify imports transactions from the Transaction start date onward.
  - The imported company card expenses are added to reports and submitted according to Workspace rules.
 
 ---
@@ -49,8 +51,6 @@ The transaction start date controls how far back Expensify imports transactions 
 4. Update the **Transaction start date**.
 
 Already imported expenses on earlier or later dates are not affected by the change. Moving the start date earlier will import any additional transactions available from the feed back to the new date; moving it later will not delete expenses that are already imported.
-
-**Note:** This differs from Expensify Classic, where the transaction start date is locked when the card is assigned and can only be changed by deleting and reassigning the card.
 
 ---
 
@@ -70,4 +70,4 @@ No. Only Workspace Admins and their Copilots can assign or reassign company card
 
 ## Do I need to unassign a card to change its transaction start date?
 
-No. In New Expensify, you can amend the transaction start date on an assigned card at any time from the card details page. Already imported expenses are not affected.
+No. You can update the Transaction start date at any time from the assigned card's details. The Transaction start date determines the date from which Expensify imports transactions for the card.
