@@ -8,7 +8,6 @@ import {generateReportID, isMoneyRequestReport} from '@libs/ReportUtils';
 import handleMoneyRequestStepDistanceNavigation from '@pages/iou/request/step/IOURequestStepDistance/handleMoneyRequestStepDistanceNavigation';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import type {Beta, IntroSelected, OdometerDraft, PersonalDetailsList, Policy, RecentWaypoint, Report, Transaction} from '@src/types/onyx';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -48,9 +47,6 @@ type UseOdometerNavigationParams = {
 
     /** Optional report to return to after submission completes. */
     backToReport: string | undefined;
-
-    /** Optional route to return to instead of going forward. */
-    backTo: Route | undefined;
 
     /** True when the quick-action flow should bypass the confirmation screen. */
     shouldSkipConfirmation: boolean;
@@ -116,7 +112,6 @@ function useOdometerNavigation({
     currentUserLogin,
     currentUserAccountID,
     backToReport,
-    backTo,
     shouldSkipConfirmation,
     defaultExpensePolicy,
     isArchived,
@@ -159,7 +154,6 @@ function useOdometerNavigation({
             currentUserLogin,
             currentUserAccountID,
             backToReport,
-            backTo,
             shouldSkipConfirmation,
             defaultExpensePolicy,
             isArchivedExpenseReport: isArchived,

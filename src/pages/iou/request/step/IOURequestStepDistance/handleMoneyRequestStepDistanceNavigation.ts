@@ -15,7 +15,6 @@ import {calculateDefaultReimbursable, getExistingTransactionID, navigateToConfir
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import cleanupAfterSkipConfirmSubmit from '@libs/Navigation/helpers/cleanupAfterSkipConfirmSubmit';
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
-import type {WriteOverrides} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
@@ -98,6 +97,42 @@ type MoneyRequestStepDistanceNavigationParams = {
     reportDraft: OnyxEntry<Report> | undefined;
     action: IOUAction;
 };
+
+/** Amount + merchant for a manual-distance submit; pending placeholders otherwise (waypoint/GPS distance is computed server-side). */
+function buildDistanceAmountAndMerchant({
+    isManualDistance,
+    distance,
+    unit,
+    transaction,
+    policy,
+    translate,
+}: {
+    isManualDistance: boolean;
+    distance: number | undefined;
+    unit: Unit | undefined;
+    transaction: Transaction | undefined;
+    policy: OnyxEntry<Policy>;
+    translate: <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>) => string;
+}): {amount: number; merchant: string} {
+    if (!isManualDistance || distance === undefined || !unit) {
+        return {amount: 0, merchant: translate('iou.fieldPending')};
+    }
+    const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distance, unit);
+    const mileageRate = DistanceRequestUtils.getRate({transaction, policy});
+    const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, mileageRate?.rate ?? 0);
+    const merchant = DistanceRequestUtils.getDistanceMerchant(
+        true,
+        distanceInMeters,
+        unit,
+        mileageRate?.rate ?? 0,
+        mileageRate?.currency ?? transaction?.currency ?? CONST.CURRENCY.USD,
+        translate,
+        (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+        getCurrencySymbol,
+        true,
+    );
+    return {amount, merchant};
+}
 
 /**
  * View-layer orchestrator for the distance step (manual / odometer / GPS):
@@ -209,24 +244,7 @@ function handleMoneyRequestStepDistanceNavigation({
 
             const validWaypoints = !isManualDistance && !isOdometerDistance ? getValidWaypoints(waypoints, true, isGPSDistance) : undefined;
 
-            let amount = 0;
-            let merchant = translate('iou.fieldPending');
-            if (isManualDistance && distance !== undefined && unit) {
-                const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distance, unit);
-                const mileageRate = DistanceRequestUtils.getRate({transaction, policy});
-                amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, mileageRate?.rate ?? 0);
-                merchant = DistanceRequestUtils.getDistanceMerchant(
-                    true,
-                    distanceInMeters,
-                    unit,
-                    mileageRate?.rate ?? 0,
-                    mileageRate?.currency ?? transaction?.currency ?? CONST.CURRENCY.USD,
-                    translate,
-                    (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
-                    getCurrencySymbol,
-                    true,
-                );
-            }
+            const {amount, merchant} = buildDistanceAmountAndMerchant({isManualDistance, distance, unit, transaction, policy, translate});
             setMoneyRequestMerchant(transactionID, merchant, false);
             const distanceDefaultTaxCode = getDefaultTaxCode(policy, transaction);
             const distanceTaxCode = (transaction?.taxCode ? transaction.taxCode : distanceDefaultTaxCode) ?? '';
@@ -308,55 +326,51 @@ function handleMoneyRequestStepDistanceNavigation({
 
             const distanceDestinationReportID = report?.reportID;
 
-            const executeDistanceWrite = (overrides: WriteOverrides): void => {
-                createDistanceRequest({
-                    report,
-                    participants,
-                    currentUserLogin: currentUserLogin ?? '',
-                    currentUserAccountID,
-                    iouType,
-                    existingTransaction: transaction,
-                    transactionParams: {
-                        amount,
-                        distance,
-                        comment: '',
-                        created: transaction?.created ?? '',
-                        currency: transaction?.currency ?? 'USD',
-                        merchant,
-                        billable: !!policy?.defaultBillable,
-                        reimbursable: defaultReimbursable,
-                        validWaypoints,
-                        customUnitRateID: DistanceRequestUtils.getCustomUnitRateID({
-                            reportID: report.reportID,
-                            isPolicyExpenseChat,
-                            policy,
-                            lastSelectedDistanceRates,
-                        }),
-                        splitShares: transaction?.splitShares,
-                        attendees: transaction?.comment?.attendees,
-                        gpsCoordinates,
-                        odometerStart,
-                        odometerEnd,
-                        taxCode: distanceTaxCode,
-                        taxAmount: distanceTaxAmount,
-                    },
-                    shouldHandleNavigation: overrides.shouldHandleNavigation,
-                    shouldDeferForSearch: false,
-                    backToReport,
-                    isASAPSubmitBetaEnabled,
-                    transactionViolations,
-                    quickAction,
-                    policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                    personalDetails,
-                    recentWaypoints,
-                    betas,
-                    previousOdometerDraft,
-                });
-            };
-
             submitWithDismissFirst({
                 executeWrite: (overrides) => {
-                    executeDistanceWrite(overrides);
+                    createDistanceRequest({
+                        report,
+                        participants,
+                        currentUserLogin: currentUserLogin ?? '',
+                        currentUserAccountID,
+                        iouType,
+                        existingTransaction: transaction,
+                        transactionParams: {
+                            amount,
+                            distance,
+                            comment: '',
+                            created: transaction?.created ?? '',
+                            currency: transaction?.currency ?? 'USD',
+                            merchant,
+                            billable: !!policy?.defaultBillable,
+                            reimbursable: defaultReimbursable,
+                            validWaypoints,
+                            customUnitRateID: DistanceRequestUtils.getCustomUnitRateID({
+                                reportID: report.reportID,
+                                isPolicyExpenseChat,
+                                policy,
+                                lastSelectedDistanceRates,
+                            }),
+                            splitShares: transaction?.splitShares,
+                            attendees: transaction?.comment?.attendees,
+                            gpsCoordinates,
+                            odometerStart,
+                            odometerEnd,
+                            taxCode: distanceTaxCode,
+                            taxAmount: distanceTaxAmount,
+                        },
+                        shouldHandleNavigation: overrides.shouldHandleNavigation,
+                        shouldDeferForSearch: false,
+                        backToReport,
+                        isASAPSubmitBetaEnabled,
+                        transactionViolations,
+                        quickAction,
+                        policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                        personalDetails,
+                        recentWaypoints,
+                        betas,
+                        previousOdometerDraft,
+                    });
                     cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                         report,
                         action,

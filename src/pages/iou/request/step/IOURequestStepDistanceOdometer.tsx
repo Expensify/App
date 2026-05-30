@@ -210,7 +210,6 @@ function IOURequestStepDistanceOdometer({
         currentUserLogin: currentUserEmailParam,
         currentUserAccountID: currentUserAccountIDParam,
         backToReport,
-        backTo: undefined,
         shouldSkipConfirmation,
         defaultExpensePolicy,
         isArchived,
