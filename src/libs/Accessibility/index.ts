@@ -7,35 +7,41 @@ import moveAccessibilityFocus from './moveAccessibilityFocus';
 
 type HitSlop = {x: number; y: number};
 
-function warmCache<T>(label: string, fetch: () => Promise<T>, apply: (value: T) => void): void {
-    fetch()
-        .then(apply)
-        .catch((error: unknown) => {
-            Log.warn(`[Accessibility] Failed to warm ${label} cache`, {error});
-        });
+/** Memoized warmer: one fetch, shared Promise. Subscribers `.then()` it to catch the boot-race — the platform listener only fires on toggles, never on the initial state. */
+function makeWarmCache<T>(label: string, fetch: () => Promise<T>, apply: (value: T) => void): () => Promise<void> {
+    let warm: Promise<void> | null = null;
+    return () => {
+        warm ??= fetch()
+            .then(apply)
+            .catch((error: unknown) => {
+                Log.warn(`[Accessibility] Failed to warm ${label} cache`, {error});
+            });
+        return warm;
+    };
 }
 
 let cachedScreenReaderValue = false;
-
-/*
- * Warm the cache at module load so the sync read is meaningful before any hook subscribes.
- */
-warmCache('screen-reader', isScreenReaderEnabled, (enabled) => {
+const ensureScreenReaderWarm = makeWarmCache('screen-reader', isScreenReaderEnabled, (enabled) => {
     cachedScreenReaderValue = enabled;
 });
+ensureScreenReaderWarm();
 
 function subscribeScreenReader(callback: () => void) {
     const subscription = AccessibilityInfo.addEventListener('screenReaderChanged', (enabled) => {
         cachedScreenReaderValue = enabled;
         callback();
     });
-
-    warmCache('screen-reader', isScreenReaderEnabled, (enabled) => {
-        cachedScreenReaderValue = enabled;
+    let cancelled = false;
+    ensureScreenReaderWarm().then(() => {
+        if (cancelled) {
+            return;
+        }
         callback();
     });
-
-    return () => subscription?.remove();
+    return () => {
+        cancelled = true;
+        subscription?.remove();
+    };
 }
 
 function getScreenReaderSnapshot() {
@@ -49,23 +55,30 @@ function isScreenReaderEnabledSync(): boolean {
 }
 
 let cachedReduceMotionValue = false;
+const ensureReduceMotionWarm = makeWarmCache(
+    'reduce-motion',
+    () => AccessibilityInfo.isReduceMotionEnabled(),
+    (enabled) => {
+        cachedReduceMotionValue = enabled;
+    },
+);
 
 function subscribeReduceMotion(callback: () => void) {
     const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', (enabled) => {
         cachedReduceMotionValue = enabled;
         callback();
     });
-
-    warmCache(
-        'reduce-motion',
-        () => AccessibilityInfo.isReduceMotionEnabled(),
-        (enabled) => {
-            cachedReduceMotionValue = enabled;
-            callback();
-        },
-    );
-
-    return () => subscription?.remove();
+    let cancelled = false;
+    ensureReduceMotionWarm().then(() => {
+        if (cancelled) {
+            return;
+        }
+        callback();
+    });
+    return () => {
+        cancelled = true;
+        subscription?.remove();
+    };
 }
 
 function getReduceMotionSnapshot() {
