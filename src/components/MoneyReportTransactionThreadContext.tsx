@@ -15,7 +15,7 @@ type MoneyReportTransactionThreadContextValue = {
     requestParentReportAction: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> | null;
     /** The transaction thread report ID */
     transactionThreadReportID: string | undefined;
-    /** The transaction thread report ID */
+    /** The transaction thread report */
     transactionThreadReport: OnyxTypes.Report | undefined;
     /** Filtered report actions for the transaction thread */
     reportActions: OnyxTypes.ReportAction[];
