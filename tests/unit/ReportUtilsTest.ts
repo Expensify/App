@@ -4,7 +4,7 @@ import {act, renderHook} from '@testing-library/react-native';
 import {addDays, format as formatDate} from 'date-fns';
 import type {OnyxCollection, OnyxEntry, OnyxKey, OnyxMergeCollectionInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import usePolicyData from '@hooks/usePolicyData';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -16393,38 +16393,42 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${onyxPolicy.id}`, null);
         });
 
-        it('should use unavailableTranslation param as fallback when no policy is found', () => {
+        it('should use translate param as fallback when no policy is found', () => {
             const report: Report = {
                 ...createRandomReport(1, undefined),
                 policyID: 'nonexistent',
                 policyName: undefined,
                 oldPolicyName: undefined,
             };
-            const result = getPolicyName({report, unavailableTranslation: 'Custom Unavailable'});
+            const mockTranslate = ((key: string) => (key === 'workspace.common.unavailable' ? 'Custom Unavailable' : key)) as LocalizedTranslate;
+            const result = getPolicyName({report, translate: mockTranslate});
             expect(result).toBe('Custom Unavailable');
         });
 
-        it('should prefer unavailableTranslation param over cached module-level translation', () => {
-            const result = getPolicyName({report: null, unavailableTranslation: 'Passed In'});
+        it('should prefer translate param over cached module-level translation', () => {
+            const mockTranslate = ((key: string) => (key === 'workspace.common.unavailable' ? 'Passed In' : key)) as LocalizedTranslate;
+            const result = getPolicyName({report: null, translate: mockTranslate});
             expect(result).toBe('Passed In');
         });
 
-        it('should not use unavailableTranslation when returnEmptyIfNotFound is true', () => {
+        it('should not use translate when returnEmptyIfNotFound is true', () => {
             const report: Report = {
                 ...createRandomReport(1, undefined),
                 policyID: 'nonexistent',
                 policyName: undefined,
                 oldPolicyName: undefined,
             };
-            const result = getPolicyName({report, returnEmptyIfNotFound: true, unavailableTranslation: 'Should Not Appear'});
+            const mockTranslate = ((key: string) => (key === 'workspace.common.unavailable' ? 'Should Not Appear' : key)) as LocalizedTranslate;
+            const result = getPolicyName({report, returnEmptyIfNotFound: true, translate: mockTranslate});
             expect(result).toBe('');
         });
 
-        it('should not use unavailableTranslation when a valid policy name exists', () => {
+        it('should not use translate when a valid policy name exists', () => {
+            const mockTranslate = ((key: string) => (key === 'workspace.common.unavailable' ? 'Should Not Appear' : key)) as LocalizedTranslate;
             const result = getPolicyName({
                 report: testReport,
                 policy: testPolicy,
-                unavailableTranslation: 'Should Not Appear',
+                translate: mockTranslate,
             });
             expect(result).toBe('Test Policy Name');
         });

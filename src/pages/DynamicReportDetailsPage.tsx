@@ -809,7 +809,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                         shouldShowRightIcon={false}
                         interactive={false}
                         description={translate('workspace.common.workspace')}
-                        title={getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')})}
+                        title={getPolicyName({report, translate})}
                     />
                 )}
             </View>
