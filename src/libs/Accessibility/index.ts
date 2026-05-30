@@ -7,21 +7,30 @@ import moveAccessibilityFocus from './moveAccessibilityFocus';
 
 type HitSlop = {x: number; y: number};
 
-/** Memoized warmer: one fetch, shared Promise. Subscribers `.then()` it to catch the boot-race — the platform listener only fires on toggles, never on the initial state. */
-function makeWarmCache<T>(label: string, fetch: () => Promise<T>, apply: (value: T) => void): () => Promise<void> {
+/**
+ * Memoized warmer: success is shared via one Promise; rejection clears the memo so the next caller retries.
+ * Subscribers `.then()` it to catch the boot-race — the platform listener only fires on toggles, never on the initial state.
+ */
+function makeWarmCache<T>(label: string, fetch: () => Promise<T>, apply: (value: T) => void): {ensure: () => Promise<void>; reset: () => void} {
     let warm: Promise<void> | null = null;
-    return () => {
-        warm ??= fetch()
-            .then(apply)
-            .catch((error: unknown) => {
-                Log.warn(`[Accessibility] Failed to warm ${label} cache`, {error});
-            });
-        return warm;
+    return {
+        ensure: () => {
+            warm ??= fetch()
+                .then(apply)
+                .catch((error: unknown) => {
+                    Log.warn(`[Accessibility] Failed to warm ${label} cache`, {error});
+                    warm = null;
+                });
+            return warm;
+        },
+        reset: () => {
+            warm = null;
+        },
     };
 }
 
 let cachedScreenReaderValue = false;
-const ensureScreenReaderWarm = makeWarmCache('screen-reader', isScreenReaderEnabled, (enabled) => {
+const {ensure: ensureScreenReaderWarm, reset: resetScreenReaderWarm} = makeWarmCache('screen-reader', isScreenReaderEnabled, (enabled) => {
     cachedScreenReaderValue = enabled;
 });
 ensureScreenReaderWarm();
@@ -55,13 +64,20 @@ function isScreenReaderEnabledSync(): boolean {
 }
 
 let cachedReduceMotionValue = false;
-const ensureReduceMotionWarm = makeWarmCache(
+const {ensure: ensureReduceMotionWarm, reset: resetReduceMotionWarm} = makeWarmCache(
     'reduce-motion',
     () => AccessibilityInfo.isReduceMotionEnabled(),
     (enabled) => {
         cachedReduceMotionValue = enabled;
     },
 );
+
+function resetForTests() {
+    cachedScreenReaderValue = false;
+    cachedReduceMotionValue = false;
+    resetScreenReaderWarm();
+    resetReduceMotionWarm();
+}
 
 function subscribeReduceMotion(callback: () => void) {
     const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', (enabled) => {
@@ -115,6 +131,7 @@ const useAutoHitSlop = () => {
     return [getHitSlopForSize(frameSize), onLayout] as const;
 };
 
+export {resetForTests};
 export default {
     moveAccessibilityFocus,
     useScreenReaderStatus,
