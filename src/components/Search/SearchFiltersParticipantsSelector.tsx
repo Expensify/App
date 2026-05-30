@@ -92,7 +92,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
     const {frozen: frozenSelectedOptions, isFrozen: isOptionFrozen} = useFrozenPreSelection<OptionData>({
         selectedOptions,
         isReady: areOptionsInitialized,
-        // Wait until pre-selected options have been hydrated from initialAccountIDs before capturing.
+        // Don't capture until pre-selected options have hydrated from initialAccountIDs.
         canCapture: initialAccountIDs.length === 0 || selectedOptions.length > 0,
         visibleCount: availableOptions.recentReports.length + availableOptions.personalDetails.length,
         getKeys: (option) => [option.accountID, option.login],
@@ -107,8 +107,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         const chatOptions = {...availableOptions};
         const currentUserOption = chatOptions.currentUserOption;
 
-        // Ensure current user is not in personalDetails or recentReports to avoid duplication
-        // with the dedicated currentUserOption section shown below.
+        // Drop the current user from Recents / Contacts; we render them in their own section below.
         if (currentUserOption?.accountID) {
             chatOptions.personalDetails = chatOptions.personalDetails.filter((detail) => detail.accountID !== currentUserOption.accountID);
             chatOptions.recentReports = chatOptions.recentReports.filter((report) => report.accountID !== currentUserOption.accountID);
@@ -117,11 +116,8 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         const trimmedSearchTerm = debouncedSearchTerm.trim().toLowerCase();
         const matchesSearchTerm = (option: OptionData) => !trimmedSearchTerm || doesPersonalDetailMatchSearchTerm(option, option.accountID ?? CONST.DEFAULT_NUMBER_ID, trimmedSearchTerm);
 
-        // Build the frozen "pre-selected" top section. Items keep their original position; their
-        // `isSelected` flag tracks the current selection so toggling them in place updates the
-        // checkmark without moving the row. Rows hidden by the current search term are filtered
-        // out of the visible section but stay in the snapshot so they still dedupe Recents /
-        // Contacts below.
+        // Pre-selected items pinned at the top. Row order is frozen; the checkmark updates on toggle.
+        // Search-filtered rows are hidden from view but stay in the snapshot so they still dedupe Recents / Contacts below.
         const isOptionCurrentlySelected = (option: OptionData) =>
             selectedOptions.some(
                 (selected) =>
@@ -137,11 +133,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             });
         }
 
-        // Selected options that aren't in the frozen section, current user section, or visible
-        // Recents / Contacts sections (e.g. name-only attendees for the attendee filter). Show
-        // them in a dedicated section so they remain visible when selected. Filtered by the
-        // current search term so they don't appear when the user types something that doesn't
-        // match.
+        // Selected items that don't show up anywhere else (e.g. name-only attendees). Surface them so they stay visible, but still respect the search term.
         const visibleLogins = new Set([...chatOptions.personalDetails.map((detail) => detail.login), ...chatOptions.recentReports.map((report) => report.login)].filter(Boolean));
         const extraSelectedOptions = selectedOptions.filter(
             (option) => option.accountID !== currentUserAccountID && !visibleLogins.has(option.login) && !isOptionFrozen(option) && matchesSearchTerm(option),
@@ -156,10 +148,8 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
 
         const isCurrentUserSelected = !!currentUserAccountID && selectedOptions.some((option) => option.accountID === currentUserAccountID);
 
-        // Show the current user below the frozen and extra-selected sections, but above
-        // Recents / Contacts. Falls back to creating from personal details to handle pagination
-        // edge cases. The current user is skipped here if they were already pinned in the
-        // frozen section above.
+        // Current user goes above Recents / Contacts. Fall back to personalDetails if pagination dropped them,
+        // and skip if they're already pinned in the frozen section above.
         let currentUserOptionToShow = currentUserOption;
         const currentUserDetails = currentUserAccountID ? personalDetails?.[currentUserAccountID] : undefined;
         if (!currentUserOptionToShow && currentUserAccountID && currentUserDetails) {
@@ -187,7 +177,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             currentUserOptionToShow = undefined;
         }
 
-        // Filter frozen items out of Recents and Contacts to avoid duplication with the top section.
+        // Avoid showing frozen items twice in Recents and Contacts.
         const recentReports = frozenSection.length > 0 ? excludeFrozenItems(chatOptions.recentReports, isOptionFrozen) : chatOptions.recentReports;
         const contacts = frozenSection.length > 0 ? excludeFrozenItems(chatOptions.personalDetails, isOptionFrozen) : chatOptions.personalDetails;
 

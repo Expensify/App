@@ -22,17 +22,14 @@ function moveInitialSelectionToTop<T extends {value: string}>(items: T[], initia
 }
 
 /**
- * Rebuilds a frozen pre-selection section by syncing each item's `isSelected` flag against the
- * current selection, leaving row positions untouched. Pair with `useFrozenPreSelection` to render
- * a stable top section whose checkmarks update on toggle without rows jumping.
+ * Refreshes the `isSelected` flag on frozen rows without changing their order. Pair with
+ * `useFrozenPreSelection` so checkmarks track the live selection while rows stay put.
  */
 function buildFrozenSection<T extends {isSelected?: boolean}>(frozen: T[], isCurrentlySelected: (item: T) => boolean): T[] {
     return frozen.map((item) => ({...item, isSelected: isCurrentlySelected(item)}));
 }
 
-/**
- * Excludes items that already appear in the frozen pre-selection section so they don't render twice.
- */
+/** Drops items already shown in the frozen top section so they don't render twice. */
 function excludeFrozenItems<T>(items: T[], isFrozen: (item: T) => boolean): T[] {
     return items.filter((item) => !isFrozen(item));
 }

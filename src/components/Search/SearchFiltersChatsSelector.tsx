@@ -120,9 +120,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         const selectedReportIDsSet = new Set(selectedReportIDs);
         const visibleReportIDsSet = new Set(chatOptions.recentReports.map((report) => report.reportID));
 
-        // Frozen pre-selected reports pinned at the top. They keep their order from capture; their
-        // `isSelected` flag tracks the current selection so toggling them in place updates the
-        // checkmark without moving the row.
+        // Pre-selected reports pinned at the top. Row order is frozen; the checkmark updates on toggle.
         const frozenReports = buildFrozenSection(frozenSelectedReports, (report) => selectedReportIDsSet.has(report.reportID));
         if (frozenReports.length > 0) {
             sections.push({
@@ -131,9 +129,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             });
         }
 
-        // Selected reports that aren't pinned in the frozen section and aren't in the current
-        // filtered results (e.g., they no longer match the search term after server-side search
-        // ran). Show them in a dedicated section so they remain visible.
+        // Selected reports that don't show up anywhere else (e.g. dropped out of the current results). Surface them so they stay visible.
         const extraSelectedReports = selectedOptions.filter((report) => !visibleReportIDsSet.has(report.reportID) && !isReportFrozen(report));
         if (extraSelectedReports.length > 0) {
             sections.push({
@@ -142,9 +138,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             });
         }
 
-        // Keep selected reports in their natural position in the list (marked isSelected) rather than
-        // moving them into a top section, so the user's scroll position isn't disrupted on toggle.
-        // Filter out frozen items to avoid duplication with the top section.
+        // The rest of Recents in their natural position. Selected rows just get the checkmark — moving them would jump the scroll.
         const visibleReports = excludeFrozenItems(chatOptions.recentReports, isReportFrozen).map((report) =>
             selectedReportIDsSet.has(report.reportID) ? getSelectedOptionData(report) : report,
         );

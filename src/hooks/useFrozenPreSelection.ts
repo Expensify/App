@@ -2,25 +2,22 @@ import {useMemo, useState} from 'react';
 import CONST from '@src/CONST';
 
 type UseFrozenPreSelectionOptions<T> = {
-    /** Currently selected items. Captured as the frozen snapshot on the first ready render. */
+    /** Items to snapshot on the first ready render. */
     selectedOptions: T[];
 
-    /** Whether the underlying options are initialized and the snapshot can be evaluated. */
+    /** True once the underlying list has loaded and we can take the snapshot. */
     isReady: boolean;
 
-    /** Total number of items visible in the section list used to decide whether pinning is needed. */
+    /** How many items the list shows. Pinning only kicks in once this passes the threshold. */
     visibleCount: number;
 
-    /**
-     * Extra gate to delay capture until pre-selected options have been hydrated (e.g. wait for
-     * `selectedOptions` to populate from `initialAccountIDs`). Defaults to true.
-     */
+    /** Hold off capturing until the selection is hydrated. Defaults to true. */
     canCapture?: boolean;
 
-    /** Minimum visible-count required before pinning kicks in. Defaults to STANDARD_LIST_ITEM_LIMIT. */
+    /** Skip pinning unless the list has at least this many items. Defaults to STANDARD_LIST_ITEM_LIMIT. */
     threshold?: number;
 
-    /** Returns identity keys for an option (e.g. `[reportID]`, or `[accountID, login]`). */
+    /** Identity keys for an item, e.g. `[reportID]` or `[accountID, login]`. */
     getKeys: (option: T) => Array<string | number | undefined>;
 };
 
@@ -29,17 +26,16 @@ function isValidKey(key: string | number | undefined | null): key is string | nu
 }
 
 /**
- * Captures an immutable snapshot of the pre-selected items on the first render where data is
- * available and the visible list is long enough to warrant pinning. Returns the snapshot and a
- * predicate to dedupe rows elsewhere in the list. The snapshot is taken via React's "set state
- * during render" pattern so callers can use it on the same render where data first becomes
- * available — no extra renders are introduced.
+ * Pins the items that were pre-selected on first load to the top of a long list, so they don't
+ * get lost when the user starts toggling things. Returns the frozen snapshot and an `isFrozen`
+ * predicate for deduping rows elsewhere. Captures during render so callers can use it on the
+ * same render where data first becomes available — no extra renders.
  */
 function useFrozenPreSelection<T>({selectedOptions, isReady, visibleCount, canCapture = true, threshold = CONST.STANDARD_LIST_ITEM_LIMIT, getKeys}: UseFrozenPreSelectionOptions<T>): {
     frozen: T[];
     isFrozen: (option: T) => boolean;
 } {
-    // `null` means we haven't captured yet; an empty array means we evaluated and chose not to pin.
+    // null = not captured yet; [] = captured but list was too short to pin.
     const [frozen, setFrozen] = useState<T[] | null>(null);
     if (frozen === null && isReady && canCapture) {
         setFrozen(visibleCount >= threshold ? selectedOptions : []);
