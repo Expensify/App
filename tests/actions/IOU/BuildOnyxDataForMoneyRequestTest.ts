@@ -28,6 +28,7 @@ const THREAD_REPORT_ID = 'thread-555';
 function buildMockIouAction(iouReportID: string): OptimisticIOUReportAction {
     return {
         reportActionID: IOU_ACTION_ID,
+        reportID: iouReportID,
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         actorAccountID: CURRENT_USER_ACCOUNT_ID,
         automatic: false,
@@ -38,7 +39,6 @@ function buildMockIouAction(iouReportID: string): OptimisticIOUReportAction {
             comment: 'Test split',
             currency: CONST.CURRENCY.USD,
             IOUTransactionID: TRANSACTION_ID,
-            IOUReportID: iouReportID,
             type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         },
         message: undefined,
