@@ -348,6 +348,19 @@ describe('MoneyRequest', () => {
             );
         });
 
+        // getMoneyRequestInformation derives isScanRequest from existingTransaction; dropping it would silently downgrade a scanned receipt to a manual request.
+        it('should pass the receipt transaction as existingTransaction to requestMoney', () => {
+            createTransaction({...baseParams});
+
+            expect(TrackExpense.requestMoney).toHaveBeenCalledWith(expect.objectContaining({existingTransaction: fakeTransaction}));
+        });
+
+        it('should pass the receipt transaction as existingTransaction to trackExpense', () => {
+            createTransaction({...baseParams, iouType: CONST.IOU.TYPE.TRACK});
+
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(expect.objectContaining({existingTransaction: fakeTransaction}));
+        });
+
         it('should compute draftTransactionIDs from allTransactionDrafts', () => {
             const draft1 = createRandomTransaction(101);
             const draft2 = createRandomTransaction(102);
@@ -725,6 +738,26 @@ describe('MoneyRequest', () => {
             expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(
                 expect.objectContaining({
                     transactionID: EXISTING_TRACKED_TRANSACTION_ID,
+                }),
+            );
+        });
+
+        // createDistanceRequest writes under the draft transaction, so cleanup must target that id — not the UI's optimistic one.
+        it('should pass the draft transaction id (not the optimistic id) to cleanup for a non-track distance submission', async () => {
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                shouldSkipConfirmation: true,
+                manualDistance: 20,
+                iouType: CONST.IOU.TYPE.SUBMIT,
+                optimisticTransactionID: 'optimistic-should-be-ignored',
+                draftTransactionIDs: [baseParams.transactionID],
+            });
+
+            await waitForBatchedUpdates();
+
+            expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionID: fakeTransaction.transactionID,
                 }),
             );
         });

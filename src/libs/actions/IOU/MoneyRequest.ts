@@ -191,6 +191,7 @@ function createTransaction({
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 existingTransactionDraft,
+                existingTransaction: transaction,
                 isSelfTourViewed,
                 personalDetails,
                 optimisticChatReportID,

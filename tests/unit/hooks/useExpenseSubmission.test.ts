@@ -231,6 +231,22 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                 }),
             );
         });
+
+        // F2: requestMoney returns the chat it wrote to via {iouReport}; the UI reads that instead of re-deriving it through resolveChatTargetForSubmitCleanup.
+        it('uses iouReport.chatReportID for cleanup nav and does not re-derive it via resolveChatTargetForSubmitCleanup', async () => {
+            mockRequestMoneyAction.mockReturnValue({iouReport: {reportID: 'iou-1', chatReportID: 'iou-chat-77'}});
+
+            const {result} = renderHook(() => useExpenseSubmission(buildParams()));
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(PARTICIPANTS, false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockResolveChatTargetForSubmitCleanup).not.toHaveBeenCalled();
+            expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({optimisticChatReportID: 'iou-chat-77'}));
+        });
     });
 
     describe('trackExpense path', () => {
