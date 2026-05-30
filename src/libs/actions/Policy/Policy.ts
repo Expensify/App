@@ -4448,7 +4448,8 @@ function createWorkspaceFromIOUPayment(
     // - change the sign of the report total
     // - update its policyID and policyName
     // - update the chatReportID to point to the new expense chat
-    const expenseReport = {
+    // - recompute reportName so the header and the policy expense chat preview don't show the stale "IOU" name
+    const expenseReport: Report = {
         ...iouReport,
         chatReportID: memberData.workspaceChatReportID,
         parentReportID: memberData.workspaceChatReportID,
@@ -4457,6 +4458,19 @@ function createWorkspaceFromIOUPayment(
         type: CONST.REPORT.TYPE.EXPENSE,
         total: -(iouReport?.total ?? 0),
     };
+
+    const reportTransactions = ReportUtils.getReportTransactions(iouReportID);
+    const transactionsRecord: Record<string, Transaction> = {};
+    for (const transaction of reportTransactions) {
+        if (transaction?.transactionID) {
+            transactionsRecord[transaction.transactionID] = transaction;
+        }
+    }
+    const computedExpenseReportName = ReportUtils.computeOptimisticReportName(expenseReport, newWorkspace as Policy, policyID, transactionsRecord);
+    if (computedExpenseReportName !== null) {
+        expenseReport.reportName = computedExpenseReportName;
+    }
+
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
@@ -4467,9 +4481,6 @@ function createWorkspaceFromIOUPayment(
         key: `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
         value: iouReport,
     });
-
-    // The expense report transactions need to have the amount reversed to negative values
-    const reportTransactions = ReportUtils.getReportTransactions(iouReportID);
 
     // For performance reasons, we are going to compose a merge collection data for transactions
     const transactionsOptimisticData: Record<string, Transaction> = {};
@@ -4530,12 +4541,14 @@ function createWorkspaceFromIOUPayment(
 
     if (reportPreviewAction?.reportActionID) {
         // Update the created timestamp of the report preview action to be after the expense chat created timestamp.
+        // Also set childReportName so the preview line falls back to the recomputed expense report name if needed.
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${memberData.workspaceChatReportID}`,
             value: {
                 [reportPreviewAction.reportActionID]: {
                     ...reportPreviewAction,
+                    childReportName: expenseReport.reportName,
                     message: [
                         {
                             type: CONST.REPORT.MESSAGE.TYPE.TEXT,
