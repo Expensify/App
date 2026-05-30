@@ -60,6 +60,17 @@ Set up default or custom approval workflows to route expenses through one or mor
 
 **Note:** Custom workflows are only available on the Control plan. To enable custom workflows, upgrade to the Control plan in Settings > Billing & Subscriptions.
 
+## Set a Custom Agent as Approver
+
+You can select a Custom Agent — an AI-powered virtual member you create and configure — as an approver in any workflow. Custom Agents are useful when your approval logic is more complex than what the standard Rules engine supports.
+
+You'll see prompts to create or add an agent in two places:
+
+- A banner on the **Approvals** section of the **Workflows** page advertising automated approvals.
+- An **agent+** button on each workflow card that lets you add an existing agent or create a new one inline.
+
+To learn more, see [Learn how to use Custom Agents in Expensify](/articles/new-expensify/agents/Custom-Agents).
+
 ---
 
 ## Edit or Delete Approval Workflows
