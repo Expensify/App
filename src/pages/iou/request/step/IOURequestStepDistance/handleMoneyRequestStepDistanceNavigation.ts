@@ -100,9 +100,8 @@ type MoneyRequestStepDistanceNavigationParams = {
 };
 
 /**
- * View-layer orchestrator for the distance step (manual / odometer / GPS): routes to navigation-only paths
- * or composes the write + cleanup inside `submitWithDismissFirst`. Lives in UI because every branch
- * either navigates or composes view-layer cleanup — not reusable from a non-UI caller.
+ * View-layer orchestrator for the distance step (manual / odometer / GPS):
+ * routes to confirmation or composes the write + cleanup inside submitWithDismissFirst.
  */
 function handleMoneyRequestStepDistanceNavigation({
     iouType,
@@ -342,7 +341,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         taxAmount: distanceTaxAmount,
                     },
                     shouldHandleNavigation: overrides.shouldHandleNavigation,
-                    shouldDeferForSearch: overrides.shouldDeferForSearch,
+                    shouldDeferForSearch: false,
                     backToReport,
                     isASAPSubmitBetaEnabled,
                     transactionViolations,
@@ -362,7 +361,8 @@ function handleMoneyRequestStepDistanceNavigation({
                         report,
                         action,
                         draftTransactionIDs,
-                        transactionID: optimisticTransactionID,
+                        // createDistanceRequest writes under the existing draft transaction, so the cleanup target must mirror that id, not a fresh optimistic one.
+                        transactionID: getExistingTransactionID(transactionLinkedTrackedExpenseReportAction) ?? transaction?.transactionID,
                         isFromGlobalCreate: transactionIsFromGlobalCreate,
                         backToReport,
                         optimisticChatReportID,

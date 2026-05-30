@@ -2,7 +2,7 @@
 import type {WriteOverrides} from '@libs/Navigation/helpers/submitWithDismissFirst';
 
 const submitWithDismissFirst = ({executeWrite}: {executeWrite: (overrides: WriteOverrides) => void}): void => {
-    executeWrite({shouldHandleNavigation: true, shouldDeferForSearch: false});
+    executeWrite({shouldHandleNavigation: true});
 };
 
 // eslint-disable-next-line import/prefer-default-export -- named export matches the real module's API

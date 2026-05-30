@@ -14,8 +14,7 @@ jest.mock('@libs/ReportUtils', () => ({
     isDeprecatedGroupDM: jest.fn(),
 }));
 
-// Stub IOUUtils to avoid pulling its transitive dependency graph into the test bundle;
-// resolveChatTargetForSubmitCleanup never calls into IOUUtils, only resolveChatTargetForScan does.
+// Stub IOUUtils (only resolveChatTargetForScan reaches it) to keep the test bundle light.
 jest.mock('@libs/IOUUtils', () => ({
     resolveOptimisticChatReportID: jest.fn(),
 }));

@@ -300,7 +300,7 @@ function IOURequestStepAmount({
                     };
 
                     submitWithDismissFirst({
-                        executeWrite: (overrides) => executeSendMoneyWrite({shouldDeferForSearch: overrides.shouldDeferForSearch}),
+                        executeWrite: () => executeSendMoneyWrite({shouldDeferForSearch: false}),
                         destinationReportID: chatReportID,
                         telemetryContext: {
                             scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SEND_MONEY,

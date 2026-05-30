@@ -561,7 +561,7 @@ function IOURequestStepConfirmation({
                         shouldHandleNavigation: overrides.shouldHandleNavigation,
                         resolvedReportIDs,
                         shouldStartTracking: false,
-                        shouldDeferForSearch: overrides.shouldDeferForSearch,
+                        shouldDeferForSearch: false,
                     }),
                 destinationReportID: payDestinationReportID,
                 telemetryContext: {

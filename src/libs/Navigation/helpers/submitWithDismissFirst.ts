@@ -1,10 +1,4 @@
-/**
- * Dismiss-first submit orchestration for skip-confirmation paths (QAB amount entry, scan/distance without confirmation).
- *
- * Related: `SubmitExpenseOrchestrator.tsx` handles confirmation-step flows with a richer decision tree
- * (pre-inserts, RHP dismiss, search dismiss). Both share the same telemetry primitives
- * (`startTracking`, `setFastPath`, `setPendingSubmitFollowUpAction`) for consistent span instrumentation.
- */
+// Dismiss-first submit orchestration for skip-confirmation paths (QAB amount, scan/distance). Confirmation-step flows use SubmitExpenseOrchestrator instead.
 import {reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -18,7 +12,6 @@ import isSearchTopmostFullScreenRoute from './isSearchTopmostFullScreenRoute';
 
 type WriteOverrides = {
     shouldHandleNavigation: boolean;
-    shouldDeferForSearch: boolean;
 };
 
 type SubmitWithDismissFirstParams = {
@@ -55,7 +48,7 @@ function startDismissFirstTracking(
  *   4. Destination not loaded    -> write immediately, then reveal-and-dismiss
  *   5. Fallback                  -> start tracking with default fast path, write with defaults
  *
- * Must not be called from `src/libs/actions/` — view-layer only. Call sites typically compose this with `cleanupAndNavigateAfterExpenseCreate` / `cleanupAfterExpenseCreate` inline inside `executeWrite`.
+ * Must not be called from `src/libs/actions/` — view-layer only.
  */
 function submitWithDismissFirst({executeWrite, destinationReportID, telemetryContext}: SubmitWithDismissFirstParams): void {
     const shouldStayOnSearch = isSearchTopmostFullScreenRoute();
@@ -64,7 +57,7 @@ function submitWithDismissFirst({executeWrite, destinationReportID, telemetryCon
         reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
         startDismissFirstTracking(telemetryContext, CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
         Navigation.dismissModal({
-            afterTransition: () => executeWrite({shouldHandleNavigation: false, shouldDeferForSearch: true}),
+            afterTransition: () => executeWrite({shouldHandleNavigation: false}),
         });
         return;
     }
@@ -77,19 +70,19 @@ function submitWithDismissFirst({executeWrite, destinationReportID, telemetryCon
         if (isAlreadyOnDestination) {
             startDismissFirstTracking(telemetryContext, CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, destinationReportID);
             Navigation.dismissModal({
-                afterTransition: () => executeWrite({shouldHandleNavigation: false, shouldDeferForSearch: false}),
+                afterTransition: () => executeWrite({shouldHandleNavigation: false}),
             });
             return;
         }
 
         startDismissFirstTracking(telemetryContext, CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, destinationReportID);
         if (!isDestinationLoaded) {
-            executeWrite({shouldHandleNavigation: false, shouldDeferForSearch: false});
+            executeWrite({shouldHandleNavigation: false});
             Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(destinationReportID));
             return;
         }
         Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(destinationReportID), {
-            afterTransition: () => executeWrite({shouldHandleNavigation: false, shouldDeferForSearch: false}),
+            afterTransition: () => executeWrite({shouldHandleNavigation: false}),
         });
         return;
     }
@@ -97,7 +90,7 @@ function submitWithDismissFirst({executeWrite, destinationReportID, telemetryCon
     // Fallback: no fast-path nav applies — start tracking so telemetry isn't silently skipped.
     startTracking(telemetryContext, {skipSubmitExpenseSpan: true});
     setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
-    executeWrite({shouldHandleNavigation: true, shouldDeferForSearch: false});
+    executeWrite({shouldHandleNavigation: true});
 }
 
 export {submitWithDismissFirst};
