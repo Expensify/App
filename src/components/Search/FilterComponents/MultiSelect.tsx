@@ -45,9 +45,6 @@ type MultiSelectProps<T> = SearchFilterCommonProps & {
     /** Whether to show the loading placeholder */
     shouldShowLoadingPlaceholder?: boolean;
 
-    /** Whether the text input should be auto-focused or not. Defaults to true. */
-    autoFocus?: boolean;
-
     /** Callback to filter out items based on search term */
     onSearch?: (searchTerm: string) => void;
 };

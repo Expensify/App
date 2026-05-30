@@ -16,7 +16,6 @@ import ListFilterWrapper from './ListFilterViewWrapper';
 
 type UserSelectorProps = SearchFilterCommonProps & {
     value: string[] | undefined;
-    autoFocus?: boolean;
     onChange: (options: string[]) => void;
 };
 

@@ -16,7 +16,6 @@ import MultiSelect from './MultiSelect';
 type WorkspaceSelectorProps = SearchFilterCommonProps & {
     policyIDQuery: string[] | undefined;
     value: string[] | undefined;
-    autoFocus?: boolean;
     onChange: (item: string[]) => void;
 };
 
