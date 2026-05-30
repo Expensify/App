@@ -31,7 +31,6 @@ type FilterComponentsProps = SearchFilterCommonProps & {
     type?: SearchDataTypes;
     policyIDs: string[] | undefined;
     policyIDQuery: string[] | undefined;
-    allowDeselectSingleSelection?: boolean;
     onChange: (value: SearchAdvancedFiltersForm[FilterKeys] | undefined) => void;
 };
 
@@ -52,7 +51,6 @@ type SingleSelectFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE | 
 type SingleSelectFilterComponentsProps = SearchFilterCommonProps & {
     filterKey: SingleSelectFilterKeys;
     value: SearchAdvancedFiltersForm[SingleSelectFilterKeys] | undefined;
-    allowDeselect: boolean;
     onChange: (value: SearchAdvancedFiltersForm[SingleSelectFilterKeys] | undefined) => void;
 };
 
@@ -89,7 +87,7 @@ function TextInputFilterComponents({filterKey, value, autoFocus, onChange}: Text
     );
 }
 
-function SingleSelectFilterComponents({filterKey, value, selectionListTextInputStyle, selectionListStyle, footer, allowDeselect, onChange}: SingleSelectFilterComponentsProps) {
+function SingleSelectFilterComponents({filterKey, value, selectionListTextInputStyle, selectionListStyle, footer, onChange}: SingleSelectFilterComponentsProps) {
     const {translate} = useLocalize();
     const items = getSingleSelectFilterOptions(filterKey, translate);
 
@@ -100,7 +98,7 @@ function SingleSelectFilterComponents({filterKey, value, selectionListTextInputS
             selectionListTextInputStyle={selectionListTextInputStyle}
             selectionListStyle={selectionListStyle}
             footer={footer}
-            allowDeselect={allowDeselect}
+            allowDeselect
             onChange={(item) => onChange(item?.value)}
         />
     );
@@ -129,20 +127,7 @@ function MultiSelectFilterComponents({filterKey, value = [], type = CONST.SEARCH
     );
 }
 
-function FilterComponents({
-    filterKey,
-    value,
-    type,
-    policyIDs,
-    policyIDQuery,
-    selectionListTextInputStyle,
-    selectionListStyle,
-    autoFocus,
-    ready,
-    footer,
-    allowDeselectSingleSelection,
-    onChange,
-}: FilterComponentsProps) {
+function FilterComponents({filterKey, value, type, policyIDs, policyIDQuery, selectionListTextInputStyle, selectionListStyle, autoFocus, ready, footer, onChange}: FilterComponentsProps) {
     switch (filterKey) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID:
@@ -224,7 +209,6 @@ function FilterComponents({
                     selectionListTextInputStyle={selectionListTextInputStyle}
                     selectionListStyle={selectionListStyle}
                     footer={footer}
-                    allowDeselect={!!allowDeselectSingleSelection}
                     onChange={onChange}
                 />
             );

@@ -93,7 +93,6 @@ function CommonContent({filterKey, value: initialValue, type, policyIDs, policyI
             selectionListTextInputStyle={!fullscreen && [styles.pb1, styles.pt5]}
             selectionListStyle={!fullscreen ? {contentContainerStyle: [styles.pv2]} : undefined}
             autoFocus={autoFocus}
-            allowDeselectSingleSelection
             onChange={(newValue) => {
                 if (fullscreen) {
                     setValue(newValue);
