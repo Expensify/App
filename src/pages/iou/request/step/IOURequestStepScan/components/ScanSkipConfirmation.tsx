@@ -269,7 +269,18 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
         const scanDestinationReportID = iouType === CONST.IOU.TYPE.TRACK ? (report?.reportID ?? selfDMReport?.reportID) : report?.reportID;
         submitWithDismissFirst({
             executeWrite: (overrides) => {
-                // GPS path is async; the reserved write channel's 5s safety timeout covers typical resolution (<2s).
+                // Cleanup runs after each write (not once up front) so a stalled GPS lookup can't clear the draft before the expense exists.
+                const runCleanup = () =>
+                    cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
+                        report,
+                        action,
+                        draftTransactionIDs,
+                        transactionID: lastOptimisticTransactionID,
+                        isFromGlobalCreate,
+                        backToReport,
+                        optimisticChatReportID: chatReportID,
+                        linkedTrackedExpenseReportAction,
+                    });
                 if (locationPermissionGranted) {
                     getCurrentPosition(
                         (successData) => {
@@ -280,26 +291,19 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                                     long: successData.coords.longitude,
                                 },
                             });
+                            runCleanup();
                         },
                         (errorData) => {
                             Log.info('[ScanSkipConfirmation] getCurrentPosition failed', false, errorData);
                             // When there is an error, the money can still be requested, it just won't include the GPS coordinates
                             createTransaction(baseParams);
+                            runCleanup();
                         },
                     );
-                } else {
-                    createTransaction(baseParams);
+                    return;
                 }
-                cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
-                    report,
-                    action,
-                    draftTransactionIDs,
-                    transactionID: lastOptimisticTransactionID,
-                    isFromGlobalCreate,
-                    backToReport,
-                    optimisticChatReportID: chatReportID,
-                    linkedTrackedExpenseReportAction,
-                });
+                createTransaction(baseParams);
+                runCleanup();
             },
             destinationReportID: scanDestinationReportID,
             telemetryContext: {

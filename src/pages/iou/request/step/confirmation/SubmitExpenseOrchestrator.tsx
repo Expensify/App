@@ -194,10 +194,9 @@ function SubmitExpenseOrchestrator({
         reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
         Navigation.dismissModal({
             afterTransition: () => {
-                // shouldHandleNavigation defaults to true (unlike other fast paths that pass false).
-                // Search pre-insert relies on createTransaction's internal navigation to handle the
-                // post-creation flow (navigateAfterExpenseCreate), because the Search screen was
-                // pre-inserted before the modal opened - the navigation stack is already correct.
+                // shouldHandleNavigation defaults to true here (other fast paths pass false). The Search screen was
+                // pre-inserted before the modal opened, so the nav stack is already correct and createTransaction's
+                // post-create cleanup (navigateAfterExpenseCreate) finishes the flow.
                 createTransaction(listOfParticipants);
                 setIsConfirming(false);
             },

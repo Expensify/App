@@ -312,7 +312,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             linkedTrackedExpenseReportAction: transactionLinkedTrackedExpenseReportAction,
                         });
                     },
-                    destinationReportID: selfDMReport?.reportID,
+                    destinationReportID: report?.reportID ?? selfDMReport?.reportID,
                     telemetryContext: {
                         scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.TRACK_EXPENSE,
                         iouType,
