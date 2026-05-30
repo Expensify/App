@@ -1,78 +1,113 @@
 ---
-title: What's New and Better in New Expensify
+title: Explore what's changed in New Expensify
 description: Discover the most useful improvements, new features, and workflows available in New Expensify that were not available in Expensify Classic.
 keywords: [New Expensify, Expensify Classic, new features, what's new, customizable search, saved searches, Insights, bulk pay, Concierge, mobile parity, merchant rules, distance map, expense comments, Coming from Classic]
 internalScope: Audience is Expensify members transitioning from Expensify Classic to New Expensify who want to know exactly what is new, what is better, and how to use it. Covers improvements in search, reporting, approvals, expense collaboration, mileage, company cards, Workspace rules, Insights, mobile parity, Concierge-driven editing, and accounting export workflows. Does not cover how to switch between products or general onboarding.
 ---
 
-# What's New and Better in New Expensify
+# Explore what's changed in New Expensify
 
-New Expensify transforms expense management with more powerful search, deeper visibility, real-time collaboration, and consistent web and mobile experiences. If you previously used Expensify Classic, this guide highlights the most useful improvements available to you in New Expensify and links to the help articles that show you how to use them.
+New Expensify introduces new capabilities and expands several workflows that were more limited in Expensify Classic. This article highlights some of the most notable changes and links to detailed help articles where you can learn more.
 
-If you're looking for a side-by-side mapping of familiar Classic workflows, see [Coming from Expensify Classic for Submitters and Approvers](/articles/new-expensify/getting-started/Coming-from-Expensify-Classic-for-Submitters-and-Approvers) or [Coming from Expensify Classic for Workspace Admins](/articles/new-expensify/getting-started/Coming-from-Expensify-Classic-for-Workspace-Admins).
+If you're still getting familiar with navigation or looking for a side-by-side mapping of familiar Classic workflows, see [Coming from Expensify Classic for Submitters and Approvers](/articles/new-expensify/getting-started/Coming-from-Expensify-Classic-for-Submitters-and-Approvers) or [Coming from Expensify Classic for Workspace Admins](/articles/new-expensify/getting-started/Coming-from-Expensify-Classic-for-Workspace-Admins).
 
 ---
 
-## The most useful improvements
+## What new features are available in New Expensify 
 
-These are the New Expensify capabilities that members switching from Expensify Classic most often tell us they appreciate.
+### Customizable searches and saved searches
 
-### Customizable, savable searches
+Search is much more powerful and customizable in New Expensify. Instead of working with a fixed set of views, you can build and save your own views directly from the **Spend** tab.
 
-Search is the biggest leap forward. In New Expensify you can build the exact view of your spend you want, save it, and return to it any time — all without leaving the **Spend** tab.
+You can:
 
-- **Customize what you see.** Choose which columns appear in your search results so you only see the data you care about. [Learn how to customize the Spend column view](/articles/new-expensify/reports-and-expenses/Using-Reports-in-New-Expensify#how-to-customize-the-spend-column-view).
-- **Use far more filters than Classic.** Filter by submitter, approver, category, tag, merchant, dates, status, card, accounting status, and many more. [Learn how to use advanced search operators to filter and analyze](/articles/new-expensify/reports-and-expenses/Use-Search-Operators-to-Filter-and-Analyze).
+ - **Customize what you see.** Choose which columns appear in your search results. [Learn how to customize the Spend column view](/articles/new-expensify/reports-and-expenses/Using-Reports-in-New-Expensify#how-to-customize-the-spend-column-view).
+ - **Build your own filters.** Filter by submitter, approver, category, tag, merchant, dates, status, card, accounting status, and many more. [Learn how to use advanced search operators to filter and analyze](/articles/new-expensify/reports-and-expenses/Use-Search-Operators-to-Filter-and-Analyze).
 - **Save searches you run often.** Turn any filtered view into a saved search and reopen it with one click. [Learn how to save a search](/articles/new-expensify/reports-and-expenses/Using-Reports-in-New-Expensify#how-to-save-a-search).
-- **Filter by where you exported.** Use the **Exported to** filter to see only expenses sent to a specific destination — for example, NetSuite, a CSV, or a specific Integration Server template. [Learn more about accounting search shortcuts](/articles/new-expensify/reports-and-expenses/Accounting-Search-Shortcuts).
-
-### Bulk pay reports
-
-Reimburse multiple approved reports at once instead of paying them one at a time. [Learn how Workspace Admins pay multiple reports in bulk](/articles/new-expensify/wallet-and-payments/Reimbursement-Payment-Methods#how-workspace-admins-pay-multiple-reports-in-bulk).
-
-### Full visibility for approvers
-
-Approvers can see their direct reports' expense reports in every status — not just the ones currently waiting on approval. That makes it easy to check on a submitter's drafts, follow up on outstanding reports, or audit historical activity. [Learn more about report statuses and actions](/articles/new-expensify/reports-and-expenses/Understanding-Report-Statuses-and-Actions).
+- **Filter by exports.** Use the **Exported to** filter to find expenses exported during a specific date range or sent to a particular destination, such as an accounting integration or export template. [Learn more about accounting search shortcuts](/articles/new-expensify/reports-and-expenses/Accounting-Search-Shortcuts).
 
 ### Comment on individual expenses
 
-Discuss a specific expense — ask for a missing receipt, flag a question, or document context — directly on the expense itself, instead of using a separate email or chat thread. [Learn how to manage expenses in a report](/articles/new-expensify/reports-and-expenses/Managing-Expenses-in-a-Report).
+You can comment directly on an expense to discuss questions, request receipts, or provide additional context without relying on separate email threads. 
 
-### Better Insights and reporting
-
-Group expenses by person, category, merchant, tag, week, month, quarter, or year — and view them as a bar, pie, or line graph. Insights makes it easier to see where money is going without exporting to a spreadsheet. [Learn how to use Insights](/articles/new-expensify/insights/How-to-Use-Insights-in-Expensify).
-
----
-
-## More improvements available in New Expensify
-
-### Create mileage expenses from a map on mobile
-
-Plot your start, stop, and waypoints directly on the map in the mobile app instead of typing addresses. [Learn how to create a map-based Distance expense](/articles/new-expensify/reports-and-expenses/Distance-Expenses#how-to-create-a-map-based-distance-expense-web-and-mobile).
+[Learn how to manage expenses in a report](/articles/new-expensify/reports-and-expenses/Managing-Expenses-in-a-Report).
 
 ### Set merchant rules in the Workspace
 
-Workspace Admins can define rules that automatically apply categories, tags, billable status, and reimbursable status whenever a specific merchant appears on an expense. [Learn how to configure Workspace merchant rules](/articles/new-expensify/workspaces/Workspace-Merchant-Rules).
+Workspace Admins can define rules to automatically apply categories, tags, billable status, and reimbursable status whenever a specific merchant appears on an expense.
 
-### Cross-platform consistency between web and mobile
-
-Everything you can do on the web you can do on mobile — including filtering and searching for expenses and reports, viewing other people's expenses and reports, issuing cards, and changing Workspace settings. Pick up where you left off on any device.
-
-### See unassigned company cards
-
-Workspace Admins can view all unassigned cards on a card feed at a glance, making it easier to find and assign cards to the right Workspace members. [Learn how to assign company cards](/articles/new-expensify/connect-credit-cards/Assign-Company-Cards).
+[Learn how to configure Workspace merchant rules](/articles/new-expensify/workspaces/Workspace-Merchant-Rules).
 
 ### Edit expenses with natural language using Concierge
 
-Ask Concierge to make a change — for example, "change the amount to $10 and set the description to work event" — and Concierge will update the expense for you. [Learn what the Expense Assistant can do](/articles/new-expensify/concierge-ai/Expense-Assistant).
+You can ask Concierge to take action on expenses for you using natural language. 
 
-### Export Integration Server templates from the expense level
+For example:
 
-Export an expense directly to your Integration Server template without first navigating to the report — handy when you only need to push a single expense through your custom export.
+> Change the amount to $10 and set the description to work event.
 
-### Amend the transaction import date after a card is assigned
+Concierge will update the expense for you.
 
-When you assign a company card to a member, you can update the import start date afterward to control which historical transactions are imported into Expensify. This is useful when you need to re-import older transactions or skip transactions that were already accounted for elsewhere.
+[Learn what the Expense Assistant can do](/articles/new-expensify/concierge-ai/Expense-Assistant).
+
+### Interactive insights and reporting 
+
+Insights allows you to analyze spending directly within Expensify.
+
+You can group expenses by person, category, merchant, tag, week, month, quarter, or year and visualize the results using bar, pie, and line charts. 
+
+[Learn how to use Insights](/articles/new-expensify/insights/How-to-Use-Insights-in-Expensify).
+
+### Create mileage expenses from a map on mobile
+
+On mobile, you can create Distance expenses by plotting your start, stop, and waypoints directly on a map instead of manually entering addresses.
+
+[Learn how to create a map-based Distance expense](/articles/new-expensify/reports-and-expenses/Distance-Expenses#how-to-create-a-map-based-distance-expense-web-and-mobile).
+
+## What workflows are improved in New Expensify?
+
+### Pay reports in bulk 
+
+Members with permission to pay reports can pay multiple approved reports at once instead of paying them one at a time. [Learn how to pay multiple reports in bulk](/articles/new-expensify/wallet-and-payments/Reimbursement-Payment-Methods#how-workspace-admins-pay-multiple-reports-in-bulk).
+
+### Full visibility for approvers
+
+Approvers can see their direct reports' expense reports in every status — not just the reports currently waiting for approval.
+
+This makes it easier to:
+
+- Review draft reports before submission
+- Follow up onoOutstanding reports
+- Track reimbursement progress
+- Review historical activity
+
+[Learn more about report statuses and actions in New Expensify](/articles/new-expensify/reports-and-expenses/Understanding-Report-Statuses-and-Actions).
+
+### Cross-platform consistency between web and mobile
+
+Everything you can do on the web you can do on mobile.
+
+This includes:
+
+ - Searching expenses and reports
+ - Filtering spend data
+ - Viewing other members' expenses and reports
+ - Issuing company cards
+ - Updating Workspace settings
+
+### View unassigned company cards
+
+Workspace Admins can view all unassigned cards on a card feed at a glance, making it easier to find and assign cards to the right Workspace members. 
+
+[Learn how to assign company cards](/articles/new-expensify/connect-credit-cards/Assign-Company-Cards).
+
+### Amend the transaction start date on an assigned card at any time
+
+After assigning a company card to a member, you can update the transaction import start date to control which historical transactions are imported into Expensify. This is useful when you need to skip transactions that were already accounted for elsewhere. 
+
+### Export to custom templates at the expense level 
+
+All export templates support exports from both expenses and reports. This means you can export a single expense to any custom template without exporting the full report that contains it.
 
 ---
 
@@ -80,15 +115,7 @@ When you assign a company card to a member, you can update the import start date
 
 ## Will my Expensify Classic data still work in New Expensify?
 
-Yes. Expenses, reports, Workspace settings, company card assignments, accounting connections, categories, and tags are shared across both experiences. Switching to New Expensify does not remove or reset your data.
-
-## Where do I find these new features?
-
-Most of the improvements above live on the **Spend** tab or inside your **Workspace** settings. The articles linked above walk through where each one lives.
-
-## Can I still use Expensify Classic?
-
-Yes, unless your Workspace Admin or domain admin requires New Expensify. New features and improvements are focused on New Expensify going forward. [Learn how to switch between New Expensify and Expensify Classic](/articles/new-expensify/settings/Switch-between-New-Expensify-and-Expensify-Classic).
+Yes. Expenses, reports, Workspace settings, company card assignments, accounting connections, categories, and tags are shared across both experiences.
 
 ## Where can I see what's launching next?
 
