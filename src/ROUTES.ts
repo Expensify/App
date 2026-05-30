@@ -3292,7 +3292,7 @@ const ROUTES = {
 
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/workspace-currency`, backTo),
     },
-    CURRENCY_SELECTION: {
+    WORKSPACE_CURRENCY_SELECTION: {
         route: 'workspace/confirmation/currency',
 
         getRoute: (backTo?: string) => getUrlWithBackToParam(`workspace/confirmation/currency`, backTo),

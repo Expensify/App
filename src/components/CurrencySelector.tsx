@@ -29,7 +29,7 @@ type CurrencySelectorProps = {
     onBlur?: () => void;
 
     /** Optional route override; when omitted the selector opens the dynamic payment-card currency picker. */
-    currencySelectorRoute?: typeof ROUTES.CURRENCY_SELECTION;
+    currencySelectorRoute?: typeof ROUTES.WORKSPACE_CURRENCY_SELECTION;
 
     /** Label for the input */
     label?: string;
@@ -76,7 +76,7 @@ function CurrencySelector({errorText = '', value: currency, onInputChange = () =
             errorText={errorText}
             onPress={() => {
                 didOpenCurrencySelector.current = true;
-                if (currencySelectorRoute === ROUTES.CURRENCY_SELECTION) {
+                if (currencySelectorRoute === ROUTES.WORKSPACE_CURRENCY_SELECTION) {
                     Navigation.navigate(currencySelectorRoute.getRoute(Navigation.getActiveRoute()));
                     return;
                 }
