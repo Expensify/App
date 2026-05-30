@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
@@ -89,11 +89,18 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             shouldKeepSelectedInAvailableOptions: true,
         });
 
+    // Flips true after the hydration effect at L259 has run at least once. Used to gate snapshot
+    // capture so we don't mistake "still hydrating" for "user has no pre-selection" — important when
+    // every initialAccountID is stale / paged out and the hydration effect yields an empty list
+    // (otherwise canCapture would stay false until the user toggles a row, then snapshot that row).
+    const [hasAttemptedHydration, setHasAttemptedHydration] = useState(initialAccountIDs.length === 0);
+
     const {frozen: frozenSelectedOptions, isFrozen: isOptionFrozen} = useFrozenPreSelection<OptionData>({
         selectedOptions,
         isReady: areOptionsInitialized,
-        // Don't capture until pre-selected options have hydrated from initialAccountIDs.
-        canCapture: initialAccountIDs.length === 0 || selectedOptions.length > 0,
+        // Gate on hydration (so stale-filter cases don't pin the first toggled row) AND on an empty
+        // search term (so visibleCount below reflects the unfiltered list, matching the chats selector).
+        canCapture: hasAttemptedHydration && debouncedSearchTerm.trim() === '',
         visibleCount: availableOptions.recentReports.length + availableOptions.personalDetails.length,
         getKeys: (option) => [option.accountID, option.login],
     });
@@ -302,6 +309,8 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         }
 
         setSelectedOptions(preSelectedOptions);
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot flag so the snapshot in useFrozenPreSelection doesn't fire before the hydration effect has run; derivable state isn't enough because the effect can resolve to an empty array.
+        setHasAttemptedHydration(true);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- this should react only to changes in form data
     }, [initialAccountIDs, personalDetails, recentAttendees, shouldAllowNameOnlyOptions]);
 

@@ -24,6 +24,10 @@ function moveInitialSelectionToTop<T extends {value: string}>(items: T[], initia
 /**
  * Refreshes the `isSelected` flag on frozen rows without changing their order. Pair with
  * `useFrozenPreSelection` so selection indicators track the live selection while rows stay put.
+ *
+ * Callers must ensure each frozen item already has a stable `keyForList`. This helper only updates
+ * `isSelected`; if `keyForList` is missing it will stay missing and FlatList will complain about
+ * duplicate keys.
  */
 function buildFrozenSection<T extends {isSelected?: boolean}>(frozen: T[], isCurrentlySelected: (item: T) => boolean): T[] {
     return frozen.map((item) => ({...item, isSelected: isCurrentlySelected(item)}));

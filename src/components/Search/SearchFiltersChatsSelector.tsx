@@ -15,9 +15,9 @@ import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionS
 import useSortedActions from '@hooks/useSortedActions';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {createOptionFromReport, filterAndOrderOptions, getAlternateText, getSearchOptions} from '@libs/OptionsListUtils';
+import {createOptionFromReport, filterAndOrderOptions, filterReports, getAlternateText, getSearchOptions} from '@libs/OptionsListUtils';
 import type {Option} from '@libs/OptionsListUtils';
-import type {OptionWithKey, SelectionListSections} from '@libs/OptionsListUtils/types';
+import type {OptionWithKey, SearchOptionData, SelectionListSections} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
 import {buildFrozenSection, excludeFrozenItems} from '@libs/SelectionListOrderUtils';
 import Navigation from '@navigation/Navigation';
@@ -73,7 +73,10 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
     const sortedActions = useSortedActions();
 
-    const selectedOptions: OptionData[] = selectedReportIDs.map((id) => {
+    // Build an OptionData for a reportID from current Onyx state. Used for both the live selectedOptions
+    // list and the frozen section, so frozen rows pick up text / alternateText updates as Onyx hydrates
+    // rather than rendering the captured-at-snapshot-time values forever.
+    const buildOptionFromReportID = (id: string): OptionData => {
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${id}`];
         const reportData = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`];
         const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportData?.policyID}`];
@@ -82,7 +85,9 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
         const alternateText = getAlternateText(report, {}, {isReportArchived: privateIsArchived, policy, reportAttributesDerived, policyTags: reportPolicyTags, conciergeReportID});
         return {...report, alternateText};
-    });
+    };
+
+    const selectedOptions: OptionData[] = selectedReportIDs.map(buildOptionFromReportID);
 
     const defaultOptions =
         isLoading || !isScreenTransitionEnd || !listOptions
@@ -110,22 +115,36 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     const {frozen: frozenSelectedReports, isFrozen: isReportFrozen} = useFrozenPreSelection<OptionData>({
         selectedOptions,
         isReady: !isLoading,
+        // Mirrors the participants selector — don't snapshot before the pre-selection has hydrated.
+        // Safe today (selectedReportIDs is seeded from useState(initialReportIDs)), but explicit so a
+        // future async initialReportIDs source doesn't silently snapshot an empty list.
+        canCapture: initialReportIDs.length === 0 || selectedReportIDs.length > 0,
         // Threshold is based on the unfiltered list so a search term active at first ready render doesn't permanently disable pinning.
         visibleCount: defaultOptions.recentReports.length,
         getKeys: (option) => [option.reportID],
     });
+
+    // Rebuild frozen rows from current Onyx state each render. The snapshot only fixes which reports
+    // are pinned and their order; the display values stay live so a row captured before reports /
+    // personalDetails hydrated still picks up the correct text once data arrives.
+    const liveFrozenReports = frozenSelectedReports.map((frozen) => buildOptionFromReportID(frozen.reportID));
 
     const sections: SelectionListSections = [];
 
     if (!isLoading) {
         const selectedReportIDsSet = new Set(selectedReportIDs);
         const visibleReportIDsSet = new Set(chatOptions.recentReports.map((report) => report.reportID));
-        const matchesSearchTerm = (report: OptionData) =>
-            cleanSearchTerm === '' || !!report.text?.toLowerCase().includes(cleanSearchTerm) || !!report.login?.toLowerCase().includes(cleanSearchTerm);
+
+        // Use the same matcher as filterAndOrderOptions (filterReports) so the frozen / extra-selected
+        // sections agree with Recents on what "matches" the search term — including dot-stripped login,
+        // alternateText, subtitle, and accent-normalized text.
+        const reportIDsMatchingSearch =
+            cleanSearchTerm === '' ? null : new Set(filterReports([...liveFrozenReports, ...selectedOptions] as SearchOptionData[], [cleanSearchTerm]).map((report) => report.reportID));
+        const matchesSearchTerm = (report: OptionData) => reportIDsMatchingSearch === null || reportIDsMatchingSearch.has(report.reportID);
 
         // Pre-selected reports pinned at the top. Row order is frozen; the checkmark updates on toggle.
         // Search-filtered rows are hidden from view but stay in the snapshot so they still dedupe Recents below.
-        const frozenReports = buildFrozenSection(frozenSelectedReports.filter(matchesSearchTerm), (report) => selectedReportIDsSet.has(report.reportID));
+        const frozenReports = buildFrozenSection(liveFrozenReports.filter(matchesSearchTerm), (report) => selectedReportIDsSet.has(report.reportID));
         if (frozenReports.length > 0) {
             sections.push({
                 data: frozenReports,
@@ -151,7 +170,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             sectionIndex: 2,
         });
     }
-    const noResultsFound = didScreenTransitionEnd && sections.every((section) => section.data.length === 0);
+    const noResultsFound = didScreenTransitionEnd && !isLoading && sections.every((section) => section.data.length === 0);
     const headerMessage = noResultsFound ? translate('common.noResultsFound') : undefined;
 
     useEffect(() => {
