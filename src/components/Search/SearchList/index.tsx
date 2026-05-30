@@ -483,6 +483,7 @@ function SearchList({
                         onToggle={() => onToggleGroup(originalKey)}
                         onSelectRow={onSelectRow}
                         onCheckboxPress={(val) => onCheckboxPress(val as SearchListItem)}
+                        onLongPressRow={isMobileSelectionModeEnabled ? handleLongPressRowInMobileSelectionMode : handleLongPressRow}
                         isFocused={isItemFocused}
                         isFirstItem={index === firstVisibleIndex}
                         isLastItem={index + 1 >= lastVisibleIndex && !ListFooterComponent}

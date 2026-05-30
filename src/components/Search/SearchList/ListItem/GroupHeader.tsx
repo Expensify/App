@@ -46,6 +46,7 @@ import type {
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
     TransactionGroupListItemType,
+    TransactionListItemType,
     TransactionMemberGroupListItemType,
     TransactionMerchantGroupListItemType,
     TransactionMonthGroupListItemType,
@@ -70,6 +71,7 @@ type GroupHeaderProps = SearchListActionProps & {
     onToggle: () => void;
     onSelectRow: (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
     onCheckboxPress: (item: GroupHeaderItemType) => void;
+    onLongPressRow?: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
     isFocused?: boolean;
     isFirstItem: boolean;
     isLastItem: boolean;
@@ -85,6 +87,7 @@ function GroupHeader({
     onToggle,
     onSelectRow,
     onCheckboxPress,
+    onLongPressRow,
     isFocused,
     isFirstItem,
     isLastItem,
@@ -204,7 +207,7 @@ function GroupHeader({
         onSelectRow(rowItem, transactionPreviewData, event);
     };
 
-    const renderHeader = () => {
+    const renderHeader = (hovered: boolean) => {
         if (isExpenseReportType) {
             return (
                 <ReportListItemHeader
@@ -212,9 +215,11 @@ function GroupHeader({
                     onSelectRow={handleSelectRow}
                     onCheckboxPress={handleSelectionButtonPress}
                     isDisabled={isDisabledOrEmpty}
+                    isFocused={isFocused}
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
                     isIndeterminate={isIndeterminate}
+                    isHovered={hovered}
                     onDownArrowClick={onToggle}
                     isExpanded={isExpanded}
                     lastPaymentMethod={lastPaymentMethod}
@@ -388,10 +393,15 @@ function GroupHeader({
         }
     };
 
+    const handleLongPress = () => {
+        onLongPressRow?.(item, isExpenseReportType ? undefined : groupItem.transactions);
+    };
+
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
             <PressableWithFeedback
                 onPress={handlePress}
+                onLongPress={handleLongPress}
                 disabled={false}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_GROUP_LIST_ITEM}
                 accessibilityLabel={item.text ?? ''}
@@ -418,10 +428,10 @@ function GroupHeader({
                           ],
                 ]}
             >
-                {() => (
+                {({hovered}) => (
                     <View style={styles.flex1}>
                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                            <View style={styles.flex1}>{renderHeader()}</View>
+                            <View style={styles.flex1}>{renderHeader(hovered)}</View>
                             {isLargeScreenWidth && (
                                 <PressableWithFeedback
                                     onPress={onToggle}
@@ -430,61 +440,57 @@ function GroupHeader({
                                     accessibilityLabel={isExpanded ? CONST.ACCESSIBILITY_LABELS.COLLAPSE : CONST.ACCESSIBILITY_LABELS.EXPAND}
                                     sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_EXPAND_TOGGLE}
                                 >
-                                    {({hovered}) => (
+                                    {({hovered: arrowHovered}) => (
                                         <Icon
                                             src={isExpanded ? expensifyIcons.UpArrow : expensifyIcons.DownArrow}
                                             fill={theme.icon}
-                                            additionalStyles={!hovered && styles.opacitySemiTransparent}
+                                            additionalStyles={!arrowHovered && styles.opacitySemiTransparent}
                                             small
                                         />
                                     )}
                                 </PressableWithFeedback>
                             )}
                         </View>
+                        {isLargeScreenWidth && (
+                            <Animated.View style={subHeaderAnimatedStyle}>
+                                {(isExpanded || isSubHeaderRendered) && (
+                                    <View
+                                        style={styles.stickToTop}
+                                        onLayout={(e) => {
+                                            const height = e.nativeEvent.layout.height;
+                                            if (height) {
+                                                subHeaderHeight.set(height);
+                                            }
+                                        }}
+                                    >
+                                        <View style={[styles.pv2, styles.ph3, styles.pb1, styles.pt1]}>
+                                            <View style={[styles.borderBottom, styles.borderNone]} />
+                                        </View>
+                                        <View style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl8, styles.borderNone]}>
+                                            <SearchTableHeader
+                                                canSelectMultiple
+                                                type={CONST.SEARCH.DATA_TYPES.EXPENSE}
+                                                onSortPress={() => {}}
+                                                sortOrder={undefined}
+                                                sortBy={undefined}
+                                                shouldShowYear={shouldSubHeaderShowYear}
+                                                isAmountColumnWide={isSubHeaderAmountColumnWide}
+                                                isTaxAmountColumnWide={isSubHeaderTaxAmountColumnWide}
+                                                shouldShowSorting={false}
+                                                columns={subHeaderColumns}
+                                                groupBy={groupBy}
+                                                isExpenseReportView
+                                                isActionColumnWide={isSubHeaderActionColumnWide}
+                                            />
+                                        </View>
+                                        <View style={[StyleUtils.getSelectedBorderBottomStyle(isItemSelected), styles.ml3, styles.mr3, {marginBottom: 1}]} />
+                                    </View>
+                                )}
+                            </Animated.View>
+                        )}
                     </View>
                 )}
             </PressableWithFeedback>
-            {isLargeScreenWidth && (
-                <Animated.View style={[subHeaderAnimatedStyle, styles.mh5, {backgroundColor: isItemSelected ? theme.activeComponentBG : theme.highlightBG}]}>
-                    {(isExpanded || isSubHeaderRendered) && (
-                        <PressableWithFeedback
-                            onPress={onToggle}
-                            style={[styles.stickToTop, styles.cursorPointer]}
-                            onLayout={(e) => {
-                                const height = e.nativeEvent.layout.height;
-                                if (height) {
-                                    subHeaderHeight.set(height);
-                                }
-                            }}
-                            accessibilityRole={CONST.ROLE.BUTTON}
-                            accessibilityLabel={isExpanded ? CONST.ACCESSIBILITY_LABELS.COLLAPSE : CONST.ACCESSIBILITY_LABELS.EXPAND}
-                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_EXPAND_TOGGLE}
-                        >
-                            <View style={[styles.pv2, styles.ph3, styles.pb1, styles.pt1]}>
-                                <View style={[styles.borderBottom, styles.borderNone]} />
-                            </View>
-                            <View style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl8, styles.borderNone]}>
-                                <SearchTableHeader
-                                    canSelectMultiple
-                                    type={CONST.SEARCH.DATA_TYPES.EXPENSE}
-                                    onSortPress={() => {}}
-                                    sortOrder={undefined}
-                                    sortBy={undefined}
-                                    shouldShowYear={shouldSubHeaderShowYear}
-                                    isAmountColumnWide={isSubHeaderAmountColumnWide}
-                                    isTaxAmountColumnWide={isSubHeaderTaxAmountColumnWide}
-                                    shouldShowSorting={false}
-                                    columns={subHeaderColumns}
-                                    groupBy={groupBy}
-                                    isExpenseReportView
-                                    isActionColumnWide={isSubHeaderActionColumnWide}
-                                />
-                            </View>
-                            <View style={[StyleUtils.getSelectedBorderBottomStyle(isItemSelected), styles.ml3, styles.mr3, {marginBottom: 1}]} />
-                        </PressableWithFeedback>
-                    )}
-                </Animated.View>
-            )}
         </OfflineWithFeedback>
     );
 }
