@@ -1,4 +1,4 @@
-import {useMemo, useState} from 'react';
+import {useState} from 'react';
 import CONST from '@src/CONST';
 
 type UseFrozenPreSelectionOptions<T> = {
@@ -43,18 +43,15 @@ function useFrozenPreSelection<T>({selectedOptions, isReady, visibleCount, canCa
 
     const frozenList = frozen ?? [];
 
-    const frozenKeys = useMemo(() => {
-        const keys = new Set<string | number>();
-        for (const option of frozenList) {
-            for (const key of getKeys(option)) {
-                if (!isValidKey(key)) {
-                    continue;
-                }
-                keys.add(key);
+    const frozenKeys = new Set<string | number>();
+    for (const option of frozenList) {
+        for (const key of getKeys(option)) {
+            if (!isValidKey(key)) {
+                continue;
             }
+            frozenKeys.add(key);
         }
-        return keys;
-    }, [frozenList, getKeys]);
+    }
 
     const isFrozen = (option: T) => {
         for (const key of getKeys(option)) {
