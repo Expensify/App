@@ -104,9 +104,9 @@ Filters help you narrow down expenses or reports so you can find exactly what yo
 
 You can filter your **expenses** and **reports** using dropdowns, search bars, and chips. 
 
-- **Expenses:** can be filtered by `Date`, `Merchant`, `Category`, `Tag`, `Amount`, `Reimbursable`, `Billable`, `Status` (e.g. Unreported, Deleted), and `Exported to` (filter by where the expense was exported, such as an accounting integration or a specific export template).
+- **Expenses:** can be filtered by `Date`, `Merchant`, `Category`, `Tag`, `Amount`, `Reimbursable`, `Billable`, `Status` (e.g. Unreported, Deleted), and `Exported to`.
 
-- **Reports**: can be filtered by `Submitter`, `Workspace`, `Report Status` (e.g. Draft, Outstanding, Approved, Paid), `Date`, and `Exported to` (see which reports were exported to a connected accounting integration or a specific export template — useful for confirming what's already been exported and what still needs to be).
+- **Reports**: can be filtered by `Submitter`, `Workspace`, `Report Status` (e.g. Draft, Outstanding, Approved, Paid), `Date`, and `Exported to`.
 
 To view other available filters, click into the **search box** on the **Spend** page while viewing **Reports** or **Expenses** under **Explore**.
 
