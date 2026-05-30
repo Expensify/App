@@ -463,8 +463,8 @@ function SearchList({
     useImperativeHandle(ref, () => ({scrollToIndex}), [scrollToIndex]);
 
     const isItemVisible = useCallback((item: SearchListItem) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline, [isOffline]);
-    const firstVisibleIndex = useMemo(() => data.findIndex(isItemVisible), [data, isItemVisible]);
-    const lastVisibleIndex = useMemo(() => data.findLastIndex(isItemVisible), [data, isItemVisible]);
+    const firstVisibleIndex = useMemo(() => listData.findIndex(isItemVisible), [listData, isItemVisible]);
+    const lastVisibleIndex = useMemo(() => listData.findLastIndex(isItemVisible), [listData, isItemVisible]);
 
     const renderItem = useCallback(
         (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
@@ -485,7 +485,7 @@ function SearchList({
                         onCheckboxPress={(val) => onCheckboxPress(val as SearchListItem)}
                         isFocused={isItemFocused}
                         isFirstItem={index === firstVisibleIndex}
-                        isLastItem={index === lastVisibleIndex && !ListFooterComponent}
+                        isLastItem={index + 1 >= lastVisibleIndex && !ListFooterComponent}
                     />
                 );
             }
@@ -507,6 +507,7 @@ function SearchList({
                         onLongPressRow={isMobileSelectionModeEnabled ? handleLongPressRowInMobileSelectionMode : handleLongPressRow}
                         nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                         onUndelete={handleUndelete}
+                        isLastItem={index === lastVisibleIndex && !ListFooterComponent}
                     />
                 );
             }

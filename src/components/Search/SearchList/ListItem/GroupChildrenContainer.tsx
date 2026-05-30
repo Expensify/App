@@ -39,6 +39,7 @@ type GroupChildrenContainerProps = {
     onLongPressRow?: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
     nonPersonalAndWorkspaceCards?: CardList;
     onUndelete?: (transaction: Transaction) => void;
+    isLastItem?: boolean;
 };
 
 function GroupChildrenContainer({
@@ -53,6 +54,7 @@ function GroupChildrenContainer({
     onLongPressRow,
     nonPersonalAndWorkspaceCards,
     onUndelete,
+    isLastItem,
 }: GroupChildrenContainerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -230,7 +232,7 @@ function GroupChildrenContainer({
     }));
 
     return (
-        <View style={[styles.mh5, {backgroundColor: theme.highlightBG}]}>
+        <View style={[styles.mh5, {backgroundColor: theme.highlightBG}, isLastItem && [styles.tableBottomRadius, styles.overflowHidden]]}>
             <Animated.View style={contentAnimatedStyle}>
                 {isExpanded || isRendered ? (
                     <Animated.View

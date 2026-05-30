@@ -324,12 +324,14 @@ function GroupHeader({item, groupBy, searchType, columns, canSelectMultiple, isE
         return headers[groupBy];
     };
 
+    const isLastItemCollapsed = isLastItem && !isExpanded;
+
     const pressableStyle = [
         styles.transactionGroupListItemStyle,
         isLargeScreenWidth && {
             ...styles.tableRowHeight,
             borderRadius: 0,
-            ...(isLastItem ? styles.tableBottomRadius : {}),
+            ...(isLastItemCollapsed ? styles.tableBottomRadius : {}),
         },
         isItemSelected && styles.activeComponentBG,
     ];
@@ -356,11 +358,11 @@ function GroupHeader({item, groupBy, searchType, columns, canSelectMultiple, isE
                     animatedHighlightStyle,
                     styles.userSelectNone,
                     isLargeScreenWidth
-                        ? [StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItem, isItemSelected), isLastItem && styles.overflowHidden]
+                        ? [StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItemCollapsed, isItemSelected), isLastItemCollapsed && styles.overflowHidden]
                         : [
                               isFirstItem && [styles.tableTopRadius, styles.overflowHidden],
-                              isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
-                              !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isItemSelected),
+                              isLastItemCollapsed && [styles.tableBottomRadius, styles.overflowHidden],
+                              !isLastItemCollapsed && StyleUtils.getSelectedBorderBottomStyle(isItemSelected),
                           ],
                 ]}
             >
