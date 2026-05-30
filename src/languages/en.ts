@@ -2314,8 +2314,7 @@ const translations = {
         stepCodes: 'Recovery codes',
         keepCodesSafe: 'Keep these codes safe!',
         codesLoseAccess: dedent(`
-            If you lose access to your authenticator app and don't have these codes, you'll lose access to your account.
-
+            They're your only way back in if you lose your authenticator app.<br>
             <strong>Note</strong>: Setting up two-factor authentication will log you out of all other active sessions.
         `),
         errorStepCodes: 'Please copy or download codes before continuing',
