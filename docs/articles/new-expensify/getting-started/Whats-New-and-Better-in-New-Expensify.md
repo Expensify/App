@@ -7,7 +7,7 @@ internalScope: Audience is Expensify members transitioning from Expensify Classi
 
 # What's New and Better in New Expensify
 
-New Expensify reimagines expense management with more powerful search, deeper visibility, real-time collaboration, and consistent web and mobile experiences. If you previously used Expensify Classic, this guide highlights the most useful improvements available to you in New Expensify and links to the help articles that show you how to use them.
+New Expensify transforms expense management with more powerful search, deeper visibility, real-time collaboration, and consistent web and mobile experiences. If you previously used Expensify Classic, this guide highlights the most useful improvements available to you in New Expensify and links to the help articles that show you how to use them.
 
 If you're looking for a side-by-side mapping of familiar Classic workflows, see [Coming from Expensify Classic for Submitters and Approvers](/articles/new-expensify/getting-started/Coming-from-Expensify-Classic-for-Submitters-and-Approvers) or [Coming from Expensify Classic for Workspace Admins](/articles/new-expensify/getting-started/Coming-from-Expensify-Classic-for-Workspace-Admins).
 
