@@ -39,7 +39,7 @@ Only **Workspace Admins** can turn on Submissions and choose a submission freque
    - **Weekly** — Reports are submitted weekly on Sundays
    - **Twice a month** — Reports are submitted on the 15th and last day of the month
    - **By trip** — A report is submitted after two full days without new expenses
-   - **Manually** — Expenses are still **auto-added to a report** as they're created, but members must submit the report manually. This frequency only controls **when** reports are submitted, not whether expenses are placed on a report.
+   - **Manually** — Expenses are still **auto-added to a report** as they're created, but members must submit the report manually. 
 
 ![Submissions section in Expensify Workflows settings, showing the toggle enabled and Frequency set to By trip]({{site.url}}/assets/images/ExpensifyHelp-WorkspaceSubmissions_ND.png){:width="100%"}
 
@@ -60,10 +60,6 @@ That way, travel expenses are grouped together without needing to sort them manu
 ## What happens to expenses with violations?
 
 Expenses with violations—like missing receipts, incorrect categories, or amounts over Workspace limits—won’t be submitted. They’re removed from the current report and moved to a new open report. Once the violation is fixed, they’ll be submitted on the next scheduled date.
-
-## How do I stop expenses from being automatically assigned to reports?
-
-Toggle the **Submissions** setting **off** on the Workspace. When Submissions is off, new expenses stay **Unreported** until a member adds them to a report. The **Manually** frequency does not do this — it only controls when reports are submitted; expenses are still auto-added to a report. If members still see expenses being auto-added, check their **Individual Workspace**, which may have its own Submissions setting enabled.
 
 ## Why are reports still submitting automatically after disabling Submissions
 
