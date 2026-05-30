@@ -13,7 +13,7 @@ Workspace Rules let Admins enforce expense policies by setting custom requiremen
 
 You can also [add text or a PDF expense policy document](/articles/new-expensify/workspaces/Add-an-Expense-Policy-to-a-Workspace) to your workspace overview page so members can reference your company's expense guidelines.
 
-If your approval requirements can't be handled using workspace rules alone, you can use a Custom Agent as an approver in your workflow. Custom Agents are AI-powered virtual members that review reports and approve or reject them based on instructions you define. [Learn how to create and use Custom Agents](/articles/new-expensify/ai-agents/docs/articles/Create-and-Use-Custom-Agents).
+If your approval requirements can't be handled using workspace rules alone, you can use a Custom Agent as an approver in your workflow. Custom Agents are AI-powered virtual members that review reports and approve or reject them based on instructions you define. [Learn how to create and use Custom Agents](/articles/new-expensify/ai-agents/Create-and-Use-Custom-Agents).
 
 ---
 
