@@ -1,10 +1,10 @@
 import React from 'react';
 import {useCurrencyListActions, useCurrencyListState} from '@components/CurrencyListContextProvider';
-import type {SearchFilterSelectionListProps} from '@components/Search/types';
+import type {SearchFilterCommonProps} from '@components/Search/types';
 import {getCurrencyOptions} from '@libs/SearchUIUtils';
 import MultiSelect from './MultiSelect';
 
-type CurrencySelectorProps = SearchFilterSelectionListProps & {
+type CurrencySelectorProps = SearchFilterCommonProps & {
     value: string[] | undefined;
     onChange: (item: string[]) => void;
 };

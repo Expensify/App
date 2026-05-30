@@ -1,6 +1,6 @@
 import React from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
-import type {SearchFilterSelectionListProps} from '@components/Search/types';
+import type {SearchFilterCommonProps} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
@@ -11,7 +11,7 @@ import type {PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import MultiSelect from './MultiSelect';
 
-type CategorySelectorProps = SearchFilterSelectionListProps & {
+type CategorySelectorProps = SearchFilterCommonProps & {
     value: string[] | undefined;
     policyIDs: string[] | undefined;
     onChange: (categories: string[]) => void;

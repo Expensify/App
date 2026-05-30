@@ -1,6 +1,6 @@
 import React from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
-import type {SearchFilterSelectionListProps} from '@components/Search/types';
+import type {SearchFilterCommonProps} from '@components/Search/types';
 import {advancedSearchPoliciesSelector, useAdvancedSearchFiltersWorkspaces} from '@hooks/useAdvancedSearchFilters';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useNetwork from '@hooks/useNetwork';
@@ -13,7 +13,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {MultiSelectItem} from './MultiSelect';
 import MultiSelect from './MultiSelect';
 
-type WorkspaceSelectorProps = SearchFilterSelectionListProps & {
+type WorkspaceSelectorProps = SearchFilterCommonProps & {
     policyIDQuery: string[] | undefined;
     value: string[] | undefined;
     autoFocus?: boolean;

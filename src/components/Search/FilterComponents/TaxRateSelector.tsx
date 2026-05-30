@@ -1,5 +1,5 @@
 import React from 'react';
-import type {SearchFilterSelectionListProps} from '@components/Search/types';
+import type {SearchFilterCommonProps} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {getAllTaxRates} from '@libs/PolicyUtils';
@@ -8,7 +8,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import MultiSelect from './MultiSelect';
 
-type TaxRateSelectorProps = SearchFilterSelectionListProps & {
+type TaxRateSelectorProps = SearchFilterCommonProps & {
     value: string[] | undefined;
     policyIDs: string[] | undefined;
     onChange: (taxRates: string[]) => void;

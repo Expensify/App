@@ -1,5 +1,5 @@
 import React, {Activity, useState} from 'react';
-import type {SearchFilterSelectionListProps} from '@components/Search/types';
+import type {SearchFilterCommonProps} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem, TextInputOptions} from '@components/SelectionList/types';
@@ -14,7 +14,7 @@ type SingleSelectItem<T> = {
     value: T;
 };
 
-type SingleSelectProps<T> = SearchFilterSelectionListProps & {
+type SingleSelectProps<T> = SearchFilterCommonProps & {
     /** The list of all items to show up in the list */
     items: Array<SingleSelectItem<T>>;
 

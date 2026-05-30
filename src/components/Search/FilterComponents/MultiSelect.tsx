@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
-import type {SearchFilterSelectionListProps} from '@components/Search/types';
+import type {SearchFilterCommonProps} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
@@ -23,7 +23,7 @@ type MultiSelectItem<T> = {
     leftElement?: ReactNode;
 };
 
-type MultiSelectProps<T> = SearchFilterSelectionListProps & {
+type MultiSelectProps<T> = SearchFilterCommonProps & {
     /** The list of all items to show up in the list */
     items: Array<MultiSelectItem<T>>;
 

@@ -1,11 +1,11 @@
 import React, {useEffect} from 'react';
 import useFilterFeedData from '@components/Search/hooks/useFilterFeedData';
-import type {SearchFilterSelectionListProps} from '@components/Search/types';
+import type {SearchFilterCommonProps} from '@components/Search/types';
 import useNetwork from '@hooks/useNetwork';
 import {openSearchCardFiltersPage} from '@libs/actions/Search';
 import MultiSelect from './MultiSelect';
 
-type FeedSelectorProps = SearchFilterSelectionListProps & {
+type FeedSelectorProps = SearchFilterCommonProps & {
     value: string[] | undefined;
     onChange: (item: string[]) => void;
 };

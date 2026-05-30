@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import type {SearchFilterSelectionListProps} from '@components/Search/types';
+import type {SearchFilterCommonProps} from '@components/Search/types';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {TextInputOptions} from '@components/SelectionList/types';
@@ -24,7 +24,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import passthroughPolicyTagListSelector from '@src/selectors/PolicyTagList';
 import ListFilterView from './ListFilterViewWrapper';
 
-type InSelectorProps = SearchFilterSelectionListProps & {
+type InSelectorProps = SearchFilterCommonProps & {
     value: string[] | undefined;
     onChange: (ins: string[]) => void;
 };

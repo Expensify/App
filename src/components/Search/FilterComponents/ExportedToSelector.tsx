@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import Icon from '@components/Icon';
-import type {SearchFilterSelectionListProps} from '@components/Search/types';
+import type {SearchFilterCommonProps} from '@components/Search/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -19,7 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type IconAsset from '@src/types/utils/IconAsset';
 import MultiSelect from './MultiSelect';
 
-type ExportedToSelectorProps = SearchFilterSelectionListProps & {
+type ExportedToSelectorProps = SearchFilterCommonProps & {
     value: string[] | undefined;
     policyIDs: string[] | undefined;
     onChange: (exportedTo: string[]) => void;

@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import useFullscreenAdvancedFilters from '@components/Search/FilterDropdowns/AdvancedFilters/useFullscreenAdvancedFilters';
-import type {SearchFilterSelectionListProps} from '@components/Search/types';
+import type {SearchFilterCommonProps} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isAmountFilterKey, isDateFilterKey} from '@libs/SearchUIUtils';
@@ -16,7 +16,7 @@ import AmountFilterComponent from './AmountFilterComponent';
 import DateFilterComponent from './DateFilterComponent';
 import ReportFieldFilterComponent from './ReportFieldFilterComponent';
 
-type FilterContentProps = SearchFilterSelectionListProps & {
+type FilterContentProps = SearchFilterCommonProps & {
     filterKey: SearchFilter['key'];
     values: Partial<SearchAdvancedFiltersForm> | undefined;
     policyIDQuery: string[] | undefined;
@@ -36,7 +36,7 @@ type TextInputFilterContentProps = {
     onChange: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
-type CommonContentProps = SearchFilterSelectionListProps & {
+type CommonContentProps = SearchFilterCommonProps & {
     filterKey: FilterComponentsProps['filterKey'];
     value: FilterComponentsProps['value'];
     type: SearchDataTypes | undefined;

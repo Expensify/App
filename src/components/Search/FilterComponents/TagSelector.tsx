@@ -1,6 +1,6 @@
 import React from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
-import type {SearchFilterSelectionListProps} from '@components/Search/types';
+import type {SearchFilterCommonProps} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {getCleanedTagName, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
@@ -12,7 +12,7 @@ import type {PolicyTagLists} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import MultiSelect from './MultiSelect';
 
-type TagSelectorProps = SearchFilterSelectionListProps & {
+type TagSelectorProps = SearchFilterCommonProps & {
     value: string[] | undefined;
     policyIDs: string[] | undefined;
     onChange: (tags: string[]) => void;

@@ -1,5 +1,5 @@
 import React from 'react';
-import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterSelectionListProps} from '@components/Search/types';
+import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterCommonProps} from '@components/Search/types';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -25,7 +25,7 @@ import UserSelector from './UserSelector';
 import WorkspaceSelector from './WorkspaceSelector';
 
 type FilterKeys = Exclude<SearchFilter['key'], SearchDateFilterKeys | SearchAmountFilterKeys | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD>;
-type FilterComponentsProps = SearchFilterSelectionListProps & {
+type FilterComponentsProps = SearchFilterCommonProps & {
     filterKey: FilterKeys;
     value: SearchAdvancedFiltersForm[FilterKeys] | undefined;
     type?: SearchDataTypes;
@@ -49,7 +49,7 @@ type TextInputFilterComponentsProps = {
 };
 
 type SingleSelectFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE;
-type SingleSelectFilterComponentsProps = SearchFilterSelectionListProps & {
+type SingleSelectFilterComponentsProps = SearchFilterCommonProps & {
     filterKey: SingleSelectFilterKeys;
     value: SearchAdvancedFiltersForm[SingleSelectFilterKeys] | undefined;
     allowDeselect: boolean;
@@ -62,7 +62,7 @@ type MultiSelectFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS;
-type MultiSelectFilterComponentsProps = SearchFilterSelectionListProps & {
+type MultiSelectFilterComponentsProps = SearchFilterCommonProps & {
     filterKey: MultiSelectFilterKeys;
     value: SearchAdvancedFiltersForm[MultiSelectFilterKeys] | undefined;
     type: SearchDataTypes | undefined;
