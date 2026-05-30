@@ -509,6 +509,26 @@ describe('DateUtils', () => {
             expect(ja).toContain('08');
             expect(ja).toContain('19');
         });
+
+        // Placeholder and value use different presets; if they ever drift, DatePicker shows "MM/DD/YYYY" hint with "05.01.2026" value.
+        it.each(['en', 'de', 'ja', 'ko', 'es', 'fr', 'pt-BR', 'it', 'nl', 'pl', 'zh-hans', 'zh-hant'] as const)(
+            'placeholder and formatted value share the same field order and separators (%s)',
+            (locale) => {
+                const sample = new Date(Date.UTC(2024, 11, 31));
+                const literalsFromPreset = (options: Intl.DateTimeFormatOptions) =>
+                    new Intl.DateTimeFormat(locale, options)
+                        .formatToParts(sample)
+                        .filter((p) => p.type === 'literal')
+                        .map((p) => p.value);
+                const orderFromPreset = (options: Intl.DateTimeFormatOptions) =>
+                    new Intl.DateTimeFormat(locale, options)
+                        .formatToParts(sample)
+                        .filter((p) => p.type !== 'literal')
+                        .map((p) => p.type);
+                expect(orderFromPreset({dateStyle: 'short'})).toEqual(orderFromPreset({year: 'numeric', month: '2-digit', day: '2-digit'}));
+                expect(literalsFromPreset({dateStyle: 'short'})).toEqual(literalsFromPreset({year: 'numeric', month: '2-digit', day: '2-digit'}));
+            },
+        );
     });
 
     describe("getWeekStartsOn / getWeekEndsOn ('en' pinned to Monday; others via Intl)", () => {

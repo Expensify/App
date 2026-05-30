@@ -131,9 +131,9 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
     const localeCompare: LocaleContextProps['localeCompare'] = (a, b) => collator.compare(a, b);
 
     const formatTravelDate: LocaleContextProps['formatTravelDate'] = (datetime) => {
-        // Date part UTC-anchored so date-only inputs (`'2025-07-15'`) don't day-shift for west-of-UTC viewers; time stays in local zone.
-        const formattedDate = DateUtils.formatInUTCToMedium(datetime, currentLocale);
-        const formattedHour = DateUtils.formatToLocalTime(DateUtils.toUTCDate(datetime), currentLocale);
+        const date = new Date(datetime);
+        const formattedDate = DateUtils.formatToMediumDate(date, currentLocale);
+        const formattedHour = DateUtils.formatToLocalTime(date, currentLocale);
         const at = translateLocalize(currentLocale, 'common.conjunctionAt');
         return `${formattedDate} ${at} ${formattedHour}`;
     };

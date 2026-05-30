@@ -955,12 +955,9 @@ function isValidDateString(dateString: string) {
     return !Number.isNaN(date.getTime());
 }
 
-/**
- * Pinned to the default locale — output flows into the merchant string stored in the backend and must
- * stay byte-stable across user-locale changes.
- */
+/** Persists as the backend merchant string — uses date-fns over Intl because `dateStyle:'medium'` drifts across ICU versions (`"Jun"` vs `"Jun."`). */
 function getStablePerDiemMerchantDateRange(date1: Date, date2: Date): string {
-    return `${formatIntl(CONST.LOCALES.DEFAULT, 'MEDIUM_DATE', date1)} - ${formatIntl(CONST.LOCALES.DEFAULT, 'MEDIUM_DATE', date2)}`;
+    return `${format(date1, 'MMM d, yyyy')} - ${format(date2, 'MMM d, yyyy')}`;
 }
 
 /**
