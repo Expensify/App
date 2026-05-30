@@ -1,8 +1,9 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useFrozenPreSelection from '@hooks/useFrozenPreSelection';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
@@ -12,6 +13,7 @@ import {getFilteredRecentAttendees, getParticipantsOption} from '@libs/OptionsLi
 import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
+import {buildFrozenSection, excludeFrozenItems} from '@libs/SelectionListOrderUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -87,22 +89,14 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             shouldKeepSelectedInAvailableOptions: true,
         });
 
-    // Frozen snapshot of pre-selected options captured on the first render where options are
-    // initialized and the combined Recents + Contacts list is long enough to warrant pinning
-    // pre-selected items at the top so they're not lost in a long list. `null` means we haven't
-    // captured yet; an empty array means we evaluated and chose not to pin. Captured during
-    // render (per React's "set state during render" pattern) so the snapshot is taken at the
-    // same render where data first becomes available.
-    const [frozenSelectedOptions, setFrozenSelectedOptions] = useState<OptionData[] | null>(null);
-    if (
-        frozenSelectedOptions === null &&
-        areOptionsInitialized &&
+    const {frozen: frozenSelectedOptions, isFrozen: isOptionFrozen} = useFrozenPreSelection<OptionData>({
+        selectedOptions,
+        isReady: areOptionsInitialized,
         // Wait until pre-selected options have been hydrated from initialAccountIDs before capturing.
-        (initialAccountIDs.length === 0 || selectedOptions.length > 0)
-    ) {
-        const totalVisible = availableOptions.recentReports.length + availableOptions.personalDetails.length;
-        setFrozenSelectedOptions(totalVisible >= CONST.STANDARD_LIST_ITEM_LIMIT ? selectedOptions : []);
-    }
+        canCapture: initialAccountIDs.length === 0 || selectedOptions.length > 0,
+        visibleCount: availableOptions.recentReports.length + availableOptions.personalDetails.length,
+        getKeys: (option) => [option.accountID, option.login],
+    });
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections = [];
@@ -120,29 +114,21 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             chatOptions.recentReports = chatOptions.recentReports.filter((report) => report.accountID !== currentUserOption.accountID);
         }
 
-        // Build the frozen "pre-selected" top section. Items keep their original position; their
-        // `isSelected` flag tracks the current selection so toggling them in place updates the
-        // checkmark without moving the row. The set used to dedupe Recents / Contacts is built
-        // from the unfiltered snapshot so rows hidden by the current search term still don't
-        // duplicate into the lists below.
-        const frozenAccountIDs = new Set((frozenSelectedOptions ?? []).map((option) => option.accountID).filter((id): id is number => !!id && id !== CONST.DEFAULT_NUMBER_ID));
-        const frozenLogins = new Set((frozenSelectedOptions ?? []).map((option) => option.login).filter((login): login is string => !!login));
-        const isOptionFrozen = (option: Pick<OptionData, 'accountID' | 'login'>) =>
-            (!!option.accountID && option.accountID !== CONST.DEFAULT_NUMBER_ID && frozenAccountIDs.has(option.accountID)) || (!!option.login && frozenLogins.has(option.login));
-
         const trimmedSearchTerm = debouncedSearchTerm.trim().toLowerCase();
         const matchesSearchTerm = (option: OptionData) => !trimmedSearchTerm || doesPersonalDetailMatchSearchTerm(option, option.accountID ?? CONST.DEFAULT_NUMBER_ID, trimmedSearchTerm);
 
-        const frozenSection = (frozenSelectedOptions ?? [])
-            .filter((option) => matchesSearchTerm(option))
-            .map((option) => {
-                const isSelected = selectedOptions.some(
-                    (selected) =>
-                        (!!selected.accountID && selected.accountID !== CONST.DEFAULT_NUMBER_ID && selected.accountID === option.accountID) ||
-                        (!!selected.login && selected.login === option.login),
-                );
-                return {...option, isSelected};
-            });
+        // Build the frozen "pre-selected" top section. Items keep their original position; their
+        // `isSelected` flag tracks the current selection so toggling them in place updates the
+        // checkmark without moving the row. Rows hidden by the current search term are filtered
+        // out of the visible section but stay in the snapshot so they still dedupe Recents /
+        // Contacts below.
+        const isOptionCurrentlySelected = (option: OptionData) =>
+            selectedOptions.some(
+                (selected) =>
+                    (!!selected.accountID && selected.accountID !== CONST.DEFAULT_NUMBER_ID && selected.accountID === option.accountID) ||
+                    (!!selected.login && selected.login === option.login),
+            );
+        const frozenSection = buildFrozenSection(frozenSelectedOptions.filter(matchesSearchTerm), isOptionCurrentlySelected);
         if (frozenSection.length > 0) {
             newSections.push({
                 title: '',
@@ -202,8 +188,8 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         }
 
         // Filter frozen items out of Recents and Contacts to avoid duplication with the top section.
-        const recentReports = frozenSection.length > 0 ? chatOptions.recentReports.filter((report) => !isOptionFrozen(report)) : chatOptions.recentReports;
-        const contacts = frozenSection.length > 0 ? chatOptions.personalDetails.filter((detail) => !isOptionFrozen(detail)) : chatOptions.personalDetails;
+        const recentReports = frozenSection.length > 0 ? excludeFrozenItems(chatOptions.recentReports, isOptionFrozen) : chatOptions.recentReports;
+        const contacts = frozenSection.length > 0 ? excludeFrozenItems(chatOptions.personalDetails, isOptionFrozen) : chatOptions.personalDetails;
 
         newSections.push({
             title: '',
@@ -224,7 +210,18 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             sections: newSections,
             headerMessage: message,
         };
-    }, [areOptionsInitialized, availableOptions, debouncedSearchTerm, selectedOptions, frozenSelectedOptions, currentUserAccountID, personalDetails, translate, formatPhoneNumber]);
+    }, [
+        areOptionsInitialized,
+        availableOptions,
+        debouncedSearchTerm,
+        selectedOptions,
+        frozenSelectedOptions,
+        isOptionFrozen,
+        currentUserAccountID,
+        personalDetails,
+        translate,
+        formatPhoneNumber,
+    ]);
 
     const resetChanges = useCallback(() => {
         setSelectedOptions([]);

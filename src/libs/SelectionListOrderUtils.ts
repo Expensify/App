@@ -21,4 +21,22 @@ function moveInitialSelectionToTop<T extends {value: string}>(items: T[], initia
     return [...selected, ...remaining];
 }
 
+/**
+ * Rebuilds a frozen pre-selection section by syncing each item's `isSelected` flag against the
+ * current selection, leaving row positions untouched. Pair with `useFrozenPreSelection` to render
+ * a stable top section whose checkmarks update on toggle without rows jumping.
+ */
+function buildFrozenSection<T extends {isSelected?: boolean}>(frozen: T[], isCurrentlySelected: (item: T) => boolean): T[] {
+    return frozen.map((item) => ({...item, isSelected: isCurrentlySelected(item)}));
+}
+
+/**
+ * Excludes items that already appear in the frozen pre-selection section so they don't render
+ * twice when reused in Recents / Contacts sections below.
+ */
+function excludeFrozenItems<T>(items: T[], isFrozen: (item: T) => boolean): T[] {
+    return items.filter((item) => !isFrozen(item));
+}
+
+export {buildFrozenSection, excludeFrozenItems};
 export default moveInitialSelectionToTop;

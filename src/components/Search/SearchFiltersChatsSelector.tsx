@@ -1,11 +1,12 @@
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useFilteredOptions from '@hooks/useFilteredOptions';
+import useFrozenPreSelection from '@hooks/useFrozenPreSelection';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
@@ -18,6 +19,7 @@ import {createOptionFromReport, filterAndOrderOptions, getAlternateText, getSear
 import type {Option} from '@libs/OptionsListUtils';
 import type {OptionWithKey, SelectionListSections} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
+import {buildFrozenSection, excludeFrozenItems} from '@libs/SelectionListOrderUtils';
 import Navigation from '@navigation/Navigation';
 import {searchInServer} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -105,18 +107,12 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
     });
 
-    // Frozen snapshot of pre-selected reports captured on the first render where options are
-    // initialized and the Recents list is long enough to warrant pinning pre-selected items at
-    // the top so they're not lost in a long list. `null` means we haven't captured yet; an empty
-    // array means we evaluated and chose not to pin. Captured during render (per React's "set
-    // state during render" pattern) so the snapshot is taken at the same render where data first
-    // becomes available.
-    const [frozenSelectedReports, setFrozenSelectedReports] = useState<OptionData[] | null>(null);
-    if (frozenSelectedReports === null && !isLoading) {
-        setFrozenSelectedReports(chatOptions.recentReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? selectedOptions : []);
-    }
-
-    const frozenReportIDsSet = useMemo(() => new Set((frozenSelectedReports ?? []).map((report) => report.reportID)), [frozenSelectedReports]);
+    const {frozen: frozenSelectedReports, isFrozen: isReportFrozen} = useFrozenPreSelection<OptionData>({
+        selectedOptions,
+        isReady: !isLoading,
+        visibleCount: chatOptions.recentReports.length,
+        getKeys: (option) => [option.reportID],
+    });
 
     const sections: SelectionListSections = [];
 
@@ -127,7 +123,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         // Frozen pre-selected reports pinned at the top. They keep their order from capture; their
         // `isSelected` flag tracks the current selection so toggling them in place updates the
         // checkmark without moving the row.
-        const frozenReports = (frozenSelectedReports ?? []).map((report) => (selectedReportIDsSet.has(report.reportID) ? getSelectedOptionData(report) : {...report, isSelected: false}));
+        const frozenReports = buildFrozenSection(frozenSelectedReports, (report) => selectedReportIDsSet.has(report.reportID));
         if (frozenReports.length > 0) {
             sections.push({
                 data: frozenReports,
@@ -138,7 +134,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         // Selected reports that aren't pinned in the frozen section and aren't in the current
         // filtered results (e.g., they no longer match the search term after server-side search
         // ran). Show them in a dedicated section so they remain visible.
-        const extraSelectedReports = selectedOptions.filter((report) => !visibleReportIDsSet.has(report.reportID) && !frozenReportIDsSet.has(report.reportID));
+        const extraSelectedReports = selectedOptions.filter((report) => !visibleReportIDsSet.has(report.reportID) && !isReportFrozen(report));
         if (extraSelectedReports.length > 0) {
             sections.push({
                 data: extraSelectedReports,
@@ -149,9 +145,9 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         // Keep selected reports in their natural position in the list (marked isSelected) rather than
         // moving them into a top section, so the user's scroll position isn't disrupted on toggle.
         // Filter out frozen items to avoid duplication with the top section.
-        const visibleReports = chatOptions.recentReports
-            .filter((report) => !frozenReportIDsSet.has(report.reportID))
-            .map((report) => (selectedReportIDsSet.has(report.reportID) ? getSelectedOptionData(report) : report));
+        const visibleReports = excludeFrozenItems(chatOptions.recentReports, isReportFrozen).map((report) =>
+            selectedReportIDsSet.has(report.reportID) ? getSelectedOptionData(report) : report,
+        );
         sections.push({
             data: visibleReports,
             sectionIndex: 2,
