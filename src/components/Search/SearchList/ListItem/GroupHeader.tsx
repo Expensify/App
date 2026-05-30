@@ -406,6 +406,7 @@ function GroupHeader({item, groupBy, searchType, columns, canSelectMultiple, isE
                             }}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={isExpanded ? CONST.ACCESSIBILITY_LABELS.COLLAPSE : CONST.ACCESSIBILITY_LABELS.EXPAND}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_EXPAND_TOGGLE}
                         >
                             <View style={[styles.pv2, styles.ph3, styles.pb1, styles.pt1]}>
                                 <View style={[styles.borderBottom, styles.borderNone]} />
