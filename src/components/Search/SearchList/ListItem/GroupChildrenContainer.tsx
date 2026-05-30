@@ -231,6 +231,10 @@ function GroupChildrenContainer({
         opacity: animatedOpacity.get(),
     }));
 
+    if (!isExpanded && !isRendered) {
+        return null;
+    }
+
     return (
         <View style={[styles.mh5, {backgroundColor: theme.highlightBG}, isLastItem && [styles.tableBottomRadius, styles.overflowHidden]]}>
             <Animated.View style={contentAnimatedStyle}>
