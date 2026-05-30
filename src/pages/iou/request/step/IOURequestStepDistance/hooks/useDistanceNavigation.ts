@@ -18,6 +18,7 @@ type UseDistanceNavigationParams = {
     /** Type of IOU flow (request, split, track, etc.). */
     iouType: IOUType;
 
+    /** Route param: the IOU action (create / edit). */
     action: IOUAction;
 
     /** The chat/expense report that owns this transaction. */
