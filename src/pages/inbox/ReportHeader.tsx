@@ -46,28 +46,28 @@ function ReportHeader() {
     const {reportPendingAction, reportErrors} = getReportOfflinePendingActionAndErrors(report);
     const pendingAction = reportPendingAction ?? report?.pendingFields?.reimbursed;
 
-    const onBackButtonPress = (prioritizeBackTo = false, options?: {afterTransition?: () => void}) => {
+    const onBackButtonPress = (prioritizeBackTo = false) => {
         if (isInSidePanel) {
-            closeSidePanel({afterTransition: options?.afterTransition});
+            closeSidePanel();
             return;
         }
         if (backTo === SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
-            Navigation.goBack(undefined, options);
+            Navigation.goBack();
             return;
         }
         if (prioritizeBackTo && backTo) {
-            Navigation.goBack(backTo as Route, options);
+            Navigation.goBack(backTo as Route);
             return;
         }
         if (isInNarrowPaneModal) {
-            Navigation.goBack(undefined, options);
+            Navigation.goBack();
             return;
         }
         if (backTo) {
-            Navigation.goBack(backTo as Route, options);
+            Navigation.goBack(backTo as Route);
             return;
         }
-        Navigation.goBack(undefined, options);
+        Navigation.goBack();
     };
 
     if (isTransactionThreadView) {
