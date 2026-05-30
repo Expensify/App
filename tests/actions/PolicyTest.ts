@@ -7112,8 +7112,6 @@ describe('actions/Policy', () => {
                 total: 5000,
             };
 
-            // IOU transactions are stored with a positive `convertedAmount`; the expense-report
-            // sign convention flips it on storage so the table total renders positive.
             const transaction: Transaction = {
                 ...createRandomTransaction(900),
                 transactionID: 'transaction900',
