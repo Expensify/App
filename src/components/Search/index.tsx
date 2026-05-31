@@ -1120,9 +1120,9 @@ function Search({
 
     const {stableSortedData, hasCachedOptimisticItem} = useStableOptimisticSortedData(sortedData, searchResults, optimisticTrackingState);
 
-    // Mirrors stableSortedData; only flattens for Spend grouped views (validGroupBy) where rows render as [header, ...children].
+    // Flatten any group-shaped data so children are anchorable; header exclusion is gated separately on validGroupBy.
     const flattenedShiftRangeItems = useMemo<SearchListItem[]>(() => {
-        if (!validGroupBy) {
+        if (!areItemsGrouped) {
             return stableSortedData;
         }
         const isGroupArray = (items: SearchListItem[]): items is TransactionGroupListItemType[] => items.every((g) => isTransactionGroupListItemType(g) && Array.isArray(g.transactions));
@@ -1130,7 +1130,7 @@ function Search({
             return stableSortedData;
         }
         return stableSortedData.flatMap((g) => [g, ...(g.transactions ?? [])]);
-    }, [stableSortedData, validGroupBy]);
+    }, [stableSortedData, areItemsGrouped]);
 
     const selectedTransactionKeySet = useMemo(() => new Set(Object.keys(selectedTransactions ?? {})), [selectedTransactions]);
 
