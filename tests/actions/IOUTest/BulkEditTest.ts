@@ -1721,6 +1721,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReportID}`, {expensify_text_title: policy.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]});
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${txn1ID}`, txn1);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${txn2ID}`, txn2);
@@ -1747,12 +1748,12 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
             });
 
-            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access */
             const iouReportNames = writeSpy.mock.calls.flatMap((call) => {
                 const onyxParams = call[2] as {optimisticData: any[]};
                 return onyxParams.optimisticData.filter((u) => u.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`).map((u) => (u.value as Report).reportName);
             });
-            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access */
 
             // Without cumulative tracking, iteration 2 would see stale Onyx txn1 (Jan 10) and produce "Trip from Jan 10 to Jan 15".
             expect(iouReportNames.at(-1)).toBe('Trip from Jan 15 to Jan 15, 2025');
@@ -1811,6 +1812,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReportID}`, {expensify_text_title: policy.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]});
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
             await waitForBatchedUpdates();
@@ -1834,12 +1836,12 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
             });
 
-            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access */
             const iouReportWrites = writeSpy.mock.calls.flatMap((call) => {
                 const onyxParams = call[2] as {optimisticData: any[]};
                 return onyxParams.optimisticData.filter((u) => u.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`).map((u) => u.value as Report);
             });
-            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access */
 
             // Without the !isTotalIndeterminate gate, the recompute would bake "Trip $100.00" (stale total) into the title.
             expect(iouReportWrites.at(-1)?.reportName).toBe(ORIGINAL_REPORT_NAME);
@@ -1891,6 +1893,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReportID}`, {expensify_text_title: policy.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]});
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${onyxTxnID}`, onyxTxn);
             await waitForBatchedUpdates();
@@ -1917,12 +1920,12 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
             });
 
-            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access */
             const iouReportNames = writeSpy.mock.calls.flatMap((call) => {
                 const onyxParams = call[2] as {optimisticData: any[]};
                 return onyxParams.optimisticData.filter((u) => u.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`).map((u) => (u.value as Report).reportName);
             });
-            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access */
 
             // Without snapshot merging, the snapshot-only Jan 05 would be invisible and the start date would resolve to Jan 15.
             expect(iouReportNames.at(-1)).toBe('Trip from Jan 05 to Jan 15, 2025');
@@ -1996,12 +1999,12 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
             });
 
-            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access */
             const iouReportNames = writeSpy.mock.calls.flatMap((call) => {
                 const onyxParams = call[2] as {optimisticData: any[]};
                 return onyxParams.optimisticData.filter((u) => u.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`).map((u) => (u.value as Report).reportName);
             });
-            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access */
 
             // expensify_text_title=null signals "manually renamed". Without RNVP loaded we can't tell, so must NOT overwrite.
             expect(iouReportNames.at(-1)).toBe(MANUAL_TITLE);
@@ -2053,6 +2056,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReportID}`, {expensify_text_title: policy.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]});
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
             await waitForBatchedUpdates();
@@ -2076,12 +2080,12 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
             });
 
-            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access */
             const iouReportNames = writeSpy.mock.calls.flatMap((call) => {
                 const onyxParams = call[2] as {optimisticData: any[]};
                 return onyxParams.optimisticData.filter((u) => u.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`).map((u) => (u.value as Report).reportName);
             });
-            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access */
 
             // Title must be preserved — applying the raw "Total: {report:total:EUR}" would be worse than the BE-computed value.
             expect(iouReportNames.at(-1)).toBe(BE_COMPUTED_TITLE);
