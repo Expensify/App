@@ -13,6 +13,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import variables from '@styles/variables';
 import {createTransactionThreadReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -90,10 +91,10 @@ function DuplicateTransactionItem({transaction, isLastItem, isSelected, shouldSh
                 role={getButtonRole(true)}
                 isNested
                 hoverStyle={styles.hoveredComponentBG}
-                style={[!isLastItem && styles.borderBottom, styles.pt4, styles.pb4, styles.pl4, styles.pr4]}
+                style={[!isLastItem && styles.borderBottom, styles.pt4, styles.pb4, styles.pl4, shouldShowSelection ? styles.pr0 : styles.pr4]}
             >
                 <View style={styles.flexRow}>
-                    <View style={[styles.flex1, shouldShowSelection && styles.mr3]}>
+                    <View style={styles.flex1}>
                         {!!reportStatusItem && (
                             <UserInfoAndActionButtonRow
                                 item={reportStatusItem}
@@ -119,13 +120,13 @@ function DuplicateTransactionItem({transaction, isLastItem, isSelected, shouldSh
                         />
                     </View>
                     {shouldShowSelection && (
-                        <View style={[styles.justifyContentCenter, styles.alignItemsCenter]}>
+                        <View style={[styles.justifyContentCenter, styles.alignItemsCenter, {width: variables.componentSizeMedium}]}>
                             <RadioButton
                                 isChecked={isSelected}
                                 onPress={() => onSelectTransaction(transaction.transactionID)}
                                 accessibilityLabel={CONST.ROLE.RADIO}
                                 shouldStopMouseDownPropagation
-                                style={[styles.justifyContentCenter, styles.alignItemsCenter]}
+                                style={[styles.justifyContentCenter, {width: variables.componentSizeMedium, height: variables.w44, paddingLeft: 10, paddingRight: 14}]}
                             />
                         </View>
                     )}
