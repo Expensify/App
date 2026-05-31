@@ -10,59 +10,45 @@ import CONST from '@src/CONST';
  * combined item count is below `STANDARD_LIST_ITEM_LIMIT`.
  */
 function useFrozenPreSelection<TItem extends ListItem>(sections: Array<Section<TItem>>, initialSelectedValues: string[], canCapture: boolean): Array<Section<TItem>> {
-    // null = not captured yet; [] = captured but list was too short to pin.
-    const [frozenKeys, setFrozenKeys] = useState<string[] | null>(null);
+    // null = not captured yet; empty Set = captured but list was too short to pin.
+    const [frozenKeys, setFrozenKeys] = useState<Set<string> | null>(null);
 
     if (frozenKeys === null && canCapture) {
         const totalCount = sections.reduce((sum, section) => sum + section.data.length, 0);
         if (totalCount < CONST.STANDARD_LIST_ITEM_LIMIT) {
-            setFrozenKeys([]);
+            setFrozenKeys(new Set());
         } else {
             const initialSet = new Set(initialSelectedValues);
-            const captured: string[] = [];
-            const seen = new Set<string>();
+            const captured = new Set<string>();
             for (const section of sections) {
                 for (const item of section.data) {
                     const key = item.keyForList;
-                    if (!key || !initialSet.has(key) || seen.has(key)) {
-                        continue;
+                    if (key && initialSet.has(key)) {
+                        captured.add(key);
                     }
-                    seen.add(key);
-                    captured.push(key);
                 }
             }
             setFrozenKeys(captured);
         }
     }
 
-    if (!frozenKeys || frozenKeys.length === 0) {
+    if (!frozenKeys || frozenKeys.size === 0) {
         return sections;
     }
 
-    const frozenSet = new Set(frozenKeys);
-    // Latest live row per frozen key, sourced from the input sections so toggles refresh in place.
-    const liveByKey = new Map<string, TItem>();
+    // Walk sections in order to collect the latest live rows for frozen keys so toggles refresh in place.
+    const frozenData: TItem[] = [];
     for (const section of sections) {
         for (const item of section.data) {
-            const key = item.keyForList;
-            if (key && frozenSet.has(key) && !liveByKey.has(key)) {
-                liveByKey.set(key, item);
+            if (item.keyForList && frozenKeys.has(item.keyForList)) {
+                frozenData.push(item);
             }
-        }
-    }
-
-    // Walk captured keys to preserve original order; drop frozen rows that aren't in any input section.
-    const frozenData: TItem[] = [];
-    for (const key of frozenKeys) {
-        const live = liveByKey.get(key);
-        if (live) {
-            frozenData.push(live);
         }
     }
 
     const filteredSections = sections.map((section) => ({
         ...section,
-        data: section.data.filter((item) => !item.keyForList || !frozenSet.has(item.keyForList)),
+        data: section.data.filter((item) => !item.keyForList || !frozenKeys.has(item.keyForList)),
     }));
 
     if (frozenData.length === 0) {
