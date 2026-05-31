@@ -1819,7 +1819,7 @@ describe('actions/IOU/BulkEdit', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
-            // Currency edit (USD → EUR) — calculateDiffAmount returns null, isTotalIndeterminate=true.
+            // Currency edit triggers isTotalIndeterminate=true.
             updateMultipleMoneyRequests({
                 transactionIDs: [txnID],
                 changes: {currency: CONST.CURRENCY.EUR},
@@ -1938,7 +1938,6 @@ describe('actions/IOU/BulkEdit', () => {
             const txnID = 'txn-manual-1';
             const MANUAL_TITLE = 'My Custom Trip Name';
 
-            // Policy has a formula title — if RNVP loaded normally, the formula would resolve.
             const policy: Policy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                 id: policyID,
@@ -1973,7 +1972,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             const txn: Transaction = {...createRandomTransaction(1), transactionID: txnID, reportID: iouReportID, created: '2025-01-10'};
 
-            // Intentionally DON'T set REPORT_NAME_VALUE_PAIRS — simulates the not-loaded state where we can't tell if the user manually renamed the report.
+            // REPORT_NAME_VALUE_PAIRS intentionally not set — simulates the not-loaded state.
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
@@ -2004,7 +2003,7 @@ describe('actions/IOU/BulkEdit', () => {
             });
             /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 
-            // Manually renamed reports set expensify_text_title to null in RNVP. Without RNVP loaded we can't tell, so we must NOT overwrite.
+            // expensify_text_title=null signals "manually renamed". Without RNVP loaded we can't tell, so must NOT overwrite.
             expect(iouReportNames.at(-1)).toBe(MANUAL_TITLE);
 
             writeSpy.mockRestore();
@@ -2018,7 +2017,7 @@ describe('actions/IOU/BulkEdit', () => {
             const txnID = 'txn-unresolved-1';
             const BE_COMPUTED_TITLE = 'Total: €92.50';
 
-            // {report:total:EUR} forces EUR display; report is in USD so formatAmount returns null → Formula.compute falls back to the raw token.
+            // Cross-currency formula: Formula.compute can't resolve, falls back to the raw token.
             const policy: Policy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                 id: policyID,
