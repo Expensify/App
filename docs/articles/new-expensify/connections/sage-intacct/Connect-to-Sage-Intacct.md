@@ -186,11 +186,11 @@ If auto-export fails, the specific error will appear in the report’s comment s
 
 If you need to update your Web Services credentials (for example, after a password rotation):
 
-1. In Expensify, from the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting**
-2. Click the three dots **(⋮)** next to the Sage Intacct connection.
-3. Click **Update credentials**
-4. Enter your updated Web Services user credentials
-5. Click **Confirm**
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces** > **[Workspace Name]** > **Accounting**.
+2. Select the three dots **(⋮)** next to the Sage Intacct connection.
+3. Click **Update credentials**.
+4. Enter your updated Web Services user credentials.
+5. Click **Confirm**.
 
 ## Can I export negative expenses to Sage Intacct?
 
