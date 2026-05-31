@@ -1120,9 +1120,9 @@ function Search({
 
     const {stableSortedData, hasCachedOptimisticItem} = useStableOptimisticSortedData(sortedData, searchResults, optimisticTrackingState);
 
-    // Mirrors stableSortedData (what the renderer iterates) so ranges stay consistent with optimistic injections.
+    // Mirrors stableSortedData; only flattens for Spend grouped views (validGroupBy) where rows render as [header, ...children].
     const flattenedShiftRangeItems = useMemo<SearchListItem[]>(() => {
-        if (!areItemsGrouped) {
+        if (!validGroupBy) {
             return stableSortedData;
         }
         const isGroupArray = (items: SearchListItem[]): items is TransactionGroupListItemType[] => items.every((g) => isTransactionGroupListItemType(g) && Array.isArray(g.transactions));
@@ -1130,14 +1130,14 @@ function Search({
             return stableSortedData;
         }
         return stableSortedData.flatMap((g) => [g, ...(g.transactions ?? [])]);
-    }, [stableSortedData, areItemsGrouped]);
+    }, [stableSortedData, validGroupBy]);
 
     const selectedTransactionKeySet = useMemo(() => new Set(Object.keys(selectedTransactions ?? {})), [selectedTransactions]);
 
     const rangeApi = useShiftRangeSelection<SearchListItem>({
         items: flattenedShiftRangeItems,
         onApplyRange: onApplyShiftRange,
-        isHeaderItem: areItemsGrouped ? isTransactionGroupListItemType : undefined,
+        isHeaderItem: validGroupBy ? isTransactionGroupListItemType : undefined,
         getSelectedKeys: () => selectedTransactionKeySet,
     });
 
