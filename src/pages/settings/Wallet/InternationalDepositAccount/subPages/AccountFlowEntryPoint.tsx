@@ -41,7 +41,7 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
 
     useEffect(() => {
-        clearPersonalBankAccount();
+        clearPersonalBankAccount(true);
     }, []);
 
     const handleConnectManually = () => {
