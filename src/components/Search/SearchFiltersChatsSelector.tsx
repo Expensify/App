@@ -19,7 +19,6 @@ import {createOptionFromReport, filterAndOrderOptions, filterReports, getAlterna
 import type {Option} from '@libs/OptionsListUtils';
 import type {OptionWithKey, SearchOptionData, SelectionListSections} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
-import {buildFrozenSection, excludeFrozenItems} from '@libs/SelectionListOrderUtils';
 import Navigation from '@navigation/Navigation';
 import {searchInServer} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -73,7 +72,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
     const sortedActions = useSortedActions();
 
-    // Reads from current Onyx state, so frozen rows refresh their text when reports hydrate.
+    // Reads from current Onyx state, so selected rows render with their latest data.
     const buildOptionFromReportID = (id: string): OptionData => {
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${id}`];
         const reportData = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`];
@@ -110,41 +109,35 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
     });
 
-    const {frozen: frozenSelectedReports, isFrozen: isReportFrozen} = useFrozenPreSelection<OptionData>({
-        selectedOptions,
+    const selectedReportIDsSet = new Set(selectedReportIDs);
+    // Mark selected rows in place so the checkmark moves with the toggle without reordering the list.
+    const recentReportsWithSelection = chatOptions.recentReports.map((report) => (selectedReportIDsSet.has(report.reportID) ? getSelectedOptionData(report) : report));
+    const recentsSectionIndex = 2;
+    const listSectionsInput = [{data: recentReportsWithSelection, sectionIndex: recentsSectionIndex}];
+
+    const {frozenSections, listSections, isFrozen} = useFrozenPreSelection<OptionData>({
+        sections: listSectionsInput,
+        snapshotSource: selectedOptions,
+        getKey: (option) => option.reportID,
         isReady: !isLoading,
-        // Wait for the pre-selection to hydrate before snapshotting, so a future async source can't snapshot an empty list.
+        // Wait for the pre-selection to hydrate so a future async source can't snapshot an empty list.
         canCapture: initialReportIDs.length === 0 || selectedReportIDs.length > 0,
         // Use the unfiltered count so an active search at first render doesn't disable pinning.
         visibleCount: defaultOptions.recentReports.length,
     });
 
-    // Rebuild each render — the snapshot fixes which reports are pinned, not what they display.
-    const liveFrozenReports = frozenSelectedReports.map((frozen) => buildOptionFromReportID(frozen.reportID));
-
     const sections: SelectionListSections = [];
-
     if (!isLoading) {
-        const selectedReportIDsSet = new Set(selectedReportIDs);
         const visibleReportIDsSet = new Set(chatOptions.recentReports.map((report) => report.reportID));
 
-        // Use filterReports so frozen / extra-selected sections match Recents on what counts as a hit.
-        const reportIDsMatchingSearch =
-            cleanSearchTerm === '' ? null : new Set(filterReports([...liveFrozenReports, ...selectedOptions] as SearchOptionData[], [cleanSearchTerm]).map((report) => report.reportID));
+        // Match the recents/contacts matcher so extra-selected respects the search term the same way.
+        const reportIDsMatchingSearch = cleanSearchTerm === '' ? null : new Set(filterReports(selectedOptions as SearchOptionData[], [cleanSearchTerm]).map((report) => report.reportID));
         const matchesSearchTerm = (report: OptionData) => reportIDsMatchingSearch === null || reportIDsMatchingSearch.has(report.reportID);
 
-        // Pinned pre-selection: order is frozen, checkmark tracks live selection. Search-filtered rows
-        // stay in the snapshot so they still dedupe Recents below.
-        const frozenReports = buildFrozenSection(liveFrozenReports.filter(matchesSearchTerm), (report) => selectedReportIDsSet.has(report.reportID));
-        if (frozenReports.length > 0) {
-            sections.push({
-                data: frozenReports,
-                sectionIndex: 0,
-            });
-        }
+        sections.push(...frozenSections);
 
-        // Selected reports that don't show up anywhere else — surface them but respect the search term.
-        const extraSelectedReports = selectedOptions.filter((report) => !visibleReportIDsSet.has(report.reportID) && !isReportFrozen(report) && matchesSearchTerm(report));
+        // Selected reports that don't show up in Recents and weren't pre-selected — surface them but respect the search term.
+        const extraSelectedReports = selectedOptions.filter((report) => !visibleReportIDsSet.has(report.reportID) && !isFrozen(report) && matchesSearchTerm(report));
         if (extraSelectedReports.length > 0) {
             sections.push({
                 data: extraSelectedReports,
@@ -152,14 +145,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             });
         }
 
-        // Rest of Recents in their natural position. Selected rows just get the checkmark — moving them would jump the scroll.
-        const visibleReports = excludeFrozenItems(chatOptions.recentReports, isReportFrozen).map((report) =>
-            selectedReportIDsSet.has(report.reportID) ? getSelectedOptionData(report) : report,
-        );
-        sections.push({
-            data: visibleReports,
-            sectionIndex: 2,
-        });
+        sections.push(...listSections);
     }
     const noResultsFound = didScreenTransitionEnd && !isLoading && sections.every((section) => section.data.length === 0);
     const headerMessage = noResultsFound ? translate('common.noResultsFound') : undefined;

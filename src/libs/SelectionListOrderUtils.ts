@@ -21,18 +21,4 @@ function moveInitialSelectionToTop<T extends {value: string}>(items: T[], initia
     return [...selected, ...remaining];
 }
 
-/**
- * Refreshes the `isSelected` flag on frozen rows without reordering them. Each frozen item must
- * already have a stable `keyForList`; this helper won't add one.
- */
-function buildFrozenSection<T extends {isSelected?: boolean}>(frozen: T[], isCurrentlySelected: (item: T) => boolean): T[] {
-    return frozen.map((item) => ({...item, isSelected: isCurrentlySelected(item)}));
-}
-
-/** Drops items already shown in the frozen top section so they don't render twice. */
-function excludeFrozenItems<T>(items: T[], isFrozen: (item: T) => boolean): T[] {
-    return items.filter((item) => !isFrozen(item));
-}
-
-export {buildFrozenSection, excludeFrozenItems};
 export default moveInitialSelectionToTop;
