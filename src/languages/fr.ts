@@ -1024,7 +1024,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: ({days}: {days: number}) => `Essai gratuit : plus que ${days} ${days === 1 ? 'jour' : 'jours'} !`,
             offer50Body: 'Profitez de 50 % de réduction sur votre première année',
             offer25Body: 'Obtenez 25 % de réduction sur votre première année',
-            addCardBody: 'N’attendez pas ! Ajoutez votre carte de paiement maintenant.',
+            addCardBody: 'Ajouter une carte de paiement',
             ctaClaim: 'Demande',
             ctaAdd: 'Ajouter une carte',
             timeRemaining: ({formattedTime}: {formattedTime: string}) => `Temps restant : ${formattedTime}`,
@@ -2594,6 +2594,8 @@ ${amount} pour ${merchant} - ${date}`,
         addApprovalsTitle: 'Approbations',
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `dépenses de ${members}, et l'approbateur est ${approvers}`,
         addApprovalButton: 'Ajouter un workflow d’approbation',
+        editWorkflowAction: 'Modifier',
+        addAgentAction: 'Ajouter un agent',
         findWorkflow: 'Rechercher un flux de travail',
         addApprovalTip: 'Ce workflow par défaut s’applique à tous les membres, sauf si un workflow plus spécifique existe.',
         approver: 'Approbateur',
@@ -2815,9 +2817,9 @@ ${amount} pour ${merchant} - ${date}`,
         title: 'Modifier l’agent',
         agentName: 'Nom de l’agent',
         instructions: 'Écrire des instructions personnalisées',
-        chatWithAgent: 'Discuter avec l\u2019agent',
+        chatWithAgent: 'Discuter avec l’agent',
         copilotIntoAccount: 'Copilote dans le compte',
-        deleteAgent: 'Supprimer l\u2019agent',
+        deleteAgent: 'Supprimer l’agent',
         deleteAgentTitle: 'Supprimer l’agent ?',
         deleteAgentMessage: 'Voulez-vous vraiment supprimer cet agent ? Cette action est irréversible.',
     },
@@ -2827,10 +2829,7 @@ ${amount} pour ${merchant} - ${date}`,
     expenseRulesPage: {
         title: 'Règles de dépenses',
         findRule: 'Rechercher une règle',
-        emptyRules: {
-            title: 'Vous n’avez créé aucune règle',
-            subtitle: 'Ajoutez une règle pour automatiser la création de notes de frais.',
-        },
+        emptyRules: {title: 'Aucune règle pour le moment', subtitle: 'Ajoutez une règle pour automatiser la création de notes de frais.'},
         changes: {
             billableUpdate: (value: boolean) => `Mettre à jour la dépense ${value ? 'facturable' : 'non refacturable'}`,
             categoryUpdate: (value: string) => `Mettre à jour la catégorie sur « ${value} »`,
@@ -5589,7 +5588,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             needCategoryForExportToIntegration: (connectionName: string) => `Toutes les dépenses doivent être catégorisées afin de pouvoir être exportées vers ${connectionName}.`,
             subtitle: 'Obtenez une meilleure vue d’ensemble de l’endroit où l’argent est dépensé. Utilisez nos catégories par défaut ou ajoutez les vôtres.',
             emptyCategories: {
-                title: "Vous n'avez créé aucune catégorie",
+                title: 'Aucune catégorie pour le moment',
                 subtitle: 'Ajoutez une catégorie pour organiser vos dépenses.',
                 subtitleWithAccounting: (accountingPageURL: string) =>
                     `<muted-text><centered-text>Vos catégories sont actuellement importées depuis une connexion comptable. Rendez-vous dans la section <a href="${accountingPageURL}">comptabilité</a> pour effectuer des modifications.</centered-text></muted-text>`,
@@ -5902,7 +5901,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             deleteConfirmation: 'Voulez-vous vraiment supprimer ce champ de note de frais ?',
             deleteFieldsConfirmation: 'Voulez-vous vraiment supprimer ces champs de note de frais ?',
             emptyReportFields: {
-                title: 'Vous n’avez créé aucun champ de note de frais',
+                title: 'Aucun champ de note de frais pour le moment',
                 subtitle: 'Ajoutez un champ personnalisé (texte, date ou liste déroulante) qui apparaît sur les notes de frais.',
             },
             subtitle: 'Les champs de note de frais s’appliquent à toutes les dépenses et peuvent être utiles lorsque vous souhaitez demander des informations supplémentaires.',
@@ -5928,10 +5927,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             disableValues: 'Désactiver les valeurs',
             enableValue: 'Activer la valeur',
             enableValues: 'Activer les valeurs',
-            emptyReportFieldsValues: {
-                title: "Vous n'avez créé aucune valeur de liste",
-                subtitle: 'Ajoutez des valeurs personnalisées à faire apparaître sur les notes de frais.',
-            },
+            emptyReportFieldsValues: {title: 'Pas encore de valeurs de liste', subtitle: 'Ajoutez des valeurs personnalisées à faire apparaître sur les notes de frais.'},
             deleteValuePrompt: 'Voulez-vous vraiment supprimer cette valeur de liste ?',
             deleteValuesPrompt: 'Voulez-vous vraiment supprimer ces valeurs de liste ?',
             listValueRequiredError: 'Veuillez saisir un nom de valeur de liste',
@@ -5967,7 +5963,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             subtitleWithDependentTags: (importSpreadsheetLink: string) =>
                 `<muted-text>Les tags ajoutent des moyens plus détaillés de classer les coûts. Vous utilisez des <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">tags dépendants</a>. Vous pouvez <a href="${importSpreadsheetLink}">réimporter une feuille de calcul</a> pour mettre à jour vos tags.</muted-text>`,
             emptyTags: {
-                title: 'Vous n’avez créé aucun tag',
+                title: 'Aucun tag pour le moment',
                 subtitle: 'Ajoutez un tag pour suivre les projets, les lieux, les services et plus encore.',
                 subtitleHTML: `<muted-text><centered-text>Ajoutez des tags pour suivre les projets, les emplacements, les services, et plus encore. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">En savoir plus</a> sur le formatage des fichiers de tags pour l’importation.</centered-text></muted-text>`,
                 subtitleWithAccounting: (accountingPageURL: string) =>
@@ -6242,7 +6238,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 copyExisting: 'Copier l’existant',
                 createNew: 'Créer nouveau',
                 spendRulesEmptyStateTitle: 'Aucune règle à sélectionner',
-                spendRulesEmptyStateSubtitle: 'Vous n’avez encore créé aucune règle. Vous pouvez en créer une depuis l’écran précédent.',
+                spendRulesEmptyStateSubtitle: 'Aucune règle pour le moment. Vous pouvez en créer une depuis l’écran précédent.',
             },
             deactivateCardModal: {
                 deactivate: 'Désactiver',
@@ -7863,6 +7859,52 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `a ajouté le champ de note de frais ${fieldType} « ${fieldName} »${defaultValue ? ` avec la valeur par défaut « ${defaultValue} »` : ''}`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'activé' : 'désactivé'} l’exigence d’achats par carte d’entreprise`,
+        expensifyCardRule: {
+            actionVerb: {block: 'bloqué', allow: 'autorisé'},
+            amountOperator: {over: 'terminé', under: 'sous'},
+            amountFilter: ({operator, amount}: {operator: string; amount: string}) => `montants ${operator} ${amount}`,
+            theCard: 'la carte',
+            multipleCards: ({count}: {count: number}) => ({
+                one: '1 carte',
+                other: `${count} cartes`,
+            }),
+            addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
+                let text = verb;
+                if (filters !== '') {
+                    text += ` ${filters}`;
+                }
+                text += ` sur ${cards}`;
+                return text;
+            },
+            removeRule: ({cards}: {cards: string}) => `a supprimé la règle de dépense de ${cards}`,
+            restrictionVerb: {block: 'bloquer', allow: 'autoriser uniquement'},
+            update: {
+                modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) =>
+                    `a modifié la règle de dépense de ${fromAction} à ${toAction} sur ${cards}`,
+                appliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: 'règle de dépense appliquée à 1 carte supplémentaire',
+                    other: `règle de dépense appliquée à ${count} cartes supplémentaires`,
+                }),
+                phraseVerb: {added: 'ajouté', removed: 'supprimé', changed: 'modifié', set: 'définir', applied: 'appliqué'},
+                bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} commerçant « ${value} »` : `commerçant « ${value} »`),
+                bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `${adjective} marchand de « ${oldValue} » à « ${newValue} »` : `commerçant de « ${oldValue} » à « ${newValue} »`,
+                bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) =>
+                    adjective !== '' ? `Catégorie de dépense ${adjective} « ${value} »` : `catégorie de dépense « ${value} »`,
+                bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `Catégorie de dépense ${adjective} de « ${oldValue} » à « ${newValue} »` : `catégorie de dépense de « ${oldValue} » à « ${newValue} »`,
+                bodyMaxAmount: 'montant maximal',
+                bodyMaxAmountSet: ({value}: {value: string}) => `montant maximum à ${value}`,
+                bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `montant maximal de ${oldValue} à ${newValue}`,
+                bodyAppliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: 'règle de dépense pour 1 carte supplémentaire',
+                    other: `règle de dépense pour ${count} cartes supplémentaires`,
+                }),
+                bodyRemovedFromCards: ({cards}: {cards: string}) => `règle de dépense provenant de ${cards}`,
+                composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} sur ${cards}`,
+                composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} de ${cards}`,
+            },
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',
@@ -7938,29 +7980,23 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 subtitle: `Essayez de modifier vos critères de recherche ou de créer quelque chose avec le bouton +.`,
             },
             emptyExpenseResults: {
-                title: 'Vous n’avez encore créé aucune dépense',
+                title: 'Aucune dépense pour le moment',
                 subtitle: 'Créez une dépense ou faites un essai d’Expensify pour en savoir plus.',
                 subtitleWithOnlyCreateButton: 'Utilisez le bouton vert ci-dessous pour créer une dépense.',
             },
             emptyReportResults: {
-                title: 'Vous n’avez encore créé aucune note de frais',
+                title: 'Aucune note de frais pour le moment',
                 subtitle: 'Créez une note de frais ou faites un essai d’Expensify pour en savoir plus.',
                 subtitleWithOnlyCreateButton: 'Utilisez le bouton vert ci-dessous pour créer une note de frais.',
             },
             emptyInvoiceResults: {
-                title: dedent(`
-                    Vous n'avez pas encore créé de factures
-                `),
+                title: 'Aucune facture pour le moment',
                 subtitle: 'Envoyez une facture ou faites un essai d’Expensify pour en savoir plus.',
                 subtitleWithOnlyCreateButton: 'Utilisez le bouton vert ci-dessous pour envoyer une facture.',
                 subtitleCannotSend: "Vous avez besoin d'un espace de travail avec Invoices activé pour envoyer des factures.",
                 subtitleCannotSendWithTestDrive: "Vous avez besoin d'un espace de travail avec Invoices activé pour envoyer des factures. Faites un essai d'Expensify pour en savoir plus.",
             },
-            emptyTripResults: {
-                title: 'Aucun voyage à afficher',
-                subtitle: 'Commencez en réservant votre premier voyage ci-dessous.',
-                buttonText: 'Réserver un voyage',
-            },
+            emptyTripResults: {title: 'Aucun voyage pour le moment', subtitle: 'Commencez en réservant votre premier voyage ci-dessous.', buttonText: 'Réserver un voyage'},
             emptySubmitResults: {
                 title: 'Aucune dépense à soumettre',
                 subtitle: 'Tout est bon. Faites un tour d’honneur !',
@@ -8157,6 +8193,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         exportAll: {
             selectAllMatchingItems: 'Sélectionnez tous les éléments correspondants',
             allMatchingItemsSelected: 'Tous les éléments correspondants sont sélectionnés',
+            selectAllOnThisPage: 'Tout sélectionner sur cette page',
         },
         errors: {
             pleaseSelectDatesForBothFromAndTo: 'Veuillez sélectionner des dates pour De et À',
