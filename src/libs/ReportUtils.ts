@@ -6681,7 +6681,11 @@ function computeOptimisticReportName(report: Report, policy: OnyxEntry<Policy>, 
         return null;
     }
 
-    const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policyID) ?? {});
+    // Prefer the Onyx-resolved fieldList by policyID; fall back to the passed policy's fieldList
+    // for callers building optimistic data before the policy is written to Onyx (e.g. createWorkspaceFromIOUPayment offline).
+    const reportFieldsFromOnyx = getReportFieldsByPolicyID(policyID) ?? {};
+    const reportFields = Object.keys(reportFieldsFromOnyx).length > 0 ? reportFieldsFromOnyx : (policy?.fieldList ?? {});
+    const titleReportField = getTitleReportField(reportFields);
     const formulaContext: FormulaContext = {
         report,
         policy,

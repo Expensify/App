@@ -4247,6 +4247,18 @@ function createWorkspaceFromIOUPayment(
         disabledFields: {defaultBillable: true, reimbursable: false},
         requiresCategory: true,
         defaultReimbursable: true,
+        // Seed the title report field so computeOptimisticReportName can produce a meaningful name
+        // (e.g. "Expense {date}") instead of falling back to "New report" when this policy has no fieldList yet.
+        fieldList: {
+            [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {
+                defaultValue: CONST.POLICY.DEFAULT_REPORT_NAME_PATTERN,
+                type: CONST.POLICY.DEFAULT_FIELD_LIST_TYPE,
+                target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
+                name: CONST.POLICY.DEFAULT_FIELD_LIST_NAME,
+                fieldID: CONST.POLICY.FIELDS.FIELD_LIST_TITLE,
+                deletable: true,
+            },
+        } as unknown as Policy['fieldList'],
     };
 
     const optimisticData: Array<
@@ -4457,6 +4469,7 @@ function createWorkspaceFromIOUPayment(
         policyName: workspaceName,
         type: CONST.REPORT.TYPE.EXPENSE,
         total: -(iouReport?.total ?? 0),
+        fieldList: newWorkspace.fieldList,
     };
 
     const reportTransactions = ReportUtils.getReportTransactions(iouReportID);
