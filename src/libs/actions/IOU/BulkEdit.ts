@@ -102,6 +102,16 @@ function updateMultipleMoneyRequests({
     const optimisticReportsByID: Record<string, OnyxTypes.Report> = {};
     // Track per-report optimistic transactions so formula recompute in later iterations sees earlier edits.
     const optimisticTransactionsByReportID: Record<string, Record<string, OnyxTypes.Transaction>> = {};
+
+    // Index caller transactions by reportID — search snapshots can carry entries Onyx doesn't have.
+    const callerTransactionsByReportID: Record<string, Record<string, OnyxTypes.Transaction>> = {};
+    for (const txn of Object.values(transactions ?? {})) {
+        if (!txn?.reportID || !txn.transactionID) {
+            continue;
+        }
+        (callerTransactionsByReportID[txn.reportID] ??= {})[txn.transactionID] = txn;
+    }
+
     for (const transactionID of transactionIDs) {
         const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (!transaction) {
@@ -448,6 +458,9 @@ function updateMultipleMoneyRequests({
 
         const reportIDForTracking = iouReport?.reportID;
         const priorOptimisticTransactions = reportIDForTracking ? (optimisticTransactionsByReportID[reportIDForTracking] ?? {}) : {};
+        const callerTransactionsForReport = reportIDForTracking ? (callerTransactionsByReportID[reportIDForTracking] ?? {}) : {};
+        // Snapshot/Onyx-known transactions form the base; prior optimistic edits override on the same ID.
+        const additionalTransactionsForFormula = {...callerTransactionsForReport, ...priorOptimisticTransactions};
 
         const {updatedMoneyRequestReport, isTotalIndeterminate} = getUpdatedMoneyRequestReportData(
             baseIouReport,
@@ -457,7 +470,7 @@ function updateMultipleMoneyRequests({
             transactionPolicy,
             optimisticReportAction?.actorAccountID,
             transactionChanges,
-            priorOptimisticTransactions,
+            additionalTransactionsForFormula,
         );
 
         if (reportIDForTracking && updatedTransaction?.transactionID) {

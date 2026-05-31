@@ -683,7 +683,6 @@ function getAllReportTransactionsWithContext(reportID: string, context?: Formula
         }
     };
 
-    // Optimistic transactions live in context until they reach Onyx.
     if (context?.allTransactions) {
         for (const ctxTransaction of Object.values(context.allTransactions)) {
             if (!ctxTransaction?.transactionID || ctxTransaction.reportID !== reportID) {

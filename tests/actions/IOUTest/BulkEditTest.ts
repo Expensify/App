@@ -1746,7 +1746,6 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
             });
 
-            // Each iteration of the bulk-edit loop makes its own API.write call, so collect names across all calls.
             /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
             const iouReportNames = writeSpy.mock.calls.flatMap((call) => {
                 const onyxParams = call[2] as {optimisticData: any[]};
@@ -1840,9 +1839,90 @@ describe('actions/IOU/BulkEdit', () => {
             });
             /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 
-            // Without the !isTotalIndeterminate gate, the formula would recompute against the stale (unchanged) iouReport.total
-            // and overwrite the original title with "Trip $100.00" — a stale value the BE hasn't confirmed yet.
+            // Without the !isTotalIndeterminate gate, the recompute would bake "Trip $100.00" (stale total) into the title.
             expect(iouReportWrites.at(-1)?.reportName).toBe(ORIGINAL_REPORT_NAME);
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+            await Onyx.clear();
+        });
+
+        it('includes caller-supplied (search snapshot) transactions in the formula recompute even when not in Onyx', async () => {
+            const iouReportID = 'iou-trip-snapshot';
+            const policyID = 'policy-trip-snapshot';
+            const onyxTxnID = 'txn-onyx';
+            const snapshotTxnID = 'txn-snapshot-only';
+
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP,
+                fieldList: {
+                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {
+                        fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+                        name: 'Title',
+                        type: CONST.REPORT_FIELD_TYPES.FORMULA,
+                        defaultValue: 'Trip from {report:autoreporting:start:MMM dd} to {report:autoreporting:end:MMM dd, yyyy}',
+                        deletable: false,
+                        target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
+                        values: [],
+                        keys: [],
+                        externalIDs: [],
+                        disabledOptions: [],
+                        orderWeight: 1,
+                        isTax: false,
+                    },
+                },
+            };
+
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: iouReportID,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: 0,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            const onyxTxn: Transaction = {...createRandomTransaction(1), transactionID: onyxTxnID, reportID: iouReportID, created: '2025-01-10'};
+            const snapshotTxn: Transaction = {...createRandomTransaction(2), transactionID: snapshotTxnID, reportID: iouReportID, created: '2025-01-05'};
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${onyxTxnID}`, onyxTxn);
+            await waitForBatchedUpdates();
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            // `transactions` param carries both (mirrors mergedTransactions in SearchEditMultiplePage).
+            updateMultipleMoneyRequests({
+                transactionIDs: [onyxTxnID],
+                changes: {created: '2025-01-15'},
+                policy,
+                reports: {[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport},
+                transactions: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${onyxTxnID}`]: onyxTxn,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${snapshotTxnID}`]: snapshotTxn,
+                },
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {},
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+            });
+
+            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+            const iouReportNames = writeSpy.mock.calls.flatMap((call) => {
+                const onyxParams = call[2] as {optimisticData: any[]};
+                return onyxParams.optimisticData.filter((u) => u.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`).map((u) => (u.value as Report).reportName);
+            });
+            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+
+            // Without snapshot merging, the snapshot-only Jan 05 would be invisible and the start date would resolve to Jan 15.
+            expect(iouReportNames.at(-1)).toBe('Trip from Jan 05 to Jan 15, 2025');
 
             writeSpy.mockRestore();
             canEditFieldSpy.mockRestore();

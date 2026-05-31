@@ -1179,7 +1179,6 @@ function recalculateOptimisticReportName(
             transactionsRecord[transaction.transactionID] = transaction;
         }
     }
-    // Optimistic overrides take precedence over Onyx state.
     for (const [id, transaction] of Object.entries(optimisticTransactions)) {
         transactionsRecord[id] = transaction;
     }
@@ -1497,7 +1496,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     }
 
     // Must run after STEP 3 so the optimistic transaction is part of the formula context.
-    // didUpdateOptimisticTotal gate: skip recompute when total is stale to avoid baking it into the title.
+    // Skip when totals weren't updated — formula would bake the stale total into the title.
     if (!shouldCreateNewMoneyRequestReport && isPolicyExpenseChat && didUpdateOptimisticTotal) {
         iouReport = maybeUpdateReportNameForFormulaTitle(iouReport, policy, {[optimisticTransaction.transactionID]: optimisticTransaction});
     }
@@ -1690,7 +1689,8 @@ function getUpdatedMoneyRequestReportData(
     policy: OnyxEntry<OnyxTypes.Policy>,
     actorAccountID?: number,
     transactionChanges?: TransactionChanges,
-    priorOptimisticTransactions: Record<string, OnyxTypes.Transaction> = {},
+    // Overlay on Onyx in the formula context — search snapshot entries, prior bulk-edit iterations, etc.
+    additionalTransactionsForFormula: Record<string, OnyxTypes.Transaction> = {},
 ) {
     const calculatedDiffAmount = calculateDiffAmount(iouReport, updatedTransaction, transaction);
     const isTotalIndeterminate = calculatedDiffAmount === null;
@@ -1721,9 +1721,9 @@ function getUpdatedMoneyRequestReportData(
                 updatedMoneyRequestReport.unheldNonReimbursableTotal += updatedTransaction.reimbursable ? -updatedTransaction.amount : updatedTransaction.amount;
             }
         }
-        // !isTotalIndeterminate gate: skip recompute when total is stale to avoid baking it into the title.
+        // Skip when total is indeterminate — formula would bake the stale total into the title.
         if (transactionChanges && !isTotalIndeterminate) {
-            const optimisticTransactions = {...priorOptimisticTransactions};
+            const optimisticTransactions = {...additionalTransactionsForFormula};
             if (updatedTransaction?.transactionID) {
                 optimisticTransactions[updatedTransaction.transactionID] = updatedTransaction;
             }
