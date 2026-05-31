@@ -211,7 +211,7 @@ describe('MerchantListItemHeader', () => {
             const checkbox = screen.getByRole('checkbox');
             fireEvent.press(checkbox);
 
-            expect(onCheckboxPress).toHaveBeenCalledWith(merchantItem);
+            expect(onCheckboxPress).toHaveBeenCalledWith(merchantItem, {shiftKey: false});
         });
 
         it('should show checkbox as checked when isSelectAllChecked is true', async () => {
