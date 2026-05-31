@@ -414,13 +414,10 @@ function MoneyRequestReportTransactionList({
         [visualOrderTransactions],
     );
 
-    const lastClickedTransactionIDRef = useRef<string | null>(null);
-
     const rangeApi = useShiftRangeSelection<OnyxTypes.Transaction>({
         items: visualOrderTransactions,
         getItemKey: (t) => t.transactionID ?? null,
         getSelectedKeys: () => selectedTransactionIDs,
-        getFocusedKey: () => lastClickedTransactionIDRef.current,
         isDisabledItem: (t) => isTransactionPendingDelete(t),
         onApplyRange: (batch) =>
             setSelectedTransactions(
@@ -440,7 +437,9 @@ function MoneyRequestReportTransactionList({
                 return;
             }
             setSelectedTransactions(selectedTransactionIDs.includes(transactionID) ? selectedTransactionIDs.filter((t) => t !== transactionID) : [...selectedTransactionIDs, transactionID]);
-            lastClickedTransactionIDRef.current = transactionID;
+            if (item) {
+                rangeApi.notifyAnchor(item);
+            }
         },
         [setSelectedTransactions, selectedTransactionIDs, visualOrderTransactions, rangeApi],
     );
@@ -780,7 +779,7 @@ function MoneyRequestReportTransactionList({
                             } else {
                                 setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
                             }
-                            lastClickedTransactionIDRef.current = null;
+                            rangeApi.clearAnchor();
                         }}
                         accessibilityLabel={translate('accessibilityHints.selectAllTransactions')}
                         isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}

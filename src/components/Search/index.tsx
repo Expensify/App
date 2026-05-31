@@ -1134,14 +1134,11 @@ function Search({
 
     const selectedTransactionKeySet = useMemo(() => new Set(Object.keys(selectedTransactions ?? {})), [selectedTransactions]);
 
-    const lastClickedKeyRef = useRef<string | null>(null);
-
     const rangeApi = useShiftRangeSelection<SearchListItem>({
         items: flattenedShiftRangeItems,
         onApplyRange: onApplyShiftRange,
         isHeaderItem: areItemsGrouped ? isTransactionGroupListItemType : undefined,
         getSelectedKeys: () => selectedTransactionKeySet,
-        getFocusedKey: () => lastClickedKeyRef.current,
     });
 
     const toggleTransaction = useCallback(
@@ -1177,7 +1174,7 @@ function Search({
                 );
                 setSelectedTransactions(updatedTransactions);
                 updateSelectAllMatchingItemsState(updatedTransactions);
-                lastClickedKeyRef.current = item.keyForList ?? null;
+                rangeApi.notifyAnchor(item);
                 return;
             }
 
@@ -1202,7 +1199,7 @@ function Search({
                     delete reducedSelectedTransactions[reportKey];
                     setSelectedTransactions(reducedSelectedTransactions);
                     updateSelectAllMatchingItemsState(reducedSelectedTransactions);
-                    lastClickedKeyRef.current = item.keyForList ?? null;
+                    rangeApi.notifyAnchor(item);
                     return;
                 }
 
@@ -1213,7 +1210,7 @@ function Search({
                 };
                 setSelectedTransactions(updatedTransactions);
                 updateSelectAllMatchingItemsState(updatedTransactions);
-                lastClickedKeyRef.current = item.keyForList ?? null;
+                rangeApi.notifyAnchor(item);
                 return;
             }
 
@@ -1228,7 +1225,7 @@ function Search({
 
                 setSelectedTransactions(reducedSelectedTransactions);
                 updateSelectAllMatchingItemsState(reducedSelectedTransactions);
-                lastClickedKeyRef.current = item.keyForList ?? null;
+                rangeApi.notifyAnchor(item);
                 return;
             }
 
@@ -1261,7 +1258,7 @@ function Search({
             };
             setSelectedTransactions(updatedTransactions);
             updateSelectAllMatchingItemsState(updatedTransactions);
-            lastClickedKeyRef.current = item.keyForList ?? null;
+            rangeApi.notifyAnchor(item);
         },
         [
             selectedTransactions,
@@ -1525,7 +1522,7 @@ function Search({
         if (totalSelected > 0) {
             clearSelectedTransactions();
             updateSelectAllMatchingItemsState({});
-            lastClickedKeyRef.current = null;
+            rangeApi.clearAnchor();
             return;
         }
 
@@ -1599,6 +1596,7 @@ function Search({
         searchResults?.data,
         selfDMReport,
         isProduction,
+        rangeApi,
     ]);
 
     const onLayoutBase = useCallback(() => {

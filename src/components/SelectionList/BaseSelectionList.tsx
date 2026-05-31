@@ -261,7 +261,6 @@ function BaseSelectionList<TItem extends ListItem>({
     const rangeApi = useShiftRangeSelection<TItem>({
         items: data,
         getItemKey: (item) => item.keyForList ?? null,
-        getFocusedKey: () => (focusedIndex >= 0 ? (data.at(focusedIndex)?.keyForList ?? null) : null),
         getSelectedKeys: () => {
             const keys = new Set<string>();
             for (const item of data) {
@@ -281,6 +280,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 return;
             }
             onSelectionButtonPress?.(item, itemTransactions, options);
+            rangeApi.notifyAnchor(item);
         },
         [onShiftRangeApply, rangeApi, onSelectionButtonPress],
     );
@@ -307,6 +307,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 setFocusedIndex(indexToFocus);
             }
             onSelectRow(item);
+            rangeApi.notifyAnchor(item);
 
             if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && innerTextInputRef.current) {
                 innerTextInputRef.current.focus();
@@ -325,6 +326,7 @@ function BaseSelectionList<TItem extends ListItem>({
             textInputOptions,
             handleSelectionButtonPress,
             setFocusedIndex,
+            rangeApi,
         ],
     );
 
@@ -372,6 +374,7 @@ function BaseSelectionList<TItem extends ListItem>({
         },
     );
 
+    const skipNextFocusAnchorRef = useRef(false);
     const extendSelectionByKeyboard = useCallback(
         (direction: 'up' | 'down') => {
             if (!canSelectMultiple || !onShiftRangeApply) {
@@ -383,11 +386,31 @@ function BaseSelectionList<TItem extends ListItem>({
             }
             const nextIdx = data.findIndex((row) => row.keyForList === nextKey);
             if (nextIdx >= 0) {
+                // Paired with the focus effect below: skip the anchor-sync for shift-driven focus moves.
+                skipNextFocusAnchorRef.current = true;
                 setFocusedIndex(nextIdx);
             }
         },
         [canSelectMultiple, onShiftRangeApply, rangeApi, data, setFocusedIndex],
     );
+
+    // Bump the hook's anchor on plain arrow-key focus moves; the ref dedupes across data re-references.
+    const previousFocusAnchorKeyRef = useRef<string | null>(null);
+    useEffect(() => {
+        if (skipNextFocusAnchorRef.current) {
+            skipNextFocusAnchorRef.current = false;
+            return;
+        }
+        if (focusedIndex < 0 || focusedIndex >= data.length) {
+            return;
+        }
+        const item = data.at(focusedIndex);
+        if (!item?.keyForList || previousFocusAnchorKeyRef.current === item.keyForList) {
+            return;
+        }
+        previousFocusAnchorKeyRef.current = item.keyForList;
+        rangeApi.notifyAnchor(item);
+    }, [focusedIndex, data, rangeApi]);
     const handleShiftArrowDown = useCallback(() => extendSelectionByKeyboard('down'), [extendSelectionByKeyboard]);
     const handleShiftArrowUp = useCallback(() => extendSelectionByKeyboard('up'), [extendSelectionByKeyboard]);
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SHIFT_ARROW_DOWN, handleShiftArrowDown, {
@@ -640,10 +663,11 @@ function BaseSelectionList<TItem extends ListItem>({
 
     const handleSelectAll = useCallback(() => {
         onSelectAll?.();
+        rangeApi.clearAnchor();
         if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && innerTextInputRef.current) {
             innerTextInputRef.current.focus();
         }
-    }, [onSelectAll, shouldShowTextInput, shouldPreventDefaultFocusOnSelectRow]);
+    }, [onSelectAll, rangeApi, shouldShowTextInput, shouldPreventDefaultFocusOnSelectRow]);
 
     useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex, updateFocusedIndex, scrollToFocusedInput, focusTextInput}), [
         focusTextInput,

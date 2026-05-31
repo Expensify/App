@@ -3,11 +3,9 @@ import {useEffect, useMemo, useRef} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 
 /**
- * Excel/AG Grid-style shift+click range selection. Anchor is derived from getFocusedKey()
- * + getSelectedKeys() on each call; the only internal state is the active shift session.
- * A focused-key change between clicks implicitly ends the session.
- * Headers and disabled rows are excluded from ranges and keyboard step.
- * Anchor's selection state is invariant under shift+click (synthetic anchors join the range).
+ * Excel/AG Grid-style shift+click range selection. Consumers call notifyAnchor on plain
+ * clicks / focus changes and clearAnchor on select-all / deselect-all; the session lives
+ * between shift+clicks and is ended by either notify. Headers and disabled rows are excluded.
  */
 
 type ItemWithKey = {keyForList?: string | null};
@@ -27,7 +25,6 @@ type KeyboardDirection = 'up' | 'down';
 type Params<TItem> = {
     items: TItem[];
     getItemKey?: (item: TItem) => string | null | undefined;
-    getFocusedKey?: () => string | null | undefined;
     getSelectedKeys?: () => ReadonlySet<string> | readonly string[];
     isHeaderItem?: (item: TItem) => boolean;
     isDisabledItem?: (item: TItem) => boolean;
@@ -36,16 +33,19 @@ type Params<TItem> = {
 
 type Api<TItem> = {
     applyShiftClick: (item: TItem, options?: {shiftKey?: boolean}) => boolean;
+    notifyAnchor: (item: TItem) => void;
+    clearAnchor: () => void;
     extendByKeyboard: (direction: KeyboardDirection) => string | null;
 };
 
-type Session = {anchor: string; prevEnd: string; isSyntheticAnchor: boolean};
+type Session = {anchor: string; prevEnd: string};
 
 function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
     const paramsRef = useRef(params);
     useEffect(() => {
         paramsRef.current = params;
     });
+    const anchorRef = useRef<string | null>(null);
     const sessionRef = useRef<Session | null>(null);
 
     return useMemo<Api<TItem>>(() => {
@@ -56,25 +56,19 @@ function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
                 return false;
             }
 
-            const currentFocused = p.getFocusedKey?.() ?? null;
             const session = sessionRef.current;
-            const continues = !!session && !!currentFocused && currentFocused === session.prevEnd;
-
             let anchor: string;
             let prevEnd: string | null;
-            let isSyntheticAnchor: boolean;
-            if (continues && session) {
+            if (session) {
                 anchor = session.anchor;
                 prevEnd = session.prevEnd;
-                isSyntheticAnchor = session.isSyntheticAnchor;
             } else {
-                const resolved = resolveAnchor(p, currentFocused);
+                const resolved = resolveAnchor(p, anchorRef.current);
                 if (!resolved) {
                     return false;
                 }
                 anchor = resolved;
                 prevEnd = null;
-                isSyntheticAnchor = resolved !== currentFocused;
             }
 
             const anchorIdx = indexOfKey(p, anchor);
@@ -85,9 +79,7 @@ function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
 
             const newRange = orderedRange(anchorIdx, targetIdx);
             const prevRange = prevEnd != null ? orderedRange(anchorIdx, indexOfKey(p, prevEnd)) : null;
-
-            const isInvariantAnchor = !isSyntheticAnchor;
-            const isUsable = (i: number) => !isExcluded(p, p.items.at(i)) && !(isInvariantAnchor && i === anchorIdx);
+            const isUsable = (i: number) => !isExcluded(p, p.items.at(i));
 
             const toSelect: TItem[] = [];
             for (let i = newRange[0]; i <= newRange[1]; i++) {
@@ -113,25 +105,34 @@ function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
                 }
             }
 
-            if (!toSelect.length && !toDeselect.length) {
-                sessionRef.current = {anchor, prevEnd: targetKey, isSyntheticAnchor};
-                return true;
+            if (toSelect.length || toDeselect.length) {
+                p.onApplyRange({toSelect, toDeselect});
             }
-
-            p.onApplyRange({toSelect, toDeselect});
-            sessionRef.current = {anchor, prevEnd: targetKey, isSyntheticAnchor};
+            sessionRef.current = {anchor, prevEnd: targetKey};
             return true;
         };
 
         return {
             applyShiftClick: (item, options) => !!options?.shiftKey && runRange(item),
+            notifyAnchor: (item) => {
+                const k = keyOf(paramsRef.current, item);
+                if (k) {
+                    anchorRef.current = k;
+                }
+                sessionRef.current = null;
+            },
+            clearAnchor: () => {
+                anchorRef.current = null;
+                sessionRef.current = null;
+            },
             extendByKeyboard: (direction) => {
                 const p = paramsRef.current;
-                const focused = p.getFocusedKey?.();
-                if (!focused) {
+                const session = sessionRef.current;
+                const fromKey = session?.prevEnd ?? anchorRef.current;
+                if (!fromKey) {
                     return null;
                 }
-                const fromIdx = indexOfKey(p, focused);
+                const fromIdx = indexOfKey(p, fromKey);
                 if (fromIdx < 0) {
                     return null;
                 }
@@ -185,11 +186,11 @@ function orderedRange(a: number, b: number): readonly [number, number] {
     return a <= b ? [a, b] : [b, a];
 }
 
-function resolveAnchor<TItem>(p: Params<TItem>, focused: string | null): string | null {
-    if (focused) {
-        const idx = indexOfKey(p, focused);
+function resolveAnchor<TItem>(p: Params<TItem>, source: string | null): string | null {
+    if (source) {
+        const idx = indexOfKey(p, source);
         if (idx >= 0 && !isExcluded(p, p.items.at(idx))) {
-            return focused;
+            return source;
         }
     }
     if (p.getSelectedKeys) {

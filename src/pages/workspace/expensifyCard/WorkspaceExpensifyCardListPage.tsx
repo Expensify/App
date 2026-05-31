@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {FlatList, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -115,12 +115,10 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     if (prunedSelectedCardIDs.length !== selectedCardIDs.length) {
         setSelectedCardIDs(prunedSelectedCardIDs);
     }
-    const lastClickedCardIDRef = useRef<string | null>(null);
     const rangeApi = useShiftRangeSelection<Card>({
         items: filteredSortedCards,
         getItemKey: (c) => String(c.cardID),
         getSelectedKeys: () => selectedCardIDs.map(String),
-        getFocusedKey: () => lastClickedCardIDRef.current,
         onApplyRange: (batch) => setSelectedCardIDs((prev) => applyShiftRangeBatchToKeySet(batch, prev, (c) => c.cardID)),
     });
     const toggleCardSelection = (cardID: number, options?: {shiftKey?: boolean}) => {
@@ -129,14 +127,16 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             return;
         }
         setSelectedCardIDs((prev) => (prev.includes(cardID) ? prev.filter((id) => id !== cardID) : [...prev, cardID]));
-        lastClickedCardIDRef.current = String(cardID);
+        if (card) {
+            rangeApi.notifyAnchor(card);
+        }
     };
     const toggleSelectAll = () => {
         if (selectableCardIDs.length === 0) {
             return;
         }
         setSelectedCardIDs((prev) => (prev.length > 0 ? [] : [...selectableCardIDs]));
-        lastClickedCardIDRef.current = null;
+        rangeApi.clearAnchor();
     };
     const isSelectAllChecked = selectedCardIDs.length > 0 && selectedCardIDs.length === selectableCardIDs.length;
     const isSelectAllIndeterminate = selectedCardIDs.length > 0 && selectedCardIDs.length < selectableCardIDs.length;
