@@ -28,7 +28,7 @@ describe('hasNextActionMadeBySameActor', () => {
     it('returns false if either action is RENAMED', () => {
         const actions = [getFakeReportAction(accountID), getFakeReportAction(accountID, {actionName: CONST.REPORT.ACTIONS.TYPE.RENAMED})];
         expect(hasNextActionMadeBySameActorUtil(actions, 1, false)).toBe(false);
-        expect(hasNextActionMadeBySameActorUtil(actions.toReversed(), 1, false)).toBe(false);
+        expect(hasNextActionMadeBySameActorUtil(actions.slice().reverse(), 1, false)).toBe(false);
     });
 
     it('returns false if delegateAccountIDs differ', () => {
@@ -39,7 +39,7 @@ describe('hasNextActionMadeBySameActor', () => {
     it('returns false if report preview statuses are mismatched', () => {
         const actions = [getFakeReportAction(accountID, {actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW}), getFakeReportAction(accountID)];
         expect(hasNextActionMadeBySameActorUtil(actions, 1, false)).toBe(false);
-        expect(hasNextActionMadeBySameActorUtil(actions.toReversed(), 1, false)).toBe(false);
+        expect(hasNextActionMadeBySameActorUtil(actions.slice().reverse(), 1, false)).toBe(false);
     });
 
     it('returns false if the current action is SUBMITTED and the current action adminID is different than previous action actorID', () => {
