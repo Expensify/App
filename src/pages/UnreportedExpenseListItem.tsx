@@ -31,6 +31,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
     readOnly,
     shouldSyncFocus,
     onSelectRow,
+    onSelectionButtonPress,
     violations,
 }: UnreportedExpenseListItemProps<TItem>) {
     const styles = useThemeStyles();
@@ -83,7 +84,11 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
                         dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                         amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                         taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-                        onCheckboxPress={() => {
+                        onCheckboxPress={(_id, options) => {
+                            if (onSelectionButtonPress) {
+                                onSelectionButtonPress(item, undefined, options);
+                                return;
+                            }
                             onSelectRow(item);
                         }}
                         isDisabled={isItemDisabled}

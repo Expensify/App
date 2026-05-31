@@ -34,6 +34,7 @@ import usePolicyData from '@hooks/usePolicyData';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
+import {applyShiftRangeBatchToKeySet} from '@hooks/useShiftRangeSelection';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -922,6 +923,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             shouldShowListEmptyContent={false}
                             showScrollIndicator={false}
                             onSelectionButtonPress={toggleTag}
+                            onShiftRangeApply={(batch) => setSelectedTags((prev) => applyShiftRangeBatchToKeySet(batch, prev, (t) => t.value))}
                             isSelected={isTagSelected}
                             shouldHeaderBeInsideList
                             shouldShowRightCaret

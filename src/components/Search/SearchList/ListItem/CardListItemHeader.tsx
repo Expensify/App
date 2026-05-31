@@ -8,6 +8,7 @@ import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {getShiftKeyFromEvent} from '@hooks/useShiftRangeSelection';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -24,7 +25,7 @@ type CardListItemHeaderProps<TItem extends ListItem> = {
     card: TransactionCardGroupListItemType;
 
     /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress?: (item: TItem) => void;
+    onCheckboxPress?: (item: TItem, options?: {shiftKey?: boolean}) => void;
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
@@ -144,7 +145,7 @@ function CardListItemHeader<TItem extends ListItem>({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
-                            onPress={() => onCheckboxPress?.(cardItem as unknown as TItem)}
+                            onPress={(event) => onCheckboxPress?.(cardItem as unknown as TItem, {shiftKey: getShiftKeyFromEvent(event)})}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || cardItem.isDisabledCheckbox}

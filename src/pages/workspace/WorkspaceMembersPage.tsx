@@ -38,6 +38,7 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
+import {applyShiftRangeBatchToKeySet} from '@hooks/useShiftRangeSelection';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -1075,6 +1076,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         onTurnOnSelectionMode={(item) => item && toggleUser(item.login)}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         onSelectionButtonPress={(item) => toggleUser(item.login)}
+                        onShiftRangeApply={(batch) => setSelectedEmployees((prev) => applyShiftRangeBatchToKeySet(batch, prev, (m) => m.login))}
                         shouldSingleExecuteRowSelect={!isPolicyAdmin}
                         customListHeader={getCustomListHeader()}
                         customListHeaderContent={headerContent}

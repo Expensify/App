@@ -8,6 +8,7 @@ import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {getShiftKeyFromEvent} from '@hooks/useShiftRangeSelection';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getTranslationKeyForLimitType} from '@libs/CardUtils';
@@ -55,7 +56,7 @@ type WorkspacesListRowProps = {
     /** When set, shows a row checkbox for bulk selection */
     bulkSelection?: {
         isSelected: boolean;
-        onToggle: () => void;
+        onToggle: (options?: {shiftKey?: boolean}) => void;
     };
 };
 
@@ -103,7 +104,7 @@ function WorkspaceCardListRow({
                         <Checkbox
                             accessibilityLabel={cardholderName}
                             isChecked={bulkSelection.isSelected}
-                            onPress={bulkSelection.onToggle}
+                            onPress={(event) => bulkSelection.onToggle({shiftKey: getShiftKeyFromEvent(event)})}
                         />
                     </View>
                 )}

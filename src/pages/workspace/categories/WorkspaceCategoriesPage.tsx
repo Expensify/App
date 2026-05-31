@@ -36,6 +36,7 @@ import usePolicyData from '@hooks/usePolicyData';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
+import {applyShiftRangeBatchToKeySet} from '@hooks/useShiftRangeSelection';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -763,6 +764,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         data={filteredCategoryList}
                         ListItem={TableListItem}
                         onSelectionButtonPress={toggleCategory}
+                        onShiftRangeApply={(batch) => setSelectedCategories((prev) => applyShiftRangeBatchToKeySet(batch, prev, (c) => c.keyForList))}
                         selectedItems={selectedCategories}
                         onSelectRow={navigateToCategorySettings}
                         onTurnOnSelectionMode={(item) => item && toggleCategory(item)}

@@ -294,9 +294,10 @@ function TransactionGroupListItem<TItem extends ListItem>({
         onLongPressRow?.(transaction as unknown as TItem);
     };
 
-    const handleSelectionButtonPress = (val: TItem) => {
-        onSelectionButtonPress?.(val, isExpenseReportType ? undefined : transactions);
+    const handleSelectionButtonPress = (val: TItem, options?: {shiftKey?: boolean}) => {
+        onSelectionButtonPress?.(val, isExpenseReportType ? undefined : transactions, options);
     };
+    const handleSelectionButtonPressForExpanded = (val: TItem, _itemTransactions?: TransactionListItemType[], options?: {shiftKey?: boolean}) => handleSelectionButtonPress(val, options);
 
     const onExpandIconPress = () => {
         if (isEmpty && !shouldDisplayEmptyView) {
@@ -565,7 +566,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                             <TransactionGroupListExpandedItem
                                 showTooltip={showTooltip}
                                 canSelectMultiple={canSelectMultiple}
-                                onSelectionButtonPress={handleSelectionButtonPress}
+                                onSelectionButtonPress={handleSelectionButtonPressForExpanded}
                                 onSelectRow={onSelectRow}
                                 columns={columns}
                                 groupBy={groupBy}

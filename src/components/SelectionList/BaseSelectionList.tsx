@@ -14,6 +14,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
+import useShiftRangeSelection from '@hooks/useShiftRangeSelection';
 import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -50,6 +51,7 @@ function BaseSelectionList<TItem extends ListItem>({
     onSelectAll,
     onLongPressRow,
     onSelectionButtonPress,
+    onShiftRangeApply,
     onScrollBeginDrag,
     onDismissError,
     onEndReached,
@@ -255,6 +257,34 @@ function BaseSelectionList<TItem extends ListItem>({
     const extraData = useMemo(() => [data.length], [data.length]);
     const syncedSearchValue = searchValueForFocusSync ?? textInputOptions?.value;
 
+    const noopApply = useCallback(() => {}, []);
+    const rangeApi = useShiftRangeSelection<TItem>({
+        items: data,
+        getItemKey: (item) => item.keyForList ?? null,
+        getFocusedKey: () => (focusedIndex >= 0 ? (data.at(focusedIndex)?.keyForList ?? null) : null),
+        getSelectedKeys: () => {
+            const keys = new Set<string>();
+            for (const item of data) {
+                if (item.isSelected && item.keyForList) {
+                    keys.add(item.keyForList);
+                }
+            }
+            return keys;
+        },
+        isDisabledItem: (item) => !!item.isDisabled || !!item.isDisabledCheckbox,
+        onApplyRange: onShiftRangeApply ?? noopApply,
+    });
+
+    const handleSelectionButtonPress = useCallback(
+        (item: TItem, itemTransactions?: unknown, options?: {shiftKey?: boolean}) => {
+            if (onShiftRangeApply && rangeApi.applyShiftClick(item, options)) {
+                return;
+            }
+            onSelectionButtonPress?.(item, itemTransactions, options);
+        },
+        [onShiftRangeApply, rangeApi, onSelectionButtonPress],
+    );
+
     const selectRow = useCallback(
         (item: TItem, indexToFocus?: number) => {
             if (!isFocused) {
@@ -265,7 +295,7 @@ function BaseSelectionList<TItem extends ListItem>({
                     textInputOptions?.onChangeText?.('');
                 } else if (isSmallScreenWidth) {
                     if (!item.isDisabledCheckbox) {
-                        onSelectionButtonPress?.(item);
+                        handleSelectionButtonPress(item);
                     }
                     return;
                 }
@@ -293,7 +323,7 @@ function BaseSelectionList<TItem extends ListItem>({
             shouldPreventDefaultFocusOnSelectRow,
             isSmallScreenWidth,
             textInputOptions,
-            onSelectionButtonPress,
+            handleSelectionButtonPress,
             setFocusedIndex,
         ],
     );
@@ -341,6 +371,33 @@ function BaseSelectionList<TItem extends ListItem>({
             isActive: !disableKeyboardShortcuts && isFocused && !confirmButtonOptions?.isDisabled,
         },
     );
+
+    const extendSelectionByKeyboard = useCallback(
+        (direction: 'up' | 'down') => {
+            if (!canSelectMultiple || !onShiftRangeApply) {
+                return;
+            }
+            const nextKey = rangeApi.extendByKeyboard(direction);
+            if (!nextKey) {
+                return;
+            }
+            const nextIdx = data.findIndex((row) => row.keyForList === nextKey);
+            if (nextIdx >= 0) {
+                setFocusedIndex(nextIdx);
+            }
+        },
+        [canSelectMultiple, onShiftRangeApply, rangeApi, data, setFocusedIndex],
+    );
+    const handleShiftArrowDown = useCallback(() => extendSelectionByKeyboard('down'), [extendSelectionByKeyboard]);
+    const handleShiftArrowUp = useCallback(() => extendSelectionByKeyboard('up'), [extendSelectionByKeyboard]);
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SHIFT_ARROW_DOWN, handleShiftArrowDown, {
+        captureOnInputs: false,
+        isActive: !disableKeyboardShortcuts && isFocused && canSelectMultiple && !!onShiftRangeApply,
+    });
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SHIFT_ARROW_UP, handleShiftArrowUp, {
+        captureOnInputs: false,
+        isActive: !disableKeyboardShortcuts && isFocused && canSelectMultiple && !!onShiftRangeApply,
+    });
     const textInputKeyPress = useCallback(
         (event: TextInputKeyPressEvent) => {
             if (event.nativeEvent.key !== CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
@@ -404,7 +461,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 canSelectMultiple={canSelectMultiple}
                 onDismissError={onDismissError}
                 onLongPressRow={onLongPressRow}
-                onSelectionButtonPress={onSelectionButtonPress}
+                onSelectionButtonPress={handleSelectionButtonPress}
                 shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                 rightHandSideComponent={rightHandSideComponent}
                 isMultilineSupported={isRowMultilineSupported}

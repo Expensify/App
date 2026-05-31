@@ -1,5 +1,6 @@
 import React from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SelectionListProps} from '@components/SelectionList/types';
 import type useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import type useSingleExecution from '@hooks/useSingleExecution';
@@ -60,7 +61,9 @@ function ListItemRenderer<TItem extends ListItem>({
         if (isTransactionGroupListItemType(item)) {
             return onSelectionButtonPress;
         }
-        return onSelectionButtonPress ? () => onSelectionButtonPress(item) : undefined;
+        return onSelectionButtonPress
+            ? (_passedItem: TItem, itemTransactions?: TransactionListItemType[], options?: {shiftKey?: boolean}) => onSelectionButtonPress(item, itemTransactions, options)
+            : undefined;
     };
 
     return (

@@ -26,6 +26,7 @@ import usePolicyData from '@hooks/usePolicyData';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
+import {applyShiftRangeBatchToKeySet} from '@hooks/useShiftRangeSelection';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -445,6 +446,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         onSelectRow={navigateToTagSettings}
                         shouldShowListEmptyContent={false}
                         onSelectionButtonPress={toggleTag}
+                        onShiftRangeApply={(batch) => setSelectedTags((prev) => applyShiftRangeBatchToKeySet(batch, prev, (t) => t.value))}
                         shouldHeaderBeInsideList
                         shouldShowRightCaret
                         showScrollIndicator

@@ -82,7 +82,7 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     canSelectMultiple: boolean;
 
     /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
+    onCheckboxPress: (item: SearchListItem, itemTransactions?: TransactionListItemType[], options?: {shiftKey?: boolean}) => void;
 
     /** Callback to fire when "Select All" checkbox is pressed. Only use along with `canSelectMultiple` */
     onAllCheckboxPress: () => void;

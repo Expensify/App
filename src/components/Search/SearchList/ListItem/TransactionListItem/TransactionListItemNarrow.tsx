@@ -117,7 +117,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                             policy={transactionItem.policy}
                             shouldShowTooltip={showTooltip}
                             onButtonPress={handleActionButtonPress}
-                            onCheckboxPress={() => onCheckboxPress?.(item)}
+                            onCheckboxPress={(_transactionID, options) => onCheckboxPress?.(item, undefined, options)}
                             shouldUseNarrowLayout
                             isLargeScreenWidth={false}
                             columns={columns}

@@ -27,6 +27,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
+import {applyShiftRangeBatchToKeySet} from '@hooks/useShiftRangeSelection';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -393,6 +394,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                         onTurnOnSelectionMode={(item) => item && toggleUser(item)}
                         onSelectAll={() => toggleAllUsers(participants)}
                         onSelectionButtonPress={toggleUser}
+                        onShiftRangeApply={(batch) => setSelectedMembers((prev) => applyShiftRangeBatchToKeySet(batch, prev, (m) => m.accountID))}
                         shouldShowTextInput={shouldShowTextInput}
                         customListHeader={customListHeader}
                         showScrollIndicator

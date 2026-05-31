@@ -28,6 +28,7 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
+import {applyShiftRangeBatchToValueArray} from '@hooks/useShiftRangeSelection';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
@@ -486,6 +487,17 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         canSelectMultiple={canSelectMultiple}
                         selectAllAccessibilityLabel={translate('accessibilityHints.selectAllPerDiemRates')}
                         onSelectionButtonPress={toggleSubRate}
+                        onShiftRangeApply={(batch) =>
+                            setSelectedPerDiem((prev) =>
+                                applyShiftRangeBatchToValueArray(
+                                    batch,
+                                    prev,
+                                    (r) => r.subRateID,
+                                    (v) => v.subRateID,
+                                    (r) => generateSingleSubRateData(allRatesArray, r.rateID, r.subRateID) ?? null,
+                                ),
+                            )
+                        }
                         customListHeader={getCustomListHeader()}
                         selectedItems={selectedPerDiem.map((item) => item.subRateID)}
                         onSelectAll={filteredSubRatesList.length > 0 ? toggleAllSubRates : undefined}

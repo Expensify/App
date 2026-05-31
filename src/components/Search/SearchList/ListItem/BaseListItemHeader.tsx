@@ -6,6 +6,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {getShiftKeyFromEvent} from '@hooks/useShiftRangeSelection';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -60,7 +61,7 @@ type BaseListItemHeaderProps<TItem extends ListItem> = {
     columnStyleKey: ColumnStyleKey;
 
     /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress?: (item: TItem) => void;
+    onCheckboxPress?: (item: TItem, options?: {shiftKey?: boolean}) => void;
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
@@ -144,7 +145,7 @@ function BaseListItemHeader<TItem extends ListItem>({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
-                            onPress={() => onCheckboxPress?.(item as unknown as TItem)}
+                            onPress={(event) => onCheckboxPress?.(item as unknown as TItem, {shiftKey: getShiftKeyFromEvent(event)})}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || item.isDisabledCheckbox}

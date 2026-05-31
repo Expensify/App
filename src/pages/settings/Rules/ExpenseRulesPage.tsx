@@ -25,6 +25,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
+import {applyShiftRangeBatchToKeySet} from '@hooks/useShiftRangeSelection';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -302,6 +303,7 @@ function ExpenseRulesPage() {
                     data={filteredRuleList}
                     ListItem={TableListItem}
                     onSelectionButtonPress={toggleRule}
+                    onShiftRangeApply={(batch) => setSelectedRules((prev) => applyShiftRangeBatchToKeySet(batch, prev, (r) => r.keyForList))}
                     onSelectAll={filteredRuleList.length > 0 ? toggleAllRules : undefined}
                     onSelectRow={onSelectRow}
                     onTurnOnSelectionMode={(item) => item && toggleRule(item)}

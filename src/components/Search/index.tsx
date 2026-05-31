@@ -29,6 +29,7 @@ import useSaveSortedReportIDs from '@hooks/useSaveSortedReportIDs';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useSelfDMReport from '@hooks/useSelfDMReport';
+import useShiftRangeSelection from '@hooks/useShiftRangeSelection';
 import useStableArrayReference from '@hooks/useStableArrayReference';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -1006,14 +1007,152 @@ function Search({
         [totalSelectableItemsCount, selectAllMatchingItems],
     );
 
+    const onApplyShiftRange = useCallback(
+        ({toSelect, toDeselect}: {toSelect: SearchListItem[]; toDeselect: SearchListItem[]}) => {
+            const updated: SelectedTransactions = {...selectedTransactions};
+            const addTransaction = (tx: TransactionListItemType) => {
+                if (!tx.keyForList || isTransactionPendingDelete(tx)) {
+                    return;
+                }
+                const txRef = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${tx.transactionID}`] ?? transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${tx.transactionID}`];
+                const originalRef =
+                    searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${txRef?.comment?.originalTransactionID}`] ??
+                    transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${txRef?.comment?.originalTransactionID}`];
+                const parentReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${tx.report?.parentReportID}`] as OnyxEntry<Report>;
+                const [k, info] = mapTransactionItemToSelectedEntry(
+                    tx,
+                    txRef as OnyxEntry<Transaction>,
+                    originalRef,
+                    email ?? '',
+                    accountID,
+                    outstandingReportsByPolicyID,
+                    true,
+                    parentReport,
+                    selfDMReport,
+                    isProduction,
+                );
+                updated[k] = info;
+            };
+            const removeRow = (row: SearchListItem) => {
+                if (isTransactionListItemType(row) || (isTransactionReportGroupListItemType(row) && row.transactions.length === 0)) {
+                    if (row.keyForList) {
+                        delete updated[row.keyForList];
+                    }
+                } else if (isTransactionGroupListItemType(row)) {
+                    for (const child of row.transactions ?? []) {
+                        if (child.keyForList) {
+                            delete updated[child.keyForList];
+                        }
+                    }
+                }
+            };
+            const addRow = (row: SearchListItem) => {
+                if (isTransactionListItemType(row)) {
+                    addTransaction(row);
+                } else if (isTransactionReportGroupListItemType(row) && row.transactions.length === 0) {
+                    if (row.keyForList && row.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                        const [k, info] = mapEmptyReportToSelectedEntry(row);
+                        updated[k] = info;
+                    }
+                } else if (isTransactionGroupListItemType(row)) {
+                    for (const child of row.transactions ?? []) {
+                        addTransaction(child);
+                    }
+                }
+            };
+            for (const row of toDeselect) {
+                removeRow(row);
+            }
+            for (const row of toSelect) {
+                addRow(row);
+            }
+            setSelectedTransactions(updated, filteredData);
+            updateSelectAllMatchingItemsState(updated);
+        },
+        [
+            selectedTransactions,
+            setSelectedTransactions,
+            filteredData,
+            updateSelectAllMatchingItemsState,
+            transactions,
+            email,
+            accountID,
+            outstandingReportsByPolicyID,
+            searchResults?.data,
+            selfDMReport,
+            isProduction,
+        ],
+    );
+
+    const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
+    const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
+    const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled);
+    const ListItem = getListItem(type, status, validGroupBy);
+
+    const sortedData = useMemo(
+        () =>
+            getSortedSections(type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy).map((item) => {
+                const baseKey = isChat
+                    ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
+                    : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
+
+                const isBaseKeyMatch = !!newSearchResultKeys?.has(baseKey);
+
+                const isAnyTransactionMatch =
+                    !isChat &&
+                    (item as TransactionGroupListItemType)?.transactions?.some((transaction) => {
+                        const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
+                        return !!newSearchResultKeys?.has(transactionKey);
+                    });
+
+                const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
+
+                if (item.shouldAnimateInHighlight === shouldAnimateInHighlight && item.hash === hash) {
+                    return item;
+                }
+
+                return {...item, shouldAnimateInHighlight, hash};
+            }),
+        [type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy, isChat, newSearchResultKeys, hash],
+    );
+
+    useSaveSortedReportIDs(type, sortedData);
+
+    const {stableSortedData, hasCachedOptimisticItem} = useStableOptimisticSortedData(sortedData, searchResults, optimisticTrackingState);
+
+    // Mirrors stableSortedData (what the renderer iterates) so ranges stay consistent with optimistic injections.
+    const flattenedShiftRangeItems = useMemo<SearchListItem[]>(() => {
+        if (!areItemsGrouped) {
+            return stableSortedData;
+        }
+        const isGroupArray = (items: SearchListItem[]): items is TransactionGroupListItemType[] => items.every((g) => isTransactionGroupListItemType(g) && Array.isArray(g.transactions));
+        if (!isGroupArray(stableSortedData)) {
+            return stableSortedData;
+        }
+        return stableSortedData.flatMap((g) => [g, ...(g.transactions ?? [])]);
+    }, [stableSortedData, areItemsGrouped]);
+
+    const selectedTransactionKeySet = useMemo(() => new Set(Object.keys(selectedTransactions ?? {})), [selectedTransactions]);
+
+    const lastClickedKeyRef = useRef<string | null>(null);
+
+    const rangeApi = useShiftRangeSelection<SearchListItem>({
+        items: flattenedShiftRangeItems,
+        onApplyRange: onApplyShiftRange,
+        isHeaderItem: areItemsGrouped ? isTransactionGroupListItemType : undefined,
+        getSelectedKeys: () => selectedTransactionKeySet,
+        getFocusedKey: () => lastClickedKeyRef.current,
+    });
+
     const toggleTransaction = useCallback(
-        (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => {
-            if (isReportActionListItemType(item)) {
+        (item: SearchListItem, itemTransactions?: TransactionListItemType[], options?: {shiftKey?: boolean}) => {
+            if (isReportActionListItemType(item) || isTaskListItemType(item)) {
                 return;
             }
-            if (isTaskListItemType(item)) {
+            if (rangeApi.applyShiftClick(item, options)) {
                 return;
             }
+
             if (isTransactionListItemType(item)) {
                 if (!item.keyForList) {
                     return;
@@ -1038,6 +1177,7 @@ function Search({
                 );
                 setSelectedTransactions(updatedTransactions);
                 updateSelectAllMatchingItemsState(updatedTransactions);
+                lastClickedKeyRef.current = item.keyForList ?? null;
                 return;
             }
 
@@ -1062,6 +1202,7 @@ function Search({
                     delete reducedSelectedTransactions[reportKey];
                     setSelectedTransactions(reducedSelectedTransactions);
                     updateSelectAllMatchingItemsState(reducedSelectedTransactions);
+                    lastClickedKeyRef.current = item.keyForList ?? null;
                     return;
                 }
 
@@ -1072,6 +1213,7 @@ function Search({
                 };
                 setSelectedTransactions(updatedTransactions);
                 updateSelectAllMatchingItemsState(updatedTransactions);
+                lastClickedKeyRef.current = item.keyForList ?? null;
                 return;
             }
 
@@ -1086,6 +1228,7 @@ function Search({
 
                 setSelectedTransactions(reducedSelectedTransactions);
                 updateSelectAllMatchingItemsState(reducedSelectedTransactions);
+                lastClickedKeyRef.current = item.keyForList ?? null;
                 return;
             }
 
@@ -1118,6 +1261,7 @@ function Search({
             };
             setSelectedTransactions(updatedTransactions);
             updateSelectAllMatchingItemsState(updatedTransactions);
+            lastClickedKeyRef.current = item.keyForList ?? null;
         },
         [
             selectedTransactions,
@@ -1130,6 +1274,7 @@ function Search({
             outstandingReportsByPolicyID,
             selfDMReport,
             isProduction,
+            rangeApi,
         ],
     );
 
@@ -1349,42 +1494,6 @@ function Search({
         );
     }, [previousColumns, currentColumns, setColumnsToShow, opacity, offset, isSmallScreenWidth]);
 
-    const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
-    const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
-    const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled);
-    const ListItem = getListItem(type, status, validGroupBy);
-
-    const sortedData = useMemo(
-        () =>
-            getSortedSections(type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy).map((item) => {
-                const baseKey = isChat
-                    ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
-                    : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
-
-                const isBaseKeyMatch = !!newSearchResultKeys?.has(baseKey);
-
-                const isAnyTransactionMatch =
-                    !isChat &&
-                    (item as TransactionGroupListItemType)?.transactions?.some((transaction) => {
-                        const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
-                        return !!newSearchResultKeys?.has(transactionKey);
-                    });
-
-                const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
-
-                if (item.shouldAnimateInHighlight === shouldAnimateInHighlight && item.hash === hash) {
-                    return item;
-                }
-
-                return {...item, shouldAnimateInHighlight, hash};
-            }),
-        [type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy, isChat, newSearchResultKeys, hash],
-    );
-
-    useSaveSortedReportIDs(type, sortedData);
-
-    const {stableSortedData, hasCachedOptimisticItem} = useStableOptimisticSortedData(sortedData, searchResults, optimisticTrackingState);
-
     useEffect(() => {
         const currentRoute = Navigation.getActiveRouteWithoutParams();
         if (hasErrors && (currentRoute === '/' || (shouldResetSearchQuery && currentRoute === '/search'))) {
@@ -1416,6 +1525,7 @@ function Search({
         if (totalSelected > 0) {
             clearSelectedTransactions();
             updateSelectAllMatchingItemsState({});
+            lastClickedKeyRef.current = null;
             return;
         }
 

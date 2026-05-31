@@ -27,6 +27,7 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
+import {applyShiftRangeBatchToKeySet} from '@hooks/useShiftRangeSelection';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolation from '@hooks/useTransactionViolation';
@@ -529,6 +530,7 @@ function PolicyDistanceRatesPage({
                         ListItem={TableListItem}
                         onSelectRow={openRateDetails}
                         onSelectionButtonPress={toggleRate}
+                        onShiftRangeApply={(batch) => setSelectedDistanceRates((prev) => applyShiftRangeBatchToKeySet(batch, prev, (r) => r.value))}
                         selectedItems={selectedDistanceRates}
                         customListHeader={getCustomListHeader()}
                         onTurnOnSelectionMode={(item) => item && toggleRate(item)}

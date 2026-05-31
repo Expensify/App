@@ -13,6 +13,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {getShiftKeyFromEvent} from '@hooks/useShiftRangeSelection';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,7 +38,7 @@ type ReportListItemHeaderProps<TItem extends ListItem> = SearchListActionProps &
     onSelectRow: (item: TItem, event?: ModifiedMouseEvent) => void;
 
     /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress?: (item: TItem) => void;
+    onCheckboxPress?: (item: TItem, options?: {shiftKey?: boolean}) => void;
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
@@ -69,7 +70,7 @@ type FirstRowReportHeaderProps<TItem extends ListItem> = {
     report: TransactionReportGroupListItemType;
 
     /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress?: (item: TItem) => void;
+    onCheckboxPress?: (item: TItem, options?: {shiftKey?: boolean}) => void;
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
@@ -130,7 +131,7 @@ function HeaderFirstRow<TItem extends ListItem>({
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                 {!!canSelectMultiple && (
                     <Checkbox
-                        onPress={() => onCheckboxPress?.(reportItem as unknown as TItem)}
+                        onPress={(event) => onCheckboxPress?.(reportItem as unknown as TItem, {shiftKey: getShiftKeyFromEvent(event)})}
                         isChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
                         containerStyle={styles.m0}

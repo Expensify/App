@@ -41,7 +41,7 @@ type MoneyRequestReportTransactionItemProps = {
     isSelectionModeEnabled: boolean;
 
     /** Callback function triggered upon pressing a transaction checkbox. */
-    toggleTransaction: (transactionID: string) => void;
+    toggleTransaction: (transactionID: string, options?: {shiftKey?: boolean}) => void;
 
     /** Callback function triggered upon pressing a transaction. */
     handleOnPress: (transactionID: string) => void;

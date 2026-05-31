@@ -216,9 +216,12 @@ function ExpenseReportListItem<TItem extends ListItem>({
         translate,
     ]);
 
-    const handleSelectionButtonPress = useCallback(() => {
-        onSelectionButtonPress?.(reportItem as unknown as TItem);
-    }, [onSelectionButtonPress, reportItem]);
+    const handleSelectionButtonPress = useCallback(
+        (_passedItem?: unknown, options?: {shiftKey?: boolean}) => {
+            onSelectionButtonPress?.(reportItem as unknown as TItem, undefined, options);
+        },
+        [onSelectionButtonPress, reportItem],
+    );
 
     const listItemPressableStyle = useMemo(
         () => [

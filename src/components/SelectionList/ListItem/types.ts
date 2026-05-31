@@ -238,7 +238,7 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     item: TItem;
 
     /** Callback to fire when the selection button is pressed */
-    onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
+    onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[], options?: {shiftKey?: boolean}) => void;
 
     /** Which side of the row to render the selection button on */
     selectionButtonPosition?: ValueOf<typeof CONST.SELECTION_BUTTON_POSITION>;
@@ -368,7 +368,7 @@ type SpendRuleListItemType = ListItem & {
  */
 type SelectableListItemProps<TItem extends ListItem> = BaseListItemProps<TItem> & {
     /** Callback to fire when the selection button is pressed */
-    onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
+    onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[], options?: {shiftKey?: boolean}) => void;
 
     /** Which side of the row to render the selection button on */
     selectionButtonPosition?: ValueOf<typeof CONST.SELECTION_BUTTON_POSITION>;

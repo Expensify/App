@@ -39,7 +39,13 @@ function SelectableListItem<TItem extends ListItem>({
                     <>
                         <ButtonComponent
                             item={item}
-                            onSelectRow={onSelectionButtonPress ?? onSelectRow}
+                            onSelectRow={(it, opts) => {
+                                if (onSelectionButtonPress) {
+                                    onSelectionButtonPress(it, undefined, opts);
+                                    return;
+                                }
+                                onSelectRow(it);
+                            }}
                             disabled={!!isDisabled || !!item.isDisabledCheckbox}
                             style={styles.ml3}
                         />
@@ -55,7 +61,13 @@ function SelectableListItem<TItem extends ListItem>({
                       <>
                           <ButtonComponent
                               item={item}
-                              onSelectRow={onSelectionButtonPress ?? onSelectRow}
+                              onSelectRow={(it, opts) => {
+                                  if (onSelectionButtonPress) {
+                                      onSelectionButtonPress(it, undefined, opts);
+                                      return;
+                                  }
+                                  onSelectRow(it);
+                              }}
                               disabled={!!isDisabled || item.isDisabledCheckbox}
                               style={styles.mr3}
                           />

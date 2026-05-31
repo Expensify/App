@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {FlatList, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -28,6 +28,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
+import useShiftRangeSelection, {applyShiftRangeBatchToKeySet} from '@hooks/useShiftRangeSelection';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -114,19 +115,28 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     if (prunedSelectedCardIDs.length !== selectedCardIDs.length) {
         setSelectedCardIDs(prunedSelectedCardIDs);
     }
-    const toggleCardSelection = (cardID: number) => {
+    const lastClickedCardIDRef = useRef<string | null>(null);
+    const rangeApi = useShiftRangeSelection<Card>({
+        items: filteredSortedCards,
+        getItemKey: (c) => String(c.cardID),
+        getSelectedKeys: () => selectedCardIDs.map(String),
+        getFocusedKey: () => lastClickedCardIDRef.current,
+        onApplyRange: (batch) => setSelectedCardIDs((prev) => applyShiftRangeBatchToKeySet(batch, prev, (c) => c.cardID)),
+    });
+    const toggleCardSelection = (cardID: number, options?: {shiftKey?: boolean}) => {
+        const card = filteredSortedCards.find((c) => c.cardID === cardID);
+        if (card && rangeApi.applyShiftClick(card, options)) {
+            return;
+        }
         setSelectedCardIDs((prev) => (prev.includes(cardID) ? prev.filter((id) => id !== cardID) : [...prev, cardID]));
+        lastClickedCardIDRef.current = String(cardID);
     };
     const toggleSelectAll = () => {
         if (selectableCardIDs.length === 0) {
             return;
         }
-        setSelectedCardIDs((prev) => {
-            if (prev.length > 0) {
-                return [];
-            }
-            return [...selectableCardIDs];
-        });
+        setSelectedCardIDs((prev) => (prev.length > 0 ? [] : [...selectableCardIDs]));
+        lastClickedCardIDRef.current = null;
     };
     const isSelectAllChecked = selectedCardIDs.length > 0 && selectedCardIDs.length === selectableCardIDs.length;
     const isSelectAllIndeterminate = selectedCardIDs.length > 0 && selectedCardIDs.length < selectableCardIDs.length;
@@ -263,7 +273,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                                 shouldShowBulkSelection
                                     ? {
                                           isSelected: isCardSelected,
-                                          onToggle: () => toggleCardSelection(item.cardID),
+                                          onToggle: (options) => toggleCardSelection(item.cardID, options),
                                       }
                                     : undefined
                             }

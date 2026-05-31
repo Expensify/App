@@ -410,6 +410,18 @@ function ReportFieldsListValuesPage({
                         canSelectMultiple={canSelectMultiple}
                         selectAllAccessibilityLabel={translate('accessibilityHints.selectAllValues')}
                         onSelectionButtonPress={toggleValue}
+                        onShiftRangeApply={(batch) =>
+                            setSelectedValues((prev) => {
+                                const next = {...prev};
+                                for (const item of batch.toDeselect) {
+                                    next[item.value] = false;
+                                }
+                                for (const item of batch.toSelect) {
+                                    next[item.value] = true;
+                                }
+                                return next;
+                            })
+                        }
                         shouldShowListEmptyContent={false}
                         showScrollIndicator={false}
                         turnOnSelectionModeOnLongPress
