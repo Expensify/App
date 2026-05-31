@@ -1,8 +1,9 @@
 import Onyx from 'react-native-onyx';
-import {connectBankAccountWithPlaid} from '@libs/actions/BankAccounts';
+import {clearPersonalBankAccount, connectBankAccountWithPlaid} from '@libs/actions/BankAccounts';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import getOnyxValue from '../utils/getOnyxValue';
@@ -107,6 +108,51 @@ describe('actions/BankAccounts', () => {
                     }),
                 );
             });
+        });
+    });
+
+    describe('clearPersonalBankAccount', () => {
+        test('wipes the entire PERSONAL_BANK_ACCOUNT key by default', async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {onSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS, shouldShowSuccess: true});
+            await waitForBatchedUpdates();
+
+            clearPersonalBankAccount();
+            await waitForBatchedUpdates();
+
+            expect(await getOnyxValue(ONYXKEYS.PERSONAL_BANK_ACCOUNT)).toBeFalsy();
+        });
+
+        test('preserves navigation fields and clears form/status fields when shouldPreserveAccountData=true', async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
+                onSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS,
+                exitReportID: 'report123',
+                shouldShowSuccess: true,
+                isLoading: true,
+                errors: {field: 'error'},
+                updateError: 'addPersonalBankAccount.updatePersonalInfoFailure',
+            });
+            await waitForBatchedUpdates();
+
+            clearPersonalBankAccount(true);
+            await waitForBatchedUpdates();
+
+            const result = await getOnyxValue(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
+            expect(result?.onSuccessFallbackRoute).toBe(ROUTES.ENABLE_PAYMENTS);
+            expect(result?.exitReportID).toBe('report123');
+            expect(result?.shouldShowSuccess).toBeFalsy();
+            expect(result?.isLoading).toBeFalsy();
+            expect(result?.errors).toBeFalsy();
+            expect(result?.updateError).toBeFalsy();
+        });
+
+        test('always clears the form draft regardless of the flag', async () => {
+            await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL});
+            await waitForBatchedUpdates();
+
+            clearPersonalBankAccount(true);
+            await waitForBatchedUpdates();
+
+            expect((await getOnyxValue(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT))?.setupType).toBeFalsy();
         });
     });
 });
