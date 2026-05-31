@@ -22,20 +22,20 @@ function useFrozenPreSelection<TItem extends ListItem>(sections: Array<Section<T
         return sections;
     }
 
-    // Walk sections in order to collect the latest live rows for frozen keys so toggles refresh in place.
+    // Walk sections once to collect the latest live rows for frozen keys (so toggles refresh in place)
+    // while stripping those rows out of their original sections.
     const frozenData: TItem[] = [];
-    for (const section of sections) {
+    const filteredSections = sections.map((section) => {
+        const data: TItem[] = [];
         for (const item of section.data) {
             if (item.keyForList && frozenKeys.has(item.keyForList)) {
                 frozenData.push(item);
+            } else {
+                data.push(item);
             }
         }
-    }
-
-    const filteredSections = sections.map((section) => ({
-        ...section,
-        data: section.data.filter((item) => !item.keyForList || !frozenKeys.has(item.keyForList)),
-    }));
+        return {...section, data};
+    });
 
     if (frozenData.length === 0) {
         return filteredSections;
