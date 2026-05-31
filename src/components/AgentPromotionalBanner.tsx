@@ -44,7 +44,7 @@ function AgentPromotionalBanner({title, subtitle, onDismiss, dismissSentryLabel,
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const illustrations = useMemoizedLazyIllustrations(['AiBot']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close']);
 
@@ -90,7 +90,7 @@ function AgentPromotionalBanner({title, subtitle, onDismiss, dismissSentryLabel,
         if (!hasCta) {
             return dismissIcon;
         }
-        if (shouldUseNarrowLayout) {
+        if (shouldUseNarrowLayout && !isInLandscapeMode) {
             return (
                 <>
                     {dismissIcon}
@@ -118,7 +118,7 @@ function AgentPromotionalBanner({title, subtitle, onDismiss, dismissSentryLabel,
                 {dismissIcon}
             </View>
         );
-    }, [hasCta, shouldUseNarrowLayout, ctaText, onCtaPress, ctaSentryLabel, styles, dismissIcon]);
+    }, [hasCta, shouldUseNarrowLayout, isInLandscapeMode, ctaText, onCtaPress, ctaSentryLabel, styles, dismissIcon]);
 
     return (
         <View style={style}>
