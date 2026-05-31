@@ -8,201 +8,84 @@ type Item = {
     isSelected?: boolean;
 };
 
+type Section = {data: Item[]; sectionIndex: number};
+
+const padTo = (target: number, existing: Item[]): Section[] => {
+    const filler: Item[] = [];
+    for (let i = existing.length; i < target; i++) {
+        filler.push({keyForList: `filler-${i}`});
+    }
+    return [{data: [...existing, ...filler], sectionIndex: 1}];
+};
+
 const longList = CONST.STANDARD_LIST_ITEM_LIMIT;
-const shortList = CONST.STANDARD_LIST_ITEM_LIMIT - 1;
-const getKey = (item: Item) => item.keyForList;
 
 describe('useFrozenPreSelection', () => {
-    it('does not capture until the list is ready', () => {
+    it('returns input unchanged while canCapture is false', () => {
         const item: Item = {keyForList: '1'};
-        const {result} = renderHook(() =>
-            useFrozenPreSelection<Item>({
-                sections: [{data: [item], sectionIndex: 1}],
-                snapshotSource: [item],
-                getKey,
-                isReady: false,
-                visibleCount: longList,
-            }),
-        );
+        const sections = padTo(longList, [item]);
+        const {result} = renderHook(() => useFrozenPreSelection<Item>(sections, ['1'], false));
 
-        expect(result.current.frozenSections).toEqual([]);
-        expect(result.current.listSections).toEqual([{data: [item], sectionIndex: 1}]);
-        expect(result.current.isFrozen(item)).toBe(false);
+        expect(result.current).toBe(sections);
     });
 
-    it('pulls pre-selected items into a top section and strips them from the input sections', () => {
+    it('pins pre-selected rows in a new top section and removes them from the input sections', () => {
         const pinned: Item = {keyForList: '1', isSelected: true};
         const other: Item = {keyForList: '2'};
-        const {result} = renderHook(() =>
-            useFrozenPreSelection<Item>({
-                sections: [{data: [pinned, other], sectionIndex: 1}],
-                snapshotSource: [pinned],
-                getKey,
-                isReady: true,
-                visibleCount: longList,
-            }),
-        );
+        const sections = padTo(longList, [pinned, other]);
+        const {result} = renderHook(() => useFrozenPreSelection<Item>(sections, ['1'], true));
 
-        expect(result.current.frozenSections).toEqual([{data: [pinned], sectionIndex: 0}]);
-        expect(result.current.listSections).toEqual([{data: [other], sectionIndex: 1}]);
-        expect(result.current.isFrozen(pinned)).toBe(true);
-        expect(result.current.isFrozen(other)).toBe(false);
+        expect(result.current.at(0)).toEqual({data: [pinned], sectionIndex: 0});
+        expect(result.current.at(1)?.data.some((item) => item.keyForList === '1')).toBe(false);
+        expect(result.current.at(1)?.data.some((item) => item.keyForList === '2')).toBe(true);
     });
 
-    it('skips pinning when the visible list is below the threshold', () => {
+    it('returns input unchanged when the combined item count is below the threshold', () => {
         const item: Item = {keyForList: '1'};
-        const {result} = renderHook(() =>
-            useFrozenPreSelection<Item>({
-                sections: [{data: [item], sectionIndex: 1}],
-                snapshotSource: [item],
-                getKey,
-                isReady: true,
-                visibleCount: shortList,
-            }),
-        );
+        const sections: Section[] = [{data: [item], sectionIndex: 1}];
+        const {result} = renderHook(() => useFrozenPreSelection<Item>(sections, ['1'], true));
 
-        expect(result.current.frozenSections).toEqual([]);
-        expect(result.current.listSections).toEqual([{data: [item], sectionIndex: 1}]);
-        expect(result.current.isFrozen(item)).toBe(false);
+        expect(result.current).toBe(sections);
     });
 
-    it('respects a custom threshold', () => {
-        const item: Item = {keyForList: '1'};
-        const {result} = renderHook(() =>
-            useFrozenPreSelection<Item>({
-                sections: [{data: [item], sectionIndex: 1}],
-                snapshotSource: [item],
-                getKey,
-                isReady: true,
-                visibleCount: 5,
-                threshold: 5,
-            }),
-        );
-
-        expect(result.current.frozenSections).toEqual([{data: [item], sectionIndex: 0}]);
-    });
-
-    it('honors canCapture for hydration timing', () => {
-        const item: Item = {keyForList: '7'};
-        const {result, rerender} = renderHook(
-            ({snapshotSource, canCapture}: {snapshotSource: Item[]; canCapture: boolean}) =>
-                useFrozenPreSelection<Item>({
-                    sections: [{data: [item], sectionIndex: 1}],
-                    snapshotSource,
-                    getKey,
-                    isReady: true,
-                    visibleCount: longList,
-                    canCapture,
-                }),
-            {initialProps: {snapshotSource: [] as Item[], canCapture: false}},
-        );
-
-        expect(result.current.frozenSections).toEqual([]);
-
-        rerender({snapshotSource: [item], canCapture: true});
-
-        expect(result.current.frozenSections).toEqual([{data: [item], sectionIndex: 0}]);
-        expect(result.current.isFrozen(item)).toBe(true);
-    });
-
-    it('keeps the snapshot stable after the first capture even when snapshotSource changes', () => {
+    it('locks the snapshot once captured, even when initialSelectedValues changes later', () => {
         const captured: Item = {keyForList: '1'};
         const newcomer: Item = {keyForList: '99'};
+        const initialSections = padTo(longList, [captured, newcomer]);
         const {result, rerender} = renderHook(
-            ({snapshotSource, sections}: {snapshotSource: Item[]; sections: Array<{data: Item[]; sectionIndex: number}>}) =>
-                useFrozenPreSelection<Item>({
-                    sections,
-                    snapshotSource,
-                    getKey,
-                    isReady: true,
-                    visibleCount: longList,
-                }),
-            {initialProps: {snapshotSource: [captured], sections: [{data: [captured], sectionIndex: 1}]}},
+            ({sections, initialSelectedValues}: {sections: Section[]; initialSelectedValues: string[]}) => useFrozenPreSelection<Item>(sections, initialSelectedValues, true),
+            {initialProps: {sections: initialSections, initialSelectedValues: ['1']}},
         );
 
-        expect(result.current.frozenSections).toEqual([{data: [captured], sectionIndex: 0}]);
+        expect(result.current.at(0)?.data).toEqual([captured]);
 
-        rerender({snapshotSource: [newcomer], sections: [{data: [captured, newcomer], sectionIndex: 1}]});
+        rerender({sections: initialSections, initialSelectedValues: ['99']});
 
-        expect(result.current.frozenSections).toEqual([{data: [captured], sectionIndex: 0}]);
-        expect(result.current.listSections).toEqual([{data: [newcomer], sectionIndex: 1}]);
-        expect(result.current.isFrozen(captured)).toBe(true);
-        expect(result.current.isFrozen(newcomer)).toBe(false);
+        expect(result.current.at(0)?.data).toEqual([captured]);
     });
 
-    it('preserves snapshot order for the frozen section', () => {
+    it('preserves capture order across renders, using the live row from input sections', () => {
         const a: Item = {keyForList: 'a'};
         const b: Item = {keyForList: 'b'};
-        const c: Item = {keyForList: 'c'};
-        const {result} = renderHook(() =>
-            useFrozenPreSelection<Item>({
-                // Items appear in a different order in the input sections than in the snapshot.
-                sections: [{data: [c, a, b], sectionIndex: 1}],
-                snapshotSource: [b, a, c],
-                getKey,
-                isReady: true,
-                visibleCount: longList,
-            }),
-        );
+        const initialSections = padTo(longList, [b, a]);
+        const {result, rerender} = renderHook(({sections}: {sections: Section[]}) => useFrozenPreSelection<Item>(sections, ['a', 'b'], true), {initialProps: {sections: initialSections}});
 
-        expect(result.current.frozenSections).toEqual([{data: [b, a, c], sectionIndex: 0}]);
+        // Capture order follows traversal of sections — b appears before a.
+        expect(result.current.at(0)?.data.map((item) => item.keyForList)).toEqual(['b', 'a']);
+
+        // Live row replaces the captured row so toggles refresh in place.
+        const aLive: Item = {keyForList: 'a', isSelected: false};
+        const bLive: Item = {keyForList: 'b', isSelected: true};
+        rerender({sections: padTo(longList, [bLive, aLive])});
+
+        expect(result.current.at(0)?.data).toEqual([bLive, aLive]);
     });
 
     it('drops frozen items that are not present in any input section', () => {
         const visible: Item = {keyForList: 'visible'};
-        const missing: Item = {keyForList: 'missing'};
-        const {result} = renderHook(() =>
-            useFrozenPreSelection<Item>({
-                sections: [{data: [visible], sectionIndex: 1}],
-                snapshotSource: [missing, visible],
-                getKey,
-                isReady: true,
-                visibleCount: longList,
-            }),
-        );
+        const sections = padTo(longList, [visible]);
+        const {result} = renderHook(() => useFrozenPreSelection<Item>(sections, ['missing', 'visible'], true));
 
-        // `missing` was captured (isFrozen returns true) but is not rendered.
-        expect(result.current.frozenSections).toEqual([{data: [visible], sectionIndex: 0}]);
-        expect(result.current.isFrozen(missing)).toBe(true);
-        expect(result.current.isFrozen(visible)).toBe(true);
-    });
-
-    it('uses the live row from input sections so toggles refresh in place', () => {
-        const captureTime: Item = {keyForList: '1', text: 'before', isSelected: true};
-        const liveAfterToggle: Item = {keyForList: '1', text: 'after', isSelected: false};
-
-        const {result, rerender} = renderHook(
-            ({sections}: {sections: Array<{data: Item[]; sectionIndex: number}>}) =>
-                useFrozenPreSelection<Item>({
-                    sections,
-                    snapshotSource: [captureTime],
-                    getKey,
-                    isReady: true,
-                    visibleCount: longList,
-                }),
-            {initialProps: {sections: [{data: [captureTime], sectionIndex: 1}]}},
-        );
-
-        expect(result.current.frozenSections).toEqual([{data: [captureTime], sectionIndex: 0}]);
-
-        rerender({sections: [{data: [liveAfterToggle], sectionIndex: 1}]});
-
-        expect(result.current.frozenSections).toEqual([{data: [liveAfterToggle], sectionIndex: 0}]);
-    });
-
-    it('lets the caller override the frozen sectionIndex', () => {
-        const item: Item = {keyForList: '1'};
-        const {result} = renderHook(() =>
-            useFrozenPreSelection<Item>({
-                sections: [{data: [item], sectionIndex: 5}],
-                snapshotSource: [item],
-                getKey,
-                isReady: true,
-                visibleCount: longList,
-                frozenSectionIndex: 10,
-            }),
-        );
-
-        expect(result.current.frozenSections).toEqual([{data: [item], sectionIndex: 10}]);
+        expect(result.current.at(0)?.data).toEqual([visible]);
     });
 });

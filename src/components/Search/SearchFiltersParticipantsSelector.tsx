@@ -49,14 +49,6 @@ function getOptionDataFromAttendee(attendee: Attendee): OptionData {
     };
 }
 
-// accountID is preferred; falls back to login for name-only attendees and partial rows.
-function getParticipantKey(option: OptionData): string | undefined {
-    if (option.accountID && option.accountID !== CONST.DEFAULT_NUMBER_ID) {
-        return `acct:${option.accountID}`;
-    }
-    return option.login ? `login:${option.login}` : undefined;
-}
-
 type SearchFiltersParticipantsSelectorProps = {
     initialAccountIDs: string[];
     onFiltersUpdate: (accountIDs: string[]) => void;
@@ -93,12 +85,17 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             shouldKeepSelectedInAvailableOptions: true,
         });
 
-    // Set once the hydration effect runs, so the snapshot waits for it. Without this, a fully stale
+    // Set once the hydration effect runs so the snapshot waits for it. Without this, a fully stale
     // initialAccountIDs list would let the snapshot fire on the first toggled row and pin it.
     const [hasAttemptedHydration, setHasAttemptedHydration] = useState(initialAccountIDs.length === 0);
 
+    const trimmedSearchTerm = debouncedSearchTerm.trim().toLowerCase();
+    const matchesSearchTerm = (option: OptionData) => !trimmedSearchTerm || doesPersonalDetailMatchSearchTerm(option, option.accountID ?? CONST.DEFAULT_NUMBER_ID, trimmedSearchTerm);
+
     const currentUserOption = areOptionsInitialized ? availableOptions.currentUserOption : null;
-    // Drop the current user from Recents / Contacts so they only show in either the frozen section (if pre-selected) or their dedicated section below.
+    const isCurrentUserSelected = !!currentUserAccountID && selectedOptions.some((option) => option.accountID === currentUserAccountID);
+
+    // Drop the current user from Recents / Contacts so they only show in their dedicated section (or get pinned at top by the hook).
     const recentReportsWithoutCurrentUser =
         areOptionsInitialized && currentUserOption?.accountID
             ? availableOptions.recentReports.filter((report) => report.accountID !== currentUserOption.accountID)
@@ -108,93 +105,52 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             ? availableOptions.personalDetails.filter((detail) => detail.accountID !== currentUserOption.accountID)
             : (availableOptions.personalDetails ?? []);
 
-    const listSectionsInput = [
-        {data: recentReportsWithoutCurrentUser, sectionIndex: 3},
-        {data: personalDetailsWithoutCurrentUser, sectionIndex: 4},
-    ];
+    // Selected items that don't show up in Recents / Contacts and aren't the current user — surface them but respect the search term.
+    const visibleLogins = new Set([...personalDetailsWithoutCurrentUser.map((detail) => detail.login), ...recentReportsWithoutCurrentUser.map((report) => report.login)].filter(Boolean));
+    const extraSelectedOptions = selectedOptions.filter((option) => option.accountID !== currentUserAccountID && !visibleLogins.has(option.login) && matchesSearchTerm(option));
 
-    const {frozenSections, listSections, isFrozen} = useFrozenPreSelection<OptionData>({
-        sections: listSectionsInput,
-        snapshotSource: selectedOptions,
-        getKey: getParticipantKey,
-        isReady: areOptionsInitialized,
-        // Wait for hydration (so a toggled row isn't mistaken for pre-selection) and an empty search
-        // term (so visibleCount reflects the full list).
-        canCapture: hasAttemptedHydration && debouncedSearchTerm.trim() === '',
-        visibleCount: recentReportsWithoutCurrentUser.length + personalDetailsWithoutCurrentUser.length,
-    });
-
-    const sections: Array<{title: string; data: OptionData[]; sectionIndex: number}> = [];
-    let headerMessage: string | undefined;
-
+    // Render-ready current user row with the "(you)" suffix; falls back to personalDetails if pagination dropped them.
+    let currentUserRow: OptionData | undefined;
     if (areOptionsInitialized) {
-        const trimmedSearchTerm = debouncedSearchTerm.trim().toLowerCase();
-        const matchesSearchTerm = (option: OptionData) => !trimmedSearchTerm || doesPersonalDetailMatchSearchTerm(option, option.accountID ?? CONST.DEFAULT_NUMBER_ID, trimmedSearchTerm);
-        const isCurrentUserSelected = !!currentUserAccountID && selectedOptions.some((option) => option.accountID === currentUserAccountID);
-        const isCurrentUserFrozen = !!currentUserOption && isFrozen(currentUserOption);
-
-        // Frozen section needs current user injected manually (they're never in Recents / Contacts).
-        let frozenSectionsWithCurrentUser = frozenSections;
-        if (isCurrentUserFrozen && currentUserOption) {
-            const formattedCurrentUser: OptionData = {
-                ...currentUserOption,
+        let candidate = currentUserOption ?? undefined;
+        if (!candidate && currentUserAccountID && personalDetails?.[currentUserAccountID]) {
+            candidate = getParticipantsOption(personalDetails[currentUserAccountID], personalDetails) as OptionData;
+        }
+        if (candidate && matchesSearchTerm(candidate)) {
+            currentUserRow = {
+                ...candidate,
                 text: getDisplayNameForParticipant({
-                    accountID: currentUserOption.accountID,
+                    accountID: candidate.accountID,
                     shouldAddCurrentUserPostfix: true,
                     personalDetailsData: personalDetails,
                     formatPhoneNumber,
                 }),
                 isSelected: isCurrentUserSelected,
             };
-            const existing = frozenSections.at(0);
-            frozenSectionsWithCurrentUser = existing ? [{...existing, data: [...existing.data, formattedCurrentUser]}] : [{title: '', data: [formattedCurrentUser], sectionIndex: 0}];
         }
-        for (const section of frozenSectionsWithCurrentUser) {
-            sections.push({title: '', data: section.data, sectionIndex: section.sectionIndex});
-        }
-
-        // Selected items that don't show up in Recents / Contacts and weren't pre-selected — surface them but respect the search term.
-        const visibleLogins = new Set([...personalDetailsWithoutCurrentUser.map((detail) => detail.login), ...recentReportsWithoutCurrentUser.map((report) => report.login)].filter(Boolean));
-        const extraSelectedOptions = selectedOptions.filter(
-            (option) => option.accountID !== currentUserAccountID && !visibleLogins.has(option.login) && !isFrozen(option) && matchesSearchTerm(option),
-        );
-        if (extraSelectedOptions.length > 0) {
-            sections.push({
-                title: '',
-                data: extraSelectedOptions,
-                sectionIndex: 1,
-            });
-        }
-
-        // Current user goes above Recents / Contacts when they aren't already pinned at the top. Fall back to personalDetails if pagination dropped them.
-        let currentUserOptionToShow = isCurrentUserFrozen ? undefined : currentUserOption;
-        if (!currentUserOptionToShow && !isCurrentUserFrozen && currentUserAccountID && personalDetails?.[currentUserAccountID]) {
-            const candidateOption = getParticipantsOption(personalDetails[currentUserAccountID], personalDetails) as OptionData;
-            if (matchesSearchTerm(candidateOption)) {
-                currentUserOptionToShow = candidateOption;
-            }
-        }
-        if (currentUserOptionToShow) {
-            const formattedName = getDisplayNameForParticipant({
-                accountID: currentUserOptionToShow.accountID,
-                shouldAddCurrentUserPostfix: true,
-                personalDetailsData: personalDetails,
-                formatPhoneNumber,
-            });
-            sections.push({
-                title: '',
-                data: [{...currentUserOptionToShow, text: formattedName, isSelected: isCurrentUserSelected}],
-                sectionIndex: 2,
-            });
-        }
-
-        for (const section of listSections) {
-            sections.push({title: '', data: section.data, sectionIndex: section.sectionIndex});
-        }
-
-        const noResultsFound = sections.every((section) => section.data.length === 0);
-        headerMessage = noResultsFound ? translate('common.noResultsFound') : undefined;
     }
+
+    const baseSections: Array<{title: string; data: OptionData[]; sectionIndex: number}> = [];
+    if (areOptionsInitialized) {
+        if (extraSelectedOptions.length > 0) {
+            baseSections.push({title: '', data: extraSelectedOptions, sectionIndex: 1});
+        }
+        if (currentUserRow) {
+            baseSections.push({title: '', data: [currentUserRow], sectionIndex: 2});
+        }
+        baseSections.push({title: '', data: recentReportsWithoutCurrentUser, sectionIndex: 3});
+        baseSections.push({title: '', data: personalDetailsWithoutCurrentUser, sectionIndex: 4});
+    }
+
+    const sections = useFrozenPreSelection<OptionData>(
+        baseSections,
+        initialAccountIDs,
+        // Wait for hydration (so a toggled row isn't mistaken for pre-selection) and an empty search term.
+        areOptionsInitialized && hasAttemptedHydration && trimmedSearchTerm === '',
+    );
+
+    const noResultsFound = areOptionsInitialized && sections.every((section) => section.data.length === 0);
+    const headerMessage = noResultsFound ? translate('common.noResultsFound') : undefined;
 
     const resetChanges = () => {
         setSelectedOptions([]);
