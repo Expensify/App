@@ -90,7 +90,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
     const [hasAttemptedHydration, setHasAttemptedHydration] = useState(initialAccountIDs.length === 0);
 
     const trimmedSearchTerm = debouncedSearchTerm.trim().toLowerCase();
-    const matchesSearchTerm = (option: OptionData) => !trimmedSearchTerm || doesPersonalDetailMatchSearchTerm(option, option.accountID ?? CONST.DEFAULT_NUMBER_ID, trimmedSearchTerm);
+    const matchesSearchTerm = (option: OptionData) => !trimmedSearchTerm || doesPersonalDetailMatchSearchTerm(option, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, trimmedSearchTerm);
 
     const currentUserOption = areOptionsInitialized ? availableOptions.currentUserOption : null;
     const isCurrentUserSelected = !!currentUserAccountID && selectedOptions.some((option) => option.accountID === currentUserAccountID);
