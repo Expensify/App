@@ -291,9 +291,19 @@ function setPersonalBankAccountContinueKYCOnSuccess(onSuccessFallbackRoute: Rout
     Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {onSuccessFallbackRoute});
 }
 
-function clearPersonalBankAccount() {
+function clearPersonalBankAccount(shouldPreserveRoutingData = false) {
     clearPlaid();
-    Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, null);
+    if (shouldPreserveRoutingData) {
+        Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
+            shouldShowSuccess: null,
+            isLoading: null,
+            errors: null,
+            errorFields: null,
+            updateError: null,
+        });
+    } else {
+        Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, null);
+    }
     Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, null);
     clearPersonalBankAccountSetupType();
 }
