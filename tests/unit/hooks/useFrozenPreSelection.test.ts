@@ -2,16 +2,14 @@ import {renderHook} from '@testing-library/react-native';
 import useFrozenPreSelection from '@hooks/useFrozenPreSelection';
 import CONST from '@src/CONST';
 
-type Option = {accountID?: number; login?: string};
-
-const getKeys = (option: Option) => [option.accountID, option.login];
+type Option = {keyForList?: string};
 
 const longList = CONST.STANDARD_LIST_ITEM_LIMIT;
 const shortList = CONST.STANDARD_LIST_ITEM_LIMIT - 1;
 
 describe('useFrozenPreSelection', () => {
     it('does not capture until the list is ready', () => {
-        const onlyOption: Option = {accountID: 1, login: 'a@example.com'};
+        const onlyOption: Option = {keyForList: '1'};
         const selectedOptions: Option[] = [onlyOption];
 
         const {result} = renderHook(() =>
@@ -19,7 +17,6 @@ describe('useFrozenPreSelection', () => {
                 selectedOptions,
                 isReady: false,
                 visibleCount: longList,
-                getKeys,
             }),
         );
 
@@ -28,28 +25,24 @@ describe('useFrozenPreSelection', () => {
     });
 
     it('snapshots the selection on the first ready render when the list is long enough', () => {
-        const selectedOptions: Option[] = [
-            {accountID: 1, login: 'a@example.com'},
-            {accountID: 2, login: 'b@example.com'},
-        ];
+        const selectedOptions: Option[] = [{keyForList: '1'}, {keyForList: '2'}];
 
         const {result} = renderHook(() =>
             useFrozenPreSelection<Option>({
                 selectedOptions,
                 isReady: true,
                 visibleCount: longList,
-                getKeys,
             }),
         );
 
         expect(result.current.frozen).toEqual(selectedOptions);
-        expect(result.current.isFrozen({accountID: 1})).toBe(true);
-        expect(result.current.isFrozen({login: 'b@example.com'})).toBe(true);
-        expect(result.current.isFrozen({accountID: 3, login: 'c@example.com'})).toBe(false);
+        expect(result.current.isFrozen({keyForList: '1'})).toBe(true);
+        expect(result.current.isFrozen({keyForList: '2'})).toBe(true);
+        expect(result.current.isFrozen({keyForList: '3'})).toBe(false);
     });
 
     it('skips pinning when the list is below the threshold', () => {
-        const onlyOption: Option = {accountID: 1, login: 'a@example.com'};
+        const onlyOption: Option = {keyForList: '1'};
         const selectedOptions: Option[] = [onlyOption];
 
         const {result} = renderHook(() =>
@@ -57,7 +50,6 @@ describe('useFrozenPreSelection', () => {
                 selectedOptions,
                 isReady: true,
                 visibleCount: shortList,
-                getKeys,
             }),
         );
 
@@ -66,7 +58,7 @@ describe('useFrozenPreSelection', () => {
     });
 
     it('respects a custom threshold', () => {
-        const selectedOptions: Option[] = [{accountID: 1, login: 'a@example.com'}];
+        const selectedOptions: Option[] = [{keyForList: '1'}];
 
         const {result} = renderHook(() =>
             useFrozenPreSelection<Option>({
@@ -74,7 +66,6 @@ describe('useFrozenPreSelection', () => {
                 isReady: true,
                 visibleCount: 5,
                 threshold: 5,
-                getKeys,
             }),
         );
 
@@ -91,7 +82,6 @@ describe('useFrozenPreSelection', () => {
                     isReady: true,
                     visibleCount: longList,
                     canCapture,
-                    getKeys,
                 }),
             {initialProps: {selectedOptions: initialOptions, canCapture: false}},
         );
@@ -99,15 +89,15 @@ describe('useFrozenPreSelection', () => {
         expect(result.current.frozen).toEqual([]);
 
         // Hydration arrives in the same render that flips canCapture to true.
-        const hydratedOptions: Option[] = [{accountID: 7, login: 'g@example.com'}];
+        const hydratedOptions: Option[] = [{keyForList: '7'}];
         rerender({selectedOptions: hydratedOptions, canCapture: true});
 
         expect(result.current.frozen).toEqual(hydratedOptions);
-        expect(result.current.isFrozen({accountID: 7})).toBe(true);
+        expect(result.current.isFrozen({keyForList: '7'})).toBe(true);
     });
 
     it('keeps the snapshot stable after the first capture, even when selectedOptions changes', () => {
-        const initialSelection: Option[] = [{accountID: 1, login: 'a@example.com'}];
+        const initialSelection: Option[] = [{keyForList: '1'}];
 
         const {result, rerender} = renderHook(
             ({selectedOptions}: {selectedOptions: Option[]}) =>
@@ -115,55 +105,44 @@ describe('useFrozenPreSelection', () => {
                     selectedOptions,
                     isReady: true,
                     visibleCount: longList,
-                    getKeys,
                 }),
             {initialProps: {selectedOptions: initialSelection}},
         );
 
         expect(result.current.frozen).toEqual(initialSelection);
 
-        rerender({selectedOptions: [{accountID: 99, login: 'late@example.com'}]});
+        rerender({selectedOptions: [{keyForList: '99'}]});
 
         // The original snapshot stays put; the new selection isn't pinned.
         expect(result.current.frozen).toEqual(initialSelection);
-        expect(result.current.isFrozen({accountID: 1})).toBe(true);
-        expect(result.current.isFrozen({accountID: 99})).toBe(false);
+        expect(result.current.isFrozen({keyForList: '1'})).toBe(true);
+        expect(result.current.isFrozen({keyForList: '99'})).toBe(false);
     });
 
-    it('ignores invalid keys (default-number-id, undefined, empty string)', () => {
-        const selectedOptions: Option[] = [
-            {accountID: CONST.DEFAULT_NUMBER_ID, login: 'name-only@example.com'},
-            {accountID: 42, login: ''},
-        ];
+    it('ignores rows without a keyForList', () => {
+        const selectedOptions: Option[] = [{keyForList: '42'}, {}];
 
         const {result} = renderHook(() =>
             useFrozenPreSelection<Option>({
                 selectedOptions,
                 isReady: true,
                 visibleCount: longList,
-                getKeys,
             }),
         );
 
-        // login matches for the first row, accountID matches for the second.
-        expect(result.current.isFrozen({login: 'name-only@example.com'})).toBe(true);
-        expect(result.current.isFrozen({accountID: 42})).toBe(true);
-
-        // A different row with the placeholder accountID and a different login should not be frozen.
-        expect(result.current.isFrozen({accountID: CONST.DEFAULT_NUMBER_ID, login: 'someone-else@example.com'})).toBe(false);
-        // An empty-string login alone matches no captured key.
-        expect(result.current.isFrozen({login: ''})).toBe(false);
+        expect(result.current.isFrozen({keyForList: '42'})).toBe(true);
+        // A row without a keyForList can never match a captured key.
+        expect(result.current.isFrozen({})).toBe(false);
     });
 
     it('keeps the isFrozen reference stable across renders once captured', () => {
-        const selectedOptions: Option[] = [{accountID: 1, login: 'a@example.com'}];
+        const selectedOptions: Option[] = [{keyForList: '1'}];
 
         const {result, rerender} = renderHook(() =>
             useFrozenPreSelection<Option>({
                 selectedOptions,
                 isReady: true,
                 visibleCount: longList,
-                getKeys,
             }),
         );
 

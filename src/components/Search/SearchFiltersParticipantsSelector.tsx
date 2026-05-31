@@ -97,7 +97,6 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         // term (so visibleCount reflects the full list).
         canCapture: hasAttemptedHydration && debouncedSearchTerm.trim() === '',
         visibleCount: availableOptions.recentReports.length + availableOptions.personalDetails.length,
-        getKeys: (option) => [option.accountID, option.login],
     });
 
     const sections: Array<{title: string; data: OptionData[]; sectionIndex: number}> = [];

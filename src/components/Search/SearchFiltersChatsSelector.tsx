@@ -117,7 +117,6 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         canCapture: initialReportIDs.length === 0 || selectedReportIDs.length > 0,
         // Use the unfiltered count so an active search at first render doesn't disable pinning.
         visibleCount: defaultOptions.recentReports.length,
-        getKeys: (option) => [option.reportID],
     });
 
     // Rebuild each render — the snapshot fixes which reports are pinned, not what they display.

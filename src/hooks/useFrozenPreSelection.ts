@@ -16,21 +16,20 @@ type UseFrozenPreSelectionOptions<T> = {
 
     /** Skip pinning unless the list has at least this many items. Defaults to STANDARD_LIST_ITEM_LIMIT. */
     threshold?: number;
-
-    /** Identity keys for an item, e.g. `[reportID]` or `[accountID, login]`. */
-    getKeys: (option: T) => Array<string | number | undefined>;
 };
-
-function isValidKey(key: string | number | undefined | null): key is string | number {
-    return key !== undefined && key !== null && key !== '' && key !== CONST.DEFAULT_NUMBER_ID;
-}
 
 /**
  * Pins items that were pre-selected on first load to the top of a long list, so they don't get lost
- * when the user starts toggling. Returns the snapshot plus an `isFrozen` predicate for deduping.
- * Captures during render — no extra renders.
+ * when the user starts toggling. Returns the snapshot plus an `isFrozen` predicate (matched by
+ * `keyForList`) for deduping. Captures during render — no extra renders.
  */
-function useFrozenPreSelection<T>({selectedOptions, isReady, visibleCount, canCapture = true, threshold = CONST.STANDARD_LIST_ITEM_LIMIT, getKeys}: UseFrozenPreSelectionOptions<T>): {
+function useFrozenPreSelection<T extends {keyForList?: string}>({
+    selectedOptions,
+    isReady,
+    visibleCount,
+    canCapture = true,
+    threshold = CONST.STANDARD_LIST_ITEM_LIMIT,
+}: UseFrozenPreSelectionOptions<T>): {
     frozen: T[];
     isFrozen: (option: T) => boolean;
 } {
@@ -40,24 +39,15 @@ function useFrozenPreSelection<T>({selectedOptions, isReady, visibleCount, canCa
         setFrozen(visibleCount >= threshold ? selectedOptions : []);
     }
 
-    const frozenKeys = new Set<string | number>();
+    const frozenKeys = new Set<string>();
     for (const option of frozen ?? []) {
-        for (const key of getKeys(option)) {
-            if (!isValidKey(key)) {
-                continue;
-            }
-            frozenKeys.add(key);
+        if (!option.keyForList) {
+            continue;
         }
+        frozenKeys.add(option.keyForList);
     }
 
-    const isFrozen = (option: T) => {
-        for (const key of getKeys(option)) {
-            if (isValidKey(key) && frozenKeys.has(key)) {
-                return true;
-            }
-        }
-        return false;
-    };
+    const isFrozen = (option: T) => !!option.keyForList && frozenKeys.has(option.keyForList);
 
     return {frozen: frozen ?? [], isFrozen};
 }
