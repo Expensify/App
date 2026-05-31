@@ -12,7 +12,6 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getFilteredRecentAttendees, getParticipantsOption} from '@libs/OptionsListUtils';
 import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -58,7 +57,7 @@ type SearchFiltersParticipantsSelectorProps = {
 };
 
 function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, shouldAllowNameOnlyOptions = false}: SearchFiltersParticipantsSelectorProps) {
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
@@ -119,7 +118,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             matchesSearchTerm(option),
     );
 
-    // Render-ready current user row with the "(you)" suffix; falls back to personalDetails if pagination dropped them.
+    // Render-ready current user row; falls back to personalDetails if pagination dropped them.
     let currentUserRow: OptionData | undefined;
     if (areOptionsInitialized) {
         let candidate = currentUserOption ?? undefined;
@@ -127,16 +126,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             candidate = getParticipantsOption(personalDetails[currentUserAccountID], personalDetails) as OptionData;
         }
         if (candidate && matchesSearchTerm(candidate)) {
-            currentUserRow = {
-                ...candidate,
-                text: getDisplayNameForParticipant({
-                    accountID: candidate.accountID,
-                    shouldAddCurrentUserPostfix: true,
-                    personalDetailsData: personalDetails,
-                    formatPhoneNumber,
-                }),
-                isSelected: isCurrentUserSelected,
-            };
+            currentUserRow = {...candidate, isSelected: isCurrentUserSelected};
         }
     }
 
