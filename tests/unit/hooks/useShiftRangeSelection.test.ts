@@ -445,6 +445,23 @@ describe('useShiftRangeSelection', () => {
             expect(applied).toBe(false);
         });
 
+        it('does not emit deselects from a vanished previous endpoint when items change mid-session', () => {
+            const onApplyRange = jest.fn();
+            const {result, rerender} = renderHook(({items}: {items: Row[]}) => useShiftRangeSelection<Row>(makeParams({items, onApplyRange})), {
+                initialProps: {items: ROWS},
+            });
+            act(() => result.current.notifyAnchor(ROWS[0]));
+            act(() => {
+                result.current.applyShiftClick(ROWS[4], {shiftKey: true});
+            });
+            rerender({items: ROWS.slice(0, 3)});
+            onApplyRange.mockClear();
+            act(() => {
+                result.current.applyShiftClick(ROWS[1], {shiftKey: true});
+            });
+            expect(keys(onApplyRange.mock.calls[0][0])).toEqual({toSelect: ['a', 'b'], toDeselect: []});
+        });
+
         it('extendByKeyboard returns null when the focused key no longer exists in items', () => {
             const onApplyRange = jest.fn();
             const {result, rerender} = renderHook(({items}: {items: Row[]}) => useShiftRangeSelection<Row>(makeParams({items, onApplyRange})), {

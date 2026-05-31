@@ -79,7 +79,9 @@ function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
             }
 
             const newRange = orderedRange(anchorIdx, targetIdx);
-            const prevRange = prevEnd != null ? orderedRange(anchorIdx, indexOfKey(p, prevEnd)) : null;
+            // Guard against stale prevEnd: indexOfKey returns -1 → items.at(-1) would deselect the last row.
+            const prevEndIdx = prevEnd != null ? indexOfKey(p, prevEnd) : -1;
+            const prevRange = prevEndIdx >= 0 ? orderedRange(anchorIdx, prevEndIdx) : null;
             const isUsable = (i: number) => !isExcluded(p, p.items.at(i));
 
             const toSelect: TItem[] = [];
