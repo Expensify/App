@@ -1,9 +1,11 @@
 import React from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
+import RadioButton from '@components/RadioButton';
 import type {ExpenseReportListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import UserInfoAndActionButtonRow from '@components/Search/SearchList/ListItem/UserInfoAndActionButtonRow';
 import TransactionItemRow from '@components/TransactionItemRow';
@@ -11,7 +13,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import variables from '@styles/variables';
 import {createTransactionThreadReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -89,36 +90,46 @@ function DuplicateTransactionItem({transaction, isLastItem, isSelected, shouldSh
                 role={getButtonRole(true)}
                 isNested
                 hoverStyle={styles.hoveredComponentBG}
-                style={[!isLastItem && styles.borderBottom, styles.pt4, styles.pb4, styles.pl4, shouldShowSelection ? styles.pr0 : styles.pr4]}
+                style={[!isLastItem && styles.borderBottom, styles.pt4, styles.pb4, styles.pl4, styles.pr4]}
             >
-                {!!reportStatusItem && (
-                    <UserInfoAndActionButtonRow
-                        item={reportStatusItem}
-                        shouldShowUserInfo
-                        stateNum={report?.stateNum}
-                        statusNum={report?.statusNum}
-                        containerStyles={[styles.mb3, shouldShowSelection && styles.pr4]}
-                    />
-                )}
-                <TransactionItemRow
-                    transactionItem={transaction as TransactionListItemType}
-                    report={report}
-                    policy={policy}
-                    shouldUseNarrowLayout
-                    isSelected={isSelected}
-                    shouldShowTooltip={false}
-                    dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-                    amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-                    taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-                    shouldHighlightItemWhenSelected={false}
-                    shouldShowErrors={false}
-                    style={shouldShowSelection ? [styles.pr0] : [styles.pv2]}
-                    shouldShowRadioButton={shouldShowSelection}
-                    shouldStopRadioButtonMouseDownPropagation
-                    radioButtonContainerStyle={styles.ml0}
-                    radioButtonWrapperStyle={[styles.justifyContentCenter, styles.pr3half, {paddingLeft: 10, height: variables.w44}]}
-                    onRadioButtonPress={() => onSelectTransaction(transaction.transactionID)}
-                />
+                <View style={styles.flexRow}>
+                    <View style={[styles.flex1, shouldShowSelection && styles.mr3]}>
+                        {!!reportStatusItem && (
+                            <UserInfoAndActionButtonRow
+                                item={reportStatusItem}
+                                shouldShowUserInfo
+                                stateNum={report?.stateNum}
+                                statusNum={report?.statusNum}
+                                containerStyles={styles.mb3}
+                            />
+                        )}
+                        <TransactionItemRow
+                            transactionItem={transaction as TransactionListItemType}
+                            report={report}
+                            policy={policy}
+                            shouldUseNarrowLayout
+                            isSelected={isSelected}
+                            shouldShowTooltip={false}
+                            dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                            amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                            taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                            shouldHighlightItemWhenSelected={false}
+                            shouldShowErrors={false}
+                            style={!shouldShowSelection && styles.pv2}
+                        />
+                    </View>
+                    {shouldShowSelection && (
+                        <View style={[styles.justifyContentCenter, styles.alignItemsCenter]}>
+                            <RadioButton
+                                isChecked={isSelected}
+                                onPress={() => onSelectTransaction(transaction.transactionID)}
+                                accessibilityLabel={CONST.ROLE.RADIO}
+                                shouldStopMouseDownPropagation
+                                style={[styles.justifyContentCenter, styles.alignItemsCenter]}
+                            />
+                        </View>
+                    )}
+                </View>
             </PressableWithFeedback>
         </OfflineWithFeedback>
     );
