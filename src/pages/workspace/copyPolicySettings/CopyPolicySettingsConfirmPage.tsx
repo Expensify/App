@@ -48,7 +48,7 @@ function CopyPolicySettingsConfirmPage() {
         if (!sourcePolicyID || !hasLoadedCopyPolicySettings || !hasLoadedPolicies || parts.length || targetPolicyIDs.length) {
             return;
         }
-        
+
         Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS.getRoute(sourcePolicyID));
     }, [hasLoadedCopyPolicySettings, hasLoadedPolicies, parts.length, sourcePolicyID, targetPolicyIDs.length]);
 
