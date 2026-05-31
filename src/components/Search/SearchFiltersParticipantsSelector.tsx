@@ -166,7 +166,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         return option.accountID ? option.accountID.toString() : undefined;
     };
 
-    // Lazy-loaded list, so pinned rows may not be in current sections when a search filters them out.
+    // Pinned rows may not be in current sections when list is lazy-loaded.
     // The hook keeps them from the snapshot; we filter them through `matchesSearchTerm` so the pinned
     // section respects the current search term.
     const sections = useFrozenPreSelection<OptionData>(baseSections, {
