@@ -1677,6 +1677,92 @@ describe('actions/IOU/BulkEdit', () => {
             writeSpy.mockRestore();
             canEditFieldSpy.mockRestore();
         });
+
+        it('compounds optimistic dates across iterations so trip auto-reporting title reflects all bulk-edited transactions', async () => {
+            const iouReportID = 'iou-trip-bulk';
+            const policyID = 'policy-trip-bulk';
+            const txn1ID = 'txn-bulk-1';
+            const txn2ID = 'txn-bulk-2';
+
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP,
+                fieldList: {
+                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {
+                        fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+                        name: 'Title',
+                        type: CONST.REPORT_FIELD_TYPES.FORMULA,
+                        defaultValue: 'Trip from {report:autoreporting:start:MMM dd} to {report:autoreporting:end:MMM dd, yyyy}',
+                        deletable: false,
+                        target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
+                        values: [],
+                        keys: [],
+                        externalIDs: [],
+                        disabledOptions: [],
+                        orderWeight: 1,
+                        isTax: false,
+                    },
+                },
+            };
+
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: iouReportID,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                // Required so getUpdatedMoneyRequestReportData enters the branch that recomputes the title.
+                total: 0,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            const txn1: Transaction = {...createRandomTransaction(1), transactionID: txn1ID, reportID: iouReportID, created: '2025-01-10'};
+            const txn2: Transaction = {...createRandomTransaction(2), transactionID: txn2ID, reportID: iouReportID, created: '2025-01-20'};
+
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: policy,
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${txn1ID}`]: txn1,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${txn2ID}`]: txn2,
+            });
+            await waitForBatchedUpdates();
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests({
+                transactionIDs: [txn1ID, txn2ID],
+                changes: {created: '2025-01-15'},
+                policy,
+                reports: {[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport},
+                transactions: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${txn1ID}`]: txn1,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${txn2ID}`]: txn2,
+                },
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {},
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+            });
+
+            // Each iteration of the bulk-edit loop makes its own API.write call, so collect names across all calls.
+            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+            const iouReportNames = writeSpy.mock.calls.flatMap((call) => {
+                const onyxParams = call[2] as {optimisticData: any[]};
+                return onyxParams.optimisticData.filter((u) => u.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`).map((u) => (u.value as Report).reportName);
+            });
+            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+
+            // Without cumulative tracking, iteration 2 would see stale Onyx txn1 (Jan 10) and produce "Trip from Jan 10 to Jan 15".
+            expect(iouReportNames.at(-1)).toBe('Trip from Jan 15 to Jan 15, 2025');
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+            await Onyx.clear();
+        });
     });
 
     describe('bulk edit draft transaction', () => {

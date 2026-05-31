@@ -100,6 +100,8 @@ function updateMultipleMoneyRequests({
 }: UpdateMultipleMoneyRequestsParams) {
     // Track running totals per report so multiple edits in the same report compound correctly.
     const optimisticReportsByID: Record<string, OnyxTypes.Report> = {};
+    // Track per-report optimistic transactions so formula recompute in later iterations sees earlier edits.
+    const optimisticTransactionsByReportID: Record<string, Record<string, OnyxTypes.Transaction>> = {};
     for (const transactionID of transactionIDs) {
         const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (!transaction) {
@@ -444,6 +446,9 @@ function updateMultipleMoneyRequests({
             updatedTransaction,
         );
 
+        const reportIDForTracking = iouReport?.reportID;
+        const priorOptimisticTransactions = reportIDForTracking ? (optimisticTransactionsByReportID[reportIDForTracking] ?? {}) : {};
+
         const {updatedMoneyRequestReport, isTotalIndeterminate} = getUpdatedMoneyRequestReportData(
             baseIouReport,
             updatedTransaction,
@@ -452,7 +457,15 @@ function updateMultipleMoneyRequests({
             transactionPolicy,
             optimisticReportAction?.actorAccountID,
             transactionChanges,
+            priorOptimisticTransactions,
         );
+
+        if (reportIDForTracking && updatedTransaction?.transactionID) {
+            optimisticTransactionsByReportID[reportIDForTracking] = {
+                ...priorOptimisticTransactions,
+                [updatedTransaction.transactionID]: updatedTransaction,
+            };
+        }
 
         if (updatedMoneyRequestReport) {
             if (updatedMoneyRequestReport.reportID) {
