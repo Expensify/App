@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
@@ -69,10 +69,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
     const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES);
 
     // Transform raw recentAttendees into Option[] format for use with getValidOptions (only for attendee filter)
-    const recentAttendeeLists = useMemo(
-        () => (shouldAllowNameOnlyOptions ? getFilteredRecentAttendees(personalDetails, [], recentAttendees ?? [], currentUserEmail, currentUserAccountID) : []),
-        [personalDetails, recentAttendees, currentUserEmail, currentUserAccountID, shouldAllowNameOnlyOptions],
-    );
+    const recentAttendeeLists = shouldAllowNameOnlyOptions ? getFilteredRecentAttendees(personalDetails, [], recentAttendees ?? [], currentUserEmail, currentUserAccountID) : [];
 
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, setSelectedOptions, toggleSelection, areOptionsInitialized, onListEndReached} =
         useSearchSelector({
@@ -103,12 +100,10 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         getKeys: (option) => [option.accountID, option.login],
     });
 
-    const {sections, headerMessage} = useMemo(() => {
-        const newSections = [];
-        if (!areOptionsInitialized) {
-            return {sections: [], headerMessage: undefined};
-        }
+    const sections: Array<{title: string; data: OptionData[]; sectionIndex: number}> = [];
+    let headerMessage: string | undefined;
 
+    if (areOptionsInitialized) {
         const chatOptions = {...availableOptions};
         const currentUserOption = chatOptions.currentUserOption;
 
@@ -131,7 +126,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             );
         const frozenSection = buildFrozenSection(frozenSelectedOptions.filter(matchesSearchTerm), isOptionCurrentlySelected);
         if (frozenSection.length > 0) {
-            newSections.push({
+            sections.push({
                 title: '',
                 data: frozenSection,
                 sectionIndex: 0,
@@ -144,7 +139,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             (option) => option.accountID !== currentUserAccountID && !visibleLogins.has(option.login) && !isOptionFrozen(option) && matchesSearchTerm(option),
         );
         if (extraSelectedOptions.length > 0) {
-            newSections.push({
+            sections.push({
                 title: '',
                 data: extraSelectedOptions,
                 sectionIndex: 1,
@@ -173,7 +168,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             });
             currentUserOptionToShow = {...currentUserOptionToShow, text: formattedName, isSelected: isCurrentUserSelected};
 
-            newSections.push({
+            sections.push({
                 title: '',
                 data: [currentUserOptionToShow],
                 sectionIndex: 2,
@@ -186,43 +181,27 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         const recentReports = frozenSection.length > 0 ? excludeFrozenItems(chatOptions.recentReports, isOptionFrozen) : chatOptions.recentReports;
         const contacts = frozenSection.length > 0 ? excludeFrozenItems(chatOptions.personalDetails, isOptionFrozen) : chatOptions.personalDetails;
 
-        newSections.push({
+        sections.push({
             title: '',
             data: recentReports,
             sectionIndex: 3,
         });
 
-        newSections.push({
+        sections.push({
             title: '',
             data: contacts,
             sectionIndex: 4,
         });
 
         const noResultsFound = contacts.length === 0 && recentReports.length === 0 && !currentUserOptionToShow && extraSelectedOptions.length === 0 && frozenSection.length === 0;
-        const message = noResultsFound ? translate('common.noResultsFound') : undefined;
+        headerMessage = noResultsFound ? translate('common.noResultsFound') : undefined;
+    }
 
-        return {
-            sections: newSections,
-            headerMessage: message,
-        };
-    }, [
-        areOptionsInitialized,
-        availableOptions,
-        debouncedSearchTerm,
-        selectedOptions,
-        frozenSelectedOptions,
-        isOptionFrozen,
-        currentUserAccountID,
-        personalDetails,
-        translate,
-        formatPhoneNumber,
-    ]);
-
-    const resetChanges = useCallback(() => {
+    const resetChanges = () => {
         setSelectedOptions([]);
-    }, [setSelectedOptions]);
+    };
 
-    const applyChanges = useCallback(() => {
+    const applyChanges = () => {
         let selectedIdentifiers: string[];
 
         if (shouldAllowNameOnlyOptions) {
@@ -244,7 +223,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
 
         onFiltersUpdate(selectedIdentifiers);
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
-    }, [onFiltersUpdate, selectedOptions, personalDetails, shouldAllowNameOnlyOptions]);
+    };
 
     // This effect handles setting initial selectedOptions based on accountIDs (or displayNames for attendee filter)
     useEffect(() => {
@@ -312,35 +291,26 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         // eslint-disable-next-line react-hooks/exhaustive-deps -- this should react only to changes in form data
     }, [initialAccountIDs, personalDetails, recentAttendees, shouldAllowNameOnlyOptions]);
 
-    const handleParticipantSelection = useCallback(
-        (option: OptionData) => {
-            toggleSelection(option);
-        },
-        [toggleSelection],
-    );
+    const handleParticipantSelection = (option: OptionData) => {
+        toggleSelection(option);
+    };
 
-    const footerContent = useMemo(
-        () => (
-            <SearchFilterPageFooterButtons
-                applyChanges={applyChanges}
-                resetChanges={resetChanges}
-            />
-        ),
-        [applyChanges, resetChanges],
+    const footerContent = (
+        <SearchFilterPageFooterButtons
+            applyChanges={applyChanges}
+            resetChanges={resetChanges}
+        />
     );
 
     const isLoadingNewOptions = !!isSearchingForReports;
     const shouldShowLoadingPlaceholder = !didScreenTransitionEnd || !areOptionsInitialized || !initialAccountIDs || !personalDetails;
 
-    const textInputOptions = useMemo(
-        () => ({
-            value: searchTerm,
-            label: translate('selectionList.nameEmailOrPhoneNumber'),
-            onChangeText: setSearchTerm,
-            headerMessage,
-        }),
-        [searchTerm, translate, setSearchTerm, headerMessage],
-    );
+    const textInputOptions = {
+        value: searchTerm,
+        label: translate('selectionList.nameEmailOrPhoneNumber'),
+        onChangeText: setSearchTerm,
+        headerMessage,
+    };
 
     return (
         <SelectionListWithSections

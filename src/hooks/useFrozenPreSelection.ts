@@ -1,4 +1,4 @@
-import {useCallback, useMemo, useState} from 'react';
+import {useState} from 'react';
 import CONST from '@src/CONST';
 
 type UseFrozenPreSelectionOptions<T> = {
@@ -40,32 +40,24 @@ function useFrozenPreSelection<T>({selectedOptions, isReady, visibleCount, canCa
         setFrozen(visibleCount >= threshold ? selectedOptions : []);
     }
 
-    // Explicit useMemo / useCallback so isFrozen stays stable for consumer useMemo deps —
-    // React Compiler can bail on the imperative Set build.
-    const frozenKeys = useMemo(() => {
-        const keys = new Set<string | number>();
-        for (const option of frozen ?? []) {
-            for (const key of getKeys(option)) {
-                if (!isValidKey(key)) {
-                    continue;
-                }
-                keys.add(key);
+    const frozenKeys = new Set<string | number>();
+    for (const option of frozen ?? []) {
+        for (const key of getKeys(option)) {
+            if (!isValidKey(key)) {
+                continue;
+            }
+            frozenKeys.add(key);
+        }
+    }
+
+    const isFrozen = (option: T) => {
+        for (const key of getKeys(option)) {
+            if (isValidKey(key) && frozenKeys.has(key)) {
+                return true;
             }
         }
-        return keys;
-    }, [frozen, getKeys]);
-
-    const isFrozen = useCallback(
-        (option: T) => {
-            for (const key of getKeys(option)) {
-                if (isValidKey(key) && frozenKeys.has(key)) {
-                    return true;
-                }
-            }
-            return false;
-        },
-        [frozenKeys, getKeys],
-    );
+        return false;
+    };
 
     return {frozen: frozen ?? [], isFrozen};
 }
