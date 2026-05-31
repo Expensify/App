@@ -5,6 +5,7 @@ import CONST from '@src/CONST';
 import type {PersonalDetails, Policy, PolicyReportField, Report, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {convertToDisplayString, convertToDisplayStringWithoutCurrency, isValidCurrencyCode} from './CurrencyUtils';
+import {getCurrentUserEmail} from './CurrentUserStore';
 import formatDate from './FormulaDatetime';
 import getBase62ReportID from './getBase62ReportID';
 import Log from './Log';
@@ -481,8 +482,12 @@ function computeFieldPart(part: FormulaPart, context?: FormulaContext): string {
  * Compute the value of a user formula part
  */
 function computeUserPart(part: FormulaPart): string {
-    // User computation will be implemented later
-    return part.definition;
+    // Currently only {user:email} is resolved client-side — modifiers like |frontPart are applied later by applyFunctions.
+    const [field] = part.fieldPath;
+    if (field?.toLowerCase() !== 'email') {
+        return part.definition;
+    }
+    return getCurrentUserEmail() ?? '';
 }
 
 /**

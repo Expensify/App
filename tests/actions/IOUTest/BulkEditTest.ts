@@ -2086,6 +2086,10 @@ describe('actions/IOU/BulkEdit', () => {
 
             // Title must be preserved — applying the raw "Total: {report:total:EUR}" would be worse than the BE-computed value.
             expect(iouReportNames.at(-1)).toBe(BE_COMPUTED_TITLE);
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+            await Onyx.clear();
         });
     });
 

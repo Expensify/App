@@ -14,6 +14,10 @@ jest.mock('@libs/ReportUtils', () => ({
     getReportTransactions: jest.fn(),
 }));
 
+jest.mock('@libs/CurrentUserStore', () => ({
+    getCurrentUserEmail: jest.fn(() => 'jane@example.com'),
+}));
+
 const mockReportActionsUtils = ReportActionsUtils as jest.Mocked<typeof ReportActionsUtils>;
 const mockReportUtils = ReportUtils as jest.Mocked<typeof ReportUtils>;
 
@@ -825,6 +829,22 @@ describe('CustomFormula', () => {
         test('should return formula definition when policy or frequency is missing', () => {
             expect(compute('{report:autoreporting:start}', {report: mockReport, policy: undefined})).toBe('{report:autoreporting:start}');
             expect(compute('{report:autoreporting:end}', createMockContext({} as Policy))).toBe('{report:autoreporting:end}');
+        });
+    });
+
+    describe('User formula parts', () => {
+        const mockUserContext: FormulaContext = {report: {reportID: '1'} as Report, policy: undefined};
+
+        test('should resolve {user:email} to the current user email', () => {
+            expect(compute('{user:email}', mockUserContext)).toBe('jane@example.com');
+        });
+
+        test('should apply the frontPart modifier to the resolved email', () => {
+            expect(compute('{user:email|frontPart}', mockUserContext)).toBe('jane');
+        });
+
+        test('should leave unsupported user fields as the raw token', () => {
+            expect(compute('{user:phone}', mockUserContext)).toBe('{user:phone}');
         });
     });
 
