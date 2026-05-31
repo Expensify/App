@@ -1353,6 +1353,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     const optimisticTransactionID = existingTransactionID ?? rand64();
     const optimisticReportID = optimisticIOUReportID ?? generateReportID();
 
+    let didUpdateOptimisticTotal = false;
+
     if (!iouReport || shouldCreateNewMoneyRequestReport) {
         const nonReimbursableTotal = reimbursable ? 0 : amount;
         const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, optimisticReportID, created, amount, currency, merchant);
@@ -1389,6 +1391,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                         iouReport.nonReimbursableTotal = (iouReport.nonReimbursableTotal ?? 0) - amount;
                     }
                 }
+                didUpdateOptimisticTotal = true;
             }
             if (typeof iouReport.unheldTotal === 'number') {
                 // Use newReportTotal in scenarios where the total is based on more than just the current transaction amount, and we need to override it manually
@@ -1494,7 +1497,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     }
 
     // Must run after STEP 3 so the optimistic transaction is part of the formula context.
-    if (!shouldCreateNewMoneyRequestReport && isPolicyExpenseChat) {
+    // didUpdateOptimisticTotal gate: skip recompute when total is stale to avoid baking it into the title.
+    if (!shouldCreateNewMoneyRequestReport && isPolicyExpenseChat && didUpdateOptimisticTotal) {
         iouReport = maybeUpdateReportNameForFormulaTitle(iouReport, policy, {[optimisticTransaction.transactionID]: optimisticTransaction});
     }
 
@@ -1717,7 +1721,8 @@ function getUpdatedMoneyRequestReportData(
                 updatedMoneyRequestReport.unheldNonReimbursableTotal += updatedTransaction.reimbursable ? -updatedTransaction.amount : updatedTransaction.amount;
             }
         }
-        if (transactionChanges) {
+        // !isTotalIndeterminate gate: skip recompute when total is stale to avoid baking it into the title.
+        if (transactionChanges && !isTotalIndeterminate) {
             const optimisticTransactions = {...priorOptimisticTransactions};
             if (updatedTransaction?.transactionID) {
                 optimisticTransactions[updatedTransaction.transactionID] = updatedTransaction;

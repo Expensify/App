@@ -1761,6 +1761,93 @@ describe('actions/IOU/BulkEdit', () => {
             canEditFieldSpy.mockRestore();
             await Onyx.clear();
         });
+
+        it('skips optimistic title recompute on currency edits so stale totals are not baked into the title', async () => {
+            const iouReportID = 'iou-trip-currency';
+            const policyID = 'policy-trip-currency';
+            const txnID = 'txn-currency-1';
+            const ORIGINAL_REPORT_NAME = 'Original BE-computed title';
+
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP,
+                fieldList: {
+                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {
+                        fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+                        name: 'Title',
+                        type: CONST.REPORT_FIELD_TYPES.FORMULA,
+                        defaultValue: 'Trip {report:total}',
+                        deletable: false,
+                        target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
+                        values: [],
+                        keys: [],
+                        externalIDs: [],
+                        disabledOptions: [],
+                        orderWeight: 1,
+                        isTax: false,
+                    },
+                },
+            };
+
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: iouReportID,
+                reportName: ORIGINAL_REPORT_NAME,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: -10000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            const txn: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID: txnID,
+                reportID: iouReportID,
+                amount: -10000,
+                currency: CONST.CURRENCY.USD,
+                created: '2025-01-10',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
+            await waitForBatchedUpdates();
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            // Currency edit (USD → EUR) — calculateDiffAmount returns null, isTotalIndeterminate=true.
+            updateMultipleMoneyRequests({
+                transactionIDs: [txnID],
+                changes: {currency: CONST.CURRENCY.EUR},
+                policy,
+                reports: {[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport},
+                transactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`]: txn},
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {},
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+            });
+
+            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+            const iouReportWrites = writeSpy.mock.calls.flatMap((call) => {
+                const onyxParams = call[2] as {optimisticData: any[]};
+                return onyxParams.optimisticData.filter((u) => u.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`).map((u) => u.value as Report);
+            });
+            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+
+            // Without the !isTotalIndeterminate gate, the formula would recompute against the stale (unchanged) iouReport.total
+            // and overwrite the original title with "Trip $100.00" — a stale value the BE hasn't confirmed yet.
+            expect(iouReportWrites.at(-1)?.reportName).toBe(ORIGINAL_REPORT_NAME);
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+            await Onyx.clear();
+        });
     });
 
     describe('bulk edit draft transaction', () => {
