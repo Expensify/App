@@ -20,9 +20,7 @@ import ROUTES from '@src/ROUTES';
 import type {Attendee} from '@src/types/onyx/IOU';
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 
-/**
- * Creates an OptionData object from a name-only attendee (attendee without a real accountID in personalDetails)
- */
+// Builds an OptionData row for a name-only attendee — one without a real accountID in personalDetails.
 function getOptionDataFromAttendee(attendee: Attendee): OptionData {
     return {
         text: attendee.displayName,
@@ -67,7 +65,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES);
 
-    // Transform raw recentAttendees into Option[] format for use with getValidOptions (only for attendee filter)
+    // Only the attendee filter feeds recentAttendees into the picker; other filters use empty list.
     const recentAttendeeLists = shouldAllowNameOnlyOptions ? getFilteredRecentAttendees(personalDetails, [], recentAttendees ?? [], currentUserEmail, currentUserAccountID) : [];
 
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, setSelectedOptions, toggleSelection, areOptionsInitialized, onListEndReached} =
@@ -85,8 +83,8 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             shouldKeepSelectedInAvailableOptions: true,
         });
 
-    // Set once the hydration effect runs so the snapshot waits for it. Without this, a fully stale
-    // initialAccountIDs list would let the snapshot fire on the first toggled row and pin it.
+    // Flip to true once the hydration effect runs. Without this, a stale `initialAccountIDs` could let
+    // the pinning snapshot fire on the first toggled row and pin it by mistake.
     const [hasAttemptedHydration, setHasAttemptedHydration] = useState(initialAccountIDs.length === 0);
 
     const trimmedSearchTerm = debouncedSearchTerm.trim().toLowerCase();
@@ -95,7 +93,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
     const currentUserOption = areOptionsInitialized ? availableOptions.currentUserOption : null;
     const isCurrentUserSelected = !!currentUserAccountID && selectedOptions.some((option) => option.accountID === currentUserAccountID);
 
-    // Drop the current user from Recents / Contacts so they only show in their dedicated section (or get pinned at top by the hook).
+    // Hide the current user from Recents / Contacts — they get their own row (or get pinned at the top).
     const recentReportsWithoutCurrentUser =
         areOptionsInitialized && currentUserOption?.accountID
             ? availableOptions.recentReports.filter((report) => report.accountID !== currentUserOption.accountID)
@@ -105,8 +103,8 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             ? availableOptions.personalDetails.filter((detail) => detail.accountID !== currentUserOption.accountID)
             : (availableOptions.personalDetails ?? []);
 
-    // Selected items that don't show up in Recents / Contacts and aren't the current user — surface them but respect the search term.
-    // Dedupe by accountID for real users and by login for name-only attendees (which share DEFAULT_NUMBER_ID).
+    // Selected items not visible in Recents / Contacts and not the current user — show them in a section above, but only if they match the search term.
+    // Dedupe by accountID for real users and by login for name-only attendees (which all share DEFAULT_NUMBER_ID).
     const visibleAccountIDs = new Set<number>(
         [...personalDetailsWithoutCurrentUser, ...recentReportsWithoutCurrentUser].map((option) => option.accountID).filter((id): id is number => !!id && id !== CONST.DEFAULT_NUMBER_ID),
     );
@@ -119,7 +117,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             matchesSearchTerm(option),
     );
 
-    // Render-ready current user row with the "(you)" suffix; falls back to personalDetails if pagination dropped them.
+    // Current user row with the "(you)" suffix. Falls back to personalDetails when pagination drops them from availableOptions.
     let currentUserRow: OptionData | undefined;
     if (areOptionsInitialized) {
         let candidate = currentUserOption ?? undefined;
@@ -152,9 +150,9 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         baseSections.push({title: '', data: personalDetailsWithoutCurrentUser, sectionIndex: 4});
     }
 
-    // `initialAccountIDs` holds accountIDs (or, for the attendee filter, accountID || displayName ||
-    // login for name-only entries). The default `keyForList` match doesn't fit: for any contact with
-    // a 1:1 DM, `keyForList` is the reportID, so accountID-based matching needs an explicit `getKey`.
+    // `initialAccountIDs` holds accountIDs (or displayName / login for name-only attendees), but for any
+    // contact with a 1:1 DM, the default `keyForList` is the reportID. Use an explicit getKey so the hook
+    // matches on the right identifier.
     const getKey = (option: OptionData) => {
         if (shouldAllowNameOnlyOptions) {
             if (option.accountID && option.accountID !== CONST.DEFAULT_NUMBER_ID && personalDetails?.[option.accountID]) {
@@ -166,12 +164,11 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         return option.accountID ? option.accountID.toString() : undefined;
     };
 
-    // Pinned rows may not be in current sections when list is lazy-loaded.
-    // The hook keeps them from the snapshot; we filter them through `matchesSearchTerm` so the pinned
-    // section respects the current search term.
+    // The list is lazy-loaded, so pinned rows aren't always present in baseSections — the hook keeps them
+    // from the snapshot. Pass `matchesSearchTerm` so the pinned section still respects the search term.
     const sections = useFrozenPreSelection<OptionData>(baseSections, {
         initialSelectedValues: initialAccountIDs,
-        // Wait for hydration so a toggled row isn't mistaken for pre-selection.
+        // Wait for hydration so a toggled row isn't mistaken for a pre-selection.
         canCapture: areOptionsInitialized && hasAttemptedHydration,
         shouldRenderPinned: matchesSearchTerm,
         getKey,
@@ -190,12 +187,10 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         if (shouldAllowNameOnlyOptions) {
             selectedIdentifiers = selectedOptions
                 .map((option) => {
-                    // For real users (with valid accountID in personalDetails), use accountID
+                    // Real users → accountID; name-only attendees → displayName or login.
                     if (option.accountID && option.accountID !== CONST.DEFAULT_NUMBER_ID && personalDetails?.[option.accountID]) {
                         return option.accountID.toString();
                     }
-
-                    // For name-only attendees, use displayName or login as identifier
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- need || to handle empty string
                     return option.displayName || option.login;
                 })
@@ -208,7 +203,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     };
 
-    // This effect handles setting initial selectedOptions based on accountIDs (or displayNames for attendee filter)
+    // Hydrate selectedOptions from initialAccountIDs (or displayNames for the attendee filter).
     useEffect(() => {
         if (!initialAccountIDs || initialAccountIDs.length === 0 || !personalDetails) {
             return;
@@ -219,7 +214,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         if (shouldAllowNameOnlyOptions) {
             preSelectedOptions = initialAccountIDs
                 .map((identifier) => {
-                    // First, try to look up as accountID in personalDetails
+                    // Look up the identifier as an accountID first.
                     const participant = personalDetails[identifier];
                     if (participant) {
                         const optionData = {
@@ -229,15 +224,14 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
                         return optionData as OptionData;
                     }
 
-                    // If not found in personalDetails, this might be a name-only attendee
-                    // Search in recentAttendees by displayName or email
+                    // Fall back to a name-only attendee match (by displayName or email).
                     const attendee = recentAttendees?.find((recentAttendee) => recentAttendee.displayName === identifier || recentAttendee.email === identifier);
                     if (attendee) {
                         return getOptionDataFromAttendee(attendee);
                     }
 
-                    // Fallback: construct a minimal option from the identifier string to preserve
-                    // name-only filters across sessions (e.g., after cache clear or on another device)
+                    // Last resort: build a minimal option from the identifier so name-only filters survive
+                    // a cache clear or a switch to another device.
                     return {
                         text: identifier,
                         alternateText: identifier,
@@ -269,7 +263,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         }
 
         setSelectedOptions(preSelectedOptions);
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot flag so the snapshot waits for hydration; derivable state isn't enough since the effect can resolve to an empty array.
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot flag the pinning snapshot waits on; derivable state doesn't work because hydration can resolve to an empty array.
         setHasAttemptedHydration(true);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- this should react only to changes in form data
     }, [initialAccountIDs, personalDetails, recentAttendees, shouldAllowNameOnlyOptions]);

@@ -4,40 +4,29 @@ import type {Section} from '@components/SelectionList/SelectionListWithSections/
 import CONST from '@src/CONST';
 
 type UseFrozenPreSelectionOptions<TItem extends ListItem> = {
-    /** Identifiers (matched against the result of `getKey`, or `item.keyForList` when `getKey` is omitted) of items that should be pinned at the top on first capture. */
+    /** Item identifiers to pin on first capture. Matched against `getKey(item)`, or `item.keyForList` if `getKey` is omitted. */
     initialSelectedValues: string[];
 
-    /** Whether the input sections are ready to be inspected. Capture happens on the first render where this becomes true. */
+    /** Set to `true` once the sections are ready to inspect — capture fires on the next render. */
     canCapture: boolean;
 
-    /**
-     * Optional predicate to keep a captured item in the pinned section. Required for lazy-loaded
-     * lists where pinned rows must outlive the current section data (e.g. to apply the search filter
-     * to pinned rows that aren't otherwise present in the visible sections).
-     */
+    /** Optional filter for pinned rows (e.g. to honor a search term). Needed when pinned rows may not appear in the input `sections`. */
     shouldRenderPinned?: (item: TItem) => boolean;
 
-    /**
-     * Optional extractor for the identity used to match items against `initialSelectedValues`.
-     * Defaults to `item.keyForList`. Use this when the caller's identifier scheme doesn't match
-     * `keyForList` — e.g. participants are passed in by accountID but their `keyForList` is the
-     * 1:1 DM's reportID.
-     */
+    /** Optional identity extractor. Defaults to `item.keyForList`. Override when the caller's identifier doesn't match `keyForList`. */
     getKey?: (item: TItem) => string | undefined;
 };
 
 /**
- * Pins pre-selected rows to a new top section on first ready render, then locks the order.
- * Items are matched against `initialSelectedValues` using `getKey` (or `keyForList` when `getKey`
- * is omitted) and removed from their original sections; toggling a pinned row updates `isSelected`
- * in place without moving it. Returns `sections` unchanged while `canCapture` is false or when the
- * combined item count is below `STANDARD_LIST_ITEM_LIMIT`.
+ * Pins pre-selected rows to a top section on first ready render, then locks them in place.
+ * Toggling a pinned row updates `isSelected` without moving it.
+ * Returns `sections` unchanged while not ready, or when the list is shorter than `STANDARD_LIST_ITEM_LIMIT`.
  */
 function useFrozenPreSelection<TItem extends ListItem>(sections: Array<Section<TItem>>, options: UseFrozenPreSelectionOptions<TItem>): Array<Section<TItem>> {
     const {initialSelectedValues, canCapture, shouldRenderPinned, getKey} = options;
     const resolveKey = (item: TItem) => (getKey ? getKey(item) : item.keyForList);
 
-    // null = not captured yet; empty Map = captured but list was too short to pin.
+    // null = not captured yet; empty Map = captured but the list was too short to pin.
     const [frozenData, setFrozenData] = useState<Map<string, TItem> | null>(null);
 
     if (frozenData === null && canCapture) {
