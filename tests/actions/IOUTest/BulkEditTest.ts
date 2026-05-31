@@ -1719,12 +1719,10 @@ describe('actions/IOU/BulkEdit', () => {
             const txn1: Transaction = {...createRandomTransaction(1), transactionID: txn1ID, reportID: iouReportID, created: '2025-01-10'};
             const txn2: Transaction = {...createRandomTransaction(2), transactionID: txn2ID, reportID: iouReportID, created: '2025-01-20'};
 
-            await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: policy,
-                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${txn1ID}`]: txn1,
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${txn2ID}`]: txn2,
-            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${txn1ID}`, txn1);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${txn2ID}`, txn2);
             await waitForBatchedUpdates();
 
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
