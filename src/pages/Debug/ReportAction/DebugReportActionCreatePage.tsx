@@ -134,7 +134,6 @@ function DebugReportActionCreatePage({
                                     shouldDisplayNewMarker={false}
                                     isFirstVisibleReportAction={false}
                                     shouldDisplayContextMenu={false}
-                                    personalDetails={personalDetailsList}
                                 />
                             ) : (
                                 <Text>{translate('debug.nothingToPreview')}</Text>
