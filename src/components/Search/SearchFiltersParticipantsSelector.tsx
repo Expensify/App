@@ -142,6 +142,20 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         baseSections.push({title: '', data: personalDetailsWithoutCurrentUser, sectionIndex: 4});
     }
 
+    // `initialAccountIDs` holds accountIDs (or, for the attendee filter, accountID || displayName ||
+    // login for name-only entries). The default `keyForList` match doesn't fit: for any contact with
+    // a 1:1 DM, `keyForList` is the reportID, so accountID-based matching needs an explicit `getKey`.
+    const getKey = (option: OptionData) => {
+        if (shouldAllowNameOnlyOptions) {
+            if (option.accountID && option.accountID !== CONST.DEFAULT_NUMBER_ID && personalDetails?.[option.accountID]) {
+                return option.accountID.toString();
+            }
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- need || to handle empty string
+            return option.displayName || option.login;
+        }
+        return option.accountID ? option.accountID.toString() : undefined;
+    };
+
     // Lazy-loaded list, so pinned rows may not be in current sections when a search filters them out.
     // The hook keeps them from the snapshot; we filter them through `matchesSearchTerm` so the pinned
     // section respects the current search term.
@@ -150,6 +164,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         // Wait for hydration so a toggled row isn't mistaken for pre-selection.
         canCapture: areOptionsInitialized && hasAttemptedHydration,
         shouldRenderPinned: matchesSearchTerm,
+        getKey,
     });
 
     const noResultsFound = areOptionsInitialized && sections.every((section) => section.data.length === 0);

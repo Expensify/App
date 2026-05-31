@@ -157,6 +157,28 @@ describe('useFrozenPreSelection', () => {
         expect(result.current.at(0)?.data.some((item) => item.keyForList === 'other')).toBe(true);
     });
 
+    it('with getKey, matches items against initialSelectedValues using the extractor instead of keyForList', () => {
+        type ItemWithAccountID = Item & {accountID: number};
+        const pinned: ItemWithAccountID = {keyForList: 'report-1', accountID: 1};
+        const other: ItemWithAccountID = {keyForList: 'report-2', accountID: 2};
+        const filler: ItemWithAccountID[] = [];
+        for (let i = 0; i < longList - 2; i++) {
+            filler.push({keyForList: `report-${i + 3}`, accountID: i + 3});
+        }
+        const sections: Array<{data: ItemWithAccountID[]; sectionIndex: number}> = [{data: [pinned, other, ...filler], sectionIndex: 1}];
+
+        const {result} = renderHook(() =>
+            useFrozenPreSelection<ItemWithAccountID>(sections, {
+                initialSelectedValues: ['1'],
+                canCapture: true,
+                getKey: (item) => item.accountID.toString(),
+            }),
+        );
+
+        expect(result.current.at(0)?.data).toEqual([pinned]);
+        expect(result.current.at(1)?.data.some((item) => item.keyForList === 'report-1')).toBe(false);
+    });
+
     it('does not re-capture on later renders after capturing an empty snapshot below the threshold', () => {
         const item: Item = {keyForList: '1'};
         const initialSections: Section[] = [{data: [item], sectionIndex: 1}];
