@@ -106,8 +106,18 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             : (availableOptions.personalDetails ?? []);
 
     // Selected items that don't show up in Recents / Contacts and aren't the current user — surface them but respect the search term.
+    // Dedupe by accountID for real users and by login for name-only attendees (which share DEFAULT_NUMBER_ID).
+    const visibleAccountIDs = new Set<number>(
+        [...personalDetailsWithoutCurrentUser, ...recentReportsWithoutCurrentUser].map((option) => option.accountID).filter((id): id is number => !!id && id !== CONST.DEFAULT_NUMBER_ID),
+    );
     const visibleLogins = new Set([...personalDetailsWithoutCurrentUser.map((detail) => detail.login), ...recentReportsWithoutCurrentUser.map((report) => report.login)].filter(Boolean));
-    const extraSelectedOptions = selectedOptions.filter((option) => option.accountID !== currentUserAccountID && !visibleLogins.has(option.login) && matchesSearchTerm(option));
+    const extraSelectedOptions = selectedOptions.filter(
+        (option) =>
+            option.accountID !== currentUserAccountID &&
+            !(!!option.accountID && option.accountID !== CONST.DEFAULT_NUMBER_ID && visibleAccountIDs.has(option.accountID)) &&
+            !(!!option.login && visibleLogins.has(option.login)) &&
+            matchesSearchTerm(option),
+    );
 
     // Render-ready current user row with the "(you)" suffix; falls back to personalDetails if pagination dropped them.
     let currentUserRow: OptionData | undefined;
