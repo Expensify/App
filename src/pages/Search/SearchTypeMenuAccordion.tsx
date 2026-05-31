@@ -110,7 +110,7 @@ function SearchTypeMenuAccordion({title, isExpanded, badgeText, children, onSect
                         isExpanded={isAccordionExpanded}
                     />
                 )}
-                <View style={[styles.searchTypeMenuAccessoryBox, styles.pr2]}>
+                <View style={styles.searchTypeMenuAccessoryBox}>
                     <Animated.View style={arrowAnimatedStyle}>
                         <Icon
                             fill={theme.icon}

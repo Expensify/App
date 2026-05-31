@@ -5731,27 +5731,18 @@ const staticStyles = (theme: ThemeColors) =>
         todoBadge: {
             alignItems: 'center',
             justifyContent: 'center',
-            width: variables.w28,
-            paddingHorizontal: 4,
         },
 
         searchSectionBadge: {
             alignItems: 'center',
             justifyContent: 'center',
             height: 16,
-            width: variables.w28,
-            paddingHorizontal: 4,
         },
 
         searchTypeMenuAccessoryBox: {
             alignItems: 'center',
             justifyContent: 'center',
             width: variables.w28,
-        },
-
-        searchTypeMenuItemPadding: {
-            paddingLeft: 16,
-            paddingRight: 12,
         },
 
         searchTypeMenuAccordionPadding: {
@@ -6535,7 +6526,8 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         sectionMenuItem: (shouldUseNarrowLayout: boolean) => ({
             borderRadius: 8,
-            paddingHorizontal: 16,
+            paddingLeft: 16,
+            paddingRight: 12,
             paddingVertical: shouldUseNarrowLayout ? 8 : 4,
             height: shouldUseNarrowLayout ? variables.sectionMenuItemHeight : variables.sectionMenuItemHeightCompact,
             alignItems: 'center',
