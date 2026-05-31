@@ -142,12 +142,15 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         baseSections.push({title: '', data: personalDetailsWithoutCurrentUser, sectionIndex: 4});
     }
 
-    const sections = useFrozenPreSelection<OptionData>(
-        baseSections,
-        initialAccountIDs,
-        // Wait for hydration (so a toggled row isn't mistaken for pre-selection) and an empty search term.
-        areOptionsInitialized && hasAttemptedHydration && trimmedSearchTerm === '',
-    );
+    // Lazy-loaded list, so pinned rows may not be in current sections when a search filters them out.
+    // The hook keeps them from the snapshot; we filter them through `matchesSearchTerm` so the pinned
+    // section respects the current search term.
+    const sections = useFrozenPreSelection<OptionData>(baseSections, {
+        initialSelectedValues: initialAccountIDs,
+        // Wait for hydration so a toggled row isn't mistaken for pre-selection.
+        canCapture: areOptionsInitialized && hasAttemptedHydration,
+        shouldRenderPinned: matchesSearchTerm,
+    });
 
     const noResultsFound = areOptionsInitialized && sections.every((section) => section.data.length === 0);
     const headerMessage = noResultsFound ? translate('common.noResultsFound') : undefined;

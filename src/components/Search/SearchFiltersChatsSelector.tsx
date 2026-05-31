@@ -3,6 +3,7 @@ import React, {useEffect, useState} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useFilteredOptions from '@hooks/useFilteredOptions';
@@ -15,7 +16,6 @@ import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionS
 import useSortedActions from '@hooks/useSortedActions';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import {createOptionFromReport, filterAndOrderOptions, filterReports, getAlternateText, getSearchOptions} from '@libs/OptionsListUtils';
 import type {Option} from '@libs/OptionsListUtils';
 import type {OptionWithKey, SearchOptionData} from '@libs/OptionsListUtils/types';
@@ -125,7 +125,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         baseSections.push({data: recentReportsWithSelection, sectionIndex: 2});
     }
 
-    const sections = useFrozenPreSelection<OptionData>(baseSections, initialReportIDs, !isLoading);
+    const sections = useFrozenPreSelection<OptionData>(baseSections, {initialSelectedValues: initialReportIDs, canCapture: !isLoading});
 
     const noResultsFound = didScreenTransitionEnd && !isLoading && sections.every((section) => section.data.length === 0);
     const headerMessage = noResultsFound ? translate('common.noResultsFound') : undefined;
