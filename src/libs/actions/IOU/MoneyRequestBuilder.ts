@@ -1184,6 +1184,11 @@ function recalculateOptimisticReportName(
     }
 
     const computedName = computeOptimisticReportName(iouReport, policy, iouReport.policyID, transactionsRecord);
+    // Discard partial recomputes — the BE-stored title is more accurate than text containing raw {report:...}/{user:...}/{field:...} tokens
+    // (e.g. cross-currency totals only the BE can resolve).
+    if (computedName && /\{(report|user|field):[^}]*\}/i.test(computedName)) {
+        return undefined;
+    }
     return computedName ?? undefined;
 }
 

@@ -2011,6 +2011,82 @@ describe('actions/IOU/BulkEdit', () => {
             canEditFieldSpy.mockRestore();
             await Onyx.clear();
         });
+
+        it('discards optimistic recomputes that still contain unresolved formula tokens', async () => {
+            const iouReportID = 'iou-unresolved-formula';
+            const policyID = 'policy-unresolved-formula';
+            const txnID = 'txn-unresolved-1';
+            const BE_COMPUTED_TITLE = 'Total: €92.50';
+
+            // {report:total:EUR} forces EUR display; report is in USD so formatAmount returns null → Formula.compute falls back to the raw token.
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                fieldList: {
+                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {
+                        fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+                        name: 'Title',
+                        type: CONST.REPORT_FIELD_TYPES.FORMULA,
+                        defaultValue: 'Total: {report:total:EUR}',
+                        deletable: false,
+                        target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
+                        values: [],
+                        keys: [],
+                        externalIDs: [],
+                        disabledOptions: [],
+                        orderWeight: 1,
+                        isTax: false,
+                    },
+                },
+            };
+
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: iouReportID,
+                reportName: BE_COMPUTED_TITLE,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: -10000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            const txn: Transaction = {...createRandomTransaction(1), transactionID: txnID, reportID: iouReportID, amount: -10000, currency: CONST.CURRENCY.USD};
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReportID}`, {expensify_text_title: policy.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
+            await waitForBatchedUpdates();
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            // Edit an unrelated field (merchant) — totals not affected, so the gate lets the recompute through.
+            updateMultipleMoneyRequests({
+                transactionIDs: [txnID],
+                changes: {merchant: 'New Merchant'},
+                policy,
+                reports: {[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport},
+                transactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`]: txn},
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {},
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+            });
+
+            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+            const iouReportNames = writeSpy.mock.calls.flatMap((call) => {
+                const onyxParams = call[2] as {optimisticData: any[]};
+                return onyxParams.optimisticData.filter((u) => u.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`).map((u) => (u.value as Report).reportName);
+            });
+            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+
+            // Title must be preserved — applying the raw "Total: {report:total:EUR}" would be worse than the BE-computed value.
+            expect(iouReportNames.at(-1)).toBe(BE_COMPUTED_TITLE);
+        });
     });
 
     describe('bulk edit draft transaction', () => {
