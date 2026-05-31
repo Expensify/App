@@ -6297,6 +6297,68 @@ describe('ReportUtils', () => {
                 }),
             ).toBe(true);
         });
+
+        it('should NOT allow default approver to edit on Submit & Close (OPTIONAL) policy', async () => {
+            const submitAndClosePolicyID = 'approverTestPolicyOptional';
+            const submitAndClosePolicy = {
+                ...policyWithWorkflow,
+                id: submitAndClosePolicyID,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            } as unknown as Policy;
+
+            const openExpenseReport: Report = {
+                reportID: '12351',
+                policyID: submitAndClosePolicyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: submitterAccountID,
+                managerID: ownerAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            const transaction: Transaction = {
+                transactionID: 'txn12351',
+                reportID: openExpenseReport.reportID,
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                comment: {comment: 'Test expense'},
+                created: '2025-01-01',
+                merchant: 'Test Merchant',
+            };
+
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: 'action12351',
+                actorAccountID: submitterAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: openExpenseReport.reportID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: 1000,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: [{type: 'COMMENT', html: 'USD 10.00 expense', text: 'USD 10.00 expense', isEdited: false, whisperedTo: [], isDeletedParentAction: false, deleted: ''}],
+                created: '2025-01-01 12:00:00',
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${submitAndClosePolicyID}`, submitAndClosePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${openExpenseReport.reportID}`, openExpenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            // Current user is policy.approver, so getManagerAccountID would resolve to them — but Submit & Close has
+            // no real approval flow, so the approver-edit grant must NOT apply.
+            expect(canEditMoneyRequest(moneyRequestAction, transaction, false, openExpenseReport, submitAndClosePolicy)).toBe(false);
+            expect(
+                canEditFieldOfMoneyRequest({
+                    reportAction: moneyRequestAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
+                    transaction,
+                    report: openExpenseReport,
+                    policy: submitAndClosePolicy,
+                }),
+            ).toBe(false);
+        });
     });
 
     describe('getChatByParticipants', () => {

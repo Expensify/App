@@ -4760,8 +4760,13 @@ function canEditMoneyRequest(
         return true;
     }
 
-    // Workflow approvers can edit OPEN reports; managerID is unreliable there so resolve from policy. getManagerAccountID excludes out-of-scope rule approvers.
-    if (isExpenseReport(moneyRequestReport) && isOpenReport(moneyRequestReport) && deprecatedCurrentUserAccountID === getManagerAccountID(reportPolicy, moneyRequestReport)) {
+    // Workflow approvers can edit OPEN reports; managerID is unreliable there so resolve from policy. Excludes Submit&Close (no workflow) and out-of-scope rule approvers.
+    if (
+        isExpenseReport(moneyRequestReport) &&
+        isOpenReport(moneyRequestReport) &&
+        !isSubmitAndClose(reportPolicy) &&
+        deprecatedCurrentUserAccountID === getManagerAccountID(reportPolicy, moneyRequestReport)
+    ) {
         return true;
     }
 
@@ -4976,7 +4981,11 @@ function canEditFieldOfMoneyRequest({
     const isAdmin = isExpenseReport(moneyRequestReport) && reportPolicy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = isExpenseReport(moneyRequestReport) && deprecatedCurrentUserAccountID === moneyRequestReport?.managerID;
     const isRequestor = deprecatedCurrentUserAccountID === reportAction?.actorAccountID;
-    const isApprover = isExpenseReport(moneyRequestReport) && isOpenReport(moneyRequestReport) && deprecatedCurrentUserAccountID === getManagerAccountID(reportPolicy, moneyRequestReport);
+    const isApprover =
+        isExpenseReport(moneyRequestReport) &&
+        isOpenReport(moneyRequestReport) &&
+        !isSubmitAndClose(reportPolicy) &&
+        deprecatedCurrentUserAccountID === getManagerAccountID(reportPolicy, moneyRequestReport);
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REIMBURSABLE) {
         return isAdmin || isManager || isRequestor || isApprover;
