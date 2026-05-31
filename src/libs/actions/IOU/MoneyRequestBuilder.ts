@@ -1196,12 +1196,8 @@ function maybeUpdateReportNameForFormulaTitle(
     const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
     const titleField = reportNameValuePairs?.expensify_text_title;
 
-    // reportNameValuePairs is backend-only, so optimistic reports must fall back to policy.fieldList.
-    const isFormulaTitle = reportNameValuePairs
-        ? titleField?.type === CONST.REPORT_FIELD_TYPES.FORMULA
-        : policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.type === CONST.REPORT_FIELD_TYPES.FORMULA;
-
-    if (!isFormulaTitle) {
+    // Manual renames null out expensify_text_title in RNVP. If RNVP isn't loaded we can't tell, so skip rather than risk overwriting a manual title.
+    if (titleField?.type !== CONST.REPORT_FIELD_TYPES.FORMULA) {
         return iouReport;
     }
 
