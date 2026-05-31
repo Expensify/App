@@ -488,23 +488,37 @@ function MoneyRequestReportTransactionList({
     }, [groupedTransactions, selectedTransactionIDs]);
 
     const toggleGroupSelection = useCallback(
-        (groupKey: string) => {
+        (groupKey: string, options?: {shiftKey?: boolean}) => {
             const group = groupedTransactions.find((g) => g.groupKey === groupKey);
             if (!group) {
                 return;
             }
-            const groupTransactionIDs = group.transactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID);
-            const anySelected = groupTransactionIDs.some((id) => selectedTransactionIDs.includes(id));
+            const selectableChildren = group.transactions.filter((t) => !isTransactionPendingDelete(t));
 
-            let newSelectedTransactionIDs = selectedTransactionIDs;
-            if (anySelected) {
-                newSelectedTransactionIDs = selectedTransactionIDs.filter((id) => !groupTransactionIDs.includes(id));
-            } else {
-                newSelectedTransactionIDs = [...selectedTransactionIDs, ...groupTransactionIDs];
+            // Shift+click header extends through the group; target = farthest child from anchor so both group edges are covered.
+            if (options?.shiftKey && selectableChildren.length > 0) {
+                const anchorKey = rangeApi.getAnchorKey();
+                const anchorIdx = anchorKey ? visualOrderTransactions.findIndex((t) => t.transactionID === anchorKey) : -1;
+                let target = selectableChildren.at(-1) ?? selectableChildren.at(0);
+                if (anchorIdx >= 0 && target) {
+                    const firstChild = selectableChildren.at(0);
+                    const lastChild = selectableChildren.at(-1);
+                    if (firstChild && lastChild) {
+                        const firstIdx = visualOrderTransactions.findIndex((t) => t.transactionID === firstChild.transactionID);
+                        const lastIdx = visualOrderTransactions.findIndex((t) => t.transactionID === lastChild.transactionID);
+                        target = Math.abs(firstIdx - anchorIdx) > Math.abs(lastIdx - anchorIdx) ? firstChild : lastChild;
+                    }
+                }
+                if (target && rangeApi.applyShiftClick(target, {shiftKey: true})) {
+                    return;
+                }
             }
-            setSelectedTransactions(newSelectedTransactionIDs);
+
+            const groupTransactionIDs = selectableChildren.map((t) => t.transactionID);
+            const anySelected = groupTransactionIDs.some((id) => selectedTransactionIDs.includes(id));
+            setSelectedTransactions(anySelected ? selectedTransactionIDs.filter((id) => !groupTransactionIDs.includes(id)) : [...selectedTransactionIDs, ...groupTransactionIDs]);
         },
-        [groupedTransactions, selectedTransactionIDs, setSelectedTransactions],
+        [groupedTransactions, selectedTransactionIDs, setSelectedTransactions, rangeApi, visualOrderTransactions],
     );
 
     /**

@@ -36,6 +36,7 @@ type Api<TItem> = {
     notifyAnchor: (item: TItem) => void;
     clearAnchor: () => void;
     extendByKeyboard: (direction: KeyboardDirection) => string | null;
+    getAnchorKey: () => string | null;
 };
 
 type Session = {anchor: string; prevEnd: string};
@@ -125,6 +126,7 @@ function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
                 anchorRef.current = null;
                 sessionRef.current = null;
             },
+            getAnchorKey: () => sessionRef.current?.anchor ?? anchorRef.current,
             extendByKeyboard: (direction) => {
                 const p = paramsRef.current;
                 const session = sessionRef.current;
