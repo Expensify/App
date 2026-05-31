@@ -4,14 +4,10 @@ import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import BillingBanner from '@pages/settings/Subscription/CardSection/BillingBanner/BillingBanner';
-import CONST from '@src/CONST';
 import Badge from './Badge';
 import Button from './Button';
-import Icon from './Icon';
-import {PressableWithoutFeedback} from './Pressable';
 import Text from './Text';
 
 type AgentPromotionalBannerProps = {
@@ -42,7 +38,6 @@ type AgentPromotionalBannerProps = {
 
 function AgentPromotionalBanner({title, subtitle, onDismiss, dismissSentryLabel, ctaText, onCtaPress, ctaSentryLabel, style}: AgentPromotionalBannerProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const illustrations = useMemoizedLazyIllustrations(['AiBot']);
@@ -68,57 +63,33 @@ function AgentPromotionalBanner({title, subtitle, onDismiss, dismissSentryLabel,
         [title, styles, translate],
     );
 
-    const dismissIcon = useMemo(
-        () => (
-            <PressableWithoutFeedback
-                onPress={onDismiss}
-                style={[styles.touchableButtonImage]}
-                role={CONST.ROLE.BUTTON}
-                accessibilityLabel={translate('common.dismiss')}
-                sentryLabel={dismissSentryLabel}
-            >
-                <Icon
-                    src={expensifyIcons.Close}
-                    fill={theme.icon}
-                />
-            </PressableWithoutFeedback>
-        ),
-        [onDismiss, styles.touchableButtonImage, translate, dismissSentryLabel, expensifyIcons.Close, theme.icon],
-    );
-
     const rightComponent = useMemo(() => {
         if (!hasCta) {
-            return dismissIcon;
+            return null;
         }
         if (shouldUseNarrowLayout && !isInLandscapeMode) {
             return (
-                <>
-                    {dismissIcon}
-                    <View style={[styles.flex0, styles.flexBasis100, styles.maxWidth100Percentage, styles.justifyContentCenter]}>
-                        <Button
-                            success
-                            medium
-                            text={ctaText}
-                            onPress={onCtaPress}
-                            sentryLabel={ctaSentryLabel}
-                        />
-                    </View>
-                </>
+                <View style={[styles.flex0, styles.flexBasis100, styles.maxWidth100Percentage, styles.justifyContentCenter]}>
+                    <Button
+                        success
+                        medium
+                        text={ctaText}
+                        onPress={onCtaPress}
+                        sentryLabel={ctaSentryLabel}
+                    />
+                </View>
             );
         }
         return (
-            <View style={[styles.flexRow, styles.gap4, styles.alignItemsCenter]}>
-                <Button
-                    success
-                    medium
-                    text={ctaText}
-                    onPress={onCtaPress}
-                    sentryLabel={ctaSentryLabel}
-                />
-                {dismissIcon}
-            </View>
+            <Button
+                success
+                medium
+                text={ctaText}
+                onPress={onCtaPress}
+                sentryLabel={ctaSentryLabel}
+            />
         );
-    }, [hasCta, shouldUseNarrowLayout, isInLandscapeMode, ctaText, onCtaPress, ctaSentryLabel, styles, dismissIcon]);
+    }, [hasCta, shouldUseNarrowLayout, isInLandscapeMode, ctaText, onCtaPress, ctaSentryLabel, styles]);
 
     return (
         <View style={style}>
@@ -128,6 +99,10 @@ function AgentPromotionalBanner({title, subtitle, onDismiss, dismissSentryLabel,
                 subtitle={subtitle}
                 subtitleStyle={[styles.mt1, styles.textLabel]}
                 style={[styles.borderRadiusComponentLarge]}
+                rightIcon={expensifyIcons.Close}
+                onRightIconPress={onDismiss}
+                rightIconAccessibilityLabel={translate('common.dismiss')}
+                rightIconSentryLabel={dismissSentryLabel}
                 rightComponent={rightComponent}
             />
         </View>
