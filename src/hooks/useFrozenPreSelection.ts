@@ -15,21 +15,7 @@ function useFrozenPreSelection<TItem extends ListItem>(sections: Array<Section<T
 
     if (frozenKeys === null && canCapture) {
         const totalCount = sections.reduce((sum, section) => sum + section.data.length, 0);
-        if (totalCount < CONST.STANDARD_LIST_ITEM_LIMIT) {
-            setFrozenKeys(new Set());
-        } else {
-            const initialSet = new Set(initialSelectedValues);
-            const captured = new Set<string>();
-            for (const section of sections) {
-                for (const item of section.data) {
-                    const key = item.keyForList;
-                    if (key && initialSet.has(key)) {
-                        captured.add(key);
-                    }
-                }
-            }
-            setFrozenKeys(captured);
-        }
+        setFrozenKeys(totalCount < CONST.STANDARD_LIST_ITEM_LIMIT ? new Set() : new Set(initialSelectedValues));
     }
 
     if (!frozenKeys || frozenKeys.size === 0) {
