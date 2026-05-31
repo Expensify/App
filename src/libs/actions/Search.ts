@@ -38,7 +38,6 @@ import {
     buildOptimisticIOUReportAction,
     generateReportID,
     getParsedComment,
-    getReimbursableTotal,
     getReportTransactions,
     hasHeldExpenses,
     isExpenseReport,
@@ -301,8 +300,7 @@ function getPayActionCallback(
         return;
     }
 
-    // Prefer the freshly computed reimbursableTotal over deriving from the (sometimes stale) stored total.
-    const amount = Math.abs(getReimbursableTotal(snapshotReport));
+    const amount = Math.abs((snapshotReport?.total ?? 0) - (snapshotReport?.nonReimbursableTotal ?? 0));
 
     if (lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
         payMoneyRequestOnSearch(hash, [{reportID: item.reportID, amount, paymentType: lastPolicyPaymentMethod}], currentSearchKey);
@@ -1105,8 +1103,16 @@ function rejectMoneyRequestsOnSearch(
         } else {
             // Share a single destination ID across all rejections from the same source report
             const sharedRejectedToReportID = generateReportID();
+            let existingRejectedReport: OnyxEntry<Report>;
+            const setExistingRejectedReport = (nextRejectedReport: OnyxEntry<Report>) => {
+                existingRejectedReport = nextRejectedReport;
+            };
             for (const transactionID of selectedTransactionIDs) {
-                rejectMoneyRequest(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, {sharedRejectedToReportID});
+                rejectMoneyRequest(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, {
+                    sharedRejectedToReportID,
+                    existingRejectedReport,
+                    setExistingRejectedReport,
+                });
             }
         }
         if (isSingleReport && areAllExpensesSelected && !isPolicyDelayedSubmissionEnabled) {
