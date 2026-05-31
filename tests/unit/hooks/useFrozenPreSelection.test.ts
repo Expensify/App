@@ -90,4 +90,87 @@ describe('useFrozenPreSelection', () => {
 
         expect(result.current.at(0)?.data).toEqual([visible]);
     });
+
+    it('returns input unchanged when no initialSelectedValues match anything in sections', () => {
+        const sections = padTo(longList, [{keyForList: 'visible'}]);
+        const {result} = renderHook(() => useFrozenPreSelection<Item>(sections, {initialSelectedValues: ['nothing-matches'], canCapture: true}));
+
+        expect(result.current).toBe(sections);
+    });
+
+    it('returns input unchanged when initialSelectedValues is empty', () => {
+        const sections = padTo(longList, [{keyForList: 'visible'}]);
+        const {result} = renderHook(() => useFrozenPreSelection<Item>(sections, {initialSelectedValues: [], canCapture: true}));
+
+        expect(result.current).toBe(sections);
+    });
+
+    it('with shouldRenderPinned, retains pinned rows even when they are absent from input sections', () => {
+        const pinned: Item = {keyForList: 'pinned'};
+        const initialSections = padTo(longList, [pinned]);
+        const {result, rerender} = renderHook(
+            ({sections}: {sections: Section[]}) => useFrozenPreSelection<Item>(sections, {initialSelectedValues: ['pinned'], canCapture: true, shouldRenderPinned: () => true}),
+            {
+                initialProps: {sections: initialSections},
+            },
+        );
+
+        // While the row is in the input sections, the live copy surfaces (no isSelected on the live row).
+        expect(result.current.at(0)?.data).toEqual([pinned]);
+
+        // Simulate a search filtering "pinned" out of the input sections — the captured copy (initialized
+        // with isSelected: false at capture time) should still surface.
+        rerender({sections: padTo(longList, [{keyForList: 'other'}])});
+
+        expect(result.current.at(0)?.data).toEqual([{keyForList: 'pinned', isSelected: false}]);
+    });
+
+    it('with shouldRenderPinned, drops pinned rows for which the predicate returns false', () => {
+        const matching: Item = {keyForList: 'match'};
+        const filtered: Item = {keyForList: 'filtered'};
+        const sections = padTo(longList, [matching, filtered]);
+        const {result} = renderHook(() =>
+            useFrozenPreSelection<Item>(sections, {
+                initialSelectedValues: ['match', 'filtered'],
+                canCapture: true,
+                shouldRenderPinned: (item) => item.keyForList === 'match',
+            }),
+        );
+
+        expect(result.current.at(0)?.data).toEqual([matching]);
+    });
+
+    it('with shouldRenderPinned, omits the top section entirely when the predicate filters everything out', () => {
+        const filtered: Item = {keyForList: 'filtered'};
+        const other: Item = {keyForList: 'other'};
+        const sections = padTo(longList, [filtered, other]);
+        const {result} = renderHook(() =>
+            useFrozenPreSelection<Item>(sections, {
+                initialSelectedValues: ['filtered'],
+                canCapture: true,
+                shouldRenderPinned: () => false,
+            }),
+        );
+
+        // No frozen section at the top, but "filtered" is still removed from the input section because it was captured.
+        expect(result.current.at(0)?.data.some((item) => item.keyForList === 'filtered')).toBe(false);
+        expect(result.current.at(0)?.data.some((item) => item.keyForList === 'other')).toBe(true);
+    });
+
+    it('does not re-capture on later renders after capturing an empty snapshot below the threshold', () => {
+        const item: Item = {keyForList: '1'};
+        const initialSections: Section[] = [{data: [item], sectionIndex: 1}];
+        const {result, rerender} = renderHook(({sections}: {sections: Section[]}) => useFrozenPreSelection<Item>(sections, {initialSelectedValues: ['1'], canCapture: true}), {
+            initialProps: {sections: initialSections},
+        });
+
+        // Below threshold on first render → empty snapshot captured.
+        expect(result.current).toBe(initialSections);
+
+        // List grows past the threshold on a later render; snapshot stays empty, no pinning.
+        const grownSections = padTo(longList, [item]);
+        rerender({sections: grownSections});
+
+        expect(result.current).toBe(grownSections);
+    });
 });
