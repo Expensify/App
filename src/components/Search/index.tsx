@@ -1146,6 +1146,21 @@ function Search({
             if (isReportActionListItemType(item) || isTaskListItemType(item)) {
                 return;
             }
+            // Shift+click on a group header extends through the group; target = farthest loaded child from anchor so both group edges are covered.
+            if (options?.shiftKey && isTransactionGroupListItemType(item) && item.transactions && item.transactions.length > 0) {
+                const anchorKey = rangeApi.getAnchorKey();
+                const anchorIdx = anchorKey ? flattenedShiftRangeItems.findIndex((r) => r.keyForList === anchorKey) : -1;
+                const firstChild = item.transactions.at(0);
+                const lastChild = item.transactions.at(-1);
+                if (firstChild && lastChild) {
+                    const firstIdx = flattenedShiftRangeItems.findIndex((r) => r.keyForList === firstChild.keyForList);
+                    const lastIdx = flattenedShiftRangeItems.findIndex((r) => r.keyForList === lastChild.keyForList);
+                    const target = anchorIdx >= 0 && Math.abs(firstIdx - anchorIdx) > Math.abs(lastIdx - anchorIdx) ? firstChild : lastChild;
+                    if (rangeApi.applyShiftClick(target, {shiftKey: true})) {
+                        return;
+                    }
+                }
+            }
             if (rangeApi.applyShiftClick(item, options)) {
                 return;
             }
@@ -1272,6 +1287,7 @@ function Search({
             selfDMReport,
             isProduction,
             rangeApi,
+            flattenedShiftRangeItems,
         ],
     );
 

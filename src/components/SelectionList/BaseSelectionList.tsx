@@ -262,9 +262,10 @@ function BaseSelectionList<TItem extends ListItem>({
         items: data,
         getItemKey: (item) => item.keyForList ?? null,
         getSelectedKeys: () => {
+            // Mirror isItemSelected so consumers using selectedItems / custom isSelected resolve an anchor too.
             const keys = new Set<string>();
             for (const item of data) {
-                if (item.isSelected && item.keyForList) {
+                if (item.keyForList && isItemSelected(item)) {
                     keys.add(item.keyForList);
                 }
             }
