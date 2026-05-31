@@ -1181,13 +1181,13 @@ const CONST = {
             descriptionKey: null,
             shortcutKey: 'ArrowUp',
             modifiers: ['SHIFT'],
-            trigger: {DEFAULT: {input: keyInputUpArrow}},
+            trigger: {DEFAULT: {input: keyInputUpArrow, modifierFlags: keyModifierShift}},
         },
         SHIFT_ARROW_DOWN: {
             descriptionKey: null,
             shortcutKey: 'ArrowDown',
             modifiers: ['SHIFT'],
-            trigger: {DEFAULT: {input: keyInputDownArrow}},
+            trigger: {DEFAULT: {input: keyInputDownArrow, modifierFlags: keyModifierShift}},
         },
         TAB: {
             descriptionKey: null,

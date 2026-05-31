@@ -476,6 +476,61 @@ describe('useShiftRangeSelection', () => {
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'b'], toDeselect: []});
         });
 
+        it('falls back to first-selected on the next shift+click when notifyAnchor was passed a header item', () => {
+            const onApplyRange = makeApplyMock();
+            const {result} = renderHook(() =>
+                useShiftRangeSelection<Row>(
+                    makeParams({
+                        items: GROUPED,
+                        isHeaderItem: (r) => !!r.isHeader,
+                        getSelectedKeys: () => new Set(['c']),
+                        onApplyRange,
+                    }),
+                ),
+            );
+            act(() => result.current.notifyAnchor(GROUPED[0]));
+            act(() => {
+                result.current.applyShiftClick(GROUPED[5], {shiftKey: true});
+            });
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['c', 'd'], toDeselect: []});
+        });
+
+        it('falls back to first-visible on the next shift+click when notifyAnchor was passed a disabled item', () => {
+            const onApplyRange = makeApplyMock();
+            const {result} = renderHook(() =>
+                useShiftRangeSelection<Row>(
+                    makeParams({
+                        items: MIXED,
+                        isDisabledItem: (r) => !!r.isDisabled,
+                        onApplyRange,
+                    }),
+                ),
+            );
+            act(() => result.current.notifyAnchor(MIXED[1]));
+            act(() => {
+                result.current.applyShiftClick(MIXED[4], {shiftKey: true});
+            });
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'c', 'e'], toDeselect: []});
+        });
+
+        it('clearAnchor ends an active shift session so the next shift+click starts fresh with no prevEnd', () => {
+            const onApplyRange = makeApplyMock();
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
+            act(() => result.current.notifyAnchor(ROWS[0]));
+            act(() => {
+                result.current.applyShiftClick(ROWS[4], {shiftKey: true});
+            });
+            act(() => result.current.clearAnchor());
+            onApplyRange.mockClear();
+            act(() => {
+                result.current.notifyAnchor(ROWS[2]);
+            });
+            act(() => {
+                result.current.applyShiftClick(ROWS[3], {shiftKey: true});
+            });
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['c', 'd'], toDeselect: []});
+        });
+
         it('extendByKeyboard returns null when the focused key no longer exists in items', () => {
             const onApplyRange = makeApplyMock();
             const {result, rerender} = renderHook(({items}: {items: Row[]}) => useShiftRangeSelection<Row>(makeParams({items, onApplyRange})), {

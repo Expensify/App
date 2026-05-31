@@ -517,6 +517,10 @@ function MoneyRequestReportTransactionList({
             const groupTransactionIDs = selectableChildren.map((t) => t.transactionID);
             const anySelected = groupTransactionIDs.some((id) => selectedTransactionIDs.includes(id));
             setSelectedTransactions(anySelected ? selectedTransactionIDs.filter((id) => !groupTransactionIDs.includes(id)) : [...selectedTransactionIDs, ...groupTransactionIDs]);
+            const firstChild = selectableChildren.at(0);
+            if (firstChild) {
+                rangeApi.notifyAnchor(firstChild);
+            }
         },
         [groupedTransactions, selectedTransactionIDs, setSelectedTransactions, rangeApi, visualOrderTransactions],
     );

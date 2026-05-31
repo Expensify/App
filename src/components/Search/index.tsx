@@ -1165,6 +1165,12 @@ function Search({
                 return;
             }
 
+            // Anchor on a selectable child in grouped views — the group header itself is rejected by the hook.
+            const anchorSource: SearchListItem =
+                validGroupBy && isTransactionGroupListItemType(item) && item.transactions && item.transactions.length > 0
+                    ? (item.transactions.find((t) => !isTransactionPendingDelete(t)) ?? item)
+                    : item;
+
             if (isTransactionListItemType(item)) {
                 if (!item.keyForList) {
                     return;
@@ -1189,7 +1195,7 @@ function Search({
                 );
                 setSelectedTransactions(updatedTransactions);
                 updateSelectAllMatchingItemsState(updatedTransactions);
-                rangeApi.notifyAnchor(item);
+                rangeApi.notifyAnchor(anchorSource);
                 return;
             }
 
@@ -1214,7 +1220,7 @@ function Search({
                     delete reducedSelectedTransactions[reportKey];
                     setSelectedTransactions(reducedSelectedTransactions);
                     updateSelectAllMatchingItemsState(reducedSelectedTransactions);
-                    rangeApi.notifyAnchor(item);
+                    rangeApi.notifyAnchor(anchorSource);
                     return;
                 }
 
@@ -1225,7 +1231,7 @@ function Search({
                 };
                 setSelectedTransactions(updatedTransactions);
                 updateSelectAllMatchingItemsState(updatedTransactions);
-                rangeApi.notifyAnchor(item);
+                rangeApi.notifyAnchor(anchorSource);
                 return;
             }
 
@@ -1240,7 +1246,7 @@ function Search({
 
                 setSelectedTransactions(reducedSelectedTransactions);
                 updateSelectAllMatchingItemsState(reducedSelectedTransactions);
-                rangeApi.notifyAnchor(item);
+                rangeApi.notifyAnchor(anchorSource);
                 return;
             }
 
@@ -1273,7 +1279,7 @@ function Search({
             };
             setSelectedTransactions(updatedTransactions);
             updateSelectAllMatchingItemsState(updatedTransactions);
-            rangeApi.notifyAnchor(item);
+            rangeApi.notifyAnchor(anchorSource);
         },
         [
             selectedTransactions,
@@ -1288,6 +1294,7 @@ function Search({
             isProduction,
             rangeApi,
             flattenedShiftRangeItems,
+            validGroupBy,
         ],
     );
 
@@ -1598,6 +1605,7 @@ function Search({
         }
         setSelectedTransactions(updatedTransactions, filteredData);
         updateSelectAllMatchingItemsState(updatedTransactions);
+        rangeApi.clearAnchor();
     }, [
         areItemsGrouped,
         selectedTransactions,
