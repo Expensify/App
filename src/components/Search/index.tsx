@@ -1120,7 +1120,7 @@ function Search({
 
     const {stableSortedData, hasCachedOptimisticItem} = useStableOptimisticSortedData(sortedData, searchResults, optimisticTrackingState);
 
-    // Flatten any group-shaped data so children are anchorable; header exclusion is gated separately on validGroupBy.
+    // Flatten any group-shaped data so children appear in the range items; header exclusion is gated separately on validGroupBy.
     const flattenedShiftRangeItems = useMemo<SearchListItem[]>(() => {
         if (!areItemsGrouped) {
             return stableSortedData;
