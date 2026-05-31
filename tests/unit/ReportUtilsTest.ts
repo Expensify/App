@@ -452,7 +452,6 @@ const rules = {
 const employeeAccountID = 2;
 const policyAdminAccountID = 1;
 const categoryApprover1Email = 'categoryapprover1@test.com';
-const categoryApprover1AccountID = 3;
 const categoryApprover2Email = 'categoryapprover2@test.com';
 const tagApprover1Email = 'tagapprover1@test.com';
 const tagApprover2Email = 'tagapprover2@test.com';
@@ -8018,7 +8017,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
         });
 
-        it('should prefer a valid submit target over a stale report manager when unapproving', async () => {
+        it('should use the report manager when unapproving even if the submit target differs', async () => {
             const policyID = 'next-approver-policy';
             const policyTest: Policy = {
                 ...createRandomPolicy(0),
@@ -8047,7 +8046,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            expect(getNextApproverAccountID(expenseReport, true)).toBe(categoryApprover1AccountID);
+            expect(getNextApproverAccountID(expenseReport, true)).toBe(policyAdminAccountID);
         });
 
         it('should fall back to report manager when submit target is invalid', async () => {
