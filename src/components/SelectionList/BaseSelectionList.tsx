@@ -280,10 +280,14 @@ function BaseSelectionList<TItem extends ListItem>({
             if (onShiftRangeApply && rangeApi.applyShiftClick(item, options)) {
                 return;
             }
-            onSelectionButtonPress?.(item, itemTransactions, options);
+            if (onSelectionButtonPress) {
+                onSelectionButtonPress(item, itemTransactions, options);
+            } else {
+                onSelectRow(item);
+            }
             rangeApi.notifyAnchor(item);
         },
-        [onShiftRangeApply, rangeApi, onSelectionButtonPress],
+        [onShiftRangeApply, rangeApi, onSelectionButtonPress, onSelectRow],
     );
 
     const selectRow = useCallback(
