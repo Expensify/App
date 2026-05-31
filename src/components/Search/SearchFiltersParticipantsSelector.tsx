@@ -322,6 +322,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
             shouldUpdateFocusedIndex
             shouldPreventAutoScrollOnSelect
+            shouldClearInputOnSelect={false}
             onSelectRow={handleParticipantSelection}
             isLoadingNewOptions={isLoadingNewOptions}
             shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}

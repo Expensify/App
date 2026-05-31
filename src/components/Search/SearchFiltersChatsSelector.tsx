@@ -222,6 +222,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
             shouldUpdateFocusedIndex
             shouldPreventAutoScrollOnSelect
+            shouldClearInputOnSelect={false}
             textInputOptions={textInputOptions}
             isLoadingNewOptions={isLoadingNewOptions}
             shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
