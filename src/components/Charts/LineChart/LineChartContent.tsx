@@ -153,7 +153,7 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
         return Math.sqrt(dx * dx + dy * dy) <= DOT_RADIUS + DOT_HOVER_EXTRA_RADIUS;
     };
 
-    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition} = useChartInteractions({
+    const {plotGestures, labelGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition} = useChartInteractions({
         handlePress: handlePointPress,
         checkIsOver: checkIsOverDot,
         isCursorOverLabel,
@@ -251,7 +251,7 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
     }
 
     return (
-        <GestureDetector gesture={customGestures}>
+        <GestureDetector gesture={labelGestures}>
             <Animated.View
                 style={[styles.chartContent, dynamicChartStyle, cursorStyle]}
                 onLayout={handleLayout}
@@ -259,6 +259,7 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
                 {chartWidth > 0 && (
                     <CartesianChart
                         xKey="x"
+                        customGestures={plotGestures}
                         padding={chartPadding}
                         yKeys={['y']}
                         domainPadding={domainPadding}

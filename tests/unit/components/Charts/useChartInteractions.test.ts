@@ -100,10 +100,11 @@ describe('useChartInteractions', () => {
         checkIsOver: alwaysFalse,
     };
 
-    it('returns a customGestures object', () => {
+    it('returns plotGestures and labelGestures objects', () => {
         const {result} = renderHook(() => useChartInteractions(defaultProps));
 
-        expect(result.current.customGestures).toBeTruthy();
+        expect(result.current.plotGestures).toBeTruthy();
+        expect(result.current.labelGestures).toBeTruthy();
     });
 
     it('returns a setPointPositions function', () => {
@@ -154,6 +155,7 @@ describe('useChartInteractions', () => {
             }),
         );
 
-        expect(result.current.customGestures).toBeTruthy();
+        expect(result.current.plotGestures).toBeTruthy();
+        expect(result.current.labelGestures).toBeTruthy();
     });
 });

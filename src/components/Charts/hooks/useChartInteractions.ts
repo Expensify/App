@@ -174,9 +174,6 @@ function useChartInteractions({handlePress, checkIsOver, isCursorOverLabel, reso
      * Hover gesture to be placed on the full-height outer container (chart + label area).
      * Clamps the y coordinate to chartBottom before passing to Victory so that hovering
      * over x-axis labels below the plot area still resolves the nearest data point.
-     * This gesture is returned separately and must NOT be passed to CartesianChart's
-     * customGestures prop, because Victory's internal GestureHandler view only covers
-     * the plot area and would drop events from the label area.
      */
     const hoverGesture = () =>
         Gesture.Hover()
@@ -279,11 +276,14 @@ function useChartInteractions({handlePress, checkIsOver, isCursorOverLabel, reso
         };
     });
 
-    const customGestures = Gesture.Race(hoverGesture(), tapGesture());
+    const plotGestures = Gesture.Race(hoverGesture(), tapGesture());
+    const labelGestures = hoverGesture();
 
     return {
-        /** Custom gestures to be passed to CartesianChart */
-        customGestures,
+        /** Gestures to be passed to CartesianChart's plot-area overlay */
+        plotGestures,
+        /** Hover-only gesture for the outer container (needed for x-axis label area) */
+        labelGestures,
         /**
          * Call this from handleScaleChange with the canvas x/y positions of each data point.
          * Derived from the d3 scale: ox[i] = xScale(i), oy[i] = yScale(data[i].total).
