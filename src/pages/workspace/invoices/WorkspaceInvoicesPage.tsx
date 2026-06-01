@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
@@ -7,6 +8,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {canMemberWrite} from '@libs/PolicyUtils';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
@@ -24,12 +26,15 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useMemoizedLazyIllustrations(['InvoiceBlue']);
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
+    const canWriteMoreFeatures = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
 
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
         >
             <WorkspacePageWithSections
                 shouldUseScrollView
@@ -39,12 +44,23 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
                 route={route}
                 icon={illustrations.InvoiceBlue}
                 addBottomSafeAreaPadding
+                policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
             >
                 {(policyID?: string) => (
                     <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         {!!policyID && <WorkspaceInvoiceBalanceSection policyID={policyID} />}
-                        {!!policyID && <WorkspaceInvoiceVBASection policyID={policyID} />}
-                        {!!policyID && <WorkspaceInvoicingDetailsSection policyID={policyID} />}
+                        {!!policyID && (
+                            <WorkspaceInvoiceVBASection
+                                policyID={policyID}
+                                canWriteMoreFeatures={canWriteMoreFeatures}
+                            />
+                        )}
+                        {!!policyID && (
+                            <WorkspaceInvoicingDetailsSection
+                                policyID={policyID}
+                                canWriteMoreFeatures={canWriteMoreFeatures}
+                            />
+                        )}
                     </View>
                 )}
             </WorkspacePageWithSections>

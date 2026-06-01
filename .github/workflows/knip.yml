@@ -1,0 +1,50 @@
+name: Knip check
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches-ignore: [staging, production]
+    paths:
+      - '**.js'
+      - '**.jsx'
+      - '**.ts'
+      - '**.tsx'
+      - '**.mjs'
+      - '**.cjs'
+      - 'knip.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'patches/**'
+      - 'tsconfig.json'
+
+concurrency:
+  group: ${{ github.ref == 'refs/heads/main' && format('{0}-{1}', github.ref, github.sha) || github.ref }}-knip
+  cancel-in-progress: true
+
+jobs:
+  knip-compare:
+    name: Compare knip issues against main
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Checkout PR
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Run knip on PR
+        run: KNIP=true npx knip --reporter json --no-exit-code > /tmp/knip-pr.json
+
+      - name: Checkout main
+        run: |
+          git fetch origin main --no-tags --depth=1
+          git checkout origin/main
+
+      - name: Run knip on main
+        run: KNIP=true npx knip --reporter json --no-exit-code > /tmp/knip-main.json
+
+      - name: Restore PR workspace
+        run: git checkout ${{ github.sha }}
+
+      - name: Compare reports
+        run: npx ts-node ./scripts/compareKnipReports.ts --mainPath=/tmp/knip-main.json --prPath=/tmp/knip-pr.json

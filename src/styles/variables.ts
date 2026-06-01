@@ -132,6 +132,8 @@ export default {
     tableGroupRowPaddingVertical: 4,
     tableGroupRowHeight: 36,
     tableSkeletonHeight: 32,
+    domainTableActionColumnWidth: 64,
+    workspaceTableActionColumnWidth: 64,
     sectionMenuItemHeight: 52,
     sectionMenuItemHeightCompact: 44,
     optionsListSectionHeaderHeight: getValueUsingPixelRatio(32, 38),

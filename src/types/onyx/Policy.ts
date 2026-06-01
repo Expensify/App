@@ -1,6 +1,6 @@
 import type {CONST as COMMON_CONST} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
-import type {HrSyncResult} from '@libs/API/HrSyncResult';
+import type HrSyncResult from '@libs/API/HrSyncResult';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
@@ -66,10 +66,10 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
         index?: number;
 
         /** ISO 8601 date string for when this rate becomes effective */
-        startDate?: string;
+        startDate?: string | null;
 
         /** ISO 8601 date string for when this rate expires */
-        endDate?: string;
+        endDate?: string | null;
     },
     keyof TaxRateAttributes
 >;
@@ -2345,8 +2345,8 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Policy MCC Group settings */
         mccGroup?: Record<string, MccGroup>;
 
-        /** Workspace account ID configured for Expensify Card */
-        workspaceAccountID?: number;
+        /** Policy account ID configured for Expensify Card */
+        policyAccountID?: number;
 
         /** Setup specialist guide assigned for the policy */
         assignedGuide?: {
@@ -2428,7 +2428,6 @@ export type {
     XeroTrackingCategory,
     NetSuiteConnection,
     ConnectionLastSync,
-    MergeHRConnectionLastSync,
     QBDReimbursableExportAccountType,
     NetSuiteSubsidiary,
     NetSuiteCustomList,
@@ -2446,7 +2445,6 @@ export type {
     SageIntacctConnectionsConfig,
     SageIntacctExportConfig,
     FinancialForceConnectionConfig,
-    FinancialForceConnectionData,
     ACHAccount,
     ApprovalRule,
     ExpenseRule,
@@ -2458,10 +2456,8 @@ export type {
     Subrate,
     ProhibitedExpenses,
     NetSuiteConnectionData,
-    HRConnectionConfigBase,
     MergeHRConnectionConfig,
     GustoConnectionConfig,
     ZenefitsConnectionConfig,
-    MergeHRConnectionData,
     Vendor,
 };
