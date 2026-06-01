@@ -23,6 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearActive, isActive as isEmojiPickerActive} from '@libs/actions/EmojiPickerAction';
 import {composerFocusKeepFocusOn} from '@libs/actions/InputFocus';
 import {clearAllReportActionDrafts, saveReportActionDraft} from '@libs/actions/Report';
+import {isMobileChrome} from '@libs/Browser';
 import {canSkipTriggerHotkeys, insertText} from '@libs/ComposerUtils';
 import DomUtils from '@libs/DomUtils';
 import {extractEmojis, getTextVSCursorOffset, insertTextVSBetweenDigitAndEmoji, replaceAndExtractEmojis} from '@libs/EmojiUtils';
@@ -430,6 +431,10 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
                                 setIsFocused(true);
                                 if (composerRef.current) {
                                     ReportActionComposeFocusManager.editComposerRef.current = composerRef.current;
+                                }
+
+                                if (isMobileChrome() && reportScrollManager.ref?.current) {
+                                    reportScrollManager.ref.current.scrollToIndex({index, animated: false});
                                 }
 
                                 // Clear active report action when another action gets focused
