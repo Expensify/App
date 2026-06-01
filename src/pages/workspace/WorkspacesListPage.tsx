@@ -44,6 +44,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {close} from '@libs/actions/Modal';
+import {clearCopyPolicySettings} from '@libs/actions/Policy/CopyPolicySettings';
 import {clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
 import {calculateBillNewDot, clearDeleteWorkspaceError, clearDuplicateWorkspace, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
@@ -427,7 +428,13 @@ function WorkspacesListPage() {
                 threeDotsMenuItems.push({
                     icon: icons.Copy,
                     text: translate('workspace.copyPolicySettings.title'),
-                    onSelected: () => (item.policyID ? Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS.getRoute(item.policyID)) : undefined),
+                    onSelected: () => {
+                        if (!item.policyID) {
+                            return;
+                        }
+                        clearCopyPolicySettings();
+                        Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS.getRoute(item.policyID));
+                    },
                 });
             }
         }
