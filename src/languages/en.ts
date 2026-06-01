@@ -9395,7 +9395,6 @@ const translations = {
     },
     export: {
         basicExport: 'Basic export',
-        currentView: 'Export current view',
         reportLevelExport: 'All Data - report level',
         expenseLevelExport: 'All Data - expense level',
         exportInProgress: 'Export in progress',

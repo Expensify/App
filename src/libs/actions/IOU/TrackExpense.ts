@@ -183,6 +183,8 @@ type GetTrackExpenseInformationParams = {
     isSelfTourViewed: boolean;
     defaultWorkspaceName?: string;
     optimisticChatReportID?: string;
+    // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountID?: number | undefined;
 };
 
 type DeleteTrackExpenseParams = {
@@ -826,6 +828,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         isSelfTourViewed,
         defaultWorkspaceName,
         optimisticChatReportID,
+        delegateAccountID,
     } = params;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy} = policyParams;
@@ -1100,6 +1103,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         existingTransactionThreadReportID: linkedTrackedExpenseReportAction?.childReportID,
         linkedTrackedExpenseReportAction,
         currentUserAccountID: currentUserAccountIDParam,
+        delegateAccountIDParam: delegateAccountID,
     });
 
     let reportPreviewAction: OnyxInputValue<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> = null;
@@ -1109,7 +1113,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         if (reportPreviewAction) {
             reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
         } else {
-            reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction);
+            reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction, undefined, undefined, undefined, delegateAccountID);
             // Generated ReportPreview action is a parent report action of the iou report.
             // We are setting the iou report's parentReportActionID to display subtitle correctly in IOU page when offline.
             iouReport.parentReportActionID = reportPreviewAction.reportActionID;
@@ -1607,6 +1611,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         betas,
         personalDetails,
         shouldDeferAutoSubmit,
+        delegateAccountID,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -1723,6 +1728,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         policyRecentlyUsedCurrencies,
         betas,
         personalDetails,
+        delegateAccountID,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
@@ -2314,6 +2320,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         isSelfTourViewed,
         defaultWorkspaceName,
         previousOdometerDraft,
+        delegateAccountID,
         reportActionsList,
     } = params;
     const {accountID: currentUserAccountIDParam, email: currentUserEmailParam = ''} = currentUser;
@@ -2472,6 +2479,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         isSelfTourViewed,
         defaultWorkspaceName,
         optimisticChatReportID,
+        delegateAccountID,
     }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
     const onyxData: TrackedExpenseParams['onyxData'] = trackExpenseInformationOnyxData;
