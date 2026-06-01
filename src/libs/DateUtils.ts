@@ -23,6 +23,7 @@ import {
     isThisYear,
     isValid,
     parse,
+    parseISO,
     set,
     startOfDay,
     startOfMonth,
@@ -841,11 +842,22 @@ function getFormattedCancellationDate(isoDateString: string): string {
     if (!isoDateString) {
         return '';
     }
-    const offsetMatch = isoDateString.match(/([+-]\d{2}:\d{2})$/);
-    const venueTimezone = offsetMatch ? offsetMatch[1] : 'UTC';
-    const date = new Date(isoDateString);
-    const pattern = isThisYear(date) ? 'EEEE, MMM d h:mm a, zzz' : 'EEEE, MMM d, yyyy h:mm a, zzz';
-    return formatInTimeZone(date, venueTimezone, pattern);
+    // Derive a human-readable timezone label from the offset (e.g. +07:00 -> GMT+7). A zero offset or a missing offset both display as UTC.
+    const offsetMatch = isoDateString.match(/([+-])(\d{2}):(\d{2})$/);
+    let timezoneLabel = 'UTC';
+    if (offsetMatch) {
+        const [, sign, hoursStr, minutesStr] = offsetMatch;
+        const offsetHours = Number(hoursStr);
+        const offsetMinutes = Number(minutesStr);
+        if (offsetHours !== 0 || offsetMinutes !== 0) {
+            timezoneLabel = `GMT${sign}${offsetHours}${offsetMinutes ? `:${minutesStr}` : ''}`;
+        }
+    }
+    // Strip the trailing offset (or Z) so the wall-clock components are read as-is (venue-local) rather than converted to the device's timezone.
+    const localIsoDateString = isoDateString.replace(/(Z|[+-]\d{2}:\d{2})$/, '');
+    const date = parseISO(localIsoDateString);
+    const pattern = isThisYear(date) ? 'EEEE, MMM d h:mm a' : 'EEEE, MMM d, yyyy h:mm a';
+    return `${format(date, pattern)}, ${timezoneLabel}`;
 }
 
 /**
