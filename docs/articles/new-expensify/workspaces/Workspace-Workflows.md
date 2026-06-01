@@ -73,6 +73,17 @@ Learn how to [pay expenses submitted on a workspace](https://help.expensify.com/
 
 ---
 
+## How to enable Mark as Paid
+
+If you prefer to reimburse your employees using a method outside of Expensify—for example, via payroll or cash—and you don't want to connect a bank account, you can enable **Mark as Paid**. This lets you record reimbursements that happen outside of Expensify without setting up a payment account.
+
+1. Go to **Workflows**.
+2. Toggle on **Payments**.
+
+Once enabled, you can mark reports as paid manually to keep track of reimbursements made outside of Expensify.
+
+---
+
 # FAQ
 
 ## What happens if I don’t choose a submission frequency?
