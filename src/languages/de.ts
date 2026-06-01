@@ -2924,6 +2924,7 @@ ${amount} für ${merchant} – ${date}`,
         },
         highContrastMode: 'Hoher Kontrast',
         enableHighContrast: 'Hohen Kontrast aktivieren',
+        disableHighContrast: 'Hohen Kontrast deaktivieren',
         chooseThemeBelowOrSync: 'Wählen Sie unten ein Design aus oder synchronisieren Sie es mit den Einstellungen Ihres Geräts.',
     },
     termsOfUse: {

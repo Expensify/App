@@ -2917,6 +2917,7 @@ ${amount} voor ${merchant} - ${date}`,
         },
         highContrastMode: 'Hoog contrast',
         enableHighContrast: 'Hoog contrast inschakelen',
+        disableHighContrast: 'Hoog contrast uitschakelen',
         chooseThemeBelowOrSync: 'Kies hieronder een thema, of synchroniseer met de instellingen van je apparaat.',
     },
     termsOfUse: {

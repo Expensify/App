@@ -22,6 +22,7 @@ function HighContrastModeSwitcher() {
 
     const currentTheme = preferredTheme ?? CONST.THEME.DEFAULT;
     const isHighContrast = isHighContrastTheme(currentTheme);
+    const label = translate(isHighContrast ? 'themePage.disableHighContrast' : 'themePage.enableHighContrast');
 
     const toggleHighContrast = () => {
         const baseTheme = getBaseTheme(currentTheme);
@@ -34,8 +35,7 @@ function HighContrastModeSwitcher() {
             onPress={toggleHighContrast}
             sentryLabel={CONST.SENTRY_LABEL.HIGH_CONTRAST_MODE_SWITCHER.TOGGLE}
             role={CONST.ROLE.BUTTON}
-            accessibilityLabel={translate('themePage.enableHighContrast')}
-            accessibilityState={{checked: isHighContrast}}
+            accessibilityLabel={label}
             style={[styles.flexRow, styles.alignItemsCenter]}
         >
             <Icon
@@ -43,9 +43,9 @@ function HighContrastModeSwitcher() {
                 fill={isHighContrast ? theme.text : theme.icon}
                 width={variables.iconSizeSmall}
                 height={variables.iconSizeSmall}
-                accessibilityLabel={translate('themePage.enableHighContrast')}
+                accessibilityLabel={label}
             />
-            <Text style={[styles.textSmall, styles.ml2]}>{translate('themePage.enableHighContrast')}</Text>
+            <Text style={[styles.textSmall, styles.ml2]}>{label}</Text>
         </PressableWithFeedback>
     );
 }
