@@ -95,7 +95,7 @@ describe('Whisper content components provide MentionReportContext so room mentio
                 <ReportMentionWhisperContent
                     action={action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER>}
                     reportID={REPORT_ID}
-                    actionOwnerReport={report}
+                    actionOwnerReportStable={report}
                 />
             </OnyxListItemProvider>,
         );
@@ -114,7 +114,7 @@ describe('Whisper content components provide MentionReportContext so room mentio
                     action={action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>}
                     reportID={REPORT_ID}
                     originalReportID={undefined}
-                    actionOwnerReport={report}
+                    actionOwnerReportStable={report}
                 />
             </OnyxListItemProvider>,
         );

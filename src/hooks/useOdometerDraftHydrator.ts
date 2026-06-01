@@ -39,16 +39,14 @@ function useOdometerDraftHydrator({
         if (lastHydratedDraft === odometerDraft) {
             return;
         }
-        // Skip when the comment already reflects the draft. saveOdometerDraft writes from the
-        // edit-from-confirmation flow otherwise mint fresh blob URLs via the serialize/deserialize
-        // round-trip and revoke the URLs the confirm page is currently displaying.
+        // Skip when the comment already matches the draft; re-minting blob URLs from base64 would flash the receipt.
         if (!isOdometerDraftPendingHydration(odometerDraft, transaction?.comment)) {
             lastHydratedDraft = odometerDraft;
             return;
         }
         hydrateOdometerDraftIntoTransaction(transaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID, odometerDraft, transaction?.comment);
         lastHydratedDraft = odometerDraft;
-        // transaction.comment intentionally excluded — it changes after our own merge and would re-fire.
+        // transaction.comment intentionally excluded - it changes after our own merge and would re-fire.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionRequestType, odometerDraft, isLoadingTransaction, isLoadingSelectedTab]);
 

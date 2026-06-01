@@ -677,6 +677,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             shouldUseScrollView
             shouldShowOfflineIndicatorInWideScreen
             shouldShowNonAdmin
+            policyFeature={CONST.POLICY.POLICY_FEATURE.OVERVIEW}
             icon={illustrationIcons.Building}
             shouldShowNotFoundPage={policy === undefined}
             onBackButtonPress={handleBackButtonPress}
