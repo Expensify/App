@@ -4716,6 +4716,10 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
+        sidebarStatusAvatarHovered: {
+            borderColor: theme.hoverComponentBG,
+        },
+
         profilePageAvatar: {
             borderColor: theme.highlightBG,
         },

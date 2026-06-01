@@ -449,6 +449,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expensifyLogo: 'Logo de Expensify',
         approver: 'Aprobador',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `introducir dígito ${digitIndex} de ${totalDigits}`,
+        restrictions: 'Restricciones',
     },
     socials: {
         podcast: 'Síguenos en Podcast',
@@ -460,10 +461,6 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Contraer razonamiento',
         expandReasoning: 'Expandir razonamiento',
-        enableNotifications: {
-            prompt: '¿Quieres que te avisemos cuando Concierge responda?',
-            cta: 'Notificar',
-        },
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -1224,7 +1221,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Problemas encontrados',
         }),
         fieldPending: 'Pendiente...',
-        automaticallyEnterExpenseDetails: 'Concierge introducirá automáticamente los detalles del gasto por ti, o puedes añadirlos manualmente.',
+        automaticallyEnterExpenseDetails: 'Concierge completará los detalles por ti.',
         receiptScanning: () => ({
             one: 'Escaneando recibo...',
             other: 'Escaneando recibos...',
@@ -2461,6 +2458,8 @@ ${amount} para ${merchant} - ${date}`,
         addApprovalsTitle: 'Aprobaciones',
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `gastos de ${members}, y el aprobador es ${approvers}`,
         addApprovalButton: 'Añadir flujo de aprobación',
+        editWorkflowAction: 'Editar',
+        addAgentAction: 'Añadir agente',
         findWorkflow: 'Buscar flujo de trabajo',
         addApprovalTip: 'Este flujo de trabajo por defecto se aplica a todos los miembros, a menos que exista un flujo de trabajo más específico.',
         approver: 'Aprobador',
@@ -7322,6 +7321,51 @@ ${amount} para ${merchant} - ${date}`,
             `${enabled ? 'habilitó' : 'deshabilitó'} que los titulares de tarjetas eliminen transacciones de la fuente de tarjetas "${feedName}"`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `cambió el día de cierre del período de estado de cuenta de la fuente de tarjetas "${feedName}"${newValue ? ` a "${newValue}"` : ''}${previousValue ? ` (previamente "${previousValue}")` : ''}`,
+        expensifyCardRule: {
+            actionVerb: {block: 'bloqueado', allow: 'permitido'},
+            amountOperator: {over: 'más de', under: 'debajo'},
+            amountFilter: ({operator, amount}: {operator: string; amount: string}) => `cantidades ${operator} ${amount}`,
+            theCard: 'la tarjeta',
+            multipleCards: ({count}: {count: number}) => ({
+                one: '1 tarjeta',
+                other: `${count} tarjetas`,
+            }),
+            addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
+                let text = verb;
+                if (filters !== '') {
+                    text += ` ${filters}`;
+                }
+                text += ` en ${cards}`;
+                return text;
+            },
+            removeRule: ({cards}: {cards: string}) => `eliminó la regla de gasto de ${cards}`,
+            restrictionVerb: {block: 'bloquear', allow: 'permitir solo'},
+            update: {
+                modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) => `cambió la regla de gasto de ${fromAction} a ${toAction} en ${cards}`,
+                appliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: 'aplicó la regla de gasto a 1 tarjeta adicional',
+                    other: `aplicó la regla de gasto a ${count} tarjetas adicionales`,
+                }),
+                phraseVerb: {added: 'añadido', removed: 'eliminado', changed: 'cambió', set: 'establecer', applied: 'aplicado'},
+                bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} comercio «${value}»` : `comercio «${value}»`),
+                bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `${adjective} del comerciante de '${oldValue}' a '${newValue}'` : `comercio de '${oldValue}' a '${newValue}'`,
+                bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) =>
+                    adjective !== '' ? `Categoría de gasto ${adjective} «${value}»` : `categoría de gasto «${value}»`,
+                bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `Categoría de gasto ${adjective} de '${oldValue}' a '${newValue}'` : `categoría de gasto de '${oldValue}' a '${newValue}'`,
+                bodyMaxAmount: 'importe máximo',
+                bodyMaxAmountSet: ({value}: {value: string}) => `importe máximo hasta ${value}`,
+                bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `importe máximo de ${oldValue} a ${newValue}`,
+                bodyAppliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: 'regla de gasto para 1 tarjeta adicional',
+                    other: `regla de gasto para ${count} tarjetas adicionales`,
+                }),
+                bodyRemovedFromCards: ({cards}: {cards: string}) => `regla de gasto de ${cards}`,
+                composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} en ${cards}`,
+                composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} de ${cards}`,
+            },
+        },
         preventSelfApproval: (oldValue, newValue) =>
             `actualizó "Evitar la autoaprobación" a "${newValue === 'true' ? 'Habilitada' : 'Deshabilitada'}" (previamente "${oldValue === 'true' ? 'Habilitada' : 'Deshabilitada'}")`,
         setReceiptRequiredAmount: (newValue) => `estableció el importe requerido del recibo en "${newValue}"`,
@@ -7773,7 +7817,7 @@ ${amount} para ${merchant} - ${date}`,
         },
         has: 'Tiene',
         view: {label: 'Ver', table: 'Tabla', bar: 'Barra', line: 'Línea', pie: 'Circular'},
-        saveSearch: 'Guardar búsqueda',
+        saveView: 'Guardar vista',
         savedSearchesMenuItemTitle: 'Guardadas',
         urlCopied: 'URL copiada',
         spendOverTime: 'Evolución de gastos',
@@ -7923,6 +7967,7 @@ ${amount} para ${merchant} - ${date}`,
         exportAll: {
             selectAllMatchingItems: 'Seleccionar todos los elementos coincidentes',
             allMatchingItemsSelected: 'Todos los elementos coincidentes seleccionados',
+            selectAllOnThisPage: 'Seleccionar todo en esta página',
         },
         errors: {
             pleaseSelectDatesForBothFromAndTo: 'Por favor, selecciona fechas para Desde y Hasta',
@@ -9477,6 +9522,7 @@ ${amount} para ${merchant} - ${date}`,
     },
     export: {
         basicExport: 'Exportar básico',
+        currentView: 'Exportar vista actual',
         reportLevelExport: 'Todos los datos - a nivel de informe',
         expenseLevelExport: 'Todos los datos - a nivel de gasto',
         exportInProgress: 'Exportación en curso',

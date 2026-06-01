@@ -495,6 +495,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Ano anterior',
         nextYear: 'Ano que vem',
         avatar: 'Avatar',
+        restrictions: 'Restrições',
     },
     socials: {
         podcast: 'Siga-nos no Podcast',
@@ -506,7 +507,6 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Recolher raciocínio',
         expandReasoning: 'Expandir raciocínio',
-        enableNotifications: {prompt: 'Quer ser avisado quando o Concierge responder?', cta: 'Notificar'},
     },
     supportalNoAccess: {
         title: 'Calma aí',
@@ -1255,7 +1255,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchSubmitTitle: 'Enviar relatório',
         pendingMatchSubmitDescription: 'Algumas despesas estão pendentes de correspondência com uma transação de cartão de crédito. Deseja marcá-las como dinheiro?',
         routePending: 'Rota pendente...',
-        automaticallyEnterExpenseDetails: 'O Concierge inserirá automaticamente os detalhes da despesa para você, ou você pode adicioná-los manualmente.',
+        automaticallyEnterExpenseDetails: 'O Concierge vai preencher os detalhes para você.',
         receiptScanning: () => ({
             one: 'Digitalizando recibo...',
             other: 'Escaneando recibos...',
@@ -2572,6 +2572,8 @@ ${amount} para ${merchant} - ${date}`,
         addApprovalsTitle: 'Aprovações',
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `despesas de ${members}, e o aprovador é ${approvers}`,
         addApprovalButton: 'Adicionar fluxo de aprovação',
+        editWorkflowAction: 'Editar',
+        addAgentAction: 'Adicionar agente',
         findWorkflow: 'Buscar fluxo de trabalho',
         addApprovalTip: 'Este fluxo de trabalho padrão se aplica a todos os membros, a menos que exista um fluxo de trabalho mais específico.',
         approver: 'Aprovador',
@@ -7773,6 +7775,52 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `adicionou o campo de relatório ${fieldType} "${fieldName}"${defaultValue ? ` com valor padrão "${defaultValue}"` : ''}`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'ativado' : 'desativado'} o requisito de compras com cartão corporativo`,
+        expensifyCardRule: {
+            actionVerb: {block: 'bloqueado', allow: 'permitido'},
+            amountOperator: {over: 'acima', under: 'abaixo'},
+            amountFilter: ({operator, amount}: {operator: string; amount: string}) => `valores ${operator} ${amount}`,
+            theCard: 'o cartão',
+            multipleCards: ({count}: {count: number}) => ({
+                one: '1 cartão',
+                other: `${count} cartões`,
+            }),
+            addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
+                let text = verb;
+                if (filters !== '') {
+                    text += ` ${filters}`;
+                }
+                text += ` em ${cards}`;
+                return text;
+            },
+            removeRule: ({cards}: {cards: string}) => `removeu a regra de gasto de ${cards}`,
+            restrictionVerb: {block: 'bloquear', allow: 'permitir apenas'},
+            update: {
+                modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) =>
+                    `alterou a regra de gasto de ${fromAction} para ${toAction} em ${cards}`,
+                appliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: 'regra de gasto aplicada a mais 1 cartão',
+                    other: `regra de gasto aplicada a mais ${count} cartões`,
+                }),
+                phraseVerb: {added: 'adicionado', removed: 'removido', changed: 'alterado', set: 'definir', applied: 'aplicado'},
+                bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `comerciante ${adjective} '${value}'` : `estabelecimento comercial '${value}'`),
+                bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `${adjective} comerciante de '${oldValue}' para '${newValue}'` : `estabelecimento comercial de '${oldValue}' para '${newValue}'`,
+                bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) =>
+                    adjective !== '' ? `Categoria de gasto ${adjective} '${value}'` : `categoria de gastos '${value}'`,
+                bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `Categoria de gasto ${adjective} de '${oldValue}' para '${newValue}'` : `categoria de gasto de '${oldValue}' para '${newValue}'`,
+                bodyMaxAmount: 'valor máximo',
+                bodyMaxAmountSet: ({value}: {value: string}) => `valor máximo até ${value}`,
+                bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `valor máximo de ${oldValue} para ${newValue}`,
+                bodyAppliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: 'regra de gasto para mais 1 cartão',
+                    other: `regra de gasto para mais ${count} cartões`,
+                }),
+                bodyRemovedFromCards: ({cards}: {cards: string}) => `regra de gasto de ${cards}`,
+                composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} em ${cards}`,
+                composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} de ${cards}`,
+            },
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',
@@ -7896,7 +7944,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         resetColumns: 'Redefinir colunas',
         groupColumns: 'Agrupar colunas',
         expenseColumns: 'Colunas de despesas',
-        saveSearch: 'Salvar pesquisa',
+        saveView: 'Salvar visualização',
         deleteSavedSearch: 'Excluir pesquisa salva',
         deleteSavedSearchConfirm: 'Tem certeza de que deseja excluir esta pesquisa?',
         searchName: 'Pesquisar nome',
@@ -8045,6 +8093,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         exportAll: {
             selectAllMatchingItems: 'Selecionar todos os itens correspondentes',
             allMatchingItemsSelected: 'Todos os itens correspondentes selecionados',
+            selectAllOnThisPage: 'Selecionar tudo nesta página',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'De',
@@ -9264,6 +9313,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         expenseLevelExport: 'Todos os dados - nível de despesa',
         exportInProgress: 'Exportação em andamento',
         conciergeWillSend: 'O Concierge enviará o arquivo para você em breve.',
+        currentView: 'Exportar visualização atual',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',

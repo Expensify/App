@@ -509,6 +509,7 @@ const translations = {
         week: 'Week',
         year: 'Year',
         quarter: 'Quarter',
+        restrictions: 'Restrictions',
         concierge: {
             sidePanelGreeting: 'Hi there, how can I help?',
             showHistory: 'Show history',
@@ -528,10 +529,6 @@ const translations = {
     concierge: {
         collapseReasoning: 'Collapse reasoning',
         expandReasoning: 'Expand reasoning',
-        enableNotifications: {
-            prompt: 'Want to be notified when Concierge responds?',
-            cta: 'Notify',
-        },
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -1313,7 +1310,7 @@ const translations = {
         pendingMatchSubmitTitle: 'Submit report',
         pendingMatchSubmitDescription: 'Some expenses are awaiting a match with a credit card transaction. Do you want to mark them as cash?',
         routePending: 'Route pending...',
-        automaticallyEnterExpenseDetails: 'Concierge will automatically enter the expense details for you, or you can add them manually.',
+        automaticallyEnterExpenseDetails: 'Concierge will fill in the details for you.',
         receiptScanning: () => ({
             one: 'Receipt scanning...',
             other: 'Receipts scanning...',
@@ -2644,6 +2641,8 @@ const translations = {
         addApprovalsTitle: 'Approvals',
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `expenses from ${members}, and the approver is ${approvers}`,
         addApprovalButton: 'Add approval workflow',
+        editWorkflowAction: 'Edit',
+        addAgentAction: 'Add agent',
         findWorkflow: 'Find workflow',
         addApprovalTip: 'This default workflow applies to all members, unless a more specific workflow exists.',
         approver: 'Approver',
@@ -7537,6 +7536,65 @@ const translations = {
         updatedCardFeedLiability: (feedName: string, enabled: boolean) => `${enabled ? 'enabled' : 'disabled'} cardholders to delete card transactions for card feed "${feedName}"`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `changed card feed "${feedName}" statement period end day${newValue ? ` to "${newValue}"` : ''}${previousValue ? ` (previously "${previousValue}")` : ''}`,
+        expensifyCardRule: {
+            actionVerb: {
+                block: 'blocked',
+                allow: 'allowed',
+            },
+            amountOperator: {
+                over: 'over',
+                under: 'under',
+            },
+            amountFilter: ({operator, amount}: {operator: string; amount: string}) => `amounts ${operator} ${amount}`,
+            theCard: 'the card',
+            multipleCards: ({count}: {count: number}) => ({
+                one: '1 card',
+                other: `${count} cards`,
+            }),
+            addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
+                let text = verb;
+                if (filters !== '') {
+                    text += ` ${filters}`;
+                }
+                text += ` on ${cards}`;
+                return text;
+            },
+            removeRule: ({cards}: {cards: string}) => `removed spend rule from ${cards}`,
+            restrictionVerb: {
+                block: 'block',
+                allow: 'only allow',
+            },
+            update: {
+                modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) => `changed spend rule from ${fromAction} to ${toAction} on ${cards}`,
+                appliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: 'applied spend rule to 1 additional card',
+                    other: `applied spend rule to ${count} additional cards`,
+                }),
+                phraseVerb: {
+                    added: 'added',
+                    removed: 'removed',
+                    changed: 'changed',
+                    set: 'set',
+                    applied: 'applied',
+                },
+                bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} merchant '${value}'` : `merchant '${value}'`),
+                bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `${adjective} merchant from '${oldValue}' to '${newValue}'` : `merchant from '${oldValue}' to '${newValue}'`,
+                bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} spend category '${value}'` : `spend category '${value}'`),
+                bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `${adjective} spend category from '${oldValue}' to '${newValue}'` : `spend category from '${oldValue}' to '${newValue}'`,
+                bodyMaxAmount: 'max amount',
+                bodyMaxAmountSet: ({value}: {value: string}) => `max amount to ${value}`,
+                bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `max amount from ${oldValue} to ${newValue}`,
+                bodyAppliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: 'spend rule to 1 additional card',
+                    other: `spend rule to ${count} additional cards`,
+                }),
+                bodyRemovedFromCards: ({cards}: {cards: string}) => `spend rule from ${cards}`,
+                composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} on ${cards}`,
+                composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} from ${cards}`,
+            },
+        },
         preventSelfApproval: (oldValue: string, newValue: string) =>
             `updated "Prevent self-approval" to "${newValue === 'true' ? 'Enabled' : 'Disabled'}" (previously "${oldValue === 'true' ? 'Enabled' : 'Disabled'}")`,
         updateMonthlyOffset: (oldValue: string, newValue: string) => {
@@ -7986,7 +8044,7 @@ const translations = {
         resetColumns: 'Reset columns',
         groupColumns: 'Group columns',
         expenseColumns: 'Expense Columns',
-        saveSearch: 'Save search',
+        saveView: 'Save view',
         deleteSavedSearch: 'Delete saved search',
         deleteSavedSearchConfirm: 'Are you sure you want to delete this search?',
         searchName: 'Search name',
@@ -8146,6 +8204,7 @@ const translations = {
         exportAll: {
             selectAllMatchingItems: 'Select all matching items',
             allMatchingItemsSelected: 'All matching items selected',
+            selectAllOnThisPage: 'Select all on this page',
         },
         errors: {
             pleaseSelectDatesForBothFromAndTo: 'Please select dates for both From and To',
@@ -9335,6 +9394,7 @@ const translations = {
     },
     export: {
         basicExport: 'Basic export',
+        currentView: 'Export current view',
         reportLevelExport: 'All Data - report level',
         expenseLevelExport: 'All Data - expense level',
         exportInProgress: 'Export in progress',
