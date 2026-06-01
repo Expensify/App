@@ -9277,5 +9277,18 @@ ${reportName}
     },
     proactiveAppReview: {title: '喜欢全新的 Expensify 吗？', description: '请告诉我们，这样我们就能帮助您让报销体验变得更好。', positiveButton: '太棒了！', negativeButton: '不太是'},
     monthPickerPage: {month: '月份', selectMonth: '请选择月份'},
+    aiFeaturesPromoModal: {
+        title: '了解 Concierge AI',
+        description: '您全新的 AI 驱动 Expensify 助理。',
+        letsGo: '开始使用',
+        learnMore: '了解详情',
+        next: '下一步',
+        back: '返回',
+        screens: {
+            spendAnalysis: {title: '交互式支出分析', description: '让 Concierge 按你想要的方式细分支出——按类别、人员、项目或时间。'},
+            expenseAssistant: {title: '认识你的新报销助手', description: 'Concierge 可以帮你分类报销、填写详情，并跟进缺失的收据。'},
+            buildAgents: {title: '构建你自己的代理', description: '创建自定义 AI 代理，自动化对你的团队最重要的工作流程。'},
+        },
+    },
 };
 export default translations;

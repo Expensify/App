@@ -9583,5 +9583,24 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         negativeButton: 'Non proprio',
     },
     monthPickerPage: {month: 'Mese', selectMonth: 'Seleziona un mese'},
+    aiFeaturesPromoModal: {
+        title: 'Incontra Concierge AI',
+        description: 'Il tuo nuovo assistente Expensify con tecnologia AI.',
+        letsGo: 'Andiamo',
+        learnMore: 'Scopri di più',
+        next: 'Avanti',
+        back: 'Indietro',
+        screens: {
+            spendAnalysis: {
+                title: 'Analisi interattiva delle spese',
+                description: 'Chiedi a Concierge di suddividere le tue spese come vuoi tu — per categoria, persona, progetto o periodo.',
+            },
+            expenseAssistant: {
+                title: 'Scopri il tuo nuovo assistente per le spese',
+                description: 'Concierge può categorizzare le spese, compilare i dettagli e sollecitare le ricevute mancanti per te.',
+            },
+            buildAgents: {title: 'Crea i tuoi agenti', description: 'Crea agenti IA personalizzati per automatizzare i flussi di lavoro più importanti per il tuo team.'},
+        },
+    },
 };
 export default translations;

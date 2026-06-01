@@ -9839,5 +9839,21 @@ ${amount} para ${merchant} - ${date}`,
             lockScreenTrackingText: 'Siguiendo...',
         },
     },
+    aiFeaturesPromoModal: {
+        title: 'Conoce Concierge AI',
+        description: 'Tu nuevo asistente de Expensify potenciado por IA.',
+        letsGo: 'Vamos allá',
+        learnMore: 'Más información',
+        next: 'Siguiente',
+        back: 'Atrás',
+        screens: {
+            spendAnalysis: {title: 'Análisis interactivo del gasto', description: 'Pídele a Concierge que desglosE tus gastos como quieras: por categoría, persona, proyecto o periodo.'},
+            expenseAssistant: {
+                title: 'Conoce a tu nuevo asistente de gastos',
+                description: 'Concierge puede categorizar gastos, completar detalles y hacer seguimiento de los recibos que falten por ti.',
+            },
+            buildAgents: {title: 'Crea tus propios agentes', description: 'Crea agentes de IA personalizados para automatizar los flujos de trabajo que más le importan a tu equipo.'},
+        },
+    },
 };
 export default translations;

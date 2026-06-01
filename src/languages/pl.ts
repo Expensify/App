@@ -9528,5 +9528,24 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         negativeButton: 'Niekoniecznie',
     },
     monthPickerPage: {month: 'Miesiąc', selectMonth: 'Wybierz miesiąc'},
+    aiFeaturesPromoModal: {
+        title: 'Poznaj Concierge AI',
+        description: 'Twój nowy asystent Expensify zasilany AI.',
+        letsGo: 'Zaczynajmy',
+        learnMore: 'Dowiedz się więcej',
+        next: 'Dalej',
+        back: 'Wstecz',
+        screens: {
+            spendAnalysis: {
+                title: 'Interaktywna analiza wydatków',
+                description: 'Poproś Concierge o rozbicie swoich wydatków tak, jak chcesz — według kategorii, osoby, projektu lub czasu.',
+            },
+            expenseAssistant: {
+                title: 'Poznaj swojego nowego asystenta wydatków',
+                description: 'Concierge może kategoryzować wydatki, uzupełniać szczegóły i śledzić brakujące paragony za ciebie.',
+            },
+            buildAgents: {title: 'Zbuduj własne agentów', description: 'Twórz własne agentki AI, żeby automatyzować procesy, które są dla twojego zespołu najważniejsze.'},
+        },
+    },
 };
 export default translations;

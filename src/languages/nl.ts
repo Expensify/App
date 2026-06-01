@@ -9549,5 +9549,24 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         negativeButton: 'Niet echt',
     },
     monthPickerPage: {month: 'Maand', selectMonth: 'Selecteer een maand'},
+    aiFeaturesPromoModal: {
+        title: 'Maak kennis met Concierge AI',
+        description: 'Je nieuwe door AI aangestuurde Expensify-assistent.',
+        letsGo: 'Laten we gaan',
+        learnMore: 'Meer informatie',
+        next: 'Volgende',
+        back: 'Terug',
+        screens: {
+            spendAnalysis: {
+                title: 'Interactieve uitgavenanalyse',
+                description: 'Vraag Concierge om je uitgaven op elke gewenste manier op te splitsen — per categorie, persoon, project of tijd.',
+            },
+            expenseAssistant: {
+                title: 'Maak kennis met je nieuwe onkostenassistent',
+                description: 'Concierge kan uitgaven categoriseren, details invullen en ontbrekende bonnen voor je opvolgen.',
+            },
+            buildAgents: {title: 'Bouw je eigen agents', description: 'Maak aangepaste AI-agents om de workflows te automatiseren die het belangrijkst zijn voor je team.'},
+        },
+    },
 };
 export default translations;
