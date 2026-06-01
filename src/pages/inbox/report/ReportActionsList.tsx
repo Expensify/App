@@ -874,7 +874,12 @@ function ReportActionsList({
         requestAnimationFrame(() => setShouldAutoscrollToBottom(false));
     }, [shouldFocusToTopOnMount, shouldAutoscrollToBottom, prevHasOnceLoadedReportActions, reportLoadingState?.hasOnceLoadedReportActions]);
 
-    console.log('[ReportActionsList]', renderedVisibleReportActions);
+    console.log(
+        '[ReportActionsList] render, actions count:',
+        renderedVisibleReportActions?.length,
+        'IDs:',
+        renderedVisibleReportActions?.map((a) => a?.reportActionID),
+    );
 
     return (
         <>
