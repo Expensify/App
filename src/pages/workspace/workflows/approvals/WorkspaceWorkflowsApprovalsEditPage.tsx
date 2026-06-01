@@ -174,7 +174,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         const isResumingEdit =
             !hasSeedRequest && approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT && approvalWorkflow?.originalApprovers?.at(0)?.email === route.params.firstApproverEmail;
         if (isResumingEdit) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time snapshot guarded by isResumingEdit + early return; runs at most once per mount
             setInitialApprovalWorkflow(currentApprovalWorkflow);
             return;
         }
