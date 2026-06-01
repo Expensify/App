@@ -13,6 +13,7 @@ import useThemePreference from '@hooks/useThemePreference';
 import FS from '@libs/Fullstory';
 import Log from '@libs/Log';
 import {setupNavigationFocusReturn, teardownNavigationFocusReturn} from '@libs/NavigationFocusReturn';
+import {sanitizeUrlForLogging} from '@libs/sanitizeLogParams';
 import shouldOpenLastVisitedPath from '@libs/shouldOpenLastVisitedPath';
 import {getPathFromURL} from '@libs/Url';
 import {getBaseTheme} from '@styles/theme/utils';
@@ -72,7 +73,7 @@ function parseAndLogRoute(state: NavigationState) {
     if (currentPath.includes('/transition')) {
         Log.info('Navigating from transition link from OldDot using short lived authToken');
     } else {
-        Log.info('Navigating to route', false, {path: currentPath});
+        Log.info('Navigating to route', false, {path: sanitizeUrlForLogging(currentPath)});
     }
 
     Navigation.setIsNavigationReady();

@@ -899,6 +899,8 @@ describe('SidebarUtils', () => {
                 draftComment: undefined,
                 transactions: MOCK_TRANSACTIONS,
                 isOffline: false,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
 
             expect(result).toStrictEqual({shouldDisplay: true, hasErrorsOtherThanFailedReceipt: true});
@@ -1008,6 +1010,8 @@ describe('SidebarUtils', () => {
                 draftComment: undefined,
                 transactions: MOCK_TRANSACTIONS,
                 isOffline: false,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
 
             expect(result).toStrictEqual({shouldDisplay: true, hasErrorsOtherThanFailedReceipt: true});
@@ -1024,6 +1028,8 @@ describe('SidebarUtils', () => {
                 draftComment: undefined,
                 transactions: {},
                 isOffline: false,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
 
             expect(result).toStrictEqual({shouldDisplay: false});
@@ -1043,6 +1049,8 @@ describe('SidebarUtils', () => {
                 draftComment: undefined,
                 transactions: {},
                 isOffline: false,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
 
             expect(result).toStrictEqual({shouldDisplay: false});
@@ -1064,6 +1072,8 @@ describe('SidebarUtils', () => {
                 draftComment: undefined,
                 transactions: {},
                 isOffline: true,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
 
             expect(result).toBeDefined();
@@ -1086,6 +1096,8 @@ describe('SidebarUtils', () => {
                 draftComment: undefined,
                 transactions: {},
                 isOffline: false,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
 
             expect(result).toBeDefined();
@@ -1542,7 +1554,7 @@ describe('SidebarUtils', () => {
                 localeCompare,
                 conciergeReportID,
             });
-            expect(result.messageText).toBe('This is your chat with Concierge, your personal AI agent. I can do almost anything, try me!');
+            expect(result.messageText).toBe('Concierge can answer questions, update expenses, and more.');
         });
 
         it('does not return concierge welcome message when conciergeReportID does not match', async () => {
@@ -3824,6 +3836,8 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     draftComments: {},
                     isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
 
                 expect(result).toBe(displayedReports);
@@ -3846,6 +3860,8 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     draftComments: {},
                     isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
 
                 expect(result).not.toBe(displayedReports);
@@ -3855,35 +3871,39 @@ describe('SidebarUtils', () => {
 
         describe('getReportsToDisplayInLHN', () => {
             it('should return an empty object when reports is undefined', () => {
-                const result = SidebarUtils.getReportsToDisplayInLHN(
-                    '1', // currentReportId
-                    undefined, // reports
-                    [], // betas
-                    CONST.PRIORITY_MODE.DEFAULT, // priorityMode
-                    {}, // draftComments
-                    {}, // transactionViolations
-                    {}, // transactions
-                    false, // isOffline
-                    {}, // reportNameValuePairs
-                    undefined, // reportAttributes
-                );
+                const result = SidebarUtils.getReportsToDisplayInLHN({
+                    currentReportId: '1',
+                    reports: undefined as unknown as OnyxCollection<Report>,
+                    betas: [],
+                    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                    draftComments: {},
+                    transactionViolations: {},
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    reportNameValuePairs: {},
+                    reportAttributes: undefined,
+                });
 
                 expect(result).toEqual({});
             });
 
             it('should return an empty object when reports is empty', () => {
-                const result = SidebarUtils.getReportsToDisplayInLHN(
-                    '1', // currentReportId
-                    {}, // reports
-                    [], // betas
-                    CONST.PRIORITY_MODE.DEFAULT, // priorityMode
-                    {}, // draftComments
-                    {}, // transactionViolations
-                    {}, // transactions
-                    false, // isOffline
-                    {}, // reportNameValuePairs
-                    undefined, // reportAttributes
-                );
+                const result = SidebarUtils.getReportsToDisplayInLHN({
+                    currentReportId: '1',
+                    reports: {},
+                    betas: [],
+                    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                    draftComments: {},
+                    transactionViolations: {},
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    reportNameValuePairs: {},
+                    reportAttributes: undefined,
+                });
 
                 expect(result).toEqual({});
             });
@@ -3893,7 +3913,20 @@ describe('SidebarUtils', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT}1`]: undefined,
                 };
 
-                const result = SidebarUtils.getReportsToDisplayInLHN('1', reports, [], CONST.PRIORITY_MODE.DEFAULT, {}, {}, {}, false, {}, undefined);
+                const result = SidebarUtils.getReportsToDisplayInLHN({
+                    currentReportId: '1',
+                    reports,
+                    betas: [],
+                    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                    draftComments: {},
+                    transactionViolations: {},
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    reportNameValuePairs: {},
+                    reportAttributes: undefined,
+                });
 
                 expect(result).toEqual({});
             });
@@ -3907,7 +3940,20 @@ describe('SidebarUtils', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT}1`]: report,
                 };
 
-                const result = SidebarUtils.getReportsToDisplayInLHN('1', reports, [], CONST.PRIORITY_MODE.DEFAULT, {}, {}, {}, false, {}, undefined);
+                const result = SidebarUtils.getReportsToDisplayInLHN({
+                    currentReportId: '1',
+                    reports,
+                    betas: [],
+                    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                    draftComments: {},
+                    transactionViolations: {},
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    reportNameValuePairs: {},
+                    reportAttributes: undefined,
+                });
 
                 // The function should run without errors with isOffline=false
                 expect(result).toBeDefined();
@@ -3922,7 +3968,20 @@ describe('SidebarUtils', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT}1`]: report,
                 };
 
-                const result = SidebarUtils.getReportsToDisplayInLHN('1', reports, [], CONST.PRIORITY_MODE.DEFAULT, {}, {}, {}, true, {}, undefined);
+                const result = SidebarUtils.getReportsToDisplayInLHN({
+                    currentReportId: '1',
+                    reports,
+                    betas: [],
+                    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                    draftComments: {},
+                    transactionViolations: {},
+                    transactions: {},
+                    isOffline: true,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    reportNameValuePairs: {},
+                    reportAttributes: undefined,
+                });
 
                 // The function should run without errors with isOffline=true
                 expect(result).toBeDefined();
@@ -3937,7 +3996,20 @@ describe('SidebarUtils', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT}1`]: report,
                 };
 
-                const result = SidebarUtils.getReportsToDisplayInLHN('1', reports, [], CONST.PRIORITY_MODE.DEFAULT, {}, {}, {}, false, {}, undefined);
+                const result = SidebarUtils.getReportsToDisplayInLHN({
+                    currentReportId: '1',
+                    reports,
+                    betas: [],
+                    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                    draftComments: {},
+                    transactionViolations: {},
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    reportNameValuePairs: {},
+                    reportAttributes: undefined,
+                });
 
                 expect(result[`${ONYXKEYS.COLLECTION.REPORT}1`]).toBeUndefined();
             });
@@ -3962,7 +4034,20 @@ describe('SidebarUtils', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}1`]: 'draft for report 1',
                 };
 
-                const result = SidebarUtils.getReportsToDisplayInLHN(undefined, reports, [], CONST.PRIORITY_MODE.DEFAULT, draftComments, {}, {}, false, {}, undefined);
+                const result = SidebarUtils.getReportsToDisplayInLHN({
+                    currentReportId: undefined,
+                    reports,
+                    betas: [],
+                    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                    draftComments,
+                    transactionViolations: {},
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    reportNameValuePairs: {},
+                    reportAttributes: undefined,
+                });
 
                 // Should not throw and should return a valid result
                 expect(result).toBeDefined();
@@ -3989,6 +4074,8 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     draftComments: {},
                     isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
 
                 // No changes expected since the updated key doesn't exist in reports
@@ -4014,6 +4101,8 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     draftComments: {},
                     isOffline: true,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
 
                 // No changes expected since the updated key doesn't exist in reports
@@ -4037,6 +4126,8 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     draftComments: {},
                     isOffline: true,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
 
                 expect(result).not.toBe(displayedReports);
@@ -4071,6 +4162,8 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     draftComments,
                     isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
 
                 // Should not throw and should return a valid result
