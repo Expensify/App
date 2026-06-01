@@ -762,6 +762,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         approvalSubtitle,
         availableMembers,
         usedApproverEmails,
+        rawApprovalWorkflows,
         navigateToSubmitWorkspaceApprovalsUpgrade,
         promptConfigureApprovalsInHR,
         isDEWEnabled,
