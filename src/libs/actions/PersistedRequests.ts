@@ -179,9 +179,10 @@ Onyx.connectWithoutView({
 Onyx.connectWithoutView({
     key: ONYXKEYS.PERSISTED_ONGOING_REQUESTS,
     callback: (val) => {
-        if (!!val?.requestID && knownOngoingRequestIDs.has(val.requestID)) {
+        const requestIndex = val ? getClientRequestIndex(val) : undefined;
+        if (requestIndex != null && knownOngoingRequestIDs.has(requestIndex)) {
             Log.info('[PersistedRequests] Ignoring ongoingRequest that is an own-write', false, {
-                ongoingCommand: val.command,
+                ongoingCommand: val?.command,
             });
             return;
         }
@@ -367,8 +368,9 @@ function updateOngoingRequest<TKey extends OnyxKey>(newRequest: Request<TKey>) {
     Log.info('[PersistedRequests] Updating the ongoing request', false, {ongoingRequest: sanitizeLogParams(ongoingRequest), newRequest: sanitizeLogParams(newRequest)});
     ongoingRequest = newRequest as AnyRequest;
 
-    if (newRequest.requestID) {
-        knownOngoingRequestIDs.add(newRequest.requestID);
+    const ongoingRequestIndex = getClientRequestIndex(newRequest);
+    if (ongoingRequestIndex != null) {
+        knownOngoingRequestIDs.add(ongoingRequestIndex);
     }
     if (shouldPersistOngoingRequest(ongoingRequest)) {
         trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, newRequest as AnyRequest));
@@ -401,8 +403,9 @@ function processNextRequest(): AnyRequest | null {
 
     const nextRequest = persistedRequests.at(0) ?? null;
     ongoingRequest = nextRequest;
-    if (nextRequest?.requestID) {
-        knownOngoingRequestIDs.add(nextRequest.requestID);
+    const nextRequestIndex = nextRequest ? getClientRequestIndex(nextRequest) : undefined;
+    if (nextRequestIndex != null) {
+        knownOngoingRequestIDs.add(nextRequestIndex);
     }
 
     Log.info('[PersistedRequests] Setting new ongoingRequest', false, {
