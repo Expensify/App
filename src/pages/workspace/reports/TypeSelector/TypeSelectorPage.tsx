@@ -59,9 +59,8 @@ function TypeSelectorPage({
             shouldBeBlocked={hasAccountingConnections(policy)}
         >
             <ScreenWrapper
-                style={styles.pb0}
-                includePaddingTop={false}
                 enableEdgeToEdgeBottomSafeAreaPadding
+                style={styles.defaultModalContainer}
                 testID="TypeSelectorPage"
             >
                 <HeaderWithBackButton title={translate('common.type')} />
