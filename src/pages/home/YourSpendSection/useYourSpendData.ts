@@ -11,7 +11,7 @@ import {arePaymentsEnabled, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import YOUR_SPEND_ROW_STATE from './const';
 import {buildAwaitingApprovalQuery, buildRecentCardTransactionsQuery, buildRepaidLast30DaysQuery} from './queries';
@@ -76,6 +76,26 @@ type UseYourSpendDataReturn = {
     awaitingApprovalQuery: string;
     repaidLast30DaysQuery: string;
 };
+
+function getOutstandingReportsSignature(reports: OnyxCollection<Report> | undefined, paidGroupPolicyIDs: string[], accountID: number): string {
+    if (!reports || paidGroupPolicyIDs.length === 0) {
+        return '';
+    }
+    const policyIDSet = new Set(paidGroupPolicyIDs);
+    const ids: string[] = [];
+    for (const report of Object.values(reports)) {
+        if (
+            report?.policyID &&
+            policyIDSet.has(report.policyID) &&
+            report.ownerAccountID === accountID &&
+            report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED &&
+            report.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED
+        ) {
+            ids.push(report.reportID);
+        }
+    }
+    return ids.sort().join(',');
+}
 
 function getYourSpendRowState({isApplicable, isOffline, searchResults}: GetYourSpendRowStateParams): YourSpendRowState {
     if (!isApplicable) {
@@ -278,7 +298,11 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const paymentCountIsMissing = paymentCount === undefined || paymentCount === null;
 
     const shouldUseCachedApproval =
-        approvalRowStateRaw === YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY && approvalCountIsMissing && approvalSearchResults !== undefined && cachedApprovalReady !== null;
+        approvalRowStateRaw === YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY &&
+        approvalCountIsMissing &&
+        approvalSearchResults !== undefined &&
+        cachedApprovalReady !== null &&
+        cachedApprovalHash === approvalHash;
     const shouldUseCachedPayment = paymentRowStateRaw === YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY && paymentCountIsMissing && paymentSearchResults !== undefined && cachedPaymentReady !== null;
 
     const approvalRowState = shouldUseCachedApproval ? YOUR_SPEND_ROW_STATE.READY : approvalRowStateRaw;
@@ -293,25 +317,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
     // signature into the search effect's key refires the search whenever a report enters or
     // leaves the OUTSTANDING state.
     const [outstandingReportsSignature] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        selector: (reports) => {
-            if (!reports || paidGroupPolicyIDs.length === 0) {
-                return '';
-            }
-            const policyIDSet = new Set(paidGroupPolicyIDs);
-            const ids: string[] = [];
-            for (const report of Object.values(reports)) {
-                if (
-                    report?.policyID &&
-                    policyIDSet.has(report.policyID) &&
-                    report.ownerAccountID === accountID &&
-                    report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED &&
-                    report.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED
-                ) {
-                    ids.push(report.reportID);
-                }
-            }
-            return ids.sort().join(',');
-        },
+        selector: (reports) => getOutstandingReportsSignature(reports, paidGroupPolicyIDs, accountID),
     });
 
     // Re-fires the search effect when applicability flips, the user joins/leaves a workspace
@@ -379,5 +385,5 @@ function useYourSpendData(): UseYourSpendDataReturn {
     };
 }
 
-export {YOUR_SPEND_ROW_STATE, getYourSpendApplicability, getYourSpendRowState, useYourSpendData};
+export {YOUR_SPEND_ROW_STATE, getOutstandingReportsSignature, getYourSpendApplicability, getYourSpendRowState, useYourSpendData};
 export type {GetYourSpendRowStateParams, UseYourSpendDataReturn, YourSpendApplicability, YourSpendCardRow, YourSpendRowState, YourSpendRowTotals};

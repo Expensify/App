@@ -6,10 +6,10 @@
  * policy with `approvalMode = BASIC` must NOT be treated as having an approval flow.
  */
 import {arePaymentsEnabled, hasApprovalFlow} from '@libs/PolicyUtils';
-import {getYourSpendApplicability} from '@pages/home/YourSpendSection/useYourSpendData';
+import {getOutstandingReportsSignature, getYourSpendApplicability} from '@pages/home/YourSpendSection/useYourSpendData';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 
 function makePolicy(overrides: Partial<Policy> = {}): Policy {
     return {
@@ -27,6 +27,21 @@ function makePolicy(overrides: Partial<Policy> = {}): Policy {
 
 function policiesCollection(policies: Policy[]): Record<string, Policy> {
     return Object.fromEntries(policies.map((p, idx) => [`${ONYXKEYS.COLLECTION.POLICY}${p.id ?? idx}`, p]));
+}
+
+function makeReport(overrides: Partial<Report> = {}): Report {
+    return {
+        reportID: 'r1',
+        policyID: 'policy_1',
+        ownerAccountID: 12345,
+        stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+        statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        ...overrides,
+    } as Report;
+}
+
+function reportsCollection(reports: Report[]): Record<string, Report> {
+    return Object.fromEntries(reports.map((r) => [`${ONYXKEYS.COLLECTION.REPORT}${r.reportID}`, r]));
 }
 
 describe('hasApprovalFlow', () => {
@@ -148,5 +163,51 @@ describe('getYourSpendApplicability', () => {
         expect(result.paidGroupPolicyIDs).toEqual(['team_no_payments']);
         expect(result.isApprovalApplicable).toBe(true);
         expect(result.isPaymentApplicable).toBe(false);
+    });
+});
+
+describe('getOutstandingReportsSignature', () => {
+    const ACCOUNT_ID = 12345;
+    const PAID_GROUP_POLICY_IDS = ['policy_1', 'policy_2'];
+
+    it('returns an empty string when reports is undefined', () => {
+        expect(getOutstandingReportsSignature(undefined, PAID_GROUP_POLICY_IDS, ACCOUNT_ID)).toBe('');
+    });
+
+    it('returns an empty string when paidGroupPolicyIDs is empty', () => {
+        expect(getOutstandingReportsSignature(reportsCollection([makeReport()]), [], ACCOUNT_ID)).toBe('');
+    });
+
+    it('includes only SUBMITTED/SUBMITTED reports owned by the account on a listed policy', () => {
+        const reports = reportsCollection([makeReport({reportID: 'r1', policyID: 'policy_1'}), makeReport({reportID: 'r2', policyID: 'policy_2'})]);
+
+        expect(getOutstandingReportsSignature(reports, PAID_GROUP_POLICY_IDS, ACCOUNT_ID)).toBe('r1,r2');
+    });
+
+    it('excludes reports on a policy not in the list', () => {
+        const reports = reportsCollection([makeReport({reportID: 'r1', policyID: 'policy_1'}), makeReport({reportID: 'r2', policyID: 'policy_other'})]);
+
+        expect(getOutstandingReportsSignature(reports, PAID_GROUP_POLICY_IDS, ACCOUNT_ID)).toBe('r1');
+    });
+
+    it('excludes reports owned by a different account', () => {
+        const reports = reportsCollection([makeReport({reportID: 'r1'}), makeReport({reportID: 'r2', ownerAccountID: 99999})]);
+
+        expect(getOutstandingReportsSignature(reports, PAID_GROUP_POLICY_IDS, ACCOUNT_ID)).toBe('r1');
+    });
+
+    it('excludes non-OUTSTANDING reports', () => {
+        const reports = reportsCollection([
+            makeReport({reportID: 'r1'}),
+            makeReport({reportID: 'r2', stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED}),
+        ]);
+
+        expect(getOutstandingReportsSignature(reports, PAID_GROUP_POLICY_IDS, ACCOUNT_ID)).toBe('r1');
+    });
+
+    it('returns report IDs sorted ascending regardless of input order', () => {
+        const reports = reportsCollection([makeReport({reportID: 'r3'}), makeReport({reportID: 'r1'}), makeReport({reportID: 'r2'})]);
+
+        expect(getOutstandingReportsSignature(reports, PAID_GROUP_POLICY_IDS, ACCOUNT_ID)).toBe('r1,r2,r3');
     });
 });
