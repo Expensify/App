@@ -63,7 +63,8 @@ function WorkspaceRoomsTable({rooms}: WorkspaceRoomsTableProps) {
             isItemInSearch={isItemInSearch}
             initialSortColumn="name"
             title={translate('workspace.common.rooms')}
-            keyExtractor={(row) => row.reportID}
+            // Index in the key remounts the row on sort so it picks up its new rowIndex.
+            keyExtractor={(row, index) => `${row.reportID}_${index}`}
         >
             <View style={[styles.searchBarMargin, styles.searchBarWidth(shouldUseNarrowTableLayout)]}>
                 <Table.SearchBar label={translate('workspace.common.findRoom')} />
