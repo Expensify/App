@@ -1,5 +1,4 @@
 /* eslint-disable max-lines */
-import {format as timezoneFormat, toZonedTime} from 'date-fns-tz';
 import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
 // eslint-disable-next-line no-restricted-imports
@@ -7,7 +6,6 @@ import {DeviceEventEmitter, InteractionManager, Linking} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
-import type {Emoji} from '@assets/emojis/types';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
@@ -15,7 +13,6 @@ import {waitForWrites} from '@libs/API';
 import * as API from '@libs/API';
 import type {
     AddCommentOrAttachmentParams,
-    AddEmojiReactionParams,
     AddWorkspaceRoomParams,
     CompleteGuidedSetupParams,
     DeleteAppReportParams,
@@ -36,7 +33,6 @@ import type {
     OpenReportParams,
     OpenRoomMembersPageParams,
     ReadNewestActionParams,
-    RemoveEmojiReactionParams,
     RemoveFromGroupChatParams,
     RemoveFromRoomParams,
     ReportExportParams,
@@ -67,7 +63,6 @@ import * as CollectionUtils from '@libs/CollectionUtils';
 import ConciergeReasoningStore from '@libs/ConciergeReasoningStore';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
-import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Environment from '@libs/Environment/Environment';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 import getEnvironment from '@libs/Environment/getEnvironment';
@@ -80,6 +75,7 @@ import Log from '@libs/Log';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
 import Navigation from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
@@ -185,6 +181,7 @@ import navigateFromNotification from '@userActions/navigateFromNotification';
 import {getAll} from '@userActions/PersistedRequests';
 import {buildAddMembersToWorkspaceOnyxData, buildRoomMembersOnyxData} from '@userActions/Policy/Member';
 import {createPolicyExpenseChats} from '@userActions/Policy/Policy';
+import type {CurrentUser} from '@userActions/Policy/Policy';
 import {
     createUpdateCommentMatcher,
     resolveCommentDeletionConflicts,
@@ -222,7 +219,6 @@ import type {
     RecentlyUsedReportFields,
     Report,
     ReportAction,
-    ReportActionReactions,
     ReportAttributesDerivedValue,
     ReportNextStepDeprecated,
     ReportUserIsTyping,
@@ -1382,7 +1378,6 @@ function buildParticipantInfoFromLogins(logins: string[], accountIDs?: number[])
  */
 function getGuidedSetupDataForOpenReport(
     introSelected: OnyxEntry<IntroSelected>,
-    betas: OnyxEntry<Beta[]>,
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     isSelfTourViewed?: boolean,
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
@@ -1423,7 +1418,6 @@ function getGuidedSetupDataForOpenReport(
         companySize: introSelected?.companySize as OnboardingCompanySize,
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
-        betas,
     });
 
     if (!onboardingData) {
@@ -1471,7 +1465,6 @@ function openReport(params: OpenReportActionParams) {
         currentUserAccountID,
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
-        betas,
     } = params;
     if (!reportID) {
         return;
@@ -1701,7 +1694,7 @@ function openReport(params: OpenReportActionParams) {
         });
     }
 
-    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected, betas, isSelfTourViewed, hasCompletedGuidedSetupFlow);
+    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow);
     if (guidedSetup) {
         optimisticData.push(...guidedSetup.optimisticData);
         successData.push(...guidedSetup.successData);
@@ -2062,7 +2055,7 @@ function createGroupChat(
     }
 
     // Preserve guided setup data when creating group chats
-    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected, betas, isSelfTourViewed);
+    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected, isSelfTourViewed);
     if (guidedSetup) {
         optimisticData.push(...guidedSetup.optimisticData);
         successData.push(...guidedSetup.successData);
@@ -2449,7 +2442,11 @@ function navigateToAndOpenChildReport(
 ) {
     const report = childReport ?? createChildReport(childReport, parentReportAction, parentReport, currentUserAccountID, introSelected, betas, isSelfTourViewed, personalDetails);
 
-    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, Navigation.getActiveRoute()));
+    if (isSearchTopmostFullScreenRoute()) {
+        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: report.reportID, backTo: Navigation.getActiveRoute()}));
+    } else {
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, Navigation.getActiveRoute()));
+    }
 }
 
 /**
@@ -2542,7 +2539,11 @@ function explain(
     // Check if explanation thread report already exists
     const report = childReport ?? createChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected, betas, isSelfTourViewed);
 
-    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, Navigation.getActiveRoute()));
+    if (isSearchTopmostFullScreenRoute()) {
+        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: report.reportID, backTo: Navigation.getActiveRoute()}));
+    } else {
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, Navigation.getActiveRoute()));
+    }
     // Schedule adding the explanation comment on the next animation frame
     // so it runs immediately after navigation completes.
     requestAnimationFrame(() => {
@@ -4636,136 +4637,6 @@ function clearIOUError(reportID: string | undefined) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {errorFields: {iou: null}});
 }
 
-/**
- * Adds a reaction to the report action.
- * Uses the NEW FORMAT for "emojiReactions"
- */
-function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji, skinTone: number, currentUserAccountID: number) {
-    const createdAt = timezoneFormat(toZonedTime(new Date(), 'UTC'), CONST.DATE.FNS_DB_FORMAT_STRING);
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
-            value: {
-                [emoji.name]: {
-                    createdAt,
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    users: {
-                        [currentUserAccountID]: {
-                            skinTones: {
-                                [skinTone]: createdAt,
-                            },
-                        },
-                    },
-                },
-            },
-        },
-    ];
-
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
-            value: {
-                [emoji.name]: {
-                    pendingAction: null,
-                },
-            },
-        },
-    ];
-
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
-            value: {
-                [emoji.name]: {
-                    pendingAction: null,
-                },
-            },
-        },
-    ];
-
-    const parameters: AddEmojiReactionParams = {
-        reportID,
-        skinTone,
-        emojiCode: emoji.name,
-        reportActionID,
-        createdAt,
-    };
-
-    API.write(WRITE_COMMANDS.ADD_EMOJI_REACTION, parameters, {optimisticData, successData, failureData});
-}
-
-/**
- * Removes a reaction to the report action.
- * Uses the NEW FORMAT for "emojiReactions"
- */
-function removeEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji, currentUserAccountID: number) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
-            value: {
-                [emoji.name]: {
-                    users: {
-                        [currentUserAccountID]: null,
-                    },
-                },
-            },
-        },
-    ];
-
-    const parameters: RemoveEmojiReactionParams = {
-        reportID,
-        reportActionID,
-        emojiCode: emoji.name,
-    };
-
-    API.write(WRITE_COMMANDS.REMOVE_EMOJI_REACTION, parameters, {optimisticData});
-}
-
-/**
- * Calls either addEmojiReaction or removeEmojiReaction depending on if the current user has reacted to the report action.
- * Uses the NEW FORMAT for "emojiReactions"
- */
-function toggleEmojiReaction(
-    reportID: string | undefined,
-    reportAction: ReportAction,
-    reactionObject: Emoji,
-    existingReactions: OnyxEntry<ReportActionReactions>,
-    paramSkinTone: number,
-    currentUserAccountID: number,
-    ignoreSkinToneOnCompare = false,
-) {
-    const originalReportID = getOriginalReportID(reportID, reportAction, undefined);
-
-    if (!originalReportID) {
-        return;
-    }
-
-    const originalReportAction = ReportActionsUtils.getReportAction(originalReportID, reportAction.reportActionID);
-
-    if (isEmptyObject(originalReportAction)) {
-        return;
-    }
-
-    // This will get cleaned up as part of https://github.com/Expensify/App/issues/16506 once the old emoji
-    // format is no longer being used
-    const emoji = EmojiUtils.findEmojiByCode(reactionObject.code);
-    const existingReactionObject = existingReactions?.[emoji.name];
-
-    // Only use skin tone if emoji supports it
-    const skinTone = emoji.types === undefined ? CONST.EMOJI_DEFAULT_SKIN_TONE : paramSkinTone;
-
-    if (existingReactionObject && EmojiUtils.hasAccountIDEmojiReacted(currentUserAccountID, existingReactionObject.users, ignoreSkinToneOnCompare ? undefined : skinTone)) {
-        removeEmojiReaction(originalReportID, reportAction.reportActionID, emoji, currentUserAccountID);
-        return;
-    }
-
-    addEmojiReaction(originalReportID, reportAction.reportActionID, emoji, skinTone, currentUserAccountID);
-}
-
 function doneCheckingPublicRoom() {
     Onyx.set(ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM, false);
 }
@@ -5525,7 +5396,6 @@ type CompleteOnboardingProps = {
     shouldWaitForRHPVariantInitialization?: boolean;
     introSelected: OnyxEntry<IntroSelected>;
     isSelfTourViewed: boolean | undefined;
-    betas: OnyxEntry<Beta[]>;
 };
 
 async function completeOnboarding({
@@ -5545,7 +5415,6 @@ async function completeOnboarding({
     shouldWaitForRHPVariantInitialization = false,
     introSelected,
     isSelfTourViewed,
-    betas,
 }: CompleteOnboardingProps) {
     const onboardingData = prepareOnboardingOnyxData({
         introSelected,
@@ -5556,17 +5425,15 @@ async function completeOnboarding({
         userReportedIntegration,
         wasInvited,
         companySize,
-        selectedInterestedFeatures,
         isInvitedAccountant,
         onboardingPurposeSelected,
         isSelfTourViewed,
-        betas,
     });
     if (!onboardingData) {
         return;
     }
 
-    const {optimisticData, successData, failureData, guidedSetupData, actorAccountID, selfDMParameters, bespokeWelcomeMessage, optimisticConciergeReportActionID} = onboardingData;
+    const {optimisticData, successData, failureData, guidedSetupData, actorAccountID, selfDMParameters, optimisticConciergeReportActionID} = onboardingData;
 
     const parameters: CompleteGuidedSetupParams = {
         engagementChoice,
@@ -5580,7 +5447,6 @@ async function completeOnboarding({
         policyID: onboardingPolicyID,
         selfDMReportID: selfDMParameters.reportID,
         selfDMCreatedReportActionID: selfDMParameters.createdReportActionID,
-        bespokeWelcomeMessage,
         optimisticConciergeReportActionID,
         selectedInterestedFeatures: selectedInterestedFeatures && selectedInterestedFeatures.length > 0 ? JSON.stringify(selectedInterestedFeatures) : undefined,
     };
@@ -6795,7 +6661,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     const announceRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID, [submitterAccountID]);
 
     // Create policy expense chat for the submitter
-    const policyExpenseChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, currentUserAccountID, reportActions);
+    const policyExpenseChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, {accountID: currentUserAccountID}, reportActions);
     const optimisticPolicyExpenseChatReportID = policyExpenseChats.reportCreationData[submitterEmail].reportID;
     const optimisticPolicyExpenseChatCreatedReportActionID = policyExpenseChats.reportCreationData[submitterEmail].reportActionID;
 
@@ -7670,8 +7536,7 @@ function changeReportPolicyAndInviteSubmitter({
     report,
     parentReport,
     policy,
-    currentUserAccountID,
-    email,
+    currentUser,
     hasViolationsParam,
     isChangePolicyTrainingModalDismissed,
     isASAPSubmitBetaEnabled,
@@ -7684,8 +7549,7 @@ function changeReportPolicyAndInviteSubmitter({
     report: Report;
     parentReport: OnyxEntry<Report>;
     policy: Policy;
-    currentUserAccountID: number;
-    email: string;
+    currentUser: CurrentUser;
     hasViolationsParam: boolean;
     isChangePolicyTrainingModalDismissed: boolean;
     isASAPSubmitBetaEnabled: boolean;
@@ -7693,8 +7557,7 @@ function changeReportPolicyAndInviteSubmitter({
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     isReportLastVisibleArchived: boolean | undefined;
     reportNextStep: OnyxEntry<ReportNextStepDeprecated>;
-    // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
-    reportActionsList?: OnyxCollection<ReportActions>;
+    reportActionsList: OnyxCollection<ReportActions>;
 }) {
     if (!report.reportID || !policy?.id || report.policyID === policy.id || !isExpenseReport(report) || !report.ownerAccountID) {
         return;
@@ -7705,6 +7568,7 @@ function changeReportPolicyAndInviteSubmitter({
     if (!submitterEmail) {
         return;
     }
+    const {accountID: currentUserAccountID, email: currentUserEmail = ''} = currentUser;
     const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(employeeList, false, false));
     const {
         optimisticData: optimisticAddMembersData,
@@ -7717,7 +7581,7 @@ function changeReportPolicyAndInviteSubmitter({
         policyMemberAccountIDs,
         CONST.POLICY.ROLE.USER,
         formatPhoneNumber,
-        currentUserAccountID,
+        currentUser,
         undefined,
         CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
         reportActionsList,
@@ -7740,7 +7604,7 @@ function changeReportPolicyAndInviteSubmitter({
         parentReport,
         policy,
         currentUserAccountID,
-        email,
+        currentUserEmail,
         hasViolationsParam,
         isASAPSubmitBetaEnabled,
         isReportLastVisibleArchived,
@@ -7974,7 +7838,6 @@ export {
     subscribeToReportReasoningEvents,
     unsubscribeFromReportReasoningChannel,
     subscribeToReportTypingEvents,
-    toggleEmojiReaction,
     togglePinnedState,
     toggleSubscribeToChildReport,
     unsubscribeFromLeavingRoomReportChannel,
