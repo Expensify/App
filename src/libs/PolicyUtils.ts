@@ -2540,7 +2540,6 @@ export {
     canAccessSubmitWorkspaceFeatures,
     getRulesDocumentSourceURL,
     isSubmitPolicy,
-    isPolicyEditor,
 };
 
-export type {MemberEmailsToAccountIDs, PolicyFeature, PolicyFeatureAccess};
+export type {MemberEmailsToAccountIDs, PolicyFeature};

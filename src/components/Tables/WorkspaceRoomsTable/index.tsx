@@ -75,4 +75,4 @@ function WorkspaceRoomsTable({rooms}: WorkspaceRoomsTableProps) {
 }
 
 export default WorkspaceRoomsTable;
-export type {WorkspaceRoomRowData, WorkspaceRoomsTableColumnKey};
+export type {WorkspaceRoomRowData};
