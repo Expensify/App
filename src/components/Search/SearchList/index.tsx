@@ -236,11 +236,11 @@ function SearchList({
         return data;
     }, [data, groupBy, type]);
     const emptyReports = useMemo(() => {
-        if (isTransactionGroupListItemArray(data)) {
-            return data.filter((item) => item.transactions.length === 0 && item.keyForList);
+        if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && isTransactionGroupListItemArray(data)) {
+            return data.filter((item) => item.transactions.length === 0);
         }
         return [];
-    }, [data]);
+    }, [data, type]);
 
     const selectedItemsLength = useMemo(() => {
         const selectedTransactionsCount = flattenedItems.reduce((acc, item) => {
@@ -248,7 +248,7 @@ function SearchList({
             return acc + (isTransactionSelected ? 1 : 0);
         }, 0);
 
-        if (isTransactionGroupListItemArray(data)) {
+        if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && isTransactionGroupListItemArray(data)) {
             const selectedEmptyReports = emptyReports.reduce((acc, item) => {
                 const isEmptyReportSelected = !!(item.keyForList && selectedTransactions[item.keyForList]?.isSelected);
                 return acc + (isEmptyReportSelected ? 1 : 0);
@@ -258,10 +258,10 @@ function SearchList({
         }
 
         return selectedTransactionsCount;
-    }, [flattenedItems, data, emptyReports, selectedTransactions]);
+    }, [flattenedItems, type, data, emptyReports, selectedTransactions]);
 
     const totalItems = useMemo(() => {
-        if (isTransactionGroupListItemArray(data)) {
+        if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && isTransactionGroupListItemArray(data)) {
             const selectableEmptyReports = emptyReports.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
             const selectableTransactions = flattenedItems.filter((item) => {
                 if ('pendingAction' in item) {
@@ -279,7 +279,7 @@ function SearchList({
             return true;
         });
         return selectableTransactions.length;
-    }, [data, flattenedItems, emptyReports]);
+    }, [data, type, flattenedItems, emptyReports]);
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -313,15 +313,17 @@ function SearchList({
         });
     }, []);
 
+    const shouldSplitGroups = isGroupByActive && isLargeScreenWidth;
+
     const {splitData: listData, stickyHeaderIndices} = useMemo(() => {
-        if (!isGroupByActive) {
+        if (!shouldSplitGroups) {
             return {splitData: data, stickyHeaderIndices: undefined};
         }
         return splitGroupsIntoPairs(data);
-    }, [data, isGroupByActive]);
+    }, [data, shouldSplitGroups]);
 
     const getItemType = useMemo(() => {
-        if (!isGroupByActive) {
+        if (!shouldSplitGroups) {
             return undefined;
         }
         return (item: SearchListItem) => {
@@ -330,7 +332,7 @@ function SearchList({
             }
             return 'default';
         };
-    }, [isGroupByActive]);
+    }, [shouldSplitGroups]);
 
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
