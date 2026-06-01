@@ -6,7 +6,6 @@ import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
 import {openReport} from '@libs/actions/Report';
 import {getValidatedImageSource} from '@libs/AvatarUtils';
-import {getFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isReportNotFound} from '@libs/ReportUtils';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
