@@ -4,12 +4,11 @@ import {LoadSkiaWeb} from '@shopify/react-native-skia/lib/module/web/LoadSkiaWeb
 import CLI from '@scripts/utils/CLI';
 
 const cli = new CLI({
-    positionalArgs: [
-        {
-            name: 'outPath',
+    namedArgs: {
+        outPath: {
             description: 'Path to write the rendered PNG to',
         },
-    ],
+    },
 });
 
 await LoadSkiaWeb();
@@ -64,4 +63,4 @@ if (!pngBytes) {
     throw new Error('Skia failed to encode the rendered chart to PNG bytes');
 }
 
-await Bun.write(cli.positionalArgs.outPath, pngBytes);
+await Bun.write(cli.namedArgs.outPath, pngBytes);

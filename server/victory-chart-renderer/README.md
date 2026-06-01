@@ -17,13 +17,13 @@ This package is an [npm workspace](https://docs.npmjs.com/cli/using-npm/workspac
 From the App repository root:
 
 ```bash
-npm run server:vcr:dev /tmp/out.png
+npm run server:vcr:dev -- --outPath /tmp/out.png
 ```
 
 Or from this directory:
 
 ```bash
-npm run dev /tmp/out.png
+npm run dev -- --outPath /tmp/out.png
 ```
 
 ## Tests

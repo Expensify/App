@@ -22,7 +22,7 @@ test('CLI renders a chart whose PNG matches the golden reference', () => {
     const actualPath = join(tempDir, 'smoke-actual.png');
 
     try {
-        const result = spawnSync('npm', ['run', 'dev', '-w', '@expensify/victory-chart-renderer', '--', actualPath], {
+        const result = spawnSync('npm', ['run', 'dev', '-w', '@expensify/victory-chart-renderer', '--', '--outPath', actualPath], {
             cwd: repoRoot,
             encoding: 'utf8',
         });
