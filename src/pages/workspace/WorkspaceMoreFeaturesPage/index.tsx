@@ -14,7 +14,6 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,6 +21,7 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {enablePolicyTravel} from '@libs/actions/Policy/Travel';
 import {filterInactiveCards, getAllCardsForWorkspace, getCardSettings, getCompanyFeeds, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import {getConnectedHRProvider, isAnyHRConnected, isGustoConnected, isMergeHRConnected, isZenefitsConnected} from '@libs/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -32,10 +32,8 @@ import {
     hasAccountingConnections,
     hasAccountingFeatureConnection,
     isControlPolicy,
-    isGustoConnected,
-    isHRIntegrationConnected,
     isTimeTrackingEnabled,
-    isZenefitsConnected,
+    tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -74,7 +72,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {showConfirmModal} = useConfirmModal();
     const illustrations = useMemoizedLazyIllustrations([
@@ -173,7 +170,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     };
 
     const warnDisconnectHRFirst = async () => {
-        if (!isHRIntegrationConnected(policy)) {
+        if (!isAnyHRConnected(policy)) {
             return;
         }
         let integration = '';
@@ -181,6 +178,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             integration = translate('workspace.hr.zenefits.title');
         } else if (isGustoConnected(policy)) {
             integration = translate('workspace.hr.gusto.title');
+        } else if (isMergeHRConnected(policy)) {
+            integration = getConnectedHRProvider(policy)?.displayName ?? '';
         }
         await showConfirmModal({
             title: translate('workspace.distanceRates.oopsNotSoFast'),
@@ -274,6 +273,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 if (!policyID) {
                                     return;
                                 }
+                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias)) {
+                                    return;
+                                }
                                 enablePolicyConnections(policyID, isEnabled);
                             }}
                             errors={getLatestErrorField(policy ?? {}, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED)}
@@ -318,37 +320,33 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
                             }}
                         />
-                        {(isBetaEnabled(CONST.BETAS.GUSTO) || isBetaEnabled(CONST.BETAS.ZENEFITS)) && (
-                            <MoreFeatureToggle
-                                icon={illustrations.Members}
-                                title={translate('workspace.hr.title')}
-                                subtitle={translate('workspace.hr.subtitle')}
-                                isActive={
-                                    ((policy?.isHREnabled === true || isHRIntegrationConnected(policy)) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED)) ?? false
+                        <MoreFeatureToggle
+                            icon={illustrations.Members}
+                            title={translate('workspace.hr.title')}
+                            subtitle={translate('workspace.hr.subtitle')}
+                            isActive={((policy?.isHREnabled === true || isAnyHRConnected(policy)) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED)) ?? false}
+                            pendingAction={policy?.pendingFields?.isHREnabled}
+                            disabled={isAnyHRConnected(policy)}
+                            disabledAction={warnDisconnectHRFirst}
+                            onToggle={(isEnabled) => {
+                                if (!policyID) {
+                                    return;
                                 }
-                                pendingAction={policy?.pendingFields?.isHREnabled}
-                                disabled={isHRIntegrationConnected(policy)}
-                                disabledAction={warnDisconnectHRFirst}
-                                onToggle={(isEnabled) => {
-                                    if (!policyID) {
-                                        return;
-                                    }
-                                    if (isEnabled && !isControlPolicy(policy)) {
-                                        Navigation.navigate(
-                                            ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)),
-                                        );
-                                        return;
-                                    }
-                                    enablePolicyHR(policyID, isEnabled);
-                                }}
-                                onPress={() => {
-                                    if (!policyID) {
-                                        return;
-                                    }
-                                    Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID));
-                                }}
-                            />
-                        )}
+                                if (isEnabled && !isControlPolicy(policy)) {
+                                    Navigation.navigate(
+                                        ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)),
+                                    );
+                                    return;
+                                }
+                                enablePolicyHR(policyID, isEnabled);
+                            }}
+                            onPress={() => {
+                                if (!policyID) {
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID));
+                            }}
+                        />
                     </MoreFeaturesSection>
 
                     <MoreFeaturesSection title={translate('workspace.moreFeatures.organizeSection.title')}>
@@ -497,6 +495,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 if (!policyID) {
                                     return;
                                 }
+                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.alias)) {
+                                    return;
+                                }
                                 enablePolicyTravel(policyID, isEnabled);
                             }}
                             onPress={() => {
@@ -518,6 +519,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 if (!policyID) {
                                     return;
                                 }
+                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.alias)) {
+                                    return;
+                                }
                                 enableExpensifyCard(policyID, isEnabled);
                             }}
                             onPress={() => {
@@ -537,6 +541,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             disabledAction={promptDisableCompanyCardsViaConcierge}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
+                                    return;
+                                }
+                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.alias)) {
                                     return;
                                 }
                                 enableCompanyCards(policyID, isEnabled, true);
@@ -603,6 +610,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             pendingAction={policy?.pendingFields?.areInvoicesEnabled}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
+                                    return;
+                                }
+                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoicing.alias)) {
                                     return;
                                 }
                                 enablePolicyInvoicing(policyID, isEnabled);
