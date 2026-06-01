@@ -30,6 +30,7 @@ type GetOnboardingInitialPathParamsType = {
     onboardingInitialPath: OnyxEntry<string>;
     onboardingValues: OnyxEntry<Onboarding>;
     canUseSubmit2026?: boolean;
+    isAccountValidated?: boolean;
 };
 
 type OnboardingTaskLinks = Partial<{
@@ -109,6 +110,7 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         onboardingInitialPath = '',
         onboardingValues,
         canUseSubmit2026,
+        isAccountValidated,
     } = getOnboardingInitialPathParams;
     const state = getStateFromPath(onboardingInitialPath, linkingConfig.config);
     const currentOnboardingValues = onboardingValuesParam ?? onboardingValues;
@@ -128,9 +130,23 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     if (isIndividual) {
         Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, [CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.TRACK_BUSINESS, CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]);
     }
-    if (isUserFromPublicDomain && !canUseSubmit2026 && !onboardingValuesParam?.isMergeAccountStepCompleted) {
+    // A validated account has no reason to be on the onboarding "add work email" screen.
+    if (isUserFromPublicDomain && !canUseSubmit2026 && !onboardingValuesParam?.isMergeAccountStepCompleted && !isAccountValidated) {
         return `/${ROUTES.ONBOARDING_WORK_EMAIL.route}`;
     }
+
+    // PRIVATE_DOMAIN ("People you may know are already here") only makes sense for users on a private domain. Only redirect
+    // validated accounts; unvalidated users mid-AddWorkEmail can legitimately land here while isFromPublicDomain is stale.
+    if (isUserFromPublicDomain && isAccountValidated && onboardingInitialPath.includes(ROUTES.ONBOARDING_PRIVATE_DOMAIN.route)) {
+        if (isVsb) {
+            return `/${ROUTES.ONBOARDING_ACCOUNTING.route}`;
+        }
+        if (isSmb) {
+            return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
+        }
+        return `/${ROUTES.ONBOARDING_PURPOSE.route}`;
+    }
+
     if (!isUserFromPublicDomain && hasAccessiblePolicies) {
         if (onboardingInitialPath) {
             return onboardingInitialPath;

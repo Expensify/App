@@ -72,6 +72,8 @@ function prepareToCleanUpMoneyRequest(
     selectedTransactionIDs?: string[],
 ) {
     const allTransactions = getAllTransactions();
+    // TODO: https://github.com/Expensify/App/issues/66512
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const allTransactionViolations = getAllTransactionViolations();
     const allReportActions = getAllReportActionsFromIOU();
 
@@ -282,6 +284,14 @@ function getNavigationUrlOnMoneyRequestDelete(
 }
 
 /**
+ * Performs a local-only cleanup of a money request: nulls the transaction and its violations from Onyx,
+ * updates (or deletes) the IOU report and report actions, and clears outstanding flags on the chat.
+ *
+ * Use this when the optimistic state needs to be torn down without going through the full server-backed
+ * `deleteMoneyRequest()` flow — for example when the user dismisses a failed-upload receipt that wasn't
+ * confirmed server-side, or when an optimistic transaction needs to be reverted without telling the
+ * server to delete a resource. For deleting a confirmed server-side expense, use `deleteMoneyRequest()`
+ * instead.
  *
  * @param transactionID  - The transactionID of IOU
  * @param reportAction - The reportAction of the transaction in the IOU report
@@ -292,15 +302,13 @@ function cleanUpMoneyRequest(
     transactionID: string,
     reportAction: OnyxTypes.ReportAction,
     reportID: string,
+    transactionThreadReport: OnyxEntry<OnyxTypes.Report>,
     iouReport: OnyxEntry<OnyxTypes.Report>,
     chatReport: OnyxEntry<OnyxTypes.Report>,
     isChatIOUReportArchived: boolean | undefined,
     originalReportID: string | undefined,
     isSingleTransactionView = false,
 ) {
-    const allReports = getAllReports();
-    const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`];
-
     const {shouldDeleteTransactionThread, shouldDeleteIOUReport, updatedReportAction, updatedIOUReport, updatedReportPreviewAction, transactionThreadID, reportPreviewAction} =
         prepareToCleanUpMoneyRequest(transactionID, reportAction, transactionThreadReport, iouReport, chatReport, isChatIOUReportArchived, false);
 

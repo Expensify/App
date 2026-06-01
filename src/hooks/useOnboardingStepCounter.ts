@@ -3,13 +3,14 @@ import type {OnboardingScreen, OnboardingStepResult} from '@libs/getOnboardingSt
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useOnyx from './useOnyx';
+import usePermissions from './usePermissions';
 
 function useOnboardingStepCounter(page: OnboardingScreen): OnboardingStepResult | undefined {
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [purposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const canUseSubmit2026 = betas?.includes(CONST.BETAS.SUBMIT_2026) ?? false;
+    const {isBetaEnabled} = usePermissions();
+    const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
 
     return getOnboardingStepCounter(page, {
         signupQualifier: onboarding?.signupQualifier,

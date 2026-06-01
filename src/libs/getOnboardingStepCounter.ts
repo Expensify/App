@@ -83,7 +83,7 @@ function getDomainPrefix(context: OnboardingFlowContext): OnboardingScreen[] {
         }
         return [ONBOARDING.WORK_EMAIL, ONBOARDING.WORK_EMAIL_VALIDATION];
     }
-    if (!context.isFromPublicDomain && context.hasAccessibleDomainPolicies) {
+    if (context.hasAccessibleDomainPolicies) {
         return [ONBOARDING.PERSONAL_DETAILS, ONBOARDING.PRIVATE_DOMAIN, ONBOARDING.WORKSPACES];
     }
     return [];
