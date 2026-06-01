@@ -9,10 +9,10 @@
  * Required --target and --outfile select the Bun compile target and output path. The script
  * exits after writing the binary; it does not run it.
  */
+import parseCompileTarget from 'new.expensify/server/libs/parseCompileTarget';
+import createRnStubPlugin from 'new.expensify/server/plugins/rnStubPlugin';
 import {join, resolve} from 'node:path';
 import CLI from '@scripts/utils/CLI';
-import parseCompileTarget from '../../libs/parseCompileTarget';
-import createRnStubPlugin from '../../plugins/rnStubPlugin';
 
 const packageRoot = resolve(import.meta.dir, '..');
 const stubRoot = resolve(packageRoot, '../stubs');

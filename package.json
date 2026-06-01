@@ -436,6 +436,10 @@
       }
     }
   },
+  "exports": {
+    "./server/libs/parseCompileTarget": "./server/libs/parseCompileTarget.ts",
+    "./server/plugins/rnStubPlugin": "./server/plugins/rnStubPlugin.ts"
+  },
   "engines": {
     "bun": "1.3.14",
     "node": "20.20.0",

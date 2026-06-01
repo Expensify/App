@@ -4,7 +4,9 @@
         "types": ["@types/bun"],
         "paths": {
             "@scripts/*": ["../scripts/*", "../.github/scripts/*"],
-            "@src/*": ["../src/*"]
+            "@src/*": ["../src/*"],
+            "new.expensify/server/libs/parseCompileTarget": ["./libs/parseCompileTarget.ts"],
+            "new.expensify/server/plugins/rnStubPlugin": ["./plugins/rnStubPlugin.ts"]
         }
     },
     "include": ["stubs", "plugins", "libs", "victory-chart-renderer/src", "victory-chart-renderer/tests", "victory-chart-renderer/scripts"]

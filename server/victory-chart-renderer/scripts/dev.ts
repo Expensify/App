@@ -11,10 +11,10 @@
  *
  * For a standalone executable instead of a Bun-run bundle, use build.ts.
  */
+import createRnStubPlugin from 'new.expensify/server/plugins/rnStubPlugin';
 import {spawnSync} from 'node:child_process';
 import {mkdirSync} from 'node:fs';
 import {join, resolve} from 'node:path';
-import createRnStubPlugin from '../../plugins/rnStubPlugin';
 
 const packageRoot = resolve(import.meta.dir, '..');
 const repoRoot = resolve(packageRoot, '../..');
