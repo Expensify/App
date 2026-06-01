@@ -89,7 +89,11 @@ function IOURequestStepDistanceGPS({
 
     const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd);
 
-    const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
+    const unit = DistanceRequestUtils.getRate({
+        transaction,
+        policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy,
+        personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+    }).unit;
 
     const shouldSkipConfirmation = !skipConfirmation || !report?.reportID ? false : !(isArchived || isPolicyExpenseChatUtils(report));
 
