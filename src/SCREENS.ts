@@ -395,7 +395,7 @@ const SCREENS = {
         RECEIPT: 'Money_Request_Receipt',
         STATE_SELECTOR: 'Money_Request_State_Selector',
         DYNAMIC_STEP_ATTENDEES: 'Dynamic_Money_Request_Attendee',
-        STEP_ACCOUNTANT: 'Money_Request_Accountant',
+        DYNAMIC_STEP_ACCOUNTANT: 'Dynamic_Money_Request_Step_Accountant',
         STEP_DESTINATION: 'Money_Request_Destination',
         STEP_TIME: 'Money_Request_Time',
         STEP_SUBRATE: 'Money_Request_SubRate',
