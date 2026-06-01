@@ -1643,6 +1643,13 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Habilita el seguimiento de impuestos en el espacio de trabajo para editar los detalles del gasto o eliminar el impuesto de este gasto.',
             confirmText: 'Eliminar impuesto',
         },
+        submitReportTo: {
+            subtitle: 'Elige a un miembro del espacio de trabajo o introduce la dirección de correo electrónico de quien debería recibir este envío.',
+            emailLabel: 'Dirección de correo electrónico',
+            workspaceMembers: 'Miembros del espacio de trabajo',
+            sendExpense: 'Envía tu gasto a cualquier persona',
+            sendExpenseSubtitle: 'Invita a cualquiera a Expensify usando su dirección de correo electrónico o número de teléfono.',
+        },
     },
     transactionMerge: {
         listPage: {
