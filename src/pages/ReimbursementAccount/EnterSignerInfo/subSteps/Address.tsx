@@ -69,7 +69,7 @@ function Address({onNext, isEditing, onMove}: SubStepProps) {
             onMove={onMove}
             formID={ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM}
             formTitle={formTitle}
-            formPOBoxDisclaimer={translate('common.noPO')}
+            formPOBoxDisclaimer={translate('personalInfoStep.addressSubtitle')}
             onSubmit={handleSubmit}
             stepFields={stepFields}
             inputFieldsIDs={inputKeys}
