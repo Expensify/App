@@ -942,7 +942,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 defaultSubtitle: 'Werkruimte',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Bedrijfspassen`,
             },
-            fixAccountingConnection: {
+            fixPolicyConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Verbinding met ${integrationName} repareren`,
                 defaultSubtitle: 'Werkruimte',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Boekhouding`,
@@ -4394,6 +4394,8 @@ ${amount} voor ${merchant} - ${date}`,
             cardAdminAlternateText: 'Werkruimtekaarten beheren.',
             peopleAdminAlternateText: 'Beheer leden en goedkeuringsworkflows.',
             paymentsAdminAlternateText: 'Workflowsbetalingen beheren.',
+            readOnlyActionTitle: 'Niet zo snel...',
+            readOnlyActionPrompt: 'Je rol in de workspace kan deze instellingen bekijken, maar niet bewerken.',
         },
         createdForClient: {
             title: 'Je hebt een werkruimte voor je klant aangemaakt!',

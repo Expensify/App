@@ -942,7 +942,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 defaultSubtitle: 'Espaço de trabalho',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Cartões corporativos`,
             },
-            fixAccountingConnection: {
+            fixPolicyConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Corrigir conexão com ${integrationName}`,
                 defaultSubtitle: 'Espaço de trabalho',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Contabilidade`,
@@ -4388,6 +4388,8 @@ ${amount} para ${merchant} - ${date}`,
             cardAdminAlternateText: 'Gerenciar cartões do workspace.',
             peopleAdminAlternateText: 'Gerencie membros e fluxos de aprovação.',
             paymentsAdminAlternateText: 'Gerencie pagamentos de fluxo de trabalho.',
+            readOnlyActionTitle: 'Calma aí...',
+            readOnlyActionPrompt: 'Sua função no workspace pode ver essas configurações, mas não pode editá-las.',
         },
         createdForClient: {
             title: 'Você criou um espaço de trabalho para seu cliente!',
