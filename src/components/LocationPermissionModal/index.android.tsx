@@ -29,7 +29,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
         onGrantRef.current = onGrant;
         onDenyRef.current = onDeny;
         resetPermissionFlowRef.current = resetPermissionFlow;
-    });
+    }, [onGrant, onDeny, resetPermissionFlow]);
 
     useEffect(() => {
         if (!startPermissionFlow) {

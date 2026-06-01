@@ -35,7 +35,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     useEffect(() => {
         onGrantRef.current = onGrant;
         onDenyRef.current = onDeny;
-    });
+    }, [onGrant, onDeny]);
 
     const debouncedCheckPermissionRef = useRef<ReturnType<typeof lodashDebounce> | null>(null);
 
