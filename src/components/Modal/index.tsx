@@ -4,6 +4,7 @@ import useTheme from '@hooks/useTheme';
 import StatusBar from '@libs/StatusBar';
 import CONST from '@src/CONST';
 import BaseModal from './BaseModal';
+import {withInternalPopstate} from './internalPopstateGuard';
 import type BaseModalProps from './types';
 import type {WindowState} from './types';
 
@@ -11,6 +12,15 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const [previousStatusBarColor, setPreviousStatusBarColor] = useState<string>();
+
+    const isCentered =
+        type === CONST.MODAL.MODAL_TYPE.CONFIRM ||
+        type === CONST.MODAL.MODAL_TYPE.CENTERED ||
+        type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE ||
+        type === CONST.MODAL.MODAL_TYPE.CENTERED_SMALL ||
+        type === CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT;
+    const animationInTiming = rest.animationInTiming ?? (isCentered ? CONST.MODAL.ANIMATION_TIMING.CENTERED_DURATION_IN_WEB : undefined);
+    const animationOutTiming = rest.animationOutTiming ?? (isCentered ? CONST.MODAL.ANIMATION_TIMING.CENTERED_DURATION_OUT_WEB : undefined);
 
     const setStatusBarColor = (color = theme.appBG) => {
         if (!fullscreen) {
@@ -55,7 +65,7 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
                 if (!(window.history.state as WindowState)?.shouldGoBack) {
                     return;
                 }
-                window.history.back();
+                withInternalPopstate(() => window.history.back());
             }, 0);
         } else {
             onModalHide();
@@ -105,8 +115,9 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
 
     return (
         <BaseModal
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
+            animationInTiming={animationInTiming}
+            animationOutTiming={animationOutTiming}
             onModalHide={hideModal}
             onModalShow={showModal}
             onModalWillShow={onModalWillShow}

@@ -3,12 +3,12 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
-import useMappedPersonalDetails, {personalDetailMapper} from '@hooks/useMappedPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getReportName} from '@libs/ReportNameUtils';
@@ -27,8 +27,8 @@ import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type {OnyxInputOrEntry, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Policy, Report} from '@src/types/onyx';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
 
@@ -45,7 +45,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
     const reportAttributes = useReportAttributes();
-    const [personalDetails] = useMappedPersonalDetails(personalDetailMapper);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -88,7 +88,9 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK) ||
         moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT);
 
-    const reportDetailsLink = report?.reportID ? `${environmentURL}/${ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, Navigation.getReportRHPActiveRoute())}` : '';
+    const reportRHPActiveRoute = Navigation.getReportRHPActiveRoute();
+    const reportDetailsPath = reportRHPActiveRoute ? createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, reportRHPActiveRoute) : createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path);
+    const reportDetailsLink = report?.reportID ? `${environmentURL}/${reportDetailsPath}` : '';
 
     let welcomeHeroText = translate('reportActionsView.sayHello');
     if (isConciergeChat) {
@@ -108,9 +110,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     // If we are the only participant (e.g. solo group chat) then keep the current user personal details so the welcome message does not show up empty.
     const shouldExcludeCurrentUser = participantAccountIDs.length > 0;
     const participantAccountIDsExcludeCurrentUser = getParticipantsAccountIDsForDisplay(report, undefined, undefined, shouldExcludeCurrentUser);
-    const participantPersonalDetailListExcludeCurrentUser = Object.values(
-        getPersonalDetailsForAccountIDs(participantAccountIDsExcludeCurrentUser, personalDetails as OnyxInputOrEntry<PersonalDetailsList>),
-    );
+    const participantPersonalDetailListExcludeCurrentUser = Object.values(getPersonalDetailsForAccountIDs(participantAccountIDsExcludeCurrentUser, personalDetails));
     const welcomeMessage = SidebarUtils.getWelcomeMessage({
         report,
         policy,

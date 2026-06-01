@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {updateQuickbooksOnlineAutoCreateVendor, updateQuickbooksOnlineSyncPeople, updateQuickbooksOnlineSyncReimbursedReports} from '@libs/actions/connections/QuickbooksOnline';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -19,7 +20,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 const reimbursementOrCollectionAccountIDs = [CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID];
 const collectionAccountIDs = [CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID];
@@ -170,7 +171,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     description={translate('workspace.accounting.autoSync')}
                     shouldShowRightIcon
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.getRoute(policyID))}
+                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.path))}
                     brickRoadIndicator={
                         areSettingsInErrorFields([CONST.QUICKBOOKS_CONFIG.AUTO_SYNC, CONST.QUICKBOOKS_CONFIG.ACCOUNTING_METHOD], qboConfig?.errorFields)
                             ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR

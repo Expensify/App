@@ -162,7 +162,7 @@ const darkTheme = {
             backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
-        [SCREENS.REFERRAL_DETAILS]: {
+        [SCREENS.DYNAMIC_REFERRAL_DETAILS]: {
             backgroundColor: colors.pink800,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
@@ -195,6 +195,10 @@ const darkTheme = {
         },
         deleted: {
             backgroundColor: colors.tangerine700,
+            textColor: colors.productDark900,
+        },
+        unreported: {
+            backgroundColor: colors.productDark400,
             textColor: colors.productDark900,
         },
     },

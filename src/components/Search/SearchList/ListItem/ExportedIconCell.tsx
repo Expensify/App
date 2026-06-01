@@ -13,14 +13,17 @@ type ExportedIconCellProps = {
     reportActions?: ReportAction[];
 };
 
+const STANDARD_EXPORT_TEMPLATE_LABELS = new Set<string>([CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT, CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT]);
+
 function ExportedIconCell({reportActions}: ExportedIconCellProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
     const actions = reportActions ?? [];
-    const icons = useMemoizedLazyExpensifyIcons(['NetSuiteSquare', 'XeroSquare', 'IntacctSquare', 'QBOSquare', 'Table', 'ZenefitsSquare', 'BillComSquare', 'CertiniaSquare']);
+    const icons = useMemoizedLazyExpensifyIcons(['NetSuiteSquare', 'XeroSquare', 'IntacctSquare', 'QBOSquare', 'Table', 'TablePencil', 'ZenefitsSquare', 'BillComSquare', 'CertiniaSquare']);
 
-    let isExportedToCsv = false;
+    let isExportedToStandardTemplate = false;
+    let isExportedToCustomTemplate = false;
     let isExportedToNetsuite = false;
     let isExportedToXero = false;
     let isExportedToIntacct = false;
@@ -32,14 +35,22 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
 
     for (const action of actions) {
         if (action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV) {
-            isExportedToCsv = true;
+            isExportedToStandardTemplate = true;
         }
 
         if (isExportedToIntegrationAction(action)) {
             const message = getOriginalMessage(action);
             const label = message?.label;
             const type = message?.type;
-            isExportedToCsv = isExportedToCsv || type === CONST.EXPORT_TEMPLATE;
+            const isStandardExportTemplate = !!label && STANDARD_EXPORT_TEMPLATE_LABELS.has(label);
+
+            if (type === CONST.EXPORT_TEMPLATE && isStandardExportTemplate) {
+                isExportedToStandardTemplate = true;
+            }
+
+            if (type === CONST.EXPORT_TEMPLATE && !isStandardExportTemplate) {
+                isExportedToCustomTemplate = true;
+            }
             isExportedToXero = isExportedToXero || label === CONST.EXPORT_LABELS.XERO;
             isExportedToNetsuite = isExportedToNetsuite || label === CONST.EXPORT_LABELS.NETSUITE;
             isExportedToQuickbooksOnline = isExportedToQuickbooksOnline || label === CONST.EXPORT_LABELS.QBO;
@@ -53,9 +64,16 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
 
     return (
         <View style={[styles.flexRow, styles.gap2]}>
-            {isExportedToCsv && (
+            {isExportedToStandardTemplate && (
                 <Icon
                     src={icons.Table}
+                    fill={theme.icon}
+                    small
+                />
+            )}
+            {isExportedToCustomTemplate && (
+                <Icon
+                    src={icons.TablePencil}
                     fill={theme.icon}
                     small
                 />

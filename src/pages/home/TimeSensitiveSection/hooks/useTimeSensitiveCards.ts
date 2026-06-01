@@ -1,29 +1,36 @@
 import useOnyx from '@hooks/useOnyx';
-import {isCard, isCardPendingActivate, isCardPendingIssue, isCardWithCustomZeroLimit, isCardWithPotentialFraud, isExpensifyCard} from '@libs/CardUtils';
+import {isCard, isCardPendingActivate, isCardPendingIssue, isCardPendingReplace, isCardWithCustomZeroLimit, isCardWithPotentialFraud, isExpensifyCard} from '@libs/CardUtils';
+import {getUnresolvedCardFraudAlertAction} from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card} from '@src/types/onyx';
 
 function useTimeSensitiveCards() {
     const [cards] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
 
     const cardsNeedingShippingAddress: Card[] = [];
     const cardsNeedingActivation: Card[] = [];
     const cardsWithFraud: Card[] = [];
 
     for (const card of Object.values(cards ?? {})) {
-        if (!isCard(card)) {
+        if (!isCard(card) || !isExpensifyCard(card) || !CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state)) {
             continue;
         }
 
-        if (!isExpensifyCard(card)) {
-            continue;
-        }
+        const fraudAlertReportID = card.nameValuePairs?.possibleFraud?.fraudAlertReportID;
+        const reportActions = fraudAlertReportID ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fraudAlertReportID}`] : undefined;
+        const hasUnresolvedFraudAction = !!fraudAlertReportID && !!getUnresolvedCardFraudAlertAction(String(fraudAlertReportID), reportActions);
 
-        if (isCardWithPotentialFraud(card) && card.nameValuePairs?.possibleFraud?.fraudAlertReportID) {
+        if (isCardWithPotentialFraud(card) && !!fraudAlertReportID && hasUnresolvedFraudAction) {
             cardsWithFraud.push(card);
         }
 
         if (isCardWithCustomZeroLimit(card)) {
+            continue;
+        }
+
+        if (isCardPendingReplace(card)) {
             continue;
         }
 

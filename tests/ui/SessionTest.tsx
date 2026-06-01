@@ -3,10 +3,8 @@ import {Str} from 'expensify-common';
 import {Linking} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-// eslint-disable-next-line no-restricted-imports, no-restricted-syntax
 import * as AppActions from '@libs/actions/App';
 import {hasAuthToken, signOutAndRedirectToSignIn} from '@libs/actions/Session';
-// eslint-disable-next-line no-restricted-imports, no-restricted-syntax
 import * as Session from '@libs/actions/Session';
 import {getCurrentUserEmail, setLastShortAuthToken} from '@libs/Network/NetworkStore';
 import App from '@src/App';
@@ -21,8 +19,6 @@ import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 jest.mock('@libs/BootSplash', () => ({
     hide: jest.fn().mockResolvedValue(undefined),
 }));
-
-jest.mock('@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators', () => jest.fn());
 
 const TEST_USER_ACCOUNT_ID_1 = 123;
 const TEST_USER_LOGIN_1 = 'test@test.com';
@@ -118,7 +114,8 @@ describe('Deep linking', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        expect(lastVisitedPath).toBe(`/${ROUTES.REPORT}/${report.reportID}`);
+        const reportPath = `/${ROUTES.REPORT}/${report.reportID}`;
+        expect(decodeURIComponent(lastVisitedPath ?? '')).toContain(reportPath);
 
         expect(hasAuthToken()).toBe(true);
 
@@ -133,7 +130,7 @@ describe('Deep linking', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(lastVisitedPath).toBeDefined();
-        expect(lastVisitedPath).not.toBe(`/${ROUTES.REPORT}/${report.reportID}`);
+        expect(decodeURIComponent(lastVisitedPath ?? '')).not.toContain(reportPath);
 
         unmount();
         await waitForBatchedUpdatesWithAct();

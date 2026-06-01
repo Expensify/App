@@ -1,60 +1,31 @@
 import {FontStyle, FontWeight, Skia} from '@shopify/react-native-skia';
-import type {SkParagraph, SkTypefaceFontProvider} from '@shopify/react-native-skia';
-import colors from '@styles/theme/colors';
+import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import variables from '@styles/variables';
-import {CHART_FONT_FAMILIES, DIAGONAL_ANGLE_RADIAN_THRESHOLD, ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MAX_X_AXIS_LABEL_WIDTH, PIE_CHART_TOOLTIP_RADIUS_DISTANCE, SIN_45} from './constants';
 import type {ChartDataPoint, LabelRotation, PieSlice} from './types';
+import VictoryTheme, {DIAGONAL_ANGLE_RADIAN_THRESHOLD, ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MAX_X_AXIS_LABEL_WIDTH, SIN_45} from './VictoryTheme';
 
-/**
- * Expensify Chart Color Palette.
- *
- * Shades are ordered (400, 600, 300, 500, 700) so that sequential colors have
- * maximum contrast, making adjacent chart segments easy to distinguish.
- *
- * Within each shade, hues cycle: Yellow, Tangerine, Pink, Green, Ice, Blue.
- */
-const CHART_PALETTE: string[] = (() => {
-    const shades = [400, 600, 300, 500, 700] as const;
-    const hues = ['yellow', 'tangerine', 'pink', 'green', 'ice', 'blue'] as const;
-
-    const palette: string[] = [];
-
-    // Generate the 30 unique combinations (5 shades × 6 hues)
-    for (const shade of shades) {
-        for (const hue of hues) {
-            const colorKey = `${hue}${shade}`;
-            if (colors[colorKey]) {
-                palette.push(colors[colorKey]);
-            }
-        }
-    }
-
-    return palette;
-})();
-
-/**
- * Gets a color from the chart palette based on index.
- * Automatically loops back to the start if the index exceeds 29.
- */
-function getChartColor(index: number): string {
-    if (CHART_PALETTE.length === 0) {
-        return colors.black; // Fallback
-    }
-    return CHART_PALETTE.at(index % CHART_PALETTE.length) ?? colors.black;
-}
-
-/** Default color used for single-color charts (e.g., line chart, single-color bar chart) */
-const DEFAULT_CHART_COLOR = getChartColor(5);
+/** One reusable ParagraphBuilder per fontMgr instance. Auto-GC'd when fontMgr is released. */
+const builderCache = new WeakMap<SkTypefaceFontProvider, SkParagraphBuilder>();
 
 /**
  * Builds a Skia paragraph for chart labels.
  * Encapsulates the shared font configuration (families, weight, size, optional color).
  * The caller is responsible for calling `para.layout(width)` before measuring or rendering.
+ *
+ * Reuses a cached ParagraphBuilder per fontMgr (via reset()) to avoid allocating a new
+ * builder on every call.
  */
 function buildChartParagraph(text: string, fontMgr: SkTypefaceFontProvider, fontSize: number, color?: string): SkParagraph {
-    return Skia.ParagraphBuilder.Make({}, fontMgr)
+    let builder = builderCache.get(fontMgr);
+    if (!builder) {
+        builder = Skia.ParagraphBuilder.Make({}, fontMgr);
+        builderCache.set(fontMgr, builder);
+    } else {
+        builder.reset();
+    }
+    return builder
         .pushStyle({
-            fontFamilies: CHART_FONT_FAMILIES,
+            fontFamilies: VictoryTheme.fontFamilies,
             fontStyle: {weight: FontWeight.Normal},
             fontSize,
             ...(color !== undefined ? {color: Skia.Color(color)} : {}),
@@ -92,7 +63,7 @@ function getAdditionalOffset(angleRad: number): number {
 }
 /**
  * Checks whether every character in `text` can be rendered by at least one font
- * in the chart font chain (CHART_FONT_FAMILIES).
+ * in the chart font chain (VictoryTheme.fontFamilies).
  *
  * For each character, iterates through each registered font family and calls
  * `Typeface.getGlyphIDs()`. A glyph ID of 0 means the font has no glyph for
@@ -106,7 +77,7 @@ function canFontRenderText(text: string | undefined, fontMgr: SkTypefaceFontProv
         return true;
     }
 
-    const typefaces = CHART_FONT_FAMILIES.map((family) => fontMgr.matchFamilyStyle(family, FontStyle.Normal));
+    const typefaces = VictoryTheme.fontFamilies.map((family) => fontMgr.matchFamilyStyle(family, FontStyle.Normal));
 
     for (const char of text) {
         const isRenderable = typefaces.some((typeface) => typeface?.getGlyphIDs(char).some((id) => id !== 0));
@@ -241,7 +212,7 @@ function findSliceAtPosition(cursorX: number, cursorY: number, centerX: number, 
 /**
  * Process raw data into pie chart slices sorted by absolute value descending.
  */
-function processDataIntoSlices(data: ChartDataPoint[], startAngle: number, pieGeometry: {centerX: number; centerY: number; radius: number}): PieSlice[] {
+function processDataIntoSlices(data: ChartDataPoint[], pieGeometry: {centerX: number; centerY: number; radius: number}, startAngle: number = VictoryTheme.pie.startAngle): PieSlice[] {
     const total = data.reduce((sum, point) => sum + Math.abs(point.total), 0);
     if (total === 0) {
         return [];
@@ -255,12 +226,12 @@ function processDataIntoSlices(data: ChartDataPoint[], startAngle: number, pieGe
                 const fraction = slice.absTotal / total;
                 const sweepAngle = fraction * 360;
                 const angle = acc.angle + sweepAngle / 2;
-                const tooltipX = pieGeometry.centerX + pieGeometry.radius * PIE_CHART_TOOLTIP_RADIUS_DISTANCE * Math.cos((angle * Math.PI) / 180);
-                const tooltipY = pieGeometry.centerY + pieGeometry.radius * PIE_CHART_TOOLTIP_RADIUS_DISTANCE * Math.sin((angle * Math.PI) / 180);
+                const tooltipX = pieGeometry.centerX + pieGeometry.radius * VictoryTheme.tooltip.pieRadiusDistance * Math.cos((angle * Math.PI) / 180);
+                const tooltipY = pieGeometry.centerY + pieGeometry.radius * VictoryTheme.tooltip.pieRadiusDistance * Math.sin((angle * Math.PI) / 180);
                 acc.slices.push({
                     label: slice.label,
                     value: slice.absTotal,
-                    color: getChartColor(index),
+                    color: VictoryTheme.colors.getColor(index),
                     percentage: fraction * 100,
                     startAngle: acc.angle,
                     endAngle: acc.angle + sweepAngle,
@@ -319,20 +290,16 @@ function maxVisibleCount(areaWidth: number, itemWidth: number): number {
  * How far a label extends beyond its tick position after rotation.
  * Accounts for the rotatedLabelCenterCorrection translateX applied during rendering.
  */
-function labelOverhang(labelWidth: number, lineHeight: number, rotation: LabelRotation, rightAligned: boolean): {left: number; right: number} {
+function labelOverhang(labelWidth: number, lineHeight: number, rotation: LabelRotation): {left: number; right: number} {
     if (rotation === LABEL_ROTATIONS.HORIZONTAL) {
         return {left: labelWidth / 2, right: labelWidth / 2};
     }
     if (rotation === LABEL_ROTATIONS.DIAGONAL) {
         const halfLH = lineHeight / 2;
-        if (rightAligned) {
-            return {
-                left: (labelWidth + halfLH) * SIN_45,
-                right: halfLH * SIN_45,
-            };
-        }
-        const overhang = (labelWidth / 2 + halfLH) * SIN_45;
-        return {left: overhang, right: overhang};
+        return {
+            left: (labelWidth + halfLH) * SIN_45,
+            right: halfLH * SIN_45,
+        };
     }
     return {left: lineHeight / 2, right: lineHeight / 2};
 }
@@ -345,7 +312,6 @@ function edgeLabelsFit({
     rotation,
     firstTickLeftSpace,
     lastTickRightSpace,
-    rightAligned,
 }: {
     firstLabelWidth: number;
     lastLabelWidth: number;
@@ -353,10 +319,9 @@ function edgeLabelsFit({
     rotation: LabelRotation;
     firstTickLeftSpace: number;
     lastTickRightSpace: number;
-    rightAligned: boolean;
 }): boolean {
-    const first = labelOverhang(firstLabelWidth, lineHeight, rotation, rightAligned);
-    const last = labelOverhang(lastLabelWidth, lineHeight, rotation, rightAligned);
+    const first = labelOverhang(firstLabelWidth, lineHeight, rotation);
+    const last = labelOverhang(lastLabelWidth, lineHeight, rotation);
     return first.left <= firstTickLeftSpace && last.right <= lastTickRightSpace;
 }
 
@@ -364,16 +329,12 @@ function edgeLabelsFit({
  * Maximum label width that fits within the available edge space at a given rotation.
  * Returns Infinity when the overhang at that edge doesn't depend on label width.
  */
-function edgeMaxLabelWidth(edgeSpace: number, lineHeight: number, rotation: LabelRotation, rightAligned: boolean, edge: 'first' | 'last'): number {
-    const halfLH = lineHeight / 2;
+function edgeMaxLabelWidth(edgeSpace: number, lineHeight: number, rotation: LabelRotation, edge: 'first' | 'last'): number {
     if (rotation === LABEL_ROTATIONS.HORIZONTAL) {
         return 2 * edgeSpace;
     }
     if (rotation === LABEL_ROTATIONS.DIAGONAL) {
-        if (rightAligned) {
-            return edge === 'first' ? Math.max(0, edgeSpace / SIN_45 - halfLH) : Infinity;
-        }
-        return Math.max(0, 2 * (edgeSpace / SIN_45 - halfLH));
+        return edge === 'first' ? Math.max(0, edgeSpace / SIN_45 - lineHeight / 2) : Infinity;
     }
     return Infinity;
 }
@@ -436,35 +397,72 @@ function isCursorOverChartLabel({cursorX, cursorY, targetX, labelY, angleRad, ha
 }
 
 /**
- * Predicts the highest Y-axis tick value that Victory-native will generate.
- *
- * Victory (via D3) applies a "nice" algorithm that rounds the domain upper bound up
- * to the next clean tick step. If we measure label width against the raw data max we
- * can underestimate padding — e.g. data max 950 → Victory tick at 1000 whose label is
- * wider. This function mirrors D3's tickStep logic so the left-padding calculation uses
- * the same value Victory will actually render.
+ * Computes the D3 nice step size for a given range and tick count.
+ * Mirrors D3's tickStep logic (1 / 2 / 5 / 10 multiples of the magnitude).
  */
-function getNiceUpperBound(rawMax: number, tickCount: number): number {
-    if (rawMax <= 0 || tickCount <= 1) {
-        return rawMax;
-    }
+function getNiceStep(range: number, tickCount: number): number {
     const intervals = tickCount - 1;
-    const roughStep = rawMax / intervals;
+    const roughStep = range / intervals;
     const magnitude = 10 ** Math.floor(Math.log10(roughStep));
     const normalized = roughStep / magnitude;
     // D3 nice steps: 1, 2, 5, 10 (powers of 10)
-    let niceStep = magnitude;
     if (normalized >= 5) {
-        niceStep = 5 * magnitude;
-    } else if (normalized >= 2) {
-        niceStep = 2 * magnitude;
+        return 5 * magnitude;
     }
+    if (normalized >= 2) {
+        return 2 * magnitude;
+    }
+    return magnitude;
+}
+
+/**
+ * Predicts the highest Y-axis tick value that Victory-native will generate.
+ *
+ * Victory (via D3) applies a "nice" algorithm that rounds the domain upper bound up
+ * to the next clean tick step. Pass rawMin when negative values are present so that
+ * the step is computed from the full range (rawMax − rawMin) rather than rawMax alone.
+ */
+function getNiceUpperBound(rawMax: number, tickCount: number, rawMin = 0): number {
+    const range = rawMax - rawMin;
+    if (range <= 0 || tickCount <= 1) {
+        return rawMax;
+    }
+    const niceStep = getNiceStep(range, tickCount);
     return Math.ceil(rawMax / niceStep) * niceStep;
 }
 
+/**
+ * Predicts the lowest Y-axis tick value that Victory-native will generate.
+ *
+ * Mirrors D3's nice algorithm for the lower domain bound: floors rawMin to the
+ * nearest nice step derived from the full range (rawMax − rawMin).
+ */
+function getNiceLowerBound(rawMin: number, tickCount: number, rawMax = 0): number {
+    if (rawMin >= 0) {
+        return rawMin;
+    }
+    const range = rawMax - rawMin;
+    if (range <= 0 || tickCount <= 1) {
+        return rawMin;
+    }
+    const niceStep = getNiceStep(range, tickCount);
+    return Math.floor(rawMin / niceStep) * niceStep;
+}
+
+/**
+ * Returns the pixel width needed for Y-axis labels given the data extremes.
+ *
+ * Both nice bounds are measured because negative labels (e.g. "−2 000 zł") are
+ * typically wider than their positive counterparts. Pass rawDataMin = 0 when
+ * there are no negative values.
+ */
+function getYAxisLabelWidth(rawDataMax: number, rawDataMin: number, tickCount: number, formatValue: (value: number) => string, fontMgr: SkTypefaceFontProvider, fontSize: number): number {
+    const niceMax = getNiceUpperBound(rawDataMax, tickCount, rawDataMin);
+    const niceMin = getNiceLowerBound(rawDataMin, tickCount, rawDataMax);
+    return Math.max(measureTextWidth(formatValue(niceMax), fontMgr, fontSize), measureTextWidth(formatValue(niceMin), fontMgr, fontSize));
+}
+
 export {
-    getChartColor,
-    DEFAULT_CHART_COLOR,
     buildChartParagraph,
     canFontRenderText,
     getAdditionalOffset,
@@ -487,6 +485,8 @@ export {
     isCursorInSkewedLabel,
     isCursorOverChartLabel,
     getNiceUpperBound,
+    getNiceLowerBound,
+    getYAxisLabelWidth,
 };
 
 export type {ChartLabelHitTestParams};

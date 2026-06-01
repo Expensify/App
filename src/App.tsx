@@ -1,5 +1,6 @@
 import {PortalProvider} from '@gorhom/portal';
 import * as Sentry from '@sentry/react-native';
+import {maybeCompleteAuthSession} from 'expo-web-browser';
 import React from 'react';
 import {LogBox, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
@@ -33,6 +34,7 @@ import SVGDefinitionsProvider from './components/SVGDefinitionsProvider';
 import ThemeIllustrationsProvider from './components/ThemeIllustrationsProvider';
 import ThemeProvider from './components/ThemeProvider';
 import ThemeStylesProvider from './components/ThemeStylesContextProvider';
+import {EditingCellProvider} from './components/TransactionItemRow/EditableCell';
 import {KeyboardStateProvider} from './components/withKeyboardState';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
@@ -47,6 +49,9 @@ import './setup/backgroundTask';
 import './setup/fraudProtection';
 import './setup/hybridApp';
 import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
+
+// This is needed to close pop-up window during logout for users logged in via SSO
+maybeCompleteAuthSession();
 
 LogBox.ignoreLogs([
     // Basically it means that if the app goes in the background and back to foreground on Android,
@@ -111,6 +116,7 @@ function App() {
                                         FullScreenLoaderContextProvider,
                                         ModalProvider,
                                         SidePanelContextProvider,
+                                        EditingCellProvider,
                                     ]}
                                 >
                                     <CustomStatusBarAndBackground />

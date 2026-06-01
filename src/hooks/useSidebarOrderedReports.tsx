@@ -1,4 +1,3 @@
-import {deepEqual} from 'fast-equals';
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
@@ -14,6 +13,7 @@ import {useCurrentReportIDState} from './useCurrentReportID';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useMappedPolicies from './useMappedPolicies';
+import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 import useReportAttributes from './useReportAttributes';
@@ -75,7 +75,7 @@ function SidebarOrderedReportsContextProvider({
     const {localeCompare} = useLocalize();
     const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
     const [chatReports, {sourceValue: reportUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [policies, {sourceValue: policiesUpdates}] = useMappedPolicies(policyMapper);
+    const [, {sourceValue: policiesUpdates}] = useMappedPolicies(policyMapper);
     const [transactions, {sourceValue: transactionsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [transactionViolations, {sourceValue: transactionViolationsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [reportNameValuePairs, {sourceValue: reportNameValuePairsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
@@ -84,7 +84,8 @@ function SidebarOrderedReportsContextProvider({
     const reportAttributes = useReportAttributes();
     const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {accountID} = useCurrentUserPersonalDetails();
+    const {isOffline} = useNetwork();
+    const {accountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue;
     const prevDerivedCurrentReportID = usePrevious(derivedCurrentReportID);
@@ -95,6 +96,7 @@ function SidebarOrderedReportsContextProvider({
 
     const prevBetas = usePrevious(betas);
     const prevPriorityMode = usePrevious(priorityMode);
+    const prevIsOffline = usePrevious(isOffline);
 
     const perfRef = useRef<{hookDuration: number}>({
         hookDuration: 0,
@@ -107,7 +109,7 @@ function SidebarOrderedReportsContextProvider({
     const getUpdatedReports = useCallback(() => {
         const reportsToUpdate = new Set<string>();
 
-        if (betas !== prevBetas || priorityMode !== prevPriorityMode) {
+        if (betas !== prevBetas || priorityMode !== prevPriorityMode || isOffline !== prevIsOffline) {
             for (const key of Object.keys(chatReports ?? {})) {
                 reportsToUpdate.add(key);
             }
@@ -180,6 +182,8 @@ function SidebarOrderedReportsContextProvider({
         priorityMode,
         prevBetas,
         prevPriorityMode,
+        isOffline,
+        prevIsOffline,
         prevDerivedCurrentReportID,
         derivedCurrentReportID,
     ]);
@@ -207,26 +211,46 @@ function SidebarOrderedReportsContextProvider({
                 reportAttributes,
                 draftComments: reportsDrafts,
                 transactions,
+                isOffline,
+                currentUserLogin: currentUserLogin ?? '',
+                currentUserAccountID: accountID,
             });
         } else {
             Log.info('[useSidebarOrderedReports] building reportsToDisplay from scratch');
-            reportsToDisplay = SidebarUtils.getReportsToDisplayInLHN(
-                derivedCurrentReportID,
-                chatReports,
+            reportsToDisplay = SidebarUtils.getReportsToDisplayInLHN({
+                currentReportId: derivedCurrentReportID,
+                reports: chatReports,
                 betas,
                 priorityMode,
-                reportsDrafts,
+                draftComments: reportsDrafts,
                 transactionViolations,
                 transactions,
+                isOffline,
+                currentUserLogin: currentUserLogin ?? '',
+                currentUserAccountID: accountID,
                 reportNameValuePairs,
                 reportAttributes,
-            );
+            });
         }
 
         return reportsToDisplay;
         // Rule disabled intentionally — triggering a re-render on currentReportsToDisplay would cause an infinite loop
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [getUpdatedReports, chatReports, derivedCurrentReportID, priorityMode, betas, transactionViolations, reportNameValuePairs, reportAttributes, reportsDrafts, clearCacheDummyCounter]);
+    }, [
+        getUpdatedReports,
+        chatReports,
+        derivedCurrentReportID,
+        priorityMode,
+        betas,
+        transactionViolations,
+        reportNameValuePairs,
+        reportAttributes,
+        reportsDrafts,
+        isOffline,
+        clearCacheDummyCounter,
+        currentUserLogin,
+        accountID,
+    ]);
 
     // Derive a stable boolean map indicating which reports have drafts.
     const hasDraftByReportIDRef = useRef<Record<string, boolean>>({});
@@ -318,56 +342,10 @@ function SidebarOrderedReportsContextProvider({
 
     const actionsValue: SidebarOrderedReportsActionsContextValue = useMemo(() => ({clearLHNCache}), [clearLHNCache]);
 
-    const currentDeps = {
-        priorityMode,
-        chatReports,
-        policies,
-        transactions,
-        transactionViolations,
-        reportNameValuePairs,
-        betas,
-        reportAttributes,
-        currentReportsToDisplay,
-        shouldUseNarrowLayout,
-        accountID,
-        currentReportIDValue,
-        derivedCurrentReportID,
-        prevDerivedCurrentReportID,
-        prevBetas,
-        prevPriorityMode,
-        reportsToDisplayInLHN,
-        orderedReportIDs,
-        orderedReports,
-    };
-    const prevContextValue = usePrevious(stateValue);
-    const previousDeps = usePrevious(currentDeps);
-    const firstRender = useRef(true);
-
     useEffect(() => {
         const hookExecutionDuration = performance.now() - hookStartTime.current;
         perfRef.current.hookDuration = hookExecutionDuration;
     }, [stateValue]);
-
-    useEffect(() => {
-        // Cases below ensure we only log when the edge case (empty -> non-empty or non-empty -> empty) happens.
-        // This is done to avoid excessive logging when the orderedReports array is updated, but does not impact LHN.
-
-        // Case 1: orderedReports goes from empty to non-empty
-        if (stateValue.orderedReports.length > 0 && prevContextValue?.orderedReports.length === 0) {
-            logChangedDeps('[useSidebarOrderedReports] Ordered reports went from empty to non-empty', currentDeps, previousDeps, perfRef);
-        }
-        // Case 2: orderedReports goes from non-empty to empty
-        if (stateValue.orderedReports.length === 0 && prevContextValue?.orderedReports.length > 0) {
-            logChangedDeps('[useSidebarOrderedReports] Ordered reports went from non-empty to empty', currentDeps, previousDeps, perfRef);
-        }
-
-        // Case 3: orderedReports are empty from the beginning
-        if (firstRender.current && stateValue.orderedReports.length === 0) {
-            logChangedDeps('[useSidebarOrderedReports] Ordered reports initialized empty', currentDeps, previousDeps, perfRef);
-        }
-
-        firstRender.current = false;
-    });
 
     return (
         <SidebarOrderedReportsStateContext.Provider value={stateValue}>
@@ -426,45 +404,4 @@ function useSidebarOrderedReportsPerformance(componentName?: string) {
 }
 
 export {SidebarOrderedReportsContextProvider, useSidebarOrderedReports, useSidebarOrderedReportsState, useSidebarOrderedReportsActions};
-export type {PartialPolicyForSidebar, ReportsToDisplayInLHN};
-
-function getChangedKeys<T extends Record<string, unknown>>(deps: T, prevDeps: T) {
-    const depsKeys = Object.keys(deps);
-
-    return depsKeys.filter((depKey) => !deepEqual(deps[depKey], prevDeps[depKey]));
-}
-
-function logChangedDeps<T extends Record<string, unknown>>(msg: string, deps: T, prevDeps: T, perfRef: React.RefObject<{hookDuration: number}>) {
-    const startTime = performance.now();
-    const changedDeps = getChangedKeys(deps, prevDeps);
-    const parsedDeps = parseDepsForLogging(deps);
-    const loggingDuration = performance.now() - startTime;
-    const hookExecutionDuration = perfRef.current.hookDuration;
-
-    const logData: Record<string, unknown> = {
-        deps: parsedDeps,
-        changedDeps,
-        performance: {
-            hookDuration: `${hookExecutionDuration.toFixed(2)}ms`,
-            loggingDuration: `${loggingDuration.toFixed(2)}ms`,
-            componentsUsingHook: Array.from(componentsUsingHook.entries()).map(([name, data]) => ({
-                component: name,
-                renderDuration: `${data.renderDuration.toFixed(2)}ms`,
-            })),
-        },
-
-        timestamp: new Date().toISOString(),
-    };
-
-    Log.info(msg, false, logData);
-}
-
-/**
- * @param deps - The dependencies to parse.
- * @returns A simplified object with light-weight values.
- */
-function parseDepsForLogging<T extends Record<string, unknown>>(deps: T) {
-    // If object or array, return the keys' length
-    // If primitive, return the value
-    return Object.fromEntries(Object.entries(deps).map(([key, value]) => [key, typeof value === 'object' && value !== null ? Object.keys(value).length : value]));
-}
+export type {ReportsToDisplayInLHN};

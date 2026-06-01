@@ -24,6 +24,9 @@ type MockedReportActionItemSingleProps = {
 
     /** All the data of the action */
     reportAction: ReportAction;
+
+    /** Optional children rendered inside the wrapping View (used to probe styling around children). */
+    children?: ReactElement;
 };
 
 type MockedSidebarLinksProps = {
@@ -330,22 +333,23 @@ function internalRender(component: ReactElement) {
     }
 }
 
-function MockedReportActionItemSingle({report, reportAction}: MockedReportActionItemSingleProps) {
+function MockedReportActionItemSingle({report, reportAction, children}: MockedReportActionItemSingleProps) {
     return (
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, EnvironmentProvider, CurrentReportIDContextProvider]}>
             <ReportActionItemSingle
                 action={reportAction}
                 report={report}
                 showHeader
-                hasBeenFlagged={false}
                 iouReport={undefined}
                 isHovered={false}
-            />
+            >
+                {children}
+            </ReportActionItemSingle>
         </ComposeProviders>
     );
 }
 
-function getDefaultRenderedReportActionItemSingle(report?: Report, reportAction?: ReportAction) {
+function getDefaultRenderedReportActionItemSingle(report?: Report, reportAction?: ReportAction, children?: ReactElement) {
     const currentReport = report ?? getFakeReport();
     const currentReportAction = reportAction ?? getFakeAdvancedReportAction();
 
@@ -353,7 +357,9 @@ function getDefaultRenderedReportActionItemSingle(report?: Report, reportAction?
         <MockedReportActionItemSingle
             report={currentReport}
             reportAction={currentReportAction}
-        />,
+        >
+            {children}
+        </MockedReportActionItemSingle>,
     );
 }
 
@@ -365,7 +371,6 @@ export {
     getFakeReportAction,
     MockedSidebarLinks,
     getDefaultRenderedReportActionItemSingle,
-    MockedReportActionItemSingle,
     getFakeReportWithPolicy,
     getFakePolicy,
     getFakeAdvancedReportAction,

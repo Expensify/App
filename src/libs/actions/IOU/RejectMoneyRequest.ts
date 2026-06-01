@@ -7,7 +7,6 @@ import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {navigationRef} from '@libs/Navigation/Navigation';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isDelayedSubmissionEnabled} from '@libs/PolicyUtils';
@@ -41,7 +40,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getAllReports, getAllTransactions, getAllTransactionViolations, getCurrentUserEmail} from '.';
+import {getAllReports, getAllTransactions, getAllTransactionViolations} from '.';
 
 type RejectMoneyRequestData = {
     optimisticData: Array<
@@ -50,6 +49,7 @@ type RejectMoneyRequestData = {
             | typeof ONYXKEYS.COLLECTION.TRANSACTION
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
             | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
             | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
         >
@@ -63,12 +63,19 @@ type RejectMoneyRequestData = {
             | typeof ONYXKEYS.COLLECTION.TRANSACTION
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
             | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
             | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
         >
     >;
     parameters: RejectMoneyRequestParams;
     urlToNavigateBack: Route | undefined;
+};
+
+type RejectMoneyRequestOptions = {
+    sharedRejectedToReportID?: string;
+    existingRejectedReport?: OnyxEntry<OnyxTypes.Report>;
+    setExistingRejectedReport?: (report: OnyxEntry<OnyxTypes.Report>) => void;
 };
 
 function dismissRejectUseExplanation() {
@@ -105,14 +112,14 @@ function prepareRejectMoneyRequestData(
     comment: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
     currentUserAccountIDParam: number,
+    currentUserLogin: string,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
-    options?: {sharedRejectedToReportID?: string},
+    options?: RejectMoneyRequestOptions,
     shouldUseBulkAction?: boolean,
 ): RejectMoneyRequestData | undefined {
     const allTransactions = getAllTransactions();
     const allReports = getAllReports();
     const allTransactionViolations = getAllTransactionViolations();
-    const deprecatedCurrentUserEmail = getCurrentUserEmail();
 
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionAmount = getAmount(transaction);
@@ -165,6 +172,7 @@ function prepareRejectMoneyRequestData(
             | typeof ONYXKEYS.COLLECTION.TRANSACTION
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
             | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
             | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
         >
@@ -346,17 +354,24 @@ function prepareRejectMoneyRequestData(
         // 1. Update report total
         // 2. Remove expense from report
         // 3. Add to existing draft report or create new one
-        const existingOpenReport = Object.values(allReports ?? {}).find(
-            (r) =>
-                r?.reportID !== reportID &&
-                r?.chatReportID === report.chatReportID &&
-                r?.type === CONST.REPORT.TYPE.EXPENSE &&
-                isOpenReport(r) &&
-                r?.ownerAccountID === report.ownerAccountID,
-        );
+        const existingOpenReport =
+            options?.existingRejectedReport ??
+            Object.values(allReports ?? {}).find(
+                (r) =>
+                    r?.reportID !== reportID &&
+                    r?.chatReportID === report.chatReportID &&
+                    r?.type === CONST.REPORT.TYPE.EXPENSE &&
+                    isOpenReport(r) &&
+                    r?.ownerAccountID === report.ownerAccountID,
+            );
 
         if (existingOpenReport) {
-            movedToReport = existingOpenReport;
+            const originalRejectedReportTotal = existingOpenReport?.total ?? 0;
+            movedToReport = {
+                ...existingOpenReport,
+                total: originalRejectedReportTotal - transactionAmount,
+            };
+            options?.setExistingRejectedReport?.(movedToReport);
             rejectedToReportID = existingOpenReport.reportID;
 
             const [, , iouAction] = buildOptimisticMoneyRequestEntities({
@@ -370,6 +385,7 @@ function prepareRejectMoneyRequestData(
                 transactionID: transaction.transactionID,
                 existingTransactionThreadReportID: childReportID,
                 shouldGenerateTransactionThreadReport: false,
+                currentUserAccountID: currentUserAccountIDParam,
             });
             createdIOUReportActionID = iouAction.reportActionID;
 
@@ -417,7 +433,7 @@ function prepareRejectMoneyRequestData(
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${movedToReport?.reportID}`,
                     value: {
-                        total: movedToReport?.total ?? 0,
+                        total: originalRejectedReportTotal,
                         pendingFields: {total: null},
                     },
                 },
@@ -456,11 +472,12 @@ function prepareRejectMoneyRequestData(
                 amount: transactionAmount,
                 currency: getCurrency(transaction),
                 comment: parsedComment,
-                payeeEmail: deprecatedCurrentUserEmail,
+                payeeEmail: currentUserLogin,
                 participants: [{accountID: report?.ownerAccountID}],
                 transactionID: transaction.transactionID,
                 existingTransactionThreadReportID: childReportID,
                 shouldGenerateTransactionThreadReport: false,
+                currentUserAccountID: currentUserAccountIDParam,
             });
 
             reportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, newExpenseReport, undefined, transaction, undefined);
@@ -469,6 +486,7 @@ function prepareRejectMoneyRequestData(
             expenseMovedReportActionID = movedTransactionAction.reportActionID;
             expenseCreatedReportActionID = createdActionForExpenseReport.reportActionID;
             newExpenseReport.parentReportActionID = reportPreviewAction.reportActionID;
+            options?.setExistingRejectedReport?.(newExpenseReport);
             optimisticData.push(
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
@@ -490,6 +508,12 @@ function prepareRejectMoneyRequestData(
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${rejectedToReportID}`,
                     value: {
                         isOptimisticReport: true,
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${rejectedToReportID}`,
+                    value: {
                         hasOnceLoadedReportActions: true,
                     },
                 },
@@ -717,7 +741,7 @@ function prepareRejectMoneyRequestData(
         const shouldHaveOutstandingChildRequest = hasOutstandingChildRequest(
             policyExpenseChat,
             excludedReportID,
-            deprecatedCurrentUserEmail,
+            currentUserLogin,
             currentUserAccountIDParam,
             allTransactionViolations,
             undefined,
@@ -777,7 +801,7 @@ function prepareRejectMoneyRequestData(
             type: CONST.VIOLATION_TYPES.WARNING,
             data: {
                 comment: comment ?? '',
-                rejectedBy: deprecatedCurrentUserEmail,
+                rejectedBy: currentUserLogin,
                 rejectedDate: DateUtils.getDBTime(),
             },
             showInReview: true,
@@ -874,10 +898,11 @@ function rejectMoneyRequest(
     comment: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
     currentUserAccountIDParam: number,
+    currentUserLogin: string,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
-    options?: {sharedRejectedToReportID?: string},
+    options?: RejectMoneyRequestOptions,
 ): Route | undefined {
-    const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, betas, options);
+    const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, options);
     if (!data) {
         return;
     }
@@ -970,8 +995,9 @@ function rejectExpenseReport(
     const isRejectToSubmitter = targetAccountID === report.ownerAccountID;
     const baseTimestamp = DateUtils.getDBTime();
     const optimisticRejectAction = buildOptimisticReportLevelRejectAction(isRejectToSubmitter, currentUserAccountID, currentUserDisplayName, currentUserAvatarSource, baseTimestamp);
+    const parsedComment = getParsedComment(comment);
     const optimisticCommentAction = buildOptimisticReportLevelRejectCommentAction(
-        comment,
+        parsedComment,
         currentUserAccountID,
         currentUserDisplayName,
         currentUserAvatarSource,
@@ -1029,14 +1055,12 @@ function rejectExpenseReport(
         key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
         value: isRejectToSubmitter
             ? // buildOptimisticNextStep is used in parallel
-              // eslint-disable-next-line @typescript-eslint/no-deprecated
               buildNextStepNew({
                   report,
                   predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
                   isRejectedReport: true,
               })
             : // buildOptimisticNextStep is used in parallel
-              // eslint-disable-next-line @typescript-eslint/no-deprecated
               buildNextStepNew({
                   report,
                   predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
@@ -1138,7 +1162,7 @@ function rejectExpenseReport(
     const parameters: RejectExpenseReportParams = {
         reportID,
         targetAccountID,
-        comment,
+        comment: parsedComment,
         rejectedActionReportActionID: optimisticRejectAction.reportActionID,
         rejectedCommentReportActionID: optimisticCommentAction.reportActionID,
     };

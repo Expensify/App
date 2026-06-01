@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import SaveResponseInOnyx from '@libs/Middleware/SaveResponseInOnyx';
+import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
 // This import is needed to initialize the Onyx connections that call replaceOptimisticReportWithActualReport
 import '@src/libs/actions/replaceOptimisticReportWithActualReport';
 import HttpUtils from '@src/libs/HttpUtils';
@@ -21,18 +22,21 @@ Onyx.init({
     keys: ONYXKEYS,
 });
 
-beforeAll(() => {
-    global.fetch = TestHelper.getGlobalFetchMock();
-});
-
 beforeEach(async () => {
     await Onyx.clear();
+    await waitForBatchedUpdates();
+    // Explicitly reset PersistedRequests module state (knownRequestIDs, ongoingRequest,
+    // pendingSaveOperations) which Onyx.clear() alone does not fully reset.
+    await PersistedRequests.clear();
     await waitForBatchedUpdates();
     SequentialQueue.resetQueue();
     MainQueue.clear();
     HttpUtils.cancelPendingRequests();
     NetworkStore.checkRequiredData();
     await waitForNetworkPromises();
+    // Reassign global.fetch to a fresh mock to clear any leftover mockImplementationOnce
+    // queue from the previous test. jest.clearAllMocks() only resets call counts, not the queue.
+    global.fetch = TestHelper.getGlobalFetchMock();
     jest.clearAllMocks();
     Request.clearMiddlewares();
 });
@@ -122,10 +126,9 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
 
-            // eslint-disable-next-line @typescript-eslint/require-await
             (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
                 ok: true,
-                // eslint-disable-next-line @typescript-eslint/require-await
+
                 json: async () => ({
                     jsonCode: 200,
                     onyxData: [
@@ -175,10 +178,9 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
 
-            // eslint-disable-next-line @typescript-eslint/require-await
             (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
                 ok: true,
-                // eslint-disable-next-line @typescript-eslint/require-await
+
                 json: async () => ({
                     jsonCode: 200,
                     onyxData: [
@@ -231,10 +233,9 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
 
-            // eslint-disable-next-line @typescript-eslint/require-await
             (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
                 ok: true,
-                // eslint-disable-next-line @typescript-eslint/require-await
+
                 json: async () => ({
                     jsonCode: 200,
                     onyxData: [
@@ -292,11 +293,10 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
 
-            // eslint-disable-next-line @typescript-eslint/require-await
             (global.fetch as jest.Mock)
                 .mockImplementationOnce(async () => ({
                     ok: true,
-                    // eslint-disable-next-line @typescript-eslint/require-await
+
                     json: async () => ({
                         jsonCode: 200,
                         onyxData: [
@@ -312,7 +312,7 @@ describe('Middleware', () => {
                 }))
                 .mockImplementationOnce(async () => ({
                     ok: true,
-                    // eslint-disable-next-line @typescript-eslint/require-await
+
                     json: async () => ({
                         jsonCode: 200,
                         onyxData: [
@@ -408,10 +408,9 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
 
-            // eslint-disable-next-line @typescript-eslint/require-await
             (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
                 ok: true,
-                // eslint-disable-next-line @typescript-eslint/require-await
+
                 json: async () => ({
                     jsonCode: 200,
                     onyxData: [

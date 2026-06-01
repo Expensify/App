@@ -1,50 +1,49 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import RenderHTML from '@components/RenderHTML';
 import type {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
 import {getActionableMentionWhisperMessage, getOriginalMessage, isSystemUserMentioned} from '@libs/ReportActionsUtils';
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
+import {resolveActionableMentionWhisper} from '@userActions/Report';
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportAction} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report, ReportAction} from '@src/types/onyx';
 
 type MentionWhisperContentProps = {
+    /** All the data of the action item */
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER>;
-    report: OnyxEntry<Report>;
-    originalReport: OnyxEntry<Report>;
-    policy: OnyxEntry<Policy>;
-    currentUserAccountID: number;
-    personalPolicyID: string | undefined;
+
+    /** ID of the original report from which the given reportAction is first created */
     originalReportID: string | undefined;
-    resolveActionableMentionWhisper: (
-        report: OnyxEntry<Report>,
-        reportAction: OnyxEntry<ReportAction>,
-        resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>,
-        isReportArchived: boolean,
-    ) => void;
+
+    /** Report that owns this action for mutations (thread / merged-list cases use originalReport). This is a stable projection (heartbeat fields stripped). */
+    actionOwnerReportStable: OnyxEntry<Report>;
+
+    /** Parent report from which the given reportAction is first created */
+    parentReport?: OnyxEntry<Report>;
+
+    /** Policy ID for the current report */
+    policyID: string | undefined;
 };
 
-function MentionWhisperContent({
-    action,
-    report,
-    originalReport,
-    policy,
-    currentUserAccountID,
-    personalPolicyID,
-    originalReportID,
-    resolveActionableMentionWhisper,
-}: MentionWhisperContentProps) {
+function MentionWhisperContent({action, actionOwnerReportStable, parentReport, originalReportID, policyID}: MentionWhisperContentProps) {
     const {translate} = useLocalize();
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
-    const reportActionReport = originalReport ?? report;
-    const reportPolicyID = report?.policyID;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
-    const isReportInPolicy = !!reportPolicyID && reportPolicyID !== CONST.POLICY.ID_FAKE && personalPolicyID !== reportPolicyID;
+    // Subscribe to the full report here — the resolve action needs heartbeat fields for its failure-revert payload.
+    const [actionOwnerReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${actionOwnerReportStable?.reportID}`);
+
+    const isReportInPolicy = !!policyID && policyID !== CONST.POLICY.ID_FAKE && personalPolicyID !== policyID;
     const hasMentionedPolicyMembers = getOriginalMessage(action)?.inviteeEmails?.every((login) => isPolicyMember(policy, login));
 
     const buttons: ActionableItem[] = [];
@@ -52,19 +51,26 @@ function MentionWhisperContent({
         buttons.push({
             text: 'actionableMentionWhisperOptions.inviteToSubmitExpense',
             key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE}`,
-            onPress: () => resolveActionableMentionWhisper(reportActionReport, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE, isOriginalReportArchived),
+            onPress: () =>
+                resolveActionableMentionWhisper(
+                    actionOwnerReport,
+                    action,
+                    CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE,
+                    isOriginalReportArchived,
+                    parentReport,
+                ),
         });
     }
     buttons.push(
         {
             text: 'actionableMentionWhisperOptions.inviteToChat',
             key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE}`,
-            onPress: () => resolveActionableMentionWhisper(reportActionReport, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, isOriginalReportArchived),
+            onPress: () => resolveActionableMentionWhisper(actionOwnerReport, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, isOriginalReportArchived, parentReport),
         },
         {
             text: 'actionableMentionWhisperOptions.nothing',
             key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING}`,
-            onPress: () => resolveActionableMentionWhisper(reportActionReport, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, isOriginalReportArchived),
+            onPress: () => resolveActionableMentionWhisper(actionOwnerReport, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, isOriginalReportArchived, parentReport),
         },
     );
 
@@ -81,7 +87,5 @@ function MentionWhisperContent({
         </ReportActionItemBasicMessage>
     );
 }
-
-MentionWhisperContent.displayName = 'MentionWhisperContent';
 
 export default MentionWhisperContent;

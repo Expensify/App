@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
-import {reauthenticate} from '@libs/Authentication';
 import Log from '@libs/Log';
 import {getIsOffline} from '@libs/NetworkState';
+import reauthenticate from '@libs/Reauthentication';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Session from '@src/types/onyx/Session';
 

@@ -7,6 +7,7 @@ on:
       - main
     paths:
       - 'docs/**'
+      - '.github/workflows/deployExpensifyHelp.yml'
 
   # Run on any pull request (except PRs against staging or production) that has changes to the docs directory
   pull_request:
@@ -14,6 +15,7 @@ on:
     branches-ignore: [staging, production]
     paths:
       - 'docs/**'
+      - '.github/workflows/deployExpensifyHelp.yml'
 
   # Run on any manual trigger
   workflow_dispatch:
@@ -29,11 +31,9 @@ jobs:
     env:
       IS_PR_FROM_FORK: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork }}
     runs-on: blacksmith-2vcpu-ubuntu-2404
-    continue-on-error: true
     steps:
       - name: Checkout
-        # v6
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           fetch-depth: 0
 
@@ -51,18 +51,23 @@ jobs:
 
       - name: Enforce that a redirect link has been created
         run: ./.github/scripts/enforceRedirect.sh
-      
+
       - name: Enforce iframe and Cloudflare CDN usage
         run: ./.github/scripts/enforceVideoFormats.sh
 
       - name: Generate allowed URLs whitelist for AI search
         run: npx ts-node .github/scripts/generateAllowedUrls.ts
 
-      - name: Build with Jekyll
-        uses: actions/jekyll-build-pages@0143c158f4fa0c5dcd99499a5d00859d79f70b0e
+      - name: Set up Ruby
+        # v1.306.0
+        uses: ruby/setup-ruby@c4e5b1316158f92e3d49443a9d58b31d25ac0f8f
         with:
-          source: ./docs/
-          destination: ./docs/_site
+          bundler-cache: true
+          working-directory: ./docs
+
+      - name: Build Jekyll site
+        run: bundle exec jekyll build --source ./ --destination ./_site
+        working-directory: ./docs
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@f0a1cd58cd66095dee69bfa18fa5efd1dde93bca
@@ -118,8 +123,35 @@ jobs:
           PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
 
       - name: Leave a comment on the PR
-        uses: actions-cool/maintain-one-comment@de04bd2a3750d86b324829a3ff34d47e48e16f4b
+        uses: ./.github/actions/javascript/postOrReplaceComment
         if: ${{ github.event_name == 'pull_request' && env.IS_PR_FROM_FORK != 'true' }}
         with:
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          body: ${{ steps.preview_comment.outputs.BODY }}
+          REPO: App
+          APP_PR_NUMBER: ${{ github.event.pull_request.number }}
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          COMMENT_PREFIX: A preview of your ExpensifyHelp changes have been deployed to
+          COMMENT_BODY: ${{ steps.preview_comment.outputs.BODY }}
+
+  notifyFailure:
+    name: Warn deployers if Expensify Help deploy failed
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    needs: build
+    if: ${{ failure() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+    steps:
+      - name: Warn deployers if Expensify Help deploy failed
+        # v3
+        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#deployer',
+              attachments: [{
+                color: "#DB4545",
+                pretext: `<!subteam^S4TJJ3PSL>`,
+                text: `Expensify Help <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|deploy> failed. Please fix it!`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

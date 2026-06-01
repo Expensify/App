@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
@@ -10,6 +10,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
@@ -17,7 +18,7 @@ import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {createNewReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 import IOURequestEditReportCommon from './IOURequestEditReportCommon';
@@ -33,9 +34,9 @@ type IOURequestEditReportProps = WithWritableReportOrNotFoundProps<typeof SCREEN
 
 function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const {backTo, reportID, action, shouldTurnOffSelectionMode, transactionID: transactionIDFromParams} = route.params;
-    const {selectedTransactionIDs} = useSearchStateContext();
+    const {selectedTransactionIDs} = useSearchSelectionContext();
     const transactionIDs = transactionIDFromParams ? [transactionIDFromParams] : selectedTransactionIDs;
-    const {clearSelectedTransactions} = useSearchActionsContext();
+    const {clearSelectedTransactions} = useSearchSelectionActions();
     const [allReports] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}`);
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`);
@@ -48,6 +49,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`);
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const personalDetails = usePersonalDetails();
     const ownerPersonalDetails = useMemo(
         () => getPersonalDetailsForAccountID(selectedReport?.ownerAccountID, personalDetails) as PersonalDetails,
@@ -57,7 +59,14 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
 
     const hasPerDiemTransactions = useHasPerDiemTransactions(transactionIDs);
 
-    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions, undefined, undefined);
+    // When moving an expense that belongs to another user, or when the selection includes per diem
+    // transactions, use the policy of their report (or the transaction's policy as fallback) so the
+    // selected workspace is preserved.
+    // For the current user's own non-per-diem expenses, fall back to undefined to let the default workspace apply.
+    const isOwnedByOther = selectedReport?.ownerAccountID !== session?.accountID;
+    const isOwnedByOtherOrHasPerDiem = isOwnedByOther || hasPerDiemTransactions;
+    const targetExpensePolicyID = isOwnedByOtherOrHasPerDiem ? selectedReport?.policyID : undefined;
+    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions, undefined, targetExpensePolicyID);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
@@ -70,6 +79,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         }
 
         const newReport = report ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`];
+        const policyTagList = item?.policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
 
         setNavigationActionToMicrotaskQueue(() => {
             changeTransactionsReport({
@@ -82,6 +92,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
                 reportNextStep,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
                 allTransactions,
+                policyTagList,
             });
             turnOffMobileSelectionMode();
             clearSelectedTransactions(true);
@@ -94,6 +105,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         if (!selectedReport || transactionIDs.length === 0) {
             return;
         }
+        const policyTagList = personalPolicyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicyID}`] : {};
         changeTransactionsReport({
             transactionIDs,
             isASAPSubmitBetaEnabled,
@@ -101,6 +113,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             email: session?.email ?? '',
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
             allTransactions,
+            policyTagList,
         });
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();
@@ -133,9 +146,9 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     });
 
     const createReport = () => {
-        const restrictionPolicyID = hasPerDiemTransactions ? selectedReport?.policyID : policyForMovingExpensesID;
-        if (restrictionPolicyID && shouldRestrictUserBillableActions(restrictionPolicyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictionPolicyID));
+        const restrictionPolicy = hasPerDiemTransactions ? selectedReportPolicy : policyForMovingExpenses;
+        if (restrictionPolicy && shouldRestrictUserBillableActions(restrictionPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, session?.accountID)) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictionPolicy.id));
             return;
         }
         if (hasPerDiemTransactions) {
@@ -146,7 +159,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             return;
         }
         if (shouldSelectPolicy) {
-            Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true, backTo));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true)));
             return;
         }
         handleCreateReport();
@@ -162,6 +175,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             isEditing={action === CONST.IOU.ACTION.EDIT}
             createReport={createReport}
             isPerDiemRequest={hasPerDiemTransactions}
+            transactionPolicyID={targetExpensePolicyID}
         />
     );
 }

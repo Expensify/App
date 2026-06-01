@@ -4,7 +4,7 @@ import reject from 'lodash/reject';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
+import {convertAttendeesToArray, getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {isPersonalCard} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -13,10 +13,13 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import Parser from '@libs/Parser';
+import Permissions from '@libs/Permissions';
 import {
     getDistanceRateCustomUnitRate,
     getPerDiemRateCustomUnitRate,
+    getQBOVendorByID,
     getSortedTagKeys,
+    hasVendorFeature,
     isAttendeeTrackingEnabled as isAttendeeTrackingEnabledForPolicy,
     isDefaultTagName,
     isTaxTrackingEnabled,
@@ -26,11 +29,19 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import {hasValidModifiedAmount, isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CardList, Policy, PolicyCategories, PolicyTagLists, PolicyTags, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
+import type {Beta, Card, CardList, Policy, PolicyCategories, PolicyTagLists, PolicyTags, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ViolationFixParams from './types';
+
+let allBetas: OnyxEntry<Beta[]>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.BETAS,
+    callback: (value) => {
+        allBetas = value;
+    },
+});
 
 type ViolationTranslationParams = {
     violation: TransactionViolation;
@@ -395,7 +406,10 @@ const ViolationsUtils = {
             const hasCategoryOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === 'categoryOutOfPolicy');
             const hasMissingCategoryViolation = transactionViolations.some((violation) => violation.name === 'missingCategory');
             const categoryKey = updatedTransaction.category;
-            const isCategoryInPolicy = categoryKey ? policyCategories?.[categoryKey]?.enabled : false;
+            const categoryData = policyCategories?.[categoryKey ?? ''];
+            // A category being created optimistically (pendingAction === 'add') is treated as valid
+            // so in-situ creation doesn't trigger a "categoryOutOfPolicy" violation before the server confirms it.
+            const isCategoryInPolicy = categoryKey ? !!(categoryData?.enabled || categoryData?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) : false;
 
             // Add 'categoryOutOfPolicy' violation if category is not in policy
             if (!hasCategoryOutOfPolicyViolation && !isCategoryMissing(categoryKey) && !isCategoryInPolicy) {
@@ -427,11 +441,37 @@ const ViolationsUtils = {
                     : getTagViolationsForMultiLevelTags(updatedTransaction, newTransactionViolations, policyTagList, hasDependentTags);
         }
 
+        // Inactive vendor violation, gated behind the `vendorMatching` beta. The transaction's
+        // vendor is never cleared here — admins need to see what was set so they can re-pick.
+        if (allBetas !== undefined) {
+            const isVendorMatchingBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.VENDOR_MATCHING, allBetas);
+            const hasInactiveVendorViolation = newTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.INACTIVE_VENDOR);
+            const isVendorFeatureActive = hasVendorFeature(policy, isVendorMatchingBetaEnabled);
+            const transactionVendorID = updatedTransaction.comment?.vendor?.externalID;
+            if (!isVendorFeatureActive) {
+                // Feature off (e.g. admin switched export type away from credit/debit card) — clear any
+                // stale inactive-vendor violation.
+                if (hasInactiveVendorViolation) {
+                    newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
+                }
+            } else if (transactionVendorID) {
+                const matchedVendor = getQBOVendorByID(policy, transactionVendorID);
+                if (!matchedVendor && !hasInactiveVendorViolation) {
+                    newTransactionViolations.push({name: CONST.VIOLATIONS.INACTIVE_VENDOR, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
+                } else if (matchedVendor && hasInactiveVendorViolation) {
+                    newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
+                }
+            } else if (hasInactiveVendorViolation) {
+                // Vendor was cleared while the feature is still active — drop the now-stale violation.
+                newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
+            }
+        }
+
         const customUnitRateID = updatedTransaction?.comment?.customUnit?.customUnitRateID;
         if (customUnitRateID && customUnitRateID.length > 0 && !isSelfDM) {
             const isPerDiem = TransactionUtils.isPerDiemRequest(updatedTransaction);
             const customRate = isPerDiem ? getPerDiemRateCustomUnitRate(policy, customUnitRateID) : getDistanceRateCustomUnitRate(policy, customUnitRateID);
-            if (customRate) {
+            if (customRate && customRate.enabled !== false) {
                 newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
             } else {
                 newTransactionViolations.push({
@@ -460,7 +500,6 @@ const ViolationsUtils = {
         const isPolicyTrackTaxEnabled = isTaxTrackingEnabled(true, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
         const isTaxInPolicy = Object.keys(policy.taxRates?.taxes ?? {}).some((key) => key === updatedTransaction.taxCode);
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const amount = hasValidModifiedAmount(updatedTransaction) ? Number(updatedTransaction.modifiedAmount) : updatedTransaction.amount;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const currency = updatedTransaction.modifiedCurrency || updatedTransaction.currency;
@@ -526,7 +565,7 @@ const ViolationsUtils = {
         const shouldShowMissingComment =
             !isInvoiceTransaction && policyCategories?.[categoryName ?? '']?.areCommentsRequired && !updatedTransaction.comment?.comment && isControlPolicy && policy?.areRulesEnabled;
         const rawAttendees = updatedTransaction.modifiedAttendees ?? updatedTransaction.comment?.attendees;
-        const attendees = Array.isArray(rawAttendees) ? rawAttendees : [];
+        const attendees = convertAttendeesToArray(rawAttendees);
         const isAttendeeTrackingEnabled = isAttendeeTrackingEnabledForPolicy(policy);
         // Filter out the owner/creator when checking attendance count - expense is valid if at least one non-owner attendee is present
         const ownerAccountID = iouReport?.ownerAccountID;
@@ -714,6 +753,7 @@ const ViolationsUtils = {
             cardID,
             message = '',
             errorIndexes = [],
+            missingFields = [],
         } = violation.data ?? {};
 
         switch (violation.name) {
@@ -737,6 +777,8 @@ const ViolationsUtils = {
                 return translate('violations.fieldRequired');
             case 'futureDate':
                 return translate('violations.futureDate');
+            case 'inactiveVendor':
+                return translate('violations.inactiveVendor');
             case 'invoiceMarkup':
                 return translate('violations.invoiceMarkup', invoiceMarkup);
             case 'maxAge':
@@ -748,7 +790,7 @@ const ViolationsUtils = {
             case 'missingAttendees':
                 return translate('violations.missingAttendees');
             case 'missingTag':
-                return translate('violations.missingTag', {tagName});
+                return translate('violations.missingTag', tagName);
             case 'modifiedAmount':
                 return translate('violations.modifiedAmount', {type, displayPercentVariance: violation.data?.displayPercentVariance});
             case 'modifiedDate':
@@ -799,7 +841,7 @@ const ViolationsUtils = {
                 );
             }
             case 'smartscanFailed':
-                return translate('violations.smartscanFailed', {canEdit});
+                return translate('violations.smartscanFailed', {canEdit, missingFields});
             case 'someTagLevelsRequired':
                 return getTagViolationMessagesForMultiLevelTags(tagName, errorIndexes, tags ?? {}, translate);
             case 'tagOutOfPolicy':
@@ -822,12 +864,13 @@ const ViolationsUtils = {
                 return translate('violations.receiptGeneratedWithAI');
             case CONST.VIOLATIONS.NO_ROUTE:
                 return translate('violations.noRoute');
-            default:
+            default: {
                 // The interpreter should never get here because the switch cases should be exhaustive.
-                // If typescript is showing an error on the assertion below it means the switch statement is out of
-                // sync with the `ViolationNames` type, and one or the other needs to be updated.
-                // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-                return violation.name as never;
+                // If typescript is showing an error below, the switch is out of sync with the
+                // `ViolationNames` type — add the missing case (or remove the obsolete one).
+                const exhaustiveCheck: never = violation.name;
+                return exhaustiveCheck;
+            }
         }
     },
 
@@ -836,18 +879,31 @@ const ViolationsUtils = {
         return Number(violation.data?.formattedLimit?.replace(CONST.VIOLATION_LIMIT_REGEX, ''));
     },
 
-    getRBRMessages(
-        transaction: Transaction,
-        transactionViolations: TransactionViolation[],
-        translate: LocaleContextProps['translate'],
-        missingFieldError?: string,
-        transactionThreadActions?: ReportAction[],
-        tags?: PolicyTagLists,
-        companyCardPageURL?: string,
-        connectionLink?: string,
-        cardList?: CardList,
-        isMarkAsCash?: boolean,
-    ): string {
+    getRBRMessages({
+        transaction,
+        transactionViolations,
+        translate,
+        missingFieldError,
+        transactionThreadActions,
+        tags,
+        companyCardPageURL,
+        connectionLink,
+        cardList,
+        isMarkAsCash,
+        canEdit = true,
+    }: {
+        transaction: Transaction;
+        transactionViolations: TransactionViolation[];
+        translate: LocaleContextProps['translate'];
+        missingFieldError?: string;
+        transactionThreadActions?: ReportAction[];
+        tags?: PolicyTagLists;
+        companyCardPageURL?: string;
+        connectionLink?: string;
+        cardList?: CardList;
+        isMarkAsCash?: boolean;
+        canEdit?: boolean;
+    }): string {
         const errorMessages = extractErrorMessages(transaction?.errors ?? {}, transactionThreadActions?.filter((e) => !!e.errors) ?? [], translate);
         const filteredViolations = filterReceiptViolations(transactionViolations);
 
@@ -862,6 +918,7 @@ const ViolationsUtils = {
                 const message = ViolationsUtils.getViolationTranslation({
                     violation,
                     translate,
+                    canEdit,
                     tags,
                     companyCardPageURL,
                     connectionLink,
@@ -917,6 +974,5 @@ const ViolationsUtils = {
 };
 
 export {getIsViolationFixed};
-export type {ViolationFixParams, ViolationTranslationParams};
 export default ViolationsUtils;
 export {filterReceiptViolations};

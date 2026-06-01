@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
@@ -27,6 +27,7 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
+import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolation from '@hooks/useTransactionViolation';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
@@ -65,7 +66,7 @@ function PolicyDistanceRatesPage({
     },
 }: PolicyDistanceRatesPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Gear', 'Plus', 'Trashcan']);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
@@ -92,7 +93,7 @@ function PolicyDistanceRatesPage({
     const policyReportsSelector = useCallback(
         (reports: OnyxCollection<Report>) => {
             return Object.values(reports ?? {}).reduce((reportIDs, report) => {
-                if (report && report.policyID === policyID) {
+                if (report?.policyID === policyID) {
                     reportIDs.add(report.reportID);
                 }
                 return reportIDs;
@@ -113,11 +114,8 @@ function PolicyDistanceRatesPage({
             return Object.values(transactions ?? {}).reduce(
                 (transactionsData, transaction) => {
                     if (
-                        transaction &&
-                        transaction.reportID &&
+                        transaction?.reportID &&
                         policyReports?.has(transaction.reportID) &&
-                        customUnit?.customUnitID &&
-                        transaction?.comment?.customUnit?.customUnitID === customUnit.customUnitID &&
                         transaction?.comment?.customUnit?.customUnitRateID &&
                         rateIDs.has(transaction?.comment?.customUnit?.customUnitRateID)
                     ) {
@@ -323,11 +321,7 @@ function PolicyDistanceRatesPage({
         const transactionIDsAffected = selectedDistanceRates.flatMap((rateID) => eligibleTransactionsData?.rateIDToTransactionIDsMap?.[rateID] ?? []);
 
         deletePolicyDistanceRates(policyID, customUnit, selectedDistanceRates, transactionIDsAffected, transactionViolations);
-
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            setSelectedDistanceRates([]);
-        });
+        setSelectedDistanceRates([]);
     };
 
     const toggleRate = (rate: RateForList) => {
@@ -428,15 +422,17 @@ function PolicyDistanceRatesPage({
         [icons.Gear, openSettings, translate],
     );
 
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
+
     const headerButtons = (
-        <View style={[styles.w100, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
+        <View style={[!isInLandscapeMode && styles.w100, styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
             {(shouldUseNarrowLayout ? !isMobileSelectionModeEnabled : selectedDistanceRates.length === 0) ? (
                 <>
                     <Button
                         text={translate('workspace.distanceRates.addRate')}
                         onPress={addRate}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.ADD_BUTTON}
-                        style={[shouldUseNarrowLayout && styles.flex1]}
+                        style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
                         icon={icons.Plus}
                         success
                     />
@@ -459,8 +455,8 @@ function PolicyDistanceRatesPage({
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                     onPress={() => null}
                     options={getBulkActionsButtonOptions()}
-                    style={[shouldUseNarrowLayout && styles.flexGrow1]}
-                    wrapperStyle={styles.w100}
+                    style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1]}
+                    wrapperStyle={!isInLandscapeMode ? styles.w100 : undefined}
                     isSplitButton={false}
                     isDisabled={!selectedDistanceRates.length}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.BULK_ACTIONS_DROPDOWN}
@@ -478,7 +474,7 @@ function PolicyDistanceRatesPage({
                     <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
                 </View>
             )}
-            {Object.values(customUnitRates).length > CONST.SEARCH_ITEM_LIMIT && (
+            {Object.values(customUnitRates).length >= CONST.STANDARD_LIST_ITEM_LIMIT && (
                 <SearchBar
                     label={translate('workspace.distanceRates.findRate')}
                     inputValue={inputValue}
@@ -517,9 +513,9 @@ function PolicyDistanceRatesPage({
                         Navigation.goBack();
                     }}
                 >
-                    {!shouldUseNarrowLayout && headerButtons}
+                    {!shouldDisplayButtonsInSeparateLine && headerButtons}
                 </HeaderWithBackButton>
-                {shouldUseNarrowLayout && <View style={[styles.ph5]}>{headerButtons}</View>}
+                {shouldDisplayButtonsInSeparateLine && <View style={[styles.ph5]}>{headerButtons}</View>}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -532,15 +528,15 @@ function PolicyDistanceRatesPage({
                         data={filteredDistanceRatesList}
                         ListItem={TableListItem}
                         onSelectRow={openRateDetails}
-                        onCheckboxPress={toggleRate}
+                        onSelectionButtonPress={toggleRate}
                         selectedItems={selectedDistanceRates}
                         customListHeader={getCustomListHeader()}
-                        shouldUseDefaultRightHandSideCheckmark={false}
                         onTurnOnSelectionMode={(item) => item && toggleRate(item)}
                         onSelectAll={filteredDistanceRatesList.length > 0 ? toggleAllRates : undefined}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         customListHeaderContent={headerContent}
                         canSelectMultiple={canSelectMultiple}
+                        selectAllAccessibilityLabel={translate('accessibilityHints.selectAllDistanceRates')}
                         onDismissError={dismissError}
                         shouldShowListEmptyContent={false}
                         showScrollIndicator={false}
