@@ -47,10 +47,10 @@ function putOnHold(
     isOffline: boolean,
     currentUserLogin: string,
     currentUserAccountID: number,
+    transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>,
     ancestors: Ancestor[] = [],
 ) {
     const allTransactions = getAllTransactions();
-    const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
 
     const currentTime = DateUtils.getDBTime();
@@ -58,8 +58,7 @@ function putOnHold(
     const createdReportAction = buildOptimisticHoldReportAction(currentTime);
     const createdReportActionComment = buildOptimisticHoldReportActionComment(comment, DateUtils.addMillisecondsFromDateTime(currentTime, 1));
     const newViolation = {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true};
-    const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
-    const updatedViolations = [...transactionViolations, newViolation];
+    const updatedViolations = [...(transactionViolations ?? []), newViolation];
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
     const iouAction = getIOUActionForReportID(transaction?.reportID, transactionID);
@@ -193,7 +192,7 @@ function putOnHold(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: transactionViolations,
+            value: transactionViolations ?? null,
         },
     ];
 
@@ -356,11 +355,13 @@ function putTransactionsOnHold(
     isOffline: boolean,
     currentUserLogin: string,
     currentUserAccountID: number,
+    allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
     ancestors: Ancestor[] = [],
 ) {
     for (const transactionID of transactionsID) {
         const {childReportID} = getIOUActionForReportID(reportID, transactionID) ?? {};
-        putOnHold(transactionID, comment, childReportID, isOffline, currentUserLogin, currentUserAccountID, ancestors);
+        const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+        putOnHold(transactionID, comment, childReportID, isOffline, currentUserLogin, currentUserAccountID, transactionViolations, ancestors);
     }
 }
 
@@ -369,6 +370,8 @@ function putTransactionsOnHold(
  */
 function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntry<OnyxTypes.Policy>, isOffline: boolean, currentUserLogin: string, currentUserAccountID: number) {
     const allTransactions = getAllTransactions();
+    // TODO: https://github.com/Expensify/App/issues/66512
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
 

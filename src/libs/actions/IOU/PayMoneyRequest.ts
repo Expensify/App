@@ -15,9 +15,7 @@ import {getAllReportActions, getReportActionHtml, getReportActionText, isCreated
 import {
     buildOptimisticCancelPaymentReportAction,
     buildOptimisticIOUReportAction,
-    getReimbursableTotal,
     getReportTransactions,
-    getUnheldReimbursableTotal,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasOutstandingChildRequest,
     isExpenseReport,
@@ -146,6 +144,8 @@ function getPayMoneyRequestParams({
     // TODO: This will be required eventually. Ref: https://github.com/Expensify/App/issues/66411
     conciergeReportID?: string;
 }): PayMoneyRequestData {
+    // TODO: https://github.com/Expensify/App/issues/66512
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const allTransactionViolations = getAllTransactionViolations();
 
     const isInvoiceReport = isInvoiceReportReportUtils(iouReport);
@@ -215,9 +215,9 @@ function getPayMoneyRequestParams({
     }
 
     const reportTransactions = getReportTransactions(iouReport?.reportID);
-    let total = getReimbursableTotal(iouReport);
+    let total = (iouReport?.total ?? 0) - (iouReport?.nonReimbursableTotal ?? 0);
     if (hasHeldExpensesReportUtils(reportTransactions) && !full && !!iouReport?.unheldTotal) {
-        total = getUnheldReimbursableTotal(iouReport);
+        total = iouReport.unheldTotal - (iouReport?.unheldNonReimbursableTotal ?? 0);
     }
 
     const optimisticIOUReportAction = buildOptimisticIOUReportAction({
@@ -493,10 +493,9 @@ function cancelPayment(
         return;
     }
 
-    // Prefer the freshly computed reimbursableTotal over deriving from the (sometimes stale) stored total.
     const optimisticReportAction = buildOptimisticCancelPaymentReportAction(
         expenseReport.reportID,
-        -getReimbursableTotal(expenseReport),
+        -((expenseReport.total ?? 0) - (expenseReport?.nonReimbursableTotal ?? 0)),
         expenseReport.currency ?? '',
         currentUserAccountIDParam,
     );
@@ -769,7 +768,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     if (
         chatReport.policyID &&
         policyForBillingRestriction &&
-        shouldRestrictUserBillableActions(policyForBillingRestriction, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)
+        shouldRestrictUserBillableActions(policyForBillingRestriction, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)
     ) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
         return;
@@ -820,7 +819,8 @@ function markReportPaymentReceived(
     if (!chatReport || !iouReport) {
         return;
     }
-
+    // TODO: https://github.com/Expensify/App/issues/66512
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const allTransactionViolations = getAllTransactionViolations();
     const recipient = {accountID: iouReport.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const total = (iouReport.total ?? 0) - (iouReport.nonReimbursableTotal ?? 0);

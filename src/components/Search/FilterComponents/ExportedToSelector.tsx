@@ -2,7 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import Icon from '@components/Icon';
-import type {SearchFilterSelectionListProps} from '@components/Search/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -21,7 +20,7 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type IconAsset from '@src/types/utils/IconAsset';
 import MultiSelect from './MultiSelect';
 
-type ExportedToSelectorProps = SearchFilterSelectionListProps & {
+type ExportedToSelectorProps = {
     value: string[] | undefined;
     onChange: (exportedTo: string[]) => void;
 };
@@ -31,7 +30,7 @@ const STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL: Record<string, string> = {
     [CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT]: CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT,
 };
 
-function ExportedToSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: ExportedToSelectorProps) {
+function ExportedToSelector({value = [], onChange}: ExportedToSelectorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
@@ -137,10 +136,6 @@ function ExportedToSelector({value = [], selectionListTextInputStyle, selectionL
             value={selectedExportedTo}
             items={exportedToPickerOptions}
             isSearchable={exportedToPickerOptions.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
-            autoFocus={autoFocus}
-            selectionListTextInputStyle={selectionListTextInputStyle}
-            selectionListStyle={selectionListStyle}
-            footer={footer}
             onChange={(exportedTo) => onChange(exportedTo.map((e) => e.value))}
         />
     );
