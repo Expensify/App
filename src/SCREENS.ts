@@ -373,7 +373,7 @@ const SCREENS = {
         START: 'Money_Request_Start',
         STEP_UPGRADE: 'Money_Request_Step_Upgrade',
         STEP_AMOUNT: 'Money_Request_Step_Amount',
-        STEP_CATEGORY: 'Money_Request_Step_Category',
+        DYNAMIC_STEP_CATEGORY: 'Dynamic_Money_Request_Step_Category',
         STEP_CATEGORY_CREATE: 'Money_Request_Step_Category_Create',
         STEP_DATE: 'Money_Request_Step_Date',
         STEP_DESCRIPTION: 'Money_Request_Step_Description',
