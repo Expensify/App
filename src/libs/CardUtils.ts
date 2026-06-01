@@ -1432,19 +1432,6 @@ function getDomainNameFromExpensifyCardSettings(settings: ExpensifyCardSettings 
     return undefined;
 }
 
-/** Resolves domainName from an Expensify card in the card list that matches the feed fundID. */
-function getDomainNameFromExpensifyCardFeed(fundID: number | undefined, cardList: CardList | undefined): string | undefined {
-    if (!fundID || !cardList) {
-        return undefined;
-    }
-    for (const card of Object.values(cardList)) {
-        if (card?.fundID === fundID && card.bank === CONST.EXPENSIFY_CARD.BANK && card.domainName) {
-            return card.domainName;
-        }
-    }
-    return undefined;
-}
-
 function isCardPendingIssue(card?: Card) {
     return card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
 }
@@ -1938,7 +1925,6 @@ export {
     getLinkedPolicyIDsFromExpensifyCardSettings,
     getPreferredPolicyFromExpensifyCardSettings,
     getDomainNameFromExpensifyCardSettings,
-    getDomainNameFromExpensifyCardFeed,
     isPolicyIDInLinkedExpensifyCardPolicyList,
     filterAllInactiveCards,
     filterInactiveCards,
