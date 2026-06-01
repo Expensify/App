@@ -4413,6 +4413,8 @@ ${amount} voor ${merchant} - ${date}`,
             cardAdminAlternateText: 'Werkruimtekaarten beheren.',
             peopleAdminAlternateText: 'Beheer leden en goedkeuringsworkflows.',
             paymentsAdminAlternateText: 'Workflowsbetalingen beheren.',
+            readOnlyActionTitle: 'Niet zo snel...',
+            readOnlyActionPrompt: 'Je rol in de workspace kan deze instellingen bekijken, maar niet bewerken.',
         },
         createdForClient: {
             title: 'Je hebt een werkruimte voor je klant aangemaakt!',
@@ -6052,16 +6054,27 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             error: 'Er is een fout opgetreden bij het dupliceren van je nieuwe werkruimte. Probeer het opnieuw.',
         },
         copyPolicySettings: {
-            error: 'Er is een fout opgetreden bij het kopiëren van de werkruimtainstellingen. Probeer het opnieuw.',
             title: 'Instellingen kopiëren',
-            selectWorkspaces: 'Selecteer werkruimtes',
-            description: 'Kies de werkruimtes waarnaar je instellingen wilt kopiëren en selecteer daarna de instellingen die je wilt kopiëren.',
-            searchPlaceholder: 'Werkruimtes zoeken',
-            selectFeatures: 'Selecteer functies om te kopiëren',
-            whichFeatures: 'Selecteer de instellingen die je wilt overschrijven in je bestaande werkruimtes.',
-            workflowsWithoutMembersConfirm: 'Doorgaan zonder leden',
-            workflowsWithoutMembersPrompt: 'Workflows kopiëren zonder leden kopieert geen goedkeuringsworkflows. Instellingen voor indienen en betalen worden nog steeds gekopieerd.',
-            accountingMismatch: ({part}: {part: string}) => `Je kunt ${part} alleen kopiëren als alle werkruimtes hetzelfde boekhoudsysteem en dezelfde bedrijfsverbinding gebruiken.`,
+            error: 'Er is een fout opgetreden bij het kopiëren van de werkruimtainstellingen. Probeer het opnieuw.',
+            selectWorkspaces: {
+                title: 'Selecteer werkruimtes',
+                description: 'Kies de werkruimtes waarnaar je instellingen wilt kopiëren en selecteer daarna de instellingen die je wilt kopiëren.',
+                searchPlaceholder: 'Werkruimtes zoeken',
+            },
+            selectSettings: {
+                title: 'Selecteer functies om te kopiëren',
+                description: 'Selecteer de instellingen die je wilt overschrijven in je bestaande werkruimtes.',
+                accountingMismatch: ({part}: {part: string}) => `Je kunt ${part} alleen kopiëren als alle werkruimtes hetzelfde boekhoudsysteem en dezelfde bedrijfsverbinding gebruiken.`,
+            },
+            confirmSettings: {
+                title: 'Laten we controleren of alles er goed uitziet.',
+                description: ({workspaceName}: {workspaceName: string}) =>
+                    `We kopiëren de volgende instellingen van <strong>${workspaceName}</strong> naar de werkruimtes die je hebt opgegeven`,
+            },
+            confirmWorkflows: {
+                continue: 'Doorgaan zonder leden',
+                description: 'Workflows kopiëren zonder leden zal goedkeuringsworkflows niet kopiëren. Instellingen voor indienen en betalen worden nog steeds gekopieerd.',
+            },
         },
         emptyWorkspace: {
             title: 'Je hebt geen werkruimtes',
@@ -9343,7 +9356,6 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         expenseLevelExport: 'Alle gegevens - uitgaveniveau',
         exportInProgress: 'Export bezig',
         conciergeWillSend: 'Concierge stuurt je het bestand zo meteen.',
-        currentView: 'Huidige weergave exporteren',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',

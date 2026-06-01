@@ -691,7 +691,6 @@
 "../../src/types/onyx/ReportNameValuePairs.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/SaveSearch.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/SearchResults.ts"	"no-restricted-syntax"	1
-"../../src/types/onyx/Session.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/ShareBankAccount.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/Transaction.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/UnshareBankAccount.ts"	"no-restricted-syntax"	1
