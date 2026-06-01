@@ -2,9 +2,7 @@ import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-// Use the original useOnyx hook to scan the live report collection when resolving the trip room.
-// @hooks/useOnyx redirects collection reads to the search snapshot under Search routes, which
-// typically does not include the grandparent trip room and would leave the Trip row hidden.
+// Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -463,9 +461,7 @@ function MoneyRequestView({
 
     const transactionTripID = transaction?.comment?.tripID;
 
-    // Spotnana expense reports are parented under the trip room, so try that O(1) hop before scanning.
-    // Use originalUseOnyx so the lookup hits the live report collection - the grandparent trip room
-    // is typically not in the Search snapshot.
+    // Trip rooms are the grandparent report, so check that first before scanning the collection.
     const grandparentReportID = parentReport?.parentReportID;
     const tripRoomReportSelector = (reports: OnyxCollection<OnyxTypes.Report>) => {
         if (!transactionTripID || !reports) {
