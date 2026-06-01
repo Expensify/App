@@ -11,7 +11,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {areSettingsInErrorFields, findSelectedBankAccountWithDefaultSelect, findSelectedVendorWithDefaultSelect, settingsPendingAction} from '@libs/PolicyUtils';
+import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import type {MenuItem} from '@pages/workspace/accounting/netsuite/types';
 import {
     exportExpensesDestinationSettingName,
@@ -47,14 +47,11 @@ function DynamicNetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps)
 
     const {vendors, payableList} = policy?.connections?.netsuite?.options?.data ?? {};
 
-    const defaultVendor = useMemo(() => findSelectedVendorWithDefaultSelect(vendors, config?.defaultVendor), [vendors, config?.defaultVendor]);
+    const defaultVendor = useMemo(() => vendors?.find(({id}) => id === config?.defaultVendor), [vendors, config?.defaultVendor]);
 
-    const selectedPayableAccount = useMemo(() => findSelectedBankAccountWithDefaultSelect(payableList, config?.payableAcct), [payableList, config?.payableAcct]);
+    const selectedPayableAccount = useMemo(() => payableList?.find(({id}) => id === config?.payableAcct), [payableList, config?.payableAcct]);
 
-    const selectedReimbursablePayableAccount = useMemo(
-        () => findSelectedBankAccountWithDefaultSelect(payableList, config?.reimbursablePayableAccount),
-        [payableList, config?.reimbursablePayableAccount],
-    );
+    const selectedReimbursablePayableAccount = useMemo(() => payableList?.find(({id}) => id === config?.reimbursablePayableAccount), [payableList, config?.reimbursablePayableAccount]);
 
     const menuItems: MenuItemWithSubscribedSettings[] = [
         {

@@ -1,36 +1,30 @@
-import type {CommonActions, ParamListBase, PartialState, Router, RouterConfigOptions, StackActionType} from '@react-navigation/native';
-import type {RemoveFullscreenUnderRHPActionType, ReplaceFullscreenUnderRHPActionType, RootStackNavigatorAction} from '@libs/Navigation/AppNavigator/createRootStackNavigator/types';
+import type {ParamListBase, PartialState, Router, RouterConfigOptions} from '@react-navigation/native';
+import Log from '@libs/Log';
+import type {RootStackNavigatorAction} from '@libs/Navigation/AppNavigator/createRootStackNavigator/types';
 import type {PlatformStackNavigationState, PlatformStackRouterFactory, PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import CONST from '@src/CONST';
+import {
+    applyRevealPaddingOffset,
+    getFrozenHistoryStateForRemoveFullscreenUnderRHP,
+    getFrozenHistoryStateForReplaceFullscreenUnderRHP,
+    getRevealDismissState,
+    isDismissModalAction,
+    isRemoveFullscreenUnderRHPAction,
+    isReplaceFullscreenUnderRHPAction,
+} from './addRootHistoryRouterExtensionUtils';
+import type {PendingReveal, RootHistoryState} from './addRootHistoryRouterExtensionUtils';
 import {enhanceStateWithHistory} from './utils';
 
-function isReplaceFullscreenUnderRHPAction(action: RootStackNavigatorAction): action is ReplaceFullscreenUnderRHPActionType {
-    return action.type === CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP;
-}
-
-function isRemoveFullscreenUnderRHPAction(action: RootStackNavigatorAction): action is RemoveFullscreenUnderRHPActionType {
-    return action.type === CONST.NAVIGATION.ACTION_TYPE.REMOVE_FULLSCREEN_UNDER_RHP;
-}
-
-/**
- * Higher-order function that extends a React Navigation stack router with history
- * management for the root stack navigator.
- *
- * It maintains a `history` array mirroring the routes and handles two concerns:
- *
- * 1. **Side panel** – preserves the CUSTOM_HISTORY_ENTRY_SIDE_PANEL entry through
- *    rehydration so the side panel open/close state survives navigation state rebuilds.
- *
- * 2. **REPLACE/REMOVE_FULLSCREEN_UNDER_RHP** - freezes the history array for these
- *    actions so that useLinking sees historyDelta=0 and does NOT push/pop any browser
- *    history entries for these intermediate state changes. The correct browser history
- *    update happens later when DISMISS_MODAL pops the RHP in the next animation frame.
- */
+/** Manages root `state.history` for side-panel + reveal flows; per-branch rationale inline. */
 function addRootHistoryRouterExtension<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions>(
     originalRouter: PlatformStackRouterFactory<ParamListBase, RouterOptions>,
 ) {
-    return (options: RouterOptions): Router<PlatformStackNavigationState<ParamListBase>, CommonActions.Action | StackActionType> => {
+    return (options: RouterOptions): Router<PlatformStackNavigationState<ParamListBase>, RootStackNavigatorAction> => {
         const router = originalRouter(options);
+
+        // RHP snapshot taken on REPLACE; matching DISMISS must equal all three fields (key,
+        // routes depth, history depth) to commit the reveal freeze.
+        let pendingReveal: PendingReveal | null = null;
 
         const getInitialState = (configOptions: RouterConfigOptions) => {
             const state = router.getInitialState(configOptions);
@@ -41,6 +35,7 @@ function addRootHistoryRouterExtension<RouterOptions extends PlatformStackRouter
             const state = router.getRehydratedState(partialState, configOptions);
             const stateWithInitialHistory = enhanceStateWithHistory(state);
 
+            // Preserve trailing side-panel sentinel through state rebuilds.
             if (state.history?.at(-1) === CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_SIDE_PANEL) {
                 stateWithInitialHistory.history = [...stateWithInitialHistory.history, CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_SIDE_PANEL];
                 return stateWithInitialHistory;
@@ -49,24 +44,56 @@ function addRootHistoryRouterExtension<RouterOptions extends PlatformStackRouter
             return stateWithInitialHistory;
         };
 
-        const getStateForAction = (state: PlatformStackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType, configOptions: RouterConfigOptions) => {
+        // Centralizes the `PartialState | FullState` cast to `getRehydratedState`'s input shape.
+        function rehydrate(newState: PartialState<RootHistoryState> | RootHistoryState, configOptions: RouterConfigOptions) {
+            return getRehydratedState(newState as PartialState<RootHistoryState>, configOptions);
+        }
+
+        const getStateForAction = (state: RootHistoryState, action: RootStackNavigatorAction, configOptions: RouterConfigOptions) => {
+            // Snapshot is stale if its RHP key vanished via a non-DISMISS path.
+            if (pendingReveal && !state.routes.some((r) => r.key === pendingReveal?.rhpKey)) {
+                Log.hmmm('[addRootHistoryRouterExtension] pending reveal RHP no longer in routes; clearing snapshot', {pendingReveal});
+                pendingReveal = null;
+            }
+
             const newState = router.getStateForAction(state, action, configOptions);
 
             if (!newState) {
                 return null;
             }
 
-            // For REPLACE/REMOVE_FULLSCREEN_UNDER_RHP we intentionally preserve the original
-            // history array so that useLinking sees historyDelta=0 and does NOT push/pop any
-            // browser history entries for these intermediate state changes.
-            if ((isReplaceFullscreenUnderRHPAction(action) || isRemoveFullscreenUnderRHPAction(action)) && state.history) {
-                // @ts-expect-error newState can be partial but getRehydratedState handles it correctly.
-                const rehydrated = getRehydratedState(newState, configOptions);
-                return {...rehydrated, history: state.history};
+            // REPLACE: capture pending reveal + freeze history (intermediate frame; useLinking historyDelta=0).
+            if (isReplaceFullscreenUnderRHPAction(action)) {
+                const result = getFrozenHistoryStateForReplaceFullscreenUnderRHP(state, newState, configOptions, pendingReveal, rehydrate);
+                pendingReveal = result.pendingReveal;
+                return result.state;
             }
 
-            // @ts-expect-error newState may be partial, but getRehydratedState handles both partial and full states correctly.
-            return getRehydratedState(newState, configOptions);
+            // REMOVE: cancel path; clear snapshot + freeze history (same rationale as REPLACE).
+            if (isRemoveFullscreenUnderRHPAction(action)) {
+                const result = getFrozenHistoryStateForRemoveFullscreenUnderRHP(state, newState, configOptions, rehydrate);
+                if (state.history) {
+                    pendingReveal = null;
+                }
+                return result;
+            }
+
+            // DISMISS that completes the reveal: pad new history to pre-DISMISS length so
+            // useLinking sees historyDelta=0 and just `history.replace`s the current entry,
+            // preserving the prior fullscreen browser entry. (RN 7.x useLinking semantics.)
+            if (isDismissModalAction(action) && pendingReveal && state.history) {
+                const result = getRevealDismissState(state, newState, configOptions, pendingReveal, rehydrate);
+                pendingReveal = result.pendingReveal;
+                if (result.state) {
+                    return result.state;
+                }
+            }
+
+            // Default: re-apply the offset (single source of truth = leading sentinels in
+            // state.history). addPushParamsRouterExtension keeps all string entries, so
+            // reveal-padding sentinels survive PUSH_PARAMS / GO_BACK / POP / RESET dispatches.
+            const rehydrated = rehydrate(newState, configOptions);
+            return applyRevealPaddingOffset(state, rehydrated);
         };
 
         return {

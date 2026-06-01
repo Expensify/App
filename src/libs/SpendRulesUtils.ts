@@ -23,17 +23,22 @@ function combineSpendRuleASTNodes(nodes: ExpensifyCardRuleFilter[], operator: Va
     return remainingNodes.reduce<ExpensifyCardRuleFilter>((accumulator, node) => ({left: accumulator, operator, right: node}), firstNode);
 }
 
-function buildSpendRuleAST(spendRuleValues: SpendRuleForm, existingCreated?: string): ExpensifyCardRule | undefined {
-    const cardIDs = spendRuleValues.cardIDs ?? [];
-    if (cardIDs.length === 0) {
-        return undefined;
-    }
+type SpendRuleValues = {
+    cardIDs?: string[];
+    maxAmount?: string;
+    categories?: string[];
+    merchantNames?: string[];
+    restrictionAction?: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
+    merchantMatchTypes?: Array<ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>>;
+};
 
+function buildSpendRuleAST(spendRuleValues: SpendRuleValues, existingCreated?: string): ExpensifyCardRule | undefined {
     const merchantNames = (spendRuleValues.merchantNames ?? []).map((merchant) => merchant.trim()).filter((merchant) => merchant !== '');
     const merchantMatchTypes = spendRuleValues.merchantMatchTypes ?? [];
     const categories = (spendRuleValues.categories ?? []).map((category) => category.trim()).filter((category) => category !== '');
     const maxAmount = spendRuleValues.maxAmount?.trim() ?? '';
 
+    const cardIDs = spendRuleValues.cardIDs ?? [];
     const cardNode: ExpensifyCardRuleFilter = {
         left: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
         operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
@@ -87,7 +92,8 @@ function buildSpendRuleAST(spendRuleValues: SpendRuleForm, existingCreated?: str
         [amountNode, criteriaNode].filter(Boolean) as ExpensifyCardRuleFilter[],
         spendRuleValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK ? CONST.SEARCH.SYNTAX_OPERATORS.OR : CONST.SEARCH.SYNTAX_OPERATORS.AND,
     );
-    const filters = combineSpendRuleASTNodes([cardNode, ruleNode].filter(Boolean) as ExpensifyCardRuleFilter[], CONST.SEARCH.SYNTAX_OPERATORS.AND);
+
+    const filters = cardIDs.length > 0 ? combineSpendRuleASTNodes([cardNode, ruleNode].filter(Boolean) as ExpensifyCardRuleFilter[], CONST.SEARCH.SYNTAX_OPERATORS.AND) : ruleNode;
 
     if (!filters) {
         return undefined;
@@ -100,7 +106,7 @@ function buildSpendRuleAST(spendRuleValues: SpendRuleForm, existingCreated?: str
     };
 }
 
-function getSpendRuleFormValuesFromCardRule(cardRule: ExpensifyCardRule): SpendRuleForm | undefined {
+function getSpendRuleFormValuesFromCardRule(cardRule?: ExpensifyCardRule): SpendRuleForm | undefined {
     if (!cardRule || typeof cardRule !== 'object' || !('filters' in cardRule) || !('action' in cardRule)) {
         return undefined;
     }
@@ -130,28 +136,30 @@ function getSpendRuleFormValuesFromCardRule(cardRule: ExpensifyCardRule): SpendR
             return;
         }
 
-        if (typeof left !== 'string' || !Array.isArray(right)) {
+        if (typeof left !== 'string') {
             return;
         }
 
+        const rightValues = [right].flat();
+
         if (left === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
-            formValues.cardIDs = right;
+            formValues.cardIDs = rightValues;
             return;
         }
 
         if (left === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
-            formValues.maxAmount = typeof right === 'string' ? right : (right.at(0) ?? '');
+            formValues.maxAmount = rightValues.at(0) ?? '';
             return;
         }
 
         if (left === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
-            formValues.categories = right.filter(isSpendRuleCategory);
+            formValues.categories = rightValues.filter(isSpendRuleCategory);
             return;
         }
 
         if (left === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT) {
-            formValues.merchantNames = [...formValues.merchantNames, ...right];
-            formValues.merchantMatchTypes = [...formValues.merchantMatchTypes, ...right.map(() => operator)];
+            formValues.merchantNames = [...formValues.merchantNames, ...rightValues];
+            formValues.merchantMatchTypes = [...formValues.merchantMatchTypes, ...rightValues.map(() => operator)];
         }
     };
 
@@ -288,5 +296,5 @@ function getSpendRuleSummaryText(
     return summaryArray;
 }
 
+export type {SpendRuleSummaryPart};
 export {buildSpendRuleAST, getSpendRuleByCardID, getSpendRuleFormValuesFromCardRule, getSpendRuleSummaryParts, getSpendRuleSummaryText, getTruncatedSpendRuleSummary};
-export type {SpendRuleByCardID, SpendRuleSummaryPart};

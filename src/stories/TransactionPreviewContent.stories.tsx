@@ -131,7 +131,6 @@ function Template(props: TransactionPreviewContentProps) {
         <ThemeProvider theme={CONST.THEME.LIGHT}>
             <ThemeStylesProvider>
                 <View style={{flexDirection: 'row'}}>
-                    {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                     <TransactionPreviewContent {...props} />
                 </View>
             </ThemeStylesProvider>
