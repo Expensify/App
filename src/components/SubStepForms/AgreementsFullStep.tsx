@@ -1,6 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
-import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
@@ -66,9 +65,6 @@ type AgreementsFullStepProps<TFormID extends keyof OnyxFormValuesMapping> = {
 
     /** Index of currently active step in header */
     startStepIndex: number;
-
-    /** Server-side error message to display above the submit button */
-    errorMessage?: string;
 };
 
 function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -81,7 +77,6 @@ function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
     currency,
     stepNames,
     startStepIndex,
-    errorMessage,
 }: AgreementsFullStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -177,14 +172,6 @@ function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
                     defaultValue={defaultValues[inputIDs.consentToPrivacyNotice]}
                     shouldSaveDraft
                 />
-                {!!errorMessage && (
-                    <DotIndicatorMessage
-                        textStyles={[styles.formError]}
-                        type="error"
-                        messages={{error: errorMessage}}
-                        style={styles.mt5}
-                    />
-                )}
             </FormProvider>
         </InteractiveStepWrapper>
     );
