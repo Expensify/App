@@ -1584,8 +1584,8 @@ describe('CardUtils', () => {
             expect(lastFour).toBe('1234');
         });
 
-        it('Should return empty string for an ellipsis name without a space (e.g. "CREDITCARD...1234")', () => {
-            const lastFour = lastFourNumbersFromCardName('CREDITCARD...1234');
+        it('Should return empty string for an ellipsis name without a space (e.g. "SomeCardName...1234")', () => {
+            const lastFour = lastFourNumbersFromCardName('SomeCardName...1234');
             expect(lastFour).toBe('');
         });
     });
