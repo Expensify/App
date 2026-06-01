@@ -202,7 +202,6 @@ type SearchSelectionContextValue = {
     shouldTurnOffSelectionMode: boolean;
     /** True when at least one transaction is selected. */
     hasSelectedTransactions: boolean;
-    shouldShowSelectAllMatchingItems: boolean;
     areAllMatchingItemsSelected: boolean;
 };
 
@@ -224,7 +223,6 @@ type SearchSelectionActionsValue = {
         (clearIDs: true, unused?: undefined): void;
     };
     removeTransaction: (transactionID: string | undefined) => void;
-    setShouldShowSelectAllMatchingItems: (shouldShow: boolean) => void;
     selectAllMatchingItems: (on: boolean) => void;
 };
 
