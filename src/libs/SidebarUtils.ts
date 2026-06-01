@@ -1488,11 +1488,6 @@ function getRoomWelcomeMessage(
 }
 
 /**
- * Filters the already-ordered LHN report IDs down to the ones that belong to the active Inbox tab.
- * The "All" tab returns everything (and still honors Most Recent / Focus mode upstream); the other
- * tabs narrow that same set to unread, expense-related, or direct-message reports.
- */
-/**
  * Whether a report should appear in the "Unread" Inbox tab: it has unread messages and is not muted.
  * Computed once while building the LHN report set (which is cached/incremental) so the tab filter only reads a flag.
  */
@@ -1500,6 +1495,16 @@ function getIsUnreadReportForInboxTab(report: Report, isReportArchived: boolean)
     return isUnread(report, undefined, isReportArchived) && getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
 }
 
+/** Whether a report belongs in the "To-do" Inbox tab: it has an outstanding GBR (requiresAttention) or RBR (errors). */
+function getIsTodoReportForInboxTab(report: ReportsToDisplayInLHN[string]): boolean {
+    return !!report.requiresAttention || !!report.hasErrorsOtherThanFailedReceipt;
+}
+
+/**
+ * Filters the already-ordered LHN report IDs down to the ones that belong to the active Inbox tab.
+ * The "All" tab returns everything (and still honors Most Recent / Focus mode upstream); the other
+ * tabs narrow that same set to reports requiring action (To-do) or with unread messages (Unread).
+ */
 function filterReportsForInboxTab(reportIDs: string[], reportsToDisplay: ReportsToDisplayInLHN, activeTab: ValueOf<typeof CONST.INBOX_TAB>): string[] {
     if (activeTab === CONST.INBOX_TAB.ALL) {
         return reportIDs;
@@ -1513,14 +1518,38 @@ function filterReportsForInboxTab(reportIDs: string[], reportsToDisplay: Reports
 
         switch (activeTab) {
             case CONST.INBOX_TAB.TODO:
-                // Reports with an outstanding GBR (requiresAttention) or RBR (errors) require the user's action.
-                return !!report.requiresAttention || !!report.hasErrorsOtherThanFailedReceipt;
+                return getIsTodoReportForInboxTab(report);
             case CONST.INBOX_TAB.UNREAD:
                 return !!report.isUnreadReport;
             default:
                 return true;
         }
     });
+}
+
+/** Counts how many of the ordered reports fall into each Inbox tab, for the count shown next to each tab label. */
+function getInboxTabCounts(reportIDs: string[], reportsToDisplay: ReportsToDisplayInLHN): Record<ValueOf<typeof CONST.INBOX_TAB>, number> {
+    let todoCount = 0;
+    let unreadCount = 0;
+
+    for (const reportID of reportIDs) {
+        const report = reportsToDisplay[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+        if (!report) {
+            continue;
+        }
+        if (getIsTodoReportForInboxTab(report)) {
+            todoCount++;
+        }
+        if (report.isUnreadReport) {
+            unreadCount++;
+        }
+    }
+
+    return {
+        [CONST.INBOX_TAB.ALL]: reportIDs.length,
+        [CONST.INBOX_TAB.TODO]: todoCount,
+        [CONST.INBOX_TAB.UNREAD]: unreadCount,
+    };
 }
 
 // Exported for unit testing only. Do not use directly in production code.
@@ -1540,4 +1569,5 @@ export default {
     updateReportsToDisplayInLHN,
     shouldDisplayReportInLHN,
     filterReportsForInboxTab,
+    getInboxTabCounts,
 };

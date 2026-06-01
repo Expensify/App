@@ -17,6 +17,7 @@ jest.mock('@libs/SidebarUtils', () => ({
     getReportsToDisplayInLHN: jest.fn(),
     updateReportsToDisplayInLHN: jest.fn(),
     filterReportsForInboxTab: jest.fn((reportIDs: string[]) => reportIDs),
+    getInboxTabCounts: jest.fn(() => ({})),
 }));
 jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRouteWithoutParams: jest.fn(() => ''),

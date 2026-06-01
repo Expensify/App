@@ -9,13 +9,15 @@ import CONST from '@src/CONST';
 
 function InboxTabSelector() {
     const {translate} = useLocalize();
-    const {activeTab} = useSidebarOrderedReportsState();
+    const {activeTab, inboxTabCounts} = useSidebarOrderedReportsState();
     const {setActiveTab} = useSidebarOrderedReportsActions();
 
+    const getBadgeText = (count: number) => (count > 0 ? count.toString() : undefined);
+
     const tabs: TabSelectorBaseItem[] = [
-        {key: CONST.INBOX_TAB.ALL, title: translate('inboxTabs.all')},
-        {key: CONST.INBOX_TAB.TODO, title: translate('inboxTabs.todo')},
-        {key: CONST.INBOX_TAB.UNREAD, title: translate('inboxTabs.unread')},
+        {key: CONST.INBOX_TAB.ALL, title: translate('inboxTabs.all'), badgeText: getBadgeText(inboxTabCounts[CONST.INBOX_TAB.ALL])},
+        {key: CONST.INBOX_TAB.TODO, title: translate('inboxTabs.todo'), badgeText: getBadgeText(inboxTabCounts[CONST.INBOX_TAB.TODO])},
+        {key: CONST.INBOX_TAB.UNREAD, title: translate('inboxTabs.unread'), badgeText: getBadgeText(inboxTabCounts[CONST.INBOX_TAB.UNREAD])},
     ];
 
     return (

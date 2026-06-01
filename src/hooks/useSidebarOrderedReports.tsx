@@ -36,6 +36,7 @@ type SidebarOrderedReportsStateContextValue = {
     currentReportID: string | undefined;
     chatTabBrickRoad: BrickRoad;
     activeTab: ValueOf<typeof CONST.INBOX_TAB>;
+    inboxTabCounts: Record<ValueOf<typeof CONST.INBOX_TAB>, number>;
 };
 
 type SidebarOrderedReportsActionsContextValue = {
@@ -51,6 +52,11 @@ const SidebarOrderedReportsStateContext = createContext<SidebarOrderedReportsSta
     currentReportID: '',
     chatTabBrickRoad: undefined,
     activeTab: CONST.INBOX_TAB.ALL,
+    inboxTabCounts: {
+        [CONST.INBOX_TAB.ALL]: 0,
+        [CONST.INBOX_TAB.TODO]: 0,
+        [CONST.INBOX_TAB.UNREAD]: 0,
+    },
 });
 
 const SidebarOrderedReportsActionsContext = createContext<SidebarOrderedReportsActionsContextValue>({
@@ -298,6 +304,9 @@ function SidebarOrderedReportsContextProvider({
     // returns everything (still honoring Most Recent / Focus mode from the ordering above).
     const filteredReportIDs = useMemo(() => SidebarUtils.filterReportsForInboxTab(orderedReportIDs, reportsToDisplayInLHN, activeTab), [orderedReportIDs, reportsToDisplayInLHN, activeTab]);
 
+    // The count shown in each tab's badge, derived from the full "All" set (not the currently filtered view).
+    const inboxTabCounts = useMemo(() => SidebarUtils.getInboxTabCounts(orderedReportIDs, reportsToDisplayInLHN), [orderedReportIDs, reportsToDisplayInLHN]);
+
     // Get the actual reports based on the filtered IDs
     const getOrderedReports = useCallback(
         (reportIDs: string[]): OnyxTypes.Report[] => {
@@ -347,6 +356,7 @@ function SidebarOrderedReportsContextProvider({
                 currentReportID: derivedCurrentReportID,
                 chatTabBrickRoad: getChatTabBrickRoad(updatedReportIDs, reportAttributes),
                 activeTab,
+                inboxTabCounts,
             };
         }
 
@@ -356,6 +366,7 @@ function SidebarOrderedReportsContextProvider({
             currentReportID: derivedCurrentReportID,
             chatTabBrickRoad: getChatTabBrickRoad(orderedReportIDs, reportAttributes),
             activeTab,
+            inboxTabCounts,
         };
     }, [
         getOrderedReportIDs,
@@ -367,6 +378,7 @@ function SidebarOrderedReportsContextProvider({
         orderedReports,
         reportAttributes,
         activeTab,
+        inboxTabCounts,
         reportsToDisplayInLHN,
     ]);
 
