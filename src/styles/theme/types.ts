@@ -47,6 +47,7 @@ type ThemeColors = {
     transparent: Color;
     signInPage: Color;
     darkSupportingText: Color;
+    receiptPlaceholderPlus: Color;
 
     // Additional keys
     overlay: Color;
@@ -119,7 +120,7 @@ type ThemeColors = {
     trialTimer: Color;
 
     reportStatusBadge: Record<
-        'draft' | 'outstanding' | 'paid' | 'approved' | 'closed' | 'deleted',
+        'draft' | 'outstanding' | 'paid' | 'approved' | 'closed' | 'deleted' | 'unreported',
         {
             backgroundColor: Color;
             textColor: Color;

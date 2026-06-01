@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -25,6 +25,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
+import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
@@ -64,7 +65,8 @@ function WorkspaceTaxesPage({
 }: WorkspaceTaxesPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.taxes');
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const [selectedTaxesIDs, setSelectedTaxesIDs] = useState<string[]>([]);
@@ -249,10 +251,7 @@ function WorkspaceTaxesPage({
         }
         deletePolicyTaxes(policy, selectedTaxesIDs, localeCompare);
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            setSelectedTaxesIDs([]);
-        });
+        setSelectedTaxesIDs([]);
     }, [policy, selectedTaxesIDs, localeCompare]);
 
     const toggleTaxes = useCallback(
@@ -353,7 +352,7 @@ function WorkspaceTaxesPage({
     );
 
     const headerButtons = !shouldShowBulkActionsButton ? (
-        <View style={[styles.w100, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
+        <View style={[!isInLandscapeMode && styles.w100, styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
             {!hasAccountingConnections && (
                 <Button
                     success
@@ -361,7 +360,7 @@ function WorkspaceTaxesPage({
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.ADD_BUTTON}
                     icon={icons.Plus}
                     text={translate('workspace.taxes.addRate')}
-                    style={[shouldUseNarrowLayout && styles.flex1]}
+                    style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
                 />
             )}
             <ButtonWithDropdownMenu
@@ -383,7 +382,7 @@ function WorkspaceTaxesPage({
             customText={translate('workspace.common.selected', {count: selectedTaxesIDs.length})}
             shouldAlwaysShowDropdownMenu
             isSplitButton={false}
-            style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+            style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
             isDisabled={!selectedTaxesIDs.length}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.BULK_ACTIONS_DROPDOWN}
         />
@@ -405,7 +404,7 @@ function WorkspaceTaxesPage({
                     <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.taxes.subtitle')}</Text>
                 )}
             </View>
-            {taxesList.length > CONST.SEARCH_ITEM_LIMIT && (
+            {taxesList.length >= CONST.STANDARD_LIST_ITEM_LIMIT && (
                 <SearchBar
                     label={translate('workspace.taxes.findTaxRate')}
                     inputValue={inputValue}
@@ -444,9 +443,9 @@ function WorkspaceTaxesPage({
                         Navigation.goBack();
                     }}
                 >
-                    {!shouldUseNarrowLayout && headerButtons}
+                    {!shouldDisplayButtonsInSeparateLine && headerButtons}
                 </HeaderWithBackButton>
-                {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
+                {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -460,15 +459,15 @@ function WorkspaceTaxesPage({
                     selectedItems={selectedTaxesIDs}
                     onSelectRow={navigateToEditTaxRate}
                     canSelectMultiple={canSelectMultiple}
+                    selectAllAccessibilityLabel={translate('accessibilityHints.selectAllTaxes')}
                     onTurnOnSelectionMode={(item) => item && toggleTax(item)}
                     onSelectAll={filteredTaxesList.length > 0 ? toggleAllTaxes : undefined}
                     onDismissError={(item) => (item.keyForList ? clearTaxRateError(policyID, item.keyForList, item.pendingAction) : undefined)}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                    shouldUseDefaultRightHandSideCheckmark={false}
                     customListHeader={getCustomListHeader()}
                     customListHeaderContent={headerContent}
                     shouldShowListEmptyContent={false}
-                    onCheckboxPress={toggleTax}
+                    onSelectionButtonPress={toggleTax}
                     showScrollIndicator={false}
                     turnOnSelectionModeOnLongPress
                     shouldHeaderBeInsideList

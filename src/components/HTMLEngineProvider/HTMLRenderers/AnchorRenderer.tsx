@@ -130,7 +130,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             // a new window. On Desktop this means that we will
             // skip the default Save As... download prompt
             // and defer to whatever browser the user has.
-            // eslint-disable-next-line react/jsx-props-no-multi-spaces
+
             target={htmlAttribs.target || '_blank'}
             rel={htmlAttribs.rel || 'noopener noreferrer'}
             style={[
@@ -147,7 +147,6 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             key={key}
             // Only pass the press handler for internal links. For public links or whitelisted internal links fallback to default link handling
             onPress={onLinkPress}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...bind}
             linkHasImage={linkHasImage}
         >

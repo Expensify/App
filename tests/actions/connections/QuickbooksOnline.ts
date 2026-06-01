@@ -1,12 +1,11 @@
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as API from '@libs/API';
 import type {WriteCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
-import {updateQuickbooksOnlineSyncReimbursedReports} from '@src/libs/actions/connections/QuickbooksOnline';
+import {updateQuickbooksOnlineSyncReimbursedReports, updateQuickbooksOnlineTravelInvoicingPayableAccount} from '@src/libs/actions/connections/QuickbooksOnline';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy as PolicyType} from '@src/types/onyx';
 import type {QBOConnectionConfig} from '@src/types/onyx/Policy';
@@ -157,6 +156,39 @@ describe('actions/connections/QuickbooksOnline', () => {
             const configUpdate = getRequiredQuickBooksConfig(optimisticUpdate);
             expect(configUpdate[CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID]).toBeNull();
             expect(configUpdate[CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID]).toBeNull();
+        });
+    });
+
+    describe('updateQuickbooksOnlineTravelInvoicingPayableAccount', () => {
+        beforeEach(() => {
+            writeSpy.mockClear();
+        });
+
+        it('writes the UpdateQuickbooksOnlineTravelInvoicingPayableAccount command with the account ID', () => {
+            updateQuickbooksOnlineTravelInvoicingPayableAccount(MOCK_POLICY_ID, MOCK_ACCOUNT_ID, MOCK_OLD_ACCOUNT_ID);
+
+            const {command} = getFirstWriteCall();
+            expect(command).toBe(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_PAYABLE_ACCOUNT);
+
+            const call = writeSpy.mock.calls.at(0);
+            const params = call?.[1] as {policyID: string; settingValue: string; idempotencyKey: string};
+            expect(params.policyID).toBe(MOCK_POLICY_ID);
+            expect(params.settingValue).toBe(MOCK_ACCOUNT_ID);
+            expect(params.idempotencyKey).toBe(String(CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT));
+        });
+
+        it('updates travelInvoicingPayableAccountID optimistically and reverts to the old value on failure', () => {
+            updateQuickbooksOnlineTravelInvoicingPayableAccount(MOCK_POLICY_ID, MOCK_ACCOUNT_ID, MOCK_OLD_ACCOUNT_ID);
+
+            const {onyxData} = getFirstWriteCall();
+            const optimisticUpdate = onyxData?.optimisticData?.at(0);
+            const optimisticConfig = getRequiredQuickBooksConfig(optimisticUpdate);
+            expect(optimisticConfig[CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]).toBe(MOCK_ACCOUNT_ID);
+            expect(optimisticConfig.pendingFields?.[CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            const failureUpdate = onyxData?.failureData?.at(0);
+            const failureConfig = getRequiredQuickBooksConfig(failureUpdate);
+            expect(failureConfig[CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]).toBe(MOCK_OLD_ACCOUNT_ID);
         });
     });
 });

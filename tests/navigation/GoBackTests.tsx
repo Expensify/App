@@ -14,7 +14,6 @@ jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 jest.mock('@libs/getIsNarrowLayout', () => jest.fn());
 
 jest.mock('@pages/inbox/sidebar/NavigationTabBarAvatar');
-jest.mock('@src/components/Navigation/TopLevelNavigationTabBar');
 
 const mockedGetIsNarrowLayout = getIsNarrowLayout as jest.MockedFunction<typeof getIsNarrowLayout>;
 const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
@@ -35,16 +34,28 @@ describe('Go back on the narrow layout', () => {
                         index: 0,
                         routes: [
                             {
-                                name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
+                                name: NAVIGATORS.TAB_NAVIGATOR,
                                 state: {
-                                    index: 1,
+                                    index: 3,
                                     routes: [
+                                        {name: SCREENS.HOME},
+                                        {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+                                        {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
                                         {
-                                            name: SCREENS.SETTINGS.ROOT,
+                                            name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
+                                            state: {
+                                                index: 1,
+                                                routes: [
+                                                    {
+                                                        name: SCREENS.SETTINGS.ROOT,
+                                                    },
+                                                    {
+                                                        name: SCREENS.SETTINGS.PROFILE.ROOT,
+                                                    },
+                                                ],
+                                            },
                                         },
-                                        {
-                                            name: SCREENS.SETTINGS.PROFILE.ROOT,
-                                        },
+                                        {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
                                     ],
                                 },
                             },
@@ -53,7 +64,8 @@ describe('Go back on the narrow layout', () => {
                 />,
             );
 
-            const settingsSplitBeforeGoBack = navigationRef.current?.getRootState().routes.at(0);
+            const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
+            const settingsSplitBeforeGoBack = tabState?.routes.at(3);
             expect(settingsSplitBeforeGoBack?.state?.index).toBe(1);
             expect(settingsSplitBeforeGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.PROFILE.ROOT);
 
@@ -63,7 +75,8 @@ describe('Go back on the narrow layout', () => {
             });
 
             // Then pop the last screen from the navigation state
-            const settingsSplitAfterGoBack = navigationRef.current?.getRootState().routes.at(0);
+            const tabStateAfter = navigationRef.current?.getRootState().routes.at(0)?.state;
+            const settingsSplitAfterGoBack = tabStateAfter?.routes.at(3);
             expect(settingsSplitAfterGoBack?.state?.index).toBe(0);
             expect(settingsSplitAfterGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.ROOT);
         });
@@ -78,19 +91,31 @@ describe('Go back on the narrow layout', () => {
                         index: 0,
                         routes: [
                             {
-                                name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
+                                name: NAVIGATORS.TAB_NAVIGATOR,
                                 state: {
-                                    index: 2,
+                                    index: 3,
                                     routes: [
+                                        {name: SCREENS.HOME},
+                                        {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+                                        {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
                                         {
-                                            name: SCREENS.SETTINGS.ROOT,
+                                            name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
+                                            state: {
+                                                index: 2,
+                                                routes: [
+                                                    {
+                                                        name: SCREENS.SETTINGS.ROOT,
+                                                    },
+                                                    {
+                                                        name: SCREENS.SETTINGS.PROFILE.ROOT,
+                                                    },
+                                                    {
+                                                        name: SCREENS.SETTINGS.PREFERENCES.ROOT,
+                                                    },
+                                                ],
+                                            },
                                         },
-                                        {
-                                            name: SCREENS.SETTINGS.PROFILE.ROOT,
-                                        },
-                                        {
-                                            name: SCREENS.SETTINGS.PREFERENCES.ROOT,
-                                        },
+                                        {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
                                     ],
                                 },
                             },
@@ -99,7 +124,8 @@ describe('Go back on the narrow layout', () => {
                 />,
             );
 
-            const settingsSplitBeforeGoBack = navigationRef.current?.getRootState().routes.at(0);
+            const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
+            const settingsSplitBeforeGoBack = tabState?.routes.at(3);
             expect(settingsSplitBeforeGoBack?.state?.index).toBe(2);
             expect(settingsSplitBeforeGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.PREFERENCES.ROOT);
 
@@ -109,7 +135,8 @@ describe('Go back on the narrow layout', () => {
             });
 
             // Then pop to the fallbackRoute
-            const settingsSplitAfterGoBack = navigationRef.current?.getRootState().routes.at(0);
+            const tabStateAfter = navigationRef.current?.getRootState().routes.at(0)?.state;
+            const settingsSplitAfterGoBack = tabStateAfter?.routes.at(3);
             expect(settingsSplitAfterGoBack?.state?.index).toBe(0);
             expect(settingsSplitAfterGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.ROOT);
         });
@@ -122,16 +149,28 @@ describe('Go back on the narrow layout', () => {
                         index: 0,
                         routes: [
                             {
-                                name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
+                                name: NAVIGATORS.TAB_NAVIGATOR,
                                 state: {
-                                    index: 1,
+                                    index: 3,
                                     routes: [
+                                        {name: SCREENS.HOME},
+                                        {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+                                        {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
                                         {
-                                            name: SCREENS.SETTINGS.ROOT,
+                                            name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
+                                            state: {
+                                                index: 1,
+                                                routes: [
+                                                    {
+                                                        name: SCREENS.SETTINGS.ROOT,
+                                                    },
+                                                    {
+                                                        name: SCREENS.SETTINGS.PROFILE.ROOT,
+                                                    },
+                                                ],
+                                            },
                                         },
-                                        {
-                                            name: SCREENS.SETTINGS.PROFILE.ROOT,
-                                        },
+                                        {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
                                     ],
                                 },
                             },
@@ -140,7 +179,8 @@ describe('Go back on the narrow layout', () => {
                 />,
             );
 
-            const settingsSplitBeforeGoBack = navigationRef.current?.getRootState().routes.at(0);
+            const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
+            const settingsSplitBeforeGoBack = tabState?.routes.at(3);
             expect(settingsSplitBeforeGoBack?.state?.index).toBe(1);
             expect(settingsSplitBeforeGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.PROFILE.ROOT);
 
@@ -150,51 +190,65 @@ describe('Go back on the narrow layout', () => {
             });
 
             // Then replace the current page with the page passed as a fallbackRoute
-            const settingsSplitAfterGoBack = navigationRef.current?.getRootState().routes.at(0);
+            const tabStateAfter = navigationRef.current?.getRootState().routes.at(0)?.state;
+            const settingsSplitAfterGoBack = tabStateAfter?.routes.at(3);
             expect(settingsSplitAfterGoBack?.state?.index).toBe(1);
             expect(settingsSplitAfterGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.ABOUT);
         });
 
         it('Should go back to the page from the previous split navigator', () => {
             // Given the initialized navigation on the narrow layout with reports and settings pages
+            // In the new tab structure, both navigators are tabs. The active tab is reports (index 1).
+            // Settings tab has its own state.
             render(
                 <TestNavigationContainer
                     initialState={{
-                        index: 1,
+                        index: 0,
                         routes: [
                             {
-                                name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
+                                name: NAVIGATORS.TAB_NAVIGATOR,
                                 state: {
-                                    index: 2,
+                                    index: 1,
                                     routes: [
+                                        {name: SCREENS.HOME},
                                         {
-                                            name: SCREENS.SETTINGS.ROOT,
+                                            name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                                            state: {
+                                                index: 2,
+                                                routes: [
+                                                    {
+                                                        name: SCREENS.INBOX,
+                                                    },
+                                                    {
+                                                        name: SCREENS.REPORT,
+                                                        params: {reportID: '1'},
+                                                    },
+                                                    {
+                                                        name: SCREENS.REPORT,
+                                                        params: {reportID: '2'},
+                                                    },
+                                                ],
+                                            },
                                         },
+                                        {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
                                         {
-                                            name: SCREENS.SETTINGS.PROFILE.ROOT,
+                                            name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
+                                            state: {
+                                                index: 2,
+                                                routes: [
+                                                    {
+                                                        name: SCREENS.SETTINGS.ROOT,
+                                                    },
+                                                    {
+                                                        name: SCREENS.SETTINGS.PROFILE.ROOT,
+                                                    },
+                                                    {
+                                                        name: SCREENS.SETTINGS.PREFERENCES.ROOT,
+                                                    },
+                                                ],
+                                            },
                                         },
-                                        {
-                                            name: SCREENS.SETTINGS.PREFERENCES.ROOT,
-                                        },
-                                    ],
-                                },
-                            },
-                            {
-                                name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
-                                state: {
-                                    index: 2,
-                                    routes: [
-                                        {
-                                            name: SCREENS.INBOX,
-                                        },
-                                        {
-                                            name: SCREENS.REPORT,
-                                            params: {reportID: '1'},
-                                        },
-                                        {
-                                            name: SCREENS.REPORT,
-                                            params: {reportID: '2'},
-                                        },
+                                        {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
                                     ],
                                 },
                             },
@@ -204,71 +258,85 @@ describe('Go back on the narrow layout', () => {
             );
 
             const rootStateBeforeGoBack = navigationRef.current?.getRootState();
-            expect(rootStateBeforeGoBack?.index).toBe(1);
-            expect(rootStateBeforeGoBack?.routes.at(-1)?.name).toBe(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+            const tabStateBeforeGoBack = rootStateBeforeGoBack?.routes.at(0)?.state;
+            const activeTabBeforeGoBack = tabStateBeforeGoBack?.routes.at(tabStateBeforeGoBack?.index ?? 0);
+            expect(activeTabBeforeGoBack?.name).toBe(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
 
             // When go back to the page present in the previous split navigator
             act(() => {
                 Navigation.goBack(ROUTES.SETTINGS);
             });
 
-            // Then pop the current split navigator
+            // In the tab navigator, goBack with a cross-tab fallback route uses jumpTo
+            // to switch to the target tab (settings).
             const rootStateAfterGoBack = navigationRef.current?.getRootState();
-            expect(rootStateAfterGoBack?.index).toBe(0);
-            expect(rootStateAfterGoBack?.routes.at(-1)?.name).toBe(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
+            const tabStateAfterGoBack = rootStateAfterGoBack?.routes.at(0)?.state;
+            const activeTabAfterGoBack = tabStateAfterGoBack?.routes.at(tabStateAfterGoBack?.index ?? 0);
+            expect(activeTabAfterGoBack?.name).toBe(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
         });
 
         it('Should replace the current route with a new split navigator when distance from the fallbackRoute is greater than one split navigator', () => {
             // Given the initialized navigation on the narrow layout
+            // In the new tab structure, the active tab is search (index 2).
             render(
                 <TestNavigationContainer
                     initialState={{
-                        index: 2,
+                        index: 0,
                         routes: [
                             {
-                                name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
+                                name: NAVIGATORS.TAB_NAVIGATOR,
                                 state: {
                                     index: 2,
                                     routes: [
+                                        {name: SCREENS.HOME},
                                         {
-                                            name: SCREENS.SETTINGS.ROOT,
+                                            name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                                            state: {
+                                                index: 2,
+                                                routes: [
+                                                    {
+                                                        name: SCREENS.INBOX,
+                                                    },
+                                                    {
+                                                        name: SCREENS.REPORT,
+                                                        params: {reportID: '1'},
+                                                    },
+                                                    {
+                                                        name: SCREENS.REPORT,
+                                                        params: {reportID: '2'},
+                                                    },
+                                                ],
+                                            },
                                         },
                                         {
-                                            name: SCREENS.SETTINGS.PROFILE.ROOT,
+                                            name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+                                            state: {
+                                                index: 0,
+                                                routes: [
+                                                    {
+                                                        name: SCREENS.SEARCH.ROOT,
+                                                    },
+                                                ],
+                                            },
                                         },
                                         {
-                                            name: SCREENS.SETTINGS.PREFERENCES.ROOT,
+                                            name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
+                                            state: {
+                                                index: 2,
+                                                routes: [
+                                                    {
+                                                        name: SCREENS.SETTINGS.ROOT,
+                                                    },
+                                                    {
+                                                        name: SCREENS.SETTINGS.PROFILE.ROOT,
+                                                    },
+                                                    {
+                                                        name: SCREENS.SETTINGS.PREFERENCES.ROOT,
+                                                    },
+                                                ],
+                                            },
                                         },
-                                    ],
-                                },
-                            },
-                            {
-                                name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
-                                state: {
-                                    index: 2,
-                                    routes: [
-                                        {
-                                            name: SCREENS.INBOX,
-                                        },
-                                        {
-                                            name: SCREENS.REPORT,
-                                            params: {reportID: '1'},
-                                        },
-                                        {
-                                            name: SCREENS.REPORT,
-                                            params: {reportID: '2'},
-                                        },
-                                    ],
-                                },
-                            },
-                            {
-                                name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
-                                state: {
-                                    index: 0,
-                                    routes: [
-                                        {
-                                            name: SCREENS.SEARCH.ROOT,
-                                        },
+                                        {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
                                     ],
                                 },
                             },
@@ -278,18 +346,21 @@ describe('Go back on the narrow layout', () => {
             );
 
             const rootStateBeforeGoBack = navigationRef.current?.getRootState();
-            expect(rootStateBeforeGoBack?.index).toBe(2);
-            expect(rootStateBeforeGoBack?.routes.at(-1)?.name).toBe(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+            const tabStateBeforeGoBack = rootStateBeforeGoBack?.routes.at(0)?.state;
+            const activeTabBeforeGoBack = tabStateBeforeGoBack?.routes.at(tabStateBeforeGoBack?.index ?? 0);
+            expect(activeTabBeforeGoBack?.name).toBe(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
 
             // When go back to the page present in the split navigator that is more than 1 route away
             act(() => {
                 Navigation.goBack(ROUTES.SETTINGS);
             });
 
-            // Then replace the current route with a new split navigator including the target page to avoid losing routes from the navigation state
+            // In the tab navigator, goBack with a cross-tab fallback route uses jumpTo
+            // to switch to the target tab (settings).
             const rootStateAfterGoBack = navigationRef.current?.getRootState();
-            expect(rootStateAfterGoBack?.index).toBe(2);
-            expect(rootStateAfterGoBack?.routes.at(-1)?.name).toBe(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
+            const tabStateAfterGoBack = rootStateAfterGoBack?.routes.at(0)?.state;
+            const activeTabAfterGoBack = tabStateAfterGoBack?.routes.at(tabStateAfterGoBack?.index ?? 0);
+            expect(activeTabAfterGoBack?.name).toBe(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
         });
     });
 
@@ -302,25 +373,37 @@ describe('Go back on the narrow layout', () => {
                         index: 0,
                         routes: [
                             {
-                                name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                                name: NAVIGATORS.TAB_NAVIGATOR,
                                 state: {
-                                    index: 3,
+                                    index: 1,
                                     routes: [
+                                        {name: SCREENS.HOME},
                                         {
-                                            name: SCREENS.INBOX,
+                                            name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                                            state: {
+                                                index: 3,
+                                                routes: [
+                                                    {
+                                                        name: SCREENS.INBOX,
+                                                    },
+                                                    {
+                                                        name: SCREENS.REPORT,
+                                                        params: {reportID: '1'},
+                                                    },
+                                                    {
+                                                        name: SCREENS.REPORT,
+                                                        params: {reportID: '2'},
+                                                    },
+                                                    {
+                                                        name: SCREENS.REPORT,
+                                                        params: {reportID: '3'},
+                                                    },
+                                                ],
+                                            },
                                         },
-                                        {
-                                            name: SCREENS.REPORT,
-                                            params: {reportID: '1'},
-                                        },
-                                        {
-                                            name: SCREENS.REPORT,
-                                            params: {reportID: '2'},
-                                        },
-                                        {
-                                            name: SCREENS.REPORT,
-                                            params: {reportID: '3'},
-                                        },
+                                        {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
+                                        {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
                                     ],
                                 },
                             },
@@ -329,7 +412,8 @@ describe('Go back on the narrow layout', () => {
                 />,
             );
 
-            const reportsSplitBeforeGoBack = navigationRef.current?.getRootState().routes.at(0);
+            const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
+            const reportsSplitBeforeGoBack = tabState?.routes.at(1);
             expect(reportsSplitBeforeGoBack?.state?.index).toBe(3);
             expect(reportsSplitBeforeGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.REPORT);
             expect(reportsSplitBeforeGoBack?.state?.routes.at(-1)?.params).toMatchObject({reportID: '3'});
@@ -340,7 +424,8 @@ describe('Go back on the narrow layout', () => {
             });
 
             // Then pop to the page with matching params
-            const reportsSplitAfterGoBack = navigationRef.current?.getRootState().routes.at(0);
+            const tabStateAfter = navigationRef.current?.getRootState().routes.at(0)?.state;
+            const reportsSplitAfterGoBack = tabStateAfter?.routes.at(1);
             expect(reportsSplitAfterGoBack?.state?.index).toBe(1);
             expect(reportsSplitAfterGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.REPORT);
             expect(reportsSplitAfterGoBack?.state?.routes.at(-1)?.params).toMatchObject({reportID: '1'});
@@ -354,21 +439,33 @@ describe('Go back on the narrow layout', () => {
                         index: 0,
                         routes: [
                             {
-                                name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                                name: NAVIGATORS.TAB_NAVIGATOR,
                                 state: {
-                                    index: 2,
+                                    index: 1,
                                     routes: [
+                                        {name: SCREENS.HOME},
                                         {
-                                            name: SCREENS.INBOX,
+                                            name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                                            state: {
+                                                index: 2,
+                                                routes: [
+                                                    {
+                                                        name: SCREENS.INBOX,
+                                                    },
+                                                    {
+                                                        name: SCREENS.REPORT,
+                                                        params: {reportID: '1'},
+                                                    },
+                                                    {
+                                                        name: SCREENS.REPORT,
+                                                        params: {reportID: '2'},
+                                                    },
+                                                ],
+                                            },
                                         },
-                                        {
-                                            name: SCREENS.REPORT,
-                                            params: {reportID: '1'},
-                                        },
-                                        {
-                                            name: SCREENS.REPORT,
-                                            params: {reportID: '2'},
-                                        },
+                                        {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
+                                        {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
                                     ],
                                 },
                             },
@@ -377,7 +474,8 @@ describe('Go back on the narrow layout', () => {
                 />,
             );
 
-            const reportsSplitBeforeGoBack = navigationRef.current?.getRootState().routes.at(0);
+            const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
+            const reportsSplitBeforeGoBack = tabState?.routes.at(1);
             expect(reportsSplitBeforeGoBack?.state?.index).toBe(2);
             expect(reportsSplitBeforeGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.REPORT);
             expect(reportsSplitBeforeGoBack?.state?.routes.at(-1)?.params).toMatchObject({reportID: '2'});
@@ -388,7 +486,8 @@ describe('Go back on the narrow layout', () => {
             });
 
             // Then replace the current page with the same one with different params
-            const reportsSplitAfterGoBack = navigationRef.current?.getRootState().routes.at(0);
+            const tabStateAfter = navigationRef.current?.getRootState().routes.at(0)?.state;
+            const reportsSplitAfterGoBack = tabStateAfter?.routes.at(1);
             expect(reportsSplitAfterGoBack?.state?.index).toBe(2);
             expect(reportsSplitAfterGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.REPORT);
             expect(reportsSplitAfterGoBack?.state?.routes.at(-1)?.params).toMatchObject({reportID: '3'});
@@ -402,25 +501,37 @@ describe('Go back on the narrow layout', () => {
                         index: 0,
                         routes: [
                             {
-                                name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                                name: NAVIGATORS.TAB_NAVIGATOR,
                                 state: {
-                                    index: 3,
+                                    index: 1,
                                     routes: [
+                                        {name: SCREENS.HOME},
                                         {
-                                            name: SCREENS.INBOX,
+                                            name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                                            state: {
+                                                index: 3,
+                                                routes: [
+                                                    {
+                                                        name: SCREENS.INBOX,
+                                                    },
+                                                    {
+                                                        name: SCREENS.REPORT,
+                                                        params: {reportID: '1'},
+                                                    },
+                                                    {
+                                                        name: SCREENS.REPORT,
+                                                        params: {reportID: '2'},
+                                                    },
+                                                    {
+                                                        name: SCREENS.REPORT,
+                                                        params: {reportID: '3'},
+                                                    },
+                                                ],
+                                            },
                                         },
-                                        {
-                                            name: SCREENS.REPORT,
-                                            params: {reportID: '1'},
-                                        },
-                                        {
-                                            name: SCREENS.REPORT,
-                                            params: {reportID: '2'},
-                                        },
-                                        {
-                                            name: SCREENS.REPORT,
-                                            params: {reportID: '3'},
-                                        },
+                                        {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
+                                        {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
                                     ],
                                 },
                             },
@@ -429,7 +540,8 @@ describe('Go back on the narrow layout', () => {
                 />,
             );
 
-            const reportsSplitBeforeGoBack = navigationRef.current?.getRootState().routes.at(0);
+            const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
+            const reportsSplitBeforeGoBack = tabState?.routes.at(1);
             expect(reportsSplitBeforeGoBack?.state?.index).toBe(3);
             expect(reportsSplitBeforeGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.REPORT);
             expect(reportsSplitBeforeGoBack?.state?.routes.at(-1)?.params).toMatchObject({reportID: '3'});
@@ -440,7 +552,8 @@ describe('Go back on the narrow layout', () => {
             });
 
             // Then do not go back to the page with matching route params, instead replace the current page
-            const reportsSplitAfterGoBack = navigationRef.current?.getRootState().routes.at(0);
+            const tabStateAfter = navigationRef.current?.getRootState().routes.at(0)?.state;
+            const reportsSplitAfterGoBack = tabStateAfter?.routes.at(1);
             expect(reportsSplitAfterGoBack?.state?.index).toBe(3);
             expect(reportsSplitAfterGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.REPORT);
             expect(reportsSplitAfterGoBack?.state?.routes.at(-1)?.params).toMatchObject({reportID: '1'});
@@ -466,21 +579,33 @@ describe('Go back on the wide layout', () => {
                     index: 0,
                     routes: [
                         {
-                            name: NAVIGATORS.WORKSPACE_NAVIGATOR,
+                            name: NAVIGATORS.TAB_NAVIGATOR,
                             state: {
-                                index: 1,
+                                index: 4,
                                 routes: [
+                                    {name: SCREENS.HOME},
+                                    {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+                                    {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                    {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
                                     {
-                                        name: SCREENS.WORKSPACES_LIST,
-                                    },
-                                    {
-                                        name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+                                        name: NAVIGATORS.WORKSPACE_NAVIGATOR,
                                         state: {
-                                            index: 0,
+                                            index: 1,
                                             routes: [
                                                 {
-                                                    name: SCREENS.WORKSPACE.PER_DIEM,
-                                                    params: {policyID: mockedPolicyID, backTo: mockedBackToRoute},
+                                                    name: SCREENS.WORKSPACES_LIST,
+                                                },
+                                                {
+                                                    name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+                                                    state: {
+                                                        index: 0,
+                                                        routes: [
+                                                            {
+                                                                name: SCREENS.WORKSPACE.PER_DIEM,
+                                                                params: {policyID: mockedPolicyID, backTo: mockedBackToRoute},
+                                                            },
+                                                        ],
+                                                    },
                                                 },
                                             ],
                                         },
@@ -495,7 +620,8 @@ describe('Go back on the wide layout', () => {
 
         // Then the backTo params should be preserved in the sidebar route
         const initialRootState = navigationRef.current?.getRootState();
-        const initialWorkspaceNavigator = initialRootState?.routes.at(0);
+        const tabState = initialRootState?.routes.at(0)?.state;
+        const initialWorkspaceNavigator = tabState?.routes.at(4);
         const workspacesNavRoutes = initialWorkspaceNavigator?.state?.routes ?? [];
         const workspaceSplitNavigator = workspacesNavRoutes.find((route) => route.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
         const initialSplitRoutes = workspaceSplitNavigator?.state?.routes ?? [];

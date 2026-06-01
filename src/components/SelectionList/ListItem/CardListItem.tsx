@@ -2,7 +2,6 @@ import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
-import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -16,8 +15,8 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {BankIcon} from '@src/types/onyx/Bank';
-import BaseListItem from './BaseListItem';
-import type {BaseListItemProps, ListItem} from './types';
+import SelectableListItem from './SelectableListItem';
+import type {ListItem, SelectableListItemProps} from './types';
 
 type AdditionalCardProps = {
     shouldShowOwnersAvatar?: boolean;
@@ -28,16 +27,21 @@ type AdditionalCardProps = {
     cardName?: string;
     plaidUrl?: string;
 };
-type CardListItemProps<TItem extends ListItem> = BaseListItemProps<TItem & AdditionalCardProps>;
+type CardListItemProps<TItem extends ListItem> = SelectableListItemProps<TItem & AdditionalCardProps>;
 
+/**
+ * A row with a bank/card icon (or owner avatar with card miniature), card name, and last-four
+ * subtitle. Used in card selection and filtering (e.g. search filters, spend rules).
+ */
 function CardListItem<TItem extends ListItem>({
     item,
     isFocused,
+    isFocusVisible,
     showTooltip,
     isDisabled,
     canSelectMultiple,
     onSelectRow,
-    onCheckboxPress,
+    onSelectionButtonPress,
     onDismissError,
     rightHandSideComponent,
     onFocus,
@@ -48,14 +52,6 @@ function CardListItem<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const theme = useTheme();
-
-    const handleCheckboxPress = () => {
-        if (onCheckboxPress) {
-            onCheckboxPress(item);
-        } else {
-            onSelectRow(item);
-        }
-    };
 
     const ownersAvatar = {
         source: item.cardOwnerPersonalDetails?.avatar ?? icons.FallbackAvatar,
@@ -71,14 +67,16 @@ function CardListItem<TItem extends ListItem>({
         `${item.isVirtual ? ` ${CONST.DOT_SEPARATOR} ${translate('workspace.expensifyCard.virtual')}` : ''}`;
 
     return (
-        <BaseListItem
+        <SelectableListItem
             item={item}
             wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow]}
             isFocused={isFocused}
+            isFocusVisible={isFocusVisible}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
+            onSelectionButtonPress={onSelectionButtonPress}
             onDismissError={onDismissError}
             rightHandSideComponent={rightHandSideComponent}
             errors={item.errors}
@@ -150,7 +148,7 @@ function CardListItem<TItem extends ListItem>({
                             text={Str.removeSMSDomain(item.text ?? '')}
                             style={[
                                 styles.optionDisplayName,
-                                isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                                isFocusVisible ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
                                 item.isBold !== false && styles.sidebarLinkTextBold,
                                 styles.pre,
                                 item.alternateText ? styles.mb1 : null,
@@ -165,18 +163,8 @@ function CardListItem<TItem extends ListItem>({
                         )}
                     </View>
                 </View>
-                {!!canSelectMultiple && !item.isDisabled && (
-                    <Checkbox
-                        shouldSelectOnPressEnter
-                        isChecked={item.isSelected ?? false}
-                        accessibilityLabel={item.text ?? ''}
-                        onPress={handleCheckboxPress}
-                        disabled={!!isDisabled}
-                        style={styles.ml3}
-                    />
-                )}
             </>
-        </BaseListItem>
+        </SelectableListItem>
     );
 }
 

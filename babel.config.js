@@ -130,6 +130,9 @@ const metro = {
         production: {
             plugins: [['transform-remove-console', {exclude: ['error', 'warn']}]],
         },
+        test: {
+            plugins: ['@babel/plugin-transform-dynamic-import'],
+        },
     },
 };
 

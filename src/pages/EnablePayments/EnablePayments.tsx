@@ -19,6 +19,7 @@ import AddBankAccount from './AddBankAccount/AddBankAccount';
 import FailedKYC from './FailedKYC';
 import FeesAndTerms from './FeesAndTerms/FeesAndTerms';
 import PersonalInfo from './PersonalInfo/PersonalInfo';
+import useHasFreshWalletData from './useHasFreshWalletData';
 import VerifyIdentity from './VerifyIdentity/VerifyIdentity';
 
 function EnablePaymentsPage() {
@@ -30,6 +31,8 @@ function EnablePaymentsPage() {
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const paymentCardList = fundList ?? {};
 
+    const hasFreshData = useHasFreshWalletData(isOffline, userWallet?.isLoading);
+
     useEffect(() => {
         if (isOffline) {
             return;
@@ -39,7 +42,7 @@ function EnablePaymentsPage() {
     }, [isOffline]);
 
     const isUserWalletEmpty = isEmptyObject(userWallet);
-    if (isUserWalletEmpty || userWallet?.isLoading) {
+    if (isUserWalletEmpty || userWallet?.isLoading || (!hasFreshData && !isOffline)) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {
             context: 'EnablePaymentsPage',
             isUserWalletEmpty,

@@ -51,7 +51,7 @@ on:
 jobs:
   build:
     name: Build iOS HybridApp
-    runs-on: macos-15-xlarge
+    runs-on: blacksmith-12vcpu-macos-latest
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
       PULL_REQUEST_NUMBER: ${{ inputs.pull-request-number }}
@@ -64,8 +64,7 @@ jobs:
       SOURCEMAP_FILENAME: main.jsbundle.map
     steps:
       - name: Checkout
-        # v6
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           submodules: true
           ref: ${{ inputs.ref }}

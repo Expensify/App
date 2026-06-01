@@ -4,7 +4,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import type {CustomListSelectorType} from '@pages/workspace/accounting/netsuite/types';
@@ -55,7 +55,7 @@ function NetSuiteCustomListSelectorModal({isVisible, currentCustomListValue, onC
 
         return {
             options: isEmpty ? [] : filteredCustomLists,
-            showTextInput: customListData.length > CONST.STANDARD_LIST_ITEM_LIMIT,
+            showTextInput: customListData.length >= CONST.STANDARD_LIST_ITEM_LIMIT,
         };
     }, [debouncedSearchValue, rawCustomLists, currentCustomListValue]);
 
@@ -92,7 +92,7 @@ function NetSuiteCustomListSelectorModal({isVisible, currentCustomListValue, onC
                     data={options}
                     textInputOptions={textInputOptions}
                     onSelectRow={onCustomListSelected}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     initiallyFocusedItemKey={currentCustomListValue}
                     shouldSingleExecuteRowSelect
                     shouldStopPropagation

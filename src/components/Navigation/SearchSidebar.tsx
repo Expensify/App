@@ -1,7 +1,7 @@
 import type {ParamListBase} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsActions, useSearchResultsContext} from '@components/Search/SearchContext';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -10,8 +10,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import SearchTypeMenuWide from '@pages/Search/SearchTypeMenuWide';
 import SCREENS from '@src/SCREENS';
-import NavigationTabBar from './NavigationTabBar';
-import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
 import TopBar from './TopBar';
 
 type SearchSidebarProps = {
@@ -26,8 +24,9 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const route = state.routes.at(-1);
-    const {lastSearchType, currentSearchResults, currentSearchQueryJSON} = useSearchStateContext();
-    const {setLastSearchType} = useSearchActionsContext();
+    const {lastSearchType, currentSearchResults} = useSearchResultsContext();
+    const {currentSearchQueryJSON} = useSearchQueryContext();
+    const {setLastSearchType} = useSearchResultsActions();
 
     const searchType = currentSearchResults?.search?.type;
     const isSearchLoading = currentSearchResults?.search?.isLoading;
@@ -57,7 +56,6 @@ function SearchSidebar({state}: SearchSidebarProps) {
                 />
                 <SearchTypeMenuWide queryJSON={currentSearchQueryJSON} />
             </View>
-            <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />
         </View>
     );
 }

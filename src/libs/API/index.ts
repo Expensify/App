@@ -4,13 +4,14 @@ import type {SetRequired} from 'type-fest';
 import {resolveDuplicationConflictAction, resolveEnableFeatureConflicts} from '@libs/actions/RequestConflictUtils';
 import type {AnyRequestMatcher, EnablePolicyFeatureCommand} from '@libs/actions/RequestConflictUtils';
 import Log from '@libs/Log';
-import {FailureTracking, handleDeletedAccount, HandleUnusedOptimisticID, Logging, Pagination, Reauthentication, SaveResponseInOnyx, SupportalPermission} from '@libs/Middleware';
+import {FailureTracking, handleDeletedAccount, HandleUnusedOptimisticID, LoadTest, Logging, Pagination, Reauthentication, SaveResponseInOnyx, SupportalPermission} from '@libs/Middleware';
 import FraudMonitoring from '@libs/Middleware/FraudMonitoring';
 import SentryServerTiming from '@libs/Middleware/SentryServerTiming';
 import {push as pushToSequentialQueue, waitForIdle as waitForSequentialQueueIdle} from '@libs/Network/SequentialQueue';
 import {getIsOffline} from '@libs/NetworkState';
 import Pusher from '@libs/Pusher';
 import {addMiddleware, processWithMiddleware} from '@libs/Request';
+import sanitizeLogParams from '@libs/sanitizeLogParams';
 import {getAll, getLength as getPersistedRequestsLength} from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
 import type OnyxRequest from '@src/types/onyx/Request';
@@ -25,6 +26,9 @@ import {READ_COMMANDS} from './types';
 
 // Logging - Logs request details and errors.
 addMiddleware(Logging);
+
+// Duplicates API calls (tagged with mockRequest=true) when the server sends load-test parameters via the X-Load-Test response header.
+addMiddleware(LoadTest);
 
 // FailureTracking - Observes request outcomes and feeds them to FailureTracker for sustained failure detection.
 addMiddleware(FailureTracking);
@@ -57,6 +61,10 @@ addMiddleware(FraudMonitoring);
 // Each tab has its own JS context with its own counter, so a simple
 // incrementing number would collide across tabs.
 let requestIndex = Date.now();
+
+function buildLogParams(command: string, params: Record<string, unknown>): Record<string, unknown> {
+    return {command, ...Object.fromEntries(Object.entries(sanitizeLogParams(params)))};
+}
 
 /**
  * Prepare the request to be sent. Bind data together with request metadata and apply optimistic Onyx data.
@@ -165,7 +173,7 @@ function write<TCommand extends WriteCommand, TKey extends OnyxKey>(
     onyxData: OnyxData<TKey> = {},
     conflictResolver: RequestConflictResolver<TKey> = {},
 ): Promise<void | Response<TKey>> {
-    Log.info('[API] Called API write', false, {command, ...apiCommandParameters});
+    Log.info('[API] Called API write', false, buildLogParams(command, apiCommandParameters ?? {}));
     const request = prepareRequest(command, CONST.API_REQUEST_TYPE.WRITE, apiCommandParameters, onyxData, conflictResolver);
 
     return processRequest(request, CONST.API_REQUEST_TYPE.WRITE);
@@ -217,7 +225,7 @@ function makeRequestWithSideEffects<TCommand extends SideEffectRequestCommand, T
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
     onyxData: OnyxData<TKey> = {},
 ): Promise<void | Response<TKey>> {
-    Log.info('[API] Called API makeRequestWithSideEffects', false, {command, ...apiCommandParameters});
+    Log.info('[API] Called API makeRequestWithSideEffects', false, buildLogParams(command, apiCommandParameters ?? {}));
     const request = prepareRequest(command, CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS, apiCommandParameters, onyxData);
 
     // Return a promise containing the response from HTTPS
@@ -243,7 +251,7 @@ function read<TCommand extends ReadCommand>(command: TCommand, apiCommandParamet
 function read<TCommand extends ReadCommand, TKey extends OnyxKey>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand], onyxData: OnyxData<TKey>): void;
 
 function read<TCommand extends ReadCommand, TKey extends OnyxKey>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand], onyxData: OnyxData<TKey> = {}): void {
-    Log.info('[API] Called API.read', false, {command, ...apiCommandParameters});
+    Log.info('[API] Called API.read', false, buildLogParams(command, apiCommandParameters ?? {}));
 
     // Apply optimistic updates of read requests immediately
     const request = prepareRequest(command, CONST.API_REQUEST_TYPE.READ, apiCommandParameters, onyxData);
@@ -287,13 +295,11 @@ function paginate<TRequestType extends ApiRequestType, TCommand extends CommandO
     config: PaginationConfig,
     conflictResolver: RequestConflictResolver<TKey> = {},
 ): Promise<Response<TKey> | void> | void {
-    Log.info('[API] Called API.paginate', false, {command, ...apiCommandParameters});
+    Log.info('[API] Called API.paginate', false, buildLogParams(command, apiCommandParameters ?? {}));
     const request: PaginatedRequest<TKey> = {
         ...prepareRequest(command, type, apiCommandParameters, onyxData, conflictResolver),
         ...config,
-        ...{
-            isPaginated: true,
-        },
+        isPaginated: true,
     };
 
     switch (type) {

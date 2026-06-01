@@ -1,10 +1,11 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -35,8 +36,8 @@ function DynamicQuickbooksExportConfigurationPage({policy}: WithPolicyConnection
     const policyOwner = policy?.owner ?? '';
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const errorFields = qboConfig?.errorFields;
-    const {accountPayable} = policy?.connections?.quickbooksOnline?.data ?? {};
-    const travelPayableAccount = accountPayable?.find((account) => account.id === qboConfig?.travelInvoicingPayableAccountID);
+    const {creditCards} = policy?.connections?.quickbooksOnline?.data ?? {};
+    const travelPayableAccount = creditCards?.find((account) => account.id === qboConfig?.travelInvoicingPayableAccountID);
 
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
@@ -48,9 +49,8 @@ function DynamicQuickbooksExportConfigurationPage({policy}: WithPolicyConnection
         [qboConfig?.nonReimbursableExpensesExportDestination],
     );
 
-    const goBack = useCallback(() => {
-        return goBackFromExportConnection(shouldShowVendorMenuItems, backTo);
-    }, [backTo, shouldShowVendorMenuItems]);
+    const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.path);
+    const goBack = () => goBackFromExportConnection(shouldShowVendorMenuItems, backTo, dynamicBackPath);
 
     const menuItems = [
         {
@@ -80,7 +80,7 @@ function DynamicQuickbooksExportConfigurationPage({policy}: WithPolicyConnection
         ...(isTravelInvoicingEnabled
             ? [
                   {
-                      description: translate('workspace.qbo.travelInvoicing'),
+                      description: translate('workspace.common.travelInvoicing'),
                       onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_CONFIGURATION.getRoute(policyID)),
                       title: travelPayableAccount?.name,
                       subscribedSettings: [CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_VENDOR, CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT],

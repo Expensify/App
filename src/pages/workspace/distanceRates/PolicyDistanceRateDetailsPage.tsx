@@ -14,9 +14,11 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolation from '@hooks/useTransactionViolation';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
+import DateUtils from '@libs/DateUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -38,17 +40,18 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
+    const {isBetaEnabled} = usePermissions();
+    const isDateBoundMileageRateEnabled = isBetaEnabled(CONST.BETAS.DATE_BOUND_MILEAGE_RATE);
     const policyID = route.params.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
     const rateID = route.params.rateID;
     const customUnit = useMemo(() => getDistanceRateCustomUnit(policy), [policy]);
     const rate = customUnit?.rates[rateID];
-    const customUnitID = customUnit?.customUnitID;
 
     const policyReportsSelector = useCallback(
         (reports: OnyxCollection<Report>) => {
             return Object.values(reports ?? {}).reduce((reportIDs, report) => {
-                if (report && report.policyID === policyID) {
+                if (report?.policyID === policyID) {
                     reportIDs.add(report.reportID);
                 }
                 return reportIDs;
@@ -65,11 +68,8 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
         (transactions: OnyxCollection<Transaction>) => {
             return Object.values(transactions ?? {}).reduce((transactionIDs, transaction) => {
                 if (
-                    transaction &&
-                    transaction.reportID &&
+                    transaction?.reportID &&
                     policyReports?.has(transaction.reportID) &&
-                    customUnitID &&
-                    transaction?.comment?.customUnit?.customUnitID === customUnitID &&
                     transaction?.comment?.customUnit?.customUnitRateID &&
                     transaction?.comment?.customUnit?.customUnitRateID === rateID
                 ) {
@@ -78,7 +78,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                 return transactionIDs;
             }, new Set<string>());
         },
-        [customUnitID, rateID, policyReports],
+        [rateID, policyReports],
     );
 
     const [eligibleTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
@@ -118,6 +118,12 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
     };
     const editTaxRateValue = () => {
         Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_TAX_RATE_EDIT.getRoute(policyID, rateID));
+    };
+    const editStartDate = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_START_DATE_EDIT.getRoute(policyID, rateID));
+    };
+    const editEndDate = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_END_DATE_EDIT.getRoute(policyID, rateID));
     };
 
     const showWarningModal = () => {
@@ -222,6 +228,38 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                             onPress={editRateValue}
                         />
                     </OfflineWithFeedback>
+                    {isDateBoundMileageRateEnabled && (
+                        <OfflineWithFeedback
+                            errors={getLatestErrorField(rate ?? {}, 'startDate')}
+                            pendingAction={rate?.pendingFields?.startDate}
+                            errorRowStyles={styles.mh5}
+                            onClose={() => clearErrorFields('startDate')}
+                        >
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                title={rate.startDate ? DateUtils.formatToReadableString(rate.startDate) : ''}
+                                description={translate('workspace.distanceRates.startDate')}
+                                descriptionTextStyle={styles.textNormal}
+                                onPress={editStartDate}
+                            />
+                        </OfflineWithFeedback>
+                    )}
+                    {isDateBoundMileageRateEnabled && (
+                        <OfflineWithFeedback
+                            errors={getLatestErrorField(rate ?? {}, 'endDate')}
+                            pendingAction={rate?.pendingFields?.endDate}
+                            errorRowStyles={styles.mh5}
+                            onClose={() => clearErrorFields('endDate')}
+                        >
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                title={rate.endDate ? DateUtils.formatToReadableString(rate.endDate) : ''}
+                                description={translate('workspace.distanceRates.endDate')}
+                                descriptionTextStyle={styles.textNormal}
+                                onPress={editEndDate}
+                            />
+                        </OfflineWithFeedback>
+                    )}
                     {isDistanceTrackTaxEnabled && isPolicyTrackTaxEnabled && (
                         <OfflineWithFeedback
                             errors={getLatestErrorField(rate, 'taxRateExternalID')}

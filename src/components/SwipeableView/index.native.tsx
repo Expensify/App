@@ -22,7 +22,6 @@ function SwipeableView({children, onSwipeDown}: SwipeableViewProps) {
         }),
     ).current;
 
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return <View {...panResponder.panHandlers}>{children}</View>;
 }
 

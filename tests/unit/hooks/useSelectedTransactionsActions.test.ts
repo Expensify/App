@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import {act, renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -72,12 +71,13 @@ const mockSelectedTransactions: SelectedTransactions = {};
 const mockCurrentSearchHash = 12345;
 
 jest.mock('@components/Search/SearchContext', () => ({
-    useSearchStateContext: () => ({
+    useSearchQueryContext: () => ({currentSearchHash: mockCurrentSearchHash}),
+    useSearchResultsContext: () => ({currentSearchResults: undefined}),
+    useSearchSelectionContext: () => ({
         selectedTransactionIDs: mockSelectedTransactionIDs,
-        currentSearchHash: mockCurrentSearchHash,
         selectedTransactions: mockSelectedTransactions,
     }),
-    useSearchActionsContext: () => ({
+    useSearchSelectionActions: () => ({
         clearSelectedTransactions: mockClearSelectedTransactions,
     }),
 }));
@@ -107,12 +107,19 @@ jest.mock('@hooks/usePermissions', () => ({
     }),
 }));
 
-const mockDeleteTransactions = jest.fn(() => []);
+const createDeletedResult = (deletedTransactionThreadReportIDs: string[]) => ({
+    action: 'deleted' as const,
+    deletedTransactionThreadReportIDs,
+});
+type MockDeleteTransactionsResult = ReturnType<typeof createDeletedResult> | {action: 'redirected'};
+const mockDeleteTransactions = jest.fn<MockDeleteTransactionsResult, []>(() => createDeletedResult([]));
+const mockShouldOpenSplitExpenseEditFlowOnDelete = jest.fn(() => false);
 
 jest.mock('@hooks/useDeleteTransactions', () => ({
     __esModule: true,
     default: () => ({
         deleteTransactions: mockDeleteTransactions,
+        shouldOpenSplitExpenseEditFlowOnDelete: mockShouldOpenSplitExpenseEditFlowOnDelete,
     }),
 }));
 
@@ -127,7 +134,6 @@ jest.mock('@hooks/useNetworkWithOfflineStatus', () => ({
 const CURRENT_USER_ACCOUNT_ID = 1;
 const CURRENT_USER_LOGIN = 'test@example.com';
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => ({
         login: CURRENT_USER_LOGIN,
@@ -154,6 +160,7 @@ describe('useSelectedTransactionsActions', () => {
             delete mockSelectedTransactions[key];
         }
         mockIsOffline = false;
+        mockShouldOpenSplitExpenseEditFlowOnDelete.mockReturnValue(false);
     });
 
     afterEach(async () => {
@@ -398,7 +405,7 @@ describe('useSelectedTransactionsActions', () => {
         transaction.transactionID = transactionID;
 
         mockSelectedTransactionIDs.push(transactionID);
-        (mockDeleteTransactions as jest.Mock<string[]>).mockReturnValue(['report1', 'report2']);
+        mockDeleteTransactions.mockReturnValue(createDeletedResult(['report1', 'report2']));
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
@@ -421,6 +428,63 @@ describe('useSelectedTransactionsActions', () => {
         expect(result.current.isDeleteModalVisible).toBe(false);
     });
 
+    it('should show edit split action and delete transactions when deleting redirects to split edit', async () => {
+        const transactionID = '123';
+        const report = createRandomReport(1, undefined);
+        const session: Session = {accountID: 1};
+        const reportActions: ReportAction[] = [
+            {
+                ...createRandomReportAction(1),
+                reportActionID: 'action1',
+                actorAccountID: 1,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: 'iou123',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    transactionID,
+                },
+            },
+        ];
+        const transaction = createRandomTransaction(1);
+        transaction.transactionID = transactionID;
+        transaction.reportID = report.reportID;
+
+        mockSelectedTransactionIDs.push(transactionID);
+        mockShouldOpenSplitExpenseEditFlowOnDelete.mockReturnValue(true);
+        mockDeleteTransactions.mockReturnValue({action: 'redirected'});
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+
+        jest.spyOn(require('@libs/ReportUtils'), 'canDeleteCardTransactionByLiabilityType').mockReturnValue(true);
+        jest.spyOn(require('@libs/ReportUtils'), 'canDeleteTransaction').mockReturnValue(true);
+        jest.spyOn(require('@libs/ReportActionsUtils'), 'isDeletedAction').mockReturnValue(false);
+        jest.spyOn(require('@libs/ReportActionsUtils'), 'getIOUActionForTransactionID').mockReturnValue(reportActions.at(0) as OnyxEntry<ReportAction>);
+
+        const {result} = renderHook(() =>
+            useSelectedTransactionsActions({
+                report,
+                reportActions,
+                allTransactionsLength: 1,
+                session,
+                beginExportWithTemplate: mockBeginExportWithTemplate,
+            }),
+        );
+
+        await waitFor(() => {
+            expect(result.current.options.length).toBeGreaterThan(0);
+        });
+
+        const deleteOption = result.current.options.find((option) => option.value === CONST.REPORT.SECONDARY_ACTIONS.DELETE);
+        expect(deleteOption).toBeDefined();
+        expect(deleteOption?.text).toBe('iou.editSplits');
+
+        const clearSelectedTransactionsCallsBeforeSelection = mockClearSelectedTransactions.mock.calls.length;
+        deleteOption?.onSelected?.();
+
+        expect(mockDeleteTransactions).toHaveBeenCalledWith([transactionID], mockDuplicateTransactions, mockDuplicateTransactionViolations, undefined, false);
+        expect(mockClearSelectedTransactions.mock.calls.length).toBe(clearSelectedTransactionsCallsBeforeSelection);
+    });
+
     it('should pass currentSearchHash to delete transactions when on search', async () => {
         const transactionID = '123';
         const report = createRandomReport(1, undefined);
@@ -429,7 +493,7 @@ describe('useSelectedTransactionsActions', () => {
         transaction.transactionID = transactionID;
 
         mockSelectedTransactionIDs.push(transactionID);
-        (mockDeleteTransactions as jest.Mock<string[]>).mockReturnValue(['report1']);
+        mockDeleteTransactions.mockReturnValue(createDeletedResult(['report1']));
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
@@ -624,7 +688,7 @@ describe('useSelectedTransactionsActions', () => {
 
         unholdOption?.onSelected?.();
 
-        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123', undefined, false);
+        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123', undefined, false, CURRENT_USER_LOGIN, CURRENT_USER_ACCOUNT_ID);
         expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
     });
 
@@ -678,7 +742,7 @@ describe('useSelectedTransactionsActions', () => {
 
         unholdOption?.onSelected?.();
 
-        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123', undefined, true);
+        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123', undefined, true, CURRENT_USER_LOGIN, CURRENT_USER_ACCOUNT_ID);
         expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
     });
 
