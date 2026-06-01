@@ -508,10 +508,13 @@ function SearchList({
                 const containerItem = item as GroupChildrenContainerItemType;
                 const originalKey = (item.keyForList ?? '').replace('children_', '');
                 const containerNewTransactionID = item.keyForList ? newTransactionIDByItemKey.get(originalKey) : undefined;
+                const isContainerSelected =
+                    !!containerItem.isSelected || (containerItem.transactions.length > 0 && containerItem.transactions.every((t) => selectedTransactions[t.transactionID]?.isSelected));
                 return (
                     <GroupChildrenContainer
                         item={containerItem}
                         isExpanded={expandedGroups.has(originalKey)}
+                        isSelected={isContainerSelected}
                         groupBy={groupBy}
                         searchType={type}
                         columns={columns}

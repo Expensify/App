@@ -28,6 +28,7 @@ type GroupChildrenContainerProps = {
     nonPersonalAndWorkspaceCards?: CardList;
     onUndelete?: (transaction: Transaction) => void;
     isLastItem?: boolean;
+    isSelected?: boolean;
     newTransactionID?: string;
     allReportMetadata?: OnyxCollection<ReportMetadata>;
     bankAccountList?: OnyxEntry<BankAccountList>;
@@ -48,6 +49,7 @@ function GroupChildrenContainer({
     nonPersonalAndWorkspaceCards,
     onUndelete,
     isLastItem,
+    isSelected,
     newTransactionID,
     allReportMetadata,
     bankAccountList,
@@ -100,7 +102,7 @@ function GroupChildrenContainer({
     }
 
     return (
-        <View style={[styles.mh5, {backgroundColor: theme.highlightBG}, isLastItem && [styles.tableBottomRadius, styles.overflowHidden]]}>
+        <View style={[styles.mh5, {backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG}, isLastItem && [styles.tableBottomRadius, styles.overflowHidden]]}>
             <Animated.View style={contentAnimatedStyle}>
                 {(isExpanded || isRendered) && (
                     <Animated.View
@@ -112,11 +114,6 @@ function GroupChildrenContainer({
                             }
                         }}
                     >
-                        {!isLargeScreenWidth && (
-                            <View style={styles.ph3}>
-                                <View style={styles.borderBottom} />
-                            </View>
-                        )}
                         <GroupChildrenContent
                             item={item}
                             isExpanded={isExpanded}

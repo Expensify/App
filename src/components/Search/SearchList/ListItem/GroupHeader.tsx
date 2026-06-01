@@ -373,7 +373,6 @@ function GroupHeader({
         isLargeScreenWidth && {
             ...styles.tableRowHeight,
             borderRadius: 0,
-            paddingVertical: variables.tableGroupRowPaddingVertical,
             ...(isLastItemCollapsed ? styles.tableBottomRadius : {}),
         },
         isItemSelected && styles.activeComponentBG,
@@ -456,7 +455,7 @@ function GroupHeader({
                                 </PressableWithFeedback>
                             )}
                         </View>
-                        {isLargeScreenWidth && (
+                        {isLargeScreenWidth && subHeaderColumns.length > 0 && (
                             <Animated.View style={subHeaderAnimatedStyle}>
                                 {(isExpanded || isSubHeaderRendered) && (
                                     <View
@@ -488,7 +487,6 @@ function GroupHeader({
                                                 isActionColumnWide={isSubHeaderActionColumnWide}
                                             />
                                         </View>
-                                        <View style={[StyleUtils.getSelectedBorderBottomStyle(isItemSelected), styles.ml3, styles.mr3, {marginBottom: 1}]} />
                                     </View>
                                 )}
                             </Animated.View>
