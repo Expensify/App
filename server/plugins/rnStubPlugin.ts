@@ -1,5 +1,5 @@
 /*
- * Bun bundler plugin shared by dev.ts and build.ts.
+ * Bun bundler plugin used when bundling the victory-chart-renderer CLI.
  *
  * npm workspaces install victory-native at the App root. Bun would otherwise follow those
  * imports into Flow sources, native bindings, and Metro platform files. The headless chart

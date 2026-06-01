@@ -11,7 +11,7 @@
  */
 import {join, resolve} from 'node:path';
 import CLI from '@scripts/utils/CLI';
-import createRnStubPlugin from './rnStubPlugin';
+import createRnStubPlugin from '../../plugins/rnStubPlugin';
 
 const packageRoot = resolve(import.meta.dir, '..');
 const stubRoot = resolve(packageRoot, '../stubs');

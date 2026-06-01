@@ -14,7 +14,7 @@
 import {spawnSync} from 'node:child_process';
 import {mkdirSync} from 'node:fs';
 import {join, resolve} from 'node:path';
-import createRnStubPlugin from './rnStubPlugin';
+import createRnStubPlugin from '../../plugins/rnStubPlugin';
 
 const packageRoot = resolve(import.meta.dir, '..');
 const repoRoot = resolve(packageRoot, '../..');
