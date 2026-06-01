@@ -984,10 +984,6 @@ type GetReportNameParams = {
     // TODO: Make this required when https://github.com/Expensify/App/issues/66411 is done
     /** Used to identify the Concierge chat so its name can be set to the Concierge display name */
     conciergeReportID?: string;
-    /** The transaction linked to the report action */
-    transaction?: OnyxEntry<Transaction>;
-    /** The report that the transaction belongs to */
-    transactionReport?: OnyxEntry<Report>;
 };
 
 type GetReportStatusParams = {
