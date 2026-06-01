@@ -12694,14 +12694,7 @@ describe('ReportUtils', () => {
             await Onyx.clear();
         });
 
-        test('uses transactionReport param instead of Onyx state when provided', async () => {
-            const onyxReport: Report = {
-                ...createRandomReport(100, undefined),
-                reportName: 'Onyx Report',
-                type: CONST.REPORT.TYPE.EXPENSE,
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, onyxReport);
-
+        test('uses report param when provided', async () => {
             const transaction: Transaction = {
                 ...createRandomTransaction(1),
                 reportID: mockReportID,
@@ -12714,16 +12707,14 @@ describe('ReportUtils', () => {
                 translate: translateLocal,
                 reportAction: undefined,
                 transactions: [transaction],
-                transactionReport: mockTransactionReport,
+                report: mockTransactionReport,
             });
 
             expect(result).toBeDefined();
             expect(typeof result).toBe('string');
         });
 
-        test('falls back to Onyx state when transactionReport is not provided', async () => {
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockTransactionReport);
-
+        test('handles undefined report param', () => {
             const transaction: Transaction = {
                 ...createRandomTransaction(1),
                 reportID: mockReportID,
@@ -12780,7 +12771,7 @@ describe('ReportUtils', () => {
             expect(result).toBe(translateLocal('parentReportAction.deletedExpense'));
         });
 
-        test('uses reports array as searchReports when transactionReport is not provided', () => {
+        test('uses report param from caller', () => {
             const transaction: Transaction = {
                 ...createRandomTransaction(1),
                 reportID: mockReportID,
@@ -12793,7 +12784,7 @@ describe('ReportUtils', () => {
                 translate: translateLocal,
                 reportAction: undefined,
                 transactions: [transaction],
-                reports: [mockTransactionReport],
+                report: mockTransactionReport,
             });
 
             expect(result).toBeDefined();
