@@ -20,7 +20,7 @@ import type {
     ReportExportParams,
     SubmitReportParams,
 } from '@libs/API/parameters';
-import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
@@ -303,13 +303,13 @@ function getPayActionCallback(
     const amount = Math.abs((snapshotReport?.total ?? 0) - (snapshotReport?.nonReimbursableTotal ?? 0));
 
     if (lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-        payMoneyRequestOnSearch(hash, [{reportID: item.reportID, amount, paymentType: lastPolicyPaymentMethod}], currentSearchKey);
+        payFromSearch(hash, item.reportID, snapshotReport?.chatReportID ?? '', amount, lastPolicyPaymentMethod, false, undefined, undefined, currentSearchKey);
         return;
     }
 
     const hasVBBA = !!snapshotPolicy?.achAccount?.bankAccountID;
     if (hasVBBA) {
-        payMoneyRequestOnSearch(hash, [{reportID: item.reportID, amount, paymentType: lastPolicyPaymentMethod}], currentSearchKey);
+        payFromSearch(hash, item.reportID, snapshotReport?.chatReportID ?? '', amount, lastPolicyPaymentMethod, false, undefined, undefined, currentSearchKey);
         return;
     }
 
@@ -856,20 +856,32 @@ function exportToIntegrationOnSearch(hash: number, reportIDs: string[], connecti
     API.write(WRITE_COMMANDS.REPORT_EXPORT, params, {optimisticData, successData, failureData, finallyData});
 }
 
-function payMoneyRequestOnSearch(hash: number, paymentData: PaymentData[], currentSearchKey?: SearchKey) {
+function payFromSearch(
+    hash: number,
+    reportID: string,
+    chatReportID: string,
+    amount: number,
+    paymentType: PaymentMethodType,
+    isInvoice: boolean,
+    invoiceParams: {policyID?: string; payAsBusiness?: boolean; bankAccountID?: number; fundID?: number} | undefined,
+    bankAccountID: number | undefined,
+    currentSearchKey: SearchKey | undefined,
+) {
+    const reportActionID = rand64();
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE>> = [
         {
-            onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
-            key: ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
-            value: Object.fromEntries(paymentData.map((item) => [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${item.reportID}`, {isActionLoading: true}])),
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`,
+            value: {isActionLoading: true},
         },
     ];
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
         {
-            onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
-            key: ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
-            value: Object.fromEntries(paymentData.map((item) => [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${item.reportID}`, {isActionLoading: false}])),
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`,
+            value: {isActionLoading: false},
         },
     ];
 
@@ -878,38 +890,52 @@ function payMoneyRequestOnSearch(hash: number, paymentData: PaymentData[], curre
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-            value: {
-                data: Object.fromEntries(paymentData.map((item) => [`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`, null])),
-            },
+            value: {data: {[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: null}},
         });
     }
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
-            onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
-            key: ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
-            value: Object.fromEntries(paymentData.map((item) => [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${item.reportID}`, {isActionLoading: false}])),
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`,
+            value: {isActionLoading: false},
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
-            key: ONYXKEYS.COLLECTION.REPORT,
-            value: Object.fromEntries(
-                paymentData.map((item) => [`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`, {errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')}]),
-            ),
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
         },
     ];
 
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(
-        SIDE_EFFECT_REQUEST_COMMANDS.PAY_MONEY_REQUEST_ON_SEARCH,
-        {hash, paymentData: JSON.stringify(paymentData)},
-        {optimisticData, failureData, successData},
-    ).then((response) => {
-        if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-            return;
-        }
-        playSound(SOUNDS.SUCCESS);
-    });
+    if (isInvoice) {
+        API.write(
+            WRITE_COMMANDS.PAY_INVOICE,
+            {
+                reportID,
+                reportActionID,
+                paymentMethodType: paymentType,
+                payAsBusiness: invoiceParams?.payAsBusiness ?? false,
+                bankAccountID: invoiceParams?.bankAccountID,
+                fundID: invoiceParams?.fundID,
+                policyID: invoiceParams?.policyID,
+            },
+            {optimisticData, successData, failureData},
+        );
+    } else if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+        API.write(
+            WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET,
+            {iouReportID: reportID, chatReportID, reportActionID, paymentMethodType: paymentType, full: true, amount},
+            {optimisticData, successData, failureData},
+        );
+    } else {
+        API.write(
+            WRITE_COMMANDS.PAY_MONEY_REQUEST,
+            {iouReportID: reportID, chatReportID, reportActionID, paymentMethodType: paymentType, full: true, amount, bankAccountID},
+            {optimisticData, successData, failureData},
+        );
+    }
+
+    playSound(SOUNDS.SUCCESS);
 }
 
 function bulkDeleteReports({
@@ -1588,7 +1614,7 @@ export {
     clearAdvancedFilters,
     setSearchContext,
     deleteSavedSearch,
-    payMoneyRequestOnSearch,
+    payFromSearch,
     approveMoneyRequestOnSearch,
     handleActionButtonPress,
     submitMoneyRequestOnSearch,
