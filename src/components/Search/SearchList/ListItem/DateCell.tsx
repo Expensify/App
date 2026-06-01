@@ -15,7 +15,7 @@ type DateCellProps = {
     suffixText?: string;
 } & EditableProps<string>;
 
-function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, canEdit, onSave, onPress}: DateCellProps) {
+function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, canEdit, onSave}: DateCellProps) {
     const styles = useThemeStyles();
     const {isInNarrowPaneModal} = useResponsiveLayout();
     const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing, handleSave} = usePopoverEditState({
@@ -40,7 +40,6 @@ function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, canEdit, o
             canEdit={canEdit}
             isEditing={isEditing}
             onStartEditing={startEditing}
-            onPress={onPress}
             anchorRef={anchorRef}
             popoverContent={
                 <DatePickerModal

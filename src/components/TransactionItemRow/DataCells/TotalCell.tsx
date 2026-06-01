@@ -36,7 +36,7 @@ function getTransactionItemIouType(transactionItem: TransactionItem) {
     return isSplitTransaction ? CONST.IOU.TYPE.SPLIT : CONST.IOU.TYPE.SUBMIT;
 }
 
-function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, onPress, report, policy}: TotalCellProps) {
+function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report, policy}: TotalCellProps) {
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -144,7 +144,6 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, onPress
             canEdit={canEdit}
             isEditing={isEditing}
             onStartEditing={handleStartEditing}
-            onPress={onPress}
             editContent={
                 <MoneyRequestAmountInput
                     ref={focusOnMount}

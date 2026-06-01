@@ -1,5 +1,3 @@
-import type {GestureResponderEvent} from 'react-native';
-
 /**
  * Shared props for all inline-editable table cells.
  *
@@ -15,9 +13,6 @@ type EditableProps<T> = {
 
     /** Called with the new value when the user commits an edit. */
     onSave?: (value: T) => void;
-
-    /** Called on a single press of the cell — opens the expense/report. Double press enters edit mode instead. */
-    onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
 };
 
 // eslint-disable-next-line import/prefer-default-export -- Intentional single named type export for consistency with other `types.ts` files.

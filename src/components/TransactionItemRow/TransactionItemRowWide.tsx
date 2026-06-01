@@ -168,7 +168,6 @@ function TransactionItemRowWide({
                             shouldUseNarrowLayout={false}
                             canEdit={canEditTag}
                             onSave={onEditTag}
-                            onPress={onArrowRightPress}
                             policyID={effectivePolicyID}
                         />
                     </View>
@@ -183,7 +182,6 @@ function TransactionItemRowWide({
                             canEdit={canEditDate}
                             date={createdAt}
                             onSave={onEditDate}
-                            onPress={onArrowRightPress}
                             showTooltip={shouldShowTooltip}
                             isLargeScreenWidth
                         />
@@ -253,7 +251,6 @@ function TransactionItemRowWide({
                             shouldUseNarrowLayout={false}
                             canEdit={canEditCategory}
                             onSave={onEditCategory}
-                            onPress={onArrowRightPress}
                             policyID={effectivePolicyID}
                         />
                     </View>
@@ -310,7 +307,6 @@ function TransactionItemRowWide({
                             shouldUseNarrowLayout={false}
                             canEdit={canEditMerchant}
                             onSave={onEditMerchant}
-                            onPress={onArrowRightPress}
                         />
                     </View>
                 );
@@ -327,7 +323,6 @@ function TransactionItemRowWide({
                             isDescription
                             canEdit={canEditDescription}
                             onSave={onEditDescription}
-                            onPress={onArrowRightPress}
                         />
                     </View>
                 );
@@ -420,7 +415,6 @@ function TransactionItemRowWide({
                             shouldUseNarrowLayout={false}
                             canEdit={canEditAmount}
                             onSave={onEditAmount}
-                            onPress={onArrowRightPress}
                             report={report}
                             policy={policy}
                         />
