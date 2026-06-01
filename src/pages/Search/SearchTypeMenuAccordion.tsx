@@ -59,7 +59,7 @@ function AnimatedBadge({text, isExpanded}: AnimatedBadgeProps) {
     }));
 
     return (
-        <Animated.View style={[styles.searchTypeMenuAccessoryBox, badgeAnimatedStyle]}>
+        <Animated.View style={badgeAnimatedStyle}>
             <Badge
                 text={text}
                 badgeStyles={[styles.searchSectionBadge, styles.ml0]}
