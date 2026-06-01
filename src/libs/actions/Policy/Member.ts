@@ -930,7 +930,7 @@ function addMembersToWorkspace(
     policyMemberAccountIDs: number[],
     role: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    currentUserAccountID: number,
+    currentUser: CurrentUser,
     approverEmail?: string,
     // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
     reportActionsList?: OnyxCollection<ReportActions>,
@@ -945,7 +945,7 @@ function addMembersToWorkspace(
         policyMemberAccountIDs,
         role,
         formatPhoneNumber,
-        {accountID: currentUserAccountID},
+        currentUser,
         approverEmail,
         undefined,
         reportActionsList,
