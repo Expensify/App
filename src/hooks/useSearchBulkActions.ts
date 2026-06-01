@@ -35,6 +35,7 @@ import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {getSecondaryExportReportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
@@ -282,6 +283,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {isBetaEnabled} = usePermissions();
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const undeleteTransactions = useUndeleteTransactions();
@@ -902,7 +904,15 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         );
                         return;
                     }
-                    const invite = moveIOUReportToPolicyAndInviteSubmitter(itemReport, adminPolicy, formatPhoneNumber, policyExpenseChatReportActions, accountID, reportTransactions);
+                    const invite = moveIOUReportToPolicyAndInviteSubmitter(
+                        itemReport,
+                        adminPolicy,
+                        formatPhoneNumber,
+                        policyExpenseChatReportActions,
+                        accountID,
+                        getLoginByAccountID(itemReport?.ownerAccountID, personalDetails),
+                        reportTransactions,
+                    );
                     if (!invite?.policyExpenseChatReportID) {
                         moveIOUReportToPolicy(itemReport, adminPolicy, false, reportTransactions);
                     }
@@ -969,6 +979,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             formatPhoneNumber,
             clearSelectedTransactions,
             accountID,
+            personalDetails,
         ],
     );
 
