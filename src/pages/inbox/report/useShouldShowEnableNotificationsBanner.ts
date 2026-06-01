@@ -1,32 +1,43 @@
 import {useEffect, useState} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import NotificationPermission from '@libs/Notification/notificationPermission';
 import type {NotificationPermissionStatus} from '@libs/Notification/notificationPermission/types';
 import {isConciergeChatReport} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report} from '@src/types/onyx';
 
-function useShouldShowEnableNotificationsBanner(reportID: string | undefined): boolean {
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
+function useShouldShowEnableNotificationsBanner(report: OnyxEntry<Report>): boolean {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [hasDismissed] = useOnyx(ONYXKEYS.RAM_ONLY_HAS_DISMISSED_CONCIERGE_NOTIFICATION_BANNER);
     const [permissionStatus, setPermissionStatus] = useState<NotificationPermissionStatus | undefined>();
 
-    const isConcierge = !!reportID && isConciergeChatReport(report, conciergeReportID);
+    const isConcierge = isConciergeChatReport(report, conciergeReportID);
 
     useEffect(() => {
         if (!isConcierge || hasDismissed) {
             return;
         }
         let isMounted = true;
-        NotificationPermission.getStatus().then((status) => {
-            if (!isMounted) {
-                return;
-            }
-            setPermissionStatus(status);
-        });
+        const checkStatus = () => {
+            NotificationPermission.getStatus().then((status) => {
+                if (!isMounted) {
+                    return;
+                }
+                setPermissionStatus(status);
+            });
+        };
+        checkStatus();
+        // Permission can change in the browser's site settings while the tab stays open, so re-probe on focus.
+        const canListen = typeof window !== 'undefined' && typeof window.addEventListener === 'function';
+        if (canListen) {
+            window.addEventListener('focus', checkStatus);
+        }
         return () => {
             isMounted = false;
+            if (canListen) {
+                window.removeEventListener('focus', checkStatus);
+            }
         };
     }, [isConcierge, hasDismissed]);
 

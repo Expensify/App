@@ -75,7 +75,7 @@ function ReportFooter() {
 
     const isUserPolicyAdmin = policyRole === CONST.POLICY.ROLE.ADMIN;
     const isArchivedRoom = isArchivedNonExpenseReport(report, isReportArchived);
-    const shouldShowEnableNotificationsBanner = useShouldShowEnableNotificationsBanner(reportIDFromRoute);
+    const shouldShowEnableNotificationsBanner = useShouldShowEnableNotificationsBanner(report);
 
     const shouldShowComposerOptimistically = !isAnonymousUser && isPublicRoom(report) && !!isLoadingInitialReportActions;
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived) ?? shouldShowComposerOptimistically;
