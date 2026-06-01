@@ -67,9 +67,9 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
     const cardBank = card?.bank ?? '';
     const isCardBroken = card ? isCardConnectionBroken(card) : false;
     const isUserPersonalCard = !!(card && isPersonalCard(card));
-    // A personal card always belongs to the current user, but CSV-imported personal cards don't have a valid accountID,
-    // so resolve the cardholder from the current user's personal details to avoid falling back to "Hidden".
-    const cardholder = isUserPersonalCard ? currentUserPersonalDetails : personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
+    // Personal cards always belong to the current user, so fall back to the current user's personal details
+    // when the accountID-based lookup doesn't resolve (e.g. an optimistic card created without an accountID).
+    const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID] ?? (isUserPersonalCard ? currentUserPersonalDetails : undefined);
     const displayName = getDisplayNameOrDefault(cardholder);
     const reimbursableSetting = card?.reimbursable ?? true;
     const isCSVImportedPersonalCard = !!(isUserPersonalCard && card && (card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)));

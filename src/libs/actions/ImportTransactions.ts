@@ -16,6 +16,14 @@ import type {SavedCSVColumnLayoutData} from '@src/types/onyx/SavedCSVColumnLayou
 import type Transaction from '@src/types/onyx/Transaction';
 import {getImportFailedFinalModal, getImportFinalModalID, getImportFinalModalOnyxData, waitForImportFinalModal} from './ImportSpreadsheet';
 
+let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SESSION,
+    callback: (value) => {
+        currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    },
+});
+
 type TransactionFromCSV = {
     transactionID: string;
     created: string;
@@ -268,6 +276,9 @@ function buildOptimisticCard(cardDisplayName: string): {card: Card; cardID: numb
         cardID,
         card: {
             cardID,
+            // A personal card always belongs to the current (importing) user, so set the accountID optimistically
+            // to keep the cardholder lookup (personalDetails[accountID]) working on the card details page.
+            accountID: currentUserAccountID,
             state: CONST.EXPENSIFY_CARD.STATE.OPEN,
             // Use the CSV bank name constant so the card shows up in the Assigned Cards section
             bank: CONST.PERSONAL_CARDS.BANK_NAME.CSV,
