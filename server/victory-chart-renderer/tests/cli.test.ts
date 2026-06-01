@@ -15,7 +15,7 @@ const EXPECTED_HEIGHT = 250;
 // Set `UPDATE_GOLDEN=1` while running the test to refresh the reference PNG.
 // Intentionally separate from the comparison flow so a regression can't quietly
 // rewrite the golden.
-const UPDATE_GOLDEN = process.env.UPDATE_GOLDEN === '1';
+const SHOULD_UPDATE_GOLDEN = process.env.UPDATE_GOLDEN === '1';
 
 test('CLI renders a chart whose PNG matches the golden reference', () => {
     const tempDir = mkdtempSync(join(tmpdir(), 'vcr-smoke-'));
@@ -29,7 +29,7 @@ test('CLI renders a chart whose PNG matches the golden reference', () => {
 
         expect(result.status).toBe(0);
 
-        if (UPDATE_GOLDEN) {
+        if (SHOULD_UPDATE_GOLDEN) {
             copyFileSync(actualPath, goldenPath);
         }
 
