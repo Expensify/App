@@ -51,8 +51,8 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: reportOwnerSelector}, [reportOwnerSelector]);
 
     const participants = getParticipantsAccountIDsForDisplay(report);
-    const participantSelector = useMemo(() => isOptimisticPersonalDetailSelector(participants.at(0) ?? CONST.DEFAULT_NUMBER_ID), [participants]);
-    const [isParticipantOptimistic] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: participantSelector});
+    const firstParticipantAccountID = participants.at(0) ?? CONST.DEFAULT_NUMBER_ID;
+    const [isParticipantOptimistic] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: isOptimisticPersonalDetailSelector(firstParticipantAccountID)});
 
     if (!isChatReport(report)) {
         return null;
