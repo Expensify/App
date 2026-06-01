@@ -67,6 +67,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
     const cardBank = card?.bank ?? '';
     const isCardBroken = card ? isCardConnectionBroken(card) : false;
     const isUserPersonalCard = !!(card && isPersonalCard(card));
+
     // Personal cards always belong to the current user, so fall back to the current user's personal details
     // if the personal details list doesn't yet have an entry for the card's accountID.
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID] ?? (isUserPersonalCard ? currentUserPersonalDetails : undefined);
