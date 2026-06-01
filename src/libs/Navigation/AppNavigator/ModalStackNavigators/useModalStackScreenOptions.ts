@@ -7,6 +7,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import enhanceCardStyleInterpolator from '@libs/Navigation/AppNavigator/enhanceCardStyleInterpolator';
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
+import RHP_WEB_TRANSITION_SPEC from '@libs/Navigation/AppNavigator/RHPTransitionSpec';
 import useModalCardStyleInterpolator from '@libs/Navigation/AppNavigator/useModalCardStyleInterpolator';
 import type {PlatformStackNavigationOptions, PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import CONST from '@src/CONST';
@@ -57,12 +58,7 @@ function useWideModalStackScreenOptions() {
                 web: {
                     cardStyle: styles.navigationScreenCardStyle,
                     cardStyleInterpolator,
-                    transitionSpec: isSmallScreenWidth
-                        ? undefined
-                        : {
-                              open: {animation: 'timing', config: {duration: CONST.MODAL.ANIMATION_TIMING.RHP_DURATION_IN_WEB}},
-                              close: {animation: 'timing', config: {duration: CONST.MODAL.ANIMATION_TIMING.RHP_DURATION_OUT_WEB}},
-                          },
+                    transitionSpec: isSmallScreenWidth ? undefined : RHP_WEB_TRANSITION_SPEC,
                 },
             };
         },

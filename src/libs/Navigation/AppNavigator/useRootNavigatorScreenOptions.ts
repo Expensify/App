@@ -7,6 +7,7 @@ import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOpt
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import CONST from '@src/CONST';
 import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
+import RHP_WEB_TRANSITION_SPEC from './RHPTransitionSpec';
 import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
 import type {EnterAnimation} from './useModalCardStyleInterpolator';
 
@@ -49,12 +50,7 @@ const useRootNavigatorScreenOptions = () => {
                         enter: rhpEnter,
                         applySidePanelOffset: true,
                     }),
-                transitionSpec: shouldUseNarrowLayout
-                    ? undefined
-                    : {
-                          open: {animation: 'timing', config: {duration: CONST.MODAL.ANIMATION_TIMING.RHP_DURATION_IN_WEB}},
-                          close: {animation: 'timing', config: {duration: CONST.MODAL.ANIMATION_TIMING.RHP_DURATION_OUT_WEB}},
-                      },
+                transitionSpec: shouldUseNarrowLayout ? undefined : RHP_WEB_TRANSITION_SPEC,
             },
         },
         basicModalNavigator: {
