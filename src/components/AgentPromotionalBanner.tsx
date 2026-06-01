@@ -39,7 +39,7 @@ type AgentPromotionalBannerProps = {
 function AgentPromotionalBanner({title, subtitle, onDismiss, dismissSentryLabel, ctaText, onCtaPress, ctaSentryLabel, style}: AgentPromotionalBannerProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const illustrations = useMemoizedLazyIllustrations(['AiBot']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close']);
 
@@ -67,7 +67,7 @@ function AgentPromotionalBanner({title, subtitle, onDismiss, dismissSentryLabel,
         if (!hasCta) {
             return null;
         }
-        if (shouldUseNarrowLayout) {
+        if (shouldUseNarrowLayout && !isInLandscapeMode) {
             return (
                 <View style={[styles.flex0, styles.flexBasis100, styles.maxWidth100Percentage, styles.justifyContentCenter]}>
                     <Button
@@ -89,7 +89,7 @@ function AgentPromotionalBanner({title, subtitle, onDismiss, dismissSentryLabel,
                 sentryLabel={ctaSentryLabel}
             />
         );
-    }, [hasCta, shouldUseNarrowLayout, ctaText, onCtaPress, ctaSentryLabel, styles]);
+    }, [hasCta, shouldUseNarrowLayout, isInLandscapeMode, ctaText, onCtaPress, ctaSentryLabel, styles]);
 
     return (
         <View style={style}>
