@@ -38,7 +38,6 @@ import {
     buildOptimisticIOUReportAction,
     generateReportID,
     getParsedComment,
-    getReimbursableTotal,
     getReportTransactions,
     hasHeldExpenses,
     isExpenseReport,
@@ -301,8 +300,7 @@ function getPayActionCallback(
         return;
     }
 
-    // Prefer the freshly computed reimbursableTotal over deriving from the (sometimes stale) stored total.
-    const amount = Math.abs(getReimbursableTotal(snapshotReport));
+    const amount = Math.abs((snapshotReport?.total ?? 0) - (snapshotReport?.nonReimbursableTotal ?? 0));
 
     if (lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
         payMoneyRequestOnSearch(hash, [{reportID: item.reportID, amount, paymentType: lastPolicyPaymentMethod}], currentSearchKey);
@@ -1105,8 +1103,16 @@ function rejectMoneyRequestsOnSearch(
         } else {
             // Share a single destination ID across all rejections from the same source report
             const sharedRejectedToReportID = generateReportID();
+            let existingRejectedReport: OnyxEntry<Report>;
+            const setExistingRejectedReport = (nextRejectedReport: OnyxEntry<Report>) => {
+                existingRejectedReport = nextRejectedReport;
+            };
             for (const transactionID of selectedTransactionIDs) {
-                rejectMoneyRequest(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, {sharedRejectedToReportID});
+                rejectMoneyRequest(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, {
+                    sharedRejectedToReportID,
+                    existingRejectedReport,
+                    setExistingRejectedReport,
+                });
             }
         }
         if (isSingleReport && areAllExpensesSelected && !isPolicyDelayedSubmissionEnabled) {
@@ -1136,9 +1142,11 @@ function rejectMoneyRequestsOnSearch(
     return urlToNavigateBack;
 }
 
-type Params = Record<string, ExportSearchItemsToCSVParams>;
-
-function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList}: ExportSearchItemsToCSVParams, onDownloadFailed: () => void, translate: LocalizedTranslate) {
+function exportSearchItemsToCSV(
+    {query, jsonQuery, reportIDList, transactionIDList, isBasicExport, exportColumnLabels}: ExportSearchItemsToCSVParams,
+    onDownloadFailed: () => void,
+    translate: LocalizedTranslate,
+) {
     const reportIDSet = new Set<string>();
     const transactionIDSet = new Set(transactionIDList);
     for (const reportID of reportIDList) {
@@ -1169,7 +1177,9 @@ function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDLi
         jsonQuery,
         reportIDList: Array.from(reportIDSet),
         transactionIDList,
-    }) as Params;
+        isBasicExport,
+        exportColumnLabels,
+    });
 
     const formData = new FormData();
     for (const [key, value] of Object.entries(finalParameters)) {
@@ -1183,12 +1193,14 @@ function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDLi
     return fileDownload(translate, getCommandURL({command: WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
-function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList}: ExportSearchItemsToCSVParams) {
-    const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV, {
+function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList, isBasicExport, exportColumnLabels}: ExportSearchItemsToCSVParams) {
+    const finalParameters = enhanceParameters(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, {
         query,
         jsonQuery,
         reportIDList,
         transactionIDList,
+        isBasicExport,
+        exportColumnLabels,
     }) as ExportSearchItemsToCSVParams;
 
     API.write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, finalParameters);
