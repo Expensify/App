@@ -30,7 +30,7 @@ function VictoryChartContainer({children}: {children: React.ReactNode}) {
 
     const containerStyle = useMemo(() => {
         if (hasExplicitDimensions && designHeight) {
-            return [styles.chartContainer, layoutContainerStyles, {borderRadius: 0, height: designHeight * scale, overflow: 'hidden' as const}];
+            return [styles.chartContainer, styles.mw100, layoutContainerStyles, {borderRadius: 0, height: designHeight * scale, overflow: 'hidden' as const}];
         }
         return [styles.chartContainer, styles.mw100, layoutContainerStyles];
     }, [hasExplicitDimensions, designHeight, scale, styles, layoutContainerStyles]);
