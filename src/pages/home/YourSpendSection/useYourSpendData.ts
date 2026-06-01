@@ -132,6 +132,16 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const [approvalSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${approvalQueryJSON?.hash}`);
     const [paymentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${paymentQueryJSON?.hash}`);
 
+    // Signature of the reports the user owns on a paid group workspace that are currently
+    // OUTSTANDING (awaiting approval). The home query results are cached snapshots that are
+    // not patched when a report's state changes, so without this the "Awaiting approval"
+    // total stays stale after the user approves their last outstanding expense. Folding the
+    // signature into the search effect's key refires the search whenever a report enters or
+    // leaves the OUTSTANDING state.
+    const [outstandingReportsSignature] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: (reports) => getOutstandingReportsSignature(reports, paidGroupPolicyIDs, accountID),
+    });
+
     // Memo anchor. The compiler does not auto-cache this call, so without the
     // `useMemo` every downstream value derived from `displayableCards` would
     // get a new identity each render and defeat the compiler's downstream caches.
@@ -297,28 +307,23 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const approvalCountIsMissing = approvalCount === undefined || approvalCount === null;
     const paymentCountIsMissing = paymentCount === undefined || paymentCount === null;
 
+    // Only bridge a wiped/missing count with the cached total while the user still owns an
+    // OUTSTANDING report. An empty signature means nothing is awaiting approval, so the row
+    // must hide immediately after approving the last expense — a zero-result search returns
+    // no count, which would otherwise keep the stale cached total on screen.
     const shouldUseCachedApproval =
         approvalRowStateRaw === YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY &&
         approvalCountIsMissing &&
         approvalSearchResults !== undefined &&
         cachedApprovalReady !== null &&
-        cachedApprovalHash === approvalHash;
+        cachedApprovalHash === approvalHash &&
+        outstandingReportsSignature !== '';
     const shouldUseCachedPayment = paymentRowStateRaw === YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY && paymentCountIsMissing && paymentSearchResults !== undefined && cachedPaymentReady !== null;
 
     const approvalRowState = shouldUseCachedApproval ? YOUR_SPEND_ROW_STATE.READY : approvalRowStateRaw;
     const paymentRowState = shouldUseCachedPayment ? YOUR_SPEND_ROW_STATE.READY : paymentRowStateRaw;
     const approvalTotals: YourSpendRowTotals = shouldUseCachedApproval && cachedApprovalReady ? cachedApprovalReady : approvalTotalsRaw;
     const paymentTotals: YourSpendRowTotals = shouldUseCachedPayment && cachedPaymentReady ? cachedPaymentReady : paymentTotalsRaw;
-
-    // Signature of the reports the user owns on a paid group workspace that are currently
-    // OUTSTANDING (awaiting approval). The home query results are cached snapshots that are
-    // not patched when a report's state changes, so without this the "Awaiting approval"
-    // total stays stale after the user approves their last outstanding expense. Folding the
-    // signature into the search effect's key refires the search whenever a report enters or
-    // leaves the OUTSTANDING state.
-    const [outstandingReportsSignature] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        selector: (reports) => getOutstandingReportsSignature(reports, paidGroupPolicyIDs, accountID),
-    });
 
     // Re-fires the search effect when applicability flips, the user joins/leaves a workspace
     // (which changes the policyID filter), or the set of OUTSTANDING reports changes.

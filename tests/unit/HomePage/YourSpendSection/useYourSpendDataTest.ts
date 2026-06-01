@@ -536,3 +536,60 @@ describe('useYourSpendData — refires search when a relevant report state chang
         expect(approvalSearchCallCount()).toBe(before);
     });
 });
+
+// approval cache is dropped when no outstanding reports remain
+
+describe('useYourSpendData — drops the approval cache when no outstanding reports remain', () => {
+    function makeReport(overrides: Partial<Report> = {}): Report {
+        return {
+            reportID: 'r1',
+            policyID: 'policy_1',
+            ownerAccountID: ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            ...overrides,
+        } as Report;
+    }
+
+    function setupReports(reports: Report[]) {
+        onyxData[ONYXKEYS.COLLECTION.REPORT] = Object.fromEntries(reports.map((r) => [`${ONYXKEYS.COLLECTION.REPORT}${r.reportID}`, r]));
+    }
+
+    // A zero-result search comes back with `count` missing (undefined), not 0.
+    const WIPED_SNAPSHOT = {search: {count: undefined}, data: {}} as unknown as SearchResults;
+
+    beforeEach(() => {
+        mockedIsPaidGroupPolicy.mockReturnValue(true);
+        setupPolicies([makeCorporatePolicy({id: 'policy_1'})]);
+    });
+
+    it('hides the approval row after the last outstanding report is approved', () => {
+        // Outstanding report owned by the user → snapshot READY so the cache fills.
+        setupReports([makeReport()]);
+        setupApprovalSnapshot(makeSearchResultsWithCount(2));
+        const {result, rerender} = renderHook(() => useYourSpendData());
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+
+        // Approve the last report and let the re-fired search return no count. With no
+        // outstanding reports left, the cached total must be dropped and the row hidden.
+        setupReports([makeReport({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED})]);
+        setupApprovalSnapshot(WIPED_SNAPSHOT);
+        rerender(undefined);
+
+        expect(result.current.approvalRowState).not.toBe(YOUR_SPEND_ROW_STATE.READY);
+    });
+
+    it('keeps the approval row via cache when count is wiped but an outstanding report remains', () => {
+        // Original Search-screen wipe scenario: the report stays OUTSTANDING.
+        setupReports([makeReport()]);
+        setupApprovalSnapshot(makeSearchResultsWithCount(2));
+        const {result, rerender} = renderHook(() => useYourSpendData());
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+
+        // Count wiped, but the user still owns an outstanding report → cache bridges the gap.
+        setupApprovalSnapshot(WIPED_SNAPSHOT);
+        rerender(undefined);
+
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+    });
+});
