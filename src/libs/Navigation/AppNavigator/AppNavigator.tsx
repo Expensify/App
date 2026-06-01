@@ -1,5 +1,5 @@
 import React, {lazy, memo, Suspense} from 'react';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import LoadingIndicator from '@components/LoadingIndicator';
 import lazyRetry from '@src/utils/lazyRetry';
 
 const AuthScreens = lazy(() => lazyRetry(() => import(/* webpackChunkName: "authScreens.prefetch" */ './AuthScreens')));
@@ -15,14 +15,14 @@ function AppNavigator({authenticated}: AppNavigatorProps) {
         // Protected screens, only accessible with an authToken. Show a loader (not a blank
         // screen) while the lazy AuthScreens chunk downloads during the sign-in swap.
         return (
-            <Suspense fallback={<FullScreenLoadingIndicator reasonAttributes={{context: 'AppNavigator.AuthScreens'}} />}>
+            <Suspense fallback={<LoadingIndicator reasonAttributes={{context: 'AppNavigator.AuthScreens'}} />}>
                 <AuthScreens />
             </Suspense>
         );
     }
 
     return (
-        <Suspense fallback={<FullScreenLoadingIndicator reasonAttributes={{context: 'AppNavigator.PublicScreens'}} />}>
+        <Suspense fallback={<LoadingIndicator reasonAttributes={{context: 'AppNavigator.PublicScreens'}} />}>
             <PublicScreens />
         </Suspense>
     );
