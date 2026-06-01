@@ -19,11 +19,6 @@ type RNNavBarManagerModule = {
     getType: () => NavigationBarType;
 };
 
-type GpsTripServiceModule = {
-    startService: (title: string, body: string, deepLink: string) => void;
-    stopService: () => void;
-};
-
 type TestToolsBridge = {
     /**
      * "Soft" kills the app so that it can still run in the background
@@ -63,7 +58,6 @@ declare module 'react-native' {
         BootSplash: BootSplashModule;
         RNTextInputReset: RNTextInputResetModule;
         RNNavBarManager: RNNavBarManagerModule;
-        GpsTripServiceModule: GpsTripServiceModule;
         EnvironmentChecker: EnvironmentCheckerModule;
         ShortcutManager: ShortcutManagerModule;
         ShareActionHandler: ShareActionHandlerModule;
