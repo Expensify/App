@@ -22,7 +22,6 @@ import {
     buildTransactionThread,
     canAddTransaction,
     generateReportID,
-    getReimbursableTotal,
     getTransactionDetails,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -215,13 +214,11 @@ function mergeDuplicates({
     }, 0);
 
     const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`];
-    const previousReimbursableTotal = getReimbursableTotal(expenseReport);
     const expenseReportOptimisticData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`,
         value: {
             total: (expenseReport?.total ?? 0) - duplicateTransactionTotals,
-            reimbursableTotal: previousReimbursableTotal - duplicateTransactionTotals,
         },
     };
     const expenseReportFailureData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> = {
@@ -229,7 +226,6 @@ function mergeDuplicates({
         key: `${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`,
         value: {
             total: expenseReport?.total,
-            reimbursableTotal: previousReimbursableTotal,
         },
     };
 
@@ -621,6 +617,15 @@ function buildDuplicateTransactionParams(transaction: OnyxTypes.Transaction, tra
 }
 
 /**
+ * Returns the request type the duplicate should be created with. SCAN sources become MANUAL because
+ * `buildDuplicateTransactionParams` strips the receipt — without one, the duplicate cannot be a scan request.
+ */
+function getDuplicateRequestType(transaction: OnyxTypes.Transaction) {
+    const sourceRequestType = getRequestType(transaction);
+    return sourceRequestType === CONST.IOU.REQUEST_TYPE.SCAN ? CONST.IOU.REQUEST_TYPE.MANUAL : sourceRequestType;
+}
+
+/**
  * Routes a duplicate expense to the correct creation function based on transaction type.
  * Shared between duplicateExpenseTransaction and duplicateReport.
  */
@@ -659,7 +664,13 @@ function createExpenseByType({
                 currentUserLogin: params.currentUserEmailParam,
                 currentUserAccountID: params.currentUserAccountIDParam,
                 existingTransaction: {
-                    ...(params.transactionParams ?? {}),
+                    iouRequestType: getDuplicateRequestType(transaction),
+                    amount: 0,
+                    currency: '',
+                    created: '',
+                    merchant: '',
+                    reportID: '1',
+                    transactionID: '1',
                     comment: {
                         ...transaction.comment,
                         hold: undefined,
@@ -667,10 +678,6 @@ function createExpenseByType({
                         source: undefined,
                         waypoints,
                     },
-                    iouRequestType: getRequestType(transaction),
-                    modifiedCreated: '',
-                    reportID: '1',
-                    transactionID: '1',
                 },
                 transactionParams: {
                     ...(params.transactionParams ?? {}),
@@ -793,6 +800,15 @@ function duplicateExpenseTransaction({
         policyRecentlyUsedCurrencies,
         quickAction,
         existingTransactionDraft,
+        existingTransaction: {
+            iouRequestType: getDuplicateRequestType(transaction),
+            amount: 0,
+            currency: '',
+            created: '',
+            merchant: '',
+            reportID: '1',
+            transactionID: '1',
+        },
         draftTransactionIDs,
         isSelfTourViewed,
         betas,
@@ -809,7 +825,13 @@ function duplicateExpenseTransaction({
                 participant: {accountID: currentUserAccountID, selected: true},
             },
             existingTransaction: {
-                ...(params.transactionParams ?? {}),
+                iouRequestType: getDuplicateRequestType(transaction),
+                amount: 0,
+                currency: '',
+                created: '',
+                merchant: '',
+                reportID: '1',
+                transactionID: '1',
                 comment: {
                     ...transaction.comment,
                     hold: undefined,
@@ -817,10 +839,6 @@ function duplicateExpenseTransaction({
                     source: undefined,
                     waypoints,
                 },
-                iouRequestType: getRequestType(transaction),
-                modifiedCreated: '',
-                reportID: '1',
-                transactionID: '1',
             },
             transactionParams: {
                 ...(params.transactionParams ?? {}),
@@ -987,6 +1005,15 @@ function duplicateReport({
             quickAction,
             policyRecentlyUsedCurrencies,
             existingTransactionDraft: undefined,
+            existingTransaction: {
+                iouRequestType: getDuplicateRequestType(transaction),
+                amount: 0,
+                currency: '',
+                created: '',
+                merchant: '',
+                reportID: '1',
+                transactionID: '1',
+            },
             draftTransactionIDs,
             isSelfTourViewed,
             betas,
