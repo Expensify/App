@@ -4183,7 +4183,7 @@ const translations = {
     documentsStep: {
         beforeYouGo: 'Before you go, we need some documents to verify some things',
         subheader: 'Verification',
-        verificationFailed: "The verification failed, so we'll need some extra documents to verify you and your business",
+        verificationFailed: "The verification failed, so we'll need some extra documents to verify you and your business.",
         taxIDVerification: 'Tax ID Verification',
         taxIDVerificationDescription: dedent(`
             Please upload one of the following files:
@@ -4199,7 +4199,8 @@ const translations = {
             • Bank Statement showing company name and address
             • Current Lease/Rental Agreement including the signature page showing your company name and current address
             • Insurance Statement showing company name and address
-            • TIN assignment doc showing company name and address`),
+            • TIN assignment doc showing company name and address
+            • Business tax return (most current) showing company name and address`),
         userAddressVerification: 'Address verification',
         userAddressVerificationDescription: dedent(`
             Please upload one of the following files:
