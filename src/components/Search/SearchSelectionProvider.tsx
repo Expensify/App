@@ -96,7 +96,6 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
 
     const areTransactionsEmpty = useRef(true);
     const [areAllMatchingItemsSelected, selectAllMatchingItems] = useState(false);
-    const [shouldShowSelectAllMatchingItems, setShouldShowSelectAllMatchingItems] = useState(false);
     const [selectionState, setSelectionState] = useState<SelectionState>(defaultSelectionState);
 
     const currentSearchHashRef = useRef(currentSearchHash);
@@ -185,7 +184,6 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
             };
         });
 
-        setShouldShowSelectAllMatchingItems(false);
         selectAllMatchingItems(false);
     };
 
@@ -225,7 +223,6 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
     const selectionValue: SearchSelectionContextValue = {
         ...selectionState,
         hasSelectedTransactions,
-        shouldShowSelectAllMatchingItems,
         areAllMatchingItemsSelected,
     };
 
@@ -235,7 +232,6 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
         setCurrentSelectedTransactionReportID,
         clearSelectedTransactions,
         removeTransaction,
-        setShouldShowSelectAllMatchingItems,
         selectAllMatchingItems,
     };
 
