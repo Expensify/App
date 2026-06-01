@@ -166,6 +166,7 @@ function IOURequestStepDistance({
         transaction: currentTransaction,
         policy,
         useTransactionDistanceUnit: false,
+        personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
     });
     const distanceUnit = mileageRate.unit;
     const distanceRate = mileageRate.rate ?? 0;
