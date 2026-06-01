@@ -138,7 +138,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
     }, [parentScrollViewRef]);
 
     const handleSave = () => {
-        if (isSaving) {
+        if (isSaving && !isOffline) {
             return;
         }
 
