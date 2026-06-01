@@ -232,6 +232,10 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 tagName: 'victorypie',
                 contentModel: HTMLContentModel.block,
             }),
+            shiftedlinesegment: HTMLElementModel.fromCustomModel({
+                tagName: 'shiftedlinesegment',
+                contentModel: HTMLContentModel.block,
+            }),
         }),
         [
             styles.taskTitleMenuItem,

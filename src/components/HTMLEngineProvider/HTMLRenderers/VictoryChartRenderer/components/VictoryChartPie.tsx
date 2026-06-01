@@ -1,6 +1,6 @@
 import React from 'react';
 import type {TNode} from 'react-native-render-html';
-import {useAmbientTRenderEngine} from 'react-native-render-html';
+import {HTMLContentModel, useAmbientTRenderEngine} from 'react-native-render-html';
 import {Pie} from 'victory-native';
 import VictoryTheme from '@components/Charts/VictoryTheme';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
@@ -19,7 +19,7 @@ const START_ANGLE = 270;
 function VictoryChartPie({tnode}: VictoryChartPieProps) {
     const {data, chartContainerStyles} = useVictoryChartContext();
     const renderEngine = useAmbientTRenderEngine();
-    const labelComponentNode = parseComponent(tnode.attributes.labelcomponent, renderEngine, 'victorylabel');
+    const labelComponentNode = parseComponent(tnode.attributes.labelcomponent, renderEngine, 'victorylabel', HTMLContentModel.textual);
     const baseLabelItem = labelComponentNode ? parseVictoryLabelNode(labelComponentNode).labelItems?.at(0) : undefined;
     const dataLabels = Object.values(data).map((entry) => (entry as PolarChartData).label);
     const pieLabels = parseAttribute<string[]>(tnode.attributes.labels);
@@ -30,8 +30,11 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
     const size = radius ? radius * 2 : undefined;
     const angularStrokeWidth = padAngle && radius ? 2 * convertAngleToArcLength(padAngle, radius) : 0;
     const angularStrokeColor = typeof chartContainerStyles.backgroundColor === 'string' ? chartContainerStyles.backgroundColor : VictoryTheme.colors.default;
+    const labelIndicatorNode = parseComponent(tnode.attributes.labelindicator, renderEngine, 'shiftedlinesegment', HTMLContentModel.block);
     const labelIndicatorInnerOffset = tnode.attributes.labelindicatorinneroffset !== undefined ? Number(parseAttribute(tnode.attributes.labelindicatorinneroffset)) : undefined;
     const labelIndicatorOuterOffset = tnode.attributes.labelindicatorouteroffset !== undefined ? Number(parseAttribute(tnode.attributes.labelindicatorouteroffset)) : undefined;
+
+    console.log({labelIndicatorNode});
 
     return (
         <Pie.Chart
