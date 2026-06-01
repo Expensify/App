@@ -49,7 +49,7 @@ import {
     setWorkspaceReimbursement,
 } from '@libs/actions/Policy/Policy';
 import {dismissProductTraining} from '@libs/actions/Welcome';
-import {selectApprovalWorkflowForEdit, setApprovalWorkflow} from '@libs/actions/Workflow';
+import {clearApprovalWorkflow, selectApprovalWorkflowForEdit, setApprovalWorkflow} from '@libs/actions/Workflow';
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import {getAllCardsForWorkspace, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -506,7 +506,11 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                     onPress={
                                         shouldBlockApprovalWorkflowEditing || !canWriteApprovals
                                             ? undefined
-                                            : () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, workflow.routingFirstApproverEmail))
+                                            : () => {
+                                                  // Discard stale onyx edits or the Edit page's resume check would surface a prior abandoned session.
+                                                  clearApprovalWorkflow();
+                                                  Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, workflow.routingFirstApproverEmail));
+                                              }
                                     }
                                     onShowAllMembersPress={
                                         shouldBlockApprovalWorkflowEditing

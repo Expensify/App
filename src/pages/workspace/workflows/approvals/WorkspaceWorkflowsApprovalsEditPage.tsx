@@ -169,9 +169,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             return clearApprovalWorkflow();
         }
 
-        // Resume after a sub-page round-trip: when the user enters a sub-page via a per-row deep-link, edits, and
-        // saves, the sub-page's `goBack(EditRHP)` lands here with the in-progress workflow already in onyx.
-        // Re-initing from policy would wipe those edits. Skipped when seed params are present (those always want a fresh init).
+        // Resume after a sub-page round-trip: keep onyx state to avoid wiping the user's pending edits (seed params force a fresh init).
         const hasSeedRequest = !!route.params.seedApproverEmail || !!route.params.seedApproverAccountID;
         const isResumingEdit =
             !hasSeedRequest && approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT && approvalWorkflow?.originalApprovers?.at(0)?.email === route.params.firstApproverEmail;
