@@ -45,6 +45,7 @@ import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
+import type DeferredAgentWorkflowSave from './DeferredAgentWorkflowSave';
 import type {
     CardFeedErrorsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
@@ -360,6 +361,7 @@ export type {
     BillingStatus,
     CancellationDetails,
     ApprovalWorkflowOnyx,
+    DeferredAgentWorkflowSave,
     CardFeeds,
     CardFeedsStatus,
     CardFeedsStatusByDomainID,
