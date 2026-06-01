@@ -53,7 +53,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
 }));
 
-// Pass-through spy so behavior is unchanged but the call args (incl. currentUserAccountID) are assertable.
+// Pass-through spy so behavior is unchanged but the call args (incl. currentUserAccountID) can be asserted.
 jest.mock('@libs/shouldUseDefaultExpensePolicy', () => {
     const actual = jest.requireActual<{default: typeof shouldUseDefaultExpensePolicy}>('@libs/shouldUseDefaultExpensePolicy');
     return {
@@ -66,7 +66,7 @@ jest.mock('@libs/getCurrentPosition');
 
 // Fire executeWrite synchronously so downstream writes can be asserted.
 jest.mock('@libs/Navigation/helpers/submitWithDismissFirst', () => jest.requireActual<typeof SubmitWithDismissFirstMock>('../../__mocks__/submitWithDismissFirst'));
-// Cleanup helpers are spies so the move-from-track cleanup-id contract is assertable.
+// Cleanup helpers are spies so the move-from-track cleanup-id contract can be asserted.
 const mockCleanupAndNavigateAfterExpenseCreate = jest.fn();
 const mockCleanupAfterExpenseCreate = jest.fn();
 jest.mock('@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate', () => ({
