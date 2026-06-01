@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItem, ListItemFocusEventHandler} from '@components/SelectionList/ListItem/types';
@@ -9,7 +10,8 @@ import TextWithTooltip from '@components/TextWithTooltip';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {OptionData} from '@libs/ReportUtils';
-import type CONST from '@src/CONST';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
+import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -26,6 +28,12 @@ type SearchQueryItem = ListItem & {
     route?: Route;
     /** Optional small, muted text shown on the right side of the row (e.g. the workspace name for a workspace page) */
     rightText?: string;
+    /** Optional small workspace avatar shown just to the left of rightText */
+    rightAvatar?: {
+        source: AvatarSource;
+        name: string;
+        id: string;
+    };
 };
 
 type SearchQueryListItemProps = {
@@ -95,13 +103,27 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
                         />
                     )}
                 </View>
-                {!!item.rightText && (
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.textMicroSupporting, styles.ml2, styles.flexShrink0]}
-                    >
-                        {item.rightText}
-                    </Text>
+                {(!!item.rightAvatar || !!item.rightText) && (
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.ml2, styles.flexShrink0]}>
+                        {!!item.rightAvatar && (
+                            <Avatar
+                                source={item.rightAvatar.source}
+                                type={CONST.ICON_TYPE_WORKSPACE}
+                                name={item.rightAvatar.name}
+                                avatarID={item.rightAvatar.id}
+                                size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                                containerStyles={styles.mr1}
+                            />
+                        )}
+                        {!!item.rightText && (
+                            <Text
+                                numberOfLines={1}
+                                style={styles.textMicroSupporting}
+                            >
+                                {item.rightText}
+                            </Text>
+                        )}
+                    </View>
                 )}
             </>
         </BaseListItem>

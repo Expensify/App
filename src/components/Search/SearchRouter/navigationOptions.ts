@@ -4,6 +4,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import {isAnyHRConnected} from '@libs/HRUtils';
 import {canEditWorkspaceSettings, canPolicyAccessFeature, hasAccountingFeatureConnection, isGroupPolicy, isTimeTrackingEnabled, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {SearchKey, SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -322,6 +323,11 @@ function getWorkspaceNavigationSearchOptions(
 
         const featureStates = getPolicyFeatureStates(policy);
         const canEditSettings = isGroupPolicy(policy) && canEditWorkspaceSettings(policy, currentUserEmail);
+        const workspaceAvatar = {
+            source: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
+            name: policy.name,
+            id: policy.id,
+        };
 
         for (const option of WORKSPACE_PAGE_OPTIONS) {
             if (option.requiresProtected && !canEditSettings) {
@@ -343,6 +349,7 @@ function getWorkspaceNavigationSearchOptions(
                 text: translate('search.goTo', {destination: title}),
                 singleIcon: icons[option.icon],
                 rightText: policy.name,
+                rightAvatar: workspaceAvatar,
                 keyForList: `${CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.NAVIGATE}-ws-${policy.id}-${option.titleKey}`,
                 searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.NAVIGATE,
                 route: option.getRoute(policy.id),
