@@ -34,6 +34,8 @@ You'll receive the exported CSV file in a message from Concierge.
 
 You'll receive the exported CSV file in a message from Concierge.
 
+**Note:** When your search has more results than fit on one page, the top checkbox opens a menu. Select **Select all on this page** to select only the expenses currently loaded, or **Select all** to select every expense that matches your search. After you select **Select all**, the header shows **All matching items selected**.
+
 ---
 
 ## What export templates can I choose from? 

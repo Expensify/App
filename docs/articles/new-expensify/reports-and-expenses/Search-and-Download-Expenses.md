@@ -33,6 +33,8 @@ You’ll receive a message from **Concierge** with the exported file.
 
 > **Note:** Report-level templates only appear if you select full reports (i.e., all expenses in the report).
 
+> **Note:** When your search has more results than fit on one page, the top checkbox opens a menu. Select **Select all on this page** to select only the items currently loaded, or **Select all** to select every item that matches your search.
+
 ## Mobile
 
 1. In the navigation tabs (on the left on web, and at the bottom on mobile) at the bottom, select **Spend** > **Reports**.
@@ -45,6 +47,8 @@ You’ll receive a message from **Concierge** with the exported file.
 You’ll receive the export in a Concierge message.
 
 > **Note:** Report-level templates only appear when full reports are selected.
+
+> **Note:** When your search has more results than fit on one page, the top checkbox opens a menu. Select **Select all on this page** to select only the items currently loaded, or **Select all** to select every item that matches your search.
 
 # Export as PDF
 

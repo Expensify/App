@@ -35,6 +35,8 @@ You'll receive the exported CSV file in a message from Concierge.
 
 You'll receive the exported CSV file in a message from Concierge.
 
+**Note:** When your search has more results than fit on one page, the top checkbox opens a menu. Select **Select all on this page** to select only the reports currently loaded, or **Select all** to select every report that matches your search. After you select **Select all**, the header shows **All matching items selected**.
+
 ## What export templates can I choose from? 
 
 Expensify offers pre-built export templates, or you can build your own custom export template. All available templates will appear in the menu when you export a report. 
