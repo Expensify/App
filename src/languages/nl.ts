@@ -945,7 +945,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 defaultSubtitle: 'Werkruimte',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Bedrijfspassen`,
             },
-            fixAccountingConnection: {
+            fixPolicyConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Verbinding met ${integrationName} repareren`,
                 defaultSubtitle: 'Werkruimte',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Boekhouding`,
@@ -8378,6 +8378,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         workspaceName: 'Naam werkruimte',
         chatUserDisplayNames: 'Weergavenamen van chatleden',
         scrollToNewestMessages: 'Scroll naar nieuwste berichten',
+        scrollToActionBadgeTarget: 'Scroll naar actie die aandacht vereist',
         preStyledText: 'Vooraf opgemaakte tekst',
         viewAttachment: 'Bijlage bekijken',
         contextMenuAvailable: 'Contextmenu beschikbaar. Druk op Shift+F10 om het te openen.',

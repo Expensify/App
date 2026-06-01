@@ -972,7 +972,7 @@ const translations = {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Fix ${cardName} personal card connection` : 'Fix personal card connection'),
                 subtitle: 'Wallet',
             },
-            fixAccountingConnection: {
+            fixPolicyConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Fix ${integrationName} connection`,
                 defaultSubtitle: 'Workspace',
                 subtitle: ({policyName}: {policyName: string}) => policyName,
@@ -8443,6 +8443,7 @@ const translations = {
         workspaceName: 'Workspace name',
         chatUserDisplayNames: 'Chat member display names',
         scrollToNewestMessages: 'Scroll to newest messages',
+        scrollToActionBadgeTarget: 'Scroll to action requiring attention',
         preStyledText: 'Pre-styled text',
         viewAttachment: 'View attachment',
         contextMenuAvailable: 'Context menu available. Press Shift+F10 to open.',

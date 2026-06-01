@@ -949,7 +949,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 defaultSubtitle: 'Espace de travail',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Cartes d'entreprise`,
             },
-            fixAccountingConnection: {
+            fixPolicyConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Corriger la connexion ${integrationName}`,
                 defaultSubtitle: 'Espace de travail',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Comptabilité`,
@@ -8453,6 +8453,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         workspaceName: 'Nom de l’espace de travail',
         chatUserDisplayNames: 'Noms d’affichage des membres de discussion',
         scrollToNewestMessages: 'Aller au dernier message',
+        scrollToActionBadgeTarget: "Aller à l'action nécessitant votre attention",
         preStyledText: 'Texte pré-stylé',
         viewAttachment: 'Afficher la pièce jointe',
         contextMenuAvailable: 'Menu contextuel disponible. Appuyez sur Shift+F10 pour l’ouvrir.',
