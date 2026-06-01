@@ -34,7 +34,7 @@ type AccountingIntegration = {
     subscribedExportSettings?: string[];
     onAdvancedPagePress: () => void;
     subscribedAdvancedSettings?: string[];
-    onCardReconciliationPagePress: () => void;
+    onCardReconciliationPagePress?: () => void;
     pendingFields?: PendingFields<string>;
     errorFields?: ErrorFields;
     workspaceUpgradeNavigationDetails?: WorkspaceUpgradeNavigationDetails;
