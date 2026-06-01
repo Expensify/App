@@ -23,10 +23,11 @@ Expensify offers flexible options to search and export expenses and reports in v
 2. Check the box next to the expenses or reports you want to export, or use the top checkbox to select all.
 3. Click **Selected** at the top.
 4. Select **Export** from the dropdown.
-5. Choose one of the following templates:
+5. Choose one of the following options:
    - **Basic Export** – Simplified, essential fields (date, amount, merchant, category, receipt URL).
    - **All Data – Expense Level Export** – One row per expense with full data.
    - **All Data – Report Level Export** – One row per report with summary data.
+   - **Export current view** – A CSV that matches the columns currently shown on the page. Set the columns using **Display** > **Edit columns**. Not available when a **Group by** filter is applied.
    - **Custom Templates** – Any template created by you or your Workspace Admin (if available).
 
 You’ll receive a message from **Concierge** with the exported file.
@@ -74,7 +75,7 @@ No, PDF export is only available for full reports.
 
 ## Can I customize the columns in the CSV export?
 
-No, the columns follow a fixed template.
+Yes. Select **Export current view** to download a CSV that matches the columns currently shown on the page. Adjust which columns appear by selecting **Display** > **Edit columns**. The other export templates use a fixed set of columns.
 
 ## How do I export to an accounting integration?
 
