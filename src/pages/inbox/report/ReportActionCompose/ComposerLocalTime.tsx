@@ -1,5 +1,5 @@
 import {personalDetailByAccountIDSelector} from '@selectors/PersonalDetails';
-import React from 'react';
+import React, {useMemo} from 'react';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
@@ -19,7 +19,8 @@ function ComposerLocalTime() {
     const canShowRecipientLocalTime = useReportRecipientLocalTime({report});
     const shouldShow = canShowRecipientLocalTime && !isComposerFullSize;
     const reportRecipientAccountID = getReportRecipientAccountIDs(report, currentUserAccountID).at(0);
-    const [reportRecipient] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailByAccountIDSelector(shouldShow ? reportRecipientAccountID : undefined)});
+    const reportRecipientSelector = useMemo(() => personalDetailByAccountIDSelector(reportRecipientAccountID), [reportRecipientAccountID]);
+    const [reportRecipient] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: reportRecipientSelector}, [reportRecipientSelector]);
 
     if (!shouldShow || isEmptyObject(reportRecipient) || isAgentEmail(reportRecipient?.login)) {
         return null;

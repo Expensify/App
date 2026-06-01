@@ -1,4 +1,5 @@
 import {canShowReportRecipientLocalTimeSelector} from '@selectors/Report';
+import {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
@@ -13,7 +14,8 @@ type UseReportRecipientLocalTimeParams = {
 function useReportRecipientLocalTime({report}: UseReportRecipientLocalTimeParams): boolean {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
-    const [canShowRecipientLocalTime = false] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: canShowReportRecipientLocalTimeSelector(report, currentUserAccountID)});
+    const canShowRecipientLocalTimeSelector = useMemo(() => canShowReportRecipientLocalTimeSelector(report, currentUserAccountID), [report, currentUserAccountID]);
+    const [canShowRecipientLocalTime = false] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: canShowRecipientLocalTimeSelector}, [canShowRecipientLocalTimeSelector]);
 
     return canShowRecipientLocalTime;
 }

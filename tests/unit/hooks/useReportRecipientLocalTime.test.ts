@@ -1,5 +1,8 @@
-import {renderHook, waitFor} from '@testing-library/react-native';
+import {act, render, screen, waitFor} from '@testing-library/react-native';
+import React from 'react';
 import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import Text from '@components/Text';
 import useReportRecipientLocalTime from '@hooks/useReportRecipientLocalTime';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,26 +35,53 @@ const RECIPIENT_PERSONAL_DETAILS: PersonalDetailsList = {
     },
 };
 
+function ReportRecipientLocalTimeProbe({report}: {report: OnyxEntry<Report>}) {
+    const canShowRecipientLocalTime = useReportRecipientLocalTime({report});
+    return React.createElement(Text, null, canShowRecipientLocalTime ? 'visible' : 'hidden');
+}
+
 describe('useReportRecipientLocalTime', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
 
     beforeEach(async () => {
-        await Onyx.clear();
+        await act(async () => {
+            await Onyx.clear();
+        });
     });
 
     it('updates when personal details list changes', async () => {
-        const {result} = renderHook(() => useReportRecipientLocalTime({report: REPORT}));
+        render(React.createElement(ReportRecipientLocalTimeProbe, {report: REPORT}));
 
         await waitFor(() => {
-            expect(result.current).toBe(false);
+            expect(screen.getByText('hidden')).toBeOnTheScreen();
         });
 
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, RECIPIENT_PERSONAL_DETAILS);
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, RECIPIENT_PERSONAL_DETAILS);
+        });
 
         await waitFor(() => {
-            expect(result.current).toBe(true);
+            expect(screen.getByText('visible')).toBeOnTheScreen();
+        });
+    });
+
+    it('updates when the report loads after personal details are already available', async () => {
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, RECIPIENT_PERSONAL_DETAILS);
+        });
+
+        const {rerender} = render(React.createElement(ReportRecipientLocalTimeProbe, {report: undefined}));
+
+        await waitFor(() => {
+            expect(screen.getByText('hidden')).toBeOnTheScreen();
+        });
+
+        rerender(React.createElement(ReportRecipientLocalTimeProbe, {report: REPORT}));
+
+        await waitFor(() => {
+            expect(screen.getByText('visible')).toBeOnTheScreen();
         });
     });
 });
