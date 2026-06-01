@@ -1,7 +1,7 @@
 ---
 title: Set Up Your Wallet
 description: Send and receive payments by adding your personal bank account in Expensify Wallet.
-keywords: [New Expensify, wallet, peer-to-peer payments, personal bank account, enable wallet, Plaid, Onfido]
+keywords: [New Expensify, wallet, peer-to-peer payments, personal bank account, enable wallet, Plaid, Onfido, wallet pending, verification stuck, wallet not working, can't send payments, can't receive payments, identity verification failed]
 ---
 
 The Expensify Wallet allows you to send and receive **peer-to-peer payments**, such as expense reimbursements or transfers between colleagues. To use it, you'll need to connect a **personal bank account** and verify your identity.
@@ -68,4 +68,43 @@ When verification is successful, your Expensify Wallet will be fully enabled. Yo
 - Receive and send peer-to-peer payments
 - Get reimbursed for expenses
 - Transfer funds with no additional fees
+
+---
+
+# Troubleshooting
+
+## Wallet verification is stuck in a pending state
+
+If your wallet setup appears to be stuck and is not progressing:
+
+1. Close the Expensify app or browser tab completely and reopen it.
+2. Go to **Wallet** and check whether the setup flow resumes automatically.
+3. If a specific step (such as Onfido verification) shows as pending for more than a few minutes, try completing it again.
+4. Ensure your internet connection is stable, as the verification steps require network access.
+
+If the wallet remains stuck after retrying, contact Concierge for help.
+
+## Identity verification fails during wallet setup
+
+If Onfido cannot verify your identity during wallet setup:
+
+1. Make sure you are using a clear, valid, non-expired government-issued photo ID.
+2. Take the photo in a well-lit area and ensure all four corners of the ID are visible.
+3. For the selfie or video step, hold the camera steady and ensure your face is clearly visible.
+4. Try a different browser or device if errors persist.
+
+For detailed troubleshooting steps, see [Resolve Errors Adding a Bank Account](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Resolve-Errors-Adding-a-Bank-Account).
+
+If verification fails after multiple attempts, contact Concierge. An agent can review your case and may offer an alternative verification path.
+
+## Wallet shows as enabled but I can’t send or receive payments
+
+If your wallet appears to be active but payments are not working:
+
+1. Confirm that a personal bank account is connected. Go to **Wallet** and check the **Bank accounts** section. If no bank account is listed, you will need to [connect a personal bank account](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Personal-Bank-Account).
+2. Make sure the bank account is not in an error state. If you see an error badge, follow the instructions shown to resolve it.
+3. Check that you have completed all wallet setup steps, including identity verification. A partially completed setup may show the wallet as enabled but restrict functionality.
+4. Try logging out and logging back in to refresh your wallet status.
+
+If none of these steps resolve the issue, contact Concierge for assistance.
 

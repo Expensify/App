@@ -2393,21 +2393,34 @@ function buildOptimisticDistanceRateCustomUnits(reportCurrency?: string): Optimi
     };
 }
 
+type CreateDraftInitialWorkspaceParams = {
+    introSelected: OnyxEntry<IntroSelected>;
+    workspaceName: string;
+    currentUserAccountID: number;
+    currentUserEmail: string;
+    currency: string | undefined;
+    policyID?: string;
+    makeMeAdmin?: boolean;
+    file?: File;
+    type?: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE | typeof CONST.POLICY.TYPE.SUBMIT;
+    isAnnualSubscription?: boolean;
+};
+
 /**
  * Optimistically creates a Policy Draft for a new workspace
  */
-function createDraftInitialWorkspace(
-    introSelected: OnyxEntry<IntroSelected>,
-    workspaceName: string,
-    currentUserAccountID: number,
-    currentUserEmail: string,
+function createDraftInitialWorkspace({
+    introSelected,
+    workspaceName,
+    currentUserAccountID,
+    currentUserEmail,
+    currency,
     policyID = generatePolicyID(),
     makeMeAdmin = false,
-    currency = '',
-    file?: File,
-    type: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE | typeof CONST.POLICY.TYPE.SUBMIT = CONST.POLICY.TYPE.TEAM,
+    file,
+    type = CONST.POLICY.TYPE.TEAM,
     isAnnualSubscription = false,
-) {
+}: CreateDraftInitialWorkspaceParams) {
     const {customUnits, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
     const shouldEnableWorkflowsByDefault =
         !introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
@@ -2644,6 +2657,9 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                 areReportFieldsEnabled: false,
                 areConnectionsEnabled: false,
                 areExpensifyCardsEnabled: false,
+                areInvoicesEnabled: false,
+                areRulesEnabled: false,
+                arePerDiemRatesEnabled: false,
                 employeeList: {
                     ...(policyOwnerEmail && policyOwnerEmail !== currentUserEmailParam
                         ? {
@@ -3107,10 +3123,10 @@ type CreateDraftWorkspaceParams = {
     workspaceName: string;
     currentUserAccountID: number;
     currentUserEmail: string;
+    currency: string | undefined;
     policyOwnerEmail?: string;
     makeMeAdmin?: boolean;
     policyID?: string;
-    currency?: string;
     file?: File;
 };
 
@@ -3119,10 +3135,10 @@ function createDraftWorkspace({
     workspaceName,
     currentUserAccountID,
     currentUserEmail,
+    currency,
     policyOwnerEmail = '',
     makeMeAdmin = false,
     policyID = generatePolicyID(),
-    currency = '',
     file,
 }: CreateDraftWorkspaceParams): CreateWorkspaceParams {
     const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);

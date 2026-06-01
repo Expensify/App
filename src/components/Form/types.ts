@@ -4,7 +4,6 @@ import type {ValueOf} from 'type-fest';
 import type AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import type AddressSearch from '@components/AddressSearch';
 import type AmountForm from '@components/AmountForm';
-import type AmountPicker from '@components/AmountPicker';
 import type AmountTextInput from '@components/AmountTextInput';
 import type CheckboxWithLabel from '@components/CheckboxWithLabel';
 import type CountryPicker from '@components/CountryPicker';
@@ -34,6 +33,7 @@ import type DimensionTypeSelector from '@pages/workspace/accounting/intacct/impo
 import type NetSuiteCustomFieldMappingPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomFieldMappingPicker';
 import type NetSuiteCustomListPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomListPicker';
 import type NetSuiteMenuWithTopDescriptionForm from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteMenuWithTopDescriptionForm';
+import type TaxValuePicker from '@pages/workspace/taxes/TaxValuePicker';
 import type {Country} from '@src/CONST';
 import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
@@ -64,7 +64,7 @@ type ValidInputs =
     | typeof ValuePicker
     | typeof DatePicker
     | typeof RadioButtons
-    | typeof AmountPicker
+    | typeof TaxValuePicker
     | typeof TextPicker
     | typeof AddPlaidBankAccount
     | typeof EmojiPickerButtonDropdown

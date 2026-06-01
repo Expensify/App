@@ -4858,7 +4858,7 @@ describe('initSplitExpense', () => {
             reportID: '456',
         };
 
-        initSplitExpense(transaction, undefined);
+        initSplitExpense(transaction, undefined, undefined, CONST.DEFAULT_NUMBER_ID);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -4883,7 +4883,7 @@ describe('initSplitExpense', () => {
     });
     it('should not initialize split expense for null transaction', async () => {
         const transaction: Transaction | undefined = undefined;
-        initSplitExpense(transaction, undefined);
+        initSplitExpense(transaction, undefined, undefined, CONST.DEFAULT_NUMBER_ID);
         await waitForBatchedUpdates();
 
         expect(transaction).toBeFalsy();
@@ -4907,7 +4907,7 @@ describe('initSplitExpense', () => {
             reportID: '456',
         };
 
-        initSplitExpense(transaction, undefined);
+        initSplitExpense(transaction, undefined, undefined, CONST.DEFAULT_NUMBER_ID);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -4958,6 +4958,7 @@ describe('initSplitExpense', () => {
             amount: -20000,
             currency: 'USD',
             merchant: '',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             comment: {
                 comment: 'Distance expense',
                 splitExpenses: [],
@@ -4976,7 +4977,7 @@ describe('initSplitExpense', () => {
             reportID: '456',
         };
 
-        initSplitExpense(transaction, policy);
+        initSplitExpense(transaction, policy, undefined, policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -5049,7 +5050,7 @@ describe('initSplitExpense', () => {
         await waitForBatchedUpdates();
 
         // When the user initiates a split on the remaining transaction
-        initSplitExpense(remainingTransaction, undefined);
+        initSplitExpense(remainingTransaction, undefined, undefined, CONST.DEFAULT_NUMBER_ID);
         await waitForBatchedUpdates();
 
         // Then a fresh split is started keyed by the remaining transaction (2 new splits)
@@ -5110,7 +5111,7 @@ describe('initSplitExpense', () => {
         await waitForBatchedUpdates();
 
         // When the user opens the edit-splits flow from one of the children
-        initSplitExpense(secondChildTransaction, undefined);
+        initSplitExpense(secondChildTransaction, undefined, undefined, CONST.DEFAULT_NUMBER_ID);
         await waitForBatchedUpdates();
 
         // Then the edit-splits draft is keyed by the original transaction and rebuilt from the existing children
@@ -5296,6 +5297,7 @@ describe('addSplitExpenseField', () => {
             amount: -20000,
             currency: 'USD',
             merchant: '',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             comment: {
                 comment: 'Distance expense',
                 splitExpenses: [],
@@ -5319,6 +5321,7 @@ describe('addSplitExpenseField', () => {
             amount: 20000,
             currency: 'USD',
             merchant: '',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             comment: {
                 comment: 'Distance expense',
                 splitExpenses: [
@@ -5642,6 +5645,7 @@ describe('evenlyDistributeSplitExpenseAmounts', () => {
             transactionID: originalTransactionID,
             amount: -20000,
             currency: 'USD',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             comment: {
                 type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                 customUnit: {
@@ -5660,6 +5664,7 @@ describe('evenlyDistributeSplitExpenseAmounts', () => {
             amount: 20000,
             currency: 'USD',
             merchant: 'Test Merchant',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             comment: {
                 comment: 'Test comment',
                 originalTransactionID,
@@ -5792,6 +5797,7 @@ describe('updateSplitExpenseAmountField', () => {
             transactionID: originalTransactionID,
             amount: -20000,
             currency: 'USD',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             comment: {
                 type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                 customUnit: {
@@ -5810,6 +5816,7 @@ describe('updateSplitExpenseAmountField', () => {
             amount: 20000,
             currency: 'USD',
             merchant: 'Test Merchant',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             comment: {
                 comment: 'Test comment',
                 originalTransactionID,
@@ -6109,6 +6116,7 @@ describe('initDraftSplitExpenseDataForEdit', () => {
             amount: -20000,
             currency: 'USD',
             merchant: 'Original Merchant',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
             comment: {
                 comment: 'Original comment',
                 type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
@@ -6133,6 +6141,7 @@ describe('initDraftSplitExpenseDataForEdit', () => {
             amount: 20000,
             currency: 'USD',
             merchant: 'Draft Merchant',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             comment: {
                 comment: 'Draft comment',
                 originalTransactionID,
@@ -6222,7 +6231,12 @@ describe('resetSplitExpensesByDateRange', () => {
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
         };
 
-        resetSplitExpensesByDateRange(transaction, transactionReport, startDate, endDate);
+        const draftTransactionInput: Transaction = {
+            ...transaction,
+            comment: {...transaction.comment, originalTransactionID: transactionID},
+        };
+
+        resetSplitExpensesByDateRange(transaction, draftTransactionInput, transactionReport, startDate, endDate);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -6280,6 +6294,7 @@ describe('resetSplitExpensesByDateRange', () => {
             amount: -20000,
             currency: 'USD',
             merchant: '',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             comment: {
                 comment: 'Distance expense',
                 splitExpenses: [],
@@ -6305,7 +6320,12 @@ describe('resetSplitExpensesByDateRange', () => {
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
         };
 
-        resetSplitExpensesByDateRange(transaction, transactionReport, startDate, endDate, policy);
+        const draftTransactionInput: Transaction = {
+            ...transaction,
+            comment: {...transaction.comment, originalTransactionID: transactionID},
+        };
+
+        resetSplitExpensesByDateRange(transaction, draftTransactionInput, transactionReport, startDate, endDate, policy);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -6351,7 +6371,12 @@ describe('resetSplitExpensesByDateRange', () => {
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
         };
 
-        resetSplitExpensesByDateRange(transaction, transactionReport, startDate, endDate);
+        const draftTransactionInput: Transaction = {
+            ...transaction,
+            comment: {...transaction.comment, originalTransactionID: transactionID},
+        };
+
+        resetSplitExpensesByDateRange(transaction, draftTransactionInput, transactionReport, startDate, endDate);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -6363,7 +6388,7 @@ describe('resetSplitExpensesByDateRange', () => {
     });
 
     it('should not reset if transaction, startDate, or endDate is missing', async () => {
-        resetSplitExpensesByDateRange(undefined, undefined, '2024-01-01', '2024-01-03');
+        resetSplitExpensesByDateRange(undefined, undefined, undefined, '2024-01-01', '2024-01-03');
         await waitForBatchedUpdates();
     });
 });
@@ -6561,6 +6586,7 @@ describe('updateSplitExpenseField', () => {
             amount: -20000,
             currency: 'USD',
             merchant: '',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             comment: {
                 comment: 'Distance expense',
                 type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
@@ -6585,6 +6611,7 @@ describe('updateSplitExpenseField', () => {
             amount: 20000,
             currency: 'USD',
             merchant: '',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             comment: {
                 comment: 'Draft comment',
                 originalTransactionID,
