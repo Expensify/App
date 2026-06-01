@@ -789,8 +789,9 @@ describe('useSelectionModeReportActions', () => {
         it('passes shouldShowApproveButton=false to usePaymentOptions when all transactions are pending (BYOC)', () => {
             // canApproveIOU returns true so approve button would normally show
             IOUActions.canApproveIOU.mockReturnValue(true);
-            // All transactions are pending (BYOC)
-            (TransactionUtils.isPending as jest.Mock).mockReturnValue(true);
+            // All transactions are pending (includes BYOC) — spy on hasOnlyPendingCardTransactions
+            // since it calls isPending internally and can't be affected by mocking the export
+            jest.spyOn(TransactionUtils, 'hasOnlyPendingCardTransactions').mockReturnValue(true);
 
             const transactions = [buildTransaction(1), buildTransaction(2)];
             renderSelectionModeHook({transactions, selectedTransactionIDs: ['1', '2']});
@@ -800,8 +801,7 @@ describe('useSelectionModeReportActions', () => {
 
         it('passes shouldShowApproveButton=true to usePaymentOptions when transactions are not pending', () => {
             IOUActions.canApproveIOU.mockReturnValue(true);
-            // Transactions are not pending
-            (TransactionUtils.isPending as jest.Mock).mockReturnValue(false);
+            jest.spyOn(TransactionUtils, 'hasOnlyPendingCardTransactions').mockReturnValue(false);
 
             const transactions = [buildTransaction(1), buildTransaction(2)];
             renderSelectionModeHook({transactions, selectedTransactionIDs: ['1', '2']});
@@ -811,13 +811,12 @@ describe('useSelectionModeReportActions', () => {
 
         it('passes shouldShowApproveButton=true when only some transactions are pending (mixed)', () => {
             IOUActions.canApproveIOU.mockReturnValue(true);
-            // isPending alternates: first call true, second call false → not ALL pending → approve button still shows
-            (TransactionUtils.isPending as jest.Mock).mockReturnValueOnce(true).mockReturnValueOnce(false);
+            // Not all pending → hasOnlyPendingCardTransactions returns false → approve button still shows
+            jest.spyOn(TransactionUtils, 'hasOnlyPendingCardTransactions').mockReturnValue(false);
 
             const transactions = [buildTransaction(1), buildTransaction(2)];
             renderSelectionModeHook({transactions, selectedTransactionIDs: ['1', '2']});
 
-            // Not ALL pending → hasOnlyPendingTransactions=false → approve shows
             expect(usePaymentOptionsMock.default).toHaveBeenCalledWith(expect.objectContaining({shouldShowApproveButton: true}));
         });
     });
