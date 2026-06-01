@@ -2246,8 +2246,8 @@ const translations: TranslationDeepObject<typeof en> = {
         stepCodes: 'Kody odzyskiwania',
         keepCodesSafe: 'Zachowaj te kody w bezpiecznym miejscu!',
         codesLoseAccess: dedent(`
-            To jedyny sposób, żeby odzyskać dostęp, jeśli utracisz swoją aplikację uwierzytelniającą.<br>
-            <strong>Uwaga</strong>: Włączenie uwierzytelniania dwuskładnikowego wyloguje cię ze wszystkich innych aktywnych sesji.
+            Są twoim zabezpieczeniem na wypadek utraty dostępu do aplikacji uwierzytelniającej. Jeśli stracisz oba, zostaniesz zablokowany(-a) w swoim koncie.<br><br>
+            <strong>Uwaga</strong>: Włączenie 2FA wyloguje cię ze wszystkich innych sesji.
         `),
         errorStepCodes: 'Skopiuj lub pobierz kody przed kontynuowaniem',
         stepVerify: 'Zweryfikuj',

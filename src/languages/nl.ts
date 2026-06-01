@@ -2246,8 +2246,8 @@ const translations: TranslationDeepObject<typeof en> = {
         stepCodes: 'Herstelcodes',
         keepCodesSafe: 'Bewaar deze codes goed!',
         codesLoseAccess: dedent(`
-            Ze zijn je enige manier om weer in te loggen als je je authenticator-app kwijtraakt.<br>
-            <strong>Let op</strong>: Het instellen van tweestapsverificatie logt je uit op alle andere actieve sessies.
+            Ze zijn je back-up als je de toegang tot je authenticator-app kwijtraakt. Ben je ze allebei kwijt, dan word je buitengesloten van je account.<br><br>
+            <strong>Let op</strong>: 2FA inschakelen logt je uit op alle andere sessies.
         `),
         errorStepCodes: 'Kopieer of download de codes voordat je verdergaat',
         stepVerify: 'Verifiëren',

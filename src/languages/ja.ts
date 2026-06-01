@@ -2229,8 +2229,8 @@ const translations: TranslationDeepObject<typeof en> = {
         stepCodes: 'リカバリーコード',
         keepCodesSafe: 'これらのコードを安全に保管してください。',
         codesLoseAccess: dedent(`
-            認証アプリを失った場合、再度ログインするための唯一の手段になります。<br>
-            <strong>注意</strong>：二要素認証を設定すると、他のすべてのアクティブなセッションからログアウトされます。
+            認証アプリへのアクセスを失ったときのバックアップとして使えます。両方を失うと、アカウントにサインインできなくなります。<br><br>
+            <strong>注意</strong>：2 要素認証を有効にすると、他のすべてのセッションからログアウトされます。
         `),
         errorStepCodes: '続行する前にコードをコピーまたはダウンロードしてください',
         stepVerify: '確認',

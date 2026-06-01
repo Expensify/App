@@ -2251,8 +2251,8 @@ const translations: TranslationDeepObject<typeof en> = {
         stepCodes: 'Codici di recupero',
         keepCodesSafe: 'Conserva questi codici al sicuro!',
         codesLoseAccess: dedent(`
-            Sono l’unico modo per rientrare nel conto se perdi l’app di autenticazione.<br>
-            <strong>Nota</strong>: configurare l’autenticazione a due fattori ti disconnetterà da tutte le altre sessioni attive.
+            Sono il tuo metodo di riserva se perdi l’accesso all’app di autenticazione. Se perdi entrambi, resterai bloccato fuori dal tuo account.<br><br>
+            <strong>Nota</strong>: abilitare l’autenticazione a due fattori ti disconnette da tutte le altre sessioni.
         `),
         errorStepCodes: 'Copia o scarica i codici prima di continuare',
         stepVerify: 'Verifica',

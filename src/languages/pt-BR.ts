@@ -2243,8 +2243,8 @@ const translations: TranslationDeepObject<typeof en> = {
         stepCodes: 'Códigos de recuperação',
         keepCodesSafe: 'Mantenha estes códigos em segurança!',
         codesLoseAccess: dedent(`
-            Eles são sua única forma de voltar a entrar se você perder seu app autenticador.<br>
-            <strong>Observação</strong>: Configurar a autenticação em duas etapas vai desconectá-lo de todas as outras sessões ativas.
+            Eles são sua garantia caso você perca o acesso ao seu app autenticador. Se perder ambos, você ficará bloqueado fora da sua conta.<br><br>
+            <strong>Observação</strong>: Ativar a 2FA desconecta você de todas as outras sessões.
         `),
         errorStepCodes: 'Copie ou faça o download dos códigos antes de continuar',
         stepVerify: 'Verificar',
