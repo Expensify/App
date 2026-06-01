@@ -43,7 +43,7 @@ function validateCardNumber(value: string): boolean {
 }
 
 /**
- * Validating that this is a valid address (PO boxes are not allowed)
+ * Validating that this is a valid address (PO boxes and PMBs are not allowed)
  */
 function isValidAddress(value: FormValue): boolean {
     if (typeof value !== 'string') {
@@ -54,7 +54,7 @@ function isValidAddress(value: FormValue): boolean {
         return false;
     }
 
-    return !CONST.REGEX.PO_BOX.test(value);
+    return !CONST.REGEX.PO_BOX.test(value) && !CONST.REGEX.PMB.test(value);
 }
 
 /**
