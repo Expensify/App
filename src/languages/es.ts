@@ -2866,7 +2866,7 @@ ${amount} para ${merchant} - ${date}`,
         whatsYourName: '¿Cómo te llamas?',
         peopleYouMayKnow: 'Comprueba si tu equipo ya está aquí',
         workspaceMemberList: (employeeCount, policyOwner) => `${employeeCount} miembro${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
-        workspaceYouMayJoin: (domain, email) =>
+        workspaceYouMayJoin: (domain: string, email: string) =>
             `Verifica tu correo electrónico para comprobar si alguien de ${domain} tiene un espacio de trabajo al que puedas unirte. Introduce el código mágico enviado a ${email}.`,
         joinAWorkspace: 'Unirse a un espacio de trabajo',
         listOfWorkspaces: 'Aquí tienes la lista de espacios de trabajo a los que puedes unirte.',
