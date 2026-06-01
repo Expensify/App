@@ -12714,7 +12714,7 @@ describe('ReportUtils', () => {
             expect(typeof result).toBe('string');
         });
 
-        test('handles undefined report param', () => {
+        test('returns report name with report param', () => {
             const transaction: Transaction = {
                 ...createRandomTransaction(1),
                 reportID: mockReportID,
@@ -12727,6 +12727,7 @@ describe('ReportUtils', () => {
                 translate: translateLocal,
                 reportAction: undefined,
                 transactions: [transaction],
+                report: mockTransactionReport,
             });
 
             expect(result).toBeDefined();
@@ -12750,6 +12751,7 @@ describe('ReportUtils', () => {
             const result = getTransactionReportName({
                 translate: translateLocal,
                 reportAction,
+                report: mockTransactionReport,
             });
 
             expect(result).toBe(translateLocal('parentReportAction.reversedTransaction'));
@@ -12766,6 +12768,7 @@ describe('ReportUtils', () => {
             const result = getTransactionReportName({
                 translate: translateLocal,
                 reportAction,
+                report: mockTransactionReport,
             });
 
             expect(result).toBe(translateLocal('parentReportAction.deletedExpense'));
