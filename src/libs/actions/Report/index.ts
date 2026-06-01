@@ -6597,7 +6597,6 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     const reportID = iouReport.reportID;
     const isPolicyAdmin = isPolicyAdminPolicyUtils(policy);
     const submitterAccountID = iouReport.ownerAccountID;
-    const submitterLoginWithSMSDomain = PhoneNumber.addSMSDomainIfPhoneNumber(submitterLogin);
     const policyID = policy.id;
 
     // This flow only works for admins moving an IOU report to a policy where the submitter is NOT yet a member of the policy
@@ -6606,8 +6605,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(
         !isIOUReportUsingReport(iouReport) ||
         !submitterAccountID ||
         !submitterLogin ||
-        !submitterLoginWithSMSDomain ||
-        isPolicyMember(policy, submitterLoginWithSMSDomain)
+        isPolicyMember(policy, submitterLogin)
     ) {
         return;
     }
@@ -6661,7 +6659,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     const role = CONST.POLICY.ROLE.USER;
 
     // Get personal details onyx data (similar to addMembersToWorkspace)
-    const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins([submitterLoginWithSMSDomain], [submitterAccountID]);
+    const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins([submitterLogin], [submitterAccountID]);
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs, formatPhoneNumber);
 
     // Build announce room members data for the new member
@@ -6669,12 +6667,12 @@ function moveIOUReportToPolicyAndInviteSubmitter(
 
     // Create policy expense chat for the submitter
     const policyExpenseChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, {accountID: currentUserAccountID}, reportActions);
-    const optimisticPolicyExpenseChatReportID = policyExpenseChats.reportCreationData[submitterLoginWithSMSDomain].reportID;
-    const optimisticPolicyExpenseChatCreatedReportActionID = policyExpenseChats.reportCreationData[submitterLoginWithSMSDomain].reportActionID;
+    const optimisticPolicyExpenseChatReportID = policyExpenseChats.reportCreationData[submitterLogin].reportID;
+    const optimisticPolicyExpenseChatCreatedReportActionID = policyExpenseChats.reportCreationData[submitterLogin].reportActionID;
 
     // Set up optimistic member state
     const optimisticMembersState: OnyxCollectionInputValue<PolicyEmployee> = {
-        [submitterLoginWithSMSDomain]: {
+        [submitterLogin]: {
             role,
             email: submitterLogin,
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -6683,11 +6681,11 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     };
 
     const successMembersState: OnyxCollectionInputValue<PolicyEmployee> = {
-        [submitterLoginWithSMSDomain]: {pendingAction: null},
+        [submitterLogin]: {pendingAction: null},
     };
 
     const failureMembersState: OnyxCollectionInputValue<PolicyEmployee> = {
-        [submitterLoginWithSMSDomain]: {
+        [submitterLogin]: {
             errors: getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericAdd'),
         },
     };
