@@ -100,7 +100,7 @@ function IOURequestStepOdometerImage({
         navigateBack();
     };
 
-    const {validateFiles, ErrorModal} = useFilesValidation((files: FileObject[]) => {
+    const {validateFiles} = useFilesValidation((files: FileObject[]) => {
         const file = files.at(0);
         if (!file) {
             return;
@@ -396,7 +396,6 @@ function IOURequestStepOdometerImage({
                             dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
                         />
                     </DragAndDropConsumer>
-                    {ErrorModal}
                 </View>
             )}
         </StepScreenDragAndDropWrapper>

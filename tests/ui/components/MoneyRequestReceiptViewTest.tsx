@@ -34,7 +34,6 @@ jest.mock('@components/AttachmentPicker', () => {
 jest.mock('@hooks/useFilesValidation', () => (onFilesValidated: (files: FileObject[]) => void) => ({
     validateFiles: onFilesValidated,
     PDFValidationComponent: null,
-    ErrorModal: null,
 }));
 
 jest.mock(

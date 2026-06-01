@@ -86,7 +86,7 @@ function ScanFromReport({report, iouType, reportID, transactionID, transaction, 
         navigateFromReport(ids);
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
+    const {validateFiles, PDFValidationComponent} = useFilesValidation((files: FileObject[]) => {
         processReceipts(files);
     });
 
@@ -108,7 +108,6 @@ function ScanFromReport({report, iouType, reportID, transactionID, transaction, 
                 onMultiScanSubmit={submitMultiScan}
                 shouldAcceptMultipleFiles
             />
-            {ErrorModal}
         </>
     );
 }

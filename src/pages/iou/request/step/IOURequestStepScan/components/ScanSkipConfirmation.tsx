@@ -288,7 +288,7 @@ function ScanSkipConfirmation({report, iouType, reportID, transactionID, transac
         submitWithGpsCheck(validReceiptFiles);
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
+    const {validateFiles, PDFValidationComponent} = useFilesValidation((files: FileObject[]) => {
         processReceipts(files);
     });
 
@@ -304,7 +304,6 @@ function ScanSkipConfirmation({report, iouType, reportID, transactionID, transac
                 onMultiScanSubmit={submitMultiScan}
                 shouldAcceptMultipleFiles
             />
-            {ErrorModal}
             <GpsPermissionGate
                 startLocationPermissionFlow={startLocationPermissionFlow}
                 receiptFiles={receiptFiles}

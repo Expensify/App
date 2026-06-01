@@ -17,7 +17,6 @@ jest.mock('@components/AttachmentPicker', () => {
 jest.mock('@hooks/useFilesValidation', () => (onFilesValidated: (files: FileObject[]) => void) => ({
     validateFiles: onFilesValidated,
     PDFValidationComponent: null,
-    ErrorModal: null,
 }));
 
 // ReceiptAlternativeMethods uses RenderHTML which requires TRenderEngineProvider (buildTTree). Mock to avoid the error.
