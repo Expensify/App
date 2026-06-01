@@ -5,10 +5,16 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DomainMemberBulkActionType, DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import DecisionModal from '@components/DecisionModal';
+import type {FeatureListItem} from '@components/FeatureList';
+import FeatureList from '@components/FeatureList';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
+import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
-import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
+import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import Text from '@components/Text';
 import useClearSelectedDomainMembersOnMoveComplete from '@hooks/useClearSelectedDomainMembersOnMoveComplete';
@@ -31,6 +37,8 @@ import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
 import BaseDomainMembersPage from '@pages/domain/BaseDomainMembersPage';
+import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
+import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,7 +51,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const {domainAccountID} = route.params;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['Profile']);
+    const illustrations = useMemoizedLazyIllustrations(['Profile', 'LaptopWithMembers', 'LockClosed', 'BuildingCross', 'Encryption']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Gear', 'DotIndicator', 'RemoveMembers', 'Download', 'Transfer']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
@@ -74,6 +82,21 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     });
 
     const {groupPreFilter, groupOptions, selectedGroup, handleGroupChange, dropdownLabel, groups} = useDomainGroupFilter(domainAccountID);
+
+    const membersFeatureListItems: FeatureListItem[] = [
+        {
+            icon: illustrations.BuildingCross,
+            translationKey: 'domain.members.membersFeatureList.controlPolicyCreation',
+        },
+        {
+            icon: illustrations.LockClosed,
+            translationKey: 'domain.members.membersFeatureList.enableSamlSso',
+        },
+        {
+            icon: illustrations.Encryption,
+            translationKey: 'domain.members.membersFeatureList.enforce2FA',
+        },
+    ];
 
     const groupPopoverComponent = ({closeOverlay, isExpanded}: PopoverComponentProps) => (
         <SingleSelectPopup
@@ -275,6 +298,55 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     };
 
     const getCustomRowProps = (accountID: number, email?: string) => getMemberCustomRowProps(accountID, domainPendingActions, domainErrors, email);
+
+    if (!domain?.validated) {
+        return (
+            <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
+                <ScreenWrapper
+                    enableEdgeToEdgeBottomSafeAreaPadding
+                    shouldEnableMaxHeight
+                    shouldShowOfflineIndicatorInWideScreen
+                    testID="DomainMembersPage"
+                >
+                    <HeaderWithBackButton
+                        title={translate('domain.domainMembers')}
+                        onBackButtonPress={Navigation.goBack}
+                        icon={illustrations.Profile}
+                        shouldShowBackButton={shouldUseNarrowLayout}
+                        shouldDisplayHelpButton
+                    />
+                    <ScrollView
+                        keyboardShouldPersistTaps="handled"
+                        addBottomSafeAreaPadding
+                        style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
+                    >
+                        <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
+                            <FeatureList
+                                menuItems={membersFeatureListItems}
+                                title={translate('domain.domainMembers')}
+                                renderSubtitle={() => (
+                                    <SectionSubtitleHTML
+                                        html={translate('domain.members.membersFeatureList.subtitle', {domainName: `@${domainName ?? ''}`})}
+                                        wrapperStyle={styles.pt3}
+                                    />
+                                )}
+                                ctaText={translate('domain.verifyDomain.title')}
+                                ctaAccessibilityLabel={translate('domain.verifyDomain.title')}
+                                onCtaPress={() => {
+                                    Navigation.navigate(ROUTES.DOMAIN_VERIFY.getRoute(domainAccountID));
+                                }}
+                                illustrationBackgroundColor={colors.ice800}
+                                illustration={illustrations.LaptopWithMembers}
+                                illustrationStyle={styles.emptyStateSamlIllustration}
+                                illustrationContainerStyle={[styles.cardSectionIllustrationContainer, styles.justifyContentCenter, styles.pv5]}
+                                titleStyles={styles.textHeadlineH1}
+                            />
+                        </View>
+                    </ScrollView>
+                </ScreenWrapper>
+            </DomainNotFoundPageWrapper>
+        );
+    }
 
     return (
         <>

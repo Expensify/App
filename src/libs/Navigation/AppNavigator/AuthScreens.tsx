@@ -238,7 +238,7 @@ function AuthScreens() {
                             listeners={modalScreenListeners}
                         />
                         <RootStack.Screen
-                            name={SCREENS.PROFILE_AVATAR}
+                            name={SCREENS.DYNAMIC_PROFILE_AVATAR}
                             options={attachmentModalScreenOptions}
                             getComponent={loadAttachmentModalScreen}
                             listeners={modalScreenListeners}

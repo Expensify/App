@@ -18,7 +18,7 @@
 "../../src/Expensify.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/GlobalModals.tsx"	"no-restricted-syntax"	2
 "../../src/ONYXKEYS.ts"	"no-restricted-syntax"	2
-"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	161
+"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	152
 "../../src/components/AccountingConnectionConfirmationModal.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/components/ActionSheetAwareScrollView/useActionSheetAwareScrollViewRef.ts"	"react-hooks/immutability"	1
 "../../src/components/ActionSheetAwareScrollView/useActionSheetKeyboardSpacing.ts"	"@typescript-eslint/no-deprecated/useScrollViewOffset"	1
@@ -442,6 +442,8 @@
 "../../src/pages/Debug/Transaction/DebugTransactionViolations.tsx"	"no-restricted-syntax"	1
 "../../src/pages/Debug/TransactionViolation/DebugTransactionViolationPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/DynamicReportChangeApproverPage.tsx"	"react-hooks/set-state-in-effect"	1
+"../../src/pages/DynamicReportDetailsPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
+"../../src/pages/DynamicReportDetailsPage.tsx"	"react-hooks/preserve-manual-memoization"	4
 "../../src/pages/EnablePayments/AddBankAccount/AddBankAccount.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
 "../../src/pages/EnablePayments/FeesAndTerms/FeesAndTerms.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
 "../../src/pages/EnablePayments/FeesAndTerms/FeesAndTerms.tsx"	"no-restricted-syntax"	2
@@ -456,15 +458,8 @@
 "../../src/pages/ReimbursementAccount/EnterSignerInfo/index.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
 "../../src/pages/ReimbursementAccount/ReimbursementAccountPage.tsx"	"react-hooks/refs"	3
 "../../src/pages/ReimbursementAccount/ReimbursementAccountPage.tsx"	"react-hooks/set-state-in-effect"	4
-"../../src/pages/ReimbursementAccount/USD/BankInfo/BankInfo.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
-"../../src/pages/ReimbursementAccount/USD/BeneficialOwnerInfo/BeneficialOwnersStep.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
-"../../src/pages/ReimbursementAccount/USD/BusinessInfo/BusinessInfo.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
 "../../src/pages/ReimbursementAccount/USD/BusinessInfo/subSteps/IndustryCode/IndustryCodeSelector.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/ReimbursementAccount/USD/CompleteVerification/CompleteVerification.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
-"../../src/pages/ReimbursementAccount/USD/Requestor/PersonalInfo/PersonalInfo.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
 "../../src/pages/ReportDescriptionPage.tsx"	"no-restricted-syntax"	1
-"../../src/pages/ReportDetailsPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
-"../../src/pages/ReportDetailsPage.tsx"	"react-hooks/preserve-manual-memoization"	4
 "../../src/pages/ReportParticipantDetailsPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/RoomMemberDetailsPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/RoomMembersPage.tsx"	"react-hooks/preserve-manual-memoization"	1
@@ -513,7 +508,6 @@
 "../../src/pages/inbox/report/withReportOrNotFound.tsx"	"react-hooks/refs"	3
 "../../src/pages/inbox/sidebar/SidebarLinksData.tsx"	"react-hooks/refs"	1
 "../../src/pages/iou/MoneyRequestAmountForm.tsx"	"react-hooks/set-state-in-effect"	3
-"../../src/pages/iou/SplitExpenseEditPage.tsx"	"react-hooks/preserve-manual-memoization"	3
 "../../src/pages/iou/SplitExpensePage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/iou/SplitExpensePage.tsx"	"react-hooks/set-state-in-effect"	3
 "../../src/pages/iou/request/step/IOURequestEditReportCommon.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
@@ -631,7 +625,7 @@
 "../../src/pages/workspace/categories/WorkspaceCategoriesPage.tsx"	"react-hooks/set-state-in-effect"	2
 "../../src/pages/workspace/companyCards/BankConnection/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/companyCards/WorkspaceVerifyWorkAccountPage.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/workspace/companyCards/addNew/AddNewCardPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
+"../../src/pages/workspace/companyCards/addNew/DynamicAddNewCardPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/workspace/companyCards/addNew/PlaidConnectionStep.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/workspace/companyCards/assignCard/ConfirmationStep.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/workspace/distanceRates/PolicyDistanceRatesPage.tsx"	"react-hooks/preserve-manual-memoization"	1
@@ -658,7 +652,6 @@
 "../../src/pages/workspace/taxes/WorkspaceTaxesPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/travel/WorkspaceTravelInvoicingSection.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	3
 "../../src/pages/workspace/workflows/WorkspaceWorkflowsPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
-"../../src/pages/workspace/workflows/WorkspaceWorkflowsPage.tsx"	"react-hooks/preserve-manual-memoization"	3
 "../../src/pages/workspace/workflows/WorkspaceWorkflowsPayerPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	2
 "../../src/stories/ReportActionItemImages.stories.tsx"	"no-restricted-syntax"	1
 "../../src/stories/TextInput.stories.tsx"	"react-hooks/set-state-in-effect"	1
@@ -667,7 +660,6 @@
 "../../src/types/onyx/AccountData.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/BankAccount.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/CancellationDetails.ts"	"no-restricted-syntax"	1
-"../../src/types/onyx/Card.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/CardFeeds.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/Domain.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/DomainErrors.ts"	"no-restricted-syntax"	1
