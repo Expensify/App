@@ -381,9 +381,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const shouldShowLeaveButton = canLeaveChat(report, policy, currentUserPersonalDetails?.accountID, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending;
 
-    // Only show the "Go to room" row when the Details page was opened from a screen other than the room report itself
-    // (e.g. the Workspace rooms list), i.e. the room report is not the report currently open in the central pane.
-    const shouldShowGoToRoom = isChatRoom && Navigation.getTopmostReportId() !== report?.reportID;
+    // Only show the "Go to room" row when the Details page was opened from a screen other than the room report itself (e.g. the Workspace rooms list).
+    const shouldShowGoToRoom = (isChatRoom || isPolicyExpenseChat) && Navigation.getTopmostReportId() !== report?.reportID;
 
     const reportForHeader = useMemo(() => getReportForHeader(report), [report]);
     const shouldParseFullTitle = parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && !isGroupChat;
