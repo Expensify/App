@@ -14,7 +14,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasSynchronizationErrorMessage, isConnectionInProgress} from '@libs/actions/connections';
-import {getConnectedHRProvider} from '@libs/PolicyUtils';
+import {getConnectedHRProvider} from '@libs/HRUtils';
 import {isCurrentUserValidated} from '@libs/UserUtils';
 import HomeSectionExpandToggle from '@pages/home/HomeSectionExpandToggle';
 import CONST from '@src/CONST';
@@ -140,7 +140,7 @@ function TimeSensitiveSection() {
 
             // Find the policy associated with this card's fundID (workspaceAccountID)
             const cardFundID = Number(card.fundID);
-            const matchingPolicy = adminPolicies.find((policy) => policy.workspaceAccountID === cardFundID);
+            const matchingPolicy = adminPolicies.find((policy) => policy.policyAccountID === cardFundID);
 
             if (!matchingPolicy) {
                 continue;
