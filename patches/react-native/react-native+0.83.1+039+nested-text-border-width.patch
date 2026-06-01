@@ -949,7 +949,7 @@ index 3bec610..ed7ee76 100644
        } else {
          attributes[NSBackgroundColorAttributeName] = bgColor;
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
-index fd401a9..91346e8 100644
+index fd401a9..3ae5c60 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
 @@ -26,13 +26,32 @@
@@ -1007,21 +1007,60 @@ index fd401a9..91346e8 100644
        CGFloat effectiveTL = isFirst ? tl : 0;
        CGFloat effectiveBL = isFirst ? bl : 0;
        CGFloat effectiveTR = isLast  ? tr : 0;
-@@ -86,6 +105,8 @@
+@@ -86,24 +105,103 @@
        CGFloat w = CGRectGetWidth(spanRect);
        CGFloat h = CGRectGetHeight(spanRect);
  
 +      // --- Fill ---
 +      CGContextSetFillColorWithColor(context, bgColor.CGColor);
        BOOL hasAnyRadius = tl > 0 || tr > 0 || bl > 0 || br > 0;
++      CGMutablePathRef fillPath = NULL;
        if (!hasAnyRadius) {
          CGContextFillRect(context, spanRect);
-@@ -106,6 +127,64 @@
-         CGPathRelease(path);
-       }
- 
+       } else {
+-        CGMutablePathRef path = CGPathCreateMutable();
+-        CGPathMoveToPoint(path, NULL, x + effectiveTL, y);
+-        CGPathAddLineToPoint(path, NULL, x + w - effectiveTR, y);
+-        CGPathAddArcToPoint(path, NULL, x + w, y, x + w, y + effectiveTR, effectiveTR);
+-        CGPathAddLineToPoint(path, NULL, x + w, y + h - effectiveBR);
+-        CGPathAddArcToPoint(path, NULL, x + w, y + h, x + w - effectiveBR, y + h, effectiveBR);
+-        CGPathAddLineToPoint(path, NULL, x + effectiveBL, y + h);
+-        CGPathAddArcToPoint(path, NULL, x, y + h, x, y + h - effectiveBL, effectiveBL);
+-        CGPathAddLineToPoint(path, NULL, x, y + effectiveTL);
+-        CGPathAddArcToPoint(path, NULL, x, y, x + effectiveTL, y, effectiveTL);
+-        CGPathCloseSubpath(path);
+-        CGContextAddPath(context, path);
++        fillPath = CGPathCreateMutable();
++        CGPathMoveToPoint(fillPath, NULL, x + effectiveTL, y);
++        CGPathAddLineToPoint(fillPath, NULL, x + w - effectiveTR, y);
++        CGPathAddArcToPoint(fillPath, NULL, x + w, y, x + w, y + effectiveTR, effectiveTR);
++        CGPathAddLineToPoint(fillPath, NULL, x + w, y + h - effectiveBR);
++        CGPathAddArcToPoint(fillPath, NULL, x + w, y + h, x + w - effectiveBR, y + h, effectiveBR);
++        CGPathAddLineToPoint(fillPath, NULL, x + effectiveBL, y + h);
++        CGPathAddArcToPoint(fillPath, NULL, x, y + h, x, y + h - effectiveBL, effectiveBL);
++        CGPathAddLineToPoint(fillPath, NULL, x, y + effectiveTL);
++        CGPathAddArcToPoint(fillPath, NULL, x, y, x + effectiveTL, y, effectiveTL);
++        CGPathCloseSubpath(fillPath);
++        CGContextAddPath(context, fillPath);
+         CGContextFillPath(context);
+-        CGPathRelease(path);
++        // fillPath kept alive for border clipping below.
++      }
++
 +      // --- Border ---
 +      if (hasBorder) {
++        // Clip to outside the fill so the stroke appears outside the background
++        // rather than overlapping text. Even-odd rule: outer rect + fill shape =
++        // everything outside the fill (only the outer half of the centered stroke shows).
++        CGContextSaveGState(context);
++        CGContextAddRect(context, CGRectInfinite);
++        if (fillPath) {
++          CGContextAddPath(context, fillPath);
++        } else {
++          CGContextAddRect(context, spanRect);
++        }
++        CGContextEOClip(context);
++
 +        CGContextSetLineCap(context, kCGLineCapButt);
 +
 +        BOOL drawLeft  = isFirst;
@@ -1076,8 +1115,12 @@ index fd401a9..91346e8 100644
 +          CGContextStrokePath(context);
 +          CGPathRelease(path);
 +        }
++
++        CGContextRestoreGState(context);
 +      }
 +
-       lineIdx++;
-     }];
++      if (fillPath) {
++        CGPathRelease(fillPath);
+       }
  
+       lineIdx++;
