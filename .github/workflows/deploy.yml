@@ -383,8 +383,8 @@ jobs:
 
       - name: Load Applause API key from 1Password
         id: load-credentials
-        # v2
-        uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0
+        # v4
+        uses: 1password/load-secrets-action@92467eb28f72e8255933372f1e0707c567ce2259
         with:
           export-env: false
         env:
@@ -614,8 +614,8 @@ jobs:
 
       - name: Load Applause API key from 1Password
         id: load-credentials
-        # v2
-        uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0
+        # v4
+        uses: 1password/load-secrets-action@92467eb28f72e8255933372f1e0707c567ce2259
         with:
           export-env: false
         env:
