@@ -244,7 +244,7 @@ function useAutocompleteSuggestions({
                 sortedActions,
                 conciergeReportID,
                 excludeFromSuggestionsOnly: memberExclusions,
-            }).personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
+            }).options.personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
             return participants.map((participant) => ({
                 filterKey: autocompleteKey,
@@ -281,7 +281,7 @@ function useAutocompleteSuggestions({
                 personalDetails,
                 sortedActions,
                 conciergeReportID,
-            }).recentReports.filter((chat) => {
+            }).options.recentReports.filter((chat) => {
                 if (!chat.text) {
                     return false;
                 }

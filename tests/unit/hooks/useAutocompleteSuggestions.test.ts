@@ -38,14 +38,17 @@ jest.mock('@libs/SearchAutocompleteUtils', () => ({
 
 jest.mock('@libs/OptionsListUtils', () => ({
     getSearchOptions: jest.fn(() => ({
-        personalDetails: [
-            {text: 'John Doe', login: 'john@example.com', accountID: 1},
-            {text: 'Jane Smith', login: 'jane@example.com', accountID: 2},
-        ],
-        recentReports: [
-            {text: 'General Chat', reportID: 'report1'},
-            {text: 'Team Updates', reportID: 'report2'},
-        ],
+        options: {
+            personalDetails: [
+                {text: 'John Doe', login: 'john@example.com', accountID: 1},
+                {text: 'Jane Smith', login: 'jane@example.com', accountID: 2},
+            ],
+            recentReports: [
+                {text: 'General Chat', reportID: 'report1'},
+                {text: 'Team Updates', reportID: 'report2'},
+            ],
+        },
+        hasMore: false,
     })),
 }));
 
