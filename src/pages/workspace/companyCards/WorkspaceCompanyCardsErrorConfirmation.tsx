@@ -29,7 +29,7 @@ function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed}: WorkspaceCo
     const isExpensifyCardFeatureEnabled = !!policy?.areExpensifyCardsEnabled;
     const [cardsList] = useCardsList(newFeed);
     const [cardFeeds] = useCardFeeds(policyID);
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const selectedFeedData = newFeed ? companyFeeds[newFeed] : undefined;
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
