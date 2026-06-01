@@ -46,6 +46,7 @@ import type {
     SearchFilterKey,
     SearchGroupBy,
     SearchQueryJSON,
+    SearchSortBy,
     SearchStatus,
     SearchView,
     SearchWithdrawalStatus,
@@ -402,7 +403,6 @@ const nonSortableColumns = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.ACTION,
     CONST.SEARCH.TABLE_COLUMNS.IN,
     CONST.SEARCH.TABLE_COLUMNS.AVATAR,
-    CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE,
 ]);
 
 function isValidExpenseStatus(status: unknown): status is ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE> {
@@ -3624,7 +3624,7 @@ function getSections({
 type GroupBySortFunction = (
     data: TransactionGroupListItemType[],
     localeCompare: LocaleContextProps['localeCompare'],
-    sortBy?: SearchColumnType,
+    sortBy?: SearchSortBy,
     sortOrder?: SortOrder,
 ) => TransactionGroupListItemType[];
 
@@ -3682,7 +3682,7 @@ function getSortedSections(
     data: ListItemDataType<typeof type, typeof status>,
     localeCompare: LocaleContextProps['localeCompare'],
     translate: LocaleContextProps['translate'],
-    sortBy?: SearchColumnType,
+    sortBy?: SearchSortBy,
     sortOrder?: SortOrder,
     groupBy?: SearchGroupBy,
 ) {
@@ -3768,7 +3768,7 @@ function getSortedTransactionData(
     data: TransactionListItemType[],
     localeCompare: LocaleContextProps['localeCompare'],
     translate: LocaleContextProps['translate'],
-    sortBy?: SearchColumnType,
+    sortBy?: SearchSortBy,
     sortOrder?: SortOrder,
 ) {
     if (!sortBy || !sortOrder) {
@@ -3791,7 +3791,7 @@ function getSortedTransactionData(
         });
     }
 
-    const sortingProperty = transactionColumnNamesToSortingProperty[sortBy];
+    const sortingProperty = sortBy === CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE ? undefined : transactionColumnNamesToSortingProperty[sortBy];
 
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME) {
         return data.sort((a, b) => {
@@ -3913,12 +3913,12 @@ function getSortedTransactionData(
     });
 }
 
-function getSortedTaskData(data: TaskListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
+function getSortedTaskData(data: TaskListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchSortBy, sortOrder?: SortOrder) {
     if (!sortBy || !sortOrder) {
         return data;
     }
 
-    const sortingProperty = taskColumnNamesToSortingProperty[sortBy];
+    const sortingProperty = sortBy === CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE ? undefined : taskColumnNamesToSortingProperty[sortBy];
 
     if (!sortingProperty) {
         return data;
@@ -3940,7 +3940,7 @@ function getSortedReportData(
     data: TransactionReportGroupListItemType[],
     localeCompare: LocaleContextProps['localeCompare'],
     translate: LocaleContextProps['translate'],
-    sortBy?: SearchColumnType,
+    sortBy?: SearchSortBy,
     sortOrder?: SortOrder,
 ) {
     for (const report of data) {
@@ -4007,7 +4007,7 @@ function getSortedReportData(
         });
     }
 
-    const sortingProperty = expenseReportColumnNamesToSortingProperty[sortBy];
+    const sortingProperty = sortBy === CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE ? undefined : expenseReportColumnNamesToSortingProperty[sortBy];
 
     if (!sortingProperty) {
         return data;
@@ -4039,14 +4039,14 @@ function getSortedData<T extends TransactionGroupListItemType>(
     localeCompare: LocaleContextProps['localeCompare'],
     columnNamesToSortingProperty: ColumnSortMapping<T>,
     defaultComparator: (a: T, b: T) => number,
-    sortBy?: SearchColumnType,
+    sortBy?: SearchSortBy,
     sortOrder?: SortOrder,
 ) {
     if (!sortBy || !sortOrder) {
         return data.sort(defaultComparator);
     }
 
-    const sortingProperty = columnNamesToSortingProperty[sortBy];
+    const sortingProperty = sortBy === CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE ? undefined : columnNamesToSortingProperty[sortBy];
 
     if (!sortingProperty) {
         return data;
@@ -4176,7 +4176,7 @@ function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): Search
     }
 }
 
-function getSearchColumnTranslationKey(column: SearchColumnType): TranslationPaths {
+function getSearchColumnTranslationKey(column: SearchSortBy): TranslationPaths {
     switch (column) {
         case CONST.SEARCH.TABLE_COLUMNS.AVATAR:
             return 'common.avatar';
@@ -4292,6 +4292,8 @@ function getSearchColumnTranslationKey(column: SearchColumnType): TranslationPat
             return 'common.tag';
         case CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO:
             return 'search.exportedTo';
+        case CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE:
+            return 'common.categoryGLCode';
         default:
             // This should never happen, but TypeScript requires a default case
             return 'common.expenses' as TranslationPaths;
@@ -4300,6 +4302,10 @@ function getSearchColumnTranslationKey(column: SearchColumnType): TranslationPat
 
 function isColumnSortable(column: SearchColumnType) {
     return !nonSortableColumns.has(column);
+}
+
+function getSortByForColumn(column: SearchColumnType): SearchSortBy {
+    return column === CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE ? CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE : column;
 }
 
 type OverflowMenuIconsType = Record<'Pencil' | 'Trashcan' | 'LinkCopy' | 'Checkmark', IconAsset>;
@@ -4673,10 +4679,10 @@ function getTypeOptions(translate: LocalizedTranslate, policies: OnyxCollection<
 }
 
 function getSortByOptions(columns: SearchColumnType[], translate: LocalizedTranslate) {
-    const sortableColumns: Array<SingleSelectItem<SearchColumnType>> = [];
+    const sortableColumns: Array<SingleSelectItem<SearchSortBy>> = [];
     for (const column of columns) {
         if (isColumnSortable(column)) {
-            sortableColumns.push({text: translate(getSearchColumnTranslationKey(column)), value: column});
+            sortableColumns.push({text: translate(getSearchColumnTranslationKey(column)), value: getSortByForColumn(column)});
         }
     }
     return sortableColumns;

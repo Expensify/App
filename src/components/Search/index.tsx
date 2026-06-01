@@ -96,7 +96,7 @@ import SearchList from './SearchList';
 import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
 import {SearchScopeProvider} from './SearchScopeProvider';
 import SearchTableHeader from './SearchTableHeader';
-import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
+import type {SearchColumnType, SearchParams, SearchQueryJSON, SearchSortBy, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
 
 type SearchProps = {
     queryJSON: SearchQueryJSON;
@@ -1681,7 +1681,7 @@ function Search({
     );
 
     const onSortPress = useCallback(
-        (column: SearchColumnType, order: SortOrder) => {
+        (column: SearchSortBy, order: SortOrder) => {
             clearSelectedTransactions();
             const newQuery = buildSearchQueryString({
                 ...queryJSON,

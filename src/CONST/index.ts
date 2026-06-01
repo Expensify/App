@@ -7933,6 +7933,9 @@ const CONST = {
             ASC: 'asc',
             DESC: 'desc',
         },
+        SORT_BY_COLUMNS: {
+            CATEGORY_GL_CODE: 'glcode',
+        },
         GROUP_BY: {
             FROM: 'from',
             CARD: 'card',

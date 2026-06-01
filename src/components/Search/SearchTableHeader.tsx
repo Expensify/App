@@ -8,13 +8,14 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import SortableTableHeader from './SortableTableHeader';
-import type {SearchColumnType, SearchGroupBy, SortOrder} from './types';
+import type {SearchColumnType, SearchGroupBy, SearchSortBy, SortOrder} from './types';
 
 type SearchColumnConfig = {
     columnName: SearchColumnType;
     translationKey: TranslationPaths | undefined;
     icon?: IconAsset;
     isColumnSortable?: boolean;
+    sortColumnName?: SearchSortBy;
     canEdit?: boolean;
 };
 
@@ -90,7 +91,7 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE,
         translationKey: 'common.categoryGLCode',
-        isColumnSortable: false,
+        sortColumnName: CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ATTENDEES,
@@ -455,9 +456,9 @@ function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, icons: 
 type SearchTableHeaderProps = {
     columns: SearchColumnType[];
     type: SearchDataTypes;
-    sortBy?: SearchColumnType;
+    sortBy?: SearchSortBy;
     sortOrder?: SortOrder;
-    onSortPress: (column: SearchColumnType, order: SortOrder) => void;
+    onSortPress: (column: SearchSortBy, order: SortOrder) => void;
     shouldShowYear: boolean;
     shouldShowYearSubmitted?: boolean;
     shouldShowYearApproved?: boolean;

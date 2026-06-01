@@ -23,6 +23,7 @@ import type {
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
 } from '@components/Search/SearchList/ListItem/types';
+import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
 import type {SearchQueryJSON, SelectedTransactionInfo} from '@components/Search/types';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@navigation/Navigation';
@@ -8216,6 +8217,21 @@ describe('SearchUIUtils', () => {
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE);
         });
 
+        test('Should allow sorting by Category GL Code when the column is visible', () => {
+            expect(
+                SearchUIUtils.getSortByOptions([CONST.SEARCH.TABLE_COLUMNS.RECEIPT, CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE, CONST.SEARCH.TABLE_COLUMNS.ACTION], translateLocal),
+            ).toEqual([
+                {
+                    text: translateLocal('common.categoryGLCode'),
+                    value: CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE,
+                },
+            ]);
+
+            const categoryGLCodeHeader = getExpenseHeaders().find(({columnName}) => columnName === CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE);
+            expect(categoryGLCodeHeader?.isColumnSortable).not.toBe(false);
+            expect(categoryGLCodeHeader?.sortColumnName).toBe(CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE);
+        });
+
         test('Should only show MCC when that column is selected and at least one transaction has a displayable MCC', () => {
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const transactionWithoutMCC = {
@@ -8944,6 +8960,11 @@ describe('SearchUIUtils', () => {
         it('should return correct translation key for CATEGORY column', () => {
             const translationKey = SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.CATEGORY);
             expect(translationKey).toBe('common.category');
+        });
+
+        it('should return correct translation key for CATEGORY_GL_CODE sort column', () => {
+            const translationKey = SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE);
+            expect(translationKey).toBe('common.categoryGLCode');
         });
 
         it('should return correct translation key for WITHDRAWAL_ID column', () => {
