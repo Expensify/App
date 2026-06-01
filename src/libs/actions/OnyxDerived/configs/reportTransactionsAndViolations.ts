@@ -12,10 +12,6 @@ export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS,
     dependencies: [ONYXKEYS.COLLECTION.TRANSACTION, ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS],
     compute: ([transactions, violations], {sourceValues, currentValue}) => {
-        if (!transactions) {
-            return {};
-        }
-
         // If there is a source value for transactions or transaction violations, we need to process only the transactions that have been updated or added
         // If not, we need to process all transactions
         const transactionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION];
@@ -30,6 +26,9 @@ export default createOnyxDerivedValueConfig({
         }
 
         const reportTransactionsAndViolations = currentValue ? {...currentValue} : {};
+        if (!transactions) {
+            return reportTransactionsAndViolations;
+        }
 
         // Track which reportID entries have been cloned so we only clone once per reportID.
         // This avoids mutating nested objects that are still referenced by the cached value.
@@ -47,11 +46,15 @@ export default createOnyxDerivedValueConfig({
         };
 
         for (const transactionKey of transactionsToProcess) {
-            const transaction = transactions[transactionKey];
-            const reportID = transaction?.reportID;
-
             // If the reportID of the transaction has changed (e.g. the transaction was split into multiple reports), we need to delete the transaction from the previous reportID and the violations from the previous reportID
             const previousReportID = transactionReportIDMapping[transactionKey];
+            const previousReportTransactionsAndViolations = previousReportID ? reportTransactionsAndViolations[previousReportID] : undefined;
+            const previousTransaction = transactionViolationsUpdates ? previousReportTransactionsAndViolations?.transactions[transactionKey] : undefined;
+
+            // A transaction-violation update should never make the report lose its transaction. If the transaction
+            // collection is briefly unavailable for this key, keep the last derived transaction while updating violations.
+            const transaction = transactions[transactionKey] ?? previousTransaction;
+            const reportID = transaction?.reportID;
 
             if (previousReportID && previousReportID !== reportID && reportTransactionsAndViolations[previousReportID]) {
                 ensureCloned(previousReportID);
