@@ -315,7 +315,7 @@ function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, 
     }
 
     return (
-        <View style={[styles.w100, styles.flex1, styles.pt5, styles.pb5, {minHeight: CONST.POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT}]}>
+        <View style={[styles.w100, styles.flex1, styles.pt3, styles.pb3, {minHeight: CONST.POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT}]}>
             <SelectionList
                 data={submitToSelectionData}
                 ListItem={InviteMemberListItem}
