@@ -942,7 +942,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 defaultSubtitle: 'Espaço de trabalho',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Cartões corporativos`,
             },
-            fixAccountingConnection: {
+            fixPolicyConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Corrigir conexão com ${integrationName}`,
                 defaultSubtitle: 'Espaço de trabalho',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Contabilidade`,

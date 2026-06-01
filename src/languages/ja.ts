@@ -930,7 +930,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 defaultSubtitle: 'ワークスペース',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会社カード`,
             },
-            fixAccountingConnection: {
+            fixPolicyConnection: {
                 title: ({integrationName}: {integrationName: string}) => `${integrationName} 接続を修正`,
                 defaultSubtitle: 'ワークスペース',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会計`,
