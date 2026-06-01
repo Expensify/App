@@ -80,7 +80,7 @@ jobs:
       - name: Run Claude Code (code)
         id: code-review
         if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true' && steps.filter.outputs.code == 'true'
-        uses: anthropics/claude-code-action@db614ad5ed8c94def23ad6cc336751c8ba450ac1 # v1.0.133
+        uses: anthropics/claude-code-action@787c5a0ce96a9a6cfb050ea0c8f4c05f2447c251 # v1.0.133
         with:
           display_report: "true"
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -119,7 +119,7 @@ jobs:
 
       - name: Run Claude Code (docs)
         if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true' && steps.filter.outputs.docs == 'true'
-        uses: anthropics/claude-code-action@db614ad5ed8c94def23ad6cc336751c8ba450ac1 # v1.0.133
+        uses: anthropics/claude-code-action@787c5a0ce96a9a6cfb050ea0c8f4c05f2447c251 # v1.0.133
         with:
           display_report: "true"
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
