@@ -149,8 +149,12 @@ function AddAgentPage({route}: AddAgentPageProps) {
             // edit/create screen with the optimistic agent already chosen as approver[0]. From
             // there the Save button commits the workflow (the agent renders opaque until
             // CREATE_AGENT resolves; on failure the picker's RBR X clears the pending agent).
-            if (approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT && workflowApproverEmail) {
-                Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, workflowApproverEmail));
+            // The EDIT route is keyed by the workflow's original first approver email (the saved
+            // state); read it from the in-memory workflow rather than the URL param, which may
+            // carry the picker's in-progress selection instead of the workflow identifier.
+            const originalFirstApproverEmail = approvalWorkflow.originalApprovers?.at(0)?.email;
+            if (approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT && originalFirstApproverEmail) {
+                Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, originalFirstApproverEmail));
             } else {
                 Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID));
             }

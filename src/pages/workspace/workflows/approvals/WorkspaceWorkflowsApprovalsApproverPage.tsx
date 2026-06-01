@@ -297,7 +297,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         Navigation.navigate(
             ROUTES.SETTINGS_AGENTS_ADD.getRoute({
                 policyID: route.params.policyID,
-                workflowApproverEmail: firstApprover,
+                workflowApproverEmail: selectedApproverEmail ?? firstApprover,
             }),
         );
     };

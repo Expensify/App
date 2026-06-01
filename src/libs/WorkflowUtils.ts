@@ -774,6 +774,15 @@ function resolveOptimisticAgent({
         }
     }
 
+    // When the optimistic personal detail is still present, this tab originated the
+    // CREATE_AGENT write and the mapping will land here. Falling back to prompt-match in
+    // that window would collapse the brand-new optimistic agent into another agent that
+    // shares the same prompt text (e.g. two agents created with the default prompt) —
+    // wait for the mapping instead.
+    if (personalDetails[optimisticAccountID]?.isOptimisticPersonalDetail) {
+        return undefined;
+    }
+
     if (!pendingAgentPrompt || !agentPrompts) {
         return undefined;
     }
