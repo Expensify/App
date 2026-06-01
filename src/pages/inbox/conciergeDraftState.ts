@@ -58,6 +58,7 @@ type VisibleConciergeDraftMarkdown = {
 const CODE_BLOCK_DELIMITER = '```';
 const INLINE_CODE_DELIMITER = '`';
 const BOLD_DELIMITER = '**';
+const ITALIC_DELIMITER = '*';
 const STRIKETHROUGH_DELIMITER = '~~';
 
 function isInAnyRange(position: number, ranges: TextRange[]): boolean {
@@ -74,6 +75,38 @@ function isEscaped(text: string, index: number): boolean {
     }
 
     return slashCount % 2 !== 0;
+}
+
+function isWhitespace(char: string | undefined): boolean {
+    return char !== undefined && /\s/.test(char);
+}
+
+function isBasicDelimiterCandidate(text: string, pos: number, delimiter: string, ignoredRanges: TextRange[] = []): boolean {
+    if (!text.startsWith(delimiter, pos) || isEscaped(text, pos) || isInAnyRange(pos, ignoredRanges)) {
+        return false;
+    }
+
+    if (delimiter === ITALIC_DELIMITER) {
+        return text[pos - 1] !== ITALIC_DELIMITER && text[pos + 1] !== ITALIC_DELIMITER;
+    }
+
+    return true;
+}
+
+function isOpeningDelimiterCandidate(text: string, pos: number, delimiter: string, ignoredRanges: TextRange[] = []): boolean {
+    if (!isBasicDelimiterCandidate(text, pos, delimiter, ignoredRanges)) {
+        return false;
+    }
+
+    return delimiter !== ITALIC_DELIMITER || !isWhitespace(text[pos + 1]);
+}
+
+function isClosingDelimiterCandidate(text: string, pos: number, delimiter: string, ignoredRanges: TextRange[] = []): boolean {
+    if (!isBasicDelimiterCandidate(text, pos, delimiter, ignoredRanges)) {
+        return false;
+    }
+
+    return delimiter !== ITALIC_DELIMITER || (text[pos - 1] !== undefined && !isWhitespace(text[pos - 1]));
 }
 
 function getCodeRanges(text: string): {ranges: TextRange[]; unclosedCodeBlockStart: number | null} {
@@ -261,13 +294,16 @@ function findDelimitedConstructAtOffset(text: string, offset: number, delimiter:
     let openingDelimiterIndex: number | null = null;
 
     for (let pos = 0; pos <= text.length - delimiter.length; pos++) {
-        if (!text.startsWith(delimiter, pos) || isEscaped(text, pos) || isInAnyRange(pos, ignoredRanges)) {
+        if (openingDelimiterIndex === null) {
+            if (!isOpeningDelimiterCandidate(text, pos, delimiter, ignoredRanges)) {
+                continue;
+            }
+            openingDelimiterIndex = pos;
+            pos += delimiter.length - 1;
             continue;
         }
 
-        if (openingDelimiterIndex === null) {
-            openingDelimiterIndex = pos;
-            pos += delimiter.length - 1;
+        if (!isClosingDelimiterCandidate(text, pos, delimiter, ignoredRanges)) {
             continue;
         }
 
@@ -305,6 +341,7 @@ function findCompleteMarkdownConstructAtOffset(text: string, offset: number): Ma
     return (
         findLinkConstructAtOffset(text, offset, codeRanges) ??
         findDelimitedConstructAtOffset(text, offset, BOLD_DELIMITER, codeRanges) ??
+        findDelimitedConstructAtOffset(text, offset, ITALIC_DELIMITER, codeRanges) ??
         findDelimitedConstructAtOffset(text, offset, STRIKETHROUGH_DELIMITER, codeRanges)
     );
 }
@@ -351,45 +388,33 @@ function buildVisibleMarkdownAtSourceOffset(targetBodyMarkdown: string, sourceOf
 }
 
 function stripUnpairedLastLineDelimiter(text: string, delimiter: string, ignoredRanges: TextRange[] = []): string {
-    const lastNewline = text.lastIndexOf('\n');
-    const lastLineStart = lastNewline + 1;
-    const delimiterIndexes: number[] = [];
-
-    for (let pos = lastLineStart; pos <= text.length - delimiter.length; pos++) {
-        if (!text.startsWith(delimiter, pos) || isEscaped(text, pos) || isInAnyRange(pos, ignoredRanges)) {
-            continue;
-        }
-
-        delimiterIndexes.push(pos);
-        pos += delimiter.length - 1;
-    }
-
-    if (delimiterIndexes.length > 0 && delimiterIndexes.length % 2 !== 0) {
-        return text.substring(0, delimiterIndexes.at(-1));
-    }
-
-    return text;
+    const unpairedDelimiterIndex = getUnpairedLastLineDelimiterIndex(text, delimiter, ignoredRanges);
+    return unpairedDelimiterIndex === null ? text : text.substring(0, unpairedDelimiterIndex);
 }
 
 function getUnpairedLastLineDelimiterIndex(text: string, delimiter: string, ignoredRanges: TextRange[] = []): number | null {
     const lastNewline = text.lastIndexOf('\n');
     const lastLineStart = lastNewline + 1;
-    const delimiterIndexes: number[] = [];
+    let openingDelimiterIndex: number | null = null;
 
     for (let pos = lastLineStart; pos <= text.length - delimiter.length; pos++) {
-        if (!text.startsWith(delimiter, pos) || isEscaped(text, pos) || isInAnyRange(pos, ignoredRanges)) {
+        if (openingDelimiterIndex === null) {
+            if (!isOpeningDelimiterCandidate(text, pos, delimiter, ignoredRanges)) {
+                continue;
+            }
+
+            openingDelimiterIndex = pos;
+            pos += delimiter.length - 1;
             continue;
         }
 
-        delimiterIndexes.push(pos);
-        pos += delimiter.length - 1;
+        if (isClosingDelimiterCandidate(text, pos, delimiter, ignoredRanges)) {
+            openingDelimiterIndex = null;
+            pos += delimiter.length - 1;
+        }
     }
 
-    if (delimiterIndexes.length > 0 && delimiterIndexes.length % 2 !== 0) {
-        return delimiterIndexes.at(-1) ?? null;
-    }
-
-    return null;
+    return openingDelimiterIndex;
 }
 
 function getIncompleteLinkStartIndex(text: string, ignoredRanges: TextRange[]): number | null {
@@ -442,6 +467,13 @@ function getSafeMarkdownSourceLength(markdown: string): number {
     }
 
     codeRanges = getCodeRanges(safeMarkdown).ranges;
+    const incompleteItalicStart = getUnpairedLastLineDelimiterIndex(safeMarkdown, ITALIC_DELIMITER, codeRanges);
+    if (incompleteItalicStart !== null) {
+        safeLength = incompleteItalicStart;
+        safeMarkdown = markdown.slice(0, safeLength);
+    }
+
+    codeRanges = getCodeRanges(safeMarkdown).ranges;
     const incompleteStrikethroughStart = getUnpairedLastLineDelimiterIndex(safeMarkdown, STRIKETHROUGH_DELIMITER, codeRanges);
     if (incompleteStrikethroughStart !== null) {
         safeLength = incompleteStrikethroughStart;
@@ -452,10 +484,13 @@ function getSafeMarkdownSourceLength(markdown: string): number {
 
 function normalizeDelimiterForExpensiMark(text: string, delimiter: string, replacement: string, ignoredRanges: TextRange[] = []): string {
     let result = '';
+    let hasOpeningDelimiter = false;
 
     for (let pos = 0; pos < text.length; pos++) {
-        if (text.startsWith(delimiter, pos) && !isEscaped(text, pos) && !isInAnyRange(pos, ignoredRanges)) {
+        const isDelimiter = hasOpeningDelimiter ? isClosingDelimiterCandidate(text, pos, delimiter, ignoredRanges) : isOpeningDelimiterCandidate(text, pos, delimiter, ignoredRanges);
+        if (isDelimiter) {
             result += replacement;
+            hasOpeningDelimiter = !hasOpeningDelimiter;
             pos += delimiter.length - 1;
             continue;
         }
@@ -469,10 +504,9 @@ function normalizeDelimiterForExpensiMark(text: string, delimiter: string, repla
 /**
  * Strips incomplete markdown constructs from the tail of a streaming markdown
  * string so that ExpensiMark doesn't render raw syntax for half-finished
- * links, bold, strikethrough, or code blocks. Completed double-delimiter
- * emphasis is normalized to ExpensiMark's single-delimiter syntax so the text
- * stays styled without leaking raw delimiters while the server-rendered HTML is
- * still pending.
+ * links, emphasis, strikethrough, or code blocks. Completed Markdown emphasis
+ * is normalized to ExpensiMark syntax so the text stays styled without leaking
+ * raw delimiters while the server-rendered HTML is still pending.
  */
 function stripIncompleteMarkdown(markdown: string): string {
     if (!markdown) {
@@ -507,6 +541,11 @@ function stripIncompleteMarkdown(markdown: string): string {
 
     codeRanges = getCodeRanges(result).ranges;
     result = stripUnpairedLastLineDelimiter(result, BOLD_DELIMITER, codeRanges);
+    codeRanges = getCodeRanges(result).ranges;
+    result = stripUnpairedLastLineDelimiter(result, ITALIC_DELIMITER, codeRanges);
+
+    codeRanges = getCodeRanges(result).ranges;
+    result = normalizeDelimiterForExpensiMark(result, ITALIC_DELIMITER, '_', codeRanges);
     codeRanges = getCodeRanges(result).ranges;
     result = normalizeDelimiterForExpensiMark(result, BOLD_DELIMITER, '*', codeRanges);
 

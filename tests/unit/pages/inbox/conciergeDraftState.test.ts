@@ -75,6 +75,13 @@ describe('conciergeDraftState', () => {
         expect(getFirstMessageHTML(updatedDraft)).toContain('<strong>streaming</strong>');
     });
 
+    it('should render streamed Common Markdown single-star emphasis as italic', () => {
+        const draft = applyConciergeDraftEvent(null, createDraftEvent({bodyMarkdown: 'Hello, *streaming* world!'}), REPORT_ID);
+
+        expect(getFirstMessageHTML(draft)).toContain('<em>streaming</em>');
+        expect(getFirstMessageHTML(draft)).not.toContain('<strong>streaming</strong>');
+    });
+
     it('should ignore stale events from the same stream session', () => {
         const initialDraft = applyConciergeDraftEvent(null, createDraftEvent({sequence: 3}), REPORT_ID);
         const staleDraft = applyConciergeDraftEvent(
@@ -181,6 +188,14 @@ describe('conciergeDraftState', () => {
             expect(codeSlice.bodyMarkdown).toBe('Run `n`');
         });
 
+        it('streams complete italic markup by visible characters while keeping the style active', () => {
+            const italicSlice = getNextVisibleConciergeDraftMarkdown('Hello ', 'Hello *world*!', 'Hello '.length, 'Hello ');
+
+            expect(italicSlice.bodyMarkdown).toBe('Hello *w*');
+            expect(italicSlice.sourceMarkdown).toBe('Hello *w');
+            expect(stripIncompleteMarkdown(italicSlice.bodyMarkdown)).toBe('Hello _w_');
+        });
+
         it('streams complete links by linked text without exposing the destination URL as plain text', () => {
             const linkSlice = getNextVisibleConciergeDraftMarkdown('See ', 'See [docs](https://example.com)', 'See '.length, 'See ');
 
@@ -190,11 +205,15 @@ describe('conciergeDraftState', () => {
 
         it('does not consume hidden source text while markdown is still incomplete', () => {
             const boldSlice = getNextVisibleConciergeDraftMarkdown('Hello ', 'Hello **world', 'Hello '.length, 'Hello ');
+            const italicSlice = getNextVisibleConciergeDraftMarkdown('Hello ', 'Hello *world', 'Hello '.length, 'Hello ');
             const linkSlice = getNextVisibleConciergeDraftMarkdown('See ', 'See [docs](https://example', 'See '.length, 'See ');
 
             expect(boldSlice.bodyMarkdown).toBe('Hello ');
             expect(boldSlice.sourceMarkdown).toBe('Hello ');
             expect(boldSlice.sourceOffset).toBe('Hello '.length);
+            expect(italicSlice.bodyMarkdown).toBe('Hello ');
+            expect(italicSlice.sourceMarkdown).toBe('Hello ');
+            expect(italicSlice.sourceOffset).toBe('Hello '.length);
             expect(linkSlice.bodyMarkdown).toBe('See ');
             expect(linkSlice.sourceMarkdown).toBe('See ');
             expect(linkSlice.sourceOffset).toBe('See '.length);
@@ -215,12 +234,12 @@ describe('conciergeDraftState', () => {
         });
 
         it('does not alter complete markdown', () => {
-            const complete = 'Hello *bold* and [link](https://example.com) and `code`';
+            const complete = 'Hello _italic_ and [link](https://example.com) and `code`';
             expect(stripIncompleteMarkdown(complete)).toBe(complete);
         });
 
-        it('normalizes complete double-delimiter emphasis for ExpensiMark', () => {
-            expect(stripIncompleteMarkdown('Hello **bold** and ~~strike~~')).toBe('Hello *bold* and ~strike~');
+        it('normalizes complete Markdown emphasis for ExpensiMark', () => {
+            expect(stripIncompleteMarkdown('Hello **bold**, *italic*, and ~~strike~~')).toBe('Hello *bold*, _italic_, and ~strike~');
         });
 
         // --- Links / Images ---
@@ -266,6 +285,20 @@ describe('conciergeDraftState', () => {
             expect(stripIncompleteMarkdown('**done** and **broken')).toBe('*done* and ');
         });
 
+        // --- Italic (*) ---
+        it('strips trailing unclosed italic', () => {
+            expect(stripIncompleteMarkdown('Hello *world')).toBe('Hello ');
+        });
+
+        it('preserves complete italic and strips only the unclosed one', () => {
+            expect(stripIncompleteMarkdown('*done* and *broken')).toBe('_done_ and ');
+        });
+
+        it('does not treat bullet markers or multiplication as italic', () => {
+            expect(stripIncompleteMarkdown('* item')).toBe('* item');
+            expect(stripIncompleteMarkdown('2 * 3 = 6')).toBe('2 * 3 = 6');
+        });
+
         // --- Strikethrough (~~) ---
         it('strips trailing unclosed strikethrough', () => {
             expect(stripIncompleteMarkdown('Hello ~~strike')).toBe('Hello ');
@@ -306,6 +339,14 @@ describe('conciergeDraftState', () => {
             const draft = applyConciergeDraftEvent(null, createDraftEvent({bodyMarkdown: 'Hello **bold**!'}), REPORT_ID);
 
             expect(getFirstMessageHTML(draft)).toContain('<strong>bold</strong>');
+            expect(getFirstMessageHTML(draft)).not.toContain('*');
+        });
+
+        it('keeps complete single-delimiter italic styled without rendering it as bold during streaming', () => {
+            const draft = applyConciergeDraftEvent(null, createDraftEvent({bodyMarkdown: 'Hello *italic*!'}), REPORT_ID);
+
+            expect(getFirstMessageHTML(draft)).toContain('<em>italic</em>');
+            expect(getFirstMessageHTML(draft)).not.toContain('<strong>italic</strong>');
             expect(getFirstMessageHTML(draft)).not.toContain('*');
         });
 
