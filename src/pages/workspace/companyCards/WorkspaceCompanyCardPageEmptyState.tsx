@@ -25,9 +25,10 @@ import WorkspaceCompanyCardExpensifyCardPromotionBanner from './WorkspaceCompany
 type WorkspaceCompanyCardPageEmptyStateProps = {
     policyID: string;
     shouldShowGBDisclaimer?: boolean;
+    canWriteCompanyCards?: boolean;
 };
 
-function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer}: WorkspaceCompanyCardPageEmptyStateProps) {
+function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer, canWriteCompanyCards = true}: WorkspaceCompanyCardPageEmptyStateProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -114,9 +115,9 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer}: 
                 menuItems={companyCardFeatures as FeatureListItem[]}
                 title={translate('workspace.moreFeatures.companyCards.feed.title')}
                 subtitle={translate('workspace.moreFeatures.companyCards.feed.subtitle')}
-                ctaText={translate('workspace.companyCards.addCards')}
-                ctaAccessibilityLabel={translate('workspace.companyCards.addCards')}
-                onCtaPress={handleCtaPress}
+                ctaText={canWriteCompanyCards ? translate('workspace.companyCards.addCards') : undefined}
+                ctaAccessibilityLabel={canWriteCompanyCards ? translate('workspace.companyCards.addCards') : undefined}
+                onCtaPress={canWriteCompanyCards ? handleCtaPress : undefined}
                 illustrationBackgroundColor={colors.blue800}
                 illustration={getCompanyCardIllustration()}
                 illustrationStyle={styles.getEmptyStateCompanyCardsIllustration(shouldUseNarrowLayout)}
