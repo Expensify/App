@@ -43,6 +43,7 @@ type CalendarPickerProps = {
 
     /** Optional additional style for the outermost container */
     containerStyle?: StyleProp<ViewStyle>;
+
     /** Whether Month/Year right-docked picker modals should keep backdrop in narrow pane context */
     shouldEnableMonthYearBackdropInNarrowPane?: boolean;
 };
