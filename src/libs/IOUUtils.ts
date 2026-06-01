@@ -483,7 +483,7 @@ function getIsWorkspacesOnlyForTransaction(transaction: OnyxEntry<Transaction>, 
         return false;
     }
 
-    return transaction?.amount !== undefined && transaction?.amount !== null && transaction?.amount <= 0;
+    return transaction?.amount !== undefined && transaction?.amount !== null && transaction?.amount < 0;
 }
 
 /** Resolves which Report should receive a money-request: the picked transaction report when usable, undefined to force a new optimistic IOU, otherwise the route report. */
