@@ -16,7 +16,7 @@ import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
 import {calculateTaxAmount, getAmount, getCurrency, getTaxRateTitle, getTaxValue} from '@libs/TransactionUtils';
-import {setMoneyRequestTaxRateValues} from '@userActions/IOU/MoneyRequest';
+import {getIOURequestPolicyID, setMoneyRequestTaxRateValues} from '@userActions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 import {updateMoneyRequestTaxRate} from '@userActions/IOU/UpdateMoneyRequest';
 import CONST from '@src/CONST';
@@ -49,7 +49,9 @@ function IOURequestStepTaxRatePage({
 }: IOURequestStepTaxRatePageProps) {
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
-    const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType});
+
+    const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.participants?.at(0)?.reportID)}`);
+    const {policy} = usePolicyForTransaction({transaction, reportPolicyID: getIOURequestPolicyID(transaction, report?.policyID ? report : participantReport), action, iouType});
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
