@@ -30,6 +30,8 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
     const size = radius ? radius * 2 : undefined;
     const angularStrokeWidth = padAngle && radius ? 2 * convertAngleToArcLength(padAngle, radius) : 0;
     const angularStrokeColor = typeof chartContainerStyles.backgroundColor === 'string' ? chartContainerStyles.backgroundColor : VictoryTheme.colors.default;
+    const labelIndicatorInnerOffset = tnode.attributes.labelindicatorinneroffset !== undefined ? Number(parseAttribute(tnode.attributes.labelindicatorinneroffset)) : undefined;
+    const labelIndicatorOuterOffset = tnode.attributes.labelindicatorouteroffset !== undefined ? Number(parseAttribute(tnode.attributes.labelindicatorouteroffset)) : undefined;
 
     return (
         <Pie.Chart
@@ -46,6 +48,8 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
                                 baseLabelItem={baseLabelItem}
                                 label={pieLabels?.[dataLabels.indexOf(slice.label)]}
                                 labelRadius={labelRadius}
+                                labelIndicatorInnerOffset={labelIndicatorInnerOffset}
+                                labelIndicatorOuterOffset={labelIndicatorOuterOffset}
                             />
                         )}
                     </Pie.Slice>
