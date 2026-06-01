@@ -2426,6 +2426,22 @@ function getAction(allActions: SearchTransactionAction[], primaryActionExclusion
     return allActions.find((action) => action !== CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER && !primaryActionExclusions.includes(action)) ?? CONST.SEARCH.ACTION_TYPES.VIEW;
 }
 
+/**
+ * Computes the primary action for a row, applying the same primary-action exclusions as `getSections`
+ * (SUBMIT hidden for non-owners; PAY hidden as the primary action for non-reimbursable-only reports).
+ * Used by the row-level live recompute so the live Action button matches the snapshot.
+ */
+function getPrimaryAction(allActions: SearchTransactionAction[], data: OnyxTypes.SearchResults['data'], key: string, currentAccountID: number): SearchTransactionAction {
+    const report = getReportFromKey(data, key);
+    const submitExclusion = getSubmitExclusion(report?.ownerAccountID, currentAccountID);
+    if (isReportEntry(key) && report) {
+        const allReportTransactions = getTransactionsForReport(data, report.reportID);
+        const shouldHidePayAsPrimaryAction = hasOnlyNonReimbursableTransactions(report.reportID, allReportTransactions);
+        return getAction(allActions, [...(shouldHidePayAsPrimaryAction ? [CONST.SEARCH.ACTION_TYPES.PAY] : []), ...submitExclusion]);
+    }
+    return getAction(allActions, submitExclusion);
+}
+
 type RowCapabilities = {
     canPay: boolean;
     canApprove: boolean;
@@ -5963,6 +5979,7 @@ export {
     isTaskListItemType,
     getAction,
     getActions,
+    getPrimaryAction,
     getRowCapabilities,
     createTypeMenuSections,
     formatBadgeText,

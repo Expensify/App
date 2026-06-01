@@ -5,7 +5,7 @@ import {useSearchQueryContext} from '@components/Search/SearchContext';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getAction, getActions} from '@libs/SearchUIUtils';
+import {getActions, getPrimaryAction} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, SearchResults} from '@src/types/onyx';
@@ -61,7 +61,7 @@ function useLiveRowCapabilities<T extends LiveRowItem>(params: UseLiveRowCapabil
         liveReportMetadata,
         liveActionsArray,
     );
-    const liveAction = liveAllActions.length ? getAction(liveAllActions) : item.action;
+    const liveAction = liveAllActions.length ? getPrimaryAction(liveAllActions, snapshotData, itemKey, currentUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID) : item.action;
     const liveCanPay = liveAllActions.includes(CONST.SEARCH.ACTION_TYPES.PAY);
     const liveCanApprove = liveAllActions.includes(CONST.SEARCH.ACTION_TYPES.APPROVE);
     const liveCanSubmit = liveAllActions.includes(CONST.SEARCH.ACTION_TYPES.SUBMIT);

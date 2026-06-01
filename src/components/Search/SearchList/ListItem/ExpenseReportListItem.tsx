@@ -7,7 +7,7 @@ import {View} from 'react-native';
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
-import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionContext} from '@components/Search/SearchContext';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -66,7 +66,16 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
-    const {isSelected} = useRowSelection(item.keyForList);
+    const {isSelected: liveRowSelected} = useRowSelection(item.keyForList);
+    const {selectedTransactions} = useSearchSelectionContext();
+
+    // For non-empty expense reports, `toggleTransaction` keys selection by child transaction ID, not the
+    // report row key, so `useRowSelection(reportID)` alone never reflects selection. Derive the row state
+    // from its transactions (all-or-nothing for expense reports), as the removed `applySelectionToItem` did.
+    const transactionsWithoutPendingDelete = (reportItem.transactions ?? []).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const areAllReportTransactionsSelected =
+        transactionsWithoutPendingDelete.length > 0 && transactionsWithoutPendingDelete.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected);
+    const isSelected = liveRowSelected || areAllReportTransactionsSelected;
     const {translate} = useLocalize();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey} = useSearchQueryContext();
@@ -181,11 +190,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                 const moneyRequestReport = parentReport ?? snapshotReport;
                 const chatReport = parentChatReport ?? snapshotChatReport;
                 const transactionsForHoldMenu = liveReportTransactions.length > 0 ? liveReportTransactions : holdItem.transactions;
-                const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(
-                    moneyRequestReport,
-                    holdItem.allActions?.includes(CONST.SEARCH.ACTION_TYPES.PAY) ?? false,
-                    transactionsForHoldMenu,
-                );
+                const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, holdItem.canPay ?? false, transactionsForHoldMenu);
                 const hasNonHeldExpenses = transactionsForHoldMenu.some((t) => !isOnHold(t));
                 showHoldMenu({
                     reportID: holdItem.reportID,
