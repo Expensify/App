@@ -181,7 +181,7 @@ The **Submit** button only appears once your report includes at least one valid 
 
 ## Why can’t I submit a report with pending Expensify Card transactions?
 
-If all transactions on your report are pending Expensify Card transactions, you'll see the **Submit** button but clicking it will display an **Unable to submit report** error. Pending transactions may take a few days to post. Once at least one transaction has posted, you can submit the report.
+If all transactions on your report are pending Expensify Card transactions, you'll see the **Submit** button but clicking it will display an **Unable to submit report** error. Pending transactions may take a few days to post. After at least one transaction has posted, you can submit the report.
 
 ## Can I remove an expense after submitting?
 
