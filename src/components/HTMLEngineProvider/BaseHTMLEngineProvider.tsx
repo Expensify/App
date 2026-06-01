@@ -228,6 +228,10 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 tagName: 'victorygroup',
                 contentModel: HTMLContentModel.block,
             }),
+            victorypie: HTMLElementModel.fromCustomModel({
+                tagName: 'victorypie',
+                contentModel: HTMLContentModel.block,
+            }),
         }),
         [
             styles.taskTitleMenuItem,
