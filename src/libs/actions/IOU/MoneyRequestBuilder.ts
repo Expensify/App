@@ -71,6 +71,7 @@ import type BasePolicyParams from './types/BasePolicyParams';
 import type BaseTransactionParams from './types/BaseTransactionParams';
 import type {CreateTrackExpenseParams} from './types/CreateTrackExpenseParams';
 import type RequestMoneyParticipantParams from './types/RequestMoneyParticipantParams';
+import type TrackedExpenseSubmitParams from './types/TrackedExpenseSubmitParams';
 import type {GPSPoint} from './types/TrackExpenseTransactionParams';
 
 type OneOnOneIOUReport = OnyxTypes.Report | undefined | null;
@@ -110,11 +111,8 @@ type MoneyRequestInformation = {
     reimbursable?: boolean;
 };
 
-type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
+type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & TrackedExpenseSubmitParams & {
     attendees?: Attendee[];
-    actionableWhisperReportActionID?: string;
-    linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction;
-    linkedTrackedExpenseReportID?: string;
     receipt?: Receipt;
     waypoints?: WaypointCollection;
     comment?: string;
@@ -124,7 +122,6 @@ type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
     pendingAction?: PendingAction;
     pendingFields?: PendingFields<string>;
     distance?: number;
-    isLinkedTrackedExpenseReportArchived?: boolean;
     customUnit?: TransactionCustomUnit;
     odometerStart?: number;
     odometerEnd?: number;
