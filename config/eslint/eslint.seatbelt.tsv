@@ -512,7 +512,7 @@
 "../../src/pages/iou/SplitExpensePage.tsx"	"react-hooks/set-state-in-effect"	3
 "../../src/pages/iou/request/step/IOURequestEditReportCommon.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/iou/request/step/IOURequestStepAmount.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/iou/request/step/IOURequestStepCategory.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
+"../../src/pages/iou/request/step/DynamicIOURequestStepCategoryPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/iou/request/step/IOURequestStepConfirmation.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/iou/request/step/IOURequestStepDestination.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/iou/request/step/IOURequestStepDistance.tsx"	"react-hooks/set-state-in-effect"	1
