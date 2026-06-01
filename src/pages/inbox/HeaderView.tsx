@@ -36,7 +36,6 @@ import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getHumanAgentAccountIDFromReportAction, getHumanAgentFirstName} from '@libs/ReportActionsUtils';
@@ -312,7 +311,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                             )}
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                                 <PressableWithoutFeedback
-                                    onPress={() => navigateToDetailsPage(report, Navigation.getReportRHPActiveRoute())}
+                                    onPress={() => navigateToDetailsPage(report)}
                                     style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                                     disabled={shouldDisableDetailPage}
                                     accessibilityLabel={title}
