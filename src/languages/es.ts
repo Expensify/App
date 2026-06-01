@@ -929,7 +929,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: ({days}: {days: number}) => `Prueba gratuita: ${days} ${days === 1 ? 'día' : 'días'} restantes!`,
             offer50Body: '¡Obtén 50% de descuento en tu primer año',
             offer25Body: '¡Obtén 25% de descuento en tu primer año',
-            addCardBody: '¡No esperes! Añade tu tarjeta de pago ahora.',
+            addCardBody: 'Añadir una tarjeta de pago',
             ctaClaim: 'Reclamar',
             ctaAdd: 'Añadir tarjeta',
             timeRemaining: ({formattedTime}: {formattedTime: string}) => `Tiempo restante: ${formattedTime}`,
@@ -1224,7 +1224,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Problemas encontrados',
         }),
         fieldPending: 'Pendiente...',
-        automaticallyEnterExpenseDetails: 'Concierge introducirá automáticamente los detalles del gasto por ti, o puedes añadirlos manualmente.',
+        automaticallyEnterExpenseDetails: 'Concierge completará los detalles por ti.',
         receiptScanning: () => ({
             one: 'Escaneando recibo...',
             other: 'Escaneando recibos...',
@@ -2464,6 +2464,8 @@ ${amount} para ${merchant} - ${date}`,
         addApprovalsTitle: 'Aprobaciones',
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `gastos de ${members}, y el aprobador es ${approvers}`,
         addApprovalButton: 'Añadir flujo de aprobación',
+        editWorkflowAction: 'Editar',
+        addAgentAction: 'Añadir agente',
         findWorkflow: 'Buscar flujo de trabajo',
         addApprovalTip: 'Este flujo de trabajo por defecto se aplica a todos los miembros, a menos que exista un flujo de trabajo más específico.',
         approver: 'Aprobador',
@@ -2700,10 +2702,7 @@ ${amount} para ${merchant} - ${date}`,
         title: 'Reglas de gastos',
         subtitle: 'Estas reglas se aplicarán a tus gastos.',
         findRule: 'Encontrar regla',
-        emptyRules: {
-            title: 'Aún no has creado ninguna regla',
-            subtitle: 'Añade una regla para automatizar los informes de gastos.',
-        },
+        emptyRules: {title: 'Aún no hay reglas', subtitle: 'Añade una regla para automatizar los informes de gastos.'},
         changes: {
             billableUpdate: (value: boolean) => `Actualiza el gasto a ${value ? 'facturable' : 'no facturable'}`,
             categoryUpdate: (value: string) => `Actualiza la categoría a "${value}"`,
@@ -5413,7 +5412,7 @@ ${amount} para ${merchant} - ${date}`,
             needCategoryForExportToIntegration: (connectionName) => `Todos los gastos deben estar categorizados para poder exportar a ${connectionName}.`,
             subtitle: 'Obtén una visión general de dónde te gastas el dinero. Utiliza las categorías predeterminadas o añade las tuyas propias.',
             emptyCategories: {
-                title: 'No has creado ninguna categoría',
+                title: 'Todavía no hay categorías',
                 subtitle: 'Añade una categoría para organizar tu gasto.',
                 subtitleWithAccounting: (accountingPageURL) =>
                     `<muted-text><centered-text>Tus categorías se están importando actualmente desde una conexión de contabilidad. Dirígete a <a href="${accountingPageURL}">contabilidad</a> para hacer cualquier cambio.</centered-text></muted-text>`,
@@ -5722,10 +5721,7 @@ ${amount} para ${merchant} - ${date}`,
             findReportField: 'Encontrar campo del informe',
             deleteConfirmation: '¿Está seguro de que desea eliminar este campo del informe?',
             deleteFieldsConfirmation: '¿Está seguro de que desea eliminar estos campos del informe?',
-            emptyReportFields: {
-                title: 'No has creado ningún campo de informe',
-                subtitle: 'Añade un campo personalizado (texto, fecha o desplegable) que aparezca en los informes.',
-            },
+            emptyReportFields: {title: 'Aún no hay campos de informe', subtitle: 'Añade un campo personalizado (texto, fecha o desplegable) que aparezca en los informes.'},
             subtitle: 'Los campos de informe se aplican a todos los gastos y pueden ser útiles cuando quieras solicitar información adicional.',
             disableReportFields: 'Desactivar campos de informe',
             disableReportFieldsConfirmation: 'Estás seguro? Se eliminarán los campos de texto y fecha y se desactivarán las listas.',
@@ -5749,10 +5745,7 @@ ${amount} para ${merchant} - ${date}`,
             disableValues: 'Desactivar valores',
             enableValue: 'Habilitar valor',
             enableValues: 'Habilitar valores',
-            emptyReportFieldsValues: {
-                title: 'No has creado ningún valor en la lista',
-                subtitle: 'Añade valores personalizados para que aparezcan en los informes.',
-            },
+            emptyReportFieldsValues: {title: 'Aún no hay valores en la lista', subtitle: 'Añade valores personalizados para que aparezcan en los informes.'},
             deleteValuePrompt: '¿Estás seguro de que quieres eliminar este valor de la lista?',
             deleteValuesPrompt: '¿Estás seguro de que quieres eliminar estos valores de la lista?',
             listValueRequiredError: 'Ingresa un nombre para el valor de la lista',
@@ -5788,7 +5781,7 @@ ${amount} para ${merchant} - ${date}`,
             subtitleWithDependentTags: (importSpreadsheetLink) =>
                 `<muted-text>Las etiquetas añaden formas más detalladas de clasificar los costos. Estás usando <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">etiquetas dependientes</a>. Puedes <a href="${importSpreadsheetLink}">reimportar una hoja de cálculo</a> para actualizar tus etiquetas.</muted-text>`,
             emptyTags: {
-                title: 'No has creado ninguna etiqueta',
+                title: 'Aún no hay etiquetas',
                 subtitle: 'Añade una etiqueta para realizar el seguimiento de proyectos, ubicaciones, departamentos y otros.',
                 subtitleHTML: `<muted-text><centered-text>Importa una hoja de cálculo para añadir etiquetas y organizar proyectos, ubicaciones, departamentos y más. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Obtén más información</a> sobre cómo dar formato a los archivos de etiquetas.</centered-text></muted-text>`,
                 subtitleWithAccounting: (accountingPageURL) =>
@@ -6331,7 +6324,7 @@ ${amount} para ${merchant} - ${date}`,
                 copyExisting: 'Copiar existente',
                 createNew: 'Crear nuevo',
                 spendRulesEmptyStateTitle: 'No hay reglas para elegir',
-                spendRulesEmptyStateSubtitle: 'Aún no has creado ninguna regla. Puedes crear una desde la pantalla anterior.',
+                spendRulesEmptyStateSubtitle: 'Todavía no hay reglas. Puedes crear una desde la pantalla anterior.',
             },
             deactivateCardModal: {
                 deactivate: 'Desactivar',
@@ -7332,6 +7325,51 @@ ${amount} para ${merchant} - ${date}`,
             `${enabled ? 'habilitó' : 'deshabilitó'} que los titulares de tarjetas eliminen transacciones de la fuente de tarjetas "${feedName}"`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `cambió el día de cierre del período de estado de cuenta de la fuente de tarjetas "${feedName}"${newValue ? ` a "${newValue}"` : ''}${previousValue ? ` (previamente "${previousValue}")` : ''}`,
+        expensifyCardRule: {
+            actionVerb: {block: 'bloqueado', allow: 'permitido'},
+            amountOperator: {over: 'más de', under: 'debajo'},
+            amountFilter: ({operator, amount}: {operator: string; amount: string}) => `cantidades ${operator} ${amount}`,
+            theCard: 'la tarjeta',
+            multipleCards: ({count}: {count: number}) => ({
+                one: '1 tarjeta',
+                other: `${count} tarjetas`,
+            }),
+            addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
+                let text = verb;
+                if (filters !== '') {
+                    text += ` ${filters}`;
+                }
+                text += ` en ${cards}`;
+                return text;
+            },
+            removeRule: ({cards}: {cards: string}) => `eliminó la regla de gasto de ${cards}`,
+            restrictionVerb: {block: 'bloquear', allow: 'permitir solo'},
+            update: {
+                modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) => `cambió la regla de gasto de ${fromAction} a ${toAction} en ${cards}`,
+                appliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: 'aplicó la regla de gasto a 1 tarjeta adicional',
+                    other: `aplicó la regla de gasto a ${count} tarjetas adicionales`,
+                }),
+                phraseVerb: {added: 'añadido', removed: 'eliminado', changed: 'cambió', set: 'establecer', applied: 'aplicado'},
+                bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} comercio «${value}»` : `comercio «${value}»`),
+                bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `${adjective} del comerciante de '${oldValue}' a '${newValue}'` : `comercio de '${oldValue}' a '${newValue}'`,
+                bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) =>
+                    adjective !== '' ? `Categoría de gasto ${adjective} «${value}»` : `categoría de gasto «${value}»`,
+                bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `Categoría de gasto ${adjective} de '${oldValue}' a '${newValue}'` : `categoría de gasto de '${oldValue}' a '${newValue}'`,
+                bodyMaxAmount: 'importe máximo',
+                bodyMaxAmountSet: ({value}: {value: string}) => `importe máximo hasta ${value}`,
+                bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `importe máximo de ${oldValue} a ${newValue}`,
+                bodyAppliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: 'regla de gasto para 1 tarjeta adicional',
+                    other: `regla de gasto para ${count} tarjetas adicionales`,
+                }),
+                bodyRemovedFromCards: ({cards}: {cards: string}) => `regla de gasto de ${cards}`,
+                composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} en ${cards}`,
+                composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} de ${cards}`,
+            },
+        },
         preventSelfApproval: (oldValue, newValue) =>
             `actualizó "Evitar la autoaprobación" a "${newValue === 'true' ? 'Habilitada' : 'Deshabilitada'}" (previamente "${oldValue === 'true' ? 'Habilitada' : 'Deshabilitada'}")`,
         setReceiptRequiredAmount: (newValue) => `estableció el importe requerido del recibo en "${newValue}"`,
@@ -7726,27 +7764,23 @@ ${amount} para ${merchant} - ${date}`,
                 subtitle: `Intenta ajustar tus criterios de búsqueda o crear algo con el botón +.`,
             },
             emptyExpenseResults: {
-                title: 'Aún no has creado ningún gasto',
+                title: 'Aún no hay gastos',
                 subtitle: 'Crea un gasto o haz una prueba por Expensify para aprender más.',
                 subtitleWithOnlyCreateButton: 'Usa el botón verde de abajo para crear un gasto.',
             },
             emptyReportResults: {
-                title: 'Aún no has creado ningún informe',
+                title: 'Aún no hay informes',
                 subtitle: 'Crea un informe o haz una prueba de Expensify para aprender más.',
                 subtitleWithOnlyCreateButton: 'Usa el botón verde de abajo para crear un informe.',
             },
             emptyInvoiceResults: {
-                title: 'Aún no has creado \nninguna factura',
+                title: 'Aún no hay facturas',
                 subtitle: 'Envía una factura o haz una prueba por Expensify para aprender más.',
                 subtitleWithOnlyCreateButton: 'Usa el botón verde de abajo para enviar una factura.',
                 subtitleCannotSend: 'Necesitas un espacio de trabajo con Invoices habilitado para enviar facturas.',
                 subtitleCannotSendWithTestDrive: 'Necesitas un espacio de trabajo con Invoices habilitado para enviar facturas. Haz una prueba por Expensify para aprender más.',
             },
-            emptyTripResults: {
-                title: 'No tienes viajes',
-                subtitle: 'Reserva tu primer viaje a continuación.',
-                buttonText: 'Reserva un viaje',
-            },
+            emptyTripResults: {title: 'Aún no hay viajes', subtitle: 'Reserva tu primer viaje a continuación.', buttonText: 'Reserva un viaje'},
             emptySubmitResults: {
                 title: 'No hay gastos para enviar',
                 subtitle: 'Todo despejado. ¡Date una vuelta de victoria!',
@@ -7937,6 +7971,7 @@ ${amount} para ${merchant} - ${date}`,
         exportAll: {
             selectAllMatchingItems: 'Seleccionar todos los elementos coincidentes',
             allMatchingItemsSelected: 'Todos los elementos coincidentes seleccionados',
+            selectAllOnThisPage: 'Seleccionar todo en esta página',
         },
         errors: {
             pleaseSelectDatesForBothFromAndTo: 'Por favor, selecciona fechas para Desde y Hasta',
@@ -9491,6 +9526,7 @@ ${amount} para ${merchant} - ${date}`,
     },
     export: {
         basicExport: 'Exportar básico',
+        currentView: 'Exportar vista actual',
         reportLevelExport: 'Todos los datos - a nivel de informe',
         expenseLevelExport: 'Todos los datos - a nivel de gasto',
         exportInProgress: 'Exportación en curso',
@@ -9673,6 +9709,13 @@ ${amount} para ${merchant} - ${date}`,
             domainGroup: 'Grupo de dominio',
             chooseWhereToMove: ({count}: {count: number}) => `Elige a dónde mover ${count} ${count === 1 ? 'miembro' : 'miembros'}.`,
             chooseWhereToMoveName: ({name}: {name: string}) => `Elige a dónde mover a ${name}.`,
+            membersFeatureList: {
+                subtitle: ({domainName}: {domainName: string}) =>
+                    `<muted-text>Verifica tu dominio para tener más control sobre los miembros de <strong>${domainName}</strong> en Expensify.</muted-text>`,
+                controlPolicyCreation: 'Restringir la creación de espacios de trabajo',
+                enableSamlSso: 'Habilitar SSO SAML',
+                enforce2FA: 'Forzar 2FA',
+            },
         },
         common: {
             settings: 'Configuración',
