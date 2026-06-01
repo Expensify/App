@@ -14,6 +14,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import {accountIDSelector} from '@selectors/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -28,6 +29,7 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
     const {translate} = useLocalize();
     const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [savedColumnLayouts] = useOnyx(ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST);
+    const [accountID = CONST.DEFAULT_NUMBER_ID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [isImporting, setIsImporting] = useState(false);
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const hasAppliedSavedMappings = useRef(false);
@@ -116,7 +118,7 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
         // If existingCardID is provided, add transactions to that card instead of creating a new one
         const cardIDNumber = existingCardID ? Number(existingCardID) : undefined;
         const previouslySavedLayout = cardIDNumber && savedColumnLayouts ? savedColumnLayouts[String(cardIDNumber)] : undefined;
-        const importFinalModal = await importTransactionsFromCSV(spreadsheet, cardIDNumber, previouslySavedLayout);
+        const importFinalModal = await importTransactionsFromCSV(spreadsheet, accountID, cardIDNumber, previouslySavedLayout);
         const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {shouldHandleNavigationBack: false});
         if (!didShowImportFinalModal) {
             setIsImporting(false);

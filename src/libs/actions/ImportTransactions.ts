@@ -16,14 +16,6 @@ import type {SavedCSVColumnLayoutData} from '@src/types/onyx/SavedCSVColumnLayou
 import type Transaction from '@src/types/onyx/Transaction';
 import {getImportFailedFinalModal, getImportFinalModalID, getImportFinalModalOnyxData, waitForImportFinalModal} from './ImportSpreadsheet';
 
-let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    },
-});
-
 type TransactionFromCSV = {
     transactionID: string;
     created: string;
@@ -270,7 +262,7 @@ function buildTransactionListFromSpreadsheet(spreadsheet: ImportedSpreadsheet, s
 /**
  * Creates an optimistic card object for the imported transactions
  */
-function buildOptimisticCard(cardDisplayName: string): {card: Card; cardID: number} {
+function buildOptimisticCard(cardDisplayName: string, accountID: number): {card: Card; cardID: number} {
     const cardID = generateCardID();
     return {
         cardID,
@@ -278,7 +270,7 @@ function buildOptimisticCard(cardDisplayName: string): {card: Card; cardID: numb
             cardID,
             // A personal card always belongs to the current (importing) user, so set the accountID optimistically
             // to keep the cardholder lookup (personalDetails[accountID]) working on the card details page.
-            accountID: currentUserAccountID,
+            accountID,
             state: CONST.EXPENSIFY_CARD.STATE.OPEN,
             // Use the CSV bank name constant so the card shows up in the Assigned Cards section
             bank: CONST.PERSONAL_CARDS.BANK_NAME.CSV,
@@ -322,10 +314,16 @@ function buildOptimisticTransactions(transactionList: TransactionFromCSV[], card
 /**
  * Import transactions from a CSV spreadsheet
  * @param spreadsheet - The imported spreadsheet data
+ * @param accountID - The current (importing) user's accountID, used as the cardholder for a new optimistic card
  * @param existingCardID - Optional cardID to add transactions to an existing card instead of creating a new one
  * @param previouslySavedLayout - Optional previous saved layout to restore on failure
  */
-async function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet, existingCardID?: number, previouslySavedLayout?: SavedCSVColumnLayoutData): Promise<ImportFinalModal> {
+async function importTransactionsFromCSV(
+    spreadsheet: ImportedSpreadsheet,
+    accountID: number,
+    existingCardID?: number,
+    previouslySavedLayout?: SavedCSVColumnLayoutData,
+): Promise<ImportFinalModal> {
     const settings = spreadsheet.importTransactionSettings ?? {};
     const {cardDisplayName = 'Imported Card', currency = CONST.CURRENCY.USD, isReimbursable = true, flipAmountSign = false} = settings;
 
@@ -347,7 +345,7 @@ async function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet, exist
     if (isAddingToExistingCard) {
         cardID = existingCardID;
     } else {
-        const optimisticCardData = buildOptimisticCard(cardDisplayName);
+        const optimisticCardData = buildOptimisticCard(cardDisplayName, accountID);
         cardID = optimisticCardData.cardID;
         optimisticCard = optimisticCardData.card;
     }
