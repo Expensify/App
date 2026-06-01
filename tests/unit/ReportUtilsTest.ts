@@ -10266,6 +10266,7 @@ describe('ReportUtils', () => {
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`,
                 value: {category: remainingCategory},
             });
+
             // The failure data should restore the original category
             expect(onyxData.failureData).toContainEqual({
                 onyxMethod: Onyx.METHOD.MERGE,
