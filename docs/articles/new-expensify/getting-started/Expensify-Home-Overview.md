@@ -114,7 +114,7 @@ This section helps you stay informed about what’s new or recently changed in N
 
 ---
 
-## How the Your spend section works on Home
+## How Your spend section works on Home
 
 The **Your spend** section gives you a snapshot of your spending activity across workspaces and Expensify Cards.
 
@@ -123,7 +123,7 @@ This section can show any of the following rows, depending on what applies to yo
 - **Repaid in the last 30 days** — the total amount reimbursed to you in the last 30 days across all workspaces
 - **Recent transactions • \<last four digits\>** — the amount spent on each assigned Expensify Card in the last 30 days
 
-Tap any row to navigate to **Spend > Expenses** with the relevant filters applied.
+Tap any row to go to **Spend > Expenses** with the relevant filters applied.
 
 If none of these conditions apply to you, the **Your spend** section will not appear.
 
