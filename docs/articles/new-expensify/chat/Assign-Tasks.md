@@ -36,7 +36,7 @@ The task **creator** and the **assignee** can:
 
 ## How to identify chats with outstanding tasks
 
-When you have an incomplete task assigned to you in a workspace chat, a green **Task** badge appears next to the chat in the left-hand navigation (LHN). This helps you quickly find chats that need your attention.
+When you have an incomplete task assigned to you in a workspace chat, a green **Task** badge appears next to the chat. This helps you quickly find chats that need your attention.
 
 - The **Task** badge disappears once the task is marked as complete.
 - This badge works alongside existing action badges like **Submit**, **Approve**, **Pay**, and **Fix** for expense-related actions.
