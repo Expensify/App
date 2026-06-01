@@ -148,7 +148,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const delegateAccountID = useDelegateAccountID();
-    const {accountID: currentUserAccountID, email: currentUserEmail = ''} = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID, email: currentUserEmail = '', login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const isUserReimburser = policy?.achAccount?.reimburser !== undefined && account?.primaryLogin !== undefined && policy?.achAccount?.reimburser === account?.primaryLogin;
     const {
         approvalWorkflows: rawApprovalWorkflows,
@@ -158,7 +158,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         policy,
         personalDetails: personalDetails ?? {},
         localeCompare,
-        currentUserLogin: currentUserEmail,
+        currentUserLogin,
     });
 
     const approvalWorkflows = useDeferredAgentWorkflowReconciliation(rawApprovalWorkflows, policy, route.params.policyID);
