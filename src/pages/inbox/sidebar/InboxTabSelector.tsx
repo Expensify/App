@@ -21,9 +21,6 @@ function InboxTabSelector() {
         {
             key: CONST.INBOX_TAB.ALL,
             title: translate('inboxTabs.all'),
-            badgeText: getBadgeText(inboxTabCounts[CONST.INBOX_TAB.ALL]),
-            isBadgeCondensed: true,
-            badgeStyles: styles.inboxTabBadge,
         },
         {
             key: CONST.INBOX_TAB.UNREAD,

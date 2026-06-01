@@ -1527,8 +1527,8 @@ function filterReportsForInboxTab(reportIDs: string[], reportsToDisplay: Reports
     });
 }
 
-/** Counts how many of the ordered reports fall into each Inbox tab, for the count shown next to each tab label. */
-function getInboxTabCounts(reportIDs: string[], reportsToDisplay: ReportsToDisplayInLHN): Record<ValueOf<typeof CONST.INBOX_TAB>, number> {
+/** Counts how many of the ordered reports fall into the To-do and Unread Inbox tabs, for the count badge shown on each. */
+function getInboxTabCounts(reportIDs: string[], reportsToDisplay: ReportsToDisplayInLHN): Record<typeof CONST.INBOX_TAB.TODO | typeof CONST.INBOX_TAB.UNREAD, number> {
     let todoCount = 0;
     let unreadCount = 0;
 
@@ -1546,7 +1546,6 @@ function getInboxTabCounts(reportIDs: string[], reportsToDisplay: ReportsToDispl
     }
 
     return {
-        [CONST.INBOX_TAB.ALL]: reportIDs.length,
         [CONST.INBOX_TAB.TODO]: todoCount,
         [CONST.INBOX_TAB.UNREAD]: unreadCount,
     };

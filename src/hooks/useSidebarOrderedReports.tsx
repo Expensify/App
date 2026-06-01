@@ -36,7 +36,7 @@ type SidebarOrderedReportsStateContextValue = {
     currentReportID: string | undefined;
     chatTabBrickRoad: BrickRoad;
     activeTab: ValueOf<typeof CONST.INBOX_TAB>;
-    inboxTabCounts: Record<ValueOf<typeof CONST.INBOX_TAB>, number>;
+    inboxTabCounts: Record<typeof CONST.INBOX_TAB.TODO | typeof CONST.INBOX_TAB.UNREAD, number>;
 };
 
 type SidebarOrderedReportsActionsContextValue = {
@@ -53,7 +53,6 @@ const SidebarOrderedReportsStateContext = createContext<SidebarOrderedReportsSta
     chatTabBrickRoad: undefined,
     activeTab: CONST.INBOX_TAB.ALL,
     inboxTabCounts: {
-        [CONST.INBOX_TAB.ALL]: 0,
         [CONST.INBOX_TAB.TODO]: 0,
         [CONST.INBOX_TAB.UNREAD]: 0,
     },
