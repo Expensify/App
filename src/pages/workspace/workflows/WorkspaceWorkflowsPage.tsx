@@ -516,7 +516,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                         shouldBlockApprovalWorkflowEditing
                                             ? undefined
                                             : () => {
-                                                  // Use the unoverlaid raw workflow — a deferred-agent overlay can blank approvers[0].email, breaking ExpensesFromPage's Edit-route backTo.
+                                                  // Use the raw workflow (pre-overlay) — a deferred-agent overlay can blank approvers[0].email, breaking ExpensesFromPage's Edit-route backTo.
                                                   const rawWorkflow = rawApprovalWorkflows.find((w) => w.approvers.at(0)?.email === workflow.routingFirstApproverEmail);
                                                   if (!rawWorkflow) {
                                                       return;
