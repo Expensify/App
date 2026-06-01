@@ -53,6 +53,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getRateFromMerchant} from '@libs/MergeTransactionUtils';
 import {isBillableEnabledOnPolicy, isSingleTransactionReport} from '@libs/MoneyRequestReportUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {
@@ -121,7 +122,6 @@ import {
 } from '@libs/TransactionUtils';
 import {isInvalidMerchantValue} from '@libs/ValidationUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@navigation/Navigation';
 import AnimatedEmptyStateBackground from '@pages/inbox/report/AnimatedEmptyStateBackground';
 import CONST from '@src/CONST';
@@ -1163,12 +1163,7 @@ function MoneyRequestView({
 
                                 Navigation.navigate(
                                     createDynamicRoute(
-                                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(
-                                            CONST.IOU.ACTION.EDIT,
-                                            iouType,
-                                            transaction.transactionID,
-                                            transactionThreadReport?.reportID,
-                                        ),
+                                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID),
                                     ),
                                 );
                             }}
