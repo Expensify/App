@@ -58,6 +58,8 @@ function ValidateLoginPage({
             // sign-in). goBack() left a blank page, so go Home: wait for protected
             // routes (HOME mounts async) and forceReplace so Home doesn't stack on the
             // consumed `/v/...` route.
+            // NOTE: this branch only fires on the AuthScreens re-mount of this page (after the
+            // auth swap), where isSignedIn is finally true; the original PublicScreens mount isn't.
             Navigation.waitForProtectedRoutes().then(() => {
                 Navigation.navigate(ROUTES.HOME, {forceReplace: true});
             });

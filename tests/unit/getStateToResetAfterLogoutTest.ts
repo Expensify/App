@@ -23,7 +23,7 @@ describe('getStateToResetAfterLogout', () => {
         expect(getStateToResetAfterLogout(buildRootState([]))).toBeUndefined();
     });
 
-    it('resets to SCREENS.HOME when a consumed magic-link is the last route, even if a host is mounted (HOME is the only route registered in both navigators)', () => {
+    it('resets to SCREENS.HOME when a consumed magic-link is the last route, even if a host is mounted (post-logout reset always lands on the public HOME/SignInPage route)', () => {
         const result = getStateToResetAfterLogout(buildRootState([{name: NAVIGATORS.TAB_NAVIGATOR, params: {deep: 'link'}}, {name: SCREENS.VALIDATE_LOGIN}]));
 
         expect(result).toEqual({index: 0, routes: [{name: SCREENS.HOME}]});

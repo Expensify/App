@@ -14,8 +14,8 @@ function getStateToResetAfterLogout(rootState: NavigationState | undefined): Nav
     }
 
     // ValidateLogin's /v/ code is spent by logout; keeping it strands the user. Reset to
-    // SCREENS.HOME — the only route registered in both AuthScreens and PublicScreens, so the
-    // reset is well-defined regardless of which navigator the auth swap has mounted.
+    // SCREENS.HOME — this runs only post-logout (NavigationRoot gates on !authenticated), when
+    // PublicScreens is mounted and HOME (SignInPage) is its top-level route.
     if (lastRoute.name === SCREENS.VALIDATE_LOGIN) {
         return {index: 0, routes: [{name: SCREENS.HOME}]};
     }
