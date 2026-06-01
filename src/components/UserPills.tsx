@@ -5,6 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
+import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
 import Tooltip from './Tooltip';
 import UserPill from './UserPill';
@@ -19,11 +20,13 @@ type UserPillData = {
 type UserPillsProps = {
     users: UserPillData[];
     maxVisible?: number;
+    /** When provided, the "+X more" text becomes its own tap target — bypasses any parent row's onPress. */
+    onShowAllPress?: () => void;
 };
 
 const DEFAULT_MAX_VISIBLE = 6;
 
-function UserPills({users, maxVisible = DEFAULT_MAX_VISIBLE}: UserPillsProps) {
+function UserPills({users, maxVisible = DEFAULT_MAX_VISIBLE, onShowAllPress}: UserPillsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -54,9 +57,20 @@ function UserPills({users, maxVisible = DEFAULT_MAX_VISIBLE}: UserPillsProps) {
             })}
             {hiddenCount > 0 && (
                 <Tooltip text={hiddenNames}>
-                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                        <Text style={styles.userPillMoreText}>{translate('common.plusMore', {count: hiddenCount})}</Text>
-                    </View>
+                    {onShowAllPress ? (
+                        <PressableWithoutFeedback
+                            onPress={onShowAllPress}
+                            accessibilityRole="button"
+                            accessibilityLabel={translate('common.plusMore', {count: hiddenCount})}
+                            style={[styles.flexRow, styles.alignItemsCenter]}
+                        >
+                            <Text style={styles.userPillMoreText}>{translate('common.plusMore', {count: hiddenCount})}</Text>
+                        </PressableWithoutFeedback>
+                    ) : (
+                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                            <Text style={styles.userPillMoreText}>{translate('common.plusMore', {count: hiddenCount})}</Text>
+                        </View>
+                    )}
                 </Tooltip>
             )}
         </View>

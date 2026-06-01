@@ -204,7 +204,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             <ApproverSelectionList
                 testID="WorkspaceWorkflowsApprovalsExpensesFromPage"
                 headerTitle={translate('workflowsExpensesFromPage.title')}
-                onBackButtonPress={goBack}
+                onBackButtonPress={() => Navigation.goBack()}
                 subtitle={
                     approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE &&
                     !shouldShowListEmptyContent && <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{translate('workflowsExpensesFromPage.header')}</Text>

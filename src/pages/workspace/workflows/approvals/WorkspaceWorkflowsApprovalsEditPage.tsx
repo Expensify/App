@@ -19,11 +19,19 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {canEditWorkspaceSettings, goBackFromInvalidPolicy, isControlPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
-import {convertPolicyEmployeesToApprovalWorkflows, mergeWorkflowMembersWithAvailableMembers, resolveOptimisticAgent} from '@libs/WorkflowUtils';
+import {convertPolicyEmployeesToApprovalWorkflows, resolveOptimisticAgent} from '@libs/WorkflowUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
-import {clearApprovalWorkflow, queueDeferredAgentWorkflowSave, removeApprovalWorkflow, setApprovalWorkflow, updateApprovalWorkflow, validateApprovalWorkflow} from '@userActions/Workflow';
+import {
+    clearApprovalWorkflow,
+    queueDeferredAgentWorkflowSave,
+    removeApprovalWorkflow,
+    selectApprovalWorkflowForEdit,
+    setApprovalWorkflow,
+    updateApprovalWorkflow,
+    validateApprovalWorkflow,
+} from '@userActions/Workflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -161,6 +169,18 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             return clearApprovalWorkflow();
         }
 
+        // Resume after a sub-page round-trip: when the user enters a sub-page via a per-row deep-link, edits, and
+        // saves, the sub-page's `goBack(EditRHP)` lands here with the in-progress workflow already in onyx.
+        // Re-initing from policy would wipe those edits. Skipped when seed params are present (those always want a fresh init).
+        const hasSeedRequest = !!route.params.seedApproverEmail || !!route.params.seedApproverAccountID;
+        const isResumingEdit =
+            !hasSeedRequest && approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT && approvalWorkflow?.originalApprovers?.at(0)?.email === route.params.firstApproverEmail;
+        if (isResumingEdit) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setInitialApprovalWorkflow(currentApprovalWorkflow);
+            return;
+        }
+
         // Seed approver[0] when opened from Workflows > Add agent (skip if already in the workflow).
         // Two entry points are supported:
         //   1. `seedApproverEmail` — used when the new agent already has a server-assigned login
@@ -173,7 +193,6 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         const seedApproverEmail = route.params.seedApproverEmail;
         const seedApproverAccountID = route.params.seedApproverAccountID ? Number(route.params.seedApproverAccountID) : undefined;
         const hasSeedApproverEmail = seedApproverEmail !== undefined && seedApproverEmail !== '';
-        const hasSeedRequest = hasSeedApproverEmail || seedApproverAccountID !== undefined;
         let seedPersonalDetails;
         if (hasSeedApproverEmail) {
             seedPersonalDetails = getPersonalDetailByEmail(seedApproverEmail);
@@ -214,18 +233,13 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             }
         }
 
-        setApprovalWorkflow({
-            ...currentApprovalWorkflow,
-            approvers,
-            availableMembers: mergeWorkflowMembersWithAvailableMembers(currentApprovalWorkflow.members, defaultWorkflowMembers),
+        selectApprovalWorkflowForEdit({
+            workflow: currentApprovalWorkflow,
+            defaultWorkflowMembers,
             usedApproverEmails,
-            action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
-            errors: null,
-            originalApprovers: currentApprovalWorkflow.approvers,
+            approvers,
         });
-        // Intentional: synchronizes the initial workflow snapshot when the current workflow changes.
-        // This runs alongside setApprovalWorkflow above and is part of the same logical update.
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+        // Snapshot for diffing on save; runs alongside selectApprovalWorkflowForEdit above.
         setInitialApprovalWorkflow(currentApprovalWorkflow);
     }, [
         currentApprovalWorkflow,
@@ -234,9 +248,12 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         usedApproverEmails,
         policy,
         route.params.policyID,
+        route.params.firstApproverEmail,
         route.params.seedApproverEmail,
         route.params.seedApproverAccountID,
         personalDetails,
+        approvalWorkflow?.action,
+        approvalWorkflow?.originalApprovers,
     ]);
 
     // Reconcile a pending (optimistic) seeded approver with the real personal detail once
