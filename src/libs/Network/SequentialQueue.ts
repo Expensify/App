@@ -337,6 +337,10 @@ function flush(shouldResetPromise = true) {
 
     if (persistedRequestsLength === 0 && !currentOngoingRequest && !hasOnyxUpdates) {
         Log.info('[SequentialQueue] Unable to flush. No requests or queued Onyx updates to process.');
+        // push() may have marked isReadyPromise pending in its sync prelude (e.g. a conflict
+        // resolver deleted the only request without pushing a replacement). Resolve here so READs
+        // parked on waitForIdle() don't hang until unrelated queue activity releases them.
+        resolveIsReadyPromise?.();
         return;
     }
 
