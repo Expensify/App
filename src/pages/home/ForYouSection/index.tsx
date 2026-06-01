@@ -16,9 +16,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {accountIDSelector} from '@src/selectors/Session';
-import todosReportCountsSelector, {EMPTY_FLAGGED_EXPENSES_REVIEW, EMPTY_TODOS_SINGLE_REPORT_IDS, flaggedExpensesReviewSelector, todosSingleReportIDsSelector} from '@src/selectors/Todos';
+import todosReportCountsSelector, {EMPTY_TODOS_SINGLE_REPORT_IDS, todosSingleReportIDsSelector} from '@src/selectors/Todos';
 import EmptyState from './EmptyState';
 import ForYouSkeleton from './ForYouSkeleton';
+import useReviewFlaggedExpenses from './useReviewFlaggedExpenses';
 
 function ForYouSection() {
     const styles = useThemeStyles();
@@ -30,7 +31,7 @@ function ForYouSection() {
     const [isLoadingReportData = false] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
     const [singleReportIDs = EMPTY_TODOS_SINGLE_REPORT_IDS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosSingleReportIDsSelector});
-    const [flaggedExpensesReview = EMPTY_FLAGGED_EXPENSES_REVIEW] = useOnyx(ONYXKEYS.DERIVED.FLAGGED_EXPENSES, {selector: flaggedExpensesReviewSelector});
+    const {count: flaggedExpensesCount, reviewExpenses} = useReviewFlaggedExpenses();
 
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptSearch', 'MoneyBag', 'Send', 'ThumbsUp', 'Export']);
 
@@ -38,7 +39,6 @@ function ForYouSection() {
     const approveCount = reportCounts?.[CONST.SEARCH.SEARCH_KEYS.APPROVE] ?? 0;
     const payCount = reportCounts?.[CONST.SEARCH.SEARCH_KEYS.PAY] ?? 0;
     const exportCount = reportCounts?.[CONST.SEARCH.SEARCH_KEYS.EXPORT] ?? 0;
-    const flaggedExpensesCount = flaggedExpensesReview.count;
 
     const hasAnyTodos = flaggedExpensesCount > 0 || submitCount > 0 || approveCount > 0 || payCount > 0 || exportCount > 0;
 
@@ -73,16 +73,6 @@ function ForYouSection() {
         [navigateToReport],
     );
 
-    const createReviewExpensesHandler = useCallback(
-        (firstReportID: string | undefined) => () => {
-            if (!firstReportID) {
-                return;
-            }
-            navigateToReport(firstReportID);
-        },
-        [navigateToReport],
-    );
-
     const todoItems = useMemo(
         () =>
             [
@@ -93,7 +83,7 @@ function ForYouSection() {
                     iconBackgroundColor: colors.tangerine100,
                     iconFill: colors.tangerine500,
                     translationKey: 'homePage.forYouSection.reviewExpenses' as const,
-                    handler: createReviewExpensesHandler(flaggedExpensesReview.firstReportID),
+                    handler: reviewExpenses,
                     buttonProps: {danger: true} as const,
                 },
                 {
@@ -137,10 +127,9 @@ function ForYouSection() {
             accountID,
             approveCount,
             createNavigationHandler,
-            createReviewExpensesHandler,
+            reviewExpenses,
             exportCount,
             flaggedExpensesCount,
-            flaggedExpensesReview.firstReportID,
             icons.Export,
             icons.MoneyBag,
             icons.ReceiptSearch,

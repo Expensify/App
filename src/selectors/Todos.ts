@@ -73,12 +73,15 @@ type FlaggedExpensesReview = {
     firstTransactionID: string | undefined;
     /** Parent report ID of the first flagged expense */
     firstReportID: string | undefined;
+    /** Ordered list of every flagged transaction ID, used to drive the prev/next review carousel */
+    transactionIDs: string[];
 };
 
 const EMPTY_FLAGGED_EXPENSES_REVIEW: FlaggedExpensesReview = Object.freeze({
     count: 0,
     firstTransactionID: undefined,
     firstReportID: undefined,
+    transactionIDs: [],
 }) as FlaggedExpensesReview;
 
 // Manual memoization mirrors `todosSingleReportIDsSelector`: ForYouSection's useMemo dependency
@@ -94,13 +97,25 @@ const flaggedExpensesReviewSelector = (flaggedExpensesValue: OnyxEntry<FlaggedEx
     }
 
     const first = flaggedExpenses.at(0);
+    const transactionIDs = flaggedExpenses.map((flaggedExpense) => flaggedExpense.transactionID);
     const newValue: FlaggedExpensesReview = {
         count: flaggedExpenses.length,
         firstTransactionID: first?.transactionID,
         firstReportID: first?.reportID,
+        transactionIDs,
     };
 
-    if (shallowEqual(previousFlaggedExpensesReview, newValue)) {
+    // shallowEqual would always report a difference because `transactionIDs` is a fresh array each call,
+    // so we compare the scalar fields shallowly and the IDs element-by-element to preserve referential stability.
+    const previousTransactionIDs = previousFlaggedExpensesReview.transactionIDs;
+    const areTransactionIDsEqual =
+        previousTransactionIDs.length === transactionIDs.length && previousTransactionIDs.every((transactionID, index) => transactionID === transactionIDs.at(index));
+    if (
+        previousFlaggedExpensesReview.count === newValue.count &&
+        previousFlaggedExpensesReview.firstTransactionID === newValue.firstTransactionID &&
+        previousFlaggedExpensesReview.firstReportID === newValue.firstReportID &&
+        areTransactionIDsEqual
+    ) {
         return previousFlaggedExpensesReview;
     }
 

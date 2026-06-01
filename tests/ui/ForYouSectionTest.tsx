@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import ForYouSection from '@pages/home/ForYouSection';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {FlaggedExpensesDerivedValue, TodosDerivedValue} from '@src/types/onyx';
@@ -16,6 +17,9 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
+
+const mockNavigateToTransactionThread = jest.fn();
+jest.mock('@hooks/useNavigateToTransactionThread', () => jest.fn(() => mockNavigateToTransactionThread));
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
@@ -248,81 +252,67 @@ describe('ForYouSection', () => {
     });
 
     describe('review row navigation', () => {
-        describe('wide layout', () => {
-            it('navigates to EXPENSE_REPORT_RHP with the first flagged expense parent report and backTo=HOME', async () => {
-                await act(async () => {
-                    await Onyx.set(ONYXKEYS.DERIVED.TODOS, BASE_TODOS);
-                    await Onyx.set(ONYXKEYS.DERIVED.FLAGGED_EXPENSES, {
-                        flaggedExpenses: [
-                            {transactionID: 't1', reportID: 'r1'},
-                            {transactionID: 't2', reportID: 'r2'},
-                        ],
-                    });
+        it('delegates to useNavigateToTransactionThread with the first flagged expense and all sibling transaction IDs', async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.DERIVED.TODOS, BASE_TODOS);
+                await Onyx.set(ONYXKEYS.DERIVED.FLAGGED_EXPENSES, {
+                    flaggedExpenses: [
+                        {transactionID: 't1', reportID: 'r1'},
+                        {transactionID: 't2', reportID: 'r2'},
+                    ],
                 });
-                await waitForBatchedUpdatesWithAct();
-
-                renderForYouSection();
-                await waitForBatchedUpdatesWithAct();
-
-                pressFirstBeginButton();
-
-                expect(mockNavigate).toHaveBeenCalledTimes(1);
-                expect(mockNavigate).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: 'r1', backTo: ROUTES.HOME}));
-            });
-
-            it('still uses the per-report RHP route when only one expense is flagged', async () => {
-                await act(async () => {
-                    await Onyx.set(ONYXKEYS.DERIVED.TODOS, BASE_TODOS);
-                    await Onyx.set(ONYXKEYS.DERIVED.FLAGGED_EXPENSES, {
-                        flaggedExpenses: [{transactionID: 't1', reportID: 'rOnly'}],
-                    });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}r1`, {reportID: 'r1'});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}r1`, {
+                    action1: {
+                        reportActionID: 'action1',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        childReportID: 'thread-r1',
+                        message: {IOUTransactionID: 't1'},
+                    },
                 });
-                await waitForBatchedUpdatesWithAct();
-
-                renderForYouSection();
-                await waitForBatchedUpdatesWithAct();
-
-                pressFirstBeginButton();
-
-                expect(mockNavigate).toHaveBeenCalledTimes(1);
-                expect(mockNavigate).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: 'rOnly', backTo: ROUTES.HOME}));
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}t1`, {transactionID: 't1', reportID: 'r1'});
             });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            pressFirstBeginButton();
+
+            expect(mockNavigateToTransactionThread).toHaveBeenCalledTimes(1);
+            expect(mockNavigateToTransactionThread).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionID: 't1',
+                    report: expect.objectContaining({reportID: 'r1'}),
+                    transaction: expect.objectContaining({transactionID: 't1'}),
+                    reportActions: expect.arrayContaining([expect.objectContaining({reportActionID: 'action1', childReportID: 'thread-r1'})]),
+                    siblingTransactionIDs: ['t1', 't2'],
+                    backTo: ROUTES.HOME,
+                }),
+            );
+            // The standard report routes should not be used for the review row anymore.
+            expect(mockNavigate).not.toHaveBeenCalled();
         });
 
-        describe('narrow layout', () => {
-            beforeEach(() => {
-                mockUseResponsiveLayout.mockReturnValue({
-                    shouldUseNarrowLayout: true,
-                    isSmallScreenWidth: true,
-                    isInNarrowPaneModal: false,
-                    isExtraSmallScreenHeight: false,
-                    isMediumScreenWidth: false,
-                    isLargeScreenWidth: false,
-                    isExtraLargeScreenWidth: false,
-                    isExtraSmallScreenWidth: false,
-                    isSmallScreen: true,
-                    onboardingIsMediumOrLargerScreenWidth: false,
-                    isInLandscapeMode: false,
+        it('does not call the hook when there is no flagged transaction or report', async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.DERIVED.TODOS, BASE_TODOS);
+                // count > 0 keeps the row rendered, but the first transaction/report are missing
+                await Onyx.set(ONYXKEYS.DERIVED.FLAGGED_EXPENSES, {
+                    flaggedExpenses: [{transactionID: '', reportID: ''}],
                 });
             });
+            await waitForBatchedUpdatesWithAct();
 
-            it('navigates to REPORT_WITH_ID with the first flagged expense parent report and backTo=HOME', async () => {
-                await act(async () => {
-                    await Onyx.set(ONYXKEYS.DERIVED.TODOS, BASE_TODOS);
-                    await Onyx.set(ONYXKEYS.DERIVED.FLAGGED_EXPENSES, {
-                        flaggedExpenses: [{transactionID: 't1', reportID: 'rNarrow'}],
-                    });
-                });
-                await waitForBatchedUpdatesWithAct();
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
 
-                renderForYouSection();
-                await waitForBatchedUpdatesWithAct();
+            const beginButton = screen.queryByText('Begin');
+            if (beginButton) {
+                fireEvent.press(beginButton);
+            }
 
-                pressFirstBeginButton();
-
-                expect(mockNavigate).toHaveBeenCalledTimes(1);
-                expect(mockNavigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute('rNarrow', undefined, undefined, ROUTES.HOME));
-            });
+            expect(mockNavigateToTransactionThread).not.toHaveBeenCalled();
         });
     });
 
