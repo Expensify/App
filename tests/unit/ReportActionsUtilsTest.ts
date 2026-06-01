@@ -1,6 +1,6 @@
 import type {KeyValueMapping} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {getLatestUserChronosTimerCommand, isChronosStartOrStopMessage, isChronosTimerRunningFromVisibleActions, isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
+import {getTimeOfChronosTimerRunningFromVisibleActions, isChronosStartOrStopMessage, isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
@@ -1223,6 +1223,56 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getExportIntegrationActionFragments', () => {
+        function buildExportedToIntegrationAction(label: string, nonReimbursableUrls: string[]): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION> {
+            return {
+                actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                reportActionID: '1',
+                reportID: '123',
+                created: '2026-05-15 10:00:00.000',
+                message: [],
+                originalMessage: {
+                    label,
+                    lastModified: '2026-05-15 10:00:00.000',
+                    nonReimbursableUrls,
+                },
+            } as unknown as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION>;
+        }
+
+        it.each([CONST.EXPORT_LABELS.INTACCT, CONST.EXPORT_LABELS.SAGE_INTACCT, CONST.EXPORT_LABELS.QBD])('does not link ID-based %s company card export records', (label) => {
+            const fragments = ReportActionsUtils.getExportIntegrationActionFragments(translateLocal, buildExportedToIntegrationAction(label, ['SI-123', 'SI-456']));
+
+            expect(fragments).toEqual([
+                {text: `exported to ${label}`, url: ''},
+                {text: 'and successfully created a record for', url: ''},
+                {text: 'company card expenses', url: ''},
+            ]);
+        });
+
+        it('keeps URL-based company card export records linked', () => {
+            const fragments = ReportActionsUtils.getExportIntegrationActionFragments(
+                translateLocal,
+                buildExportedToIntegrationAction(CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.xero, ['1', '2']),
+            );
+
+            expect(fragments).toEqual([
+                {text: `exported to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.xero}`, url: ''},
+                {text: 'and successfully created a record for', url: ''},
+                {text: 'company card expenses', url: 'https://go.xero.com/Bank/BankAccounts.aspx'},
+            ]);
+        });
+
+        it('keeps QuickBooks Online company card export records linked', () => {
+            const fragments = ReportActionsUtils.getExportIntegrationActionFragments(translateLocal, buildExportedToIntegrationAction(CONST.EXPORT_LABELS.QBO, ['1', '2']));
+
+            expect(fragments).toEqual([
+                {text: `exported to ${CONST.EXPORT_LABELS.QBO}`, url: ''},
+                {text: 'and successfully created a record for', url: ''},
+                {text: 'company card expenses', url: 'https://qbo.intuit.com/app/expenses'},
+            ]);
+        });
+    });
+
     describe('getReportActionMessageFragments', () => {
         it('should return the correct fragment for the DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action', () => {
             // Given a DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action
@@ -1701,6 +1751,21 @@ describe('ReportActionsUtils', () => {
             expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
         });
 
+        it('should return false for CARD_ISSUED_VIRTUAL action with empty message array', () => {
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
+                reportActionID: 'card-issued-virtual-123',
+                actorAccountID: 21052128,
+                created: '2026-05-19 01:00:00.000',
+                message: [],
+                originalMessage: {
+                    assigneeAccountID: 21052128,
+                    cardID: 12345,
+                },
+            };
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
+        });
+
         it('should return false for CARDFROZEN action with a backend-provided message fragment', () => {
             const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN> = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN,
@@ -1951,18 +2016,23 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(false);
         });
 
-        it('should return true for moved transaction if the report destination is available', async () => {
-            // Given a moved transaction action but the report destination is available
-            const report: Report = createRandomReport(2, undefined);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+        it('should return true for moved transaction if the report destination is available', () => {
+            // Given a moved transaction action with a valid message
             const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
                 reportActionID: '1',
                 created: '2025-09-29',
                 originalMessage: {
-                    toReportID: report.reportID,
+                    toReportID: '2',
                     fromReportID: '1',
                 },
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'moved',
+                        text: 'moved',
+                    },
+                ],
             };
 
             // Then the action should be visible
@@ -2236,6 +2306,17 @@ describe('ReportActionsUtils', () => {
             const expectedMessage = translateLocal('reportAction.harvestCreatedExpenseReport', `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`, reportName);
 
             const result = ReportActionsUtils.getHarvestCreatedExpenseReportMessage(reportID, reportName, translateLocal);
+
+            expect(result).toBe(expectedMessage);
+        });
+
+        // Guards regression #90422: when the harvest report is absent from Onyx, getReportName returns ''
+        // and the message previously rendered an empty hyperlink on screen and an empty span when copied.
+        it('should fall back to "#<reportID>" when the report name is empty', () => {
+            const reportID = '12345';
+            const expectedMessage = translateLocal('reportAction.harvestCreatedExpenseReport', `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`, `#${reportID}`);
+
+            const result = ReportActionsUtils.getHarvestCreatedExpenseReportMessage(reportID, '', translateLocal);
 
             expect(result).toBe(expectedMessage);
         });
@@ -3895,6 +3976,23 @@ describe('ReportActionsUtils', () => {
             const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
             expect(actual).toBe('disabled the Distance rate "Default Rate"');
         });
+
+        it('should return the correct message when a rate is renamed', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'name',
+                    oldValue: 'Default Rate',
+                    newValue: 'Custom Rate',
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            expect(actual).toBe('renamed the Distance rate "Default Rate" to "Custom Rate"');
+        });
     });
 
     describe('didMessageMentionCurrentUser', () => {
@@ -4779,10 +4877,10 @@ describe('ReportActionsUtils', () => {
         });
     });
 
-    describe('getLatestUserChronosTimerCommand', () => {
+    describe('getTimeOfChronosTimerRunningFromVisibleActions', () => {
         const currentUserAccountID = 100;
 
-        function makeUserTimerComment(text: string, actorAccountID: number, overrides: Partial<ReportAction> = {}): ReportAction {
+        function makeUserTimerComment(text: string, actorAccountID: number = currentUserAccountID, overrides: Partial<ReportAction> = {}): ReportAction {
             return getFakeReportAction(actorAccountID, {
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                 actorAccountID,
@@ -4792,30 +4890,31 @@ describe('ReportActionsUtils', () => {
         }
 
         it('returns null when there are no matching comments', () => {
-            expect(getLatestUserChronosTimerCommand([], currentUserAccountID)).toBe(null);
-            expect(getLatestUserChronosTimerCommand([makeUserTimerComment('hello', currentUserAccountID)], currentUserAccountID)).toBe(null);
+            expect(getTimeOfChronosTimerRunningFromVisibleActions([], currentUserAccountID)).toBeNull();
+            expect(getTimeOfChronosTimerRunningFromVisibleActions([makeUserTimerComment('hello')], currentUserAccountID)).toBeNull();
         });
 
-        it('returns the newest matching command when sorted newest-first', () => {
+        it('returns the created timestamp of the newest start command when sorted newest-first', () => {
+            const startCreated = '2024-01-03 10:00:00.000';
             const sortedNewestFirst = [
-                makeUserTimerComment('start', currentUserAccountID, {reportActionID: '3', created: '2024-01-03 10:00:00.000'}),
+                makeUserTimerComment('start', currentUserAccountID, {reportActionID: '3', created: startCreated}),
                 makeUserTimerComment('stop', currentUserAccountID, {reportActionID: '2', created: '2024-01-02 10:00:00.000'}),
                 makeUserTimerComment('start', currentUserAccountID, {reportActionID: '1', created: '2024-01-01 10:00:00.000'}),
             ];
-            expect(getLatestUserChronosTimerCommand(sortedNewestFirst, currentUserAccountID)).toBe(CONST.CHRONOS.TIMER_COMMAND.START);
+            expect(getTimeOfChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBe(startCreated);
         });
 
-        it('returns stop when the newest timer command is stop', () => {
+        it('returns null when the newest timer command is stop', () => {
             const sortedNewestFirst = [
                 makeUserTimerComment('stopped', currentUserAccountID, {reportActionID: '2', created: '2024-01-02 10:00:00.000'}),
                 makeUserTimerComment('start', currentUserAccountID, {reportActionID: '1', created: '2024-01-01 10:00:00.000'}),
             ];
-            expect(getLatestUserChronosTimerCommand(sortedNewestFirst, currentUserAccountID)).toBe(CONST.CHRONOS.TIMER_COMMAND.STOP);
+            expect(getTimeOfChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBeNull();
         });
 
         it('ignores comments from other users', () => {
             const sortedNewestFirst = [makeUserTimerComment('start', 999, {reportActionID: '2'}), makeUserTimerComment('hello', currentUserAccountID, {reportActionID: '1'})];
-            expect(getLatestUserChronosTimerCommand(sortedNewestFirst, currentUserAccountID)).toBe(null);
+            expect(getTimeOfChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBeNull();
         });
 
         it('ignores non-ADD_COMMENT actions', () => {
@@ -4826,34 +4925,7 @@ describe('ReportActionsUtils', () => {
                     message: [{html: 'start', isDeletedParentAction: false, isEdited: false, text: 'start', type: 'TEXT', whisperedTo: []}],
                 }),
             ];
-            expect(getLatestUserChronosTimerCommand(sortedNewestFirst, currentUserAccountID)).toBe(null);
-        });
-    });
-
-    describe('isChronosTimerRunningFromVisibleActions', () => {
-        const currentUserAccountID = 200;
-
-        function makeUserTimerComment(text: string, overrides: Partial<ReportAction> = {}): ReportAction {
-            return getFakeReportAction(currentUserAccountID, {
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                actorAccountID: currentUserAccountID,
-                message: [{html: text, isDeletedParentAction: false, isEdited: false, text, type: 'TEXT', whisperedTo: []}],
-                ...overrides,
-            });
-        }
-
-        it('returns true when the latest user timer command is start', () => {
-            const sortedNewestFirst = [makeUserTimerComment('start', {reportActionID: '2'}), makeUserTimerComment('stop', {reportActionID: '1'})];
-            expect(isChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBe(true);
-        });
-
-        it('returns false when the latest user timer command is stop', () => {
-            const sortedNewestFirst = [makeUserTimerComment('stop', {reportActionID: '2'}), makeUserTimerComment('start', {reportActionID: '1'})];
-            expect(isChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBe(false);
-        });
-
-        it('returns false when there is no timer command', () => {
-            expect(isChronosTimerRunningFromVisibleActions([makeUserTimerComment('stats')], currentUserAccountID)).toBe(false);
+            expect(getTimeOfChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBeNull();
         });
     });
 
