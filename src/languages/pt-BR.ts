@@ -506,7 +506,6 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Recolher raciocínio',
         expandReasoning: 'Expandir raciocínio',
-        enableNotifications: {prompt: 'Quer ser avisado quando o Concierge responder?', cta: 'Notificar'},
     },
     supportalNoAccess: {
         title: 'Calma aí',
@@ -7944,7 +7943,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         resetColumns: 'Redefinir colunas',
         groupColumns: 'Agrupar colunas',
         expenseColumns: 'Colunas de despesas',
-        saveSearch: 'Salvar pesquisa',
+        saveView: 'Salvar visualização',
         deleteSavedSearch: 'Excluir pesquisa salva',
         deleteSavedSearchConfirm: 'Tem certeza de que deseja excluir esta pesquisa?',
         searchName: 'Pesquisar nome',

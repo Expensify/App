@@ -508,7 +508,6 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Begründung einklappen',
         expandReasoning: 'Begründung erweitern',
-        enableNotifications: {prompt: 'Möchten Sie benachrichtigt werden, wenn Concierge antwortet?', cta: 'Benachrichtigen'},
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -7994,7 +7993,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         resetColumns: 'Spalten zurücksetzen',
         groupColumns: 'Spalten gruppieren',
         expenseColumns: 'Spalten für Ausgaben',
-        saveSearch: 'Suche speichern',
+        saveView: 'Ansicht speichern',
         deleteSavedSearch: 'Gespeicherte Suche löschen',
         deleteSavedSearchConfirm: 'Möchtest du diese Suche wirklich löschen?',
         searchName: 'Namen suchen',

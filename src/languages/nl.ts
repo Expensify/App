@@ -507,7 +507,6 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Redenering inklappen',
         expandReasoning: 'Redenering uitklappen',
-        enableNotifications: {prompt: 'Wil je een melding krijgen wanneer Concierge reageert?', cta: 'Melden'},
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -7952,7 +7951,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         resetColumns: 'Kolommen opnieuw instellen',
         groupColumns: 'Kolommen groeperen',
         expenseColumns: 'Onkostencolommen',
-        saveSearch: 'Zoekopdracht opslaan',
+        saveView: 'Weergave opslaan',
         deleteSavedSearch: 'Opgeslagen zoekopdracht verwijderen',
         deleteSavedSearchConfirm: 'Weet je zeker dat je deze zoekopdracht wilt verwijderen?',
         searchName: 'Zoeknaam',

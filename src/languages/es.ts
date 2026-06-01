@@ -460,10 +460,6 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Contraer razonamiento',
         expandReasoning: 'Expandir razonamiento',
-        enableNotifications: {
-            prompt: '¿Quieres que te avisemos cuando Concierge responda?',
-            cta: 'Notificar',
-        },
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -7818,7 +7814,7 @@ ${amount} para ${merchant} - ${date}`,
         },
         has: 'Tiene',
         view: {label: 'Ver', table: 'Tabla', bar: 'Barra', line: 'Línea', pie: 'Circular'},
-        saveSearch: 'Guardar búsqueda',
+        saveView: 'Guardar vista',
         savedSearchesMenuItemTitle: 'Guardadas',
         urlCopied: 'URL copiada',
         spendOverTime: 'Evolución de gastos',

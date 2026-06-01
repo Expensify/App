@@ -97,8 +97,8 @@ type RequestDataBase<TKey extends OnyxKey> = {
      */
     initiatedOffline?: boolean;
 
-    /** The unique ID of the request */
-    requestID?: number;
+    /** The client-side monotonically-increasing index of this request (seeded with Date.now() at module load). Not to be confused with the server's response.requestID. */
+    requestIndex?: number;
 };
 
 /** Model of overall requests sent to the API */

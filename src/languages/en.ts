@@ -528,10 +528,6 @@ const translations = {
     concierge: {
         collapseReasoning: 'Collapse reasoning',
         expandReasoning: 'Expand reasoning',
-        enableNotifications: {
-            prompt: 'Want to be notified when Concierge responds?',
-            cta: 'Notify',
-        },
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -8045,7 +8041,7 @@ const translations = {
         resetColumns: 'Reset columns',
         groupColumns: 'Group columns',
         expenseColumns: 'Expense Columns',
-        saveSearch: 'Save search',
+        saveView: 'Save view',
         deleteSavedSearch: 'Delete saved search',
         deleteSavedSearchConfirm: 'Are you sure you want to delete this search?',
         searchName: 'Search name',

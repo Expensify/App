@@ -507,7 +507,6 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Zwiń rozumowanie',
         expandReasoning: 'Rozwiń rozumowanie',
-        enableNotifications: {prompt: 'Chcesz otrzymywać powiadomienia, gdy Concierge odpowie?', cta: 'Powiadom'},
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -7941,7 +7940,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         resetColumns: 'Resetuj kolumny',
         groupColumns: 'Grupuj kolumny',
         expenseColumns: 'Kolumny wydatków',
-        saveSearch: 'Zapisz wyszukiwanie',
+        saveView: 'Zapisz widok',
         deleteSavedSearch: 'Usuń zapisaną wyszukiwanie',
         deleteSavedSearchConfirm: 'Na pewno chcesz usunąć to wyszukiwanie?',
         searchName: 'Wyszukaj nazwę',

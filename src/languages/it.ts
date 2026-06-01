@@ -508,7 +508,6 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Comprimi ragionamento',
         expandReasoning: 'Espandi ragionamento',
-        enableNotifications: {prompt: 'Vuoi ricevere una notifica quando Concierge risponde?', cta: 'Notifica'},
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -7982,7 +7981,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         resetColumns: 'Reimposta colonne',
         groupColumns: 'Raggruppa colonne',
         expenseColumns: 'Colonne spese',
-        saveSearch: 'Salva ricerca',
+        saveView: 'Salva vista',
         deleteSavedSearch: 'Elimina ricerca salvata',
         deleteSavedSearchConfirm: 'Sei sicuro di voler eliminare questa ricerca?',
         searchName: 'Cerca nome',
