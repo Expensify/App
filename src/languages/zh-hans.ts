@@ -492,11 +492,8 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: '上一年',
         nextYear: '明年',
         avatar: '头像',
-<<<<<<< HEAD
         currentOfTotal: ({current, total}: {current: number; total: number}) => `第 ${current} 项（共 ${total} 项）`,
-=======
         restrictions: '限制',
->>>>>>> 87d567f81371627a494dd0fca541a5fded73516d
     },
     socials: {
         podcast: '在播客上关注我们',

@@ -449,11 +449,8 @@ const translations: TranslationDeepObject<typeof en> = {
         expensifyLogo: 'Logo de Expensify',
         approver: 'Aprobador',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `introducir dígito ${digitIndex} de ${totalDigits}`,
-<<<<<<< HEAD
         currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} de ${total}`,
-=======
         restrictions: 'Restricciones',
->>>>>>> 87d567f81371627a494dd0fca541a5fded73516d
     },
     socials: {
         podcast: 'Síguenos en Podcast',

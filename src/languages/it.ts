@@ -497,11 +497,8 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Anno precedente',
         nextYear: "L'anno prossimo",
         avatar: 'Avatar',
-<<<<<<< HEAD
         currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} di ${total}`,
-=======
         restrictions: 'Restrizioni',
->>>>>>> 87d567f81371627a494dd0fca541a5fded73516d
     },
     socials: {
         podcast: 'Seguici su Podcast',
