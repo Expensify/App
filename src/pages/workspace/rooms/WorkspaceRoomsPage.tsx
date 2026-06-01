@@ -19,6 +19,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {openPolicyRoomsPage} from '@libs/actions/Policy/Room';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -29,7 +30,7 @@ import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type WorkspaceRoomsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.ROOMS>;
@@ -68,7 +69,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
             ownerDisplayName: ownerDetails ? getDisplayNameOrDefault(ownerDetails) : '',
             memberCount: getParticipantsAccountIDsForDisplay(report, true, false, false, undefined, personalDetails).length,
             action: () => {
-                const targetRoute = isAdmin ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID) : ROUTES.REPORT_WITH_ID.getRoute(report.reportID);
+                const targetRoute = isAdmin ? createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.getRoute(report.reportID)) : ROUTES.REPORT_WITH_ID.getRoute(report.reportID);
                 Navigation.navigate(targetRoute);
             },
         };

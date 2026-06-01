@@ -47,6 +47,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
@@ -382,7 +383,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending;
 
     // Only show the "Go to room" row when the Details page was opened from a screen other than the room report itself (e.g. the Workspace rooms list).
-    const shouldShowGoToRoom = (isChatRoom || isPolicyExpenseChat) && Navigation.getTopmostReportId() !== report?.reportID;
+    const isRoomCurrentlyOpen = isReportTopmostSplitNavigator() && Navigation.getTopmostReportId() === report?.reportID;
+    const shouldShowGoToRoom = (isChatRoom || isPolicyExpenseChat) && !isRoomCurrentlyOpen;
 
     const reportForHeader = useMemo(() => getReportForHeader(report), [report]);
     const shouldParseFullTitle = parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && !isGroupChat;
