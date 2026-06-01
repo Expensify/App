@@ -153,9 +153,9 @@ describe('DebugTabView', () => {
                         },
                         [ONYXKEYS.LOGINS]: {
                             // eslint-disable-next-line @typescript-eslint/naming-convention
-                            '1_foo@bar.com': {
+                            '1_john.doe@mail.com': {
                                 partnerID: 1,
-                                partnerUserID: 'foo@bar.com',
+                                partnerUserID: 'john.doe@mail.com',
                                 validatedDate: undefined,
                             },
                         },
