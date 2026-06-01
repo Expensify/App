@@ -541,11 +541,17 @@ function BasePopoverMenu({
     // can cause the parent view to scroll when the space bar is pressed.
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SPACE, keyboardShortcutSpaceCallback, {isActive: isWeb && isVisible, shouldPreventDefault: false});
 
+    const handleClose = () => {
+        setCurrentMenuItems(menuItems);
+        setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
+        onClose();
+    };
+
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.ESCAPE,
         () => {
             suppressNextEscapeKeyUp();
-            onClose();
+            handleClose();
         },
         {isActive: isVisible, shouldBubble: false},
     );
@@ -659,11 +665,7 @@ function BasePopoverMenu({
             anchorPosition={anchorPosition}
             anchorRef={anchorRef}
             anchorAlignment={anchorAlignment}
-            onClose={() => {
-                setCurrentMenuItems(menuItems);
-                setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
-                onClose();
-            }}
+            onClose={handleClose}
             isVisible={isVisible}
             onModalHide={handleModalHide}
             onModalShow={onModalShow}
