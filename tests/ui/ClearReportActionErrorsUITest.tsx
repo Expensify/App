@@ -93,11 +93,11 @@ describe('ClearReportActionErrors UI', () => {
                         <PortalProvider>
                             <PureReportActionItem
                                 report={report}
+                                transactionThreadReport={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
                                 shouldDisplayNewMarker={false}
-                                index={0}
                                 isFirstVisibleReportAction={false}
                                 originalReportID={originalReportID}
                             />

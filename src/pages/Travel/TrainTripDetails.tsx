@@ -1,13 +1,13 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import UserPills from '@components/UserPills';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
+import {formatTransitLocationLabel} from '@libs/TripReservationUtils';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
@@ -18,15 +18,12 @@ type TrainTripDetailsProps = {
 };
 
 function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const startDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date));
     const endDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date));
-    const trainRouteDescription = `${reservation.start.longName} (${reservation.start.shortName}) ${translate('common.conjunctionTo')} ${reservation.end.longName} (${
-        reservation.end.shortName
-    })`;
+    const trainRouteDescription = `${formatTransitLocationLabel(reservation.start)} ${translate('common.conjunctionTo')} ${formatTransitLocationLabel(reservation.end)}`;
     const trainDuration = DateUtils.getFormattedDurationBetweenDates(translate, new Date(reservation.start.date), new Date(reservation.end.date));
 
     const displayName = personalDetails?.displayName ?? reservation.travelerPersonalInfo?.name;
@@ -52,7 +49,7 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
                 description={translate('travel.trainDetails.departs')}
                 descriptionTextStyle={[styles.textLabelSupporting, styles.mb1]}
                 titleComponent={<Text style={[styles.textLarge, styles.textHeadlineH2]}>{startDate.hour}</Text>}
-                helperText={`${reservation.start.longName} (${reservation.start.shortName})`}
+                helperText={formatTransitLocationLabel(reservation.start)}
                 helperTextStyle={[styles.pb3, styles.mtn2]}
                 interactive={false}
             />
@@ -60,7 +57,7 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
                 description={translate('travel.trainDetails.arrives')}
                 descriptionTextStyle={[styles.textLabelSupporting, styles.mb1]}
                 titleComponent={<Text style={[styles.textLarge, styles.textHeadlineH2]}>{endDate.hour}</Text>}
-                helperText={`${reservation.end.longName} (${reservation.end.shortName})`}
+                helperText={formatTransitLocationLabel(reservation.end)}
                 helperTextStyle={[styles.pb3, styles.mtn2]}
                 interactive={false}
             />
@@ -96,14 +93,23 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
             )}
 
             {!!displayName && (
-                <MenuItem
-                    label={translate('travel.trainDetails.passenger')}
-                    title={displayName}
-                    icon={personalDetails?.avatar ?? icons.FallbackAvatar}
-                    iconType={CONST.ICON_TYPE_AVATAR}
-                    description={personalDetails?.login ?? reservation.travelerPersonalInfo?.email}
+                <MenuItemWithTopDescription
+                    description={translate('travel.trainDetails.passenger')}
+                    descriptionTextStyle={styles.fontSizeLabel}
                     interactive={false}
-                    wrapperStyle={styles.pb3}
+                    accessibilityLabel={`${translate('travel.trainDetails.passenger')} ${displayName}`}
+                    titleComponent={
+                        <UserPills
+                            users={[
+                                {
+                                    avatar: personalDetails?.avatar,
+                                    displayName,
+                                    accountID: personalDetails?.accountID,
+                                    email: personalDetails?.login ?? reservation.travelerPersonalInfo?.email,
+                                },
+                            ]}
+                        />
+                    }
                 />
             )}
         </>

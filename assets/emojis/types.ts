@@ -3,6 +3,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 type Emoji = {
     code: string;
     name: string;
+    hexcode: string;
     types?: readonly string[];
 };
 

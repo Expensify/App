@@ -10,9 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import getPlatform from '@libs/getPlatform';
-// eslint-disable-next-line no-restricted-imports
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-// eslint-disable-next-line no-restricted-imports
 import type {TransitionHandle} from '@libs/Navigation/TransitionTracker';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -245,7 +243,6 @@ function ReanimatedModal({
                     }
                 }}
                 style={modalStyle}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             >
                 {isBackdropMounted && hasBackdrop && backdropView}

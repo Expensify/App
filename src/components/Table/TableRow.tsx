@@ -56,7 +56,6 @@ export default function TableRow({
     const styles = useThemeStyles();
     const {processedData, columns, shouldUseNarrowTableLayout} = useTableContext();
 
-    const columnCount = columns.length;
     const rowCount = processedData.length;
     const isLastRow = rowIndex === rowCount - 1;
     const isInteractive = interactive && !isLoading;
@@ -65,7 +64,6 @@ export default function TableRow({
         styles.mh5,
         styles.flexRow,
         styles.highlightBG,
-        styles.overflowHidden,
         styles.alignItemsCenter,
         isInteractive && styles.userSelectNone,
         shouldUseNarrowTableLayout ? styles.ph4 : styles.ph3,
@@ -82,7 +80,7 @@ export default function TableRow({
         styles.gap3,
         styles.dFlex,
         // Use Grid on web when available (will override flex if supported)
-        !shouldUseNarrowTableLayout && [styles.dGrid, {gridTemplateColumns: `repeat(${columnCount}, 1fr)`}],
+        !shouldUseNarrowTableLayout && [styles.dGrid, {gridTemplateColumns: columns.map((column) => (column.width ? `${column.width}px` : '1fr')).join(' ')}],
     ];
 
     const renderChildren = (state: PressableStateCallbackType) => {
@@ -96,7 +94,7 @@ export default function TableRow({
     return (
         <OfflineWithFeedback
             // We need to spread the props due to how the OfflineWithFeedback component handles child components
-            // eslint-disable-next-line react/jsx-props-no-spreading
+
             {...offlineWithFeedback}
         >
             <PressableWithFeedback
@@ -109,7 +107,6 @@ export default function TableRow({
                 hoverStyle={isInteractive && styles.hoveredComponentBG}
                 role={isInteractive ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
                 onPress={onPress}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             >
                 {(state) =>

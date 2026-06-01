@@ -6,7 +6,6 @@ import type {LayoutChangeEvent, ListRenderItemInfo, NativeScrollEvent, NativeSyn
 // eslint-disable-next-line no-restricted-imports
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import FlatListWithScrollKey from '@components/FlatList/FlatListWithScrollKey';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLoadReportActions from '@hooks/useLoadReportActions';
@@ -26,7 +25,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import DateUtils from '@libs/DateUtils';
-import {hasDeferredWriteForReport} from '@libs/deferredLayoutWrite';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions, isActionVisibleOnMoneyRequestReport} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -44,13 +42,14 @@ import {
     isReportActionVisible,
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction, chatIncludesChronosWithID, getOriginalReportID, getReportLastVisibleActionCreated, isHarvestCreatedExpenseReport, isUnread} from '@libs/ReportUtils';
+import {canUserPerformWriteAction, chatIncludesChronosWithID, getReportLastVisibleActionCreated, isHarvestCreatedExpenseReport, isUnread} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Visibility from '@libs/Visibility';
 import isSearchTopmostFullScreenRoute from '@navigation/helpers/isSearchTopmostFullScreenRoute';
 import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
 import getInitialNumToRender from '@pages/inbox/report/getInitialNumReportActionsToRender';
+import ReportActionIndexContext from '@pages/inbox/report/ReportActionIndexContext';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
@@ -60,6 +59,7 @@ import {getOlderActions, openReport, readNewestAction, subscribeToNewActionEvent
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import {getStableReportSelector} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportTransactionList from './MoneyRequestReportTransactionList';
 import MoneyRequestViewReportFields from './MoneyRequestViewReportFields';
@@ -99,6 +99,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     // Self-subscribe to report, policy, metadata, actions, transactions
     // report is guaranteed to exist — callers only render this component when report is loaded
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`) as unknown as [OnyxTypes.Report];
+    const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {selector: getStableReportSelector});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
     const [reportPaginationState] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportIDFromRoute}`);
@@ -126,21 +127,9 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
     const parentReportAction = useParentReportAction(report);
 
-    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
-    const personalDetails = usePersonalDetails();
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
-    const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    // reportActions is passed as an array because it's sorted chronologically for FlatList rendering and pagination.
-    // However, getOriginalReportID expects the Onyx object format (keyed by reportActionID) for efficient lookups.
-    const reportActionsObject = useMemo(() => {
-        const obj: OnyxTypes.ReportActions = {};
-        for (const action of reportActions) {
-            obj[action.reportActionID] = action;
-        }
-        return obj;
-    }, [reportActions]);
+
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], false, reportTransactionIDs);
     const firstVisibleReportActionID = useMemo(() => getFirstVisibleReportActionID(reportActions, isOffline), [reportActions, isOffline]);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
@@ -217,7 +206,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         reportID,
         reportActions,
         allReportActionIDs: reportActionIDs,
-        transactionThreadReport,
+        transactionThreadReportID,
         hasOlderActions,
         hasNewerActions,
         newestFetchedReportActionID: reportPaginationState?.newestFetchedReportActionID,
@@ -462,7 +451,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         hasNewestReportAction,
         setIsFloatingMessageCounterVisible,
         scrollToEnd: reportScrollManager.scrollToEnd,
-        resetKey: report.reportID,
+        resetKey: report?.reportID ?? reportIDFromRoute ?? '',
     });
 
     /**
@@ -562,48 +551,35 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                 !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
                 hasNextActionMadeBySameActor(visibleReportActions, index, isOffline);
 
-            const originalReportID = getOriginalReportID(report?.reportID, reportAction, reportActionsObject);
-
             return (
-                <ReportActionsListItemRenderer
-                    reportAction={reportAction}
-                    parentReportAction={parentReportAction}
-                    parentReportActionForTransactionThread={EmptyParentReportActionForTransactionThread}
-                    index={index}
-                    report={report}
-                    transactionThreadReport={transactionThreadReport}
-                    displayAsGroup={displayAsGroup}
-                    shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
-                    shouldDisplayReplyDivider={visibleReportActions.length > 1}
-                    isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
-                    shouldHideThreadDividerLine
-                    linkedReportActionID={linkedReportActionID}
-                    personalDetails={personalDetails}
-                    userBillingFundID={userBillingFundID}
-                    originalReportID={originalReportID}
-                    isReportArchived={isReportArchived}
-                    isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
-                    reportNameValuePairsOrigin={reportNameValuePairs?.origin}
-                    reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
-                />
+                <ReportActionIndexContext.Provider value={index}>
+                    <ReportActionsListItemRenderer
+                        reportAction={reportAction}
+                        parentReportAction={parentReportAction}
+                        parentReportActionForTransactionThread={EmptyParentReportActionForTransactionThread}
+                        report={reportStable}
+                        transactionThreadReport={transactionThreadReport}
+                        displayAsGroup={displayAsGroup}
+                        shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
+                        shouldDisplayReplyDivider={visibleReportActions.length > 1}
+                        isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
+                        shouldHideThreadDividerLine
+                        linkedReportActionID={linkedReportActionID}
+                        isHarvestCreatedExpenseReport={shouldShowHarvestCreatedAction}
+                    />
+                </ReportActionIndexContext.Provider>
             );
         },
         [
             visibleReportActions,
-            reportActionsObject,
             parentReportAction,
-            report,
+            reportStable,
             isOffline,
             transactionThreadReport,
             unreadMarkerReportActionID,
             firstVisibleReportActionID,
             linkedReportActionID,
-            personalDetails,
-            userBillingFundID,
-            isTryNewDotNVPDismissed,
-            isReportArchived,
-            reportNameValuePairs?.origin,
-            reportNameValuePairs?.originalID,
+            shouldShowHarvestCreatedAction,
         ],
     );
 
@@ -658,7 +634,11 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const initialNumToRender = useMemo((): number | undefined => {
         const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
         const availableHeight = windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
-        const numToRender = Math.ceil(availableHeight / minimumReportActionHeight);
+        // windowHeight can be smaller than the header+footer during transient mount/transition states
+        // (e.g. Wide RHP overlay animating in), which would make numToRender negative and crash
+        // VirtualizedList with "Invalid cells around viewport". Clamping to 0 lets the `|| undefined`
+        // fallback below kick in so FlatList uses its default.
+        const numToRender = Math.max(0, Math.ceil(availableHeight / minimumReportActionHeight));
         if (linkedReportActionID) {
             return getInitialNumToRender(numToRender);
         }
@@ -666,14 +646,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     }, [styles.chatItem.paddingBottom, styles.chatItem.paddingTop, windowHeight, linkedReportActionID]);
 
     const isReportEmpty = isEmpty(visibleReportActions) && isEmpty(transactions) && !showReportActionsLoadingState;
-    // hasDeferredWriteForReport is non-reactive (reads a module-level Map, not tracked by React).
-    // This is intentional: we only check on the initial render after the RHP dismisses.
-    // Once the deferred write flushes and createTransaction runs, Onyx updates make
-    // transactions non-empty, which drives the transition away from the skeleton.
-    // Scoping to `report.reportID` ensures an unrelated submit flow's pending dismiss doesn't keep
-    // *this* report stuck on the skeleton.
-    const isAwaitingDeferredTransaction = isReportEmpty && hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, report?.reportID);
-    const showEmptyState = isReportEmpty && !isAwaitingDeferredTransaction;
+    const showEmptyState = isReportEmpty;
 
     if (!report) {
         return null;
@@ -695,11 +668,9 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                     isActive={isFloatingMessageCounterVisible}
                     onClick={scrollToBottomAndMarkReportAsRead}
                 />
-                {/* Exactly one of these three branches is active at a time:
-                    1. isAwaitingDeferredTransaction — skeleton while dismiss-first creates the transaction
-                    2. showEmptyState — genuinely empty report
-                    3. !isReportEmpty — report has data, render the FlatList */}
-                {isAwaitingDeferredTransaction && <ReportActionsListLoadingSkeleton reasonAttributes={skeletonReasonAttributes} />}
+                {/* Exactly one of these two branches is active at a time:
+                    1. showEmptyState — genuinely empty report
+                    2. !isReportEmpty — report has data, render the FlatList */}
                 {showEmptyState && (
                     <ScrollView contentContainerStyle={styles.flexGrow1}>
                         <MoneyRequestViewReportFields

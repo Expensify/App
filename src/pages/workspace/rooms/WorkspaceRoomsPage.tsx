@@ -1,0 +1,128 @@
+import {useFocusEffect} from '@react-navigation/native';
+import {policyChatRoomsSelector} from '@selectors/Report';
+import React from 'react';
+import {View} from 'react-native';
+import Button from '@components/Button';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import ScreenWrapper from '@components/ScreenWrapper';
+import WorkspaceRoomsTable from '@components/Tables/WorkspaceRoomsTable';
+import type {WorkspaceRoomRowData} from '@components/Tables/WorkspaceRoomsTable';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import usePolicy from '@hooks/usePolicy';
+import useReportAttributes from '@hooks/useReportAttributes';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
+import {openPolicyRoomsPage} from '@libs/actions/Policy/Room';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getReportName} from '@libs/ReportNameUtils';
+import {getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
+import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+
+type WorkspaceRoomsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.ROOMS>;
+
+function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isBetaEnabled} = usePermissions();
+    const headerIcons = useMemoizedLazyExpensifyIcons(['Plus']);
+    const illustrations = useMemoizedLazyIllustrations(['Hashtag']);
+    const policyID = route.params.policyID;
+    const policy = usePolicy(policyID);
+    useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rooms');
+
+    const reportAttributes = useReportAttributes();
+    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const personalDetails = usePersonalDetails();
+
+    const [policyReports] = useOnyx(
+        ONYXKEYS.COLLECTION.REPORT,
+        {
+            selector: policyChatRoomsSelector(policyID, archivedReportsIdSet),
+        },
+        [policyID, archivedReportsIdSet],
+    );
+
+    const rooms: WorkspaceRoomRowData[] = (policyReports ?? []).map((report) => {
+        const ownerDetails = report.ownerAccountID ? personalDetails?.[report.ownerAccountID] : undefined;
+        return {
+            reportID: report.reportID,
+            name: getReportName(report, reportAttributes),
+            ownerAccountID: report.ownerAccountID,
+            ownerAvatar: ownerDetails?.avatar,
+            ownerDisplayName: ownerDetails ? getDisplayNameOrDefault(ownerDetails) : '',
+            memberCount: getParticipantsAccountIDsForDisplay(report, true, false, false, undefined, personalDetails).length,
+            action: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID)),
+        };
+    });
+
+    useFocusEffect(() => {
+        openPolicyRoomsPage(policyID);
+    });
+
+    return (
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.WORKSPACE_ROOMS_PAGE)}
+        >
+            <ScreenWrapper
+                testID={WorkspaceRoomsPage.displayName}
+                style={[styles.defaultModalContainer]}
+                shouldEnableMaxHeight
+                shouldShowOfflineIndicatorInWideScreen
+                enableEdgeToEdgeBottomSafeAreaPadding
+            >
+                <HeaderWithBackButton
+                    title={translate('workspace.common.rooms')}
+                    icon={illustrations.Hashtag}
+                    shouldUseHeadlineHeader
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                    onBackButtonPress={Navigation.goBack}
+                    shouldDisplayHelpButton
+                >
+                    {!shouldUseNarrowLayout && (
+                        <Button
+                            success
+                            isDisabled
+                            onPress={() => {}}
+                            icon={headerIcons.Plus}
+                            text={translate('common.create')}
+                        />
+                    )}
+                </HeaderWithBackButton>
+
+                {shouldUseNarrowLayout && (
+                    <View style={[styles.ph5, styles.pb3]}>
+                        <Button
+                            success
+                            isDisabled
+                            onPress={() => {}}
+                            icon={headerIcons.Plus}
+                            text={translate('common.create')}
+                            style={styles.w100}
+                        />
+                    </View>
+                )}
+
+                <WorkspaceRoomsTable rooms={rooms} />
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
+    );
+}
+
+WorkspaceRoomsPage.displayName = 'WorkspaceRoomsPage';
+
+export default WorkspaceRoomsPage;

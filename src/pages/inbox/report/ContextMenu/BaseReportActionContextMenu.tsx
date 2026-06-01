@@ -12,7 +12,7 @@ import CompactMenuContext from '@components/CompactMenuContext';
 import ContextMenuItem from '@components/ContextMenuItem';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
-import {useSession} from '@components/OnyxListItemProvider';
+import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -23,6 +23,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -84,9 +85,6 @@ type BaseReportActionContextMenuProps = {
     /** The copy selection. */
     selection?: string;
 
-    /** Draft message - if this is set the comment is in 'edit' mode */
-    draftMessage?: string;
-
     /** String representing the context menu type [LINK, REPORT_ACTION] which controls context menu choices  */
     type?: ContextMenuType;
 
@@ -120,7 +118,6 @@ function BaseReportActionContextMenu({
     isVisible = false,
     isThreadReportParentAction = false,
     selection = '',
-    draftMessage = '',
     reportActionID,
     reportID,
     originalReportID,
@@ -187,10 +184,8 @@ function BaseReportActionContextMenu({
     const lhnOneTransactionThreadReportID = getOneTransactionThreadReportID(report, reportChatReport, reportActions);
     const [lhnOneTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(lhnOneTransactionThreadReportID)}`);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`);
-    const [harvestReport] = useOnyx(
-        `${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(getHarvestOriginalReportID(reportNameValuePairs?.origin, reportNameValuePairs?.originalID))}`,
-        {},
-    );
+    const harvestReportOriginalID = getNonEmptyStringOnyxID(getHarvestOriginalReportID(reportNameValuePairs?.origin, reportNameValuePairs?.originalID));
+    const [harvestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${harvestReportOriginalID}`, {});
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const policyID = report?.policyID;
@@ -248,6 +243,8 @@ function BaseReportActionContextMenu({
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const personalDetails = usePersonalDetails();
+    const reportAttributes = useReportAttributes();
     const delegateAccountID = useDelegateAccountID();
 
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
@@ -355,7 +352,6 @@ function BaseReportActionContextMenu({
             },
             reportAction: {
                 reportActionID: reportAction?.reportActionID,
-                draftMessage,
                 isThreadReportParentAction,
             },
             callbacks: {
@@ -391,7 +387,6 @@ function BaseReportActionContextMenu({
                                 reportID,
                                 originalReportID,
                                 report,
-                                draftMessage,
                                 selection,
                                 close: () => setShouldKeepOpen(false),
                                 transitionActionSheetState,
@@ -399,6 +394,7 @@ function BaseReportActionContextMenu({
                                 interceptAnonymousUser,
                                 openOverflowMenu,
                                 setIsEmojiPickerActive,
+                                personalDetails,
                                 isHarvestReport,
                                 moneyRequestAction,
                                 card,
@@ -412,6 +408,7 @@ function BaseReportActionContextMenu({
                                 policyTags,
                                 translate,
                                 harvestReport,
+                                harvestReportOriginalID,
                                 introSelected,
                                 isSelfTourViewed,
                                 betas,
@@ -425,6 +422,7 @@ function BaseReportActionContextMenu({
                                 isOffline,
                                 conciergeReportID,
                                 delegateAccountID,
+                                reportAttributes,
                                 originalReportOfUnapprovedTransaction,
                             };
 

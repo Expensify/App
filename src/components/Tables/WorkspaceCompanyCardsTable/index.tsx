@@ -382,11 +382,12 @@ function WorkspaceCompanyCardsTable({
             {!shouldUseNarrowTableLayout && ListHeader}
 
             {(isLoading || isFeedPending || isNoFeed) && !feedErrorKey && (
-                <ScrollView>
+                <ScrollView addBottomSafeAreaPadding>
                     {isLoading && LoadingComponent}
 
                     {!isLoading && isFeedPending && (
                         <View style={styles.flex1}>
+                            {shouldUseNarrowTableLayout && headerButtonsComponent}
                             <WorkspaceCompanyCardsFeedPendingPage />
                         </View>
                     )}

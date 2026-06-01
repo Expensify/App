@@ -1,12 +1,11 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {IOUAction, IOUType} from '@src/CONST';
+import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {OnyxInputOrEntry, PersonalDetails, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import SafeString from '@src/utils/SafeString';
-import type {IOURequestType} from './actions/IOU';
 import {getCurrencyUnit} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
 import {isPaidGroupPolicy} from './PolicyUtils';
