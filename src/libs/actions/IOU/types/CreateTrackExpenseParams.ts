@@ -35,6 +35,8 @@ type CreateTrackExpenseParams = {
     isSelfTourViewed: boolean;
     defaultWorkspaceName?: string;
     previousOdometerDraft?: OnyxEntry<OnyxTypes.OdometerDraft>;
+    // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountID?: number | undefined;
     // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
     reportActionsList?: OnyxCollection<OnyxTypes.ReportActions>;
 };
