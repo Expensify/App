@@ -2,6 +2,7 @@ import {deepEqual} from 'fast-equals';
 import React, {useCallback, useState} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -17,17 +18,18 @@ import {getOriginalAttendees} from '@libs/TransactionUtils';
 import MoneyRequestAttendeeSelector from '@pages/iou/request/MoneyRequestAttendeeSelector';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Attendee} from '@src/types/onyx/IOU';
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepAttendeesProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_ATTENDEES>;
+type IOURequestStepAttendeesProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_ATTENDEES>;
 
-function IOURequestStepAttendees({
+function DynamicIOURequestStepAttendeesPage({
     route: {
-        params: {transactionID, reportID, iouType, backTo, action},
+        params: {transactionID, reportID, iouType, action},
     },
 }: IOURequestStepAttendeesProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -52,6 +54,7 @@ function IOURequestStepAttendees({
     const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_ATTENDEE.path);
 
     const saveAttendees = useCallback(() => {
         if (attendees.length <= 0) {
@@ -79,11 +82,10 @@ function IOURequestStepAttendees({
             }
         }
 
-        Navigation.goBack(backTo);
+        Navigation.goBack(backPath);
     }, [
         attendees,
         previousAttendees,
-        backTo,
         transactionID,
         isEditing,
         report,
@@ -97,10 +99,11 @@ function IOURequestStepAttendees({
         isASAPSubmitBetaEnabled,
         parentReportNextStep,
         delegateAccountID,
+        backPath,
     ]);
 
     const navigateBack = () => {
-        Navigation.goBack(backTo);
+        Navigation.goBack(backPath);
     };
 
     return (
@@ -108,7 +111,7 @@ function IOURequestStepAttendees({
             headerTitle={translate('iou.attendees')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
-            testID="IOURequestStepAttendees"
+            testID="DynamicIOURequestStepAttendeesPage"
         >
             <MoneyRequestAttendeeSelector
                 onFinish={saveAttendees}
@@ -121,4 +124,4 @@ function IOURequestStepAttendees({
     );
 }
 
-export default withWritableReportOrNotFound(IOURequestStepAttendees);
+export default withWritableReportOrNotFound(DynamicIOURequestStepAttendeesPage);
