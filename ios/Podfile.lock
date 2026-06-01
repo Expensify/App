@@ -137,7 +137,7 @@ PODS:
   - ExpoImageManipulator (55.0.2):
     - ExpoModulesCore
     - SDWebImageWebPCoder
-  - ExpoLocation (55.0.3):
+  - ExpoLocation (55.1.10):
     - ExpoModulesCore
   - ExpoLogBox (55.0.7):
     - React-Core
@@ -4781,7 +4781,7 @@ SPEC CHECKSUMS:
   ExpoFont: 86ceec09ffed1c99cfee36ceb79ba149074901b5
   ExpoImage: 8f835720453ed5be7764d9650aa1efde8109abc7
   ExpoImageManipulator: ae244131e2c3da68a030332fcbd87287fbdd8f97
-  ExpoLocation: fec7703a4922c4748b380723669f771376ffbd05
+  ExpoLocation: b9fb270b71354bffc20edbb1f9d1f99dcfbc3dc8
   ExpoLogBox: 89b634d5a8a64c4a6a7caad8f9985a28463c7002
   ExpoModulesCore: a0657acfb83a882b48f84492a095fd44fd43b26c
   ExpoModulesJSI: 1685389cde9f19c40f98ca0ad46d4804471486cc
