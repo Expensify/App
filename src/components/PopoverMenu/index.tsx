@@ -25,6 +25,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
+import claimEscapeKeyDown from '@libs/claimEscapeKeyDown';
 import getPlatform from '@libs/getPlatform';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import suppressNextEscapeKeyUp from '@libs/suppressNextEscapeKeyUp';
@@ -541,11 +542,22 @@ function BasePopoverMenu({
     // can cause the parent view to scroll when the space bar is pressed.
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SPACE, keyboardShortcutSpaceCallback, {isActive: isWeb && isVisible, shouldPreventDefault: false});
 
-    const handleClose = () => {
+    const handleClose = useCallback(() => {
         setCurrentMenuItems(menuItems);
         setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
         onClose();
-    };
+    }, [menuItems, onClose]);
+
+    // Web: window-capture keydown bypasses the shortcut stack. Native: useKeyboardShortcut below (the window listener no-ops on native).
+    useEffect(() => {
+        if (!isVisible) {
+            return undefined;
+        }
+        return claimEscapeKeyDown(() => {
+            suppressNextEscapeKeyUp();
+            handleClose();
+        });
+    }, [isVisible, handleClose]);
 
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.ESCAPE,
