@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
+import FormHelpMessage from '@components/FormHelpMessage';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
@@ -77,6 +78,7 @@ function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, 
 
     const [userSelectedManagerEmail, setUserSelectedManagerEmail] = useState<string | undefined>();
     const [extraSubmitToRecipients, setExtraSubmitToRecipients] = useState<WorkspaceMemberItem[]>([]);
+    const [hasError, setHasError] = useState(false);
     const managerEmail = userSelectedManagerEmail ?? prepopulatedEmail;
 
     const workspaceMembers = useMemo((): WorkspaceMemberItem[] => {
@@ -179,11 +181,20 @@ function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, 
         [searchTerm, setSearchTerm, translate, noMatchingMembers],
     );
 
+    const hasSelectedSubmitToMember = combinedSubmitToMembers.some((item) => item.isSelected);
+
     const handleSubmit = useCallback(() => {
+        if (!hasSelectedSubmitToMember) {
+            setHasError(true);
+            return;
+        }
+
         const trimmed = managerEmail.trim();
         if (!report || !trimmed) {
             return;
         }
+
+        setHasError(false);
         submitReport({
             expenseReport: report,
             policy,
@@ -216,6 +227,7 @@ function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, 
             },
         });
     }, [
+        hasSelectedSubmitToMember,
         managerEmail,
         report,
         policy,
@@ -240,6 +252,7 @@ function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, 
 
     const onSelectMember = useCallback(
         (item: WorkspaceMemberItem) => {
+            setHasError(false);
             setUserSelectedManagerEmail(item.email);
             setSearchTerm('');
 
@@ -289,9 +302,8 @@ function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, 
             text: translate('common.confirm'),
             onConfirm: handleSubmit,
             confirmButtonSize: 'medium' as const,
-            isDisabled: !combinedSubmitToMembers.some((item) => item.isSelected),
         }),
-        [combinedSubmitToMembers, handleSubmit, translate],
+        [handleSubmit, translate],
     );
 
     if (shouldShowNotFoundView) {
@@ -303,7 +315,7 @@ function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, 
     }
 
     return (
-        <View style={[styles.w100, styles.flex1, styles.pt5, {minHeight: CONST.POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT}]}>
+        <View style={[styles.w100, styles.flex1, styles.pt5, styles.pb5, {minHeight: CONST.POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT}]}>
             <SelectionList
                 data={submitToSelectionData}
                 ListItem={InviteMemberListItem}
@@ -318,7 +330,15 @@ function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, 
                 isRowMultilineSupported
                 style={{containerStyle: styles.flex1}}
                 disableMaintainingScrollPosition
-            />
+            >
+                {hasError && (
+                    <FormHelpMessage
+                        isError
+                        style={[styles.ph5, styles.mb3]}
+                        message={translate('common.error.pleaseSelectOne')}
+                    />
+                )}
+            </SelectionList>
         </View>
     );
 }
