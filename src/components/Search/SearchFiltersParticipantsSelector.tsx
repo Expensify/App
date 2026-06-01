@@ -182,23 +182,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
     };
 
     const applyChanges = () => {
-        let selectedIdentifiers: string[];
-
-        if (shouldAllowNameOnlyOptions) {
-            selectedIdentifiers = selectedOptions
-                .map((option) => {
-                    // Real users → accountID; name-only attendees → displayName or login.
-                    if (option.accountID && option.accountID !== CONST.DEFAULT_NUMBER_ID && personalDetails?.[option.accountID]) {
-                        return option.accountID.toString();
-                    }
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- need || to handle empty string
-                    return option.displayName || option.login;
-                })
-                .filter(Boolean) as string[];
-        } else {
-            selectedIdentifiers = selectedOptions.map((option) => (option.accountID ? option.accountID.toString() : undefined)).filter(Boolean) as string[];
-        }
-
+        const selectedIdentifiers = selectedOptions.map(getKey).filter(Boolean) as string[];
         onFiltersUpdate(selectedIdentifiers);
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     };
