@@ -67,25 +67,25 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
         [currency, defaultCurrency, handleCurrencyChange, translate],
     );
 
-    const totalButton: DropdownButtonProps['ButtonComponent'] = useCallback(
-        (props: DropdownButtonComponentProps) => (
-            <Button
-                ref={props.ref}
-                accessibilityLabel={translate('common.totalSpend')}
-                innerStyles={[styles.bgTransparent, styles.gap1, styles.mnh0, styles.ph0, styles.pv0]}
-                text={convertToDisplayString(total, currency)}
-                textStyles={valueTextStyle}
-                isLoading={isTotalLoading}
-                isDisabled={isOffline}
-                small
-                shouldShowRightIcon
-                iconRight={icons.DownArrow}
-                iconRightFill={theme.icon}
-                sentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_TOTAL_CURRENCY}
-                onPress={props.onPress}
-            />
-        ),
-        [convertToDisplayString, currency, icons.DownArrow, isOffline, isTotalLoading, styles, theme, total, translate, valueTextStyle],
+    const totalButton: DropdownButtonProps['ButtonComponent'] = (props: DropdownButtonComponentProps) => (
+        <Button
+            ref={props.ref}
+            accessibilityLabel={translate('common.totalSpend')}
+            shouldUseDefaultHover={false}
+            innerStyles={[styles.bgTransparent, styles.gap1, styles.mnh0, styles.ph0, styles.pv0]}
+            text={convertToDisplayString(total, currency)}
+            textStyles={valueTextStyle}
+            textHoverStyles={StyleUtils.getColorStyle(theme.linkHover)}
+            isLoading={isTotalLoading}
+            isDisabled={isOffline}
+            small
+            shouldShowRightIcon
+            iconRight={icons.DownArrow}
+            iconRightFill={theme.icon}
+            iconRightHoverFill={theme.iconHovered}
+            sentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_TOTAL_CURRENCY}
+            onPress={props.onPress}
+        />
     );
 
     return (
