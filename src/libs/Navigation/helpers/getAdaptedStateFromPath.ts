@@ -311,6 +311,23 @@ function getOnboardingAdaptedState(state: PartialState<NavigationState>): Partia
 function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamList>>): GetAdaptedStateReturnType {
     const fullScreenRoute = state.routes.find((route) => isFullScreenName(route.name));
 
+    // When a path resolves straight to TAB_NAVIGATOR, RN's getStateFromPath only emits the matched tab and
+    // leaves the other tabs out of the strip. Every other branch in this function builds the full strip via
+    // getTabNavigatorState, so do the same here. Consumers that read the tab strip before any in-app navigation
+    // (e.g. REPLACE_FULLSCREEN_UNDER_RHP after an expense submit) rely on every tab being present; otherwise a
+    // tab switch into a not-yet-materialized tab (e.g. Search) silently no-ops on cold-start.
+    if (fullScreenRoute?.name === NAVIGATORS.TAB_NAVIGATOR) {
+        const tabState = fullScreenRoute.state as PartialState<NavigationState> | undefined;
+        if (tabState?.routes && tabState.routes.length < TAB_SCREENS.length) {
+            const activeTabRoute = tabState.routes.at(tabState.index ?? tabState.routes.length - 1);
+            if (activeTabRoute) {
+                const fullStripTabRoute = getTabNavigatorState(activeTabRoute as NavigationPartialRoute);
+                const normalizedRoutes = state.routes.map((r) => (r === fullScreenRoute ? {...r, state: fullStripTabRoute.state} : r)) as NavigationPartialRoute[];
+                return getAdaptedState({...state, routes: normalizedRoutes} as PartialState<NavigationState<RootNavigatorParamList>>);
+            }
+        }
+    }
+
     // If TAB_NAVIGATOR contains WORKSPACE_NAVIGATOR, ensure WORKSPACES_LIST is in its nested state
     if (fullScreenRoute?.name === NAVIGATORS.TAB_NAVIGATOR) {
         const tabState = fullScreenRoute.state as PartialState<NavigationState> | undefined;
