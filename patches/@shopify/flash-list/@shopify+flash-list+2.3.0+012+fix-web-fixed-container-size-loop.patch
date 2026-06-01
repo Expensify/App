@@ -1,0 +1,86 @@
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
+index ef4daf2..06aa897 100644
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
+@@ -139,6 +139,17 @@ const RecyclerViewComponent = (props, ref) => {
+                 return;
+             }
+             const firstChildViewLayout = measureFirstChildLayout(firstChildViewRef.current, internalViewRef.current);
++            // [APP-DQ2] Diagnostic: raw per-render measurements. A loop shows up
++            // as child.w (vertical) / child.h (horizontal) flipping between two
++            // values every render. dpr correlates with fractional display scaling.
++            console.log("[FlashList][APP-DQ2] measure", JSON.stringify({
++                horizontal,
++                outerW: outerViewSize?.width,
++                outerH: outerViewSize?.height,
++                childW: firstChildViewLayout?.width,
++                childH: firstChildViewLayout?.height,
++                dpr: typeof window !== "undefined" ? window.devicePixelRatio : undefined,
++            }));
+             containerViewSizeRef.current = outerViewSize;
+             // firstChildViewLayout is already relative to the outer container,
+             // so its x/y directly gives the first item offset.
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js b/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js
+index e66d406..806e990 100644
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js
+@@ -84,12 +84,33 @@ export const ViewHolderCollection = (props) => {
+         ? containerLayout === null || containerLayout === void 0 ? void 0 : containerLayout.height
+         : containerLayout === null || containerLayout === void 0 ? void 0 : containerLayout.width;
+     const recyclerViewContext = useRecyclerViewContext();
++    // Tracks the last fixedContainerSize that actually triggered a parent
++    // layout, so sub-pixel / single device-pixel jitter can be ignored.
++    const lastLayoutFixedContainerSizeRef = useRef(fixedContainerSize);
+     useLayoutEffect(() => {
+-        if (renderId > 0) {
+-            // console.log(
+-            //   "parent layout trigger due to child container size change",
+-            //   fixedContainerSize
+-            // );
++        // Only trigger a parent layout when the fixed (cross-axis) container
++        // size changed beyond a 1px tolerance. On web, fractional display
++        // scaling (e.g. Windows) and scrollbar appear/disappear can make the
++        // measured width oscillate by a single device pixel every render. Since
++        // fixedContainerSize feeds setLayoutTreeId() -> re-render -> re-measure,
++        // an exact comparison turns that jitter into an infinite layout loop
++        // ("Maximum update depth exceeded"). See E/App #91584 / Sentry APP-DQ2.
++        const prev = lastLayoutFixedContainerSizeRef.current;
++        const changedBeyondTolerance = prev === undefined || fixedContainerSize === undefined
++            ? prev !== fixedContainerSize
++            : Math.abs(prev - fixedContainerSize) > 1;
++        lastLayoutFixedContainerSizeRef.current = fixedContainerSize;
++        // [APP-DQ2] Diagnostic: shows the guard decision. "TRIGGER" should fire
++        // only on real resizes; a flood of "SKIP" means the jitter loop is being
++        // absorbed (the bug), repeated "TRIGGER" with two alternating values
++        // would mean the loop is still live.
++        console.log("[FlashList][APP-DQ2] fixedContainerSize effect", JSON.stringify({
++            prev,
++            next: fixedContainerSize,
++            renderId,
++            decision: renderId > 0 && changedBeyondTolerance ? "TRIGGER layout()" : "SKIP",
++        }));
++        if (renderId > 0 && changedBeyondTolerance) {
+             recyclerViewContext === null || recyclerViewContext === void 0 ? void 0 : recyclerViewContext.layout();
+         }
+         // we need to run this callback on when fixedContainerSize changes
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js b/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js
+index 12375d9..1917eed 100644
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js
+@@ -26,6 +26,16 @@ export class RVLinearLayoutManagerImpl extends RVLayoutManager {
+         this.boundedSize = this.horizontal
+             ? params.windowSize.height
+             : params.windowSize.width;
++        // [APP-DQ2] Diagnostic: boundedSize feeds getLayoutSize().width ->
++        // fixedContainerSize. "changed=true" alternating between two values is
++        // the layout-manager view of the infinite loop.
++        console.log("[FlashList][APP-DQ2] LinearLayoutManager.updateLayoutParams", JSON.stringify({
++            horizontal: this.horizontal,
++            oldBoundedSize,
++            newBoundedSize: this.boundedSize,
++            changed: oldBoundedSize !== this.boundedSize,
++            layouts: this.layouts?.length,
++        }));
+         if (oldBoundedSize !== this.boundedSize ||
+             prevHorizontal !== this.horizontal) {
+             if (this.layouts.length > 0) {
