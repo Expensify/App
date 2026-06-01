@@ -2868,7 +2868,7 @@ ${date} の ${merchant} への ${amount}`,
     },
     inboxTabs: {
         all: 'All',
-        todo: 'To-do',
+        todo: 'To-dos',
         unread: 'Unread',
     },
     reportDetailsPage: {

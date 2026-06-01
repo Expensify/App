@@ -2904,7 +2904,7 @@ ${amount} pour ${merchant} - ${date}`,
     },
     inboxTabs: {
         all: 'All',
-        todo: 'To-do',
+        todo: 'To-dos',
         unread: 'Unread',
     },
     reportDetailsPage: {

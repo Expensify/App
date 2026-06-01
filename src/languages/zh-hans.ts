@@ -2810,7 +2810,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     },
     inboxTabs: {
         all: 'All',
-        todo: 'To-do',
+        todo: 'To-dos',
         unread: 'Unread',
     },
     reportDetailsPage: {
