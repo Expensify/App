@@ -218,7 +218,7 @@ describe('flaggedExpenses derived value', () => {
             const clearedResult = compute([buildReports(report), buildTransactions(transaction), buildViolations({t1: []}), createSession()], emptyContext);
             expect(clearedResult.flaggedExpenses).toEqual([]);
 
-            const reflaggedResult = compute(
+            const reFlaggedResult = compute(
                 [
                     buildReports(report),
                     buildTransactions(transaction),
@@ -229,8 +229,8 @@ describe('flaggedExpenses derived value', () => {
                 ],
                 emptyContext,
             );
-            expect(reflaggedResult.flaggedExpenses).toHaveLength(1);
-            expect(reflaggedResult.flaggedExpenses.at(0)?.transactionID).toBe('t1');
+            expect(reFlaggedResult.flaggedExpenses).toHaveLength(1);
+            expect(reFlaggedResult.flaggedExpenses.at(0)?.transactionID).toBe('t1');
         });
 
         it('excludes flagged transactions on expense reports the current user does not own', () => {
