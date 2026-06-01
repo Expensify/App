@@ -3169,7 +3169,26 @@ function getWorkspaceCustomUnitRateImportedMessage(translate: LocalizedTranslate
 }
 
 function getWorkspaceCustomUnitRateAddedMessage(translate: LocalizedTranslate, action: ReportAction): string {
-    const {customUnitName, rateName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
+    const {customUnitName, rateName, rate, currency, unit, startDate, endDate} =
+        getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE>) ?? {};
+
+    if (rateName && rate !== undefined && currency && unit) {
+        const unitLabel = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
+        const formattedRate = `${convertAmountToDisplayString(rate, currency)}/${unitLabel}`;
+        const formattedStartDate = startDate ? DateUtils.formatToReadableString(startDate) : undefined;
+        const formattedEndDate = endDate ? DateUtils.formatToReadableString(endDate) : undefined;
+
+        if (formattedStartDate && formattedEndDate) {
+            return translate('workspaceActions.addCustomUnitRateWithAmountAndDates', rateName, formattedRate, formattedStartDate, formattedEndDate);
+        }
+        if (formattedStartDate) {
+            return translate('workspaceActions.addCustomUnitRateWithAmountAndStartDate', rateName, formattedRate, formattedStartDate);
+        }
+        if (formattedEndDate) {
+            return translate('workspaceActions.addCustomUnitRateWithAmountAndEndDate', rateName, formattedRate, formattedEndDate);
+        }
+        return translate('workspaceActions.addCustomUnitRateWithAmount', rateName, formattedRate);
+    }
 
     if (customUnitName && rateName) {
         return translate('workspaceActions.addCustomUnitRate', customUnitName, rateName);
@@ -3179,7 +3198,7 @@ function getWorkspaceCustomUnitRateAddedMessage(translate: LocalizedTranslate, a
 }
 
 function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate, action: ReportAction): string {
-    const {customUnitName, customUnitRateName, updatedField, oldValue, newValue, newTaxPercentage, oldTaxPercentage} =
+    const {customUnitName, customUnitRateName, updatedField, oldValue, newValue, newTaxPercentage, oldTaxPercentage, startDate, endDate, oldStartDate, oldEndDate} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE>) ?? {};
 
     if (customUnitName && updatedField === 'name' && typeof oldValue === 'string' && typeof newValue === 'string') {
@@ -3205,6 +3224,39 @@ function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate,
 
     if (customUnitName && customUnitRateName && updatedField === 'enabled' && typeof oldValue === 'boolean' && typeof newValue === 'boolean') {
         return translate('workspaceActions.updatedCustomUnitRateEnabled', customUnitName, customUnitRateName, newValue);
+    }
+
+    if (customUnitRateName && updatedField === 'startDate') {
+        if (!startDate && oldStartDate) {
+            return translate('workspaceActions.removedCustomUnitRateStartDate', customUnitRateName, DateUtils.formatToReadableString(oldStartDate));
+        }
+        if (startDate) {
+            const formattedOldDate = oldStartDate ? DateUtils.formatToReadableString(oldStartDate) : undefined;
+            return translate('workspaceActions.updatedCustomUnitRateStartDate', customUnitRateName, DateUtils.formatToReadableString(startDate), formattedOldDate);
+        }
+    }
+
+    if (customUnitRateName && updatedField === 'endDate') {
+        if (!endDate && oldEndDate) {
+            return translate('workspaceActions.removedCustomUnitRateEndDate', customUnitRateName, DateUtils.formatToReadableString(oldEndDate));
+        }
+        if (endDate) {
+            const formattedOldDate = oldEndDate ? DateUtils.formatToReadableString(oldEndDate) : undefined;
+            return translate('workspaceActions.updatedCustomUnitRateEndDate', customUnitRateName, DateUtils.formatToReadableString(endDate), formattedOldDate);
+        }
+    }
+
+    if (customUnitRateName && updatedField === 'startDate,endDate' && startDate && endDate) {
+        const formattedOldStartDate = oldStartDate ? DateUtils.formatToReadableString(oldStartDate) : undefined;
+        const formattedOldEndDate = oldEndDate ? DateUtils.formatToReadableString(oldEndDate) : undefined;
+        return translate(
+            'workspaceActions.updatedCustomUnitRateStartAndEndDate',
+            customUnitRateName,
+            DateUtils.formatToReadableString(startDate),
+            DateUtils.formatToReadableString(endDate),
+            formattedOldStartDate,
+            formattedOldEndDate,
+        );
     }
 
     return getReportActionText(action);

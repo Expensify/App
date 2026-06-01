@@ -7488,6 +7488,11 @@ const translations = {
             `changed the ${customUnitName} default category to "${newValue}" ${oldValue ? `(previously "${oldValue}")` : ''}`,
         importCustomUnitRates: (customUnitName: string) => `imported rates for custom unit "${customUnitName}"`,
         addCustomUnitRate: (customUnitName: string, rateName: string) => `added a new ${customUnitName} rate "${rateName}"`,
+        addCustomUnitRateWithAmount: (rateName: string, rateValue: string) => `added a '${rateName}' rate for ${rateValue}`,
+        addCustomUnitRateWithAmountAndStartDate: (rateName: string, rateValue: string, startDate: string) => `added a '${rateName}' rate for ${rateValue}, valid from ${startDate}`,
+        addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `added a '${rateName}' rate for ${rateValue}, valid until ${endDate}`,
+        addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
+            `added a '${rateName}' rate for ${rateValue}, valid from ${startDate} to ${endDate}`,
         deleteCustomUnitRate: (customUnitName: string, rateName: string) => `removed the "${customUnitName}" rate "${rateName}"`,
         updateCustomUnitSubRate: (customUnitName: string, customUnitRateName: string, customUnitSubRateName: string, oldValue: string, newValue: string, updatedField: string) =>
             `changed "${customUnitName}" rate "${customUnitRateName}" sub-rate "${customUnitSubRateName}" ${updatedField} to "${newValue}" (previously "${oldValue}")`,
@@ -7513,6 +7518,16 @@ const translations = {
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
             return `${newValue ? 'enabled' : 'disabled'} the ${customUnitName} rate "${customUnitRateName}"`;
         },
+        updatedCustomUnitRateStartDate: (rateName: string, newDate: string, oldDate?: string) =>
+            oldDate ? `updated the start date of the '${rateName}' rate to ${newDate} (previously ${oldDate})` : `set the start date of the '${rateName}' rate to ${newDate}`,
+        updatedCustomUnitRateEndDate: (rateName: string, newDate: string, oldDate?: string) =>
+            oldDate ? `updated the end date of the '${rateName}' rate to ${newDate} (previously ${oldDate})` : `set the end date of the '${rateName}' rate to ${newDate}`,
+        updatedCustomUnitRateStartAndEndDate: (rateName: string, newStartDate: string, newEndDate: string, oldStartDate?: string, oldEndDate?: string) =>
+            oldStartDate && oldEndDate
+                ? `updated the start and end date of the '${rateName}' rate to ${newStartDate} - ${newEndDate} (previously ${oldStartDate} - ${oldEndDate})`
+                : `set the start and end date of the '${rateName}' rate to ${newStartDate} - ${newEndDate}`,
+        removedCustomUnitRateStartDate: (rateName: string, oldDate: string) => `removed the start date from the '${rateName}' rate (previously ${oldDate})`,
+        removedCustomUnitRateEndDate: (rateName: string, oldDate: string) => `removed the end date from the '${rateName}' rate (previously ${oldDate})`,
         updateReportFieldDefaultValue: (defaultValue?: string, fieldName?: string) => `set the default value of report field "${fieldName}" to "${defaultValue}"`,
         addedReportFieldOption: (fieldName: string, optionName: string) => `added the option "${optionName}" to the report field "${fieldName}"`,
         removedReportFieldOption: (fieldName: string, optionName: string) => `removed the option "${optionName}" from the report field "${fieldName}"`,
