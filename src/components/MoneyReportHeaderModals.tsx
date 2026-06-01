@@ -18,6 +18,7 @@ import MoneyReportHeaderEducationalModals from './MoneyReportHeaderEducationalMo
 import type {MoneyReportHeaderEducationalModalsHandle, RejectModalAction} from './MoneyReportHeaderEducationalModals';
 import MoneyReportHeaderModalsContext from './MoneyReportHeaderModalsContext';
 import type {HoldMenuParams} from './MoneyReportHeaderModalsContext';
+import {MoneyReportTransactionThreadProvider} from './MoneyReportTransactionThreadContext';
 import ReportPDFDownloadModal from './ReportPDFDownloadModal';
 
 type MoneyReportHeaderModalsProps = {
@@ -46,8 +47,8 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
     const canIOUBePaid = canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', accountID);
     const onlyShowPayElsewhere = !canIOUBePaid && canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', accountID, undefined, true);
     const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
-    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton);
-    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(moneyRequestReport?.reportID, transactions);
+    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton, transactions);
+    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
     const transactionIDs = transactions.map((t) => t.transactionID);
 
     // Imperative modals
@@ -109,18 +110,20 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
 
     return (
         <MoneyReportHeaderModalsContext.Provider value={contextValue}>
-            {children}
+            <MoneyReportTransactionThreadProvider reportID={moneyRequestReport?.reportID}>
+                {children}
 
-            <MoneyReportHeaderEducationalModals
-                ref={educationalModalsRef}
-                reportID={moneyRequestReport?.reportID}
-            />
+                <MoneyReportHeaderEducationalModals
+                    ref={educationalModalsRef}
+                    reportID={moneyRequestReport?.reportID}
+                />
 
-            <ReportPDFDownloadModal
-                reportID={moneyRequestReport?.reportID}
-                isVisible={isPDFModalVisible}
-                onClose={() => setIsPDFModalVisible(false)}
-            />
+                <ReportPDFDownloadModal
+                    reportID={moneyRequestReport?.reportID}
+                    isVisible={isPDFModalVisible}
+                    onClose={() => setIsPDFModalVisible(false)}
+                />
+            </MoneyReportTransactionThreadProvider>
         </MoneyReportHeaderModalsContext.Provider>
     );
 }

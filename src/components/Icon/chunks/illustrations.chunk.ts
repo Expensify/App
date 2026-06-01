@@ -41,12 +41,14 @@ import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustra
 import ExpensifyCardProtectionIllustration from '@assets/images/expensifyCard/cardProtectionIllustration.svg';
 // Other Images
 import Hand from '@assets/images/hand.svg';
+import LaptopWithMembers from '@assets/images/illustration-laptop-members.svg';
 import LaptopOnDeskWithCoffeeAndKey from '@assets/images/laptop-on-desk-with-coffee-and-key.svg';
 import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
 // Multifactor Authentication Illustrations
 import ApprovedTransactionHand from '@assets/images/multifactorAuthentication/approved-transaction-hand.svg';
+import CardReader from '@assets/images/multifactorAuthentication/card-reader.svg';
 import DeniedTransactionHand from '@assets/images/multifactorAuthentication/denied-transaction-hand.svg';
 import EncryptionMan from '@assets/images/multifactorAuthentication/encryption-man.svg';
 import HumptyDumpty from '@assets/images/multifactorAuthentication/humpty-dumpty.svg';
@@ -111,6 +113,7 @@ import Binoculars from '@assets/images/simple-illustrations/simple-illustration_
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
 import Broom from '@assets/images/simple-illustrations/simple-illustration__broom.svg';
 import Building from '@assets/images/simple-illustrations/simple-illustration__building.svg';
+import BuildingCross from '@assets/images/simple-illustrations/simple-illustration__building_cross.svg';
 import Buildings from '@assets/images/simple-illustrations/simple-illustration__buildings.svg';
 import CalculatorMoney from '@assets/images/simple-illustrations/simple-illustration__calculator-money.svg';
 import CalendarMonthly from '@assets/images/simple-illustrations/simple-illustration__calendar-monthly.svg';
@@ -143,6 +146,7 @@ import FolderOpen from '@assets/images/simple-illustrations/simple-illustration_
 import FoodTruck from '@assets/images/simple-illustrations/simple-illustration__foodtruck-tacos.svg';
 import Gears from '@assets/images/simple-illustrations/simple-illustration__gears.svg';
 import HandCard from '@assets/images/simple-illustrations/simple-illustration__handcard.svg';
+import Hashtag from '@assets/images/simple-illustrations/simple-illustration__hashtag.svg';
 import HeadSet from '@assets/images/simple-illustrations/simple-illustration__headset.svg';
 import Hourglass from '@assets/images/simple-illustrations/simple-illustration__hourglass.svg';
 import House from '@assets/images/simple-illustrations/simple-illustration__house.svg';
@@ -248,6 +252,7 @@ const Illustrations = {
     LaptopWithSecondScreenSync,
     LaptopWithSecondScreenX,
     LaptopOnDeskWithCoffeeAndKey,
+    LaptopWithMembers,
 
     // Expensify Card
     ExpensifyCardIllustration,
@@ -311,11 +316,13 @@ const Illustrations = {
     Accounting,
     AiBot,
     Building,
+    BuildingCross,
     BankCoin,
     Coins,
     CreditCardsNew,
     FolderOpen,
     HandCard,
+    Hashtag,
     InvoiceBlue,
     MagnifyingGlassMoney,
     MagnifyingGlassReceipt,
@@ -422,6 +429,7 @@ const Illustrations = {
     RunOutOfTime,
     HumptyDumpty,
     EncryptionMan,
+    CardReader,
 };
 
 /**
