@@ -20,6 +20,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 type PopoverComponentProps = {
@@ -65,9 +66,12 @@ type DropdownButtonProps = WithSentryLabel & {
     /** Wrapper style for the outer view */
     wrapperStyle?: StyleProp<ViewStyle>;
     onClosePress?: () => void;
+
+    /** Popover anchor alignment relative to the trigger */
+    anchorAlignment?: AnchorAlignment;
 };
 
-const ANCHOR_ORIGIN = {
+const DEFAULT_ANCHOR_ALIGNMENT: AnchorAlignment = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
@@ -85,6 +89,7 @@ function DropdownButton({
     wrapperStyle,
     sentryLabel,
     onClosePress,
+    anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
 }: DropdownButtonProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHL and narrow layout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -125,11 +130,11 @@ function DropdownButton({
      * Calculate popover position and toggle overlay
      */
     const calculatePopoverPositionAndToggleOverlay = useCallback(() => {
-        calculatePopoverPosition(anchorRef, ANCHOR_ORIGIN).then((pos) => {
+        calculatePopoverPosition(anchorRef, anchorAlignment).then((pos) => {
             setPopoverTriggerPosition({...pos, vertical: pos.vertical});
             toggleOverlay();
         });
-    }, [calculatePopoverPosition, toggleOverlay]);
+    }, [anchorAlignment, calculatePopoverPosition, toggleOverlay]);
     /**
      * When no items are selected, render the label, otherwise, render the
      * list of selected items as well
@@ -221,7 +226,7 @@ function DropdownButton({
                 isVisible={isOverlayVisible}
                 onClose={toggleOverlay}
                 anchorPosition={popoverTriggerPosition}
-                anchorAlignment={ANCHOR_ORIGIN}
+                anchorAlignment={anchorAlignment}
                 restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
                 shouldEnableNewFocusManagement
                 shouldMeasureAnchorPositionFromTop={false}

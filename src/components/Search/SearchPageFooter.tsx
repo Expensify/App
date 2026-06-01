@@ -113,6 +113,10 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
                     value={currency ?? null}
                     PopoverComponent={renderCurrencyPopup}
                     ButtonComponent={totalButton}
+                    anchorAlignment={{
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                    }}
                 />
             </View>
         </View>
