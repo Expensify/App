@@ -3,7 +3,6 @@ import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} fr
 import {Dimensions} from 'react-native';
 import type {EmitterSubscription, View} from 'react-native';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useAllPolicyExpenseChatReportActions from '@hooks/useAllPolicyExpenseChatReportActions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -27,6 +26,7 @@ import {setKYCWallSource} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import type {BankAccountList, Policy} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
@@ -68,6 +68,7 @@ function KYCWall({
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [employeeLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)}, [iouReport?.ownerAccountID]);
 
     const {formatPhoneNumber, translate} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -75,8 +76,6 @@ function KYCWall({
     const currentUserEmail = currentUserDetails.email ?? '';
     const localCurrency = currentUserDetails.localCurrencyCode ?? CONST.CURRENCY.USD;
     const reportPreviewAction = useParentReportAction(iouReport);
-    const personalDetails = usePersonalDetails();
-    const employeeEmail = personalDetails?.[iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.login ?? '';
     const reportTransactions = useReportTransactions(iouReport?.reportID);
     const filteredReportActions = useAllPolicyExpenseChatReportActions();
     const anchorRef = useRef<HTMLDivElement | View>(null);
@@ -150,6 +149,7 @@ function KYCWall({
                             formatPhoneNumber,
                             filteredReportActions,
                             currentUserAccountID,
+                            employeeLogin,
                             reportTransactions,
                         );
                         if (inviteResult?.policyExpenseChatReportID) {
@@ -184,7 +184,7 @@ function KYCWall({
                             reportPreviewAction,
                             currentUserAccountID,
                             currentUserEmail,
-                            employeeEmail,
+                            employeeLogin ?? '',
                             conciergeReportID,
                             localCurrency,
                             lastWorkspaceNumber,
@@ -194,7 +194,7 @@ function KYCWall({
                     if (policyID && iouReport?.policyID) {
                         savePreferredPaymentMethod(iouReport.policyID, policyID, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[iouReport?.policyID]);
                     }
-                    completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, isSelfTourViewed, betas, adminsChatReportID, policyID);
+                    completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, isSelfTourViewed, betas, currentUserAccountID, adminsChatReportID, policyID);
                     const workspaceReportRoute = workspaceChatReportID ? ROUTES.REPORT_WITH_ID.getRoute(workspaceChatReportID) : undefined;
 
                     setNavigationActionToMicrotaskQueue(() => {
@@ -234,7 +234,7 @@ function KYCWall({
             reportPreviewAction,
             currentUserAccountID,
             currentUserEmail,
-            employeeEmail,
+            employeeLogin,
             introSelected,
             formatPhoneNumber,
             translate,

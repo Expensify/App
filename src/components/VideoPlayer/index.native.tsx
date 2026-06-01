@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import {Root as PopoverMenuRoot} from '@components/PopoverMenu/v2';
 import uniqueIDForVideoWithoutReport from '@components/VideoPlayerContexts/PlaybackContext/uniqueID';
 import CONST from '@src/CONST';
 import BaseVideoPlayer from './BaseVideoPlayer';
@@ -10,14 +11,15 @@ function VideoPlayer({videoControlsStyle, shouldUseControlsBottomMargin = true, 
     const {reportID} = props;
 
     return (
-        <BaseVideoPlayer
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            isVideoHovered
-            shouldUseSharedVideoElement={false}
-            videoControlsStyle={[shouldUseControlsBottomMargin ? {bottom: CONST.VIDEO_PLAYER.CONTROLS_POSITION.NATIVE} : undefined, videoControlsStyle]}
-            reportID={reportID ?? fakeReportID}
-        />
+        <PopoverMenuRoot>
+            <BaseVideoPlayer
+                {...props}
+                isVideoHovered
+                shouldUseSharedVideoElement={false}
+                videoControlsStyle={[shouldUseControlsBottomMargin ? {bottom: CONST.VIDEO_PLAYER.CONTROLS_POSITION.NATIVE} : undefined, videoControlsStyle]}
+                reportID={reportID ?? fakeReportID}
+            />
+        </PopoverMenuRoot>
     );
 }
 

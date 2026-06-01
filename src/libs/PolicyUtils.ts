@@ -27,25 +27,26 @@ import type {
     ConnectionName,
     Connections,
     CustomUnit,
-    InvoiceItem,
     NetSuiteAccount,
     NetSuiteConnection,
     NetSuiteCustomList,
     NetSuiteCustomSegment,
-    NetSuiteTaxAccount,
-    NetSuiteVendor,
     PolicyConnectionSyncProgress,
     PolicyFeatureName,
     Rate,
     Tenant,
+    Vendor,
 } from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getBankAccountFromID} from './actions/BankAccounts';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
+import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
+import {getApiRoot} from './ApiUtils';
 import {getCategoryApproverRule} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
+import {isAnyHRConnected} from './HRUtils';
 import Navigation from './Navigation/Navigation';
 import {getIsOffline} from './NetworkState';
 import {formatMemberForList} from './OptionsListUtils';
@@ -57,10 +58,10 @@ import {isPublicDomain, isValidAccountRoute} from './ValidationUtils';
 type MemberEmailsToAccountIDs = Record<string, number>;
 
 type TravelStep = ValueOf<typeof CONST.TRAVEL.STEPS>;
+type PolicyFeature = ValueOf<typeof CONST.POLICY.POLICY_FEATURE>;
+type PolicyFeatureAccess = ValueOf<typeof CONST.POLICY.POLICY_FEATURE_ACCESS>;
 
 type AccountingConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES>;
-type HRConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES>;
-
 type WorkspaceDetails = {
     policyID: string | undefined;
     name: string;
@@ -128,6 +129,69 @@ function getActivePoliciesWithExpenseChatAndTimeEnabled(policies: OnyxCollection
  */
 const isPolicyAdmin = (policy: OnyxInputOrEntry<Policy>, login?: string, shouldCheckGlobalPolicyRole = true): boolean =>
     getPolicyRole(policy, login, shouldCheckGlobalPolicyRole) === CONST.POLICY.ROLE.ADMIN;
+
+const WRITE_ALL_POLICY_FEATURES = Object.fromEntries(Object.values(CONST.POLICY.POLICY_FEATURE).map((feature) => [feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE])) as Record<
+    PolicyFeature,
+    PolicyFeatureAccess
+>;
+
+const READ_ALL_POLICY_FEATURES = Object.fromEntries(Object.values(CONST.POLICY.POLICY_FEATURE).map((feature) => [feature, CONST.POLICY.POLICY_FEATURE_ACCESS.READ])) as Record<
+    PolicyFeature,
+    PolicyFeatureAccess
+>;
+
+const EDITOR_POLICY_FEATURES = Object.fromEntries(
+    Object.values(CONST.POLICY.POLICY_FEATURE)
+        .filter((feature) => feature !== CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES)
+        .map((feature) => [feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE]),
+) as Partial<Record<PolicyFeature, PolicyFeatureAccess>>;
+
+const ROLE_PERMISSION_BUNDLES: Record<string, Partial<Record<PolicyFeature, PolicyFeatureAccess>>> = {
+    [CONST.POLICY.ROLE.ADMIN]: WRITE_ALL_POLICY_FEATURES,
+    [CONST.POLICY.ROLE.EDITOR]: EDITOR_POLICY_FEATURES,
+    [CONST.POLICY.ROLE.AUDITOR]: READ_ALL_POLICY_FEATURES,
+    [CONST.POLICY.ROLE.USER]: {
+        [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+    },
+    [CONST.POLICY.ROLE.CARD_ADMIN]: {
+        [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+        [CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+    },
+    [CONST.POLICY.ROLE.PEOPLE_ADMIN]: {
+        [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+        [CONST.POLICY.POLICY_FEATURE.WORKFLOWS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+    },
+    [CONST.POLICY.ROLE.PAYMENTS_ADMIN]: {
+        [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.WORKFLOWS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+    },
+};
+
+function hasPolicyFeaturePermission(policy: OnyxInputOrEntry<Policy>, login: string, feature: PolicyFeature, requiredAccess: PolicyFeatureAccess): boolean {
+    const role = getPolicyRole(policy, login, false);
+    const access = role ? ROLE_PERMISSION_BUNDLES[role]?.[feature] : undefined;
+
+    if (requiredAccess === CONST.POLICY.POLICY_FEATURE_ACCESS.READ) {
+        return access === CONST.POLICY.POLICY_FEATURE_ACCESS.READ || access === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE;
+    }
+
+    return access === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE;
+}
+
+function canMemberRead(policy: OnyxInputOrEntry<Policy>, login: string, feature: PolicyFeature): boolean {
+    return hasPolicyFeaturePermission(policy, login, feature, CONST.POLICY.POLICY_FEATURE_ACCESS.READ);
+}
+
+function canMemberWrite(policy: OnyxInputOrEntry<Policy>, login: string, feature: PolicyFeature): boolean {
+    return hasPolicyFeaturePermission(policy, login, feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE);
+}
 
 /**
  * Checks if we have any errors stored within the policy?.employeeList. Determines whether we should show a red brick road error or not.
@@ -855,10 +919,11 @@ function getTagNamesFromTagsLists(policyTagLists: PolicyTagLists): string[] {
 }
 
 /**
- * Cleans up escaping of colons (used to create multi-level tags, e.g. "Parent: Child") in the tag name we receive from the backend
+ * Cleans up escaping of colons used to create multi-level tags (e.g. "Parent: Child"),
+ * and HTML-decodes the result so tags stored with encoded entities display correctly (e.g. `R&amp;D`, renders as `R&D`)
  */
 function getCleanedTagName(tag: string) {
-    return tag?.replaceAll('\\:', CONST.COLON);
+    return Str.htmlDecode(tag?.replaceAll('\\:', CONST.COLON) ?? '');
 }
 
 /**
@@ -929,12 +994,62 @@ function isPaidGroupPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
 }
 
+function isSubmitPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
+    return policy?.type === CONST.POLICY.TYPE.SUBMIT;
+}
+
+/**
+ * We only allow users to access Submit feature if they have the SUBMIT_2026 beta enabled.
+ *
+ * @param isSubmit2026BetaEnabled - Prefer `isBetaEnabled(CONST.BETAS.SUBMIT_2026)` from `usePermissions()`, not raw betas from Onyx.
+ */
+function canAccessSubmitWorkspaceFeatures(policy: OnyxInputOrEntry<Policy>, isSubmit2026BetaEnabled: boolean): boolean {
+    return isSubmitPolicy(policy) && isSubmit2026BetaEnabled;
+}
+
+const isPolicyEditor = (policy: OnyxInputOrEntry<Policy>, login?: string): boolean => getPolicyRole(policy, login) === CONST.POLICY.ROLE.EDITOR;
+
+/**
+ * Returns true if the current user can edit workspace settings — admins on any workspace,
+ * or editors on Submit workspaces (Submit has no admin role, so editors manage it).
+ *
+ * `login` enables the per-employee role fallback in `getPolicyRole`, so partially-loaded/summary
+ * policies (where `policy.role` isn't populated yet) don't incorrectly route admins/editors away.
+ */
+function canEditWorkspaceSettings(policy: OnyxInputOrEntry<Policy>, login?: string): boolean {
+    return isPolicyAdmin(policy, login) || (isSubmitPolicy(policy) && isPolicyEditor(policy, login));
+}
+
+/**
+ * Returns true for any group workspace: paid (Team/Corporate) or Submit.
+ *
+ * Note: not to be confused with `ReportUtils.isGroupPolicy(policyType: string)`,
+ * which excludes Submit. Use this helper when Submit workspaces should be treated
+ * like paid workspaces (e.g. access gating for shared workspace pages).
+ */
+function isGroupPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
+    return isPaidGroupPolicy(policy) || isSubmitPolicy(policy);
+}
+
 function getOwnedPaidPolicies(policies: OnyxCollection<Policy> | null, currentUserAccountID: number | undefined): Policy[] {
     return Object.values(policies ?? {}).filter((policy): policy is Policy => isPolicyOwner(policy, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID) && isPaidGroupPolicy(policy));
 }
 
 function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.CORPORATE;
+}
+
+/**
+ * For Submit workspaces, certain features require upgrading the plan before enabling.
+ * When conditions match, navigates to the workspace upgrade flow and returns true (caller should not enable the feature).
+ * @returns true if upgrade navigation was performed; false otherwise
+ */
+function tryNavigateToSubmitWorkspaceUpgrade(policy: OnyxEntry<Policy>, isEnabling: boolean, upgradeFeatureAlias: string): boolean {
+    if (!policy?.id || !isEnabling || !isSubmitPolicy(policy)) {
+        return false;
+    }
+    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policy?.id, upgradeFeatureAlias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policy?.id)));
+    return true;
 }
 
 /**
@@ -1033,6 +1148,10 @@ function isSubmitAndClose(policy: OnyxInputOrEntry<Policy>): boolean {
 
 function arePaymentsEnabled(policy: OnyxEntry<Policy>): boolean {
     return policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+}
+
+function hasApprovalFlow(policy: OnyxInputOrEntry<Policy>): boolean {
+    return isPaidGroupPolicy(policy) && !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 
 function isControlOnAdvancedApprovalMode(policy: OnyxInputOrEntry<Policy>): boolean {
@@ -1141,7 +1260,7 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFe
         return policy?.[featureName] ? !!policy?.[featureName] : hasAccountingFeatureConnection(policy);
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED) {
-        return policy?.isHREnabled === true || !!policy?.connections?.gusto;
+        return policy?.isHREnabled === true || isAnyHRConnected(policy);
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED) {
         return policy?.receiptPartners?.enabled ?? false;
@@ -1462,75 +1581,47 @@ function settingsPendingAction(settings?: string[], pendingFields?: PendingField
     return pendingFields[key];
 }
 
-function findSelectedVendorWithDefaultSelect(vendors: NetSuiteVendor[] | undefined, selectedVendorId: string | undefined) {
-    const selectedVendor = (vendors ?? []).find(({id}) => id === selectedVendorId);
-    return selectedVendor ?? vendors?.[0] ?? undefined;
-}
-
-function findSelectedBankAccountWithDefaultSelect(accounts: NetSuiteAccount[] | undefined, selectedBankAccountId: string | undefined) {
-    const selectedBankAccount = (accounts ?? []).find(({id}) => id === selectedBankAccountId);
-    return selectedBankAccount ?? accounts?.[0] ?? undefined;
-}
-
-function findSelectedInvoiceItemWithDefaultSelect(invoiceItems: InvoiceItem[] | undefined, selectedItemId: string | undefined) {
-    const selectedInvoiceItem = (invoiceItems ?? []).find(({id}) => id === selectedItemId);
-    return selectedInvoiceItem ?? invoiceItems?.[0] ?? undefined;
-}
-
-function findSelectedTaxAccountWithDefaultSelect(taxAccounts: NetSuiteTaxAccount[] | undefined, selectedAccountId: string | undefined) {
-    const selectedTaxAccount = (taxAccounts ?? []).find(({externalID}) => externalID === selectedAccountId);
-    return selectedTaxAccount ?? taxAccounts?.[0] ?? undefined;
-}
-
 function getNetSuiteVendorOptions(policy: Policy | undefined, selectedVendorId: string | undefined): SelectorType[] {
     const vendors = policy?.connections?.netsuite?.options.data.vendors;
-
-    const selectedVendor = findSelectedVendorWithDefaultSelect(vendors, selectedVendorId);
 
     return (vendors ?? []).map(({id, name}) => ({
         value: id,
         text: name,
         keyForList: id,
-        isSelected: selectedVendor?.id === id,
+        isSelected: id === selectedVendorId,
     }));
 }
 
 function getNetSuitePayableAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
     const payableAccounts = policy?.connections?.netsuite?.options.data.payableList;
 
-    const selectedPayableAccount = findSelectedBankAccountWithDefaultSelect(payableAccounts, selectedBankAccountId);
-
     return (payableAccounts ?? []).map(({id, name}) => ({
         value: id,
         text: name,
         keyForList: id,
-        isSelected: selectedPayableAccount?.id === id,
+        isSelected: id === selectedBankAccountId,
     }));
 }
 
 function getNetSuiteReceivableAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
     const receivableAccounts = policy?.connections?.netsuite?.options.data.receivableList;
 
-    const selectedReceivableAccount = findSelectedBankAccountWithDefaultSelect(receivableAccounts, selectedBankAccountId);
-
     return (receivableAccounts ?? []).map(({id, name}) => ({
         value: id,
         text: name,
         keyForList: id,
-        isSelected: selectedReceivableAccount?.id === id,
+        isSelected: id === selectedBankAccountId,
     }));
 }
 
 function getNetSuiteInvoiceItemOptions(policy: Policy | undefined, selectedItemId: string | undefined): SelectorType[] {
     const invoiceItems = policy?.connections?.netsuite?.options.data.items;
 
-    const selectedInvoiceItem = findSelectedInvoiceItemWithDefaultSelect(invoiceItems, selectedItemId);
-
     return (invoiceItems ?? []).map(({id, name}) => ({
         value: id,
         text: name,
         keyForList: id,
-        isSelected: selectedInvoiceItem?.id === id,
+        isSelected: id === selectedItemId,
     }));
 }
 
@@ -1538,13 +1629,11 @@ function getNetSuiteTaxAccountOptions(policy: Policy | undefined, subsidiaryCoun
     const taxAccounts = policy?.connections?.netsuite?.options.data.taxAccountsList;
     const accountOptions = (taxAccounts ?? []).filter(({country}) => country === subsidiaryCountry);
 
-    const selectedTaxAccount = findSelectedTaxAccountWithDefaultSelect(accountOptions, selectedAccountId);
-
     return accountOptions.map(({externalID, name}) => ({
         value: externalID,
         text: name,
         keyForList: externalID,
-        isSelected: selectedTaxAccount?.externalID === externalID,
+        isSelected: externalID === selectedAccountId,
     }));
 }
 
@@ -1564,13 +1653,11 @@ function getNetSuiteReimbursableAccountOptions(policy: Policy | undefined, selec
     const payableAccounts = policy?.connections?.netsuite?.options.data.payableList;
     const accountOptions = getFilteredReimbursableAccountOptions(payableAccounts);
 
-    const selectedPayableAccount = findSelectedBankAccountWithDefaultSelect(accountOptions, selectedBankAccountId);
-
     return accountOptions.map(({id, name}) => ({
         value: id,
         text: name,
         keyForList: id,
-        isSelected: selectedPayableAccount?.id === id,
+        isSelected: id === selectedBankAccountId,
     }));
 }
 
@@ -1582,13 +1669,11 @@ function getNetSuiteCollectionAccountOptions(policy: Policy | undefined, selecte
     const payableAccounts = policy?.connections?.netsuite?.options.data.payableList;
     const accountOptions = getFilteredCollectionAccountOptions(payableAccounts);
 
-    const selectedPayableAccount = findSelectedBankAccountWithDefaultSelect(accountOptions, selectedBankAccountId);
-
     return accountOptions.map(({id, name}) => ({
         value: id,
         text: name,
         keyForList: id,
-        isSelected: selectedPayableAccount?.id === id,
+        isSelected: id === selectedBankAccountId,
     }));
 }
 
@@ -1605,13 +1690,14 @@ function getNetSuiteApprovalAccountOptions(policy: Policy | undefined, selectedB
     };
     const accountOptions = getFilteredApprovalAccountOptions([defaultApprovalAccount].concat(payableAccounts ?? []));
 
-    const selectedPayableAccount = findSelectedBankAccountWithDefaultSelect(accountOptions, selectedBankAccountId);
+    // When nothing is explicitly set, the synthesized default approval account is the effective selection in NetSuite.
+    const effectiveSelectionId = selectedBankAccountId ?? CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT;
 
     return accountOptions.map(({id, name}) => ({
         value: id,
         text: name,
         keyForList: id,
-        isSelected: selectedPayableAccount?.id === id,
+        isSelected: id === effectiveSelectionId,
     }));
 }
 
@@ -1806,16 +1892,47 @@ function isAccountingConnectionName(connectionName?: ConnectionName): connection
     return connectionName !== undefined && getAccountingConnectionNames().some((accountingConnectionName) => accountingConnectionName === connectionName);
 }
 
-function getHRConnectionNames(): HRConnectionName[] {
-    return [...CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES];
-}
-
-function isGustoConnected(policy?: OnyxEntry<Policy>) {
-    return !!policy?.connections?.gusto;
-}
-
 function getConnectedIntegration(policy: Policy | undefined, connectionNames: readonly ConnectionName[] = getAccountingConnectionNames()) {
     return connectionNames.find((integration) => !!policy?.connections?.[integration]);
+}
+
+/**
+ * QBO vendor feature gate. Returns true when the workspace has the `vendorMatching` beta enabled
+ * AND QBO is connected with an individual card transaction non-reimbursable export type — the only
+ * scope the Vendor field is shown for. Mirrors `QuickbooksOnline::hasVendorFeature` on the PHP side
+ * so the App and backend agree on which workspaces see the field.
+ */
+function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
+    if (!isVendorMatchingBetaEnabled || !policy) {
+        return false;
+    }
+    const qboConnection = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO];
+    if (!qboConnection) {
+        return false;
+    }
+    const exportDestination = qboConnection.config?.nonReimbursableExpensesExportDestination;
+    return exportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD || exportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD;
+}
+
+/**
+ * Returns the QBO vendor list imported into the workspace (empty array when QBO isn't connected or
+ * the sync hasn't populated vendors yet). Source of truth for the workspace Vendors tab and the
+ * vendor selector RHP.
+ */
+function getQBOVendors(policy: OnyxEntry<Policy>): Vendor[] {
+    return policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]?.data?.vendors ?? [];
+}
+
+/**
+ * Look up a single QBO vendor by `externalID`. Used to resolve the vendor name for display when
+ * only the ID is stored on the transaction NVP. Returns undefined when the ID isn't found
+ * (which happens after a vendor is deleted from QBO — see the inactive-vendor violation).
+ */
+function getQBOVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined): Vendor | undefined {
+    if (!vendorID) {
+        return undefined;
+    }
+    return getQBOVendors(policy).find((vendor) => vendor.id === vendorID);
 }
 
 function getValidConnectedIntegration(policy: Policy | undefined, connectionNames: readonly ConnectionName[] = getAccountingConnectionNames()) {
@@ -1914,6 +2031,8 @@ function getUserFriendlyWorkspaceType(workspaceType: ValueOf<typeof CONST.POLICY
             return translate('workspace.type.control');
         case CONST.POLICY.TYPE.TEAM:
             return translate('workspace.type.collect');
+        case CONST.POLICY.TYPE.SUBMIT:
+            return translate('workspace.type.submit');
         default:
             return translate('workspace.type.free');
     }
@@ -2164,6 +2283,32 @@ function sortPoliciesByName(policies: Policy[], localeCompare: (a: string, b: st
     return policies.sort((a, b) => localeCompare(a.name || '', b.name || ''));
 }
 
+/**
+ * Builds a source URL for rendering a policy document PDF.
+ * Local blob/file URIs (from optimistic uploads) are returned directly.
+ * Remote URLs are routed through the authenticated GetPolicyRulesDocument streaming endpoint.
+ * The stored URL (which contains a unique timestamp per upload) is appended as a version
+ * parameter so the browser treats each replacement as a distinct resource.
+ */
+function getRulesDocumentSourceURL(rulesDocumentURL: string | undefined, policyID: string | undefined, encryptedAuthToken: string): string {
+    if (!rulesDocumentURL || !policyID) {
+        return '';
+    }
+
+    const isLocalFile = rulesDocumentURL.startsWith('blob:') || rulesDocumentURL.startsWith('file:');
+    if (isLocalFile) {
+        return rulesDocumentURL;
+    }
+
+    return addEncryptedAuthTokenToURL(
+        // Each PDF upload gets a unique S3 key, so rulesDocumentURL changes on every replacement.
+        // Encoding it as cacheBuster ensures the full streaming URL is also unique, preventing stale browser/pdfjs cache.
+        `${getApiRoot({shouldUseSecure: false})}api/GetPolicyRulesDocument?policyID=${policyID}&cacheBuster=${encodeURIComponent(rulesDocumentURL)}`,
+        encryptedAuthToken,
+        true,
+    );
+}
+
 export {
     canEditTaxRate,
     canPolicyAccessFeature,
@@ -2175,6 +2320,9 @@ export {
     getConnectedIntegration,
     getConnectedIntegrationNamesForPolicies,
     getConnectionExporters,
+    getQBOVendorByID,
+    getQBOVendors,
+    hasVendorFeature,
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
@@ -2212,6 +2360,10 @@ export {
     isDelayedSubmissionEnabled,
     getCorrectedAutoReportingFrequency,
     isPaidGroupPolicy,
+    canEditWorkspaceSettings,
+    canMemberRead,
+    canMemberWrite,
+    isGroupPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin,
     isPolicyUser,
@@ -2225,6 +2377,7 @@ export {
     isPolicyMember,
     isPolicyPayer,
     arePaymentsEnabled,
+    hasApprovalFlow,
     isSubmitAndClose,
     isTaxTrackingEnabled,
     shouldShowPolicy,
@@ -2239,10 +2392,6 @@ export {
     findCurrentXeroOrganization,
     getCurrentXeroOrganizationName,
     getXeroBankAccounts,
-    findSelectedVendorWithDefaultSelect,
-    findSelectedBankAccountWithDefaultSelect,
-    findSelectedInvoiceItemWithDefaultSelect,
-    findSelectedTaxAccountWithDefaultSelect,
     hasPolicyWithXeroConnection,
     getNetSuiteVendorOptions,
     canUseTaxNetSuite,
@@ -2314,7 +2463,6 @@ export {
     getManagerAccountID,
     isPreferredExporter,
     getCustomUnitsForDuplication,
-    getDefaultDistanceRate,
     getCountOfRequiredTagLists,
     getActiveEmployeeWorkspaces,
     getPolicyRole,
@@ -2333,8 +2481,11 @@ export {
     isPolicyTaxEnabled,
     sortPoliciesByName,
     isPolicyApprover,
-    getHRConnectionNames,
-    isGustoConnected,
+    tryNavigateToSubmitWorkspaceUpgrade,
+    canAccessSubmitWorkspaceFeatures,
+    getRulesDocumentSourceURL,
+    isSubmitPolicy,
+    isPolicyEditor,
 };
 
-export type {MemberEmailsToAccountIDs};
+export type {MemberEmailsToAccountIDs, PolicyFeature, PolicyFeatureAccess};

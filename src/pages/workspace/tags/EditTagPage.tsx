@@ -37,7 +37,7 @@ function EditTagPage({route}: EditTagPageProps) {
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const currentTagName = getCleanedTagName(route.params.tagName);
-    const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_EDIT;
+    const isDynamicFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_EDIT;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_TAG_EDIT.path);
 
     const validate = useCallback(
@@ -70,9 +70,9 @@ function EditTagPage({route}: EditTagPageProps) {
                 renamePolicyTag(policyData, {oldName: route.params.tagName, newName: values.tagName.trim()}, orderWeight);
             }
             Keyboard.dismiss();
-            Navigation.goBack(isQuickSettingsFlow ? backPath : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, orderWeight, route.params.tagName));
+            Navigation.goBack(isDynamicFlow ? backPath : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, orderWeight, route.params.tagName));
         },
-        [policyData, currentTagName, policyID, route.params.tagName, orderWeight, isQuickSettingsFlow, backPath],
+        [policyData, currentTagName, policyID, route.params.tagName, orderWeight, isDynamicFlow, backPath],
     );
 
     return (
@@ -89,9 +89,7 @@ function EditTagPage({route}: EditTagPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.tags.editTag')}
-                    onBackButtonPress={() =>
-                        Navigation.goBack(isQuickSettingsFlow ? backPath : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(route?.params?.policyID, orderWeight, route.params.tagName))
-                    }
+                    onBackButtonPress={() => Navigation.goBack(isDynamicFlow ? backPath : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(route?.params?.policyID, orderWeight, route.params.tagName))}
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_TAG_FORM}

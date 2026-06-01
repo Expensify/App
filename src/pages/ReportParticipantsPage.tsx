@@ -1,7 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import React, {useCallback, useEffect, useRef} from 'react';
+import {View} from 'react-native';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -27,16 +26,18 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
+import useSearchResults from '@hooks/useSearchResults';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {openRoomMembersPage, removeFromGroupChat, updateGroupChatMemberRoles} from '@libs/actions/Report';
 import {clearUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
 import {isSearchStringMatchUserDetails} from '@libs/OptionsListUtils';
-import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
+import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
     getReportPersonalDetailsParticipants,
@@ -54,8 +55,9 @@ import {
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {personalDetailsSelector} from '@src/selectors/PersonalDetails';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
@@ -65,6 +67,12 @@ type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 type ReportParticipantsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROOT>;
 function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const backTo = route.params.backTo;
+    const navigateBackToReportDetails = useCallback(() => {
+        if (!report) {
+            return;
+        }
+        Navigation.goBack(backTo ?? createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(report.reportID)));
+    }, [backTo, report]);
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'MakeAdmin', 'Plus', 'RemoveMembers', 'User']);
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
@@ -90,7 +98,6 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const isFocused = useIsFocused();
     const {isOffline} = useNetwork();
     const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? isMobileSelectionModeEnabled : true);
-    const [searchValue, setSearchValue] = useState('');
 
     const {personalDetailsParticipants, participantsForDisplay} = getReportPersonalDetailsParticipants(report, personalDetails, reportMetadata);
     const participantsForDisplayMap = participantsForDisplay.reduce<Record<number, TupleToUnion<typeof participantsForDisplay>>>((acc, participant) => {
@@ -106,6 +113,15 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     };
 
     const [selectedMembers, setSelectedMembers] = useFilteredSelection(personalDetailsParticipants, filterParticipants);
+    const firstSelectedMember = selectedMembers?.at(0);
+    const [firstSelectedMemberDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(firstSelectedMember)});
+
+    const [searchValue, setSearchValue, searchFilteredParticipants] = useSearchResults(
+        participantsForDisplay,
+        (participant, search) => isSearchStringMatchUserDetails(participant.details, search),
+        undefined,
+        (participant) => isOffline || !participant.isPendingDelete,
+    );
 
     // Get the active chat members by filtering out the pending members with delete action
     const activeParticipants = participantsForDisplay.filter((participant) => isOffline || !participant.isPendingDelete);
@@ -142,7 +158,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             }
 
             setSearchValue('');
-            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
+            navigateBackToReportDetails();
         },
     });
 
@@ -172,10 +188,9 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
         const accountIDsToRemove = selectedMembers.filter((id) => id !== currentUserAccountID);
         removeFromGroupChat(report, accountIDsToRemove);
         setSearchValue('');
-        InteractionManager.runAfterInteractions(() => {
-            setSelectedMembers([]);
-            clearUserSearchPhrase();
-        });
+
+        setSelectedMembers([]);
+        clearUserSearchPhrase();
     };
 
     const showRemoveMembersModal = async () => {
@@ -183,7 +198,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             title: translate('workspace.people.removeMembersTitle', {count: selectedMembers.length}),
             prompt: translate('workspace.people.removeMembersPrompt', {
                 count: selectedMembers.length,
-                memberName: formatPhoneNumber(getPersonalDetailsByIDs({accountIDs: selectedMembers, currentUserAccountID}).at(0)?.displayName ?? ''),
+                memberName: formatPhoneNumber(firstSelectedMemberDetails?.displayName ?? ''),
             }),
             confirmText: translate('common.remove'),
             cancelText: translate('common.cancel'),
@@ -210,21 +225,13 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_DETAILS.getRoute(report.reportID, item.accountID, backTo));
             return;
         }
-        Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID, Navigation.getActiveRoute()));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(item.accountID)));
     };
 
     // Build participants list
     let participants: MemberOption[] = [];
-    for (const participantForDisplay of participantsForDisplay) {
-        const {accountID, details, isDisabled, isPendingDelete, pendingAction, role} = participantForDisplay;
-
-        if (searchValue.trim() && !isSearchStringMatchUserDetails(details, searchValue)) {
-            continue;
-        }
-
-        if (!isOffline && isPendingDelete) {
-            continue;
-        }
+    for (const participantForDisplay of searchFilteredParticipants) {
+        const {accountID, details, isDisabled, pendingAction, role} = participantForDisplay;
 
         const isAdmin = role === CONST.REPORT.ROLE.ADMIN;
 
@@ -333,7 +340,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
 
                         if (report) {
                             setSearchValue('');
-                            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
+                            navigateBackToReportDetails();
                         }
                     }}
                     subtitle={StringUtils.lineBreaksToSpaces(getReportName(report, reportAttributes))}
@@ -380,6 +387,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                             ref: textInputRef,
                         }}
                         canSelectMultiple={canSelectMultiple}
+                        selectAllAccessibilityLabel={translate('accessibilityHints.selectAllMembers')}
                         turnOnSelectionModeOnLongPress={isCurrentUserGroupChatAdmin}
                         shouldSingleExecuteRowSelect={!isCurrentUserGroupChatAdmin}
                         onTurnOnSelectionMode={(item) => item && toggleUser(item)}

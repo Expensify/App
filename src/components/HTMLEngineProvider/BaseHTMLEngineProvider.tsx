@@ -191,9 +191,46 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 contentModel: HTMLContentModel.block,
                 mixedUAStyles: styles.mv3,
             }),
+            ol: HTMLElementModel.fromCustomModel({
+                tagName: 'ol',
+                contentModel: HTMLContentModel.block,
+                mixedUAStyles: styles.mv3,
+            }),
             'sparkles-icon': HTMLElementModel.fromCustomModel({
                 tagName: 'sparkles-icon',
                 contentModel: HTMLContentModel.mixed,
+            }),
+            victorychart: HTMLElementModel.fromCustomModel({
+                tagName: 'victorychart',
+                contentModel: HTMLContentModel.block,
+            }),
+            victorybar: HTMLElementModel.fromCustomModel({
+                tagName: 'victorybar',
+                contentModel: HTMLContentModel.block,
+            }),
+            victoryline: HTMLElementModel.fromCustomModel({
+                tagName: 'victoryline',
+                contentModel: HTMLContentModel.block,
+            }),
+            victoryaxis: HTMLElementModel.fromCustomModel({
+                tagName: 'victoryaxis',
+                contentModel: HTMLContentModel.block,
+            }),
+            victorylabel: HTMLElementModel.fromCustomModel({
+                tagName: 'victorylabel',
+                contentModel: HTMLContentModel.textual,
+            }),
+            victorylegend: HTMLElementModel.fromCustomModel({
+                tagName: 'victorylegend',
+                contentModel: HTMLContentModel.block,
+            }),
+            victorygroup: HTMLElementModel.fromCustomModel({
+                tagName: 'victorygroup',
+                contentModel: HTMLContentModel.block,
+            }),
+            victorypie: HTMLElementModel.fromCustomModel({
+                tagName: 'victorypie',
+                contentModel: HTMLContentModel.block,
             }),
         }),
         [

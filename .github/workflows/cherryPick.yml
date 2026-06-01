@@ -100,10 +100,8 @@ jobs:
         id: getBranchName
         run: echo "CONFLICT_BRANCH_NAME=cherry-pick-${{ inputs.TARGET }}-${{ steps.getPRInfo.outputs.PR_NUMBER }}-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_OUTPUT"
 
-        # v4
       - name: Checkout target branch
-        # v6
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           ref: ${{ inputs.TARGET }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -355,6 +353,9 @@ jobs:
           This last part is important. It will help us keep track of who triggered this CP, and will ensure that version bumps are tracked correctly. Once all that's done, push your changes with \`git push origin ${{ steps.getBranchName.outputs.CONFLICT_BRANCH_NAME }}\`, and then open this PR for review.
 
           Note that you **must** test this PR, and both the author and reviewer checklist should be completed, just as if you were merging the PR to main.
+
+          > [!IMPORTANT]
+          > This PR should ideally be merged by a member of the [mobile-deployers](https://github.com/orgs/Expensify/teams/mobile-deployers) team. If it is merged by someone who is not a deployer, the staging deploy triggered by the merge will fail and will need to be manually re-triggered (not just retried) via the [deploy workflow](https://github.com/${{ github.repository }}/actions/workflows/deploy.yml).
 
           _Pro-tip:_ If this PR appears to have conflicts against the _${{ inputs.TARGET }}_ base, it means that the version on ${{ inputs.TARGET }} has been updated. The easiest thing to do if you see this is to close the PR and re-run the CP.
 
