@@ -1,5 +1,6 @@
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
@@ -13,12 +14,14 @@ import {PressableWithFeedback} from '@components/Pressable';
 import {useSearchSelectionContext} from '@components/Search/SearchContext';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
 import type {SearchColumnType, SearchGroupBy} from '@components/Search/types';
+import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {TransactionPreviewData} from '@libs/actions/Search';
@@ -26,6 +29,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getColumnsToShow} from '@libs/SearchUIUtils';
 import {isDeletedTransaction} from '@libs/TransactionUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
@@ -70,8 +74,10 @@ type GroupHeaderProps = SearchListActionProps & {
     isExpanded: boolean;
     onToggle: () => void;
     onSelectRow: (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
-    onCheckboxPress: (item: GroupHeaderItemType) => void;
+    onCheckboxPress: (item: GroupHeaderItemType, itemTransactions?: TransactionListItemType[]) => void;
     onLongPressRow?: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
+    onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
+    shouldSyncFocus?: boolean;
     isFocused?: boolean;
     isFirstItem: boolean;
     isLastItem: boolean;
@@ -88,6 +94,8 @@ function GroupHeader({
     onSelectRow,
     onCheckboxPress,
     onLongPressRow,
+    onFocus,
+    shouldSyncFocus,
     isFocused,
     isFirstItem,
     isLastItem,
@@ -182,7 +190,8 @@ function GroupHeader({
     const isEmptyReportSelected = isEmpty && item?.keyForList && selectedTransactions[item.keyForList]?.isSelected;
     const isSelectAllChecked = isEmptyReportSelected || (selectedItemsLength === transactionsWithoutPendingDelete.length && transactionsWithoutPendingDelete.length > 0);
     const isIndeterminate = selectedItemsLength > 0 && selectedItemsLength !== transactionsWithoutPendingDelete.length;
-    const isDisabledOrEmpty = isEmpty;
+    const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const isDisabledOrEmpty = isEmpty || isDisabled;
 
     const isItemSelected = isSelectAllChecked || item?.isSelected;
 
@@ -194,7 +203,7 @@ function GroupHeader({
     });
 
     const handleSelectionButtonPress = () => {
-        onCheckboxPress(item);
+        onCheckboxPress(item, isExpenseReportType ? undefined : groupItem.transactions);
     };
 
     const pendingAction =
@@ -214,7 +223,7 @@ function GroupHeader({
                     report={groupItem as TransactionReportGroupListItemType}
                     onSelectRow={handleSelectRow}
                     onCheckboxPress={handleSelectionButtonPress}
-                    isDisabled={isDisabledOrEmpty}
+                    isDisabled={isDisabled}
                     isFocused={isFocused}
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
@@ -373,19 +382,25 @@ function GroupHeader({
     };
 
     const isLastItemCollapsed = isLastItem && !isExpanded && !isSubHeaderRendered;
+    const pressableRef = useRef<View>(null);
+
+    useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
     const pressableStyle = [
         styles.transactionGroupListItemStyle,
         isLargeScreenWidth && {
+            ...styles.tableRowHeight,
             borderRadius: 0,
+            paddingVertical: variables.tableGroupRowPaddingVertical,
             ...(isLastItemCollapsed ? styles.tableBottomRadius : {}),
         },
         isItemSelected && styles.activeComponentBG,
-        {minHeight: 0},
     ];
 
+    const shouldDisplayEmptyView = isEmpty && isExpenseReportType;
+
     const handlePress = (event?: ModifiedMouseEvent) => {
-        if (isExpenseReportType) {
+        if (isExpenseReportType || isEmpty) {
             onSelectRow(item, transactionPreviewData, event);
         }
         if (!isExpenseReportType) {
@@ -400,9 +415,10 @@ function GroupHeader({
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
             <PressableWithFeedback
+                ref={pressableRef}
                 onPress={handlePress}
                 onLongPress={handleLongPress}
-                disabled={false}
+                disabled={isDisabled && !isItemSelected}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_GROUP_LIST_ITEM}
                 accessibilityLabel={item.text ?? ''}
                 role={getButtonRole(true)}
@@ -411,6 +427,7 @@ function GroupHeader({
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 onMouseDown={(e) => e.preventDefault()}
                 id={item.keyForList ?? ''}
+                onFocus={onFocus}
                 style={[
                     pressableStyle,
                     isFocused && StyleUtils.getItemBackgroundColorStyle(!!isItemSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
@@ -434,7 +451,13 @@ function GroupHeader({
                             <View style={styles.flex1}>{renderHeader(hovered)}</View>
                             {isLargeScreenWidth && (
                                 <PressableWithFeedback
-                                    onPress={onToggle}
+                                    onPress={() => {
+                                        if (isEmpty && !shouldDisplayEmptyView) {
+                                            handlePress();
+                                            return;
+                                        }
+                                        onToggle();
+                                    }}
                                     style={[styles.p3Half, styles.justifyContentCenter, styles.alignItemsCenter, styles.pv2]}
                                     accessibilityRole={CONST.ROLE.BUTTON}
                                     accessibilityLabel={isExpanded ? CONST.ACCESSIBILITY_LABELS.COLLAPSE : CONST.ACCESSIBILITY_LABELS.EXPAND}

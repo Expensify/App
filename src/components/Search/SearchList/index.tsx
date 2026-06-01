@@ -482,8 +482,9 @@ function SearchList({
                         isExpanded={expandedGroups.has(originalKey)}
                         onToggle={() => onToggleGroup(originalKey)}
                         onSelectRow={onSelectRow}
-                        onCheckboxPress={(val) => onCheckboxPress(val as SearchListItem)}
+                        onCheckboxPress={(val, itemTransactions) => onCheckboxPress(val as SearchListItem, itemTransactions)}
                         onLongPressRow={isMobileSelectionModeEnabled ? handleLongPressRowInMobileSelectionMode : handleLongPressRow}
+                        onFocus={onFocus}
                         isFocused={isItemFocused}
                         isFirstItem={index === firstVisibleIndex}
                         isLastItem={index + 1 >= lastVisibleIndex && !ListFooterComponent}
@@ -499,6 +500,7 @@ function SearchList({
             if ('listItemType' in item && (item as GroupChildrenContainerItemType).listItemType === 'children_container') {
                 const containerItem = item as GroupChildrenContainerItemType;
                 const originalKey = (item.keyForList ?? '').replace('children_', '');
+                const containerNewTransactionID = item.keyForList ? newTransactionIDByItemKey.get(originalKey) : undefined;
                 return (
                     <GroupChildrenContainer
                         item={containerItem}
@@ -513,6 +515,7 @@ function SearchList({
                         nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                         onUndelete={handleUndelete}
                         isLastItem={index === lastVisibleIndex && !ListFooterComponent}
+                        newTransactionID={containerNewTransactionID}
                     />
                 );
             }

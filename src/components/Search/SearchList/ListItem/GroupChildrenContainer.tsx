@@ -40,6 +40,7 @@ type GroupChildrenContainerProps = {
     nonPersonalAndWorkspaceCards?: CardList;
     onUndelete?: (transaction: Transaction) => void;
     isLastItem?: boolean;
+    newTransactionID?: string;
 };
 
 function GroupChildrenContainer({
@@ -55,6 +56,7 @@ function GroupChildrenContainer({
     nonPersonalAndWorkspaceCards,
     onUndelete,
     isLastItem,
+    newTransactionID,
 }: GroupChildrenContainerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -136,6 +138,14 @@ function GroupChildrenContainer({
     };
 
     useEffect(() => {
+        if (!newTransactionID || !isExpanded) {
+            return;
+        }
+        refreshTransactions();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [newTransactionID, isExpanded]);
+
+    useEffect(() => {
         if (!isExpanded || isExpenseReportType) {
             return;
         }
@@ -193,7 +203,7 @@ function GroupChildrenContainer({
     }
 
     const onExpandedRowLongPress = (transaction: TransactionListItemType) => {
-        onLongPressRow?.(transaction, transactions);
+        onLongPressRow?.(transaction as unknown as SearchListItem);
     };
 
     // Animation: replicate AnimatedCollapsible's height animation pattern
