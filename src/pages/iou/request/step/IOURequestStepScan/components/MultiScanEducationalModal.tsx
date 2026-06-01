@@ -16,9 +16,9 @@ function MultiScanEducationalModal() {
     const styles = useThemeStyles();
     const lazyIllustrations = useMemoizedLazyIllustrations(['MultiScan']);
 
-    // if (!showEducationalPopup || !dismissEducationalPopup) {
-    //     return null;
-    // }
+    if (!showEducationalPopup || !dismissEducationalPopup) {
+        return null;
+    }
 
     return (
         <FeatureTrainingModal
