@@ -33,9 +33,12 @@ type HRProviderCardProps = {
 
     /** Whether the current user can edit this HR connection. */
     canWriteMoreFeatures: boolean;
+
+    /** Shows the read-only action modal. */
+    showReadOnlyModal: () => void;
 };
 
-function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures}: HRProviderCardProps) {
+function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, showReadOnlyModal}: HRProviderCardProps) {
     const {translate, datetimeToRelative} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -95,12 +98,7 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures}: HRP
                 text={translate('workspace.hr.connect')}
                 onPress={() => {
                     if (!canWriteMoreFeatures) {
-                        showConfirmModal({
-                            title: translate('workspace.common.readOnlyActionTitle'),
-                            prompt: translate('workspace.common.readOnlyActionPrompt'),
-                            confirmText: translate('common.buttonConfirm'),
-                            shouldShowCancelButton: false,
-                        });
+                        showReadOnlyModal();
                         return;
                     }
                     handleConnect();

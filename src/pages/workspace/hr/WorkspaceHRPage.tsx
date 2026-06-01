@@ -85,7 +85,7 @@ function WorkspaceHRPage({
     connectedCards.sort(byName);
     disconnectedCards.sort(byName);
 
-    const {canWrite: canWriteMoreFeatures} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
+    const {canWrite: canWriteMoreFeatures, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
 
     const handleConnect = (setupLink: string | undefined) => {
         if (!setupLink) {
@@ -152,6 +152,7 @@ function WorkspaceHRPage({
                                         policy={policy}
                                         handleConnect={() => handleConnect(card.setupLink)}
                                         canWriteMoreFeatures={canWriteMoreFeatures}
+                                        showReadOnlyModal={showReadOnlyModal}
                                     />
                                 ))}
                                 {connectedCards.length === 0 &&
@@ -162,6 +163,7 @@ function WorkspaceHRPage({
                                             policy={policy}
                                             handleConnect={() => handleConnect(card.setupLink)}
                                             canWriteMoreFeatures={canWriteMoreFeatures}
+                                            showReadOnlyModal={showReadOnlyModal}
                                         />
                                     ))}
                             </View>
@@ -180,6 +182,7 @@ function WorkspaceHRPage({
                                             policy={policy}
                                             handleConnect={() => handleConnect(card.setupLink)}
                                             canWriteMoreFeatures={canWriteMoreFeatures}
+                                            showReadOnlyModal={showReadOnlyModal}
                                         />
                                     ))}
                                 </CollapsibleSection>
