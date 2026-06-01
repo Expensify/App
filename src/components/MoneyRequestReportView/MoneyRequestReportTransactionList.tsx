@@ -1,9 +1,10 @@
 import {findFocusedRoute, useFocusEffect} from '@react-navigation/native';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
+import type {FlashListRef} from '@shopify/flash-list';
 import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {LayoutChangeEvent} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
@@ -56,6 +57,7 @@ import {
 import type {SortableColumnName} from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, getTableMinWidth, hasFlexColumn, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {transactionHasRBR} from '@libs/TransactionPreviewUtils';
 import {getTransactionPendingAction, getVisibleTransactionViolations, isTransactionPendingDelete, shouldShowExpenseBreakdown} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
@@ -78,6 +80,8 @@ import MoneyRequestReportTotalSpend from './MoneyRequestReportTotalSpend';
 import MoneyRequestReportTransactionItem from './MoneyRequestReportTransactionItem';
 import MoneyRequestReportTransactionLongPressModal from './MoneyRequestReportTransactionLongPressModal';
 import type {MoneyRequestReportTransactionLongPressModalHandle} from './MoneyRequestReportTransactionLongPressModal';
+import MoneyRequestReportUnifiedList from './MoneyRequestReportUnifiedList';
+import type {UnifiedListItem} from './MoneyRequestReportUnifiedList';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 
 const PENDING_EXPENSE_REASON_ATTRIBUTES = {context: 'MoneyRequestReportTransactionList.PendingExpensePlaceholder'} as const;
@@ -178,8 +182,50 @@ type MoneyRequestReportTransactionListProps = {
     /** Callback executed on layout */
     onLayout?: (event: LayoutChangeEvent) => void;
 
-    /** Render-prop the parent uses to assemble its unified FlatList around the transaction-list controller. */
-    render: (controller: MoneyRequestReportTransactionListController) => React.ReactNode;
+    /** Reversed list of report actions to render below the transactions section in the unified list. */
+    visibleReportActions: OnyxTypes.ReportAction[];
+
+    /** Renders a single report action row in the unified list. */
+    renderReportAction: (reportAction: OnyxTypes.ReportAction, indexWithinReportActions: number) => React.ReactElement;
+
+    /** Report action ID the unified list should initially scroll to, when deep-linked. */
+    linkedReportActionID: string | undefined;
+
+    /** Ref forwarded to the underlying FlashList. */
+    listRef: React.Ref<FlashListRef<UnifiedListItem>>;
+
+    /** Accessibility label for the unified list. */
+    accessibilityLabel: string;
+
+    /** FlashList onLayout callback (distinct from the empty-state `onLayout` above). */
+    onListLayout: () => void;
+
+    /** FlashList onScroll callback. */
+    onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+
+    /** FlashList onScrollBeginDrag callback. */
+    onScrollBeginDrag: () => void;
+
+    /** FlashList onContentSizeChange callback. */
+    onContentSizeChange: () => void;
+
+    /** FlashList onViewableItemsChanged callback. */
+    onViewableItemsChanged: (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => void;
+
+    /** FlashList onEndReached callback. */
+    onEndReached: () => void;
+
+    /** FlashList onStartReached callback. */
+    onStartReached: () => void;
+
+    /** FlashList contentContainerStyle. */
+    contentContainerStyle: StyleProp<ViewStyle>;
+
+    /** Whether the initial report actions are still loading. */
+    isLoadingInitialActions: boolean;
+
+    /** Reason attributes forwarded to the loading skeleton span. */
+    skeletonReasonAttributes: SkeletonSpanReasonAttributes;
 };
 
 type ReportScreenNavigationProps = ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
@@ -200,7 +246,21 @@ function MoneyRequestReportTransactionList({
     hasComments,
     onLayout,
     isLoadingInitialReportActions = false,
-    render,
+    visibleReportActions,
+    renderReportAction,
+    linkedReportActionID,
+    listRef,
+    accessibilityLabel,
+    onListLayout,
+    onScroll,
+    onScrollBeginDrag,
+    onContentSizeChange,
+    onViewableItemsChanged,
+    onEndReached,
+    onStartReached,
+    contentContainerStyle,
+    isLoadingInitialActions,
+    skeletonReasonAttributes,
 }: MoneyRequestReportTransactionListProps) {
     useCopySelectionHelper();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -953,18 +1013,40 @@ function MoneyRequestReportTransactionList({
         </View>
     );
 
+    const controller: MoneyRequestReportTransactionListController = {
+        beforeListContent,
+        transactionListItems: isEmptyTransactions ? [] : listItems,
+        renderTransactionListItem,
+        afterListContent,
+        shouldScrollHorizontally,
+        tableMinWidth: minTableWidth,
+        horizontalScrollRestorationKey: sortedTransactions,
+        isEmptyTransactions,
+    };
+
     return (
         <>
-            {render({
-                beforeListContent,
-                transactionListItems: isEmptyTransactions ? [] : listItems,
-                renderTransactionListItem,
-                afterListContent,
-                shouldScrollHorizontally,
-                tableMinWidth: minTableWidth,
-                horizontalScrollRestorationKey: sortedTransactions,
-                isEmptyTransactions,
-            })}
+            <MoneyRequestReportUnifiedList
+                controller={controller}
+                report={report}
+                policy={policy}
+                visibleReportActions={visibleReportActions}
+                renderReportAction={renderReportAction}
+                linkedReportActionID={linkedReportActionID}
+                listRef={listRef}
+                accessibilityLabel={accessibilityLabel}
+                onLayout={onListLayout}
+                onScroll={onScroll}
+                onScrollBeginDrag={onScrollBeginDrag}
+                onContentSizeChange={onContentSizeChange}
+                onViewableItemsChanged={onViewableItemsChanged}
+                onEndReached={onEndReached}
+                onStartReached={onStartReached}
+                contentContainerStyle={contentContainerStyle}
+                isOffline={isOffline}
+                isLoadingInitialActions={isLoadingInitialActions}
+                skeletonReasonAttributes={skeletonReasonAttributes}
+            />
             <MoneyRequestReportTransactionLongPressModal
                 ref={longPressModalRef}
                 isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
