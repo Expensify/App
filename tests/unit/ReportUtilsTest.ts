@@ -10527,6 +10527,7 @@ describe('ReportUtils', () => {
             // No transaction merge should be present — only the violation push
             const hasTransactionMerge = onyxData.optimisticData.some((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`);
             expect(hasTransactionMerge).toBe(false);
+
             // A categoryOutOfPolicy violation should still be created
             expect(onyxData.optimisticData).toContainEqual(
                 expect.objectContaining({
