@@ -528,7 +528,7 @@
 "../../src/pages/iou/request/step/IOURequestStepScan/hooks/useMobileReceiptScan.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/iou/request/step/IOURequestStepSubrate.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/iou/request/step/IOURequestStepSubrate.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/iou/request/step/IOURequestStepUpgrade.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
+"../../src/pages/iou/request/step/DynamicIOURequestStepUpgradePage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/iou/request/step/confirmation/submitDismissStrategies.ts"	"no-restricted-imports"	1
 "../../src/pages/media/AttachmentModalScreen/AttachmentModalBaseContent/index.tsx"	"react-hooks/set-state-in-effect"	3
 "../../src/pages/media/AttachmentModalScreen/routes/TransactionReceiptModalContent.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
