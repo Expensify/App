@@ -138,6 +138,7 @@ function TransactionItemRow({
         const narrowForwardedProps = {
             transactionItem,
             report,
+            policy,
             isSelected,
             shouldShowTooltip,
             onCheckboxPress,

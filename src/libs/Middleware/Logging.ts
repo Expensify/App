@@ -91,6 +91,7 @@ const Logging: Middleware = (response, request) => {
                 message: error.message,
                 status: error.status,
                 title: error.title,
+                requestID: error.requestID,
                 request: sanitizeLogParams(request),
             };
 
