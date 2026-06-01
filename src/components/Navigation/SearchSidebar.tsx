@@ -99,10 +99,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
 
     return (
         <Animated.View style={[{height: '100%'}, layoutSpacerStyle]}>
-            <Hoverable
-                onHoverIn={startPeek}
-                onHoverOut={endPeek}
-            >
+            <Hoverable onHoverOut={endPeek}>
                 <Animated.View style={[styles.searchSidebar, {position: 'absolute', top: 0, bottom: 0, left: 0, zIndex: 1}, visualSidebarWidthStyle]}>
                     <View style={styles.flex1}>
                         <TopBar
@@ -114,7 +111,11 @@ function SearchSidebar({state}: SearchSidebarProps) {
                         >
                             {toggleButton}
                         </TopBar>
-                        <SearchTypeMenuWide queryJSON={currentSearchQueryJSON} />
+                        <Hoverable onHoverIn={startPeek}>
+                            <View style={styles.flex1}>
+                                <SearchTypeMenuWide queryJSON={currentSearchQueryJSON} />
+                            </View>
+                        </Hoverable>
                     </View>
                 </Animated.View>
             </Hoverable>
