@@ -16853,6 +16853,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed,
                 ownerBillingGracePeriodEnd: pastGracePeriod,
+                currentUserAccountID,
             });
 
             // Trigger CREATE_NEW_EXPENSE onSelected
@@ -17304,6 +17305,7 @@ describe('ReportUtils', () => {
                     draftTransactionIDs: undefined,
                     amountOwed: 100,
                     ownerBillingGracePeriodEnd: gracePeriodEnd,
+                    currentUserAccountID,
                 });
                 options.at(2)?.onSelected?.();
 
