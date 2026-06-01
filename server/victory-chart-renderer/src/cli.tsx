@@ -7,6 +7,12 @@ const cli = new CLI({
     namedArgs: {
         outPath: {
             description: 'Path to write the rendered PNG to',
+            parse: (val) => {
+                if (!val.toLowerCase().endsWith('.png')) {
+                    throw new Error('outPath must end with .png');
+                }
+                return val;
+            },
         },
     },
 });
