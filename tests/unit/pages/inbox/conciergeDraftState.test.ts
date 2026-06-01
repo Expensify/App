@@ -180,6 +180,17 @@ describe('conciergeDraftState', () => {
             expect(secondBoldSlice.sourceMarkdown).toBe('Hello **wo');
         });
 
+        it('keeps temporary bold markup valid when the visible content ends in whitespace', () => {
+            const spaceSlice = getNextVisibleConciergeDraftMarkdown('Hello **QuickBooks**', 'Hello **QuickBooks Online**', 'Hello **QuickBooks'.length, 'Hello **QuickBooks');
+            const draft = applyConciergeDraftEvent(null, createDraftEvent({bodyMarkdown: spaceSlice.bodyMarkdown}), REPORT_ID);
+
+            expect(spaceSlice.bodyMarkdown).toBe('Hello **QuickBooks** ');
+            expect(spaceSlice.sourceMarkdown).toBe('Hello **QuickBooks ');
+            expect(stripIncompleteMarkdown(spaceSlice.bodyMarkdown)).toBe('Hello *QuickBooks* ');
+            expect(getFirstMessageHTML(draft)).toContain('<strong>QuickBooks</strong>');
+            expect(getFirstMessageHTML(draft)).not.toContain('*QuickBooks');
+        });
+
         it('streams complete strikethrough and inline code markup by visible characters', () => {
             const strikeSlice = getNextVisibleConciergeDraftMarkdown('Remove ', 'Remove ~~this~~', 'Remove '.length, 'Remove ');
             const codeSlice = getNextVisibleConciergeDraftMarkdown('Run ', 'Run `npm test`', 'Run '.length, 'Run ');
@@ -194,6 +205,14 @@ describe('conciergeDraftState', () => {
             expect(italicSlice.bodyMarkdown).toBe('Hello *w*');
             expect(italicSlice.sourceMarkdown).toBe('Hello *w');
             expect(stripIncompleteMarkdown(italicSlice.bodyMarkdown)).toBe('Hello _w_');
+        });
+
+        it('keeps temporary italic markup valid when the visible content ends in whitespace', () => {
+            const spaceSlice = getNextVisibleConciergeDraftMarkdown('Hello *QuickBooks*', 'Hello *QuickBooks Online*', 'Hello *QuickBooks'.length, 'Hello *QuickBooks');
+
+            expect(spaceSlice.bodyMarkdown).toBe('Hello *QuickBooks* ');
+            expect(spaceSlice.sourceMarkdown).toBe('Hello *QuickBooks ');
+            expect(stripIncompleteMarkdown(spaceSlice.bodyMarkdown)).toBe('Hello _QuickBooks_ ');
         });
 
         it('streams complete links by linked text without exposing the destination URL as plain text', () => {

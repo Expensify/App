@@ -384,6 +384,18 @@ function buildVisibleMarkdownAtSourceOffset(targetBodyMarkdown: string, sourceOf
 
     const visibleContentEnd = Math.max(construct.contentStart, sourceOffset);
     const suffix = construct.suffix ?? construct.closingDelimiter;
+    if ([BOLD_DELIMITER, ITALIC_DELIMITER, STRIKETHROUGH_DELIMITER].includes(construct.closingDelimiter)) {
+        let visibleContentWithoutTrailingWhitespaceEnd = visibleContentEnd;
+
+        while (visibleContentWithoutTrailingWhitespaceEnd > construct.contentStart && isWhitespace(targetBodyMarkdown[visibleContentWithoutTrailingWhitespaceEnd - 1])) {
+            visibleContentWithoutTrailingWhitespaceEnd--;
+        }
+
+        if (visibleContentWithoutTrailingWhitespaceEnd < visibleContentEnd) {
+            return `${targetBodyMarkdown.slice(0, visibleContentWithoutTrailingWhitespaceEnd)}${suffix}${targetBodyMarkdown.slice(visibleContentWithoutTrailingWhitespaceEnd, visibleContentEnd)}`;
+        }
+    }
+
     return `${targetBodyMarkdown.slice(0, visibleContentEnd)}${suffix}`;
 }
 
