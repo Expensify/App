@@ -5,6 +5,14 @@ import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 
 type ConciergeDraft = {
+    /** Currently rendered markdown. Pusher pacing may intentionally lag this behind the latest server snapshot. */
+    bodyMarkdown?: string;
+    /** Latest server markdown snapshot held by the Pusher pacer so remounts can resume revealing banked text. */
+    pusherTargetBodyMarkdown?: string;
+    /** Server event sequence for the latest Pusher target snapshot. */
+    pusherTargetSequence?: number;
+    /** Completion event held while the Pusher pacer is still revealing banked text. */
+    pusherPendingCompletionEvent?: ConciergeDraftEvent;
     reportAction: ReportAction;
     sequence: number;
     status: ConciergeDraftEvent['status'];
@@ -13,6 +21,7 @@ type ConciergeDraft = {
 };
 
 type BuildConciergeDraftReportActionParams = {
+    actorAccountID?: number;
     bodyMarkdown?: string;
     created: string;
     finalRenderedHTML?: string;
@@ -29,6 +38,9 @@ const CODE_BLOCK_DELIMITER = '```';
 const INLINE_CODE_DELIMITER = '`';
 const BOLD_DELIMITER = '**';
 const STRIKETHROUGH_DELIMITER = '~~';
+const DRAFT_PACE_BACKLOG_CHAR_LIMIT = 80;
+const DRAFT_PACE_CATCHUP_DIVISOR = 40;
+const DRAFT_PACE_COMPLETION_DIVISOR = 4;
 
 function isInAnyRange(position: number, ranges: TextRange[]): boolean {
     return ranges.some((range) => position >= range.start && position < range.end);
@@ -182,24 +194,49 @@ function stripIncompleteMarkdown(markdown: string): string {
     return result;
 }
 
-function buildConciergeDraftReportAction({bodyMarkdown, created, finalRenderedHTML, reportActionID, reportID}: BuildConciergeDraftReportActionParams): ReportAction | null {
+function buildConciergeDraftReportAction({actorAccountID, bodyMarkdown, created, finalRenderedHTML, reportActionID, reportID}: BuildConciergeDraftReportActionParams): ReportAction | null {
     const html = finalRenderedHTML ?? (bodyMarkdown ? getParsedComment(stripIncompleteMarkdown(bodyMarkdown), {reportID}) : '');
 
     if (!html) {
         return null;
     }
 
+    // Default to Concierge so existing call sites that don't pass an actor stay byte-identical.
+    const resolvedActorAccountID = actorAccountID ?? CONST.ACCOUNT_ID.CONCIERGE;
+
     return {
         reportActionID,
         reportID,
         actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-        actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+        actorAccountID: resolvedActorAccountID,
         person: [{style: 'strong', text: CONST.CONCIERGE_DISPLAY_NAME, type: 'TEXT'}],
         created,
         message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html, text: Parser.htmlToText(html)}],
         originalMessage: {html, whisperedTo: []},
         shouldShow: true,
     } as ReportAction;
+}
+
+function sliceByCodePoint(text: string, length: number): string {
+    return Array.from(text).slice(0, length).join('');
+}
+
+function getNextVisibleConciergeDraftBodyMarkdown(currentBodyMarkdown: string, targetBodyMarkdown: string, shouldAccelerate = false): string {
+    if (!targetBodyMarkdown || currentBodyMarkdown === targetBodyMarkdown) {
+        return currentBodyMarkdown;
+    }
+
+    if (!targetBodyMarkdown.startsWith(currentBodyMarkdown)) {
+        return targetBodyMarkdown;
+    }
+
+    const currentLength = Array.from(currentBodyMarkdown).length;
+    const targetLength = Array.from(targetBodyMarkdown).length;
+    const remainingLength = targetLength - currentLength;
+    const divisor = shouldAccelerate ? DRAFT_PACE_COMPLETION_DIVISOR : DRAFT_PACE_CATCHUP_DIVISOR;
+    const step = remainingLength <= DRAFT_PACE_BACKLOG_CHAR_LIMIT && !shouldAccelerate ? 1 : Math.max(1, Math.ceil(remainingLength / divisor));
+
+    return sliceByCodePoint(targetBodyMarkdown, currentLength + step);
 }
 
 // Module-level cache so a chat re-mount (ReportScreen unmount/remount on chat
@@ -243,6 +280,7 @@ function applyConciergeDraftEvent(currentDraft: ConciergeDraft | null, event: Co
 
     const nextReportAction =
         buildConciergeDraftReportAction({
+            actorAccountID: event.actorAccountID,
             bodyMarkdown: event.bodyMarkdown,
             created: event.created,
             finalRenderedHTML: event.finalRenderedHTML,
@@ -255,6 +293,7 @@ function applyConciergeDraftEvent(currentDraft: ConciergeDraft | null, event: Co
     }
 
     return {
+        bodyMarkdown: event.bodyMarkdown ?? currentDraft?.bodyMarkdown,
         reportAction: nextReportAction,
         sequence: event.sequence,
         status: event.status,
@@ -263,5 +302,5 @@ function applyConciergeDraftEvent(currentDraft: ConciergeDraft | null, event: Co
     };
 }
 
-export {applyConciergeDraftEvent, getCachedDraft, setCachedDraft, stripIncompleteMarkdown};
+export {applyConciergeDraftEvent, getCachedDraft, getNextVisibleConciergeDraftBodyMarkdown, setCachedDraft, stripIncompleteMarkdown};
 export type {ConciergeDraft};

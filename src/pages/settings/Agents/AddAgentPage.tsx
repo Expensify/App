@@ -19,16 +19,26 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isMobile} from '@libs/Browser';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {createAgent} from '@userActions/Agent';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddAgentForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import {clearPendingAvatar, getPendingAvatar, setInitialPresetID, setNavigationToken} from './pendingAgentAvatarStore';
+import {clearPendingAvatar, getPendingAvatar, setInitialPresetID, setNavigationToken, setReturnRoute} from './pendingAgentAvatarStore';
 
-function AddAgentPage() {
+type AddAgentPageProps =
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>
+    | PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_ADD_AGENT>;
+
+function AddAgentPage({route}: AddAgentPageProps) {
+    const policyID = route.params?.policyID;
+    const workflowApproverEmail = route.params?.workflowApproverEmail;
+    const isWorkflowSeedFlow = !!policyID && !!workflowApproverEmail;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
@@ -66,6 +76,7 @@ function AddAgentPage() {
         const presetID = botAvatarIDs.get(avatarSource as BotAvatar);
         setInitialPresetID(presetID);
         setNavigationToken();
+        setReturnRoute(isWorkflowSeedFlow ? ROUTES.WORKSPACE_WORKFLOWS_ADD_AGENT.getRoute({policyID, workflowApproverEmail}) : ROUTES.SETTINGS_AGENTS_ADD.getRoute());
         Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD_AVATAR);
     };
 
@@ -78,14 +89,25 @@ function AddAgentPage() {
     };
 
     const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_AGENT_FORM>) => {
-        const firstName = values[INPUT_IDS.FIRST_NAME].trim() || undefined;
+        const firstName = values[INPUT_IDS.FIRST_NAME].trim() || defaultAgentName;
         const prompt = values[INPUT_IDS.PROMPT].trim();
         const pendingFile = pendingFileRef.current;
 
-        if (pendingFile) {
-            createAgent(firstName, prompt, undefined, pendingFile.file, pendingFile.uri);
-        } else {
-            createAgent(firstName, prompt, botAvatarIDs.get(avatarSource as BotAvatar));
+        // Pure optimistic flow — no waiting on the server, online or offline. `createAgent`
+        // returns the optimistic accountID it wrote into Onyx so we can hand it to the next
+        // screen and let it render the agent with opacity until CREATE_AGENT resolves.
+        const {optimisticAccountID} = pendingFile
+            ? createAgent(firstName, prompt, undefined, pendingFile.file, pendingFile.uri, policyID)
+            : createAgent(firstName, prompt, botAvatarIDs.get(avatarSource as BotAvatar), undefined, undefined, policyID);
+
+        if (isWorkflowSeedFlow && policyID && workflowApproverEmail) {
+            // Drop the user on the Edit Approvers screen for the workflow they came from, with
+            // the optimistic agent already seeded as approver[0]. The Edit Approvers page reads
+            // the optimistic personal detail by accountID, renders it with reduced opacity
+            // (via `pendingAction`), and reconciles the email/accountID once CREATE_AGENT lands.
+            Navigation.goBack();
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, workflowApproverEmail, undefined, Number(optimisticAccountID)));
+            return;
         }
 
         Navigation.goBack();
@@ -122,7 +144,7 @@ function AddAgentPage() {
                             size={CONST.AVATAR_SIZE.X_LARGE}
                             avatarStyle={avatarStyle}
                             editIcon={expensifyIcons.Pencil}
-                            editIconStyle={styles.profilePageAvatar}
+                            editIconStyle={styles.smallEditIconAccount}
                             sentryLabel={CONST.SENTRY_LABEL.ADD_AGENT_PAGE.AVATAR}
                         />
                     </View>

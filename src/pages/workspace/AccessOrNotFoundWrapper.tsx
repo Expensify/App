@@ -15,7 +15,16 @@ import {openWorkspace} from '@libs/actions/Policy/Policy';
 import {isValidMoneyRequestType} from '@libs/IOUUtils';
 import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
 import Navigation from '@libs/Navigation/Navigation';
-import {canEditWorkspaceSettings, canSendInvoice, isControlPolicy, isGroupPolicy, isPolicyAccessible, isPolicyFeatureEnabled as isPolicyFeatureEnabledUtil} from '@libs/PolicyUtils';
+import {
+    canEditWorkspaceSettings,
+    canMemberRead,
+    canSendInvoice,
+    isControlPolicy,
+    isGroupPolicy,
+    isPolicyAccessible,
+    isPolicyFeatureEnabled as isPolicyFeatureEnabledUtil,
+} from '@libs/PolicyUtils';
+import type {PolicyFeature} from '@libs/PolicyUtils';
 import {canCreateRequest} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -65,6 +74,7 @@ const ACCESS_VARIANTS = {
 >;
 
 type AccessVariant = keyof typeof ACCESS_VARIANTS;
+
 type AccessOrNotFoundWrapperChildrenProps = {
     /** The report that holds the transaction */
     report: OnyxEntry<Report>;
@@ -91,6 +101,9 @@ type AccessOrNotFoundWrapperProps = {
 
     /** The current feature name that the user tries to get access to */
     featureName?: PolicyFeatureName;
+
+    /** Policy feature permission needed to access the page */
+    policyFeature?: PolicyFeature;
 
     /** Props for customizing fallback pages */
     fullPageNotFoundViewProps?: FullPageNotFoundViewProps;
@@ -140,6 +153,7 @@ function AccessOrNotFoundWrapper({
     iouType,
     allPolicies,
     featureName,
+    policyFeature,
     ...props
 }: AccessOrNotFoundWrapperProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -173,19 +187,25 @@ function AccessOrNotFoundWrapper({
     const {isOffline} = useNetwork();
 
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const isPageAccessible = accessVariants.reduce((acc, variant) => {
+    const accessVariantsToCheck = policyFeature ? accessVariants.filter((variant) => variant !== CONST.POLICY.ACCESS_VARIANTS.ADMIN) : accessVariants;
+    const isPageAccessible = accessVariantsToCheck.reduce((acc, variant) => {
         const accessFunction = ACCESS_VARIANTS[variant];
         if (variant === CONST.IOU.ACCESS_VARIANTS.CREATE) {
             return acc && accessFunction(policy, login, report, allPolicies ?? null, betas, iouType, isReportArchived, isRestrictedToPreferredPolicy);
         }
         return acc && accessFunction(policy, login, report, allPolicies ?? null, betas, iouType, isReportArchived);
     }, true);
+    let hasAccessToPolicyFeature = true;
+    if (policyFeature) {
+        hasAccessToPolicyFeature = canMemberRead(policy, login, policyFeature);
+    }
 
     const isPolicyNotAccessible = !isPolicyAccessible(policy, login);
     // Gate on `isFocused || isWorkspacesTabFocused` so the fallback renders for both
     //  - non-workspace consumers of this wrapper (IOU create routes, etc.) where `isFocused` is the meaningful signal, and
     //  - workspace central-pane usages where an RHP overlay makes `isFocused` false but the Workspaces tab is still active.
-    const shouldShowNotFoundPage = (isFocused || isWorkspacesTabFocused) && ((!isMoneyRequest && !isFromGlobalCreate && isPolicyNotAccessible) || !isPageAccessible || shouldBeBlocked);
+    const shouldShowNotFoundPage =
+        (isFocused || isWorkspacesTabFocused) && ((!isMoneyRequest && !isFromGlobalCreate && isPolicyNotAccessible) || !isPageAccessible || !hasAccessToPolicyFeature || shouldBeBlocked);
     // We only update the feature state if it isn't pending.
     // This is because the feature state changes several times during the creation of a workspace, while we are waiting for a response from the backend.
     // Without this, we can be unexpectedly navigated to the More Features page.

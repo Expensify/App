@@ -2,7 +2,7 @@ import compileDynamicRoutePattern from '@libs/Navigation/helpers/dynamicRoutesUt
 
 /**
  * Helper: try to match a candidate against a compiled regex.
- * Mirrors how findMatchingDynamicSuffix tests the regex (always with a trailing slash).
+ * Mirrors how findAllMatchingDynamicSuffixes tests the regex (always with a trailing slash).
  */
 function execMatch(compiled: ReturnType<typeof compileDynamicRoutePattern>, candidate: string): Record<string, string> | undefined {
     const normalized = candidate.endsWith('/') ? candidate : `${candidate}/`;

@@ -772,13 +772,11 @@ describe('Unread Indicators', () => {
                 created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
             },
             isASAPSubmitBetaEnabled: true,
-            currentUserAccountIDParam: USER_A_ACCOUNT_ID,
-            currentUserEmailParam: USER_A_EMAIL,
+            currentUser: {accountID: USER_A_ACCOUNT_ID, email: USER_A_EMAIL},
             introSelected: undefined,
             quickAction: undefined,
             recentWaypoints,
             betas: [CONST.BETAS.ALL],
-            draftTransactionIDs: [fakeTransaction.transactionID],
             isSelfTourViewed: false,
         });
         await waitForBatchedUpdates();
