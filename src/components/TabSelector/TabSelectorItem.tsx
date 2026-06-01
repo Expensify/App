@@ -36,6 +36,8 @@ function TabSelectorItem({
     equalWidth = false,
     size,
     badgeText,
+    isBadgeCondensed = false,
+    badgeStyles,
     isDisabled = false,
     pendingAction,
 }: TabSelectorItemProps) {
@@ -98,6 +100,8 @@ function TabSelectorItem({
                 <Badge
                     text={badgeText}
                     success
+                    isCondensed={isBadgeCondensed}
+                    badgeStyles={badgeStyles}
                 />
             )}
         </AnimatedPressableWithFeedback>

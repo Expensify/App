@@ -4474,13 +4474,20 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         tabSelectorContentContainerSmall: {
-            paddingTop: 4,
-            paddingBottom: 4,
+            paddingTop: 0,
+            paddingBottom: 0,
         },
 
         tabTextSmall: {
             fontSize: variables.fontSizeSmall,
             lineHeight: 16,
+        },
+
+        inboxTabBadge: {
+            minWidth: 18,
+            height: 16,
+            marginLeft: 4,
+            justifyContent: 'center',
         },
 
         scrollableTabSelector: {

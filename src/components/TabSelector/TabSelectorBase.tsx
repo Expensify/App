@@ -125,6 +125,8 @@ function TabSelectorBase({
                         equalWidth={equalWidth}
                         size={size}
                         badgeText={tab.badgeText}
+                        isBadgeCondensed={tab.isBadgeCondensed}
+                        badgeStyles={tab.badgeStyles}
                         pendingAction={tab.pendingAction}
                         isDisabled={tab.isDisabled}
                     />
