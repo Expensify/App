@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/naming-convention -- avatar IDs are kebab-case to match CDN filenames */
 import {BotAvatarBlue, BotAvatarGreen, BotAvatarIce, BotAvatarPink, BotAvatarTangerine, BotAvatarYellow} from '@components/Icon/DefaultBotAvatars';
 import CONST from '@src/CONST';
 import {createAvatarCatalog} from './AvatarCatalog';

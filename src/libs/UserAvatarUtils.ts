@@ -1,7 +1,7 @@
 import {md5} from 'expensify-common';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {findAvatarIDFromURL, findCatalogURLForID, findLocalAvatarForURL} from './Avatars/AvatarLookup';
+import {findAvatarIDFromURL, findCatalogMatchForURL, findLocalAvatarForURL} from './Avatars/AvatarLookup';
 import {DEFAULT_AVATAR_PREFIX, USER_AVATARS} from './Avatars/UserAvatarCatalog';
 import type {DefaultAvatarIDs} from './Avatars/UserAvatarCatalog.types';
 
@@ -237,9 +237,9 @@ function getAvatarURL({accountID = CONST.DEFAULT_NUMBER_ID, avatarSource, accoun
     if (isDefaultAvatar(avatarSource)) {
         return getDefaultAvatarURL({accountID, accountEmail, avatarURL: avatarSource});
     }
-    const idFromCatalog = findAvatarIDFromURL(avatarSource);
-    if (idFromCatalog) {
-        return findCatalogURLForID(idFromCatalog);
+    const match = findCatalogMatchForURL(avatarSource);
+    if (match) {
+        return match.catalog.getURL(match.id);
     }
     return avatarSource;
 }

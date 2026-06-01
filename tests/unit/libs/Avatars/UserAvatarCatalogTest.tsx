@@ -48,9 +48,7 @@ describe('UserAvatarCatalog', () => {
     });
 
     it('returns undefined for an unknown ID', () => {
-        // @ts-expect-error - testing an unknown ID
         expect(USER_AVATARS.getLocal('not-a-real-id')).toBeUndefined();
-        // @ts-expect-error - testing an unknown ID
         expect(USER_AVATARS.getURL('not-a-real-id')).toBeUndefined();
     });
 
