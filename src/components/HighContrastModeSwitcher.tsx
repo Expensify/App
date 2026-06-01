@@ -32,7 +32,7 @@ function HighContrastModeSwitcher() {
     return (
         <PressableWithFeedback
             onPress={toggleHighContrast}
-            sentryLabel="HighContrastModeSwitcher-Toggle"
+            sentryLabel={CONST.SENTRY_LABEL.HIGH_CONTRAST_MODE_SWITCHER.TOGGLE}
             role={CONST.ROLE.BUTTON}
             accessibilityLabel={translate('themePage.enableHighContrast')}
             accessibilityState={{checked: isHighContrast}}
