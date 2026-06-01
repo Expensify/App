@@ -29,9 +29,8 @@ import {
     getCategoryTaxDetails,
     getDefaultTaxCode,
     getDistanceInMeters,
-    getRequestType,
+    getDistanceRequestType,
     getValidWaypoints,
-    isDistanceExpenseType,
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
 } from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
@@ -337,8 +336,7 @@ function handleMoneyRequestStepDistanceNavigation({
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
-    const requestType = getRequestType(transaction);
-    const distanceRequestType = isDistanceExpenseType(requestType) ? requestType : undefined;
+    const distanceRequestType = getDistanceRequestType(transaction);
 
     if (transaction?.splitShares && !isManualDistance && !isOdometerDistance) {
         resetSplitShares(transaction, undefined, undefined, currentUserAccountID);

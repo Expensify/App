@@ -26,11 +26,11 @@ import {
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {
+    getDistanceRequestType,
     getReimbursable,
     getRequestType,
     getTransactionType,
     hasCustomUnitOutOfPolicyViolation,
-    isDistanceExpenseType,
     isDistanceRequest,
     isExpenseSplit,
     isFromCreditCardImport,
@@ -684,7 +684,7 @@ function createExpenseByType({
                     comment: Parser.htmlToMarkdown(transactionDetails?.comment ?? ''),
                     validWaypoints: waypoints,
                     modifiedAmount: transactionDetails?.amount,
-                    distanceRequestType: isDistanceExpenseType(getRequestType(transaction)) ? getRequestType(transaction) : undefined,
+                    distanceRequestType: getDistanceRequestType(transaction),
                 },
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 quickAction,

@@ -33,11 +33,10 @@ import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
 import {
     getDefaultTaxCode,
+    getDistanceRequestType,
     getRateID,
-    getRequestType,
     getTaxValue,
     getValidWaypoints,
-    isDistanceExpenseType,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
@@ -246,8 +245,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     // Derived values from transaction
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isGPSDistanceRequest = isGPSDistanceRequestTransactionUtils(transaction);
-    const requestType = getRequestType(transaction);
-    const distanceRequestType = isDistanceExpenseType(requestType) ? requestType : undefined;
+    const distanceRequestType = getDistanceRequestType(transaction);
 
     const customUnitRateID = getRateID(transaction) ?? '';
     const transactionDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (transaction?.comment?.customUnit?.quantity ?? undefined) : undefined;

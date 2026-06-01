@@ -192,6 +192,7 @@ function isTimeRequest(transaction: OnyxEntry<Transaction>): boolean {
 
 function isDistanceExpenseType(requestType: IOURequestType | undefined): requestType is DistanceExpenseType {
     return (
+        requestType === CONST.IOU.REQUEST_TYPE.DISTANCE ||
         requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP ||
         requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL ||
         requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS ||
@@ -2846,6 +2847,11 @@ function hasSmartScanFailedWithMissingFields(transactions: Transaction[], report
     );
 }
 
+function getDistanceRequestType(transaction: OnyxEntry<Transaction>): string | undefined {
+    const requestType = getRequestType(transaction);
+    return isDistanceExpenseType(requestType) ? requestType : undefined;
+}
+
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
@@ -2990,4 +2996,5 @@ export {
     recalculateUnreportedTransactionDetails,
     hasSmartScanFailedWithMissingFields,
     isDeletedTransaction,
+    getDistanceRequestType,
 };
