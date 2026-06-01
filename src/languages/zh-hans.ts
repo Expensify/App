@@ -493,6 +493,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nextYear: '明年',
         avatar: '头像',
         agent: '代理人',
+        restrictions: '限制',
     },
     socials: {
         podcast: '在播客上关注我们',
@@ -504,10 +505,6 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: '收起推理',
         expandReasoning: '展开推理',
-        enableNotifications: {
-            prompt: '希望在Concierge回复时收到通知吗？',
-            cta: '通知',
-        },
     },
     supportalNoAccess: {
         title: '先别急',
@@ -918,7 +915,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 公司卡片`,
             },
             fixPersonalCardConnection: {title: ({cardName}: {cardName?: string}) => (cardName ? `修复 ${cardName} 个人卡连接` : '修复个人银行卡连接'), subtitle: '钱包'},
-            fixAccountingConnection: {
+            fixPolicyConnection: {
                 title: ({integrationName}: {integrationName: string}) => `修复 ${integrationName} 连接`,
                 defaultSubtitle: '工作区',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会计`,
@@ -1218,7 +1215,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchSubmitTitle: '提交报告',
         pendingMatchSubmitDescription: '部分费用正在等待与信用卡交易匹配。您要将它们标记为现金吗？',
         routePending: '路由处理中…',
-        automaticallyEnterExpenseDetails: 'Concierge 将自动为您输入费用详情，或者您可以手动添加。',
+        automaticallyEnterExpenseDetails: 'Concierge 会帮你填写详细信息。',
         receiptScanning: () => ({
             one: '正在扫描收据…',
             other: '正在扫描收据…',
@@ -7578,6 +7575,50 @@ ${reportName}
             `已更改卡片流水“${feedName}”的账单周期截止日${newValue ? ` 为“${newValue}”` : ''}${previousValue ? ` （先前为“${previousValue}”）` : ''}`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) => `已添加 ${fieldType} 报告字段“${fieldName}”${defaultValue ? ` 默认值为“${defaultValue}”` : ''}`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 公司商务卡消费要求`,
+        expensifyCardRule: {
+            actionVerb: {block: '已阻止', allow: '允许'},
+            amountOperator: {over: '结束', under: '在……之下'},
+            amountFilter: ({operator, amount}: {operator: string; amount: string}) => `金额 ${operator} ${amount}`,
+            theCard: '该卡',
+            multipleCards: ({count}: {count: number}) => ({
+                one: '1 张卡片',
+                other: `${count} 张卡片`,
+            }),
+            addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
+                let text = verb;
+                if (filters !== '') {
+                    text += ` ${filters}`;
+                }
+                text += ` 在 ${cards}`;
+                return text;
+            },
+            removeRule: ({cards}: {cards: string}) => `已从 ${cards} 中移除消费规则`,
+            restrictionVerb: {block: '阻止', allow: '仅允许'},
+            update: {
+                modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) => `已将 ${cards} 的消费规则从 ${fromAction} 更改为 ${toAction}`,
+                appliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: '已将支出规则应用于另外 1 张卡片',
+                    other: `已将支出规则应用于另外 ${count} 张卡片`,
+                }),
+                phraseVerb: {added: '已添加', removed: '已移除', changed: '已更改', set: '设置', applied: '已应用'},
+                bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} 商家“${value}”` : `商户“${value}”`),
+                bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `将商家 ${adjective} 从“${oldValue}”更改为“${newValue}”` : `商户从“${oldValue}”变更为“${newValue}”`,
+                bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective}支出类别“${value}”` : `支出类别「${value}」`),
+                bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `将${adjective}支出类别从“${oldValue}”修改为“${newValue}”` : `支出类别从“${oldValue}”更改为“${newValue}”`,
+                bodyMaxAmount: '最大金额',
+                bodyMaxAmountSet: ({value}: {value: string}) => `最大金额至 ${value}`,
+                bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `最大金额从 ${oldValue} 变为 ${newValue}`,
+                bodyAppliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: '将消费规则应用到另外 1 张卡片',
+                    other: `将消费规则应用到另外 ${count} 张卡片`,
+                }),
+                bodyRemovedFromCards: ({cards}: {cards: string}) => `来自 ${cards} 的消费规则`,
+                composeOnCards: ({content, cards}: {content: string; cards: string}) => `${cards} 上的 ${content}`,
+                composeFromCards: ({content, cards}: {content: string; cards: string}) => `来自 ${cards} 的 ${content}`,
+            },
+        },
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
@@ -7693,7 +7734,7 @@ ${reportName}
         resetColumns: '重置列',
         groupColumns: '分组列',
         expenseColumns: '报销列',
-        saveSearch: '保存搜索',
+        saveView: '保存视图',
         deleteSavedSearch: '删除已保存的搜索',
         deleteSavedSearchConfirm: '确定要删除此搜索吗？',
         searchName: '搜索名称',
@@ -7849,10 +7890,7 @@ ${reportName}
             description: '哇，项目真不少！我们会把它们打包好，Concierge 很快就会给你发送一个文件。',
         },
         exportedTo: '已导出到',
-        exportAll: {
-            selectAllMatchingItems: '选择所有匹配的项目',
-            allMatchingItemsSelected: '已选择所有匹配的项目',
-        },
+        exportAll: {selectAllMatchingItems: '选择所有匹配的项目', allMatchingItemsSelected: '已选择所有匹配的项目', selectAllOnThisPage: '选择本页全部内容'},
         errors: {
             pleaseSelectDatesForBothFromAndTo: '请选择起始和结束日期',
         },
@@ -8087,6 +8125,7 @@ ${reportName}
         workspaceName: '工作区名称',
         chatUserDisplayNames: '聊天成员显示名称',
         scrollToNewestMessages: '滚动到最新消息',
+        scrollToActionBadgeTarget: '滚动到需要关注的操作',
         preStyledText: '预设样式文本',
         viewAttachment: '查看附件',
         contextMenuAvailable: '上下文菜单可用。按 Shift+F10 打开。',
@@ -9030,6 +9069,7 @@ ${reportName}
         expenseLevelExport: '所有数据 - 报销级别',
         exportInProgress: '导出进行中',
         conciergeWillSend: 'Concierge 将很快把文件发送给你。',
+        currentView: '导出当前视图',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',

@@ -493,6 +493,14 @@ type SettingsNavigatorParamList = {
         policyID: string;
         rateID: string;
     };
+    [SCREENS.WORKSPACE.DISTANCE_RATE_START_DATE_EDIT]: {
+        policyID: string;
+        rateID: string;
+    };
+    [SCREENS.WORKSPACE.DISTANCE_RATE_END_DATE_EDIT]: {
+        policyID: string;
+        rateID: string;
+    };
     [SCREENS.WORKSPACE.TAGS_SETTINGS]: {
         policyID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
@@ -1196,6 +1204,9 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.SETTINGS.DYNAMIC_KEYBOARD_SHORTCUTS]: undefined;
     [SCREENS.WORKSPACE.TAX_CREATE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.TAX_CREATE_VALUE]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.TAX_EDIT]: {

@@ -2,19 +2,14 @@ import {useFocusEffect, useRoute} from '@react-navigation/native';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import Checkbox from '@components/Checkbox';
 import DecisionModal from '@components/DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import MoneyReportHeaderKYCDropdown from '@components/MoneyReportHeaderKYCDropdown';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {PressableWithFeedback} from '@components/Pressable';
 import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
 import BulkDuplicateHandler from '@components/Search/BulkDuplicateHandler';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
-import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useFilterSelectedTransactions from '@hooks/useFilterSelectedTransactions';
 import useLocalize from '@hooks/useLocalize';
@@ -40,6 +35,8 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import SelectAllCheckbox from './SelectAllCheckbox';
+import SelectionDropdown from './SelectionDropdown';
 
 type SelectionToolbarProps = {
     /** The reportID of the report */
@@ -56,7 +53,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetworkWithOfflineStatus();
-    const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayoutOnWideRHP();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -250,63 +247,29 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
             )}
             {shouldUseNarrowLayout && isMobileSelectionModeEnabled && (
                 <OfflineWithFeedback pendingAction={reportPendingAction}>
-                    {hasPayInSelectionMode ? (
-                        <View style={styles.ph5}>
-                            <MoneyReportHeaderKYCDropdown
-                                chatReportID={chatReport?.reportID}
-                                iouReport={report}
-                                onPaymentSelect={onSelectionModePaymentSelect}
-                                onSuccessfulKYC={selectionModeKYCSuccess}
-                                primaryAction={primaryAction}
-                                applicableSecondaryActions={selectedTransactionsOptions}
-                                customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
-                                shouldShowSuccessStyle
-                                ref={kycWallRef}
-                            />
-                        </View>
-                    ) : (
-                        <ButtonWithDropdownMenu
-                            onPress={() => null}
-                            options={selectedTransactionsOptions}
-                            customText={translate('workspace.common.selected', {
-                                count: selectedTransactionIDs.length,
-                            })}
-                            isSplitButton={false}
-                            shouldAlwaysShowDropdownMenu
+                    <View
+                        style={[isInLandscapeMode ? [styles.flexRowReverse, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap6, styles.pb3, styles.ph5] : styles.flexColumn]}
+                    >
+                        <SelectionDropdown
+                            hasPayInSelectionMode={hasPayInSelectionMode}
+                            chatReport={chatReport}
+                            report={report}
+                            onSelectionModePaymentSelect={onSelectionModePaymentSelect}
+                            selectionModeKYCSuccess={selectionModeKYCSuccess}
+                            primaryAction={primaryAction}
+                            selectedTransactionsOptions={selectedTransactionsOptions}
+                            selectedTransactionIDs={selectedTransactionIDs}
+                            kycWallRef={kycWallRef}
                             shouldPopoverUseScrollView={popoverUseScrollView}
-                            wrapperStyle={[styles.w100, styles.ph5]}
                         />
-                    )}
-                    <View style={[styles.alignItemsCenter, styles.userSelectNone, styles.flexRow, styles.pt6, styles.ph8, styles.pb3]}>
-                        <Checkbox
-                            accessibilityLabel={translate('accessibilityHints.selectAllItems')}
-                            isChecked={isSelectAllChecked}
+
+                        <SelectAllCheckbox
+                            isSelectAllChecked={isSelectAllChecked}
                             isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}
-                            onPress={() => {
-                                if (selectedTransactionIDs.length !== 0) {
-                                    clearSelectedTransactions(true);
-                                } else {
-                                    setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
-                                }
-                            }}
+                            hasAnySelected={selectedTransactionIDs.length > 0}
+                            onSelectAll={() => setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID))}
+                            onClearAll={() => clearSelectedTransactions(true)}
                         />
-                        <PressableWithFeedback
-                            style={[styles.userSelectNone, styles.alignItemsCenter]}
-                            onPress={() => {
-                                if (isSelectAllChecked) {
-                                    clearSelectedTransactions(true);
-                                } else {
-                                    setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
-                                }
-                            }}
-                            accessibilityLabel={translate('accessibilityHints.selectAllItems')}
-                            role="button"
-                            accessibilityState={{checked: isSelectAllChecked}}
-                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                            sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_REPORT_ACTIONS_LIST_SELECT_ALL}
-                        >
-                            <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
-                        </PressableWithFeedback>
                     </View>
                 </OfflineWithFeedback>
             )}

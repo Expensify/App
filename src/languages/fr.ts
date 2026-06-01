@@ -498,6 +498,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nextYear: 'L’an prochain',
         avatar: 'Avatar',
         agent: 'Agent',
+        restrictions: 'Restrictions',
     },
     socials: {
         podcast: 'Suivez-nous sur Podcast',
@@ -509,7 +510,6 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Réduire le raisonnement',
         expandReasoning: 'Développer le raisonnement',
-        enableNotifications: {prompt: 'Vous souhaitez être averti lorsque Concierge répond ?', cta: 'Notifier'},
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -947,7 +947,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 defaultSubtitle: 'Espace de travail',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Cartes d'entreprise`,
             },
-            fixAccountingConnection: {
+            fixPolicyConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Corriger la connexion ${integrationName}`,
                 defaultSubtitle: 'Espace de travail',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Comptabilité`,
@@ -1262,7 +1262,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchSubmitTitle: 'Soumettre le rapport',
         pendingMatchSubmitDescription: 'Certaines dépenses sont en attente de rapprochement avec une transaction par carte de crédit. Voulez-vous les marquer comme espèces ?',
         routePending: 'Acheminement en attente...',
-        automaticallyEnterExpenseDetails: 'Concierge saisira automatiquement les détails de la dépense pour vous, ou vous pouvez les ajouter manuellement.',
+        automaticallyEnterExpenseDetails: 'Concierge remplira les détails pour vous.',
         receiptScanning: () => ({
             one: 'Scan des reçus...',
             other: 'Scan des reçus...',
@@ -7861,6 +7861,52 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `a ajouté le champ de note de frais ${fieldType} « ${fieldName} »${defaultValue ? ` avec la valeur par défaut « ${defaultValue} »` : ''}`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'activé' : 'désactivé'} l’exigence d’achats par carte d’entreprise`,
+        expensifyCardRule: {
+            actionVerb: {block: 'bloqué', allow: 'autorisé'},
+            amountOperator: {over: 'terminé', under: 'sous'},
+            amountFilter: ({operator, amount}: {operator: string; amount: string}) => `montants ${operator} ${amount}`,
+            theCard: 'la carte',
+            multipleCards: ({count}: {count: number}) => ({
+                one: '1 carte',
+                other: `${count} cartes`,
+            }),
+            addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
+                let text = verb;
+                if (filters !== '') {
+                    text += ` ${filters}`;
+                }
+                text += ` sur ${cards}`;
+                return text;
+            },
+            removeRule: ({cards}: {cards: string}) => `a supprimé la règle de dépense de ${cards}`,
+            restrictionVerb: {block: 'bloquer', allow: 'autoriser uniquement'},
+            update: {
+                modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) =>
+                    `a modifié la règle de dépense de ${fromAction} à ${toAction} sur ${cards}`,
+                appliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: 'règle de dépense appliquée à 1 carte supplémentaire',
+                    other: `règle de dépense appliquée à ${count} cartes supplémentaires`,
+                }),
+                phraseVerb: {added: 'ajouté', removed: 'supprimé', changed: 'modifié', set: 'définir', applied: 'appliqué'},
+                bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} commerçant « ${value} »` : `commerçant « ${value} »`),
+                bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `${adjective} marchand de « ${oldValue} » à « ${newValue} »` : `commerçant de « ${oldValue} » à « ${newValue} »`,
+                bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) =>
+                    adjective !== '' ? `Catégorie de dépense ${adjective} « ${value} »` : `catégorie de dépense « ${value} »`,
+                bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `Catégorie de dépense ${adjective} de « ${oldValue} » à « ${newValue} »` : `catégorie de dépense de « ${oldValue} » à « ${newValue} »`,
+                bodyMaxAmount: 'montant maximal',
+                bodyMaxAmountSet: ({value}: {value: string}) => `montant maximum à ${value}`,
+                bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `montant maximal de ${oldValue} à ${newValue}`,
+                bodyAppliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: 'règle de dépense pour 1 carte supplémentaire',
+                    other: `règle de dépense pour ${count} cartes supplémentaires`,
+                }),
+                bodyRemovedFromCards: ({cards}: {cards: string}) => `règle de dépense provenant de ${cards}`,
+                composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} sur ${cards}`,
+                composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} de ${cards}`,
+            },
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',
@@ -7984,7 +8030,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         resetColumns: 'Réinitialiser les colonnes',
         groupColumns: 'Regrouper les colonnes',
         expenseColumns: 'Colonnes de dépenses',
-        saveSearch: 'Enregistrer la recherche',
+        saveView: 'Enregistrer la vue',
         deleteSavedSearch: 'Supprimer la recherche enregistrée',
         deleteSavedSearchConfirm: 'Voulez-vous vraiment supprimer cette recherche ?',
         searchName: 'Rechercher un nom',
@@ -8149,6 +8195,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         exportAll: {
             selectAllMatchingItems: 'Sélectionnez tous les éléments correspondants',
             allMatchingItemsSelected: 'Tous les éléments correspondants sont sélectionnés',
+            selectAllOnThisPage: 'Tout sélectionner sur cette page',
         },
         errors: {
             pleaseSelectDatesForBothFromAndTo: 'Veuillez sélectionner des dates pour De et À',
@@ -8390,6 +8437,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         workspaceName: 'Nom de l’espace de travail',
         chatUserDisplayNames: 'Noms d’affichage des membres de discussion',
         scrollToNewestMessages: 'Aller au dernier message',
+        scrollToActionBadgeTarget: "Aller à l'action nécessitant votre attention",
         preStyledText: 'Texte pré-stylé',
         viewAttachment: 'Afficher la pièce jointe',
         contextMenuAvailable: 'Menu contextuel disponible. Appuyez sur Shift+F10 pour l’ouvrir.',
@@ -9354,6 +9402,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         expenseLevelExport: 'Toutes les données - niveau dépense',
         exportInProgress: 'Export en cours',
         conciergeWillSend: 'Concierge vous enverra le fichier sous peu.',
+        currentView: 'Exporter la vue actuelle',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',
