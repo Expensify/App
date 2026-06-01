@@ -5,7 +5,7 @@ import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDer
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction} from '@src/types/onyx';
+import type {ReportAttributesDerivedValue, Transaction} from '@src/types/onyx';
 import type {SidebarOrderedReportsDerivedValue, SidebarReportForLHN} from '@src/types/onyx/DerivedValues';
 
 const EMPTY_VALUE: SidebarOrderedReportsDerivedValue = {reportsToDisplay: {}, orderedReportIDs: []};
@@ -13,6 +13,33 @@ const EMPTY_VALUE: SidebarOrderedReportsDerivedValue = {reportsToDisplay: {}, or
 // Cache the collator across computes so we only rebuild it when the locale actually changes.
 let cachedCollator: Intl.Collator | undefined;
 let cachedCollatorLocale: string | undefined;
+
+// Snapshot of the report attributes from the previous compute, used to diff which reports changed when an
+// attributes-only update triggers a recompute. The attributes derived value preserves object references for
+// unchanged reports, so a reference comparison cheaply identifies exactly the reports that changed.
+let previousReportAttributes: ReportAttributesDerivedValue['reports'] | undefined;
+
+// Returns the full report keys whose attributes entry changed between two attributes snapshots (added, removed, or
+// a different object reference). Attributes are keyed by bare reportID, so the keys are mapped to full report keys.
+function getChangedReportAttributeKeys(prev: ReportAttributesDerivedValue['reports'] | undefined, next: ReportAttributesDerivedValue['reports'] | undefined): string[] {
+    if (prev === next) {
+        return [];
+    }
+    const prevReports = prev ?? {};
+    const nextReports = next ?? {};
+    const changedKeys: string[] = [];
+    for (const [reportID, attributes] of Object.entries(nextReports)) {
+        if (prevReports[reportID] !== attributes) {
+            changedKeys.push(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+        }
+    }
+    for (const reportID of Object.keys(prevReports)) {
+        if (!(reportID in nextReports)) {
+            changedKeys.push(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+        }
+    }
+    return changedKeys;
+}
 
 function getLocaleCompare(locale: string): (a: string, b: string) => number {
     if (!cachedCollator || cachedCollatorLocale !== locale) {
@@ -66,6 +93,7 @@ export default createOnyxDerivedValueConfig({
         {currentValue, sourceValues},
     ): SidebarOrderedReportsDerivedValue => {
         if (!reports || Object.keys(reports).length === 0) {
+            previousReportAttributes = undefined;
             return EMPTY_VALUE;
         }
 
@@ -76,9 +104,9 @@ export default createOnyxDerivedValueConfig({
         const currentUserAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         const currentUserLogin = session?.email ?? '';
 
-        // Compute incremental updates only when a collection dep changed AND we have a cached value.
-        // Scalar/non-collection changes (BETAS, NVP_PRIORITY_MODE, NETWORK, NVP_PREFERRED_LOCALE,
-        // DERIVED.REPORT_ATTRIBUTES) force a full recompute.
+        // Compute incremental updates when a collection dep changed, or when DERIVED.REPORT_ATTRIBUTES changed and we
+        // can diff it against the previous snapshot. Other scalar changes (BETAS, NVP_PRIORITY_MODE, NETWORK,
+        // NVP_PREFERRED_LOCALE) broadly affect which reports qualify, so they force a full recompute.
         const collectionUpdates = sourceValues
             ? COLLECTION_DEP_KEYS.reduce<Record<string, Record<string, unknown> | undefined>>((acc, collectionKey) => {
                   const update = sourceValues[collectionKey];
@@ -89,7 +117,15 @@ export default createOnyxDerivedValueConfig({
               }, {})
             : {};
         const hasCollectionUpdate = Object.keys(collectionUpdates).length > 0;
-        const canIncremental = !!currentValue && hasCollectionUpdate && Object.keys(currentValue.reportsToDisplay).length > 0;
+
+        // An attributes-only trigger re-evaluates exactly the reports whose attributes changed. Diff against the
+        // previous snapshot before overwriting it; the first trigger (no snapshot) falls back to a full recompute.
+        const attributesTriggered = !!sourceValues?.[ONYXKEYS.DERIVED.REPORT_ATTRIBUTES];
+        const canDiffAttributes = attributesTriggered && previousReportAttributes !== undefined;
+        const attributeReportKeys = canDiffAttributes ? getChangedReportAttributeKeys(previousReportAttributes, reportAttributes) : [];
+        previousReportAttributes = reportAttributes;
+
+        const canIncremental = !!currentValue && (hasCollectionUpdate || canDiffAttributes) && Object.keys(currentValue.reportsToDisplay).length > 0;
 
         let reportsToDisplay: Record<string, SidebarReportForLHN>;
         if (canIncremental && currentValue) {
@@ -145,6 +181,12 @@ export default createOnyxDerivedValueConfig({
                     if (report?.policyID && updatedPolicyIDs.has(report.policyID)) {
                         updatedReportsKeys.add(reportKey);
                     }
+                }
+            }
+
+            if (canDiffAttributes) {
+                for (const key of attributeReportKeys) {
+                    updatedReportsKeys.add(key);
                 }
             }
 

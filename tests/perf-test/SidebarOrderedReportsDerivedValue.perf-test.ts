@@ -101,20 +101,35 @@ describe('SidebarOrderedReports derived value', () => {
         );
     });
 
-    // REPORT_ATTRIBUTES is a non-collection dependency, so a change to it takes the full-recompute branch.
-    test('[sidebarOrderedReports] report attributes update, 15k reports', async () => {
+    // A REPORT_ATTRIBUTES change is diffed against the previous snapshot, so only the changed reports are
+    // re-evaluated via the incremental path instead of triggering a full recompute.
+    test('[sidebarOrderedReports] report attributes update, 15k reports, ~10 changed', async () => {
         await waitForBatchedUpdates();
-        const reportAttributes = buildReportAttributes();
-        const args = buildArgs(reportAttributes);
-        const seeded = sidebarOrderedReportsConfig.compute(args, EMPTY_CONTEXT);
+        const seededAttributes = buildReportAttributes();
+        const seededArgs = buildArgs(seededAttributes);
+        const seeded = sidebarOrderedReportsConfig.compute(seededArgs, EMPTY_CONTEXT);
+
+        // Give ~10 reports a new attributes reference so the diff against the snapshot yields exactly those reports.
+        const updatedReports: ReportAttributesDerivedValue['reports'] = {...seededAttributes.reports};
+        for (const reportID of Object.keys(seededAttributes.reports).slice(0, SOURCE_UPDATE_BATCH)) {
+            updatedReports[reportID] = {...seededAttributes.reports[reportID], requiresAttention: true};
+        }
+        const updatedAttributes: ReportAttributesDerivedValue = {reports: updatedReports, locale};
+        const updatedArgs = buildArgs(updatedAttributes);
 
         // DerivedSourceValues only types collection deltas, but the framework passes any changed
         // dependency's value at runtime, so we cast to feed the non-collection REPORT_ATTRIBUTES source.
         const context = {
             currentValue: seeded,
-            sourceValues: {[ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: reportAttributes},
+            sourceValues: {[ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: updatedAttributes},
         } as unknown as typeof EMPTY_CONTEXT;
 
-        await measureFunction(() => sidebarOrderedReportsConfig.compute(args, context));
+        await measureFunction(() => sidebarOrderedReportsConfig.compute(updatedArgs, context), {
+            // The compute overwrites the module-level attributes snapshot, so reset it to the seeded baseline before
+            // each run (this runs outside the measured section) so every measured compute diffs the same ~10 reports.
+            beforeEach: () => {
+                sidebarOrderedReportsConfig.compute(seededArgs, EMPTY_CONTEXT);
+            },
+        });
     });
 });

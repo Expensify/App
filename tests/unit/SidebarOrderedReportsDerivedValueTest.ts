@@ -4,7 +4,7 @@ import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import sidebarOrderedReportsConfig from '@src/libs/actions/OnyxDerived/configs/sidebarOrderedReports';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Network, Report} from '@src/types/onyx';
+import type {Beta, Network, Report, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type PriorityMode from '@src/types/onyx/PriorityMode';
 
 type ConfigArgs = Parameters<typeof sidebarOrderedReportsConfig.compute>[0];
@@ -27,12 +27,23 @@ function makeReport(id: string, millisAgo: number, overrides: Partial<Report> = 
     } as Report;
 }
 
-function buildArgs(reports: OnyxCollection<Report>, overrides: Partial<{priorityMode: PriorityMode; betas: Beta[]; network: Network; locale: string}> = {}): ConfigArgs {
+function buildArgs(
+    reports: OnyxCollection<Report>,
+    overrides: Partial<{priorityMode: PriorityMode; betas: Beta[]; network: Network; locale: string; reportAttributes: ReportAttributesDerivedValue}> = {},
+): ConfigArgs {
     const priorityMode: OnyxEntry<PriorityMode> = overrides.priorityMode ?? (CONST.PRIORITY_MODE.DEFAULT as PriorityMode);
     const betas: OnyxEntry<Beta[]> = overrides.betas ?? [];
     const network: OnyxEntry<Network> = overrides.network ?? {};
     const locale = overrides.locale ?? 'en';
-    return [reports, undefined, undefined, undefined, undefined, undefined, priorityMode, betas, network, locale] as unknown as ConfigArgs;
+    return [reports, undefined, undefined, undefined, undefined, undefined, priorityMode, betas, network, locale, overrides.reportAttributes] as unknown as ConfigArgs;
+}
+
+function makeAttributes(entries: Array<[reportID: string, requiresAttention: boolean]>): ReportAttributesDerivedValue {
+    const reports: ReportAttributesDerivedValue['reports'] = {};
+    for (const [reportID, requiresAttention] of entries) {
+        reports[reportID] = {reportName: `Report ${reportID}`, isEmpty: false, brickRoadStatus: undefined, requiresAttention, reportErrors: {}};
+    }
+    return {reports, locale: 'en'};
 }
 
 describe('SidebarOrderedReports Derived Value', () => {
@@ -157,5 +168,89 @@ describe('SidebarOrderedReports Derived Value', () => {
         const callArgs = updateSpy.mock.calls.at(0)?.at(0);
         const keys = (callArgs?.updatedReportsKeys ?? []).slice().sort();
         expect(keys).toEqual([`${ONYXKEYS.COLLECTION.REPORT}a`, `${ONYXKEYS.COLLECTION.REPORT}b`]);
+    });
+
+    it('takes the incremental path on a REPORT_ATTRIBUTES change, re-evaluating only the reports whose attributes changed', () => {
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}1`;
+        const otherKey = `${ONYXKEYS.COLLECTION.REPORT}2`;
+        const reports: Record<string, Report> = {[reportKey]: makeReport('1', 1_000), [otherKey]: makeReport('2', 2_000)};
+        // Both reports require attention so they qualify for the LHN and the seeded cache is non-empty.
+        const seededAttributes = makeAttributes([
+            ['1', true],
+            ['2', true],
+        ]);
+
+        // The seeding compute populates the module-level attributes snapshot that the next compute diffs against.
+        const seeded = sidebarOrderedReportsConfig.compute(buildArgs(reports, {reportAttributes: seededAttributes}), EMPTY_CONTEXT);
+
+        // Only report 1's attributes entry gets a new reference; report 2 keeps its reference from the snapshot.
+        const updatedReports: ReportAttributesDerivedValue['reports'] = {...seededAttributes.reports};
+        updatedReports['1'] = {...seededAttributes.reports['1']};
+        const updatedAttributes: ReportAttributesDerivedValue = {reports: updatedReports, locale: 'en'};
+        const getSpy = jest.spyOn(SidebarUtils, 'getReportsToDisplayInLHN');
+        const updateSpy = jest.spyOn(SidebarUtils, 'updateReportsToDisplayInLHN');
+
+        sidebarOrderedReportsConfig.compute(buildArgs(reports, {reportAttributes: updatedAttributes}), {
+            currentValue: seeded,
+            sourceValues: {[ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: updatedAttributes} as never,
+        });
+
+        expect(getSpy).not.toHaveBeenCalled();
+        expect(updateSpy).toHaveBeenCalledTimes(1);
+        expect(updateSpy.mock.calls.at(0)?.at(0)?.updatedReportsKeys).toEqual([reportKey]);
+    });
+
+    it('adds a currently-hidden report to the displayed set when its attributes flip to requiresAttention', () => {
+        // Focus mode hides read reports without attention, so report 7 only surfaces once it requires attention.
+        // Report 1 always requires attention, so the cached displayed set is non-empty and the incremental path runs.
+        const hiddenKey = `${ONYXKEYS.COLLECTION.REPORT}7`;
+        const shownKey = `${ONYXKEYS.COLLECTION.REPORT}1`;
+        const reports: Record<string, Report> = {[hiddenKey]: makeReport('7', 1_000), [shownKey]: makeReport('1', 2_000)};
+        const focusMode = {priorityMode: CONST.PRIORITY_MODE.GSD as PriorityMode};
+
+        const seeded = sidebarOrderedReportsConfig.compute(
+            buildArgs(reports, {
+                ...focusMode,
+                reportAttributes: makeAttributes([
+                    ['1', true],
+                    ['7', false],
+                ]),
+            }),
+            EMPTY_CONTEXT,
+        );
+        expect(seeded.reportsToDisplay[shownKey]).toBeDefined();
+        expect(seeded.reportsToDisplay[hiddenKey]).toBeUndefined();
+
+        const updatedAttributes = makeAttributes([
+            ['1', true],
+            ['7', true],
+        ]);
+        const result = sidebarOrderedReportsConfig.compute(buildArgs(reports, {...focusMode, reportAttributes: updatedAttributes}), {
+            currentValue: seeded,
+            sourceValues: {[ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: updatedAttributes} as never,
+        });
+
+        expect(result.reportsToDisplay[hiddenKey]).toBeDefined();
+    });
+
+    it('falls back to the full path on an attributes trigger when there is no previous snapshot', () => {
+        // The empty-reports path resets the module-level attributes snapshot to undefined.
+        sidebarOrderedReportsConfig.compute(buildArgs({}), EMPTY_CONTEXT);
+
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}1`;
+        const reports: Record<string, Report> = {[reportKey]: makeReport('1', 1_000)};
+        const attributes = makeAttributes([['1', false]]);
+        const seededCurrent = {reportsToDisplay: {[reportKey]: reports[reportKey]}, orderedReportIDs: ['1']};
+
+        const getSpy = jest.spyOn(SidebarUtils, 'getReportsToDisplayInLHN');
+        const updateSpy = jest.spyOn(SidebarUtils, 'updateReportsToDisplayInLHN');
+
+        sidebarOrderedReportsConfig.compute(buildArgs(reports, {reportAttributes: attributes}), {
+            currentValue: seededCurrent,
+            sourceValues: {[ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: attributes} as never,
+        });
+
+        expect(getSpy).toHaveBeenCalledTimes(1);
+        expect(updateSpy).not.toHaveBeenCalled();
     });
 });
