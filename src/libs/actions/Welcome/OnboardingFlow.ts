@@ -29,6 +29,7 @@ type GetOnboardingInitialPathParamsType = {
     currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>;
     onboardingInitialPath: OnyxEntry<string>;
     onboardingValues: OnyxEntry<Onboarding>;
+    canUseSubmit2026?: boolean;
 };
 
 type OnboardingTaskLinks = Partial<{
@@ -107,6 +108,7 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         currentOnboardingCompanySize,
         onboardingInitialPath = '',
         onboardingValues,
+        canUseSubmit2026,
     } = getOnboardingInitialPathParams;
     const state = getStateFromPath(onboardingInitialPath, linkingConfig.config);
     const currentOnboardingValues = onboardingValuesParam ?? onboardingValues;
@@ -126,10 +128,9 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     if (isIndividual) {
         Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, [CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.TRACK_BUSINESS, CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]);
     }
-    if (isUserFromPublicDomain && !onboardingValuesParam?.isMergeAccountStepCompleted) {
+    if (isUserFromPublicDomain && !canUseSubmit2026 && !onboardingValuesParam?.isMergeAccountStepCompleted) {
         return `/${ROUTES.ONBOARDING_WORK_EMAIL.route}`;
     }
-
     if (!isUserFromPublicDomain && hasAccessiblePolicies) {
         if (onboardingInitialPath) {
             return onboardingInitialPath;

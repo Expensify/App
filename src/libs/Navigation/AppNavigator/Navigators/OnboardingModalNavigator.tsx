@@ -7,6 +7,7 @@ import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
@@ -49,6 +50,8 @@ function OnboardingModalNavigator() {
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
+    const {isBetaEnabled} = usePermissions();
+    const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const isOnPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && account?.hasAccessibleDomainPolicies;
 
     let initialRouteName: ValueOf<typeof SCREENS.ONBOARDING> = SCREENS.ONBOARDING.PURPOSE;
@@ -57,7 +60,7 @@ function OnboardingModalNavigator() {
         initialRouteName = SCREENS.ONBOARDING.PERSONAL_DETAILS;
     }
 
-    if (account?.isFromPublicDomain) {
+    if (account?.isFromPublicDomain && !canUseSubmit2026) {
         initialRouteName = SCREENS.ONBOARDING.WORK_EMAIL;
     }
 
