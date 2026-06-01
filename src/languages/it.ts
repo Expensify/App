@@ -497,6 +497,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Anno precedente',
         nextYear: "L'anno prossimo",
         avatar: 'Avatar',
+        restrictions: 'Restrizioni',
     },
     socials: {
         podcast: 'Seguici su Podcast',
@@ -508,7 +509,6 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Comprimi ragionamento',
         expandReasoning: 'Espandi ragionamento',
-        enableNotifications: {prompt: 'Vuoi ricevere una notifica quando Concierge risponde?', cta: 'Notifica'},
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -1257,7 +1257,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchSubmitTitle: 'Invia report',
         pendingMatchSubmitDescription: 'Alcune spese sono in attesa di abbinamento con una transazione della carta di credito. Vuoi segnarle come contante?',
         routePending: 'Instradamento in sospeso...',
-        automaticallyEnterExpenseDetails: 'Concierge inserirà automaticamente i dettagli della spesa per te, oppure puoi aggiungerli manualmente.',
+        automaticallyEnterExpenseDetails: 'Concierge compilerà i dettagli per te.',
         receiptScanning: () => ({
             one: 'Scansione della ricevuta in corso...',
             other: 'Scansione delle ricevute in corso...',
@@ -7982,7 +7982,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         resetColumns: 'Reimposta colonne',
         groupColumns: 'Raggruppa colonne',
         expenseColumns: 'Colonne spese',
-        saveSearch: 'Salva ricerca',
+        saveView: 'Salva vista',
         deleteSavedSearch: 'Elimina ricerca salvata',
         deleteSavedSearchConfirm: 'Sei sicuro di voler eliminare questa ricerca?',
         searchName: 'Cerca nome',
@@ -9354,6 +9354,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         expenseLevelExport: 'Tutti i dati - livello spesa',
         exportInProgress: 'Esportazione in corso',
         conciergeWillSend: 'Concierge ti invierà il file a breve.',
+        currentView: 'Esporta vista corrente',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',
