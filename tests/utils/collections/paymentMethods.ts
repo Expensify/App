@@ -5,6 +5,8 @@ import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 type PaymentMethodOverrides = Partial<Omit<PaymentMethod, 'accountData' | 'methodID'>> & {
     accountData?: AccountData | null;
     methodID?: number | null;
+    bankCurrency?: string;
+    bankCountry?: string;
 };
 
 /**
