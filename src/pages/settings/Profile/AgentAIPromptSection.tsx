@@ -5,6 +5,7 @@ import type {RefObject} from 'react';
 import type {ScrollView as RNScrollView, TextInputKeyPressEvent} from 'react-native';
 import {Keyboard} from 'react-native';
 import Button from '@components/Button';
+import ErrorMessageRow from '@components/ErrorMessageRow';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import TextInput from '@components/TextInput';
@@ -184,11 +185,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
             childrenStyles={styles.pt5}
             titleStyles={styles.accountSettingsSectionTitle}
         >
-            <OfflineWithFeedback
-                errors={agentPrompt?.promptErrors}
-                pendingAction={agentPrompt?.pendingAction}
-                onClose={() => clearAgentPromptUpdateError(accountID)}
-            >
+            <OfflineWithFeedback pendingAction={agentPrompt?.pendingAction}>
                 <TextInput
                     ref={inputRef}
                     label={translate('profilePage.aiPromptSection.prompt')}
@@ -200,21 +197,26 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
                     autoGrowHeight
                     maxAutoGrowHeight={variables.lineHeightNormal * MAX_VISIBLE_PROMPT_LINES}
                     errorText={errorText}
-                    containerStyles={[styles.mb4]}
+                    containerStyles={[styles.mb3]}
                     testID="ai-prompt-input"
                     onFocus={handleInputFocus}
                 />
-                <Button
-                    success
-                    text={showSavedConfirmation ? translate('profilePage.aiPromptSection.saved') : translate('common.save')}
-                    icon={showSavedConfirmation ? icons.Checkmark : undefined}
-                    onPress={handleSave}
-                    isLoading={isSaving && !isOffline}
-                    isDisabled={hasHtmlTag || (isSaving && !isOffline)}
-                    style={[styles.alignSelfStart]}
-                    testID="save-prompt-button"
-                />
             </OfflineWithFeedback>
+            <Button
+                success
+                text={showSavedConfirmation ? translate('profilePage.aiPromptSection.saved') : translate('common.save')}
+                icon={showSavedConfirmation ? icons.Checkmark : undefined}
+                onPress={handleSave}
+                isLoading={isSaving && !isOffline}
+                isDisabled={hasHtmlTag || (isSaving && !isOffline)}
+                style={[styles.alignSelfStart]}
+                testID="save-prompt-button"
+            />
+            <ErrorMessageRow
+                errors={agentPrompt?.promptErrors}
+                errorRowStyles={[styles.mt3]}
+                onDismiss={() => clearAgentPromptUpdateError(accountID)}
+            />
         </Section>
     );
 }
