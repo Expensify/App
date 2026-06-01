@@ -5,7 +5,6 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import WorkspaceWorkflowsApprovalsEditPage from '@pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsEditPage';
-import {setApprovalWorkflow} from '@userActions/Workflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
@@ -94,7 +93,6 @@ describe('WorkspaceWorkflowsApprovalsEditPage', () => {
     });
 
     beforeEach(async () => {
-        jest.spyOn(require('@userActions/Workflow'), 'setApprovalWorkflow');
         await act(async () => {
             await Onyx.clear();
             await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
@@ -118,18 +116,23 @@ describe('WorkspaceWorkflowsApprovalsEditPage', () => {
         });
     });
 
-    it('should pass deduplicated availableMembers to setApprovalWorkflow for self-approval workflow', async () => {
+    it('should write deduplicated availableMembers to the approval workflow onyx state for self-approval workflow', async () => {
         renderEditPage();
         await waitForBatchedUpdatesWithAct();
 
-        expect(setApprovalWorkflow).toHaveBeenCalled();
-        const mockCalls = (setApprovalWorkflow as jest.Mock<unknown[], [{availableMembers: Member[]}]>).mock.calls;
-        const firstCall = mockCalls.at(0);
-        const callArg = firstCall?.at(0);
-        const availableMembers: Member[] = callArg?.availableMembers ?? [];
+        const availableMembers = await new Promise<Member[]>((resolve) => {
+            const connection = Onyx.connect({
+                key: ONYXKEYS.APPROVAL_WORKFLOW,
+                callback: (state) => {
+                    resolve(state?.availableMembers ?? []);
+                    Onyx.disconnect(connection);
+                },
+            });
+        });
         const emails = availableMembers.map((m) => m.email);
         const uniqueEmails = [...new Set(emails)];
 
+        expect(emails.length).toBeGreaterThan(0);
         expect(emails).toHaveLength(uniqueEmails.length);
         expect(emails).toContain(ALICE_EMAIL);
     });

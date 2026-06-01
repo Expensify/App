@@ -20,13 +20,19 @@ type UserPillData = {
 type UserPillsProps = {
     users: UserPillData[];
     maxVisible?: number;
-    /** When provided, the "+X more" text becomes its own tap target — bypasses any parent row's onPress. */
-    onShowAllPress?: () => void;
-};
+} & (
+    | {onShowAllPress?: undefined; showAllSentryLabel?: undefined}
+    | {
+          /** When provided, the "+X more" text becomes its own tap target — bypasses any parent row's onPress. */
+          onShowAllPress: () => void;
+          /** Sentry label for the "+X more" pressable. */
+          showAllSentryLabel: string;
+      }
+);
 
 const DEFAULT_MAX_VISIBLE = 6;
 
-function UserPills({users, maxVisible = DEFAULT_MAX_VISIBLE, onShowAllPress}: UserPillsProps) {
+function UserPills({users, maxVisible = DEFAULT_MAX_VISIBLE, onShowAllPress, showAllSentryLabel}: UserPillsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -62,6 +68,7 @@ function UserPills({users, maxVisible = DEFAULT_MAX_VISIBLE, onShowAllPress}: Us
                             onPress={onShowAllPress}
                             accessibilityRole="button"
                             accessibilityLabel={translate('common.plusMore', {count: hiddenCount})}
+                            sentryLabel={showAllSentryLabel}
                             style={[styles.flexRow, styles.alignItemsCenter]}
                         >
                             <Text style={styles.userPillMoreText}>{translate('common.plusMore', {count: hiddenCount})}</Text>

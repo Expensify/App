@@ -158,10 +158,15 @@ function ApprovalWorkflowSection({
                     titleComponent={
                         !approvalWorkflow.isDefault ? (
                             <View style={styles.ml3}>
-                                <UserPills
-                                    users={memberPills}
-                                    onShowAllPress={isDisabled ? undefined : onShowAllMembersPress}
-                                />
+                                {!isDisabled && onShowAllMembersPress ? (
+                                    <UserPills
+                                        users={memberPills}
+                                        onShowAllPress={onShowAllMembersPress}
+                                        showAllSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_SHOW_ALL_MEMBERS}
+                                    />
+                                ) : (
+                                    <UserPills users={memberPills} />
+                                )}
                             </View>
                         ) : undefined
                     }

@@ -516,7 +516,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                         shouldBlockApprovalWorkflowEditing
                                             ? undefined
                                             : () => {
-                                                  selectApprovalWorkflowForEdit({workflow, defaultWorkflowMembers: availableMembers, usedApproverEmails});
+                                                  // Use the unoverlaid raw workflow — a deferred-agent overlay can blank approvers[0].email, breaking ExpensesFromPage's Edit-route backTo.
+                                                  const rawWorkflow = rawApprovalWorkflows.find((w) => w.approvers.at(0)?.email === workflow.routingFirstApproverEmail);
+                                                  if (!rawWorkflow) {
+                                                      return;
+                                                  }
+                                                  selectApprovalWorkflowForEdit({workflow: rawWorkflow, defaultWorkflowMembers: availableMembers, usedApproverEmails});
                                                   Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID));
                                               }
                                     }
