@@ -101,6 +101,7 @@ function useOnboardingFlowRouter() {
                             currentOnboardingPurposeSelected: onboardingPurposeSelected,
                             onboardingInitialPath,
                             onboardingValues,
+                            isAccountValidated: !!account?.validated,
                         });
                     });
                 }
@@ -124,6 +125,7 @@ function useOnboardingFlowRouter() {
         onboardingValues,
         account?.isFromPublicDomain,
         account?.hasAccessibleDomainPolicies,
+        account?.validated,
         onboardingCompanySize,
         onboardingPurposeSelected,
         onboardingInitialPath,

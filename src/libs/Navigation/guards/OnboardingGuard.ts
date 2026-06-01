@@ -110,6 +110,7 @@ function getOnboardingRoute(): Route {
         currentOnboardingPurposeSelected: onboardingPurposeSelected,
         onboardingInitialPath,
         onboardingValues: onboarding,
+        isAccountValidated: !!account?.validated,
     }) as Route;
 }
 
