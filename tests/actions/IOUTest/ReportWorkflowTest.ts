@@ -30,7 +30,7 @@ import * as API from '@src/libs/API';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report, ReportNameValuePairs} from '@src/types/onyx';
+import type {Policy, Report, ReportNameValuePairs, ReportNextStepDeprecated} from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -1537,6 +1537,78 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             const optimisticReportUpdate = onyxData.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
             expect((optimisticReportUpdate?.value as Report | undefined)?.managerID).toBe(firstApproverAccountID);
+        });
+
+        it('shows the workspace approver (not the submitter) in the optimistic next step when resubmitting a rejected report', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write optimistic data to verify the next-step actor.
+            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const policyID = '1';
+            const adminAccountID = 100;
+            const submitterAccountID = 101;
+            const adminEmail = 'admin@example.com';
+            const submitterEmail = 'submitter@example.com';
+
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [adminAccountID]: {accountID: adminAccountID, login: adminEmail},
+                [submitterAccountID]: {accountID: submitterAccountID, login: submitterEmail},
+            });
+            await waitForBatchedUpdates();
+
+            const policy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: adminEmail,
+                owner: adminEmail,
+                employeeList: {
+                    [submitterEmail]: {
+                        email: submitterEmail,
+                        submitsTo: adminEmail,
+                    },
+                },
+            };
+            // After an admin rejects a report back to the submitter, the report is OPEN and its managerID is the submitter.
+            const expenseReport: Report = {
+                ...createRandomReport(Number(policyID), undefined),
+                reportID: '1',
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: submitterAccountID,
+                managerID: submitterAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                total: 1000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            submitReport({
+                expenseReport,
+                policy,
+                currentUserAccountIDParam: submitterAccountID,
+                currentUserEmailParam: submitterEmail,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                expenseReportCurrentNextStepDeprecated: undefined,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
+            });
+
+            const [, , onyxData] = apiWriteSpy.mock.calls.at(-1) as [
+                unknown,
+                {managerAccountID?: number},
+                OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.NEXT_STEP>,
+            ];
+
+            const optimisticNextStepUpdate = onyxData.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
+            const message = (optimisticNextStepUpdate?.value as ReportNextStepDeprecated | undefined)?.message;
+            const actorSegment = message?.find((segment) => segment.type === 'strong');
+
+            // The optimistic next step must point to the workspace approver, not the submitter (the report's stale managerID).
+            expect(actorSegment?.text).toBe(adminEmail);
+            expect(message?.some((segment) => segment.type === 'strong' && segment.text === submitterEmail)).toBe(false);
         });
 
         it('allows submit while a retract state update is pending', () => {
