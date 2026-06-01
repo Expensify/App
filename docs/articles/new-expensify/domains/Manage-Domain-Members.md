@@ -23,6 +23,20 @@ Your domain must be verified before you can invite and manage members. Learn how
 
 ---
 
+## What you see if your domain isn't verified
+
+If your domain isn't verified, the **Domain members** page shows a prompt to verify your domain instead of the member list. The prompt explains what verifying unlocks — restrict workspace creation, enable SAML SSO, and enforce 2FA — and includes a **Verify domain** button.
+
+Click **Verify domain** to start verification. Once your domain is verified, the member list appears and you can invite and manage members.
+
+<!-- SCREENSHOT:
+Suggestion: Domain members page for an unverified domain, showing the verification prompt and the Verify domain button
+Location: Under "What you see if your domain isn't verified"
+Purpose: Helps Domain Admins recognize the verification prompt and where to click to verify
+-->
+
+---
+
 ## How to add a Domain Member
 
 You can add Domain Members in two ways: automatically or manually.
