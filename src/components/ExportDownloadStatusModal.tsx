@@ -89,15 +89,15 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
         if (isPreparing) {
             return (
                 <>
-                    <ActivityIndicator
-                        size="large"
-                        style={styles.mb4}
-                        reasonAttributes={{context: 'ExportDownloadStatusModal.preparing'}}
-                    />
-                    <Text style={[styles.textHeadlineH1, styles.textAlignCenter, styles.mb2]}>{translate('exportDownload.preparingTitle')}</Text>
-                    <Text style={[styles.textAlignCenter, styles.mb5]}>{translate('exportDownload.preparingBody')}</Text>
+                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mb2]}>
+                        <Text style={[styles.textHeadlineH1, styles.flexShrink1]}>{translate('exportDownload.preparingTitle')}</Text>
+                        <ActivityIndicator
+                            size="small"
+                            reasonAttributes={{context: 'ExportDownloadStatusModal.preparing'}}
+                        />
+                    </View>
+                    <Text style={styles.mb5}>{translate('exportDownload.preparingBody')}</Text>
                     <Button
-                        success
                         text={translate('exportDownload.sendFromConcierge')}
                         onPress={handleSendFromConcierge}
                         style={styles.w100}
@@ -109,8 +109,8 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
         if (isConcierge) {
             return (
                 <>
-                    <Text style={[styles.textHeadlineH1, styles.textAlignCenter, styles.mb2]}>{translate('exportDownload.conciergeTitle')}</Text>
-                    <Text style={[styles.textAlignCenter, styles.mb5]}>{translate('exportDownload.conciergeBody')}</Text>
+                    <Text style={[styles.textHeadlineH1, styles.mb2]}>{translate('exportDownload.conciergeTitle')}</Text>
+                    <Text style={styles.mb5}>{translate('exportDownload.conciergeBody')}</Text>
                     <Button
                         success
                         text={translate('exportDownload.goToConcierge')}
@@ -129,8 +129,8 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
         if (isReady) {
             return (
                 <>
-                    <Text style={[styles.textHeadlineH1, styles.textAlignCenter, styles.mb2]}>{translate('exportDownload.readyTitle')}</Text>
-                    <Text style={[styles.textAlignCenter, styles.mb5]}>{translate('exportDownload.readyBody')}</Text>
+                    <Text style={[styles.textHeadlineH1, styles.mb2]}>{translate('exportDownload.readyTitle')}</Text>
+                    <Text style={styles.mb5}>{translate('exportDownload.readyBody')}</Text>
                     <Button
                         success
                         text={translate('exportDownload.downloadFile')}
@@ -149,8 +149,8 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
         if (isFailed) {
             return (
                 <>
-                    <Text style={[styles.textHeadlineH1, styles.textAlignCenter, styles.mb2]}>{translate('exportDownload.failedTitle')}</Text>
-                    {!!failedBody && <Text style={[styles.textAlignCenter, styles.mb5]}>{failedBody}</Text>}
+                    <Text style={[styles.textHeadlineH1, styles.mb2]}>{translate('exportDownload.failedTitle')}</Text>
+                    {!!failedBody && <Text style={styles.mb5}>{failedBody}</Text>}
                     <Button
                         text={translate('exportDownload.close')}
                         onPress={handleClose}
@@ -171,7 +171,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
         >
-            <View style={[styles.m5, styles.alignItemsCenter]}>{renderContent()}</View>
+            <View style={styles.m5}>{renderContent()}</View>
         </Modal>
     );
 }

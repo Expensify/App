@@ -9413,6 +9413,7 @@ const translations = {
         readyBody: "If it didn't automatically download, use the button below.",
         downloadFile: 'Download file',
         failedTitle: 'Export failed',
+        csvFailedBody: 'Your export could not be completed. Please try again later.',
         close: 'Close',
     },
     domain: {

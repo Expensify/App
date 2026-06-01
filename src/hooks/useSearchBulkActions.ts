@@ -308,6 +308,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     > | null>(null);
 
     const [emptyReportsCount, setEmptyReportsCount] = useState<number>(0);
+    const [activeExportID, setActiveExportID] = useState<string | null>(null);
+    const [activeExportDownload] = useOnyx(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${activeExportID ?? ''}`);
+    console.log('>>>>>>>>>>>>>>', {activeExportID});
 
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
@@ -459,7 +462,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionsKeys);
 
     const beginExportWithTemplate = useCallback(
-        async (templateName: string, templateType: string, policyID: string | undefined) => {
+        (templateName: string, templateType: string, policyID: string | undefined) => {
             const emptyReports =
                 selectedReports?.filter((selectedReport) => {
                     if (!selectedReport) {
@@ -479,9 +482,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 setIsOfflineModalVisible(true);
                 return;
             }
-
+            let exportID: string;
             if (areAllMatchingItemsSelected) {
-                queueExportSearchWithTemplate({
+                exportID = queueExportSearchWithTemplate({
                     templateName,
                     templateType,
                     jsonQuery: queryJSON ? serializeQueryJSONForBackend(queryJSON) : JSON.stringify(queryJSON),
@@ -490,7 +493,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     policyID,
                 });
             } else {
-                queueExportSearchWithTemplate({
+                exportID = queueExportSearchWithTemplate({
                     templateName,
                     templateType,
                     jsonQuery: '{}',
@@ -499,30 +502,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     policyID,
                 });
             }
-
-            const result = await showConfirmModal({
-                title: translate('export.exportInProgress'),
-                prompt: translate('export.conciergeWillSend'),
-                confirmText: translate('common.buttonConfirm'),
-                shouldShowCancelButton: false,
-            });
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-            clearSelectedTransactions(undefined, true);
+            setActiveExportID(exportID);
         },
-        [
-            selectedReports,
-            isOffline,
-            areAllMatchingItemsSelected,
-            showConfirmModal,
-            translate,
-            clearSelectedTransactions,
-            currentSearchResults?.data,
-            queryJSON,
-            selectedTransactionReportIDs,
-            selectedTransactionsKeys,
-        ],
+        [selectedReports, isOffline, areAllMatchingItemsSelected, currentSearchResults?.data, queryJSON, selectedTransactionReportIDs, selectedTransactionsKeys],
     );
 
     const policyIDsWithVBBA = useMemo(() => {
@@ -580,21 +562,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
 
             if (areAllMatchingItemsSelected) {
-                const result = await showConfirmModal({
-                    title: translate('search.exportSearchResults.title'),
-                    prompt: translate('search.exportSearchResults.description'),
-                    confirmText: translate('search.exportSearchResults.title'),
-                    cancelText: translate('common.cancel'),
-                });
-                if (result.action !== ModalActions.CONFIRM) {
-                    return;
-                }
                 if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
                     return;
                 }
                 const reportIDList = selectedReports?.map((report) => report?.reportID).filter((reportID) => reportID !== undefined) ?? [];
                 const exportParameters = getCSVExportParameters(isBasicExport);
-                queueExportSearchItemsToCSV({
+                const exportID = queueExportSearchItemsToCSV({
                     query: status,
                     jsonQuery: exportParameters.jsonQuery,
                     reportIDList,
@@ -602,8 +575,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     isBasicExport: exportParameters.isBasicExport,
                     exportColumnLabels: exportParameters.exportColumnLabels,
                 });
-                selectAllMatchingItems(false);
-                clearSelectedTransactions();
+                setActiveExportID(exportID);
                 return;
             }
 
@@ -639,9 +611,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             selectedTransactionsKeys,
             translate,
             clearSelectedTransactions,
-            showConfirmModal,
             hash,
-            selectAllMatchingItems,
             getCSVExportParameters,
         ],
     );
@@ -1809,6 +1779,15 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         setRejectModalAction(null);
     }, [rejectModalAction, hash, selectedTransactionsKeys.length]);
 
+    const handleExportModalClose = useCallback(() => {
+        if (activeExportDownload?.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING && !activeExportDownload?.shouldSendFromConcierge) {
+            return;
+        }
+        setActiveExportID(null);
+        selectAllMatchingItems(false);
+        clearSelectedTransactions();
+    }, [activeExportDownload, selectAllMatchingItems, clearSelectedTransactions]);
+
     return {
         headerButtonsOptions,
         selectedPolicyIDs,
@@ -1836,6 +1815,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         allTransactions: allTransactionsForDuplicate,
         allReports,
         searchData: currentSearchResults?.data,
+        activeExportID,
+        handleExportModalClose,
     };
 }
 

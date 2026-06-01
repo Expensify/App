@@ -1,0 +1,82 @@
+import {queueExportSearchItemsToCSV, queueExportSearchWithTemplate} from '@libs/actions/Search';
+import {write} from '@libs/API';
+import {WRITE_COMMANDS} from '@libs/API/types';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
+
+const EXPENSE_STATUS_ALL = CONST.SEARCH.STATUS.EXPENSE.ALL;
+
+jest.mock('@libs/API');
+jest.mock('@libs/Network/enhanceParameters', () => ({
+    __esModule: true,
+    default: (_: string, params: Record<string, unknown>) => params,
+}));
+
+const mockWrite = jest.mocked(write);
+
+function getWriteOptions(): {optimisticData: AnyOnyxUpdate[]} {
+    const options = mockWrite.mock.calls.at(-1)?.at(2);
+    if (!options || typeof options !== 'object' || !('optimisticData' in options)) {
+        throw new Error('write was not called with optimistic options');
+    }
+    return options as {optimisticData: AnyOnyxUpdate[]};
+}
+
+describe('queueExportSearchItemsToCSV', () => {
+    beforeEach(() => jest.clearAllMocks());
+
+    it('sets optimistic Onyx data with state preparing and returns exportID', () => {
+        const exportID = queueExportSearchItemsToCSV({
+            query: EXPENSE_STATUS_ALL,
+            jsonQuery: '{}',
+            reportIDList: [],
+            transactionIDList: [],
+            isBasicExport: true,
+            exportColumnLabels: '{}',
+        });
+
+        expect(typeof exportID).toBe('string');
+        expect(exportID.length).toBeGreaterThan(0);
+
+        expect(mockWrite).toHaveBeenCalledWith(
+            WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV,
+            expect.objectContaining({exportID}),
+            expect.objectContaining({optimisticData: expect.any(Array)}),
+        );
+
+        const {optimisticData} = getWriteOptions();
+        const exportDownloadUpdate = optimisticData.find((u) => u.key === `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}`);
+        expect(exportDownloadUpdate).toBeDefined();
+        expect(exportDownloadUpdate?.value).toEqual({state: CONST.EXPORT_DOWNLOAD.STATE.PREPARING});
+    });
+});
+
+describe('queueExportSearchWithTemplate', () => {
+    beforeEach(() => jest.clearAllMocks());
+
+    it('sets optimistic Onyx data with state preparing and returns exportID', () => {
+        const exportID = queueExportSearchWithTemplate({
+            templateName: 'Test Template',
+            templateType: 'csv',
+            jsonQuery: '{}',
+            reportIDList: [],
+            transactionIDList: [],
+            policyID: 'policy123',
+        });
+
+        expect(typeof exportID).toBe('string');
+        expect(exportID.length).toBeGreaterThan(0);
+
+        expect(mockWrite).toHaveBeenCalledWith(
+            WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE,
+            expect.objectContaining({exportID}),
+            expect.objectContaining({optimisticData: expect.any(Array)}),
+        );
+
+        const {optimisticData} = getWriteOptions();
+        const exportDownloadUpdate = optimisticData.find((u) => u.key === `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}`);
+        expect(exportDownloadUpdate).toBeDefined();
+        expect(exportDownloadUpdate?.value).toEqual({state: CONST.EXPORT_DOWNLOAD.STATE.PREPARING});
+    });
+});

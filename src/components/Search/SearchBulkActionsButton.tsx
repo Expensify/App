@@ -1,9 +1,10 @@
 import {isUserValidatedSelector} from '@selectors/Account';
-import React, {useContext, useMemo, useRef} from 'react';
+import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import DecisionModal from '@components/DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import ExportDownloadStatusModal from '@components/ExportDownloadStatusModal';
 import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
 import HoldSubmitterEducationalModal from '@components/HoldSubmitterEducationalModal';
 import KYCWall from '@components/KYCWall';
@@ -80,6 +81,8 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         allTransactions,
         allReports,
         searchData,
+        activeExportID,
+        handleExportModalClose,
     } = useSearchBulkActions({queryJSON});
     const currentSelectedPolicyID = selectedPolicyIDs?.at(0);
     const currentSelectedReportID = selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0);
@@ -265,6 +268,14 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                 <HoldSubmitterEducationalModal
                     onClose={dismissModalAndUpdateUseHold}
                     onConfirm={dismissModalAndUpdateUseHold}
+                />
+            )}
+            {!!activeExportID && (
+                <ExportDownloadStatusModal
+                    exportID={activeExportID}
+                    isVisible={!!activeExportID}
+                    onClose={handleExportModalClose}
+                    failedBody={translate('exportDownload.csvFailedBody')}
                 />
             )}
         </>

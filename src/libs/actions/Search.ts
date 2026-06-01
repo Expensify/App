@@ -17,6 +17,8 @@ import type {
     ExportSearchWithTemplateParams,
     OpenBulkChangeApproverPageParams,
     OpenSearchPageParams,
+    QueueExportSearchItemsToCSVParams,
+    QueueExportSearchWithTemplateParams,
     ReportExportParams,
     SubmitReportParams,
 } from '@libs/API/parameters';
@@ -73,7 +75,7 @@ import type {
 } from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
-import type {OnyxData} from '@src/types/onyx/Request';
+import type {AnyOnyxUpdate, OnyxData} from '@src/types/onyx/Request';
 import type Nullable from '@src/types/utils/Nullable';
 import SafeString from '@src/utils/SafeString';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
@@ -1193,7 +1195,17 @@ function exportSearchItemsToCSV(
     return fileDownload(translate, getCommandURL({command: WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
-function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList, isBasicExport, exportColumnLabels}: ExportSearchItemsToCSVParams) {
+function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList, isBasicExport, exportColumnLabels}: ExportSearchItemsToCSVParams): string {
+    const exportID = rand64();
+
+    const optimisticData: AnyOnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}`,
+            value: {state: CONST.EXPORT_DOWNLOAD.STATE.PREPARING},
+        },
+    ];
+
     const finalParameters = enhanceParameters(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, {
         query,
         jsonQuery,
@@ -1201,12 +1213,25 @@ function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactio
         transactionIDList,
         isBasicExport,
         exportColumnLabels,
-    }) as ExportSearchItemsToCSVParams;
+        exportID,
+    }) as QueueExportSearchItemsToCSVParams;
 
-    API.write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, finalParameters);
+    API.write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, finalParameters, {optimisticData});
+
+    return exportID;
 }
 
-function queueExportSearchWithTemplate({templateName, templateType, jsonQuery, reportIDList, transactionIDList, policyID}: ExportSearchWithTemplateParams) {
+function queueExportSearchWithTemplate({templateName, templateType, jsonQuery, reportIDList, transactionIDList, policyID}: ExportSearchWithTemplateParams): string {
+    const exportID = rand64();
+
+    const optimisticData: AnyOnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}`,
+            value: {state: CONST.EXPORT_DOWNLOAD.STATE.PREPARING},
+        },
+    ];
+
     const finalParameters = enhanceParameters(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE, {
         templateName,
         templateType,
@@ -1214,9 +1239,12 @@ function queueExportSearchWithTemplate({templateName, templateType, jsonQuery, r
         reportIDList,
         transactionIDList,
         policyID,
-    }) as ExportSearchWithTemplateParams;
+        exportID,
+    }) as QueueExportSearchWithTemplateParams;
 
-    API.write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE, finalParameters);
+    API.write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE, finalParameters, {optimisticData});
+
+    return exportID;
 }
 
 /**
