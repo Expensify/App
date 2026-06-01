@@ -19,7 +19,7 @@ function HighContrastModeSwitcher() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
-    const icons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
+    const icons = useMemoizedLazyExpensifyIcons(['Moon']);
 
     const currentTheme = preferredTheme ?? CONST.THEME.DEFAULT;
     const isHighContrast = isHighContrastTheme(currentTheme);
@@ -41,7 +41,7 @@ function HighContrastModeSwitcher() {
             style={[styles.flexRow, styles.alignItemsCenter]}
         >
             <Icon
-                src={icons.Lightbulb}
+                src={icons.Moon}
                 fill={isHighContrast ? theme.text : theme.icon}
                 width={variables.iconSizeSmall}
                 height={variables.iconSizeSmall}
