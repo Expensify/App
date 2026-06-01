@@ -58,6 +58,8 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     const formattedTaxAmount = convertToDisplayString(taxAmount, iouCurrencyCode);
     const taxAmountInput = convertToFrontendAmountAsString(taxAmount, decimals);
     const taxRateTitle = getTaxRateTitle(policy, transactionForHelpers, isMovingCurrentTransactionFromTrackExpense, policyForMovingExpenses);
+    
+    const taxAmountInputKey = `${taxSlice?.taxCode}-${taxSlice?.taxValue}-${taxSlice?.amount}-${effectiveCurrency}`;
 
     // The tax amount is only validated on submit (see useConfirmationValidation), matching how the other fields behave.
     // Here we just surface the resulting form error; `formattedMaxTaxAmount` is the limit shown in that error message.
@@ -110,6 +112,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
             {isNewManualExpenseFlowEnabled && canModifyTaxFields ? (
                 <View style={[styles.mh4, styles.mv2]}>
                     <NumberWithSymbolForm
+                        key={taxAmountInputKey}
                         displayAsTextInput
                         autoFocus={false}
                         value={taxAmountInput}
