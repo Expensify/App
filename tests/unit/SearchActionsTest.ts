@@ -15,12 +15,12 @@ jest.mock('@libs/Network/enhanceParameters', () => ({
 
 const mockWrite = jest.mocked(write);
 
-function getWriteOptions(): {optimisticData: AnyOnyxUpdate[]} {
+function getWriteOptions(): {optimisticData: AnyOnyxUpdate[]; failureData: AnyOnyxUpdate[]} {
     const options = mockWrite.mock.calls.at(-1)?.at(2);
     if (!options || typeof options !== 'object' || !('optimisticData' in options)) {
         throw new Error('write was not called with optimistic options');
     }
-    return options as {optimisticData: AnyOnyxUpdate[]};
+    return options as {optimisticData: AnyOnyxUpdate[]; failureData: AnyOnyxUpdate[]};
 }
 
 describe('queueExportSearchItemsToCSV', () => {
@@ -42,13 +42,17 @@ describe('queueExportSearchItemsToCSV', () => {
         expect(mockWrite).toHaveBeenCalledWith(
             WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV,
             expect.objectContaining({exportID}),
-            expect.objectContaining({optimisticData: expect.any(Array)}),
+            expect.objectContaining({optimisticData: expect.any(Array), failureData: expect.any(Array)}),
         );
 
-        const {optimisticData} = getWriteOptions();
+        const {optimisticData, failureData} = getWriteOptions();
         const exportDownloadUpdate = optimisticData.find((u) => u.key === `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}`);
         expect(exportDownloadUpdate).toBeDefined();
         expect(exportDownloadUpdate?.value).toEqual({state: CONST.EXPORT_DOWNLOAD.STATE.PREPARING});
+
+        const failureUpdate = failureData.find((u) => u.key === `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}`);
+        expect(failureUpdate).toBeDefined();
+        expect(failureUpdate?.value).toEqual({state: CONST.EXPORT_DOWNLOAD.STATE.FAILED});
     });
 });
 
@@ -71,12 +75,16 @@ describe('queueExportSearchWithTemplate', () => {
         expect(mockWrite).toHaveBeenCalledWith(
             WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE,
             expect.objectContaining({exportID}),
-            expect.objectContaining({optimisticData: expect.any(Array)}),
+            expect.objectContaining({optimisticData: expect.any(Array), failureData: expect.any(Array)}),
         );
 
-        const {optimisticData} = getWriteOptions();
+        const {optimisticData, failureData} = getWriteOptions();
         const exportDownloadUpdate = optimisticData.find((u) => u.key === `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}`);
         expect(exportDownloadUpdate).toBeDefined();
         expect(exportDownloadUpdate?.value).toEqual({state: CONST.EXPORT_DOWNLOAD.STATE.PREPARING});
+
+        const failureUpdate = failureData.find((u) => u.key === `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}`);
+        expect(failureUpdate).toBeDefined();
+        expect(failureUpdate?.value).toEqual({state: CONST.EXPORT_DOWNLOAD.STATE.FAILED});
     });
 });
