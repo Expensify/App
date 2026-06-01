@@ -5,6 +5,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setPolicyTravelSettings} from '@libs/actions/Policy/Travel';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
@@ -20,6 +21,7 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
+    const {canWrite: canWriteMoreFeatures, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const icons = useMemoizedLazyExpensifyIcons(['LuggageWithLines', 'NewWindow']);
     const {isBetaEnabled} = usePermissions();
     const isTravelInvoicingEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING);
@@ -48,15 +50,17 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                 subtitleMuted
                 isCentralPane
             >
-                <MenuItem
-                    title={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.ctaText')}
-                    icon={icons.LuggageWithLines}
-                    onPress={handleManageTravel}
-                    shouldShowRightIcon
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.BOOK_TRAVEL_BUTTON}
-                    iconRight={icons.NewWindow}
-                    wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
-                />
+                {canWriteMoreFeatures && (
+                    <MenuItem
+                        title={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.ctaText')}
+                        icon={icons.LuggageWithLines}
+                        onPress={handleManageTravel}
+                        shouldShowRightIcon
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.BOOK_TRAVEL_BUTTON}
+                        iconRight={icons.NewWindow}
+                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
+                    />
+                )}
                 <ToggleSettingOptionRow
                     title={translate('workspace.moreFeatures.travel.settings.autoAddTripName.title')}
                     subtitle={translate('workspace.moreFeatures.travel.settings.autoAddTripName.subtitle')}
@@ -64,6 +68,9 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                     switchAccessibilityLabel={translate('workspace.moreFeatures.travel.settings.autoAddTripName.title')}
                     isActive={autoAddTripName}
                     onToggle={toggleAutoAddTripName}
+                    disabled={!canWriteMoreFeatures}
+                    disabledAction={showReadOnlyModal}
+                    showLockIcon={!canWriteMoreFeatures}
                     pendingAction={policy?.pendingFields?.travelSettings}
                     wrapperStyle={styles.mt3}
                 />

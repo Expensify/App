@@ -4,16 +4,11 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useMoneyReportHeaderStatusBar from '@hooks/useMoneyReportHeaderStatusBar';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
-import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
-import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isInvoiceReport as isInvoiceReportUtil} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,6 +19,7 @@ import MoneyReportHeaderActions from './MoneyReportHeaderActions';
 import type {MoneyReportHeaderActionsProps} from './MoneyReportHeaderActions/types';
 import MoneyReportHeaderNextStep from './MoneyReportHeaderNextStep';
 import MoneyReportHeaderStatusBarSection from './MoneyReportHeaderStatusBarSection';
+import {useMoneyReportTransactionThread} from './MoneyReportTransactionThreadContext';
 
 type MoneyReportHeaderMoreContentProps = {
     reportID: string | undefined;
@@ -95,25 +91,9 @@ function MoneyReportHeaderMoreContentBody({
     shouldRenderActionsInRow,
 }: MoneyReportHeaderMoreContentBodyProps) {
     const styles = useThemeStyles();
-    const {isOffline} = useNetwork();
 
     const reportID = moneyRequestReport?.reportID;
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`);
-
-    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(reportID);
-    const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
-
-    const allReportTransactions = useReportTransactionsCollection(reportID);
-    const nonDeletedTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
-    const visibleTransactionsForThreadID = nonDeletedTransactions?.filter((t) => isOffline || t.pendingAction !== 'delete');
-    const reportTransactionIDs = visibleTransactionsForThreadID?.map((t) => t.transactionID);
-    const transactionThreadReportID = getOneTransactionThreadReportID(moneyRequestReport, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
-
-    const requestParentReportAction =
-        reportActions && transactionThreadReport?.parentReportActionID ? reportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID) : null;
-
-    const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
+    const {iouTransactionID} = useMoneyReportTransactionThread();
 
     return (
         <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3, styles.mtn1]}>

@@ -74,6 +74,7 @@ function getSendMoneyParams({
     receipt,
     optimisticChatReportID,
     currentUserAccountID,
+    delegateAccountID,
 }: {
     report: OnyxEntry<OnyxTypes.Report>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
@@ -88,6 +89,8 @@ function getSendMoneyParams({
     receipt?: Receipt;
     optimisticChatReportID?: string;
     currentUserAccountID: number;
+    // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountID?: number | undefined;
 }): SendMoneyParamsData {
     const recipientEmail = addSMSDomainIfPhoneNumber(recipient.login ?? '');
     const recipientAccountID = Number(recipient.accountID);
@@ -145,9 +148,10 @@ function getSendMoneyParams({
             paymentType: paymentMethodType,
             isSendMoneyFlow: true,
             currentUserAccountID,
+            delegateAccountIDParam: delegateAccountID,
         });
 
-    const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticIOUReport);
+    const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticIOUReport, undefined, undefined, undefined, undefined, undefined, delegateAccountID);
 
     // Change the method to set for new reports because it doesn't exist yet, is faster,
     // and we need the data to be available when we navigate to the chat page
@@ -496,6 +500,8 @@ type SendMoneyActionParams = {
     optimisticChatReportID?: string;
     shouldStartTracking?: boolean;
     shouldDeferForSearch?: boolean;
+    // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountID?: number | undefined;
 };
 
 function executeSendMoney(
@@ -503,7 +509,7 @@ function executeSendMoney(
     paymentMethodType: typeof CONST.IOU.PAYMENT_TYPE.ELSEWHERE | typeof CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
     writeCommand: typeof WRITE_COMMANDS.SEND_MONEY_ELSEWHERE | typeof WRITE_COMMANDS.SEND_MONEY_WITH_WALLET,
 ) {
-    const {report, quickAction, amount, currency, comment, currentUserAccountID, recipient, created, merchant, receipt, optimisticChatReportID} = actionParams;
+    const {report, quickAction, amount, currency, comment, currentUserAccountID, recipient, created, merchant, receipt, optimisticChatReportID, delegateAccountID} = actionParams;
     const {shouldStartTracking = true, shouldDeferForSearch = false} = actionParams;
 
     const {params, optimisticData, successData, failureData} = getSendMoneyParams({
@@ -520,6 +526,7 @@ function executeSendMoney(
         receipt,
         optimisticChatReportID,
         currentUserAccountID,
+        delegateAccountID,
     });
     if (shouldStartTracking) {
         startTracking(
