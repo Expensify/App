@@ -119,6 +119,7 @@ function IOURequestStepDistanceManual({
         transaction,
         policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy,
         useTransactionDistanceUnit: isEditing,
+        personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
     });
     const unit = mileageRate.unit;
     const rate = mileageRate.rate ?? 0;
