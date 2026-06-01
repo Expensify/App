@@ -6,7 +6,7 @@ import type {DerivedValueContext} from '@libs/actions/OnyxDerived/types';
 import CONST from '@src/CONST';
 import sidebarOrderedReportsConfig from '@src/libs/actions/OnyxDerived/configs/sidebarOrderedReports';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Network} from '@src/types/onyx';
+import type {Beta, Network, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
 import createCollection from '../utils/collections/createCollection';
@@ -43,8 +43,23 @@ const EMPTY_CONTEXT: DerivedValueContext<typeof sidebarOrderedReportsConfig.key,
     sourceValues: undefined,
 };
 
-function buildArgs(): ConfigArgs {
-    return [allReports, undefined, undefined, undefined, undefined, undefined, defaultPriorityMode, mockedBetas, network, locale] as unknown as ConfigArgs;
+function buildArgs(reportAttributes?: ReportAttributesDerivedValue): ConfigArgs {
+    return [allReports, undefined, undefined, undefined, undefined, undefined, defaultPriorityMode, mockedBetas, network, locale, reportAttributes] as unknown as ConfigArgs;
+}
+
+function buildReportAttributes(): ReportAttributesDerivedValue {
+    const reports: ReportAttributesDerivedValue['reports'] = {};
+    for (const key of Object.keys(allReports ?? {})) {
+        const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT, '');
+        reports[reportID] = {
+            reportName: `Report ${reportID}`,
+            isEmpty: false,
+            brickRoadStatus: undefined,
+            requiresAttention: false,
+            reportErrors: {},
+        };
+    }
+    return {reports, locale};
 }
 
 describe('SidebarOrderedReports derived value', () => {
@@ -84,5 +99,22 @@ describe('SidebarOrderedReports derived value', () => {
                 sourceValues: {[ONYXKEYS.COLLECTION.REPORT]: sourceValue},
             }),
         );
+    });
+
+    // REPORT_ATTRIBUTES is a non-collection dependency, so a change to it takes the full-recompute branch.
+    test('[sidebarOrderedReports] report attributes update, 15k reports', async () => {
+        await waitForBatchedUpdates();
+        const reportAttributes = buildReportAttributes();
+        const args = buildArgs(reportAttributes);
+        const seeded = sidebarOrderedReportsConfig.compute(args, EMPTY_CONTEXT);
+
+        // DerivedSourceValues only types collection deltas, but the framework passes any changed
+        // dependency's value at runtime, so we cast to feed the non-collection REPORT_ATTRIBUTES source.
+        const context = {
+            currentValue: seeded,
+            sourceValues: {[ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: reportAttributes},
+        } as unknown as typeof EMPTY_CONTEXT;
+
+        await measureFunction(() => sidebarOrderedReportsConfig.compute(args, context));
     });
 });
