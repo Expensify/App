@@ -366,6 +366,7 @@ function IOURequestStepAmount({
                             merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                             reimbursable: defaultReimbursable,
                         },
+                        existingTransaction: storedTransaction ?? transaction,
                         isASAPSubmitBetaEnabled,
                         currentUser: {accountID: currentUserAccountIDParam, email: currentUserEmailParam},
                         introSelected,

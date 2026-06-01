@@ -121,4 +121,4 @@ function submitWithDismissFirst({executeWrite, destinationReportID, telemetryCon
 }
 
 export {submitWithDismissFirst};
-export type {DismissFirstSubmitOptions, WriteOverrides};
+export type {WriteOverrides};
