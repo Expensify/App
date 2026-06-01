@@ -220,7 +220,7 @@ function DynamicIOURequestStepUpgradePage({
                 break;
             case CONST.UPGRADE_PATHS.CATEGORIES:
                 Navigation.goBack(backPath);
-                navigateWithMicrotask(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID), backPath));
+                navigateWithMicrotask(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID)));
 
                 break;
             default:
