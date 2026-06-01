@@ -80,14 +80,6 @@ jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed
 
 const ACTOR_ACCOUNT_ID = 123456789;
 const actorEmail = 'test@test.com';
-const testPersonalDetailsList = {
-    [ACTOR_ACCOUNT_ID]: {
-        accountID: ACTOR_ACCOUNT_ID,
-        avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_9.png',
-        displayName: actorEmail,
-        login: actorEmail,
-    },
-};
 
 const createReportAction = (actionName: ReportActionName, originalMessageExtras: Partial<OriginalMessage<ReportActionName>>) =>
     ({
@@ -147,11 +139,11 @@ describe('PureReportActionItem', () => {
                         <PortalProvider>
                             <PureReportActionItem
                                 report={undefined}
+                                transactionThreadReport={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
                                 shouldDisplayNewMarker={false}
-                                index={0}
                                 isFirstVisibleReportAction={false}
                             />
                         </PortalProvider>
@@ -433,11 +425,11 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -481,11 +473,11 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -533,11 +525,11 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -577,11 +569,11 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -650,12 +642,12 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={report}
+                                    transactionThreadReport={undefined}
                                     originalReportID={report.reportID}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -711,12 +703,12 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={report}
+                                    transactionThreadReport={undefined}
                                     originalReportID={report.reportID}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -795,11 +787,11 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={report}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -974,11 +966,11 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={report}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1021,11 +1013,11 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={report}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1175,11 +1167,11 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={report}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1354,11 +1346,11 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={{reportID: 'testReport', policyID: 'pol123'}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1445,11 +1437,11 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={{reportID: 'testReport'}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                     isClosedExpenseReportWithNoExpenses
                                 />
@@ -1481,13 +1473,12 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
-                                    personalDetails={testPersonalDetailsList}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1519,13 +1510,12 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
-                                    personalDetails={testPersonalDetailsList}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1568,13 +1558,12 @@ describe('PureReportActionItem', () => {
                                         parentReportActionID: 'parentAction',
                                         ownerAccountID: 0,
                                     }}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
-                                    personalDetails={testPersonalDetailsList}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1605,13 +1594,12 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
-                                    personalDetails={testPersonalDetailsList}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1646,13 +1634,12 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
-                                    personalDetails={testPersonalDetailsList}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1685,11 +1672,11 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={undefined}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1722,11 +1709,11 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={undefined}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1762,11 +1749,11 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={undefined}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1803,11 +1790,11 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={undefined}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1928,11 +1915,11 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={{reportID: 'testReport', type: CONST.REPORT.TYPE.CHAT}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1965,11 +1952,11 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={{reportID: 'testReport', isWaitingOnBankAccount: true}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -2544,11 +2531,11 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={{reportID: 'testReport', chatReportID: 'chatReport1'}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -2642,12 +2629,12 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
+                                    transactionThreadReport={undefined}
                                     report={{reportID: HARVEST_REPORT_ID}}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                     isHarvestCreatedExpenseReport
                                 />
@@ -2685,10 +2672,10 @@ describe('PureReportActionItem', () => {
                                 <PureReportActionItem
                                     report={{reportID: HARVEST_REPORT_ID}}
                                     parentReportAction={undefined}
+                                    transactionThreadReport={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                     isHarvestCreatedExpenseReport
                                 />
@@ -2733,11 +2720,11 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={undefined}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                     isThreadReportParentAction
                                 />
