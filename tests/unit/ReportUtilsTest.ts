@@ -10640,7 +10640,6 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const onyxData = {optimisticData: [], failureData: []};
-            // policyUpdate-only call (simulates setPolicyRulesEnabled and similar)
             const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, result.current, {requiresCategory: true}, {}, {});
             pushTransactionViolationsOnyxData(onyxData, result.current, {requiresCategory: true}, {}, {}, autoSelections);
             const hasTransactionMerge = onyxData.optimisticData.some((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`);
