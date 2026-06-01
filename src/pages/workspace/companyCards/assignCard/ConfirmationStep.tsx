@@ -1,6 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import {InteractionManager, View} from 'react-native';
 import Button from '@components/Button';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItem from '@components/MenuItem';
@@ -78,16 +79,11 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
             return;
         }
 
+        Navigation.dismissModal();
         if (backTo) {
-            Navigation.dismissModal();
-            Navigation.navigate(backTo, {
-                afterTransition: () => clearAssignCardStepAndData(),
-            });
-        } else {
-            Navigation.dismissModal({
-                afterTransition: () => clearAssignCardStepAndData(),
-            });
+            Navigation.navigate(backTo);
         }
+        InteractionManager.runAfterInteractions(() => clearAssignCardStepAndData());
     }, [assignCard?.isAssignmentFinished, backTo]);
 
     const submit = () => {
