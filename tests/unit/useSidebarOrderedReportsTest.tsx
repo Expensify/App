@@ -70,7 +70,7 @@ describe('useSidebarOrderedReports', () => {
                 [ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT]: {},
                 [ONYXKEYS.BETAS]: [],
                 [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: {reports: {}},
-                [ONYXKEYS.DERIVED.SIDEBAR_ORDERED_REPORTS]: {reportsToDisplay: {}, orderedReportIDs: []},
+                [ONYXKEYS.DERIVED.RAM_ONLY_SIDEBAR_ORDERED_REPORTS]: {reportsToDisplay: {}, orderedReportIDs: []},
             } as unknown as OnyxMultiSetInput);
         });
         await waitForBatchedUpdatesWithAct();
@@ -103,7 +103,7 @@ describe('useSidebarOrderedReports', () => {
             await Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT}1`]: report1,
                 [`${ONYXKEYS.COLLECTION.REPORT}2`]: report2,
-                [ONYXKEYS.DERIVED.SIDEBAR_ORDERED_REPORTS]: {
+                [ONYXKEYS.DERIVED.RAM_ONLY_SIDEBAR_ORDERED_REPORTS]: {
                     reportsToDisplay: {[`${ONYXKEYS.COLLECTION.REPORT}1`]: report1, [`${ONYXKEYS.COLLECTION.REPORT}2`]: report2},
                     orderedReportIDs: ['2', '1'],
                 },
@@ -124,7 +124,7 @@ describe('useSidebarOrderedReports', () => {
         await act(async () => {
             await Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT}1`]: report1,
-                [ONYXKEYS.DERIVED.SIDEBAR_ORDERED_REPORTS]: {
+                [ONYXKEYS.DERIVED.RAM_ONLY_SIDEBAR_ORDERED_REPORTS]: {
                     reportsToDisplay: {[`${ONYXKEYS.COLLECTION.REPORT}1`]: report1},
                     orderedReportIDs: ['1'],
                 },
@@ -143,7 +143,7 @@ describe('useSidebarOrderedReports', () => {
         currentReportIDForTest = '2';
         await act(async () => {
             await Onyx.multiSet({
-                [ONYXKEYS.DERIVED.SIDEBAR_ORDERED_REPORTS]: {reportsToDisplay: {}, orderedReportIDs: []},
+                [ONYXKEYS.DERIVED.RAM_ONLY_SIDEBAR_ORDERED_REPORTS]: {reportsToDisplay: {}, orderedReportIDs: []},
             } as unknown as OnyxMultiSetInput);
         });
         await waitForBatchedUpdatesWithAct();

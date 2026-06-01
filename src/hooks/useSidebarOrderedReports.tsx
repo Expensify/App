@@ -49,7 +49,7 @@ function SidebarOrderedReportsContextProvider({
     currentReportIDForTests,
 }: SidebarOrderedReportsContextProviderProps) {
     const {localeCompare} = useLocalize();
-    const [derived] = useOnyx(ONYXKEYS.DERIVED.SIDEBAR_ORDERED_REPORTS);
+    const [derived] = useOnyx(ONYXKEYS.DERIVED.RAM_ONLY_SIDEBAR_ORDERED_REPORTS);
     const [chatReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [reportsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);

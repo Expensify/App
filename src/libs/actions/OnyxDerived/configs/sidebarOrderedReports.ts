@@ -73,7 +73,7 @@ function buildHasDraftMap(reportsDrafts: Record<string, string | null | undefine
 }
 
 export default createOnyxDerivedValueConfig({
-    key: ONYXKEYS.DERIVED.SIDEBAR_ORDERED_REPORTS,
+    key: ONYXKEYS.DERIVED.RAM_ONLY_SIDEBAR_ORDERED_REPORTS,
     dependencies: [
         ONYXKEYS.COLLECTION.REPORT,
         ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,

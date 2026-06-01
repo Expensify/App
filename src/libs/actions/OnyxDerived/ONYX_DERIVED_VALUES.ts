@@ -28,7 +28,7 @@ const ONYX_DERIVED_VALUES = {
     [ONYXKEYS.DERIVED.TODOS]: todosConfig,
     [ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS]: sortedReportActionsConfig,
     [ONYXKEYS.DERIVED.OPEN_AND_SUBMITTED_REPORTS_BY_POLICY_ID]: openAndSubmittedReportsByPolicyIDConfig,
-    [ONYXKEYS.DERIVED.SIDEBAR_ORDERED_REPORTS]: sidebarOrderedReportsConfig,
+    [ONYXKEYS.DERIVED.RAM_ONLY_SIDEBAR_ORDERED_REPORTS]: sidebarOrderedReportsConfig,
 } as const satisfies {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [Key in ValueOf<typeof ONYXKEYS.DERIVED>]: OnyxDerivedValueConfig<Key, any>;
