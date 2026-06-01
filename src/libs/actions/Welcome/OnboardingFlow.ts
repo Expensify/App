@@ -109,7 +109,7 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         currentOnboardingCompanySize,
         onboardingInitialPath = '',
         onboardingValues,
-        canUseSubmit2026,
+        canUseSubmit2026 = false,
         isAccountValidated,
     } = getOnboardingInitialPathParams;
     const state = getStateFromPath(onboardingInitialPath, linkingConfig.config);

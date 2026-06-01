@@ -11,10 +11,10 @@ import {startOnboardingFlow} from '@userActions/Welcome/OnboardingFlow';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import usePermissions from './usePermissions';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useOnyx from './useOnyx';
+import usePermissions from './usePermissions';
 
 /**
  * Hook to handle redirection to the onboarding flow based on the user's onboarding status

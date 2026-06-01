@@ -46,6 +46,28 @@ describe('OnboardingFlow', () => {
             expect(path).toBe('/onboarding/work-email');
         });
 
+        it('should route public domain individual user to purpose screen (not work email) when Submit 2026 beta is enabled', () => {
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: true,
+                hasAccessiblePolicies: false,
+                onboardingValuesParam: {
+                    hasCompletedGuidedSetupFlow: false,
+                    shouldRedirectToClassicAfterMerge: false,
+                    shouldValidate: false,
+                    isMergingAccountBlocked: false,
+                    isMergeAccountStepCompleted: false,
+                    signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL,
+                },
+                currentOnboardingPurposeSelected: undefined,
+                currentOnboardingCompanySize: undefined,
+                onboardingInitialPath: '/',
+                onboardingValues: undefined,
+                canUseSubmit2026: true,
+            };
+            const path = getOnboardingInitialPath(params);
+            expect(path).not.toBe('/onboarding/work-email');
+        });
+
         it('should bypass work email for public domain SMB when Submit 2026 beta is enabled', () => {
             const params: GetOnboardingInitialPathParamsType = {
                 isUserFromPublicDomain: true,
