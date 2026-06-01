@@ -14,7 +14,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasSynchronizationErrorMessage, isConnectionInProgress} from '@libs/actions/connections';
-import {getConnectedHRProvider} from '@libs/PolicyUtils';
+import {getConnectedHRProvider} from '@libs/HRUtils';
 import {isCurrentUserValidated} from '@libs/UserUtils';
 import HomeSectionExpandToggle from '@pages/home/HomeSectionExpandToggle';
 import CONST from '@src/CONST';
