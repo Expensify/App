@@ -256,10 +256,9 @@ function DynamicIOURequestStepCategoryPage({
             )}
             {!shouldShowEmptyState && !isLoading && !shouldShowOfflineView && (
                 <CategoryPicker
-                    categories={policyCategories ?? {}}
                     selectedCategory={categoryForDisplay}
-                    policy={policy}
-                    onSubmit={(selectedCategory) => updateCategory(selectedCategory as ListItem)}
+                    policyID={policyID ?? report?.policyID}
+                    onSubmit={updateCategory}
                 />
             )}
         </StepScreenWrapper>
