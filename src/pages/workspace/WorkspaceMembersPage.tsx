@@ -12,8 +12,8 @@ import {useLockedAccountActions, useLockedAccountState} from '@components/Locked
 import MessagesRow from '@components/MessagesRow';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
+import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
-import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/ListItem/TableListItem';
@@ -58,6 +58,7 @@ import {
 import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
+import {getConnectedHRProvider} from '@libs/HRUtils';
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -67,7 +68,6 @@ import {isPersonalDetailsReady, sortAlphabetically} from '@libs/OptionsListUtils
 import {getDisplayNameOrDefault, newGetPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {
     canEditWorkspaceSettings,
-    getConnectedHRProvider,
     getConnectionExporters,
     getMemberAccountIDsForWorkspace,
     isControlPolicy,
@@ -377,7 +377,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const openMemberDetails = useCallback(
         (item: MemberOption) => {
             if (!isPolicyAdmin || !isPaidGroupPolicy(policy)) {
-                Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID, Navigation.getActiveRoute()));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(item.accountID)));
                 return;
             }
             clearWorkspaceOwnerChangeFlow(policyID);
@@ -638,7 +638,14 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         (isMergeHRSyncInProgress || (connectionSyncProgress?.connectionName === connectedHRProvider?.connectionName && isConnectionInProgress(connectionSyncProgress, policy)));
     const isPendingAddOrDelete =
         isOffline && data?.some((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-    const shouldShowSearchBar = data.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const shouldShowSearchBar = memberCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const prevMemberCount = usePrevious(memberCount);
+    useEffect(() => {
+        if (prevMemberCount < CONST.STANDARD_LIST_ITEM_LIMIT || memberCount >= CONST.STANDARD_LIST_ITEM_LIMIT) {
+            return;
+        }
+        setInputValue('');
+    }, [memberCount, prevMemberCount, setInputValue]);
     const debouncedFilteredData = useDebouncedValue(filteredData, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
     const isFilteringMembers = filteredData?.length < debouncedFilteredData?.length;
     const displayedFilteredData = isFilteringMembers ? debouncedFilteredData : filteredData;
@@ -1029,6 +1036,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             shouldUseHeadlineHeader={!selectionModeHeader}
             shouldShowOfflineIndicatorInWideScreen
             shouldShowNonAdmin
+            policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
             onBackButtonPress={() => {
                 if (isMobileSelectionModeEnabled) {
                     setSelectedEmployees([]);
