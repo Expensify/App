@@ -7,6 +7,7 @@ import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReconcileHighContrastIntent from '@hooks/useReconcileHighContrastIntent';
 import useReportAttributes from '@hooks/useReportAttributes';
 import {init, isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
@@ -18,7 +19,6 @@ import {getReportIDFromLink} from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getSearchParamFromUrl} from '@libs/Url';
-import {getBaseTheme, getContrastTheme} from '@styles/theme/utils';
 import {openAgentsPage} from '@userActions/Agent';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
@@ -61,10 +61,6 @@ function AuthScreensInitHandler() {
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
-    const [highContrastIntent] = useOnyx(ONYXKEYS.SIGN_IN_HIGH_CONTRAST_INTENT);
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const wasLoadingApp = useRef<boolean | undefined>(undefined);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
@@ -77,6 +73,8 @@ function AuthScreensInitHandler() {
     // We use a ref so the Pusher callback (registered once on mount) always reads the latest value without re-subscribing.
     const reportAttributesRef = useRef(reportAttributes);
     reportAttributesRef.current = reportAttributes;
+
+    useReconcileHighContrastIntent();
 
     useEffect(() => {
         if (!Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
@@ -161,23 +159,6 @@ function AuthScreensInitHandler() {
         // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-
-    // When a logged-out user enabled high contrast on the sign-in page, apply it to whatever base theme
-    // the server returns once they sign in. OpenApp merges the server's nvp_preferredTheme before flipping
-    // IS_LOADING_APP back to false, so the true -> false edge is when the server base theme is available.
-    useEffect(() => {
-        const hasFinishedLoading = !!wasLoadingApp.current && !isLoadingApp;
-        wasLoadingApp.current = isLoadingApp;
-        if (!hasFinishedLoading || !highContrastIntent || !session?.authToken) {
-            return;
-        }
-        const currentTheme = preferredTheme ?? CONST.THEME.DEFAULT;
-        const targetTheme = getContrastTheme(getBaseTheme(currentTheme));
-        if (currentTheme !== targetTheme) {
-            User.updateTheme(targetTheme, false);
-        }
-        User.setHighContrastIntent(null);
-    }, [isLoadingApp, highContrastIntent, preferredTheme, session?.authToken]);
 
     return null;
 }
