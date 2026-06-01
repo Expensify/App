@@ -449,6 +449,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expensifyLogo: 'Logo de Expensify',
         approver: 'Aprobador',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `introducir dígito ${digitIndex} de ${totalDigits}`,
+        restrictions: 'Restricciones',
     },
     socials: {
         podcast: 'Síguenos en Podcast',
@@ -879,7 +880,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Arreglar la conexión de la tarjeta personal de ${cardName}` : 'Arreglar la conexión de la tarjeta personal'),
                 subtitle: 'Billetera',
             },
-            fixAccountingConnection: {
+            fixPolicyConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Reconectar con ${integrationName}`,
                 defaultSubtitle: 'Espacio de trabajo',
                 subtitle: ({policyName}: {policyName: string}) => policyName,
@@ -8647,6 +8648,7 @@ ${amount} para ${merchant} - ${date}`,
         workspaceName: 'Nombre del espacio de trabajo',
         chatUserDisplayNames: 'Nombres de los miembros del chat',
         scrollToNewestMessages: 'Desplázate a los mensajes más recientes',
+        scrollToActionBadgeTarget: 'Desplázate a la acción que requiere atención',
         preStyledText: 'texto preestilizado',
         viewAttachment: 'Ver archivo adjunto',
         contextMenuAvailable: 'Menú contextual disponible. Pulsa Shift+F10 para abrirlo.',
