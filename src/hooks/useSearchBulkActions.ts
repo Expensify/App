@@ -662,13 +662,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const isGroupExport = !!queryJSON?.groupBy && selectedTransactionsKeys.some((key) => key.startsWith(CONST.SEARCH.GROUP_PREFIX));
             let didFail = false;
             const exportParameters = getCSVExportParameters(isBasicExport);
+            const reportIDList = selectedReports.length > 0 ? selectedReportIDs : selectedTransactionReportIDs;
             await exportSearchItemsToCSV(
                 {
                     query: status,
                     jsonQuery: isGroupExport
                         ? serializeQueryJSONForBackend(addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data))
                         : exportParameters.jsonQuery,
-                    reportIDList: isGroupExport ? [] : (selectedReports.length > 0 ? selectedReportIDs : selectedTransactionReportIDs),
+                    reportIDList: isGroupExport ? [] : reportIDList,
                     transactionIDList: isGroupExport ? [] : selectedTransactionsKeys,
                     isBasicExport: exportParameters.isBasicExport,
                     exportColumnLabels: exportParameters.exportColumnLabels,
