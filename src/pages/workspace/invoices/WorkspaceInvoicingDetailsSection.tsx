@@ -14,7 +14,7 @@ type WorkspaceInvoicingDetailsSectionProps = {
     /** The current policy ID */
     policyID: string;
 
-    /** Whether the current user can edit invoicing details. */
+    /** Whether the current user can edit miscellaneous settings. */
     canWriteMoreFeatures: boolean;
 };
 
