@@ -85,6 +85,14 @@ If something’s unclear, Concierge will ask for more details. And if it still c
 
 Yes! Concierge is available everywhere—desktop, mobile app, email, and even SMS. Wherever you start a chat, Concierge will follow the conversation across platforms.
 
+## Can I get notified when Concierge responds?
+
+Yes. When you open the Concierge chat on the web app, a banner appears above the message field asking **Want to be notified when Concierge responds?** Click **Notify**, then allow notifications when your browser asks. After that, your browser shows a notification when Concierge replies.
+
+To hide the banner without turning on notifications, click **Not now**. It stays hidden for the rest of your session and may appear again the next time you open Expensify in a new session.
+
+This banner appears in the web app only.
+
 ## Is it safe to send receipts or sensitive info to Concierge?
 
 Yes. Concierge only sees what it needs to help with your request. Expensify doesn’t use your data to train public AI models, and we have zero-retention agreements with our partners.
