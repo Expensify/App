@@ -50,14 +50,11 @@ import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 type IOURequestStepCategoryProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY>;
 
-function DynamicIOURequestStepCategoryPage({
-    report: reportReal,
-    reportDraft,
-    route: {
+function DynamicIOURequestStepCategoryPage({report: reportReal, reportDraft, route, transaction}: IOURequestStepCategoryProps) {
+    const {
         params: {transactionID, action, iouType, reportActionID, reportID: routeReportID},
-    },
-    transaction,
-}: IOURequestStepCategoryProps) {
+    } = route;
+
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
