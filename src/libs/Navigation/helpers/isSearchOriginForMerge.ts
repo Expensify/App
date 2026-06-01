@@ -19,7 +19,7 @@ function normalizeRoute(route?: string): string | undefined {
 }
 
 function isSearchOriginForMerge(routeName: string, backTo?: string): boolean {
-    if (routeName !== SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
+    if (routeName !== SCREENS.RIGHT_MODAL.SEARCH_REPORT && routeName !== SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT) {
         return false;
     }
 
