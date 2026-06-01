@@ -181,6 +181,7 @@ import navigateFromNotification from '@userActions/navigateFromNotification';
 import {getAll} from '@userActions/PersistedRequests';
 import {buildAddMembersToWorkspaceOnyxData, buildRoomMembersOnyxData} from '@userActions/Policy/Member';
 import {createPolicyExpenseChats} from '@userActions/Policy/Policy';
+import type {CurrentUser} from '@userActions/Policy/Policy';
 import {
     createUpdateCommentMatcher,
     resolveCommentDeletionConflicts,
@@ -7014,7 +7015,7 @@ function buildOptimisticChangePolicyData({
     parentReport,
     policy,
     currentUserAccountID,
-    email,
+    currentUserEmail,
     managerLogin,
     hasViolationsParam,
     isASAPSubmitBetaEnabled,
@@ -7026,7 +7027,7 @@ function buildOptimisticChangePolicyData({
     parentReport: OnyxEntry<Report>;
     policy: Policy;
     currentUserAccountID: number;
-    email: string;
+    currentUserEmail: string;
     managerLogin: string | undefined;
     hasViolationsParam: boolean;
     isASAPSubmitBetaEnabled: boolean;
@@ -7139,7 +7140,7 @@ function buildOptimisticChangePolicyData({
             predictedNextStatus: newStatusNum,
             policy,
             currentUserAccountIDParam: currentUserAccountID,
-            currentUserEmailParam: email,
+            currentUserEmailParam: currentUserEmail,
             hasViolations: hasViolationsParam,
             isASAPSubmitBetaEnabled,
             bypassNextApproverID: shouldResetApprovalChain ? newManagerAccountID : undefined,
@@ -7149,7 +7150,7 @@ function buildOptimisticChangePolicyData({
             predictedNextStatus: newStatusNum,
             policy,
             currentUserAccountIDParam: currentUserAccountID,
-            currentUserEmailParam: email,
+            currentUserEmailParam: currentUserEmail,
             hasViolations: hasViolationsParam,
             isASAPSubmitBetaEnabled,
             bypassNextApproverID: shouldResetApprovalChain ? newManagerAccountID : undefined,
@@ -7540,7 +7541,7 @@ function changeReportPolicy({
         parentReport,
         policy,
         currentUserAccountID,
-        email,
+        currentUserEmail: email,
         managerLogin,
         hasViolationsParam,
         isASAPSubmitBetaEnabled,
@@ -7568,8 +7569,7 @@ function changeReportPolicyAndInviteSubmitter({
     report,
     parentReport,
     policy,
-    currentUserAccountID,
-    email,
+    currentUser,
     submitterLogin,
     managerLogin,
     hasViolationsParam,
@@ -7584,8 +7584,7 @@ function changeReportPolicyAndInviteSubmitter({
     report: Report;
     parentReport: OnyxEntry<Report>;
     policy: Policy;
-    currentUserAccountID: number;
-    email: string;
+    currentUser: CurrentUser;
     submitterLogin: string | undefined;
     managerLogin: string | undefined;
     hasViolationsParam: boolean;
@@ -7601,6 +7600,7 @@ function changeReportPolicyAndInviteSubmitter({
         return;
     }
 
+    const {accountID: currentUserAccountID, email: currentUserEmail = ''} = currentUser;
     const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(employeeList, false, false));
     const {
         optimisticData: optimisticAddMembersData,
@@ -7613,7 +7613,7 @@ function changeReportPolicyAndInviteSubmitter({
         policyMemberAccountIDs,
         CONST.POLICY.ROLE.USER,
         formatPhoneNumber,
-        {accountID: currentUserAccountID},
+        currentUser,
         undefined,
         CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
         reportActionsList,
@@ -7636,7 +7636,7 @@ function changeReportPolicyAndInviteSubmitter({
         parentReport,
         policy,
         currentUserAccountID,
-        email,
+        currentUserEmail,
         managerLogin,
         hasViolationsParam,
         isASAPSubmitBetaEnabled,

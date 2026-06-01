@@ -104,17 +104,21 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 moveIOUReportToPolicy(report, policy, false, reportTransactions);
             }
             return;
+            // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
         }
-
-        // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+        
         if (isExpenseReport(report) && isPolicyAdmin(policy) && report.ownerAccountID && !isPolicyMember(policy, submitterLogin)) {
             const employeeList = policy?.employeeList;
             changeReportPolicyAndInviteSubmitter({
                 report,
                 parentReport,
                 policy,
-                currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                email: session?.email ?? '',
+                currentUser: {
+                    accountID: currentUserPersonalDetails.accountID,
+                    displayName: currentUserPersonalDetails.displayName,
+                    email: currentUserPersonalDetails.email,
+                    avatar: currentUserPersonalDetails.avatar,
+                },
                 submitterLogin,
                 managerLogin,
                 hasViolationsParam: hasViolations,
@@ -142,7 +146,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             reportNextStep,
             isReportLastVisibleArchived,
         });
-    };
+    }
 
     const {data, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
         policies,
