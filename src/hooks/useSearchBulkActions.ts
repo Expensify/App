@@ -1012,7 +1012,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 };
             }) as PaymentData[];
 
-            payMoneyRequestOnSearch(hash, paymentData);
+            for (const item of paymentData) {
+                payMoneyRequestOnSearch(hash, [item]);
+            }
 
             InteractionManager.runAfterInteractions(() => {
                 clearSelectedTransactions();
