@@ -79,14 +79,20 @@ The more popular and problematic the place in the app, the greater the improveme
 
 Choose the interaction in the app that you would like to improve. The best way to find the most impactful interaction would be to:
 
-1. Use the Explore view in Sentry to find the worst real-world call sites for a given label. Filter by `measurements.inp > 0ms` and `span.description is [data-sentry-label="X"]` (adjust the label to the component you are investigating), group by `transaction` and display `count(spans)` together with `p75(measurements.inp)`. This produces a ranking of the pages where the optimized interaction is both frequent and slow.
-2. In order to find the most problematic interactions within the chosen page, use the Performance tab in DevTools and inspect the Interactions track, where each click is annotated with its measured interaction time.
+1. If you have access to the Expensify Sentry organization (Expensify engineers and Contributor+): use the Explore view in Sentry to narrow down where to investigate by finding the worst real-world call sites for a given label. Filter by `measurements.inp > 0ms` and `span.description is [data-sentry-label="X"]` (adjust the label to the component you are investigating), group by `transaction` and display `count(spans)` together with `p75(measurements.inp)`. This produces a ranking of the pages where the optimized interaction is both frequent and slow.
+2. To find the most problematic interactions, use the Performance tab in DevTools and inspect the Interactions track, where each click is annotated with its measured interaction time. If you arrived here via step 1, focus on the pages it ranked highest.
 
 ### 4. Capture a baseline React Profiler trace of the chosen interaction
 
+> [!NOTE]
+> INP timings collected in a dev build are skewed by debug tooling (dev-only warnings, unminified code, etc.), so all traces and before/after comparisons in this workflow must be captured against a production build. See [Performance Guide](https://github.com/Expensify/App/blob/main/contributingGuides/PERFORMANCE.md) for more details.
+
 Using the React Profiler from DevTools, capture a trace of the chosen interaction in a way that closely approximates the INP. This trace serves both as the input for detailed analysis in the following steps and as the baseline you will compare against after applying improvements. To capture only the commits relevant to the interaction without additional noise, to bracket a window that approximates the INP and to avoid clicking the record button manually in DevTools, use the following setup:
 
-1. In the main App file in the codebase, introduce a new component that stops profiling on the next animation frame after a click (embed it just below the StrictModeWrapper):
+> [!WARNING]
+> Both snippets in this step are strictly local debugging tools used to drive the React Profiler during your analysis. They must never be committed.
+
+1. In `src/App.tsx`, introduce a new component that stops profiling on the next animation frame after a click (embed it just below the `StrictModeWrapper`):
 
     ```tsx
     function UniversalPaintTracker() {
@@ -126,14 +132,14 @@ Using the Flamegraph view, analyze whether any components re-render unnecessaril
 
 1. Make sure that the cause of a component re-rendering (like Onyx subscription) is not itself redundant (that is, that the same calls are not repeated across different functions invoked during the action). Remove redundant calls (such as duplicate Onyx subscriptions) where possible. *Examples: [#90338](https://github.com/Expensify/App/pull/90338), [#89908](https://github.com/Expensify/App/pull/89908)*
 2. Try to improve the memoization of the consumer components:
-    1. If the React Compiler is not enabled, make an effort to enable it and then trace the interaction with the React Profiler. Based on the evidence, check whether there has been an improvement during the interaction. *Examples: [#84502](https://github.com/Expensify/App/pull/84502), [#82846](https://github.com/Expensify/App/pull/82846)*
-    2. If the improvement is not visible after enabling the React Compiler, stabilize references, props and dependencies so that the React Compiler can correctly memoize the rendered component and avoid unnecessary re-renders. In some cases, this step may be difficult to implement given the number of dependencies of the component, since it may require stabilizing the dependencies of higher-level dependencies as well. *Examples: [#82785](https://github.com/Expensify/App/pull/82785), [#83934](https://github.com/Expensify/App/pull/83934)*
+    1. If the component does not yet compile successfully with React Compiler (i.e. it has a Rules of React violation and opts out of compilation), try to make it compliant first. See [React Compiler Guide](https://github.com/Expensify/App/blob/main/contributingGuides/REACT_COMPILER.md) for details on diagnosing and fixing compilation failures. Once the component compiles, trace the interaction with the React Profiler and check whether there has been a measurable improvement. *Examples: [#84502](https://github.com/Expensify/App/pull/84502), [#82846](https://github.com/Expensify/App/pull/82846)*
+    2. If the improvement is not visible after the component compiles successfully with React Compiler, stabilize references, props and dependencies so that the React Compiler can correctly memoize the rendered component and avoid unnecessary re-renders. In some cases, this step may be difficult to implement given the number of dependencies of the component, since it may require stabilizing the higher-level dependencies as well. *Examples: [#82785](https://github.com/Expensify/App/pull/82785), [#83934](https://github.com/Expensify/App/pull/83934)*
 
 ### 6. Improve the time of the interaction by boosting the performance of the rendered components
 
 Using the Ranked view, diagnose the components that are most problematic in terms of rendering time. Your objective is to improve the performance of those components.
 
-> [!NOTE]
+> [!IMPORTANT]
 > What matters here is the outcome: anything that measurably speeds up the interaction is a valid improvement. The techniques listed below are common starting points and suggestions, not a fixed checklist.
 
 The most common ways to improve a component's performance are:
@@ -155,9 +161,12 @@ The most common ways to improve a component's performance are:
 
     INP measures the time from the input event to the next paint. Anything that doesn't need to be on screen at that paint can be pushed off the critical path. The user sees a fast response; the heavy work resolves a frame or two later.
 
+    > [!WARNING]
+    > Do not reach for `InteractionManager.runAfterInteractions` as a deferral primitive. It is being removed from React Native and is in the process of being migrated out of the codebase. New usages should not be introduced. See [INTERACTION_MANAGER.md](https://github.com/Expensify/App/blob/main/contributingGuides/INTERACTION_MANAGER.md) for more details.
+
     Techniques specific to non-visual changes:
 
-    * InteractionManager.requestIdleCallback / requestAnimationFrame to schedule non-visual work (analytics, prefetching, cache warming, logging) after the paint.
+    * requestIdleCallback to schedule non-urgent, non-visual work (analytics, prefetching, cache warming, logging). It runs during browser idle time, once the interaction's paint is done and the main thread is free, rather than at a guaranteed point. Because a busy main thread can postpone it indefinitely, pass the `timeout` option to cap the delay and force execution after a deadline.
     * Lazy-mount secondary panels. If a tab, accordion, or popover is closed by default, don't render its tree until it opens.
 
     When the deferred work eventually resolves into visible, clickable UI, the technique must keep something responsive on screen in the meantime. The previous (stale) state, or a placeholder that will be swapped for the real interactive subtree, fills the gap until the heavy update lands.
@@ -188,6 +197,9 @@ Measure First Paint on the first open of the optimized component. Splitting comp
 ### 9. Quantify the improvement with the trace analyzer and create a proposal
 
 To demonstrate a clear improvement, use the trace analyzer tool (https://sumo-slonik.github.io/react-native-profiler-trace-comparator/) to upload a sufficient number of samples of the relevant traces (ideally 10 each for before and after your changes, to reduce the margin of statistical error). Present the results as a screenshot of the diagram and a screenshot of the number of commits contained in the traces.
+
+> [!NOTE]
+> The trace analyzer is an external third-party tool. It is not owned or operated by Expensify.
 
 Create a proposal if the changes show a clear improvement.
 
