@@ -4716,6 +4716,10 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
+        sidebarStatusAvatarHovered: {
+            borderColor: theme.hoverComponentBG,
+        },
+
         profilePageAvatar: {
             borderColor: theme.highlightBG,
         },
@@ -5431,8 +5435,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         emptyStateSamlIllustration: {
-            width: 218,
-            height: 190,
+            width: 183,
+            height: 160,
         },
 
         agentsPageEmptyStateIllustration: {
