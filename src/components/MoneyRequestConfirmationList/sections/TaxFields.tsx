@@ -58,7 +58,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     const formattedTaxAmount = convertToDisplayString(taxAmount, iouCurrencyCode);
     const taxAmountInput = convertToFrontendAmountAsString(taxAmount, decimals);
     const taxRateTitle = getTaxRateTitle(policy, transactionForHelpers, isMovingCurrentTransactionFromTrackExpense, policyForMovingExpenses);
-    
+
     const taxAmountInputKey = `${taxSlice?.taxCode}-${taxSlice?.taxValue}-${taxSlice?.amount}-${effectiveCurrency}`;
 
     // The tax amount is only validated on submit (see useConfirmationValidation), matching how the other fields behave.
