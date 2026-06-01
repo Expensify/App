@@ -2196,8 +2196,7 @@ function shouldDisableDetailPage(report: OnyxEntry<Report>, isParticipantOptimis
             isOptimisticPersonalDetail(
                 Object.keys(report?.participants ?? {})
                     .map(Number)
-                    .filter((accountID) => accountID !== deprecatedCurrentUserAccountID)
-                    .at(0) ?? -1,
+                    .find((accountID) => accountID !== deprecatedCurrentUserAccountID) ?? -1,
                 undefined,
             );
         return resolvedIsOptimistic;
