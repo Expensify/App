@@ -326,6 +326,7 @@ const translations = {
         showLess: 'Show less',
         plusMore: ({count}: {count: number}) => `+${count} more`,
         merchant: 'Merchant',
+        searchMerchant: 'Search merchant',
         change: 'Change',
         category: 'Category',
         report: 'Report',

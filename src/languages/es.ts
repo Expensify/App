@@ -268,6 +268,7 @@ const translations: TranslationDeepObject<typeof en> = {
         showLess: 'Mostrar menos',
         plusMore: ({count}: {count: number}) => `+${count} más`,
         merchant: 'Comerciante',
+        searchMerchant: 'Buscar comerciante',
         change: 'Cambio',
         category: 'Categoría',
         report: 'Informe',

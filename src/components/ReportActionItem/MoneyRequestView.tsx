@@ -9,6 +9,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {PressableWithoutFeedback} from '@components/Pressable';
 import {usePersonalDetails, usePolicyCategories, usePolicyTags} from '@components/OnyxListItemProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
@@ -45,6 +46,7 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 import type {ViolationField} from '@hooks/useViolations';
 import useViolations from '@hooks/useViolations';
 import {updateMoneyRequestBillable, updateMoneyRequestReimbursable, updateMoneyRequestTaxRate} from '@libs/actions/IOU/UpdateMoneyRequest';
+import {openExternalLink} from '@libs/actions/Link';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {enrichAndSortAttendees, getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {getBrokenConnectionUrlToFixPersonalCard, getCompanyCardDescription} from '@libs/CardUtils';
@@ -99,6 +101,7 @@ import {
     getReimbursable,
     getTagForDisplay,
     getTaxName,
+    hasEReceipt,
     hasMissingSmartscanFields,
     hasReservationList,
     hasRoute as hasRouteTransactionUtils,
@@ -130,6 +133,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import variables from '@styles/variables';
 import MoneyRequestReceiptView from './MoneyRequestReceiptView';
 
 type MoneyRequestViewProps = {
@@ -178,7 +182,7 @@ function MoneyRequestView({
     isFromReviewDuplicates = false,
     mergeTransactionID,
 }: MoneyRequestViewProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Checkmark', 'Suitcase']);
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Checkmark', 'Suitcase', 'MagnifyingGlass']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -705,6 +709,9 @@ function MoneyRequestView({
     const descriptionHTML = updatedTransactionDescription ?? transactionDescription;
     const descriptionCopyValue = !canEdit && descriptionHTML ? Parser.htmlToText(descriptionHTML) : undefined;
     const merchantCopyValue = !canEditMerchant ? updatedMerchantTitle : undefined;
+    // Matching Expensify Classic, offer a one-click external search for the merchant on eReceipt expenses,
+    // whose card descriptors are often cryptic. Only show it when there is a concrete merchant value to search.
+    const shouldShowMerchantSearch = hasEReceipt(transaction) && !!updatedMerchantTitle;
     const dateCopyValue = !canEditDate ? transactionDate : undefined;
     const categoryValue = updatedTransaction?.category ?? categoryForDisplay;
     const decodedCategoryName = getDecodedLeafCategoryName(categoryValue);
@@ -1028,6 +1035,27 @@ function MoneyRequestView({
                             title={updatedMerchantTitle}
                             interactive={canEditMerchant}
                             shouldShowRightIcon={canEditMerchant}
+                            shouldShowRightComponent={shouldShowMerchantSearch}
+                            rightComponent={
+                                <PressableWithoutFeedback
+                                    accessibilityLabel={translate('common.searchMerchant')}
+                                    role={CONST.ROLE.BUTTON}
+                                    onPress={(event) => {
+                                        // Stop propagation so tapping the search icon opens the external search
+                                        // instead of triggering the row's merchant-edit navigation.
+                                        event?.preventDefault();
+                                        event?.stopPropagation();
+                                        openExternalLink(`${CONST.GOOGLE_SEARCH_URL}${encodeURIComponent(updatedMerchantTitle)}`);
+                                    }}
+                                >
+                                    <Icon
+                                        src={icons.MagnifyingGlass}
+                                        fill={theme.icon}
+                                        width={variables.iconSizeNormal}
+                                        height={variables.iconSizeNormal}
+                                    />
+                                </PressableWithoutFeedback>
+                            }
                             titleStyle={styles.flex1}
                             onPress={() => {
                                 Navigation.navigate(
