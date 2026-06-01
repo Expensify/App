@@ -343,6 +343,32 @@ describe('ProfilePage - agent account', () => {
         expect(saveButtonProps.accessibilityState?.disabled).toBe(true);
     });
 
+    it('allows re-saving an edited prompt while offline even when a previous save is still pending', async () => {
+        const accountID = 123;
+        const mockUpdateAgentPrompt = jest.mocked(AgentActions.updateAgentPrompt);
+        await setupUser('agent_123@expensify.ai');
+
+        await act(async () => {
+            // Simulate a first offline save that is queued but not yet replayed: pendingAction stays 'update',
+            // so isSaving is true. The button is intentionally not disabled while offline.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+                prompt: 'First offline edit.',
+                pendingAction: 'update',
+            });
+            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.changeText(screen.getByTestId('ai-prompt-input'), 'Second offline edit.');
+        fireEvent.press(screen.getByTestId('save-prompt-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockUpdateAgentPrompt).toHaveBeenCalledWith(accountID, 'Second offline edit.', 'First offline edit.');
+    });
+
     it('does not call updateAgentPrompt when saving blank prompt', async () => {
         const accountID = 123;
         const mockUpdateAgentPrompt = jest.mocked(AgentActions.updateAgentPrompt);
