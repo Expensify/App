@@ -305,7 +305,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
                     {
                         [`${ONYXKEYS.COLLECTION.POLICY}${currentPolicyID.toUpperCase()}`]: {
                             role: CONST.POLICY.ROLE.ADMIN,
-                            workspaceAccountID,
+                            policyAccountID: workspaceAccountID,
                         },
                     },
                     {status: 'loaded'},

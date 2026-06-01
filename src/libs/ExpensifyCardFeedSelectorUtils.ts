@@ -33,7 +33,7 @@ function hasLoadedExpensifyCardSettings(settings: ExpensifyCardSettings | undefi
  *     that policy and the policy is not pending deletion.
  *  3. Otherwise (orphan feed with neither linkedPolicyIDs nor preferredPolicy):
  *     a. Show it if the user is a domain admin for the domain whose ID matches the fundID.
- *     b. Show it if any non-deleted policy the user administers has a `workspaceAccountID`
+ *     b. Show it if any non-deleted policy the user administers has a `policyAccountID`
  *        equal to the fundID (i.e. the fund backs that workspace).
  */
 function isExpensifyCardFeedVisibleToAdmin(
@@ -65,7 +65,7 @@ function isExpensifyCardFeedVisibleToAdmin(
     }
 
     return Object.values(policies ?? {}).some(
-        (policy) => policy?.workspaceAccountID === fundID && isPolicyAdmin(policy) && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        (policy) => policy?.policyAccountID === fundID && isPolicyAdmin(policy) && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
 }
 
@@ -143,12 +143,12 @@ function getExpensifyCardFeedDescription(
         return getDescriptionForPolicyDomainCard(Str.extractEmailDomain(domainEntry.email), policies);
     }
 
-    const cardDomainName = Object.values(cardList ?? {}).find((card) => card?.fundID === fundID && card.bank === CONST.EXPENSIFY_CARD.BANK)?.domainName;
+    const cardDomainName = Object.values(cardList ?? {}).find((card) => card?.fundID === fundID.toString() && card.bank === CONST.EXPENSIFY_CARD.BANK)?.domainName;
     if (cardDomainName) {
         return getDescriptionForPolicyDomainCard(cardDomainName, policies);
     }
 
-    const policyOwner = Object.values(policies ?? {}).find((policy) => policy?.workspaceAccountID === fundID)?.owner;
+    const policyOwner = Object.values(policies ?? {}).find((policy) => policy?.policyAccountID === fundID)?.owner;
     return policyOwner ? getDescriptionForPolicyDomainCard(Str.extractEmailDomain(policyOwner), policies) : '';
 }
 

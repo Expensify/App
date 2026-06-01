@@ -562,8 +562,8 @@ function getCardFeedsForDisplay(
  * Each feed is assigned to one or more policies using a three-tier fallback:
  *  1. **linkedPolicyIDs** – if the feed has explicit linked policies, it is indexed under each of them.
  *  2. **preferredPolicy** – if there are no linked policies but a preferred policy exists, use that.
- *  3. **workspaceAccountID match** – if neither is set (orphan feed), fall back to any policy whose
- *     workspaceAccountID matches the feed's fundID so the feed still surfaces under the correct workspace.
+ *  3. **policyAccountID match** – if neither is set (orphan feed), fall back to any policy whose
+ *     policyAccountID matches the feed's fundID so the feed still surfaces under the correct workspace.
  *     If no policy matches, the feed is stored under an empty-string key to avoid being silently lost.
  *
  * Note: "Expensify Card" feeds are not included.
@@ -608,10 +608,10 @@ function getCardFeedsForDisplayPerPolicy(
                 (cardFeedsForDisplayPerPolicy[preferredPolicy] ||= []).push(feedEntry);
             } else {
                 // Orphan feed: no linkedPolicyIDs and no preferredPolicy.
-                // Find policies whose workspaceAccountID matches the fundID so the feed
+                // Find policies whose policyAccountID matches the fundID so the feed
                 // still appears under the correct workspace.
                 const numericFundID = Number(fundID);
-                const matchingPolicies = Object.values(policies ?? {}).filter((policy) => policy?.workspaceAccountID === numericFundID);
+                const matchingPolicies = Object.values(policies ?? {}).filter((policy) => policy?.policyAccountID === numericFundID);
                 if (matchingPolicies.length) {
                     for (const policy of matchingPolicies) {
                         if (policy?.id) {
