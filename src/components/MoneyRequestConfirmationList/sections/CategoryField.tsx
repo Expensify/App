@@ -79,14 +79,15 @@ function CategoryField({
 
                 if (shouldNavigateToUpgradePath) {
                     Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                            action,
-                            iouType,
-                            transactionID,
-                            reportID,
-                            backTo: createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, reportActionID)),
-                            upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
-                        }),
+                        createDynamicRoute(
+                            DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                action,
+                                iouType,
+                                transactionID,
+                                reportID,
+                                upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                            }),
+                        ),
                     );
                 } else if (!policy && shouldSelectPolicy) {
                     Navigation.navigate(

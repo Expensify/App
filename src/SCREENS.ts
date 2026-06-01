@@ -371,7 +371,7 @@ const SCREENS = {
         STEP_CONFIRMATION: 'Money_Request_Step_Confirmation',
         STEP_CONFIRMATION_VERIFY_ACCOUNT: 'Money_Request_Step_Confirmation_Verify_Account',
         START: 'Money_Request_Start',
-        STEP_UPGRADE: 'Money_Request_Step_Upgrade',
+        DYNAMIC_STEP_UPGRADE: 'Dynamic_Money_Request_Step_Upgrade',
         STEP_AMOUNT: 'Money_Request_Step_Amount',
         DYNAMIC_STEP_CATEGORY: 'Dynamic_Money_Request_Step_Category',
         STEP_CATEGORY_CREATE: 'Money_Request_Step_Category_Create',

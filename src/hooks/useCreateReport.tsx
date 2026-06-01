@@ -87,13 +87,15 @@ export default function useCreateReport({
                 const freshReportID = generateReportID();
                 const freshTransactionID = generateReportID();
                 Navigation.navigate(
-                    ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                        action: CONST.IOU.ACTION.CREATE,
-                        iouType: CONST.IOU.TYPE.CREATE,
-                        transactionID: freshTransactionID,
-                        reportID: freshReportID,
-                        upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                    }),
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                            action: CONST.IOU.ACTION.CREATE,
+                            iouType: CONST.IOU.TYPE.CREATE,
+                            transactionID: freshTransactionID,
+                            reportID: freshReportID,
+                            upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                        }),
+                    ),
                 );
                 return;
             }
