@@ -73,11 +73,11 @@
     "web:dist": "concurrently \"npm:web-proxy\" \"http-server ./dist --cors --port 8080 -P http://localhost:9000\"",
     "octokit": "cd scripts && npx ts-node -i -e \"$(cat ./octokit.ts)\"",
     "compress-svg": "npx ts-node scripts/compressSvg.ts --dir assets/images && npx ts-node scripts/compressSvg.ts --dir docs/assets/images",
-    "server:vcr:dev": "npm run dev -w @expensify/victory-chart-renderer",
-    "server:vcr:test": "npm run test -w @expensify/victory-chart-renderer",
-    "server:vcr:build:linux": "npm run build:linux -w @expensify/victory-chart-renderer",
-    "server:vcr:build:linux-arm": "npm run build:linux-arm -w @expensify/victory-chart-renderer",
-    "server:vcr:build:macos": "npm run build:macos -w @expensify/victory-chart-renderer"
+    "server:vcr:dev": "npm run dev -w @expensify/victory-chart-renderer --",
+    "server:vcr:test": "npm run test -w @expensify/victory-chart-renderer --",
+    "server:vcr:build:linux": "npm run build:linux -w @expensify/victory-chart-renderer --",
+    "server:vcr:build:linux-arm": "npm run build:linux-arm -w @expensify/victory-chart-renderer --",
+    "server:vcr:build:macos": "npm run build:macos -w @expensify/victory-chart-renderer --"
   },
   "dependencies": {
     "@babel/runtime": "^7.25.0",
