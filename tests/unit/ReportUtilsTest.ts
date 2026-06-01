@@ -10522,6 +10522,7 @@ describe('ReportUtils', () => {
             const onyxData = {optimisticData: [], failureData: []};
             const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, {});
             pushTransactionViolationsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, {}, autoSelections);
+
             // No transaction merge should be present — only the violation push
             const hasTransactionMerge = onyxData.optimisticData.some((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`);
             expect(hasTransactionMerge).toBe(false);
