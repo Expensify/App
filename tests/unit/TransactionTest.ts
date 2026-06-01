@@ -349,7 +349,7 @@ describe('Transaction', () => {
             mockAPIWrite.mockRestore();
         });
 
-        it('updates the source submitted report next step without reopening when it becomes empty', async () => {
+        it('updates the source submitted report next step and reopens it when it becomes empty', async () => {
             const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
             const buildOptimisticNextStepSpy = jest.spyOn(require('@libs/NextStepUtils'), 'buildOptimisticNextStep');
 
@@ -363,7 +363,7 @@ describe('Transaction', () => {
                 ...createExpenseReport(6),
                 reportID: FAKE_OLD_REPORT_ID,
                 ownerAccountID: CURRENT_USER_ID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 currency: CONST.CURRENCY.USD,
                 total: -100,
@@ -394,13 +394,18 @@ describe('Transaction', () => {
                 const sourceNextStepCall = buildOptimisticNextStepCalls.find(([params]) => params.report?.reportID === FAKE_OLD_REPORT_ID);
 
                 expect(sourceNextStepCall).toBeDefined();
-                expect(sourceNextStepCall?.[0].predictedNextStatus).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
+                expect(sourceNextStepCall?.[0].predictedNextStatus).toBe(CONST.REPORT.STATUS_NUM.OPEN);
 
                 const apiWriteCall = mockAPIWrite.mock.calls.at(0);
-                const optimisticData = (apiWriteCall?.[2] as {optimisticData?: Array<{key: string}>})?.optimisticData;
+                const optimisticData = (apiWriteCall?.[2] as {optimisticData?: Array<{key: string; value: Partial<Report>}>})?.optimisticData;
                 const sourceNextStepUpdate = optimisticData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${FAKE_OLD_REPORT_ID}`);
+                const sourceReportStateUpdate = optimisticData?.find(
+                    (data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}` && 'stateNum' in data.value && 'statusNum' in data.value,
+                );
 
                 expect(sourceNextStepUpdate).toBeDefined();
+                expect(sourceReportStateUpdate?.value.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
+                expect(sourceReportStateUpdate?.value.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
             } finally {
                 buildOptimisticNextStepSpy.mockRestore();
                 mockAPIWrite.mockRestore();
@@ -693,12 +698,14 @@ describe('Transaction', () => {
             expect(report?.total).toBe(0);
         });
 
-        it('should reset the old report total to 0 when moving the last same-currency expense', async () => {
+        it('should reset the old report total to 0 and reopen it when moving the last same-currency expense', async () => {
             const oldExpenseReport = {
                 ...createRandomReport(1, undefined),
                 total: -200,
                 nonReimbursableTotal: -200,
                 currency: CONST.CURRENCY.USD,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
             const transaction = {
                 ...generateTransaction({
@@ -740,6 +747,8 @@ describe('Transaction', () => {
 
             expect(report?.total).toBe(0);
             expect(report?.nonReimbursableTotal).toBe(0);
+            expect(report?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
+            expect(report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
         });
 
         it('should reset the old report total to 0 when no expenses remain, even if the currency is different', async () => {

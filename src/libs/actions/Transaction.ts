@@ -869,6 +869,8 @@ function changeTransactionsReport({
     const updatedReportTransactionCounts: Record<string, number> = {};
     const updatedReportNonReimbursableTotals: Record<string, number> = {};
     const updatedReportUnheldNonReimbursableTotals: Record<string, number> = {};
+    const updatedReportStateNums: Record<string, NonNullable<Report['stateNum']>> = {};
+    const updatedReportStatusNums: Record<string, NonNullable<Report['statusNum']>> = {};
     const staleReportIDs = new Set<string>();
     const optimisticPendingFieldsByReport: Record<string, Partial<NonNullable<Report['pendingFields']>>> = {};
     const targetReportCurrenciesByReport: Record<string, Set<string>> = {};
@@ -1351,6 +1353,8 @@ function changeTransactionsReport({
                 updatedReportTotals[oldReportID] = 0;
                 updatedReportNonReimbursableTotals[oldReportID] = 0;
                 updatedReportUnheldNonReimbursableTotals[oldReportID] = 0;
+                updatedReportStateNums[oldReportID] = CONST.REPORT.STATE_NUM.OPEN;
+                updatedReportStatusNums[oldReportID] = CONST.REPORT.STATUS_NUM.OPEN;
             } else if (staleReportIDs.has(oldReportID) || oldReport.pendingFields?.total) {
                 markReportTotalAsStale(oldReportID);
             } else if (oldReport.currency === sourceTransactionCurrency) {
@@ -1693,6 +1697,26 @@ function changeTransactionsReport({
         });
     }
 
+    for (const reportIDToUpdate of Object.keys(updatedReportStateNums)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
+            value: {
+                stateNum: updatedReportStateNums[reportIDToUpdate],
+                statusNum: updatedReportStatusNums[reportIDToUpdate],
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
+            value: {
+                stateNum: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.stateNum,
+                statusNum: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.statusNum,
+            },
+        });
+    }
+
     const reportTransactions = getReportTransactions(reportID);
     for (const transaction of reportTransactions) {
         if (!isPaidGroupPolicy(policy) || !policy?.id) {
@@ -1746,6 +1770,8 @@ function changeTransactionsReport({
             ...affectedReport,
             total: updatedTotal,
             transactionCount: updatedTransactionCount,
+            stateNum: updatedReportStateNums[affectedReportID] ?? affectedReport.stateNum,
+            statusNum: updatedReportStatusNums[affectedReportID] ?? affectedReport.statusNum,
             reportID: affectedReport.reportID ?? affectedReportID,
         };
 
