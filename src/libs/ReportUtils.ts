@@ -958,14 +958,14 @@ type SelfDMParameters = {
     createdReportActionID?: string;
 };
 
-type GetPolicyNameParams = {
+type GetPolicyNameBaseParams = {
     report: OnyxInputOrEntry<Report>;
-    returnEmptyIfNotFound?: boolean;
     policy?: OnyxInputOrEntry<Policy>;
     policies?: Policy[];
     reports?: Report[];
-    translate?: LocalizedTranslate;
 };
+
+type GetPolicyNameParams = GetPolicyNameBaseParams & ({returnEmptyIfNotFound: true} | {returnEmptyIfNotFound?: false; unavailableTranslation: string});
 
 type GetReportNameParams = {
     report: OnyxEntry<Report>;
@@ -1422,8 +1422,9 @@ function getPolicyType(report: OnyxInputOrEntry<Report>, policies: OnyxCollectio
 /**
  * Get the policy name from a given report
  */
-function getPolicyName({report, returnEmptyIfNotFound = false, policy, policies, reports, translate}: GetPolicyNameParams): string {
-    const noPolicyFound = returnEmptyIfNotFound ? '' : (translate?.('workspace.common.unavailable') ?? unavailableTranslation);
+function getPolicyName(params: GetPolicyNameParams): string {
+    const {report, policy, policies, reports} = params;
+    const noPolicyFound = params.returnEmptyIfNotFound ? '' : (params.unavailableTranslation ?? unavailableTranslation);
     const parentReport = report ? getRootParentReport({report, reports}) : undefined;
 
     if ((!report?.policyName && !parentReport?.policyName && isEmptyObject(policies) && isEmptyObject(allPolicies)) || isEmptyObject(report)) {

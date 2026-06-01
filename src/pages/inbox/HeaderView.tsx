@@ -161,7 +161,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(parentReportAction);
     const humanAgentName = getHumanAgentFirstName(parentReportAction, personalDetails);
     const reportDescription = StringUtils.lineBreaksToSpaces(Parser.htmlToText(getReportDescription(report)));
-    const policyName = getPolicyName({report, returnEmptyIfNotFound: true, translate});
+    const policyName = getPolicyName({report, returnEmptyIfNotFound: true});
     const policyDescription = StringUtils.lineBreaksToSpaces(getPolicyDescriptionText(policy));
     const isPersonalExpenseChat = isPolicyExpenseChat && isCurrentUserSubmitter(report);
     const hasTeam2025Pricing = useHasTeam2025Pricing();
