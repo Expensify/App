@@ -20,6 +20,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isUsingStagingApi} from '@libs/ApiUtils';
@@ -62,6 +63,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const bank = getCompanyCardFeed(feedName);
 
     const {translate, getLocalDateFromDatetime} = useLocalize();
+    const theme = useTheme();
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
@@ -185,6 +187,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             <CardDetailsActionButton
                                 text={translate('workspace.moreFeatures.companyCards.updateCard')}
                                 icon={expensifyIcons.Sync}
+                                iconFill={theme.icon}
                                 onPress={updateCard}
                                 isDisabled={isOffline || card?.isLoadingLastUpdated}
                                 isLoading={card?.isLoadingLastUpdated}
@@ -193,6 +196,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             <CardDetailsActionButton
                                 text={translate('workspace.common.viewTransactions')}
                                 icon={expensifyIcons.MoneySearch}
+                                iconFill={theme.icon}
                                 onPress={navigateToTransactions}
                                 style={styles.flexShrink0}
                             />
