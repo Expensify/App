@@ -432,6 +432,7 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
             key: ONYXKEYS.LOGINS,
             value: {
                 [loginKey]: {
+                    partnerID: CONST.PARTNER_ID.EXPENSIFY,
                     partnerUserID: contactMethod,
                     validatedDate: '',
                     errorFields: {
