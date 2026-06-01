@@ -60,8 +60,6 @@ function OnboardingModalNavigator() {
         initialRouteName = SCREENS.ONBOARDING.PERSONAL_DETAILS;
     }
 
-    // Betas are expected to be loaded before this navigator mounts (accountMetadata loading guard above).
-    // If betas haven't resolved yet, canUseSubmit2026 defaults to false, which is the correct safe fallback.
     if (account?.isFromPublicDomain && !canUseSubmit2026) {
         initialRouteName = SCREENS.ONBOARDING.WORK_EMAIL;
     }
