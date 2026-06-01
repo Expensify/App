@@ -11,7 +11,7 @@ import type {SharedValue} from 'react-native-reanimated';
 import {interpolate} from 'react-native-reanimated';
 import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
 import type {ValueOf} from 'type-fest';
-import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/constants';
+import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
 import {animatedReceiptPaneRHPWidth, animatedSuperWideRHPWidth, animatedWideRHPWidth} from '@components/WideRHPContextProvider';
@@ -703,7 +703,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         tabNavigatorBarContainer: {
-            zIndex: 1,
             width: variables.navigationTabBarSize + variables.sideBarWithLHBWidth,
             marginRight: -variables.sideBarWithLHBWidth,
             overflow: 'visible',
@@ -972,6 +971,12 @@ const staticStyles = (theme: ThemeColors) =>
             ...wordBreak.breakWord,
         },
 
+        actionableItemButtonSkeleton: {
+            alignItems: 'flex-start',
+            borderRadius: 20,
+            backgroundColor: theme.buttonDefaultBG,
+        },
+
         hoveredComponentBG: {
             backgroundColor: theme.hoverComponentBG,
         },
@@ -1136,6 +1141,18 @@ const staticStyles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeSmall,
             ...lineHeightBadge,
             ...whiteSpace.noWrap,
+        },
+
+        agentPromotionalBannerBadge: {
+            // The Badge (a View) is rendered inline inside a <Text> so it flows with the title
+            // and wraps after the last word. View-in-Text vertical alignment is platform-specific:
+            //  - web: we need to translate the badge up so its center lines up with text.
+            //  - native: the inline-view attachment defaults to aligning the badge's top with the
+            //    line top (badge sits high). Translate it down so its center lines up with text.
+            ...Platform.select({
+                web: {marginLeft: 4, transform: [{translateY: -2}]},
+                default: {transform: [{translateY: 4}, {translateX: 4}]},
+            }),
         },
 
         cardBadgeText: {
@@ -3557,7 +3574,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         searchInputSkeleton: {
-            height: 46,
+            height: 54,
             justifyContent: 'center',
         },
 
@@ -4698,6 +4715,10 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
+        sidebarStatusAvatarHovered: {
+            borderColor: theme.hoverComponentBG,
+        },
+
         profilePageAvatar: {
             borderColor: theme.highlightBG,
         },
@@ -5002,26 +5023,6 @@ const staticStyles = (theme: ThemeColors) =>
             marginTop: 3,
         },
 
-        typeFiltersContainer: {
-            borderRightWidth: 1,
-            borderRightColor: theme.border,
-            paddingVertical: 8,
-        },
-
-        typeFilterMenu: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            height: 52,
-            paddingHorizontal: 20,
-            paddingVertical: 4,
-            gap: 12,
-        },
-
-        filterContentContainer: {
-            flex: 1,
-            minWidth: CONST.ADVANCED_FILTERS_CONTENT_WIDTH,
-        },
-
         searchActionsBarContainer: {
             marginBottom: 16,
             paddingHorizontal: 20,
@@ -5033,15 +5034,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         searchActionsBarCreateButton: {
             alignSelf: 'flex-start',
-        },
-
-        searchFiltersClearButton: {
-            flexDirection: 'row',
-            gap: 4,
-            alignItems: 'center',
-            borderRadius: variables.buttonBorderRadius,
-            paddingHorizontal: 12,
-            minHeight: 28,
         },
 
         searchPageInputWideTouchableWrapper: {height: 32, width: 200},
@@ -5116,7 +5108,6 @@ const staticStyles = (theme: ThemeColors) =>
             left: 16,
             bottom: 16,
             width: variables.cardNameWidth,
-            color: theme.textLight,
             fontSize: variables.fontSizeSmall,
             lineHeight: variables.lineHeightLarge,
         },
@@ -5443,8 +5434,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         emptyStateSamlIllustration: {
-            width: 218,
-            height: 190,
+            width: 183,
+            height: 160,
         },
 
         agentsPageEmptyStateIllustration: {
