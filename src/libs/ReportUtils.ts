@@ -5320,7 +5320,6 @@ function getTransactionReportName({
 }: {
     translate: LocalizedTranslate;
     reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>;
-    transaction?: OnyxEntry<Transaction>;
     transactions?: Transaction[];
     report: OnyxEntry<Report> | undefined;
 }): string {
