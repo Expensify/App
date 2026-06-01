@@ -3,6 +3,10 @@ import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type AccountData from '@src/types/onyx/AccountData';
+import type {ACHData} from '@src/types/onyx/ReimbursementAccount';
+
+/** Responses of the additional KYB verification checks, hinting at which documents the user still needs to upload */
+type KYBVerificationResponses = NonNullable<ACHData['verifications']>['externalApiResponses'];
 
 function getDefaultCompanyWebsite(session: OnyxEntry<OnyxTypes.Session>, account: OnyxEntry<OnyxTypes.Account>, shouldShowPublicDomain = false): string {
     return account?.isFromPublicDomain && !shouldShowPublicDomain ? '' : `https://www.${Str.extractEmailDomain(session?.email ?? '')}`;
@@ -137,8 +141,40 @@ function isUserDOBVerificationRequired(
     );
 }
 
+/** Builds the list of KYB document inputIDs the user must upload, based on which verification checks did not pass.
+ * Returns an empty array when no documents are required (e.g. automated verification passed), in which case the
+ * KYB documents step should be skipped entirely.
+ * @param externalApiResponses - statuses of the external verification checks from the reimbursement account
+ * @returns inputIDs of the documents that still need to be uploaded
+ */
+function getRequiredKYBDocuments(externalApiResponses: KYBVerificationResponses): string[] {
+    const requiredDocuments: string[] = [];
+
+    const companyTaxIDStatus = externalApiResponses?.companyTaxID?.status;
+    if (companyTaxIDStatus !== undefined && companyTaxIDStatus !== CONST.BANK_ACCOUNT.KYB_STATUS.PASS) {
+        requiredDocuments.push('companyTaxID');
+    }
+
+    const lexisNexisStatus = externalApiResponses?.lexisNexisInstantIDResult?.status;
+    if (lexisNexisStatus !== undefined && lexisNexisStatus !== CONST.BANK_ACCOUNT.KYB_STATUS.PASS) {
+        requiredDocuments.push('nameChangeDocument', 'companyAddressVerification');
+    }
+
+    const requestorIdentityStatus = externalApiResponses?.requestorIdentityID?.status;
+    const requestorIdentityQualifiers = externalApiResponses?.requestorIdentityID?.apiResult?.qualifiers?.qualifier;
+    if (isUserAddressVerificationRequired(requestorIdentityStatus, requestorIdentityQualifiers)) {
+        requiredDocuments.push('userAddressVerification');
+    }
+    if (isUserDOBVerificationRequired(requestorIdentityStatus, requestorIdentityQualifiers)) {
+        requiredDocuments.push('userDOBVerification');
+    }
+
+    return requiredDocuments;
+}
+
 export {
     getDefaultCompanyWebsite,
+    getRequiredKYBDocuments,
     getLastFourDigits,
     hasPartiallySetupBankAccount,
     hasPersonalBankAccountMissingInfo,
