@@ -114,8 +114,12 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                     report,
                     parentReport,
                     policy,
-                    currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    email: session?.email ?? '',
+                    currentUser: {
+                        accountID: currentUserPersonalDetails.accountID,
+                        displayName: currentUserPersonalDetails.displayName,
+                        email: currentUserPersonalDetails.email,
+                        avatar: currentUserPersonalDetails.avatar,
+                    },
                     hasViolationsParam: hasViolations,
                     isChangePolicyTrainingModalDismissed,
                     isASAPSubmitBetaEnabled,
@@ -160,6 +164,9 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             reportNextStep,
             isChangePolicyTrainingModalDismissed,
             currentUserPersonalDetails.accountID,
+            currentUserPersonalDetails.displayName,
+            currentUserPersonalDetails.avatar,
+            currentUserPersonalDetails.email,
         ],
     );
 
