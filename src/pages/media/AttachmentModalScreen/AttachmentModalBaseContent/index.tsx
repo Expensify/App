@@ -198,14 +198,7 @@ function AttachmentModalBaseContent({
             return false;
         }
 
-        return (
-            !!onDownloadAttachment &&
-            isDownloadButtonReadyToBeShown &&
-            !shouldShowNotFoundPage &&
-            !isOffline &&
-            !isLocalSource &&
-            (!isFileImage || isSourceLoaded)
-        );
+        return !!onDownloadAttachment && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isOffline && !isLocalSource && (!isFileImage || isSourceLoaded);
     }, [
         isDownloadButtonReadyToBeShown,
         isErrorInAttachment,
