@@ -20,6 +20,6 @@
     Fix bug https://github.com/FormidableLabs/victory-native-xl/issues/652
     ```
   
-- Upstream PR/issue: TODO
+- Upstream PR/issue: https://github.com/FormidableLabs/victory-native-xl/pull/666
 - E/App issue: https://github.com/Expensify/App/issues/92114
 - PR introducing patch: https://github.com/Expensify/App/pull/92130
