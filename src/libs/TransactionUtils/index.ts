@@ -1361,10 +1361,10 @@ function getDeleteConfirmationPrompt(translate: LocaleContextProps['translate'],
 }
 
 /**
- * Check if all transactions are pending Expensify card transactions.
+ * Check if all transactions are pending (includes both Expensify Card and BYOC card transactions).
  */
 function hasOnlyPendingCardTransactions(transactions: Array<OnyxEntry<Transaction>>): boolean {
-    return transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
+    return transactions.length > 0 && transactions.every((t) => isPending(t));
 }
 
 /**
