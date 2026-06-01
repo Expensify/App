@@ -1078,15 +1078,15 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     if (!policy || !isPaidGroupPolicy(policy) || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         return onyxData;
     }
-    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
-        transaction,
-        [],
+    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData({
+        updatedTransaction: transaction,
+        transactionViolations: [],
         policy,
-        policyTagList ?? {},
-        policyCategories ?? {},
-        hasDependentTags(policy, policyTagList ?? {}),
-        false,
-    );
+        policyTagList: policyTagList ?? {},
+        policyCategories: policyCategories ?? {},
+        hasDependentTags: hasDependentTags(policy, policyTagList ?? {}),
+        isInvoiceTransaction: false,
+    });
 
     if (violationsOnyxData) {
         const reportTransactions = [...getReportTransactions(iou.report.reportID).filter((reportTransaction) => reportTransaction.transactionID !== transaction.transactionID), transaction];
@@ -1316,13 +1316,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
     }
 
-    const isScanRequest = isScanRequestTransactionUtils({
-        amount,
-        receipt,
-        ...(existingTransaction && {
-            iouRequestType: existingTransaction.iouRequestType,
-        }),
-    });
+    const isScanRequest = isScanRequestTransactionUtils(existingTransaction);
 
     const shouldCreateNewMoneyRequestReport = isSplitExpense
         ? false

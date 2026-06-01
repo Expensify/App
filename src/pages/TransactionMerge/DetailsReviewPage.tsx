@@ -13,6 +13,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useMergeTransactions from '@hooks/useMergeTransactions';
 import useOnyx from '@hooks/useOnyx';
+import useReportOwnerAsAttendee from '@hooks/useReportOwnerAsAttendee';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setMergeTransactionKey} from '@libs/actions/MergeTransaction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -28,7 +29,7 @@ import type {MergeFieldKey} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
-import {getTransactionDetails} from '@libs/ReportUtils';
+import type {TransactionDetails} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -50,6 +51,8 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const {targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport, targetTransactionPolicy, sourceTransactionPolicy} = useMergeTransactions({
         mergeTransaction,
     });
+    const sourceReportOwnerAsAttendee = useReportOwnerAsAttendee(sourceTransaction);
+    const targetReportOwnerAsAttendee = useReportOwnerAsAttendee(targetTransaction);
 
     const [hasErrors, setHasErrors] = useState<Partial<Record<MergeFieldKey, boolean>>>({});
 
@@ -84,8 +87,8 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
 
     // Handle selection
     const handleSelect = useCallback(
-        (transaction: Transaction, field: MergeFieldKey) => {
-            const fieldValue = getMergeFieldValue(getTransactionDetails(transaction), transaction, field);
+        (transaction: Transaction, transactionDetails: TransactionDetails, field: MergeFieldKey) => {
+            const fieldValue = getMergeFieldValue(transactionDetails, transaction, field);
 
             // Clear error if it has
             setHasErrors((prev) => {
@@ -150,22 +153,26 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     // Build merge fields array with all necessary information
     const mergeFields = useMemo(
         () =>
-            buildMergeFieldsData(
+            buildMergeFieldsData({
                 conflictFields,
                 targetTransaction,
                 sourceTransaction,
+                targetReportOwnerAsAttendee,
+                sourceReportOwnerAsAttendee,
                 mergeTransaction,
                 targetTransactionPolicy,
                 sourceTransactionPolicy,
                 translate,
                 convertToDisplayString,
                 localeCompare,
-                [targetTransactionReport, sourceTransactionReport],
-            ),
+                reports: [targetTransactionReport, sourceTransactionReport],
+            }),
         [
             conflictFields,
             targetTransaction,
             sourceTransaction,
+            targetReportOwnerAsAttendee,
+            sourceReportOwnerAsAttendee,
             mergeTransaction,
             targetTransactionReport,
             sourceTransactionReport,
