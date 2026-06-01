@@ -26,7 +26,7 @@ Expensify offers three workspace plans: **Individual, Collect, and Control**. We
 2. Select **Group** and click **New Workspace**.
 3. Click **Select** under **Control**.
 
-The **Control** plan is bundled with the Expensify Visa® Commercial Card and costs $9/user per month (annual commitment). You’ll also be assigned a **Account Executive**, available in your workspace’s #admins chat room on *[new.expensify.com](https://new.expensify.com)*.
+The **Control** plan is bundled with the Expensify Visa® Commercial Card and costs $9/user per month (annual commitment). You’ll also be assigned an **Account Executive**, available in your workspace’s #admins chat room on *[new.expensify.com](https://new.expensify.com)*.
 
 ## Step 3: Connect Your Accounting System
 Proper financial management is key for VC-backed companies. Ensure that:

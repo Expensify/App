@@ -5,7 +5,7 @@ keywords: [New Expensify, how to get started, new workspace, create workspace, a
 ---
 
 
-Setting up a workspace in New Expensify is the first step to managing company expenses. This guide walks you through creating your workspace, inviting team members, setting up categories, enabling features, and more. Your first workspace includes a free 30-day trial and access to a **Account Executive** via the **#admins chat room** or **Concierge** in your Inbox.
+Setting up a workspace in New Expensify is the first step to managing company expenses. This guide walks you through creating your workspace, inviting team members, setting up categories, enabling features, and more. Your first workspace includes a free 30-day trial and access to an **Account Executive** via the **#admins chat room** or **Concierge** in your Inbox.
 
 ---
 
