@@ -271,10 +271,10 @@ function MapViewImpl({
                 style={{...StyleUtils.getTextColorStyle(theme.mapAttributionText), zIndex: -1}}
                 mapStyle={styleURL}
                 interactive={interactive}
-                // Disables fog (invisible on this flat top-down view): leaving it on lets Mapbox markers schedule
-                // a deferred fog-opacity timer that crashes if it fires after the map's fog is torn down.
-                // @ts-expect-error react-map-gl's fog type omits null, but null clears the style's fog.
-                fog={null}
+                // Disables fog (invisible on this flat top-down view) to avoid a Mapbox marker fog-opacity
+                // teardown crash. TODO: remove this entire workaround once mapbox-gl is upgraded to 3.x
+                // (see #91740) — react-map-gl's fog prop type omits null, but null clears the style's fog.
+                fog={null as never}
             >
                 {interactive && shouldDisplayCurrentLocation && (
                     <Marker
