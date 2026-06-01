@@ -48,4 +48,24 @@ describe('suppressNextEscapeKeyUp', () => {
         cleanup();
         expect(dispatchAndCheckPropagation('Escape')).toBe(true);
     });
+
+    it('survives a document-capture preempt — no leak when an earlier document listener stops propagation', () => {
+        // PopoverProvider analog: stops Escape keyup on document capture, registered before our suppressor.
+        let preemptActive = true;
+        const preempt = (e: KeyboardEvent) => {
+            if (!preemptActive || e.key !== 'Escape') {
+                return;
+            }
+            e.stopImmediatePropagation();
+        };
+        document.addEventListener('keyup', preempt, true);
+        try {
+            suppressNextEscapeKeyUp();
+            dispatchAndCheckPropagation('Escape');
+            preemptActive = false;
+            expect(dispatchAndCheckPropagation('Escape')).toBe(true);
+        } finally {
+            document.removeEventListener('keyup', preempt, true);
+        }
+    });
 });
