@@ -1,6 +1,5 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
-import {View} from 'react-native';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 import Table from '@components/Table';
 import useLocalize from '@hooks/useLocalize';

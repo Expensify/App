@@ -17,6 +17,7 @@ type DomainTableColumnKey = 'domains' | 'actions';
 type DomainRowData = {
     domainAccountID: number;
     title: string;
+    disabled: boolean;
     isAdmin: boolean;
     isValidated: boolean;
     pendingAction?: OnyxCommon.PendingAction;
