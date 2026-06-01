@@ -205,62 +205,40 @@ function getNewestPusherDraftTarget(runtime: PusherDraftPacingRuntime): Concierg
 function queuePusherDraftTargets(runtime: PusherDraftPacingRuntime, events: ConciergeDraftEvent[]) {
     const {queuedPusherDraftEventsRef} = runtime;
     let newestTarget = getNewestPusherDraftTarget(runtime);
-    const queueableEvents: ConciergeDraftEvent[] = [];
+    const eventsToQueue: ConciergeDraftEvent[] = [];
 
     for (const event of events) {
         if (!event.bodyMarkdown || (newestTarget?.streamSessionID === event.streamSessionID && event.sequence <= newestTarget.sequence)) {
             continue;
         }
 
-        queueableEvents.push(event);
+        eventsToQueue.push(event);
         newestTarget = event;
     }
 
-    if (queueableEvents.length === 0) {
+    if (eventsToQueue.length === 0) {
         return;
     }
 
-    queuedPusherDraftEventsRef.current = [...queuedPusherDraftEventsRef.current, ...queueableEvents];
-}
-
-function shouldQueuePusherDraftTarget(runtime: PusherDraftPacingRuntime, event: ConciergeDraftEvent): boolean {
-    const {latestPusherDraftEventRef, queuedPusherDraftEventsRef, visibleSourceOffsetRef} = runtime;
-    const currentTarget = latestPusherDraftEventRef.current;
-    const isCurrentTargetFullyVisible = !!currentTarget?.bodyMarkdown && visibleSourceOffsetRef.current >= currentTarget.bodyMarkdown.length;
-
-    return (
-        !!currentTarget?.bodyMarkdown &&
-        currentTarget.streamSessionID === event.streamSessionID &&
-        event.sequence > currentTarget.sequence &&
-        (!isCurrentTargetFullyVisible || queuedPusherDraftEventsRef.current.length > 0)
-    );
+    queuedPusherDraftEventsRef.current = [...queuedPusherDraftEventsRef.current, ...eventsToQueue];
 }
 
 function setOrQueuePusherDraftTarget(runtime: PusherDraftPacingRuntime, event: ConciergeDraftEvent): boolean {
-    if (shouldQueuePusherDraftTarget(runtime, event)) {
+    const {completedPusherDraftEventRef, currentDraftRef, latestPusherDraftEventRef, queuedPusherDraftEventsRef, visibleBodyMarkdownRef, visibleSourceMarkdownRef, visibleSourceOffsetRef} =
+        runtime;
+    const currentTarget = latestPusherDraftEventRef.current;
+    const isCurrentTargetFullyVisible = !!currentTarget?.bodyMarkdown && visibleSourceOffsetRef.current >= currentTarget.bodyMarkdown.length;
+    const shouldQueue =
+        !!currentTarget?.bodyMarkdown &&
+        currentTarget.streamSessionID === event.streamSessionID &&
+        event.sequence > currentTarget.sequence &&
+        (!isCurrentTargetFullyVisible || queuedPusherDraftEventsRef.current.length > 0);
+
+    if (shouldQueue) {
         queuePusherDraftTargets(runtime, [event]);
         return true;
     }
 
-    updateLatestPusherDraftTarget(runtime, event);
-    return false;
-}
-
-function promoteQueuedPusherDraftTarget(runtime: PusherDraftPacingRuntime): boolean {
-    const {latestPusherDraftEventRef, queuedPusherDraftEventsRef} = runtime;
-    const [queuedPusherDraftEvent, ...remainingQueuedPusherDraftEvents] = queuedPusherDraftEventsRef.current;
-    if (!queuedPusherDraftEvent?.bodyMarkdown) {
-        return false;
-    }
-
-    latestPusherDraftEventRef.current = queuedPusherDraftEvent;
-    queuedPusherDraftEventsRef.current = remainingQueuedPusherDraftEvents;
-    return true;
-}
-
-function updateLatestPusherDraftTarget(runtime: PusherDraftPacingRuntime, event: ConciergeDraftEvent) {
-    const {completedPusherDraftEventRef, currentDraftRef, latestPusherDraftEventRef, queuedPusherDraftEventsRef, visibleBodyMarkdownRef, visibleSourceMarkdownRef, visibleSourceOffsetRef} =
-        runtime;
     const latestEvent = getNewestPusherDraftTarget(runtime);
     const activeStreamSessionID = latestEvent?.streamSessionID ?? currentDraftRef.current?.streamSessionID;
     if (activeStreamSessionID && activeStreamSessionID !== event.streamSessionID) {
@@ -274,6 +252,19 @@ function updateLatestPusherDraftTarget(runtime: PusherDraftPacingRuntime, event:
 
     latestPusherDraftEventRef.current = event;
     queuedPusherDraftEventsRef.current = [];
+    return false;
+}
+
+function promoteQueuedPusherDraftTarget(runtime: PusherDraftPacingRuntime): boolean {
+    const {latestPusherDraftEventRef, queuedPusherDraftEventsRef} = runtime;
+    const [queuedPusherDraftEvent, ...remainingQueuedPusherDraftEvents] = queuedPusherDraftEventsRef.current;
+    if (!queuedPusherDraftEvent?.bodyMarkdown) {
+        return false;
+    }
+
+    latestPusherDraftEventRef.current = queuedPusherDraftEvent;
+    queuedPusherDraftEventsRef.current = remainingQueuedPusherDraftEvents;
+    return true;
 }
 
 function isStalePusherDraftEventAgainstTarget(runtime: PusherDraftPacingRuntime, event: ConciergeDraftEvent, latestEvent: ConciergeDraftEvent | null): boolean {
@@ -357,7 +348,7 @@ function handlePusherDraftEvent(runtime: PusherDraftPacingRuntime, event: Concie
 }
 
 function handlePusherDraftEvents(runtime: PusherDraftPacingRuntime, eventData: ConciergeDraftEventsEvent) {
-    const {completedPusherDraftEventRef, latestPusherDraftEventRef, queuedPusherDraftEventsRef, visibleBodyMarkdownRef, visibleSourceMarkdownRef, visibleSourceOffsetRef} = runtime;
+    const {completedPusherDraftEventRef, latestPusherDraftEventRef, queuedPusherDraftEventsRef, visibleSourceOffsetRef} = runtime;
     const targetEvents: ConciergeDraftEvent[] = [];
     let latestAcceptedEvent: ConciergeDraftEvent | null = null;
     let completedEvent: ConciergeDraftEvent | null = null;
@@ -399,27 +390,16 @@ function handlePusherDraftEvents(runtime: PusherDraftPacingRuntime, eventData: C
     const [firstVisibleEvent, ...queuedTargetEvents] = targetEvents;
 
     if (firstVisibleEvent?.bodyMarkdown) {
-        const didQueueFirstTarget = setOrQueuePusherDraftTarget(runtime, firstVisibleEvent);
-        queuePusherDraftTargets(runtime, queuedTargetEvents);
         if (completedEvent) {
             completedPusherDraftEventRef.current = completedEvent;
         }
 
-        let didPublishVisibleEvent = false;
-        if (!didQueueFirstTarget) {
-            const nextVisibleMarkdown = getNextVisibleConciergeDraftMarkdown(
-                visibleBodyMarkdownRef.current,
-                firstVisibleEvent.bodyMarkdown,
-                visibleSourceOffsetRef.current,
-                visibleSourceMarkdownRef.current,
-            );
-            if (nextVisibleMarkdown.bodyMarkdown !== visibleBodyMarkdownRef.current || nextVisibleMarkdown.sourceOffset !== visibleSourceOffsetRef.current) {
-                publishVisibleEvent(runtime, firstVisibleEvent, nextVisibleMarkdown, firstVisibleEvent.status === 'completed' ? 'updated' : firstVisibleEvent.status);
-                didPublishVisibleEvent = true;
-            }
-        }
+        const previousVisibleSequence = runtime.visibleSequenceRef.current;
+        handlePusherDraftEvent(runtime, firstVisibleEvent);
+        queuePusherDraftTargets(runtime, queuedTargetEvents);
 
-        if (!didPublishVisibleEvent) {
+        // publishVisibleEvent persists refs when it runs; otherwise persist the accepted target/queue state here.
+        if (queuedTargetEvents.length > 0 || runtime.visibleSequenceRef.current === previousVisibleSequence) {
             cacheCurrentDraftWithPusherPaceState(runtime);
         }
     } else if (completedEvent) {

@@ -410,44 +410,44 @@ function getIncompleteLinkStartIndex(text: string, ignoredRanges: TextRange[]): 
     return null;
 }
 
-function getStreamableMarkdownSourceLength(markdown: string): number {
+function getSafeMarkdownSourceLength(markdown: string): number {
     if (!markdown) {
         return markdown.length;
     }
 
     const initialCodeState = getCodeRanges(markdown);
     let codeRanges = initialCodeState.ranges;
-    let streamableLength = initialCodeState.unclosedCodeBlockStart ?? markdown.length;
-    let streamableMarkdown = markdown.slice(0, streamableLength);
+    let safeLength = initialCodeState.unclosedCodeBlockStart ?? markdown.length;
+    let safeMarkdown = markdown.slice(0, safeLength);
 
-    codeRanges = codeRanges.filter((range) => range.end <= streamableLength);
-    const incompleteInlineCodeStart = getUnpairedLastLineDelimiterIndex(streamableMarkdown, INLINE_CODE_DELIMITER, codeRanges);
+    codeRanges = codeRanges.filter((range) => range.end <= safeLength);
+    const incompleteInlineCodeStart = getUnpairedLastLineDelimiterIndex(safeMarkdown, INLINE_CODE_DELIMITER, codeRanges);
     if (incompleteInlineCodeStart !== null) {
-        streamableLength = incompleteInlineCodeStart;
-        streamableMarkdown = markdown.slice(0, streamableLength);
+        safeLength = incompleteInlineCodeStart;
+        safeMarkdown = markdown.slice(0, safeLength);
     }
 
-    codeRanges = getCodeRanges(streamableMarkdown).ranges;
-    const incompleteLinkStart = getIncompleteLinkStartIndex(streamableMarkdown, codeRanges);
+    codeRanges = getCodeRanges(safeMarkdown).ranges;
+    const incompleteLinkStart = getIncompleteLinkStartIndex(safeMarkdown, codeRanges);
     if (incompleteLinkStart !== null) {
-        streamableLength = incompleteLinkStart;
-        streamableMarkdown = markdown.slice(0, streamableLength);
+        safeLength = incompleteLinkStart;
+        safeMarkdown = markdown.slice(0, safeLength);
     }
 
-    codeRanges = getCodeRanges(streamableMarkdown).ranges;
-    const incompleteBoldStart = getUnpairedLastLineDelimiterIndex(streamableMarkdown, BOLD_DELIMITER, codeRanges);
+    codeRanges = getCodeRanges(safeMarkdown).ranges;
+    const incompleteBoldStart = getUnpairedLastLineDelimiterIndex(safeMarkdown, BOLD_DELIMITER, codeRanges);
     if (incompleteBoldStart !== null) {
-        streamableLength = incompleteBoldStart;
-        streamableMarkdown = markdown.slice(0, streamableLength);
+        safeLength = incompleteBoldStart;
+        safeMarkdown = markdown.slice(0, safeLength);
     }
 
-    codeRanges = getCodeRanges(streamableMarkdown).ranges;
-    const incompleteStrikethroughStart = getUnpairedLastLineDelimiterIndex(streamableMarkdown, STRIKETHROUGH_DELIMITER, codeRanges);
+    codeRanges = getCodeRanges(safeMarkdown).ranges;
+    const incompleteStrikethroughStart = getUnpairedLastLineDelimiterIndex(safeMarkdown, STRIKETHROUGH_DELIMITER, codeRanges);
     if (incompleteStrikethroughStart !== null) {
-        streamableLength = incompleteStrikethroughStart;
+        safeLength = incompleteStrikethroughStart;
     }
 
-    return streamableLength;
+    return safeLength;
 }
 
 function normalizeDelimiterForExpensiMark(text: string, delimiter: string, replacement: string, ignoredRanges: TextRange[] = []): string {
@@ -547,10 +547,10 @@ function getNextVisibleConciergeDraftMarkdown(
     currentSourceOffset = currentBodyMarkdown.length,
     currentSourceMarkdown = currentBodyMarkdown,
 ): VisibleConciergeDraftMarkdown {
-    const streamableSourceLength = getStreamableMarkdownSourceLength(targetBodyMarkdown);
-    const normalizedCurrentSourceOffset = Math.min(currentSourceOffset, streamableSourceLength);
+    const safeSourceLength = getSafeMarkdownSourceLength(targetBodyMarkdown);
+    const normalizedCurrentSourceOffset = Math.min(currentSourceOffset, safeSourceLength);
 
-    if (!targetBodyMarkdown || normalizedCurrentSourceOffset >= streamableSourceLength) {
+    if (!targetBodyMarkdown || normalizedCurrentSourceOffset >= safeSourceLength) {
         if (currentSourceMarkdown && !targetBodyMarkdown.startsWith(currentSourceMarkdown)) {
             return {
                 bodyMarkdown: targetBodyMarkdown,
@@ -582,7 +582,7 @@ function getNextVisibleConciergeDraftMarkdown(
         };
     }
 
-    const nextSourceOffset = Math.min(getNextVisibleSourceOffset(targetBodyMarkdown, normalizedCurrentSourceOffset), streamableSourceLength);
+    const nextSourceOffset = Math.min(getNextVisibleSourceOffset(targetBodyMarkdown, normalizedCurrentSourceOffset), safeSourceLength);
     return {
         bodyMarkdown: buildVisibleMarkdownAtSourceOffset(targetBodyMarkdown, nextSourceOffset),
         sourceMarkdown: targetBodyMarkdown.slice(0, nextSourceOffset),
