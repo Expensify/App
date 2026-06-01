@@ -166,15 +166,15 @@ function SearchSavePage() {
             testID="SearchSavePage"
             includeSafeAreaPaddingBottom
         >
-            <HeaderWithBackButton title={translate('search.saveSearch')} />
+            <HeaderWithBackButton title={translate('search.saveView')} />
             <FormProvider
                 formID={ONYXKEYS.FORMS.SEARCH_SAVE_FORM}
-                submitButtonText={translate('search.saveSearch')}
+                submitButtonText={translate('search.saveView')}
                 onSubmit={onSaveSearch}
                 style={[styles.mh5, styles.flex1]}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
-                sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVE_SEARCH_BUTTON}
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVE_VIEW_BUTTON}
             >
                 <InputWrapper
                     InputComponent={TextInput}

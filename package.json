@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.3.89-7",
+  "version": "9.3.90-0",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -135,7 +135,7 @@
     "expo-font": "14.0.8",
     "expo-image": "55.0.3",
     "expo-image-manipulator": "55.0.2",
-    "expo-location": "55.0.3",
+    "expo-location": "55.1.10",
     "expo-modules-core": "55.0.25",
     "expo-store-review": "~9.0.8",
     "expo-task-manager": "55.0.2",
