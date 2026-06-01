@@ -227,16 +227,12 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.name')}
                 rightHeaderText={hasDependentTags ? undefined : translate('common.enabled')}
-                shouldShowRightCaret={canWriteTags}
+                shouldShowRightCaret
             />
         );
     };
 
     const navigateToTagSettings = (tag: TagListItem) => {
-        if (!canWriteTags) {
-            return;
-        }
-
         Navigation.navigate(
             isQuickSettingsFlow
                 ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.getRoute(orderWeight, tag.value))
@@ -480,7 +476,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         shouldShowListEmptyContent={false}
                         onSelectionButtonPress={toggleTag}
                         shouldHeaderBeInsideList
-                        shouldShowRightCaret={canWriteTags}
+                        shouldShowRightCaret
                         showScrollIndicator
                     />
                 )}

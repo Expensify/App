@@ -124,10 +124,6 @@ function WorkspaceReportFieldsPage({
         : [];
 
     const navigateToReportFieldsSettings = (reportField: ReportFieldForList) => {
-        if (!canWriteReportFields) {
-            return;
-        }
-
         Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_SETTINGS.getRoute(policyID, reportField.fieldID));
     };
 
@@ -155,8 +151,8 @@ function WorkspaceReportFieldsPage({
                 onPress={() => navigateToReportFieldsSettings(item)}
                 description={item.text}
                 disabled={item.isDisabled}
-                shouldShowRightIcon={!item.isDisabled && canWriteReportFields}
-                interactive={!item.isDisabled && canWriteReportFields}
+                shouldShowRightIcon={!item.isDisabled}
+                interactive={!item.isDisabled}
                 rightLabel={item.rightLabel}
                 descriptionTextStyle={[styles.popoverMenuText, styles.textStrong]}
             />

@@ -88,14 +88,26 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures}: HRP
     ];
 
     let rightInset: React.ReactNode;
-    if (!canWriteMoreFeatures) {
-        rightInset = null;
-    } else if (!card.isConnected) {
+    if (!card.isConnected) {
         rightInset = (
             <Button
                 small
                 text={translate('workspace.hr.connect')}
-                onPress={handleConnect}
+                onPress={() => {
+                    if (!canWriteMoreFeatures) {
+                        showConfirmModal({
+                            title: translate('workspace.common.readOnlyActionTitle'),
+                            prompt: translate('workspace.common.readOnlyActionPrompt'),
+                            confirmText: translate('common.buttonConfirm'),
+                            shouldShowCancelButton: false,
+                        });
+                        return;
+                    }
+                    handleConnect();
+                }}
+                innerStyles={!canWriteMoreFeatures ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
+                hoverStyles={!canWriteMoreFeatures ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
+                isDisabled={isOffline}
             />
         );
     } else if (card.isSyncInProgress) {

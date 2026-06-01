@@ -404,16 +404,13 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.name')}
                 rightHeaderText={translate('common.enabled')}
-                shouldShowRightCaret={canWriteCategories}
+                shouldShowRightCaret
             />
         );
     };
 
     const navigateToCategorySettings = (category: ListItem) => {
-        if (!canWriteCategories) {
-            return;
-        }
-        if (isSmallScreenWidth && isMobileSelectionModeEnabled) {
+        if (canWriteCategories && isSmallScreenWidth && isMobileSelectionModeEnabled) {
             toggleCategory(category);
             return;
         }
@@ -808,7 +805,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         onDismissError={dismissError}
                         showScrollIndicator={false}
                         shouldHeaderBeInsideList
-                        shouldShowRightCaret={canWriteCategories}
+                        shouldShowRightCaret
                     />
                 )}
                 {!hasVisibleCategories && !isLoading && inputValue.length === 0 && (

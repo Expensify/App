@@ -248,7 +248,7 @@ function WorkspaceTaxesPage({
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.name')}
                 rightHeaderText={translate('common.enabled')}
-                shouldShowRightCaret={canWriteTaxes}
+                shouldShowRightCaret
             />
         );
     };
@@ -277,10 +277,7 @@ function WorkspaceTaxesPage({
         if (!taxRate.keyForList) {
             return;
         }
-        if (!canWriteTaxes) {
-            return;
-        }
-        if (isSmallScreenWidth && isMobileSelectionModeEnabled) {
+        if (canWriteTaxes && isSmallScreenWidth && isMobileSelectionModeEnabled) {
             toggleTax(taxRate);
             return;
         }
@@ -495,7 +492,7 @@ function WorkspaceTaxesPage({
                     showScrollIndicator={false}
                     turnOnSelectionModeOnLongPress={canWriteTaxes}
                     shouldHeaderBeInsideList
-                    shouldShowRightCaret={canWriteTaxes}
+                    shouldShowRightCaret
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

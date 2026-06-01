@@ -461,7 +461,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     canSelectMultiple={false}
                     leftHeaderText={translate('common.name')}
                     rightHeaderText={translate('common.count')}
-                    shouldShowRightCaret={canWriteTags}
+                    shouldShowRightCaret
                 />
             );
         }
@@ -499,7 +499,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.name')}
                 rightHeaderText={translate(isMultiLevelTags ? 'common.required' : 'common.enabled')}
-                shouldShowRightCaret={canWriteTags}
+                shouldShowRightCaret
             />
         );
     };
@@ -513,11 +513,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const navigateToTagSettings = (tag: TagListItem) => {
-        if (!canWriteTags) {
-            return;
-        }
-
-        if (isSmallScreenWidth && isMobileSelectionModeEnabled) {
+        if (canWriteTags && isSmallScreenWidth && isMobileSelectionModeEnabled) {
             toggleTag(tag);
             return;
         }
@@ -970,7 +966,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             onSelectionButtonPress={toggleTag}
                             isSelected={isTagSelected}
                             shouldHeaderBeInsideList
-                            shouldShowRightCaret={canWriteTags}
+                            shouldShowRightCaret
                         />
                     )}
                     {!hasVisibleTags && !isLoading && (

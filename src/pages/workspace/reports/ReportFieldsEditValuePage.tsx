@@ -9,6 +9,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -36,6 +37,7 @@ function ReportFieldsEditValuePage({
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
+    const {canWrite: canWriteReportFields} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS);
 
     const currentValueName = formDraft?.listValues?.[valueIndex] ?? '';
 
@@ -66,6 +68,7 @@ function ReportFieldsEditValuePage({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS}
             shouldBeBlocked={hasAccountingConnections(policy)}
         >
             <ScreenWrapper
@@ -87,6 +90,7 @@ function ReportFieldsEditValuePage({
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
+                    isSubmitButtonVisible={canWriteReportFields}
                 >
                     <InputWrapper
                         InputComponent={TextInput}
@@ -96,6 +100,7 @@ function ReportFieldsEditValuePage({
                         inputID={INPUT_IDS.NEW_VALUE_NAME}
                         role={CONST.ROLE.PRESENTATION}
                         ref={inputCallbackRef}
+                        disabled={!canWriteReportFields}
                     />
                 </FormProvider>
             </ScreenWrapper>
