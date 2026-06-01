@@ -13,6 +13,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -48,6 +49,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
     const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
@@ -64,9 +66,11 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
     const card = cardList?.[cardID];
     const cardBank = card?.bank ?? '';
     const isCardBroken = card ? isCardConnectionBroken(card) : false;
-    const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
-    const displayName = getDisplayNameOrDefault(cardholder);
     const isUserPersonalCard = !!(card && isPersonalCard(card));
+    // A personal card always belongs to the current user, but CSV-imported personal cards don't have a valid accountID,
+    // so resolve the cardholder from the current user's personal details to avoid falling back to "Hidden".
+    const cardholder = isUserPersonalCard ? currentUserPersonalDetails : personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
+    const displayName = getDisplayNameOrDefault(cardholder);
     const reimbursableSetting = card?.reimbursable ?? true;
     const isCSVImportedPersonalCard = !!(isUserPersonalCard && card && (card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)));
 
