@@ -33,6 +33,7 @@ import variables from '@styles/variables';
 import type {TransactionPreviewData} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import type {CardList, Transaction} from '@src/types/onyx';
 import BaseSearchList from './BaseSearchList';
 import type ChatListItem from './ListItem/ChatListItem';
@@ -338,6 +339,11 @@ function SearchList({
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
+    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const undeleteTransactions = useUndeleteTransactions();
 
     const handleUndelete = (transaction: Transaction) => undeleteTransactions([transaction]);
@@ -492,6 +498,7 @@ function SearchList({
                         personalPolicyID={personalPolicyID}
                         userBillingGracePeriodEnds={userBillingGracePeriodEnds}
                         ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
+                        visibleColumns={visibleColumns}
                     />
                 );
             }
@@ -516,6 +523,10 @@ function SearchList({
                         onUndelete={handleUndelete}
                         isLastItem={index === lastVisibleIndex && !ListFooterComponent}
                         newTransactionID={containerNewTransactionID}
+                        allReportMetadata={allReportMetadata}
+                        bankAccountList={bankAccountList}
+                        cardFeeds={cardFeeds}
+                        conciergeReportID={conciergeReportID}
                     />
                 );
             }
@@ -591,6 +602,11 @@ function SearchList({
             lastVisibleIndex,
             expandedGroups,
             onToggleGroup,
+            allReportMetadata,
+            bankAccountList,
+            cardFeeds,
+            conciergeReportID,
+            visibleColumns,
         ],
     );
 

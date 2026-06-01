@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -13,7 +13,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useSearchSelectionContext} from '@components/Search/SearchContext';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
-import type {SearchColumnType, SearchGroupBy} from '@components/Search/types';
+import type {SearchColumnType, SearchCustomColumnIds, SearchGroupBy} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -32,7 +32,6 @@ import {isDeletedTransaction} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import CardListItemHeader from './CardListItemHeader';
@@ -81,6 +80,7 @@ type GroupHeaderProps = SearchListActionProps & {
     isFocused?: boolean;
     isFirstItem: boolean;
     isLastItem: boolean;
+    visibleColumns?: SearchCustomColumnIds[];
 };
 
 function GroupHeader({
@@ -103,6 +103,7 @@ function GroupHeader({
     personalPolicyID,
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
+    visibleColumns,
 }: GroupHeaderProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -116,50 +117,77 @@ function GroupHeader({
     const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
     const oneTransactionItem = groupItem.isOneTransactionReport ? groupItem.transactions.at(0) : undefined;
-    const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(oneTransactionItem?.reportID)}`);
-    const [oneTransactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionItem?.reportAction?.childReportID}`);
-    const [oneTransaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(oneTransactionItem?.transactionID)}`);
+    const oneTransactionReportID = getNonEmptyStringOnyxID(oneTransactionItem?.reportID);
+    const oneTransactionID = getNonEmptyStringOnyxID(oneTransactionItem?.transactionID);
+    const oneTransactionChildReportID = oneTransactionItem?.reportAction?.childReportID;
+    const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionReportID}`);
+    const [oneTransactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionChildReportID}`);
+    const [oneTransaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${oneTransactionID}`);
     const parentReportActionSelector = (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${oneTransactionItem?.reportAction?.reportActionID}`];
-    const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(oneTransactionItem?.reportID)}`, {selector: parentReportActionSelector}, [
-        oneTransactionItem,
-    ]);
-    const transactionPreviewData: TransactionPreviewData = {
-        hasParentReport: !!parentReport,
-        hasTransaction: !!oneTransaction,
-        hasParentReportAction: !!parentReportAction,
-        hasTransactionThreadReport: !!oneTransactionThreadReport,
-    };
+    const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneTransactionReportID}`, {selector: parentReportActionSelector}, [oneTransactionItem]);
+    const transactionPreviewData: TransactionPreviewData = useMemo(
+        () => ({
+            hasParentReport: !!parentReport,
+            hasTransaction: !!oneTransaction,
+            hasParentReportAction: !!parentReportAction,
+            hasTransactionThreadReport: !!oneTransactionThreadReport,
+        }),
+        [parentReport, oneTransaction, parentReportAction, oneTransactionThreadReport],
+    );
 
-    // Compute sub-header columns (same logic as TransactionGroupListExpanded)
     const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash}`);
-    const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
+    const snapshotData = transactionsSnapshot?.data;
+    const snapshotSearchType = transactionsSnapshot?.search.type;
 
-    let subHeaderColumns = columns ?? [];
-    if (!isExpenseReportType) {
-        if (!transactionsSnapshot?.data) {
-            subHeaderColumns = [];
-        } else {
-            subHeaderColumns = getColumnsToShow({
-                currentAccountID: currentUserDetails.accountID,
-                data: transactionsSnapshot?.data,
-                visibleColumns,
-                type: transactionsSnapshot?.search.type,
-            });
+    const subHeaderColumns = useMemo(() => {
+        if (isExpenseReportType) {
+            return columns ?? [];
         }
-    }
+        if (!snapshotData) {
+            return [];
+        }
+        return getColumnsToShow({
+            currentAccountID: currentUserDetails.accountID,
+            data: snapshotData,
+            visibleColumns,
+            type: snapshotSearchType,
+        });
+    }, [isExpenseReportType, columns, snapshotData, snapshotSearchType, currentUserDetails.accountID, visibleColumns]);
 
-    // Compute sub-header column widths from transactions
-    const isSubHeaderAmountColumnWide = groupItem.transactions.some((transaction) => transaction.isAmountColumnWide);
-    const isSubHeaderTaxAmountColumnWide = groupItem.transactions.some((transaction) => transaction.isTaxAmountColumnWide);
-    const shouldSubHeaderShowYear = groupItem.transactions.some((transaction) => transaction.shouldShowYear);
-    const isSubHeaderActionColumnWide = groupItem.transactions.some((transaction) => !!transaction.isActionColumnWide || isDeletedTransaction(transaction));
+    const {isSubHeaderAmountColumnWide, isSubHeaderTaxAmountColumnWide, shouldSubHeaderShowYear, isSubHeaderActionColumnWide} = useMemo(() => {
+        let amountWide = false;
+        let taxWide = false;
+        let showYear = false;
+        let actionWide = false;
+        for (const transaction of groupItem.transactions) {
+            if (transaction.isAmountColumnWide) {
+                amountWide = true;
+            }
+            if (transaction.isTaxAmountColumnWide) {
+                taxWide = true;
+            }
+            if (transaction.shouldShowYear) {
+                showYear = true;
+            }
+            if (transaction.isActionColumnWide || isDeletedTransaction(transaction)) {
+                actionWide = true;
+            }
+            if (amountWide && taxWide && showYear && actionWide) {
+                break;
+            }
+        }
+        return {isSubHeaderAmountColumnWide: amountWide, isSubHeaderTaxAmountColumnWide: taxWide, shouldSubHeaderShowYear: showYear, isSubHeaderActionColumnWide: actionWide};
+    }, [groupItem.transactions]);
 
     // Animated sub-header (SearchTableHeader) height
     const subHeaderHeight = useSharedValue(0);
     const hasExpanded = useSharedValue(isExpanded);
     const [isSubHeaderRendered, setIsSubHeaderRendered] = useState(isExpanded);
 
-    hasExpanded.set(isExpanded);
+    useEffect(() => {
+        hasExpanded.set(isExpanded);
+    }, [isExpanded, hasExpanded]);
+
     if (isExpanded && !isSubHeaderRendered) {
         setIsSubHeaderRendered(true);
     }
@@ -182,16 +210,19 @@ function GroupHeader({
         overflow: 'hidden' as const,
     }));
 
-    const selectedTransactionIDs = Object.keys(selectedTransactions);
-    const selectedTransactionIDsSet = new Set(selectedTransactionIDs);
-    const selectedItemsLength = groupItem.transactions.reduce((acc, transaction) => (selectedTransactionIDsSet.has(transaction.transactionID) ? acc + 1 : acc), 0);
-    const transactionsWithoutPendingDelete = groupItem.transactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const isEmpty = groupItem.transactions.length === 0;
-    const isEmptyReportSelected = isEmpty && item?.keyForList && selectedTransactions[item.keyForList]?.isSelected;
-    const isSelectAllChecked = isEmptyReportSelected || (selectedItemsLength === transactionsWithoutPendingDelete.length && transactionsWithoutPendingDelete.length > 0);
-    const isIndeterminate = selectedItemsLength > 0 && selectedItemsLength !== transactionsWithoutPendingDelete.length;
     const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const isDisabledOrEmpty = isEmpty || isDisabled;
+
+    const {isSelectAllChecked, isIndeterminate} = useMemo(() => {
+        const selectedTransactionIDsSet = new Set(Object.keys(selectedTransactions));
+        const filteredTransactions = groupItem.transactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const selectedCount = groupItem.transactions.reduce((acc, transaction) => (selectedTransactionIDsSet.has(transaction.transactionID) ? acc + 1 : acc), 0);
+        const isEmptyReportSelected = isEmpty && item?.keyForList && selectedTransactions[item.keyForList]?.isSelected;
+        const allChecked = !!isEmptyReportSelected || (selectedCount === filteredTransactions.length && filteredTransactions.length > 0);
+        const indeterminate = selectedCount > 0 && selectedCount !== filteredTransactions.length;
+        return {isSelectAllChecked: allChecked, isIndeterminate: indeterminate};
+    }, [selectedTransactions, groupItem.transactions, isEmpty, item?.keyForList]);
 
     const isItemSelected = isSelectAllChecked || item?.isSelected;
 
@@ -243,142 +274,93 @@ function GroupHeader({
             return null;
         }
 
-        const headers: Record<SearchGroupBy, React.JSX.Element> = {
-            [CONST.SEARCH.GROUP_BY.FROM]: (
-                <MemberListItemHeader
-                    member={groupItem as TransactionMemberGroupListItemType}
-                    onCheckboxPress={handleSelectionButtonPress}
-                    isDisabled={isDisabledOrEmpty}
-                    columns={columns}
-                    canSelectMultiple={canSelectMultiple}
-                    isSelectAllChecked={isSelectAllChecked}
-                    isIndeterminate={isIndeterminate}
-                    onDownArrowClick={onToggle}
-                    isExpanded={isExpanded}
-                    isLargeScreenWidth={isLargeScreenWidth}
-                />
-            ),
-            [CONST.SEARCH.GROUP_BY.CARD]: (
-                <CardListItemHeader
-                    card={groupItem as TransactionCardGroupListItemType}
-                    onCheckboxPress={handleSelectionButtonPress}
-                    isDisabled={isDisabledOrEmpty}
-                    columns={columns}
-                    canSelectMultiple={canSelectMultiple}
-                    isSelectAllChecked={isSelectAllChecked}
-                    isIndeterminate={isIndeterminate}
-                    onDownArrowClick={onToggle}
-                    isExpanded={isExpanded}
-                    isFocused={isFocused}
-                />
-            ),
-            [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: (
-                <WithdrawalIDListItemHeader
-                    withdrawalID={groupItem as TransactionWithdrawalIDGroupListItemType}
-                    onCheckboxPress={handleSelectionButtonPress}
-                    isDisabled={isDisabledOrEmpty}
-                    columns={columns}
-                    canSelectMultiple={canSelectMultiple}
-                    isSelectAllChecked={isSelectAllChecked}
-                    isIndeterminate={isIndeterminate}
-                    onDownArrowClick={onToggle}
-                    isExpanded={isExpanded}
-                />
-            ),
-            [CONST.SEARCH.GROUP_BY.CATEGORY]: (
-                <CategoryListItemHeader
-                    category={groupItem as TransactionCategoryGroupListItemType}
-                    onCheckboxPress={handleSelectionButtonPress}
-                    isDisabled={isDisabledOrEmpty}
-                    columns={columns}
-                    canSelectMultiple={canSelectMultiple}
-                    isSelectAllChecked={isSelectAllChecked}
-                    isIndeterminate={isIndeterminate}
-                    onDownArrowClick={onToggle}
-                    isExpanded={isExpanded}
-                />
-            ),
-            [CONST.SEARCH.GROUP_BY.MERCHANT]: (
-                <MerchantListItemHeader
-                    merchant={groupItem as TransactionMerchantGroupListItemType}
-                    onCheckboxPress={handleSelectionButtonPress}
-                    isDisabled={isDisabledOrEmpty}
-                    columns={columns}
-                    canSelectMultiple={canSelectMultiple}
-                    isSelectAllChecked={isSelectAllChecked}
-                    isIndeterminate={isIndeterminate}
-                    onDownArrowClick={onToggle}
-                    isExpanded={isExpanded}
-                />
-            ),
-            [CONST.SEARCH.GROUP_BY.TAG]: (
-                <TagListItemHeader
-                    tag={groupItem as TransactionTagGroupListItemType}
-                    onCheckboxPress={handleSelectionButtonPress}
-                    isDisabled={isDisabledOrEmpty}
-                    columns={columns}
-                    canSelectMultiple={canSelectMultiple}
-                    isSelectAllChecked={isSelectAllChecked}
-                    isIndeterminate={isIndeterminate}
-                    onDownArrowClick={onToggle}
-                    isExpanded={isExpanded}
-                />
-            ),
-            [CONST.SEARCH.GROUP_BY.MONTH]: (
-                <MonthListItemHeader
-                    month={groupItem as TransactionMonthGroupListItemType}
-                    onCheckboxPress={handleSelectionButtonPress}
-                    isDisabled={isDisabledOrEmpty}
-                    columns={columns}
-                    canSelectMultiple={canSelectMultiple}
-                    isSelectAllChecked={isSelectAllChecked}
-                    isIndeterminate={isIndeterminate}
-                    onDownArrowClick={onToggle}
-                    isExpanded={isExpanded}
-                />
-            ),
-            [CONST.SEARCH.GROUP_BY.WEEK]: (
-                <WeekListItemHeader
-                    week={groupItem as TransactionWeekGroupListItemType}
-                    onCheckboxPress={handleSelectionButtonPress}
-                    isDisabled={isDisabledOrEmpty}
-                    columns={columns}
-                    canSelectMultiple={canSelectMultiple}
-                    isSelectAllChecked={isSelectAllChecked}
-                    isIndeterminate={isIndeterminate}
-                    onDownArrowClick={onToggle}
-                    isExpanded={isExpanded}
-                />
-            ),
-            [CONST.SEARCH.GROUP_BY.YEAR]: (
-                <YearListItemHeader
-                    year={groupItem as TransactionYearGroupListItemType}
-                    onCheckboxPress={handleSelectionButtonPress}
-                    isDisabled={isDisabledOrEmpty}
-                    columns={columns}
-                    canSelectMultiple={canSelectMultiple}
-                    isSelectAllChecked={isSelectAllChecked}
-                    isIndeterminate={isIndeterminate}
-                    onDownArrowClick={onToggle}
-                    isExpanded={isExpanded}
-                />
-            ),
-            [CONST.SEARCH.GROUP_BY.QUARTER]: (
-                <QuarterListItemHeader
-                    quarter={groupItem as TransactionQuarterGroupListItemType}
-                    onCheckboxPress={handleSelectionButtonPress}
-                    isDisabled={isDisabledOrEmpty}
-                    columns={columns}
-                    canSelectMultiple={canSelectMultiple}
-                    isSelectAllChecked={isSelectAllChecked}
-                    isIndeterminate={isIndeterminate}
-                    onDownArrowClick={onToggle}
-                    isExpanded={isExpanded}
-                />
-            ),
-        };
+        const commonProps = {
+            onCheckboxPress: handleSelectionButtonPress,
+            isDisabled: isDisabledOrEmpty,
+            columns,
+            canSelectMultiple,
+            isSelectAllChecked,
+            isIndeterminate,
+            onDownArrowClick: onToggle,
+            isExpanded,
+        } as const;
 
-        return headers[groupBy];
+        switch (groupBy) {
+            case CONST.SEARCH.GROUP_BY.FROM:
+                return (
+                    <MemberListItemHeader
+                        member={groupItem as TransactionMemberGroupListItemType}
+                        {...commonProps}
+                        isLargeScreenWidth={isLargeScreenWidth}
+                    />
+                );
+            case CONST.SEARCH.GROUP_BY.CARD:
+                return (
+                    <CardListItemHeader
+                        card={groupItem as TransactionCardGroupListItemType}
+                        {...commonProps}
+                        isFocused={isFocused}
+                    />
+                );
+            case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
+                return (
+                    <WithdrawalIDListItemHeader
+                        withdrawalID={groupItem as TransactionWithdrawalIDGroupListItemType}
+                        {...commonProps}
+                    />
+                );
+            case CONST.SEARCH.GROUP_BY.CATEGORY:
+                return (
+                    <CategoryListItemHeader
+                        category={groupItem as TransactionCategoryGroupListItemType}
+                        {...commonProps}
+                    />
+                );
+            case CONST.SEARCH.GROUP_BY.MERCHANT:
+                return (
+                    <MerchantListItemHeader
+                        merchant={groupItem as TransactionMerchantGroupListItemType}
+                        {...commonProps}
+                    />
+                );
+            case CONST.SEARCH.GROUP_BY.TAG:
+                return (
+                    <TagListItemHeader
+                        tag={groupItem as TransactionTagGroupListItemType}
+                        {...commonProps}
+                    />
+                );
+            case CONST.SEARCH.GROUP_BY.MONTH:
+                return (
+                    <MonthListItemHeader
+                        month={groupItem as TransactionMonthGroupListItemType}
+                        {...commonProps}
+                    />
+                );
+            case CONST.SEARCH.GROUP_BY.WEEK:
+                return (
+                    <WeekListItemHeader
+                        week={groupItem as TransactionWeekGroupListItemType}
+                        {...commonProps}
+                    />
+                );
+            case CONST.SEARCH.GROUP_BY.YEAR:
+                return (
+                    <YearListItemHeader
+                        year={groupItem as TransactionYearGroupListItemType}
+                        {...commonProps}
+                    />
+                );
+            case CONST.SEARCH.GROUP_BY.QUARTER:
+                return (
+                    <QuarterListItemHeader
+                        quarter={groupItem as TransactionQuarterGroupListItemType}
+                        {...commonProps}
+                    />
+                );
+            default:
+                return null;
+        }
     };
 
     const isLastItemCollapsed = isLastItem && !isExpanded && !isSubHeaderRendered;
