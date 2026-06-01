@@ -4,7 +4,6 @@ import {ScrollView} from 'react-native-gesture-handler';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Hoverable from '@components/Hoverable';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -77,32 +76,29 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
                         const translationKey = `onboarding.personalTrackGoal.${goal}` as const;
                         const isSelected = goal === selectedGoal;
                         return (
-                            <Hoverable key={translationKey}>
-                                {(hovered) => (
-                                    <MenuItem
-                                        title={translate(translationKey)}
-                                        icon={menuIcons[goal]}
-                                        displayInDefaultIconColor
-                                        iconWidth={variables.menuIconSize}
-                                        iconHeight={variables.menuIconSize}
-                                        iconStyles={[styles.mh3]}
-                                        wrapperStyle={[styles.purposeMenuItem, (isSelected || hovered) && styles.activeComponentBG]}
-                                        numberOfLinesTitle={0}
-                                        shouldShowRightIcon={isSelected}
-                                        iconRight={expensifyIcons.Checkmark}
-                                        success={isSelected}
-                                        shouldRemoveHoverBackground
-                                        onPress={() => {
-                                            setSelectedGoal(goal);
-                                            setInputError('');
-                                            if (goal !== CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE) {
-                                                setOnboardingPersonalTrackGoal(goal);
-                                                Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
-                                            }
-                                        }}
-                                    />
-                                )}
-                            </Hoverable>
+                            <MenuItem
+                                key={translationKey}
+                                title={translate(translationKey)}
+                                icon={menuIcons[goal]}
+                                displayInDefaultIconColor
+                                iconWidth={variables.menuIconSize}
+                                iconHeight={variables.menuIconSize}
+                                iconStyles={[styles.mh3]}
+                                wrapperStyle={[styles.purposeMenuItem, isSelected && styles.activeComponentBG]}
+                                numberOfLinesTitle={0}
+                                shouldShowRightIcon={isSelected}
+                                iconRight={expensifyIcons.Checkmark}
+                                success={isSelected}
+                                shouldRemoveHoverBackground={isSelected}
+                                onPress={() => {
+                                    setSelectedGoal(goal);
+                                    setInputError('');
+                                    if (goal !== CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE) {
+                                        setOnboardingPersonalTrackGoal(goal);
+                                        Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
+                                    }
+                                }}
+                            />
                         );
                     })}
                     {isSomethingElseSelected && (
