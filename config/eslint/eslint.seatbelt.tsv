@@ -304,7 +304,7 @@
 "../../src/libs/SubscriptionUtils.ts"	"rulesdir/no-onyx-connect"	1
 "../../src/libs/TransactionUtils/index.ts"	"@typescript-eslint/no-deprecated/translateLocal"	5
 "../../src/libs/UnreadIndicatorUpdater/index.ts"	"no-restricted-syntax"	1
-"../../src/libs/Violations/ViolationsUtils.ts"	"no-restricted-syntax"	2
+"../../src/libs/Violations/ViolationsUtils.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/App.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/BankAccounts.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/CanvasSize.ts"	"no-restricted-syntax"	1
