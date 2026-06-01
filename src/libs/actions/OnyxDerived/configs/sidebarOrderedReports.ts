@@ -1,7 +1,5 @@
 import {shallowEqual} from 'fast-equals';
-import {getTransactionThreadReportID} from '@libs/MergeTransactionUtils';
 import {getIsOffline} from '@libs/NetworkState';
-import {isOneTransactionReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import CONST from '@src/CONST';
@@ -118,14 +116,7 @@ export default createOnyxDerivedValueConfig({
                     if (!txn?.reportID) {
                         continue;
                     }
-                    const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${txn.reportID}`;
-                    const reportForTxn = reports[reportKey];
-                    if (isOneTransactionReport(reportForTxn)) {
-                        updatedReportsKeys.add(reportKey);
-                    } else {
-                        const threadID = getTransactionThreadReportID(txn);
-                        updatedReportsKeys.add(`${ONYXKEYS.COLLECTION.REPORT}${threadID}`);
-                    }
+                    updatedReportsKeys.add(`${ONYXKEYS.COLLECTION.REPORT}${txn.reportID}`);
                 }
             }
 

@@ -137,7 +137,11 @@ function IOURequestStepDistanceOdometer({
         [iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd],
     );
 
-    const mileageRate = DistanceRequestUtils.getRate({transaction: currentTransaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy});
+    const mileageRate = DistanceRequestUtils.getRate({
+        transaction: currentTransaction,
+        policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy,
+        personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+    });
     const unit = mileageRate.unit;
     const rate = mileageRate.rate ?? 0;
 
@@ -195,6 +199,7 @@ function IOURequestStepDistanceOdometer({
 
     const navigateToNextStep = useOdometerNavigation({
         iouType,
+        action,
         report,
         policy,
         transaction,
@@ -205,7 +210,6 @@ function IOURequestStepDistanceOdometer({
         currentUserLogin: currentUserEmailParam,
         currentUserAccountID: currentUserAccountIDParam,
         backToReport,
-        backTo: undefined,
         shouldSkipConfirmation,
         defaultExpensePolicy,
         isArchived,

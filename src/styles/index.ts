@@ -703,7 +703,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         tabNavigatorBarContainer: {
-            zIndex: 1,
             width: variables.navigationTabBarSize + variables.sideBarWithLHBWidth,
             marginRight: -variables.sideBarWithLHBWidth,
             overflow: 'visible',
@@ -970,6 +969,12 @@ const staticStyles = (theme: ThemeColors) =>
         actionableItemButtonText: {
             textAlign: 'left',
             ...wordBreak.breakWord,
+        },
+
+        actionableItemButtonSkeleton: {
+            alignItems: 'flex-start',
+            borderRadius: 20,
+            backgroundColor: theme.buttonDefaultBG,
         },
 
         hoveredComponentBG: {
@@ -1748,7 +1753,7 @@ const staticStyles = (theme: ThemeColors) =>
             marginLeft: variables.sideBarWithLHBWidth,
         },
 
-        searchSidebar: {
+        sidebarContainer: {
             width: variables.sideBarWithLHBWidth,
             height: '100%',
             backgroundColor: theme.sidebar,
@@ -2082,6 +2087,11 @@ const staticStyles = (theme: ThemeColors) =>
         emptyWorkspaceListStaticIllustrationStyle: {
             width: 203,
             height: 166,
+        },
+
+        emptyDomainListStaticIllustrationStyle: {
+            width: 274,
+            height: 164,
         },
 
         appContent: {
@@ -3400,10 +3410,6 @@ const staticStyles = (theme: ThemeColors) =>
             fontSize: variables.iconSizeNormal,
         },
 
-        workspaceOwnerAvatarWrapper: {
-            margin: 6,
-        },
-
         workspaceOwnerSectionTitle: {
             marginLeft: 6,
         },
@@ -4710,6 +4716,10 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
+        sidebarStatusAvatarHovered: {
+            borderColor: theme.hoverComponentBG,
+        },
+
         profilePageAvatar: {
             borderColor: theme.highlightBG,
         },
@@ -5425,8 +5435,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         emptyStateSamlIllustration: {
-            width: 218,
-            height: 190,
+            width: 183,
+            height: 160,
         },
 
         agentsPageEmptyStateIllustration: {
@@ -5974,8 +5984,17 @@ const staticStyles = (theme: ThemeColors) =>
         },
         domainIcon: {
             backgroundColor: theme.border,
+            padding: 5,
+            borderRadius: 8,
+            width: 28,
+            height: 28,
+        },
+        domainIconCompact: {
+            backgroundColor: theme.border,
             padding: 10,
             borderRadius: 8,
+            width: 40,
+            height: 40,
         },
         copyableTextField: {
             color: theme.textSupporting,

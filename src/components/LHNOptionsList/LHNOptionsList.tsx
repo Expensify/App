@@ -56,7 +56,10 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
      * Function which renders a row in the list
      */
     const renderItem = useCallback(
-        ({item: reportID, index}: RenderItemProps): ReactElement => {
+        ({item: reportID, index}: RenderItemProps): ReactElement | null => {
+            if (!reportID) {
+                return null;
+            }
             const fullReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
             const itemReportAttributes = reportAttributes?.[reportID];
             const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${fullReport?.parentReportID}`];
@@ -141,6 +144,9 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         });
     }, [getScrollOffset, route]);
 
+    const savedScrollIndex = getScrollIndex(route);
+    const initialScrollIndex = isWeb && savedScrollIndex !== undefined && savedScrollIndex >= 0 && savedScrollIndex < data.length ? savedScrollIndex : undefined;
+
     return (
         <View style={style ?? styles.flex1}>
             <LHNTooltipContextProvider data={data}>
@@ -158,7 +164,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     showsVerticalScrollIndicator={false}
                     onLayout={onLayout}
                     onScroll={onScroll}
-                    initialScrollIndex={isWeb ? getScrollIndex(route) : undefined}
+                    initialScrollIndex={initialScrollIndex}
                     maintainVisibleContentPosition={{disabled: true}}
                     drawDistance={250}
                     removeClippedSubviews
