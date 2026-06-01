@@ -44,7 +44,7 @@ jest.mock('@hooks/useThemeStyles', () =>
 
 jest.mock('@hooks/useTheme', () => jest.fn(() => ({})));
 
-const EXCLAMATION_ASSET = {testID: 'exclamation-icon'};
+const RECEIPT_SEARCH_ASSET = {testID: 'receipt-search-icon'};
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: jest.fn(() => ({
@@ -52,7 +52,7 @@ jest.mock('@hooks/useLazyAsset', () => ({
         Send: null,
         ThumbsUp: null,
         Export: null,
-        Exclamation: EXCLAMATION_ASSET,
+        ReceiptSearch: RECEIPT_SEARCH_ASSET,
     })),
     useMemoizedLazyIllustrations: jest.fn(() => ({
         ThumbsUpStars: null,
@@ -226,7 +226,7 @@ describe('ForYouSection', () => {
             expect(titleOrder).toEqual([getChildren(reviewTitle), getChildren(submitTitle), getChildren(approveTitle), getChildren(payTitle), getChildren(exportTitle)]);
         });
 
-        it('exposes a Begin CTA and uses the Exclamation icon asset', async () => {
+        it('exposes a Begin CTA and uses the ReceiptSearch icon asset', async () => {
             await act(async () => {
                 await Onyx.set(ONYXKEYS.DERIVED.TODOS, BASE_TODOS);
                 await Onyx.set(ONYXKEYS.DERIVED.FLAGGED_EXPENSES, {
@@ -240,9 +240,9 @@ describe('ForYouSection', () => {
 
             expect(screen.getByText('Begin')).toBeOnTheScreen();
 
-            // The Exclamation asset should be passed as the `icon` prop on at least one BaseWidgetItem.
-            // We look for any rendered element whose `icon` prop is the EXCLAMATION_ASSET reference.
-            const matchingNodes = unsafeRoot.findAll((node) => node.props && (node.props as {icon?: unknown}).icon === EXCLAMATION_ASSET);
+            // The ReceiptSearch asset should be passed as the `icon` prop on at least one BaseWidgetItem.
+            // We look for any rendered element whose `icon` prop is the RECEIPT_SEARCH_ASSET reference.
+            const matchingNodes = unsafeRoot.findAll((node) => node.props && (node.props as {icon?: unknown}).icon === RECEIPT_SEARCH_ASSET);
             expect(matchingNodes.length).toBeGreaterThan(0);
         });
     });

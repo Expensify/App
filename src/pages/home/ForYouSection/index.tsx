@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -31,7 +32,7 @@ function ForYouSection() {
     const [singleReportIDs = EMPTY_TODOS_SINGLE_REPORT_IDS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosSingleReportIDsSelector});
     const [flaggedExpensesReview = EMPTY_FLAGGED_EXPENSES_REVIEW] = useOnyx(ONYXKEYS.DERIVED.FLAGGED_EXPENSES, {selector: flaggedExpensesReviewSelector});
 
-    const icons = useMemoizedLazyExpensifyIcons(['Exclamation', 'MoneyBag', 'Send', 'ThumbsUp', 'Export']);
+    const icons = useMemoizedLazyExpensifyIcons(['ReceiptSearch', 'MoneyBag', 'Send', 'ThumbsUp', 'Export']);
 
     const submitCount = reportCounts?.[CONST.SEARCH.SEARCH_KEYS.SUBMIT] ?? 0;
     const approveCount = reportCounts?.[CONST.SEARCH.SEARCH_KEYS.APPROVE] ?? 0;
@@ -88,9 +89,12 @@ function ForYouSection() {
                 {
                     key: 'reviewExpenses',
                     count: flaggedExpensesCount,
-                    icon: icons.Exclamation,
+                    icon: icons.ReceiptSearch,
+                    iconBackgroundColor: colors.tangerine100,
+                    iconFill: colors.tangerine500,
                     translationKey: 'homePage.forYouSection.reviewExpenses' as const,
                     handler: createReviewExpensesHandler(flaggedExpensesReview.firstReportID),
+                    buttonProps: {danger: true} as const,
                 },
                 {
                     key: 'submit',
@@ -137,9 +141,9 @@ function ForYouSection() {
             exportCount,
             flaggedExpensesCount,
             flaggedExpensesReview.firstReportID,
-            icons.Exclamation,
             icons.Export,
             icons.MoneyBag,
+            icons.ReceiptSearch,
             icons.Send,
             icons.ThumbsUp,
             payCount,
@@ -150,16 +154,16 @@ function ForYouSection() {
 
     const renderTodoItems = () => (
         <View style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}>
-            {todoItems.map(({key, count, icon, translationKey, handler}) => (
+            {todoItems.map(({key, count, icon, iconBackgroundColor, iconFill, translationKey, handler, buttonProps}) => (
                 <BaseWidgetItem
                     key={key}
                     icon={icon}
-                    iconBackgroundColor={theme.widgetIconBG}
-                    iconFill={theme.widgetIconFill}
+                    iconBackgroundColor={iconBackgroundColor ?? theme.widgetIconBG}
+                    iconFill={iconFill ?? theme.widgetIconFill}
                     title={translate(translationKey, {count})}
                     ctaText={translate('homePage.forYouSection.begin')}
                     onCtaPress={handler}
-                    buttonProps={{success: true}}
+                    buttonProps={buttonProps ?? {success: true}}
                 />
             ))}
         </View>
