@@ -20,7 +20,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {openWorkspaceView} from '@libs/actions/BankAccounts';
 import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
 import Navigation from '@libs/Navigation/Navigation';
-import {canEditWorkspaceSettings, isPendingDeletePolicy, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
+import {canEditWorkspaceSettings, canMemberRead, isPendingDeletePolicy, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
+import type {PolicyFeature} from '@libs/PolicyUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -58,6 +59,9 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
 
         /** Whether to show this page to non admin policy members */
         shouldShowNonAdmin?: boolean;
+
+        /** Policy feature permission needed to show this page */
+        policyFeature?: PolicyFeature;
 
         /** Whether to show the not found page */
         shouldShowNotFoundPage?: boolean;
@@ -123,6 +127,7 @@ function WorkspacePageWithSections({
     shouldShowLoading = true,
     shouldShowOfflineIndicatorInWideScreen = false,
     shouldShowNonAdmin = false,
+    policyFeature,
     shouldEnableMaxHeight = true,
     headerContent,
     testID,
@@ -165,6 +170,10 @@ function WorkspacePageWithSections({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     const shouldShowPolicy = useMemo(() => shouldShowPolicyUtil(policy, false, currentUserLogin), [policy, currentUserLogin]);
+    let hasAccessToPolicyFeature: boolean | undefined;
+    if (policyFeature) {
+        hasAccessToPolicyFeature = currentUserLogin ? canMemberRead(policy, currentUserLogin, policyFeature) : false;
+    }
     const isPendingDelete = isPendingDeletePolicy(policy);
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
 
@@ -182,9 +191,11 @@ function WorkspacePageWithSections({
         }
 
         // We check isPendingDelete and prevIsPendingDelete to prevent the NotFound view from showing right after we delete the workspace
-        return (!isEmptyObject(policy) && !canEditWorkspaceSettings(policy) && !shouldShowNonAdmin) || (!shouldShowPolicy && !(isPendingDelete && !prevIsPendingDelete));
+        const canShowPage = hasAccessToPolicyFeature ?? (canEditWorkspaceSettings(policy, currentUserLogin) || shouldShowNonAdmin);
+
+        return (!isEmptyObject(policy) && !canShowPage) || (!shouldShowPolicy && !(isPendingDelete && !prevIsPendingDelete));
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isWorkspacesTabFocused, policy, shouldShowNonAdmin, shouldShowPolicy]);
+    }, [currentUserLogin, hasAccessToPolicyFeature, isWorkspacesTabFocused, policy, shouldShowNonAdmin, shouldShowPolicy]);
 
     const handleOnBackButtonPress = () => {
         if (shouldShow) {

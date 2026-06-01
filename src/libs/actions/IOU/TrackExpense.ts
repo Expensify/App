@@ -961,6 +961,8 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             policyID: policy?.id,
             expenseReportId: chatReport?.reportID,
             engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+            // TODO: thread currency from caller (https://github.com/Expensify/App/issues/66580)
+            currency: undefined,
             currentUserAccountIDParam,
             currentUserEmailParam,
             introSelected,
@@ -993,7 +995,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         } else {
             iouReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
         }
-        const isScanRequest = isScanRequestTransactionUtils({amount, receipt});
+        const isScanRequest = isScanRequestTransactionUtils(existingTransaction);
         shouldCreateNewMoneyRequestReport = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, betas);
         if (!iouReport || shouldCreateNewMoneyRequestReport) {
             const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, optimisticExpenseReportID, created, amount, currency, merchant);
@@ -1599,6 +1601,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         quickAction,
         policyRecentlyUsedCurrencies,
         existingTransactionDraft,
+        existingTransaction: explicitExistingTransaction,
         draftTransactionIDs = [],
         isSelfTourViewed,
         betas,
@@ -1648,7 +1651,8 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
     const existingTransactionID = existingTransactionDraft?.transactionID;
-    const existingTransaction = action === CONST.IOU.ACTION.SUBMIT ? existingTransactionDraft : getAllTransactions()[`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`];
+    const existingTransaction =
+        explicitExistingTransaction ?? (action === CONST.IOU.ACTION.SUBMIT ? existingTransactionDraft : getAllTransactions()[`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`]);
 
     const retryParams = {
         ...requestMoneyInformation,
@@ -1660,6 +1664,17 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
             ...requestMoneyInformation.transactionParams,
             receipt: undefined,
         },
+        existingTransaction: explicitExistingTransaction
+            ? {
+                  iouRequestType: explicitExistingTransaction.iouRequestType,
+                  amount: 0,
+                  currency: '',
+                  created: '',
+                  merchant: '',
+                  reportID: '1',
+                  transactionID: '1',
+              }
+            : undefined,
     };
 
     const {
@@ -1691,7 +1706,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         transactionParams,
         moneyRequestReportID,
         existingTransactionID,
-        existingTransaction: isDistanceRequestTransactionUtils(existingTransaction) ? existingTransaction : undefined,
+        existingTransaction,
         retryParams,
         testDriveCommentReportActionID,
         optimisticChatReportID,
@@ -1801,7 +1816,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                       onboardingMessage: getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER],
                       companySize: undefined,
                       isSelfTourViewed,
-                      betas,
                   })?.guidedSetupData
                 : undefined;
 
@@ -2104,7 +2118,8 @@ function convertBulkTrackedExpensesToIOU({
 }
 
 function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
-    const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, currentUserAccountID, currentUserEmail} = trackedExpenseParams;
+    const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, currentUser} = trackedExpenseParams;
+    const {accountID: currentUserAccountID} = currentUser;
     const {optimisticData, successData, failureData} = onyxData ?? {};
     const {transactionID} = transactionParams;
     const {isDraftPolicy} = policyParams;
@@ -2162,12 +2177,22 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
     // If a draft policy was used, then the CategorizeTrackedExpense command will create a real one
     // so let's track that conversion here
     if (isDraftPolicy) {
-        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED.NAME, currentUserAccountID, currentUserEmail ?? '');
+        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED.NAME, currentUserAccountID, currentUser.email ?? '');
     }
 }
 
 function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
-    const {onyxData: trackedExpenseOnyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, accountantParams, currentUserAccountID} = trackedExpenseParams;
+    const {
+        onyxData: trackedExpenseOnyxData,
+        reportInformation,
+        transactionParams,
+        policyParams,
+        createdWorkspaceParams,
+        accountantParams,
+        currentUser,
+        reportActionsList,
+    } = trackedExpenseParams;
+    const {accountID: currentUserAccountID} = currentUser;
 
     const policyID = policyParams?.policyID;
     const chatReportID = reportInformation?.chatReportID;
@@ -2234,7 +2259,10 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
             policyMemberAccountIDs,
             CONST.POLICY.ROLE.ADMIN,
             formatPhoneNumber,
-            currentUserAccountID,
+            {accountID: currentUserAccountID},
+            undefined,
+            undefined,
+            reportActionsList,
         );
         onyxData.optimisticData?.push(...addAccountantToWorkspaceOptimisticData);
         onyxData.successData?.push(...addAccountantToWorkspaceSuccessData);
@@ -2305,8 +2333,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         shouldHandleNavigation = true,
         shouldPlaySound = true,
         isASAPSubmitBetaEnabled,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
+        currentUser,
         introSelected,
         activePolicy,
         quickAction,
@@ -2316,7 +2343,9 @@ function trackExpense(params: CreateTrackExpenseParams) {
         isSelfTourViewed,
         defaultWorkspaceName,
         previousOdometerDraft,
+        reportActionsList,
     } = params;
+    const {accountID: currentUserAccountIDParam, email: currentUserEmailParam = ''} = currentUser;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
     const {policy, policyCategories, policyTagList} = policyData;
     const parsedComment = getParsedComment(transactionData.comment ?? '');
@@ -2362,6 +2391,8 @@ function trackExpense(params: CreateTrackExpenseParams) {
         report,
         isDraftPolicy,
         action,
+        // Strip reportActionsList from retryParams to keep the serialized error JSON small.
+        reportActionsList: undefined,
         participantParams: {
             participant,
             payeeAccountID,
@@ -2391,6 +2422,17 @@ function trackExpense(params: CreateTrackExpenseParams) {
         },
         quickAction,
         isSelfTourViewed,
+        existingTransaction: existingTransaction
+            ? {
+                  iouRequestType: existingTransaction.iouRequestType,
+                  amount: 0,
+                  currency: '',
+                  created: '',
+                  merchant: '',
+                  reportID: '1',
+                  transactionID: '1',
+              }
+            : undefined,
     };
 
     const {
@@ -2546,8 +2588,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 transactionParams,
                 policyParams,
                 createdWorkspaceParams,
-                currentUserAccountID: currentUserAccountIDParam,
-                currentUserEmail: currentUserEmailParam,
+                currentUser: {accountID: currentUserAccountIDParam, email: currentUserEmailParam},
             };
 
             categorizeTrackedExpense(trackedExpenseParams);
@@ -2599,8 +2640,8 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 policyParams,
                 createdWorkspaceParams,
                 accountantParams,
-                currentUserAccountID: currentUserAccountIDParam,
-                currentUserEmail: currentUserEmailParam,
+                currentUser: {accountID: currentUserAccountIDParam, email: currentUserEmailParam},
+                reportActionsList,
             };
             shareTrackedExpense(trackedExpenseParams);
             break;

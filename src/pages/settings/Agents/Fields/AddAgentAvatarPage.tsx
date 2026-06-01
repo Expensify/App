@@ -1,12 +1,13 @@
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import Navigation from '@libs/Navigation/Navigation';
-import {consumeNavigationToken, getInitialPresetID, setPendingAvatar} from '@pages/settings/Agents/pendingAgentAvatarStore';
+import {consumeNavigationToken, getInitialPresetID, getReturnRoute, setPendingAvatar} from '@pages/settings/Agents/pendingAgentAvatarStore';
 import ROUTES from '@src/ROUTES';
 import type {OnSaveParams} from './EditAgentAvatarPage';
 import {EditAgentAvatarContent} from './EditAgentAvatarPage';
 
 function AddAgentAvatarPage() {
     const didInitRef = useRef(false);
+    const returnRoute = getReturnRoute() ?? ROUTES.SETTINGS_AGENTS_ADD.getRoute();
 
     useEffect(() => {
         if (didInitRef.current) {
@@ -17,24 +18,24 @@ function AddAgentAvatarPage() {
         if (consumeNavigationToken()) {
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD);
-    }, []);
+        Navigation.navigate(returnRoute);
+    }, [returnRoute]);
 
     const initialPresetID = getInitialPresetID();
 
-    const handleSave = useCallback((params: OnSaveParams) => {
+    const handleSave = (params: OnSaveParams) => {
         if ('customExpensifyAvatarID' in params) {
             setPendingAvatar({type: 'preset', id: params.customExpensifyAvatarID});
         } else {
             setPendingAvatar({type: 'file', file: params.file, uri: params.uri});
         }
-        Navigation.goBack(ROUTES.SETTINGS_AGENTS_ADD);
-    }, []);
+        Navigation.goBack(returnRoute);
+    };
 
     return (
         <EditAgentAvatarContent
             accountID={0}
-            fallbackRoute={ROUTES.SETTINGS_AGENTS_ADD}
+            fallbackRoute={returnRoute}
             onSave={handleSave}
             initialPresetID={initialPresetID}
         />
