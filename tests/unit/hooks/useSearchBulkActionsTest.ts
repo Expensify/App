@@ -223,8 +223,8 @@ describe('useSearchBulkActions - CSV export flow', () => {
         const basicExportSubItem = exportOption?.subMenuItems?.find((item) => item.text === 'export.basicExport');
 
         if (basicExportSubItem?.onSelected) {
-            await act(async () => {
-                await basicExportSubItem.onSelected?.();
+            act(() => {
+                basicExportSubItem.onSelected?.();
             });
         }
 
@@ -243,7 +243,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
         });
 
         expect(mockQueueExportSearchItemsToCSV).not.toHaveBeenCalled();
-        expect(result.current.activeExportID).toBeNull();
+        expect(result.current.activeExportID).toBeUndefined();
     });
 
     it('beginExportWithTemplate sets activeExportID', async () => {
@@ -260,8 +260,8 @@ describe('useSearchBulkActions - CSV export flow', () => {
         const templateSubItem = exportOption?.subMenuItems?.find((item) => item.text !== 'export.basicExport' && item.text !== 'export.currentView');
 
         if (templateSubItem?.onSelected) {
-            await act(async () => {
-                await templateSubItem.onSelected?.();
+            act(() => {
+                templateSubItem.onSelected?.();
             });
 
             expect(mockQueueExportSearchWithTemplate).toHaveBeenCalled();
@@ -283,8 +283,8 @@ describe('useSearchBulkActions - CSV export flow', () => {
         const basicExportSubItem = exportOption?.subMenuItems?.find((item) => item.text === 'export.basicExport');
 
         if (basicExportSubItem?.onSelected) {
-            await act(async () => {
-                await basicExportSubItem.onSelected?.();
+            act(() => {
+                basicExportSubItem.onSelected?.();
             });
         }
 

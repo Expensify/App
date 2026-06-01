@@ -308,9 +308,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     > | null>(null);
 
     const [emptyReportsCount, setEmptyReportsCount] = useState<number>(0);
-    const [activeExportID, setActiveExportID] = useState<string | null>(null);
-    const [activeExportDownload] = useOnyx(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${activeExportID ?? ''}`);
-    console.log('>>>>>>>>>>>>>>', {activeExportID});
+    const [activeExportID, setActiveExportID] = useState<string | undefined>(undefined);
+    const [activeExportDownload] = useOnyx(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${activeExportID}`);
 
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
@@ -1783,10 +1782,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         if (activeExportDownload?.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING && !activeExportDownload?.shouldSendFromConcierge) {
             return;
         }
-        setActiveExportID(null);
+        setActiveExportID(undefined);
         selectAllMatchingItems(false);
         clearSelectedTransactions();
-    }, [activeExportDownload, selectAllMatchingItems, clearSelectedTransactions]);
+    }, [activeExportDownload?.state, activeExportDownload?.shouldSendFromConcierge, selectAllMatchingItems, clearSelectedTransactions]);
 
     return {
         headerButtonsOptions,

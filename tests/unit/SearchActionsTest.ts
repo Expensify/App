@@ -42,6 +42,7 @@ describe('queueExportSearchItemsToCSV', () => {
         expect(mockWrite).toHaveBeenCalledWith(
             WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV,
             expect.objectContaining({exportID}),
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             expect.objectContaining({optimisticData: expect.any(Array), failureData: expect.any(Array)}),
         );
 
@@ -75,6 +76,7 @@ describe('queueExportSearchWithTemplate', () => {
         expect(mockWrite).toHaveBeenCalledWith(
             WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE,
             expect.objectContaining({exportID}),
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             expect.objectContaining({optimisticData: expect.any(Array), failureData: expect.any(Array)}),
         );
 

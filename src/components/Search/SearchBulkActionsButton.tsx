@@ -1,5 +1,5 @@
 import {isUserValidatedSelector} from '@selectors/Account';
-import React, {useContext, useEffect, useMemo, useRef} from 'react';
+import React, {useContext, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import DecisionModal from '@components/DecisionModal';
