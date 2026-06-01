@@ -1,9 +1,9 @@
 import React from 'react';
 import useLocalize from '@hooks/useLocalize';
 import {updateZenefitsFinalApprover} from '@libs/actions/connections/Zenefits';
+import {isZenefitsConnected} from '@libs/HRUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isZenefitsConnected} from '@libs/PolicyUtils';
 import HRFinalApproverPageBase from '@pages/workspace/hr/HRFinalApproverPageBase';
 import type {HRFinalApproverProviderConfig} from '@pages/workspace/hr/HRFinalApproverPageBase';
 import CONST from '@src/CONST';
