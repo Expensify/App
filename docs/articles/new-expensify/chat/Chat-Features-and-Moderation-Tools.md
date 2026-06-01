@@ -103,10 +103,10 @@ You can invite others in three ways:
 
 # Leave a Chat Room
 
-**To remove a room from your inbox:**
+**To remove a chat room from your inbox:**
 
-1. Open the room.
-2. Click the 3-dot menu in the top right.
+1. Open the chat room.
+2. Click the chat room header.
 3. Select **Leave**.
 
 ---
