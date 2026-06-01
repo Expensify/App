@@ -1,6 +1,6 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AgentPrompt} from '@src/types/onyx';
+import type {AgentPrompt, ConciergePendingFollowupList} from '@src/types/onyx';
 import type Report from '@src/types/onyx/Report';
 
 const getReportParticipantAccountIDs = (report: OnyxEntry<Report>): number[] => (report?.participants ? Object.keys(report.participants).map(Number) : []);
@@ -23,4 +23,9 @@ const getAgentAccountIDFlags = (agentPrompts: OnyxCollection<AgentPrompt>): Reco
     return flags;
 };
 
-export {getReportParticipantAccountIDs, getAgentAccountIDFlags};
+const hasPendingFollowupListSkeletonSelector =
+    (reportActionID: string) =>
+    (pending: OnyxEntry<ConciergePendingFollowupList>): boolean =>
+        !pending?.hidden && pending?.reportActionID === reportActionID;
+
+export {getReportParticipantAccountIDs, getAgentAccountIDFlags, hasPendingFollowupListSkeletonSelector};
