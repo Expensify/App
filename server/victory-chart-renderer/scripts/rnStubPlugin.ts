@@ -1,3 +1,14 @@
+/*
+ * Bun bundler plugin shared by dev.ts and build.ts.
+ *
+ * npm workspaces install victory-native at the App root. Bun would otherwise follow those
+ * imports into Flow sources, native bindings, and Metro platform files. The headless chart
+ * path only needs modules to load and export no-op components; Skia draws off-screen.
+ *
+ * onResolve hooks map react-native, react-native/* subpaths, react-native-reanimated, and
+ * react-native-gesture-handler to the file: stub packages under server/stubs/. Stub paths
+ * must be absolute because Bun resolves plugin targets from the bundler context.
+ */
 import type {BunPlugin} from 'bun';
 import {resolve} from 'node:path';
 

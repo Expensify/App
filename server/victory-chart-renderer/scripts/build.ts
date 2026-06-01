@@ -1,3 +1,14 @@
+/*
+ * Cross-compiles the victory-chart-renderer CLI into a standalone binary.
+ *
+ * Like dev.ts, this bundles src/cli.tsx with rnStubPlugin so hoisted victory-native does
+ * not pull real react-native into the graph. Unlike dev.ts, Bun.build uses `compile` to
+ * emit a platform-specific executable (--target, --outfile) rather than a .dev/cli.js
+ * bundle run under Bun.
+ *
+ * Required --target and --outfile select the Bun compile target and output path. The script
+ * exits after writing the binary; it does not run it.
+ */
 import {join, resolve} from 'node:path';
 import CLI from '@scripts/utils/CLI';
 import createRnStubPlugin from './rnStubPlugin';
