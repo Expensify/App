@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 const mockSetSortedReportIDs = jest.fn();
 
 jest.mock('@components/Search/SearchContext', () => ({
-    useSearchActionsContext: () => ({setSortedReportIDs: mockSetSortedReportIDs}),
+    useSearchResultsActions: () => ({setSortedReportIDs: mockSetSortedReportIDs}),
 }));
 
 describe('useSaveSortedReportIDs', () => {

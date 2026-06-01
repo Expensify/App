@@ -81,9 +81,6 @@ type ContactState = {
     /** Function to trigger contact import */
     importContacts: () => void;
 
-    /** Function to initiate contact import and set state */
-    initiateContactImportAndSetState: () => void;
-
     /** Function to set permission state */
     setContactPermissionState: (status: PermissionStatus) => void;
 };
@@ -127,6 +124,9 @@ type UseSearchSelectorReturn = {
 
     /** Contact-related state and functions (when enablePhoneContacts is true) */
     contactState?: ContactState;
+
+    /** Selected options that don't exist in the personal details list (e.g. typed email addresses) */
+    selectedNonExistingOptions: OptionData[];
 };
 
 const defaultListOptions = {
@@ -266,6 +266,17 @@ function usePersonalDetailSearchSelectorBase({
         setSelectedAccountIDs(new Set());
     };
 
+    const selectedNonExistingOptions = extraOptions.filter((option) => {
+        if (!option.isSelected) {
+            return false;
+        }
+        if (!debouncedSearchTerm) {
+            return true;
+        }
+        const searchValue = debouncedSearchTerm.trim().toLowerCase();
+        return !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
+    });
+
     return {
         searchTerm,
         debouncedSearchTerm,
@@ -281,6 +292,7 @@ function usePersonalDetailSearchSelectorBase({
         resetSelection,
         areOptionsInitialized,
         contactState: undefined,
+        selectedNonExistingOptions,
     };
 }
 

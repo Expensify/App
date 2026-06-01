@@ -37,6 +37,7 @@ import type {
 } from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
 import type CodingRuleMatchingTransaction from './CodingRuleMatchingTransaction';
+import type ConciergePendingFollowupList from './ConciergePendingFollowupList';
 import type CopyPolicySettings from './CopyPolicySettings';
 import type {CorpayFields, CorpayFormField} from './CorpayFields';
 import type {CorpayOnboardingFields} from './CorpayOnboardingFields';
@@ -44,6 +45,7 @@ import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
+import type DeferredAgentWorkflowSave from './DeferredAgentWorkflowSave';
 import type {
     CardFeedErrorsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
@@ -268,6 +270,7 @@ export type {
     AnyOnyxUpdatesFromServer,
     OdometerDraft,
     Pages,
+    ConciergePendingFollowupList,
     PendingConciergeResponse,
     PersonalBankAccount,
     PersonalDetails,
@@ -359,6 +362,7 @@ export type {
     BillingStatus,
     CancellationDetails,
     ApprovalWorkflowOnyx,
+    DeferredAgentWorkflowSave,
     CardFeeds,
     CardFeedsStatus,
     CardFeedsStatusByDomainID,
