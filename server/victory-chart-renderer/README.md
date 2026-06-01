@@ -4,15 +4,6 @@ Standalone Bun CLI (`@expensify/victory-chart-renderer`) that renders Expensify 
 
 This package is an [npm workspace](https://docs.npmjs.com/cli/using-npm/workspaces) child of the App root. React Native peer dependencies are declared as local `file:` stub packages under [`../stubs/`](../stubs/) (with `overrides` + `installConfig.hoistingLimits` so they stay in this workspace). At runtime, `scripts/dev.ts` and `scripts/build.ts` bundle the CLI with [`../plugins/rnStubPlugin.ts`](../plugins/rnStubPlugin.ts), which redirects `react-native`, `react-native-reanimated`, `react-native-gesture-handler`, and `react-native/*` imports to those stubs, because hoisted `victory-native` at the repo root would otherwise resolve the real native modules. The in-app Metro build is unaffected.
 
-## Project layout
-
-- `src/` — CLI source
-- `../stubs/` — shared `file:` stub packages (`react-native`, `react-native-reanimated`, `react-native-gesture-handler`) for server-side Bun tooling
-- `../plugins/` — shared Bun bundler plugins (`rnStubPlugin.ts`)
-- `scripts/` — dev and release entrypoints (`dev.ts`, `build.ts`)
-- `tests/` — Bun integration tests (`bun:test`)
-- `dist/` — compiled binaries (gitignored)
-
 ## Development
 
 From the App repository root:
