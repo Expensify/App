@@ -2862,15 +2862,11 @@ ${date} の ${merchant} への ${amount}`,
         },
     },
     focusModeUpdateModal: {
-        title: '#focusモードへようこそ！',
+        title: '#focus モードへようこそ！',
         prompt: (priorityModePageUrl: string) =>
-            `未読のチャットや対応が必要なチャットだけを表示して、常に状況を把握しましょう。いつでも<a href="${priorityModePageUrl}">設定</a>から変更できます。`,
+            `未読のチャットや対応が必要なチャットだけを表示して、状況を常に把握しましょう。<a href="${priorityModePageUrl}">設定</a>から、いつでもこの設定を変更できます。`,
     },
-    inboxTabs: {
-        all: 'All',
-        todo: 'To-dos',
-        unread: 'Unread',
-    },
+    inboxTabs: {all: 'すべて', todo: 'To-do リスト', unread: '未読'},
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `${policyName} 内`,
         generatingPDF: 'PDFを生成',

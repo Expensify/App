@@ -2806,13 +2806,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     },
     focusModeUpdateModal: {
         title: '欢迎进入 #focus 模式！',
-        prompt: (priorityModePageUrl: string) => `通过仅查看未读聊天或需要你关注的聊天来随时掌握进展。别担心，你可以随时在<a href="${priorityModePageUrl}">设置</a>中更改此项。`,
+        prompt: (priorityModePageUrl: string) => `只查看未读或需要你关注的聊天，时刻掌握最新进展。别担心，你随时可以在<a href="${priorityModePageUrl}">设置</a>中更改此项。`,
     },
-    inboxTabs: {
-        all: 'All',
-        todo: 'To-dos',
-        unread: 'Unread',
-    },
+    inboxTabs: {all: '全部', todo: '待办事项', unread: '未读'},
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `在 ${policyName} 中`,
         generatingPDF: '生成 PDF',

@@ -2892,13 +2892,9 @@ ${amount} für ${merchant} – ${date}`,
     focusModeUpdateModal: {
         title: 'Willkommen im #Fokusmodus!',
         prompt: (priorityModePageUrl: string) =>
-            `Behalte den Überblick, indem du nur ungelesene Chats oder Chats siehst, die deine Aufmerksamkeit benötigen. Keine Sorge, du kannst das jederzeit in den <a href="${priorityModePageUrl}">Einstellungen</a> ändern.`,
+            `Behalten Sie den Überblick, indem Sie nur ungelesene Chats oder Chats anzeigen, die Ihre Aufmerksamkeit erfordern. Keine Sorge, Sie können dies jederzeit in den <a href="${priorityModePageUrl}">Einstellungen</a> ändern.`,
     },
-    inboxTabs: {
-        all: 'All',
-        todo: 'To-dos',
-        unread: 'Unread',
-    },
+    inboxTabs: {all: 'Alle', todo: 'To-dos', unread: 'Ungelesen'},
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `in ${policyName}`,
         generatingPDF: 'PDF erstellen',

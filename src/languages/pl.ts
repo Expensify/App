@@ -2877,15 +2877,11 @@ ${amount} dla ${merchant} - ${date}`,
         },
     },
     focusModeUpdateModal: {
-        title: 'Witamy w trybie #focus!',
+        title: 'Witaj w trybie #focus!',
         prompt: (priorityModePageUrl: string) =>
-            `Miej wszystko pod kontrolą, wyświetlając tylko nieprzeczytane czaty lub czaty wymagające Twojej uwagi. Nie martw się, możesz to zmienić w dowolnym momencie w <a href="${priorityModePageUrl}">ustawieniach</a>.`,
+            `Bądź na bieżąco, pokazując tylko nieprzeczytane czaty lub czaty wymagające twojej uwagi. Spokojnie, możesz to zmienić w każdej chwili w <a href="${priorityModePageUrl}">ustawieniach</a>.`,
     },
-    inboxTabs: {
-        all: 'All',
-        todo: 'To-dos',
-        unread: 'Unread',
-    },
+    inboxTabs: {all: 'Wszystkie', todo: 'Zadania', unread: 'Nieprzeczytane'},
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `w ${policyName}`,
         generatingPDF: 'Wygeneruj PDF',

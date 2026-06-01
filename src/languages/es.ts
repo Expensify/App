@@ -2769,15 +2769,11 @@ ${amount} para ${merchant} - ${date}`,
         },
     },
     focusModeUpdateModal: {
-        title: '¡Bienvenido al modo #concentración!',
-        prompt: (priorityModePageUrl) =>
-            `Mantente al tanto de todo viendo sólo los chats no leídos o los que necesitan tu atención. No te preocupes, puedes cambiar el ajuste en cualquier momento desde la <a href="${priorityModePageUrl}">configuración</a>.`,
+        title: '¡Bienvenido al modo #focus!',
+        prompt: (priorityModePageUrl: string) =>
+            `Mantente al tanto de todo viendo solo los chats sin leer o los chats que necesitan tu atención. No te preocupes, puedes cambiar esto en cualquier momento en los <a href="${priorityModePageUrl}">ajustes</a>.`,
     },
-    inboxTabs: {
-        all: 'All',
-        todo: 'To-dos',
-        unread: 'Unread',
-    },
+    inboxTabs: {all: 'Todo', todo: 'Tareas pendientes', unread: 'Sin leer'},
     reportDetailsPage: {
         inWorkspace: (policyName) => `en ${policyName}`,
         generatingPDF: 'Generar PDF',
