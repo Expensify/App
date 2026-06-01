@@ -9,6 +9,7 @@ import type {PolarChartData} from '@components/HTMLEngineProvider/HTMLRenderers/
 import convertAngleToArcLength from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/convertAngleToArcLength';
 import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import parseComponent from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseComponent';
+import praseShiftedLineSegmentNode from '../parsers/shiftedLineSegmentParser';
 import VictoryChartPieLabel from './VictoryChartPieLabel';
 
 type VictoryChartPieProps = {tnode: TNode};
@@ -31,10 +32,10 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
     const angularStrokeWidth = padAngle && radius ? 2 * convertAngleToArcLength(padAngle, radius) : 0;
     const angularStrokeColor = typeof chartContainerStyles.backgroundColor === 'string' ? chartContainerStyles.backgroundColor : VictoryTheme.colors.default;
     const labelIndicatorNode = parseComponent(tnode.attributes.labelindicator, renderEngine, 'shiftedlinesegment', HTMLContentModel.block);
+    const labelIndicatorStyles = labelIndicatorNode ? praseShiftedLineSegmentNode(labelIndicatorNode) : undefined;
+    const {xShift: labelIndicatorXShift, yShift: labelIndicatorYShift, stroke: labelIndicatorStroke, strokeWidth: labelIndicatorStrokeWidth} = labelIndicatorStyles ?? {};
     const labelIndicatorInnerOffset = tnode.attributes.labelindicatorinneroffset !== undefined ? Number(parseAttribute(tnode.attributes.labelindicatorinneroffset)) : undefined;
     const labelIndicatorOuterOffset = tnode.attributes.labelindicatorouteroffset !== undefined ? Number(parseAttribute(tnode.attributes.labelindicatorouteroffset)) : undefined;
-
-    console.log({labelIndicatorNode});
 
     return (
         <Pie.Chart
@@ -51,6 +52,10 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
                                 baseLabelItem={baseLabelItem}
                                 label={pieLabels?.[dataLabels.indexOf(slice.label)]}
                                 labelRadius={labelRadius}
+                                labelIndicatorXShift={labelIndicatorXShift}
+                                labelIndicatorYShift={labelIndicatorYShift}
+                                labelIndicatorStroke={labelIndicatorStroke}
+                                labelIndicatorStrokeWidth={labelIndicatorStrokeWidth}
                                 labelIndicatorInnerOffset={labelIndicatorInnerOffset}
                                 labelIndicatorOuterOffset={labelIndicatorOuterOffset}
                             />

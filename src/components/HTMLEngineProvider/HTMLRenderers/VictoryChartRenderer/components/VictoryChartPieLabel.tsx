@@ -1,3 +1,4 @@
+import type {Color} from '@shopify/react-native-skia';
 import React from 'react';
 import type {PieSliceData} from 'victory-native';
 import type {LabelItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
@@ -9,13 +10,28 @@ type VictoryChartPieLabelProps = {
     baseLabelItem: LabelItem;
     label: string | undefined;
     labelRadius: number | undefined;
+    labelIndicatorXShift: number | undefined;
+    labelIndicatorYShift: number | undefined;
+    labelIndicatorStroke: Color | undefined;
+    labelIndicatorStrokeWidth: number | undefined;
     labelIndicatorInnerOffset: number | undefined;
     labelIndicatorOuterOffset: number | undefined;
 };
 
 const RADIAN = Math.PI / 180;
 
-function VictoryChartPieLabel({slice, baseLabelItem, label, labelRadius, labelIndicatorInnerOffset, labelIndicatorOuterOffset}: VictoryChartPieLabelProps) {
+function VictoryChartPieLabel({
+    slice,
+    baseLabelItem,
+    label,
+    labelRadius,
+    labelIndicatorXShift,
+    labelIndicatorYShift,
+    labelIndicatorStroke,
+    labelIndicatorStrokeWidth,
+    labelIndicatorInnerOffset,
+    labelIndicatorOuterOffset,
+}: VictoryChartPieLabelProps) {
     const text = label ?? slice.label;
     const midAngle = (slice.startAngle + slice.endAngle) / 2;
     const x = slice.center.x + (labelRadius ?? slice.radius) * Math.cos(-midAngle * RADIAN);
@@ -31,12 +47,18 @@ function VictoryChartPieLabel({slice, baseLabelItem, label, labelRadius, labelIn
 
     return (
         <>
-            <VictoryChartPieLabelIndicator
-                slice={slice}
-                labelRadius={labelRadius ?? slice.radius}
-                labelIndicatorInnerOffset={labelIndicatorInnerOffset}
-                labelIndicatorOuterOffset={labelIndicatorOuterOffset}
-            />
+            {!!labelIndicatorStrokeWidth && (
+                <VictoryChartPieLabelIndicator
+                    slice={slice}
+                    labelRadius={labelRadius ?? slice.radius}
+                    labelIndicatorXShift={labelIndicatorXShift}
+                    labelIndicatorYShift={labelIndicatorYShift}
+                    labelIndicatorStroke={labelIndicatorStroke}
+                    labelIndicatorStrokeWidth={labelIndicatorStrokeWidth}
+                    labelIndicatorInnerOffset={labelIndicatorInnerOffset}
+                    labelIndicatorOuterOffset={labelIndicatorOuterOffset}
+                />
+            )}
             <VictoryChartLabel {...labelItem} />
         </>
     );

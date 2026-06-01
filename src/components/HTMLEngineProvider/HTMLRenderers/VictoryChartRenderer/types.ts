@@ -46,6 +46,11 @@ type RawLegendStyle = {
     };
 };
 
+type RawShiftedLineSegmentStyle = {
+    stroke?: Color;
+    strokeWidth?: number;
+};
+
 type XKey = typeof X_KEY;
 type YKey = `${typeof Y_KEY_PREFIX}${string}`;
 
@@ -161,6 +166,7 @@ export type {
     RawAxisStyle,
     RawLabelStyle,
     RawLegendStyle,
+    RawShiftedLineSegmentStyle,
     XKey,
     YKey,
     CartesianChartData,
