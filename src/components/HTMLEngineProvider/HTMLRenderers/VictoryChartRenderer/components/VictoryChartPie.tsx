@@ -51,8 +51,8 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
                     </Pie.Slice>
                     <Pie.SliceAngularInset
                         angularInset={{
-                            angularStrokeWidth: angularStrokeWidth,
-                            angularStrokeColor: angularStrokeColor,
+                            angularStrokeWidth,
+                            angularStrokeColor,
                         }}
                     />
                 </>
