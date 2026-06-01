@@ -1261,7 +1261,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchSubmitTitle: 'Soumettre le rapport',
         pendingMatchSubmitDescription: 'Certaines dépenses sont en attente de rapprochement avec une transaction par carte de crédit. Voulez-vous les marquer comme espèces ?',
         routePending: 'Acheminement en attente...',
-        automaticallyEnterExpenseDetails: 'Concierge saisira automatiquement les détails de la dépense pour vous, ou vous pouvez les ajouter manuellement.',
+        automaticallyEnterExpenseDetails: 'Concierge remplira les détails pour vous.',
         receiptScanning: () => ({
             one: 'Scan des reçus...',
             other: 'Scan des reçus...',
