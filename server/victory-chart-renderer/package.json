@@ -6,9 +6,9 @@
     "scripts": {
         "dev": "bun run scripts/dev.ts",
         "test": "bun test",
-        "build:linux": "bun run scripts/build.ts bun-linux-x64 dist/victory-chart-renderer-linux-x64",
-        "build:linux-arm": "bun run scripts/build.ts bun-linux-arm64 dist/victory-chart-renderer-linux-arm64",
-        "build:macos": "bun run scripts/build.ts bun-darwin-arm64 dist/victory-chart-renderer-darwin-arm64"
+        "build:linux": "bun run scripts/build.ts --target bun-linux-x64 --outfile dist/victory-chart-renderer-linux-x64",
+        "build:linux-arm": "bun run scripts/build.ts --target bun-linux-arm64 --outfile dist/victory-chart-renderer-linux-arm64",
+        "build:macos": "bun run scripts/build.ts --target bun-darwin-arm64 --outfile dist/victory-chart-renderer-darwin-arm64"
     },
     "dependencies": {
         "@shopify/react-native-skia": "^2.4.14",

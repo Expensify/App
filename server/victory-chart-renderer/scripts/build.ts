@@ -1,15 +1,22 @@
 import {join, resolve} from 'node:path';
+import CLI from '@scripts/utils/CLI';
 import createRnStubPlugin from './rnStubPlugin';
 
 const packageRoot = resolve(import.meta.dir, '..');
 const stubRoot = resolve(packageRoot, '../stubs');
 
-const target = process.argv.at(2);
-const outfile = process.argv.at(3);
+const cli = new CLI({
+    namedArgs: {
+        target: {
+            description: 'Bun compile target (e.g. bun-darwin-arm64, bun-linux-x64)',
+        },
+        outfile: {
+            description: 'Path for the compiled binary output',
+        },
+    },
+});
 
-if (!target || !outfile) {
-    throw new Error('Usage: bun run scripts/build.ts <bun-target> <outfile>');
-}
+const {target, outfile} = cli.namedArgs;
 
 const buildResult = await Bun.build({
     entrypoints: [join(packageRoot, 'src/cli.tsx')],
