@@ -5748,6 +5748,10 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.w28,
         },
 
+        searchTypeMenuItemPadding: {
+            paddingRight: 12,
+        },
+
         searchTypeMenuAccordionPadding: {
             paddingLeft: 8,
             paddingRight: 12,
@@ -6530,7 +6534,7 @@ const dynamicStyles = (theme: ThemeColors) =>
         sectionMenuItem: (shouldUseNarrowLayout: boolean) => ({
             borderRadius: 8,
             paddingLeft: 16,
-            paddingRight: 12,
+            paddingRight: 16,
             paddingVertical: shouldUseNarrowLayout ? 8 : 4,
             height: shouldUseNarrowLayout ? variables.sectionMenuItemHeight : variables.sectionMenuItemHeightCompact,
             alignItems: 'center',
