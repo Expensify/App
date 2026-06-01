@@ -10601,6 +10601,7 @@ describe('ReportUtils', () => {
             }
             const categoryNames = Object.keys(fakePolicyCategories);
             const transactionCategory = categoryNames.at(0) ?? '';
+
             // Mark this category disabled in Onyx so it is "out of policy" without any pending DELETE update
             fakePolicyCategories[transactionCategory].enabled = false;
 
