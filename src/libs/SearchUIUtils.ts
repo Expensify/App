@@ -185,6 +185,8 @@ import {
     getExchangeRate,
     getExpenseTypeTranslationKey,
     getOriginalAmountForDisplay,
+    getReportOwnerAccountIDAsAttendee,
+    getReportOwnerAsAttendee,
     getTag,
     getTaxAmount,
     getTaxName,
@@ -2062,7 +2064,6 @@ function getTransactionsSections({
     } = classifyAndPreprocess(data);
 
     const personalDetailsMap = new Map(Object.entries(data.personalDetailsList ?? {}));
-    const currentUserPersonalDetails = personalDetailsMap.get(currentAccountID.toString()) ?? emptyPersonalDetails;
 
     const transactionsSections: TransactionListItemType[] = [];
 
@@ -2120,7 +2121,9 @@ function getTransactionsSections({
             const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
             const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, actions);
             const transactionPendingAction = getTransactionPendingAction(transactionItem);
-            const transactionAttendees = getAttendees(transactionItem, currentUserPersonalDetails);
+            const reportOwnerAccountIDAsAttendee = getReportOwnerAccountIDAsAttendee(transactionItem, currentAccountID);
+            const reportOwnerAsAttendee = reportOwnerAccountIDAsAttendee ? getReportOwnerAsAttendee(personalDetailsMap.get(reportOwnerAccountIDAsAttendee.toString())) : undefined;
+            const transactionAttendees = getAttendees(transactionItem, reportOwnerAsAttendee);
             const isUnreported = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
             const shouldShowAttendees = shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, isUnreported ? policyForMovingExpenses : policy) && transactionAttendees.length > 0;
 
@@ -4164,6 +4167,8 @@ function getSearchColumnTranslationKey(column: SearchColumnType): TranslationPat
             return 'iou.totalPerAttendee';
         case CONST.SEARCH.TABLE_COLUMNS.RECEIPT:
             return 'common.receipt';
+        case CONST.SEARCH.TABLE_COLUMNS.TYPE:
+            return 'common.type';
         case CONST.SEARCH.TABLE_COLUMNS.TAG:
             return 'common.tag';
         case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
@@ -4174,6 +4179,12 @@ function getSearchColumnTranslationKey(column: SearchColumnType): TranslationPat
             return 'common.billable';
         case CONST.SEARCH.TABLE_COLUMNS.ACTION:
             return 'common.action';
+        case CONST.SEARCH.TABLE_COLUMNS.IN:
+            return 'common.sharedIn';
+        case CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE:
+            return 'common.assignee';
+        case CONST.SEARCH.TABLE_COLUMNS.COMMENTS:
+            return 'common.comments';
         case CONST.SEARCH.TABLE_COLUMNS.TITLE:
             return 'common.title';
         case CONST.SEARCH.TABLE_COLUMNS.STATUS:
@@ -4351,6 +4362,8 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         shouldShowExpensifyCard,
     } = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard);
     const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id, shouldShowExpensifyCard);
+    const hasAnyPolicyWithWorkflowsEnabled = Object.values(policies ?? {}).some((policy) => policy?.areWorkflowsEnabled);
+    const isTrackIntentWithWorkflowsDisabled = isTrackIntentUser && !hasAnyPolicyWithWorkflowsEnabled;
 
     // Expense reports section
     {
@@ -4366,7 +4379,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
             expenseReportsSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.REPORTS]);
         }
 
-        if (!isTrackIntentUser) {
+        if (!isTrackIntentWithWorkflowsDisabled) {
             if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.SUBMIT]) {
                 expenseReportsSection.menuItems.push({
                     ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SUBMIT],
@@ -4421,7 +4434,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
             menuItems: [],
         };
 
-        if (!isTrackIntentUser) {
+        if (!isTrackIntentWithWorkflowsDisabled) {
             if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.EXPORT]) {
                 accountingSection.menuItems.push({
                     ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.EXPORT],
@@ -4499,7 +4512,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
 
         const insightsSearchKeys = [
             CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME,
-            ...(!isTrackIntentUser ? [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS] : []),
+            ...(!isTrackIntentWithWorkflowsDisabled ? [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS] : []),
             CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES,
             CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS,
         ];

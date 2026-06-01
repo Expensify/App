@@ -162,7 +162,6 @@ import {
     isSelfDM as reportUtilsIsSelfDM,
     isTaskReport as reportUtilsIsTaskReport,
     shouldReportBeInOptionList,
-    shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
@@ -659,7 +658,6 @@ function getLastMessageTextForReport({
     policyTags,
     currentUserLogin,
     conciergeReportID,
-    isTrackIntentUser = false,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     sortedActions = deprecatedAllSortedReportActions,
 }: {
@@ -679,7 +677,6 @@ function getLastMessageTextForReport({
     currentUserLogin?: string;
     // TODO: conciergeReportID will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66411
     conciergeReportID?: string;
-    isTrackIntentUser?: boolean;
     sortedActions?: Record<string, ReportAction[]>;
 }): string {
     const reportID = report?.reportID;
@@ -818,13 +815,7 @@ function getLastMessageTextForReport({
         } else if (hasPendingDEWSubmit(reportMetadata, isDEWPolicy) && isPendingAdd) {
             lastMessageTextFromReport = translate('iou.queuedToSubmitViaDEW');
         } else {
-            lastMessageTextFromReport = shouldShowMarkAsDone({
-                report,
-                isTrackIntentUser,
-                policy,
-            })
-                ? translate('iou.markedAsDone', getOriginalMessage(lastReportAction)?.message)
-                : translate('iou.submitted', getOriginalMessage(lastReportAction)?.message);
+            lastMessageTextFromReport = translate('iou.submitted', getOriginalMessage(lastReportAction)?.message);
         }
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
         const {automaticAction} = getOriginalMessage(lastReportAction) ?? {};
@@ -861,10 +852,11 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
         lastMessageTextFromReport = getExportIntegrationLastMessageText(translate, lastReportAction);
-    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED) {
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED)) {
         // RECEIPT_SCAN_FAILED is submitted by Concierge, so use the IOU action to determine edit permission
         const iouAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-        lastMessageTextFromReport = translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction)});
+        const missingFields = getOriginalMessage(lastReportAction)?.missingFields;
+        lastMessageTextFromReport = translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction), missingFields});
     } else if (lastReportAction?.actionName && isOldDotReportAction(lastReportAction)) {
         lastMessageTextFromReport = getMessageOfOldDotReportAction(translate, lastReportAction, false);
     } else if (isActionableJoinRequest(lastReportAction)) {

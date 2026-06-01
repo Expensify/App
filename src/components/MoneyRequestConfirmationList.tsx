@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import useAttendees from '@hooks/useAttendees';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
@@ -21,7 +22,6 @@ import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
-    getAttendees,
     getCategory,
     getCurrency,
     getMerchant,
@@ -113,6 +113,9 @@ type MoneyRequestConfirmationListProps = {
     /** Whether the odometer receipt is currently being stitched */
     isLoadingReceipt?: boolean;
 
+    /** Error message from the odometer receipt stitcher, rendered below the receipt */
+    receiptStitchError?: string | null;
+
     /** Whether the expense is a per diem expense */
     isPerDiemRequest?: boolean;
 
@@ -176,6 +179,7 @@ function MoneyRequestConfirmationList({
     iouType = CONST.IOU.TYPE.SUBMIT,
     isOdometerDistanceRequest = false,
     isLoadingReceipt = false,
+    receiptStitchError,
     isPerDiemRequest = false,
     isPolicyExpenseChat = false,
     shouldShowSmartScanFields = true,
@@ -240,7 +244,7 @@ function MoneyRequestConfirmationList({
     const iouCurrencyCode = getCurrency(transaction);
     const iouMerchant = getMerchant(transaction);
     const iouCategory = getCategory(transaction);
-    const iouAttendees = getAttendees(transaction, currentUserPersonalDetails);
+    const iouAttendees = useAttendees(transaction);
 
     const isTypeRequest = iouType === CONST.IOU.TYPE.SUBMIT;
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
@@ -524,6 +528,7 @@ function MoneyRequestConfirmationList({
     const listFooterContent = (
         <View style={isCompactMode ? styles.flex1 : undefined}>
             <MoneyRequestConfirmationListFooter
+                receiptStitchError={receiptStitchError}
                 action={action}
                 iouType={iouType}
                 transactionID={transactionID}
