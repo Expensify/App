@@ -19,6 +19,7 @@ import {clearErrorFields, setDraftValues, setErrorFields} from '@userActions/For
 import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 type KYBDocumentsProps = {
@@ -27,6 +28,19 @@ type KYBDocumentsProps = {
 
     /** Handles submit button press (URL-based navigation) */
     onSubmit?: () => void;
+};
+
+/**
+ * Maps the KYB document form input IDs to the param names expected by the UploadUserKYBDocs command.
+ * The tax ID document uses a form key (`companyTaxId`) distinct from the API param (`companyTaxID`) so it
+ * does not collide with the business-info step's string EIN/SSN draft field.
+ */
+const KYB_DOCUMENT_API_PARAM: Record<string, string> = {
+    [INPUT_IDS.KYB_DOCUMENTS.COMPANY_TAX_ID]: 'companyTaxID',
+    [INPUT_IDS.KYB_DOCUMENTS.NAME_CHANGE_DOCUMENT]: 'nameChangeDocument',
+    [INPUT_IDS.KYB_DOCUMENTS.COMPANY_ADDRESS_VERIFICATION]: 'companyAddressVerification',
+    [INPUT_IDS.KYB_DOCUMENTS.USER_ADDRESS_VERIFICATION]: 'userAddressVerification',
+    [INPUT_IDS.KYB_DOCUMENTS.USER_DOB_VERIFICATION]: 'userDOBVerification',
 };
 
 function KYBDocuments({onBackButtonPress, onSubmit}: KYBDocumentsProps) {
@@ -58,36 +72,36 @@ function KYBDocuments({onBackButtonPress, onSubmit}: KYBDocumentsProps) {
         );
 
     const defaultValues = {
-        companyTaxID: reimbursementAccountDraft?.companyTaxID ?? [],
-        nameChangeDocument: reimbursementAccountDraft?.nameChangeDocument ?? [],
-        companyAddressVerification: reimbursementAccountDraft?.companyAddressVerification ?? [],
-        userAddressVerification: reimbursementAccountDraft?.userAddressVerification ?? [],
-        userDOBVerification: reimbursementAccountDraft?.userDOBVerification ?? [],
+        [INPUT_IDS.KYB_DOCUMENTS.COMPANY_TAX_ID]: reimbursementAccountDraft?.[INPUT_IDS.KYB_DOCUMENTS.COMPANY_TAX_ID] ?? [],
+        [INPUT_IDS.KYB_DOCUMENTS.NAME_CHANGE_DOCUMENT]: reimbursementAccountDraft?.[INPUT_IDS.KYB_DOCUMENTS.NAME_CHANGE_DOCUMENT] ?? [],
+        [INPUT_IDS.KYB_DOCUMENTS.COMPANY_ADDRESS_VERIFICATION]: reimbursementAccountDraft?.[INPUT_IDS.KYB_DOCUMENTS.COMPANY_ADDRESS_VERIFICATION] ?? [],
+        [INPUT_IDS.KYB_DOCUMENTS.USER_ADDRESS_VERIFICATION]: reimbursementAccountDraft?.[INPUT_IDS.KYB_DOCUMENTS.USER_ADDRESS_VERIFICATION] ?? [],
+        [INPUT_IDS.KYB_DOCUMENTS.USER_DOB_VERIFICATION]: reimbursementAccountDraft?.[INPUT_IDS.KYB_DOCUMENTS.USER_DOB_VERIFICATION] ?? [],
     } as Record<string, FileObject[]>;
 
     const DOCUMENTS_CONFIG = [
         {
-            inputID: 'companyTaxID',
+            inputID: INPUT_IDS.KYB_DOCUMENTS.COMPANY_TAX_ID,
             title: 'documentsStep.taxIDVerification',
             description: 'documentsStep.taxIDVerificationDescription',
         },
         {
-            inputID: 'nameChangeDocument',
+            inputID: INPUT_IDS.KYB_DOCUMENTS.NAME_CHANGE_DOCUMENT,
             title: 'documentsStep.nameChangeDocument',
             description: 'documentsStep.nameChangeDocumentDescription',
         },
         {
-            inputID: 'companyAddressVerification',
+            inputID: INPUT_IDS.KYB_DOCUMENTS.COMPANY_ADDRESS_VERIFICATION,
             title: 'documentsStep.companyAddressVerification',
             description: 'documentsStep.companyAddressVerificationDescription',
         },
         {
-            inputID: 'userAddressVerification',
+            inputID: INPUT_IDS.KYB_DOCUMENTS.USER_ADDRESS_VERIFICATION,
             title: 'documentsStep.userAddressVerification',
             description: 'documentsStep.userAddressVerificationDescription',
         },
         {
-            inputID: 'userDOBVerification',
+            inputID: INPUT_IDS.KYB_DOCUMENTS.USER_DOB_VERIFICATION,
             title: 'documentsStep.userDOBVerification',
             description: 'documentsStep.userDOBVerificationDescription',
         },
@@ -136,8 +150,9 @@ function KYBDocuments({onBackButtonPress, onSubmit}: KYBDocumentsProps) {
         const params: Record<string, FileObject> = {};
         for (const [key, files] of Object.entries(uploadedFiles)) {
             const file = files.at(0);
-            if (file) {
-                params[key] = file;
+            const apiParamKey = KYB_DOCUMENT_API_PARAM[key];
+            if (file && apiParamKey) {
+                params[apiParamKey] = file;
             }
         }
         uploadUserKYBDocs({

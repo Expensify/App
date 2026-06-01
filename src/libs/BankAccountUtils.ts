@@ -1,6 +1,7 @@
 import {Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type AccountData from '@src/types/onyx/AccountData';
 import type {ACHData} from '@src/types/onyx/ReimbursementAccount';
@@ -152,21 +153,21 @@ function getRequiredKYBDocuments(externalApiResponses: KYBVerificationResponses)
 
     const companyTaxIDStatus = externalApiResponses?.companyTaxID?.status;
     if (companyTaxIDStatus !== undefined && companyTaxIDStatus !== CONST.BANK_ACCOUNT.KYB_STATUS.PASS) {
-        requiredDocuments.push('companyTaxID');
+        requiredDocuments.push(INPUT_IDS.KYB_DOCUMENTS.COMPANY_TAX_ID);
     }
 
     const lexisNexisStatus = externalApiResponses?.lexisNexisInstantIDResult?.status;
     if (lexisNexisStatus !== undefined && lexisNexisStatus !== CONST.BANK_ACCOUNT.KYB_STATUS.PASS) {
-        requiredDocuments.push('nameChangeDocument', 'companyAddressVerification');
+        requiredDocuments.push(INPUT_IDS.KYB_DOCUMENTS.NAME_CHANGE_DOCUMENT, INPUT_IDS.KYB_DOCUMENTS.COMPANY_ADDRESS_VERIFICATION);
     }
 
     const requestorIdentityStatus = externalApiResponses?.requestorIdentityID?.status;
     const requestorIdentityQualifiers = externalApiResponses?.requestorIdentityID?.apiResult?.qualifiers?.qualifier;
     if (isUserAddressVerificationRequired(requestorIdentityStatus, requestorIdentityQualifiers)) {
-        requiredDocuments.push('userAddressVerification');
+        requiredDocuments.push(INPUT_IDS.KYB_DOCUMENTS.USER_ADDRESS_VERIFICATION);
     }
     if (isUserDOBVerificationRequired(requestorIdentityStatus, requestorIdentityQualifiers)) {
-        requiredDocuments.push('userDOBVerification');
+        requiredDocuments.push(INPUT_IDS.KYB_DOCUMENTS.USER_DOB_VERIFICATION);
     }
 
     return requiredDocuments;
