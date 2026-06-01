@@ -31,6 +31,9 @@ type TableColumn<ColumnKey extends string = string> = {
     /** Display label shown in the table header. */
     label: string;
 
+    /** Optional fixed width in pixels. When set, the column uses this width instead of an equal-share `1fr` track. */
+    width?: number;
+
     /** Optional styling configuration for the column. */
     styling?: TableColumnStyling;
 };
