@@ -3,6 +3,7 @@ import {getDisplayNameOrDefault, newGetPersonalDetailsByIDs} from '@libs/Persona
 import CONST from '@src/CONST';
 import type {PersonalDetailsList, Report} from '@src/types/onyx';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 const personalDetailsSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => (accountID ? personalDetailsList?.[accountID] : undefined);
 
@@ -30,6 +31,11 @@ const accountIDToLoginSelector = (reportsToArchive: Report[]) => (personalDetail
     return map;
 };
 
+const isOptimisticPersonalDetailSelector = (accountID: number) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => {
+    const personalDetail = personalDetailsList?.[accountID];
+    return isEmptyObject(personalDetail) || !!personalDetail?.isOptimisticPersonalDetail;
+};
+
 export {
     personalDetailsSelector,
     multiPersonalDetailsSelector,
@@ -38,4 +44,5 @@ export {
     personalDetailByAccountIDSelector,
     conciergePersonalDetailSelector,
     accountIDToLoginSelector,
+    isOptimisticPersonalDetailSelector,
 };

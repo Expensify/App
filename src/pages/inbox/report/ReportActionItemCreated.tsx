@@ -1,5 +1,5 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {conciergePersonalDetailSelector, personalDetailByAccountIDSelector} from '@selectors/PersonalDetails';
+import {conciergePersonalDetailSelector, isOptimisticPersonalDetailSelector, personalDetailByAccountIDSelector} from '@selectors/PersonalDetails';
 import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -12,7 +12,14 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasDeferredWriteForReport} from '@libs/deferredLayoutWrite';
-import {isChatReport, isCurrentUserInvoiceReceiver, isInvoiceRoom, navigateToDetailsPage, shouldDisableDetailPage as shouldDisableDetailPageReportUtils} from '@libs/ReportUtils';
+import {
+    getParticipantsAccountIDsForDisplay,
+    isChatReport,
+    isCurrentUserInvoiceReceiver,
+    isInvoiceRoom,
+    navigateToDetailsPage,
+    shouldDisableDetailPage as shouldDisableDetailPageReportUtils,
+} from '@libs/ReportUtils';
 import {clearCreateChatError} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,11 +50,15 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     const reportOwnerSelector = useMemo(() => personalDetailByAccountIDSelector(report?.ownerAccountID), [report?.ownerAccountID]);
     const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: reportOwnerSelector}, [reportOwnerSelector]);
 
+    const participants = getParticipantsAccountIDsForDisplay(report);
+    const participantSelector = useMemo(() => isOptimisticPersonalDetailSelector(participants.at(0) ?? CONST.DEFAULT_NUMBER_ID), [participants]);
+    const [isParticipantOptimistic] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: participantSelector});
+
     if (!isChatReport(report)) {
         return null;
     }
 
-    const shouldDisableDetailPage = shouldDisableDetailPageReportUtils(report);
+    const shouldDisableDetailPage = shouldDisableDetailPageReportUtils(report, isParticipantOptimistic);
 
     return (
         <OfflineWithFeedback

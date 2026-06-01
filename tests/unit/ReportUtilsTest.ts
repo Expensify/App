@@ -134,6 +134,7 @@ import {
     isDeprecatedGroupDM,
     isHarvestCreatedExpenseReport,
     isMoneyRequestReportEligibleForMerge,
+    isOptimisticPersonalDetail,
     isPayer,
     isReportIneligibleForMoveExpenses,
     isReportOutstanding,
@@ -175,6 +176,7 @@ import type {
     Beta,
     Onboarding,
     OnyxInputOrEntry,
+    PersonalDetails,
     PersonalDetailsList,
     Policy,
     PolicyEmployeeList,
@@ -18162,6 +18164,37 @@ describe('ReportUtils', () => {
                 },
             ] as ReportAction[];
             expect(hasExportError(reportActions, report)).toBe(true);
+        });
+    });
+
+    describe('isOptimisticPersonalDetail uses explicit personalDetail param', () => {
+        it('should use the passed personalDetail instead of the module-level variable', () => {
+            const testAccountID = 99999;
+            const personalDetail: PersonalDetails = {
+                accountID: testAccountID,
+                login: 'test@example.com',
+                displayName: 'Test User',
+                isOptimisticPersonalDetail: false,
+            };
+
+            expect(isOptimisticPersonalDetail(testAccountID, personalDetail)).toBe(false);
+            expect(isOptimisticPersonalDetail(testAccountID, undefined)).toBe(true);
+        });
+
+        it('should return true when the personalDetail has isOptimisticPersonalDetail flag', () => {
+            const testAccountID = 88888;
+            const personalDetail: PersonalDetails = {
+                accountID: testAccountID,
+                login: 'optimistic@example.com',
+                isOptimisticPersonalDetail: true,
+            };
+
+            expect(isOptimisticPersonalDetail(testAccountID, personalDetail)).toBe(true);
+        });
+
+        it('should return true when personalDetail is undefined or empty', () => {
+            expect(isOptimisticPersonalDetail(77777, undefined)).toBe(true);
+            expect(isOptimisticPersonalDetail(77777, {} as PersonalDetails)).toBe(true);
         });
     });
 });

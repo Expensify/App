@@ -1811,9 +1811,12 @@ function getBankAccountRoute(report: OnyxEntry<Report>): Route {
 
 /**
  * Check if personal detail of accountID is empty or optimistic data
+ * TODO: This function will be removed after the personalDetailsList refactor (https://github.com/Expensify/App/issues/66413)
  */
-function isOptimisticPersonalDetail(accountID: number): boolean {
-    return isEmptyObject(allPersonalDetails?.[accountID]) || !!allPersonalDetails?.[accountID]?.isOptimisticPersonalDetail;
+function isOptimisticPersonalDetail(accountID: number, personalDetail: OnyxEntry<PersonalDetails>): boolean {
+    // TODO: Remove fallback once all callers pass personalDetail (https://github.com/Expensify/App/issues/66413)
+    const resolvedPersonalDetail = personalDetail ?? allPersonalDetails?.[accountID];
+    return isEmptyObject(resolvedPersonalDetail) || !!resolvedPersonalDetail?.isOptimisticPersonalDetail;
 }
 
 /**
@@ -2182,15 +2185,22 @@ function pushTransactionViolationsOnyxData(
  * Check if the report is a single chat report that isn't a thread
  * and personal detail of participant is optimistic data
  */
-function shouldDisableDetailPage(report: OnyxEntry<Report>): boolean {
+function shouldDisableDetailPage(report: OnyxEntry<Report>, isParticipantOptimistic: boolean | undefined): boolean {
     if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report) || isTaskReport(report)) {
         return false;
     }
     if (isOneOnOneChat(report)) {
-        const participantAccountIDs = Object.keys(report?.participants ?? {})
-            .map(Number)
-            .filter((accountID) => accountID !== deprecatedCurrentUserAccountID);
-        return isOptimisticPersonalDetail(participantAccountIDs.at(0) ?? -1);
+        // TODO: Remove fallback once all callers pass isParticipantOptimistic (https://github.com/Expensify/App/issues/66413)
+        const resolvedIsOptimistic =
+            isParticipantOptimistic ??
+            isOptimisticPersonalDetail(
+                Object.keys(report?.participants ?? {})
+                    .map(Number)
+                    .filter((accountID) => accountID !== deprecatedCurrentUserAccountID)
+                    .at(0) ?? -1,
+                undefined,
+            );
+        return resolvedIsOptimistic;
     }
     return false;
 }
@@ -10538,7 +10548,8 @@ function getTaskAssigneeChatOnyxData(
         );
 
         // If assignee is created optimistically, we need to clear the optimistic personal details to prevent duplication with real data sent from BE.
-        if (isOptimisticPersonalDetail(assigneeAccountID)) {
+        // TODO: Pass personalDetail in PR 31; isOptimisticPersonalDetail falls back to module-level Onyx value (https://github.com/Expensify/App/issues/66413)
+        if (isOptimisticPersonalDetail(assigneeAccountID, undefined)) {
             successData.push(
                 {
                     onyxMethod: Onyx.METHOD.MERGE,

@@ -126,7 +126,8 @@ function buildRoomMembersOnyxData(
             key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
             value: {
                 participants: accountIDs.reduce((acc, curr) => {
-                    if (ReportUtils.isOptimisticPersonalDetail(curr)) {
+                    // TODO: Pass personalDetail in PR 32; isOptimisticPersonalDetail falls back to module-level Onyx value (https://github.com/Expensify/App/issues/66413)
+                    if (ReportUtils.isOptimisticPersonalDetail(curr, undefined)) {
                         Object.assign(acc, {[curr]: null});
                     }
                     return acc;
