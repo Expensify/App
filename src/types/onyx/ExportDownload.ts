@@ -9,6 +9,9 @@ type ExportDownload = {
     /** Current state of the export download */
     state: ExportDownloadState;
 
+    /** URL to download the exported file when state is ready */
+    downloadURL?: string;
+
     /** Number of reports included in the export (PDF exports only) */
     reportCount?: number;
 
