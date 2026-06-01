@@ -160,6 +160,7 @@ import {
     hasDependentTags as hasDependentTagsPolicyUtils,
     hasDynamicExternalWorkflow,
     isExpensifyTeam,
+    isGroupPolicy as isGroupPolicyPolicyUtils,
     isInstantSubmitEnabled,
     isPaidGroupPolicy as isPaidGroupPolicyPolicyUtils,
     isPendingDeletePolicy,
@@ -1733,18 +1734,10 @@ function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Whether the provided policyType is a Free, Collect or Control policy type
- */
-function isGroupPolicy(policyType: string): boolean {
-    return policyType === CONST.POLICY.TYPE.CORPORATE || policyType === CONST.POLICY.TYPE.TEAM;
-}
-
-/**
- * Whether the provided report belongs to a Free, Collect or Control policy
+ * Whether the provided report belongs to a paid group or Submit policy
  */
 function isReportInGroupPolicy(report: OnyxInputOrEntry<Report>, policy?: OnyxInputOrEntry<Policy>): boolean {
-    const policyType = policy?.type ?? getPolicyType(report, allPolicies);
-    return isGroupPolicy(policyType);
+    return isGroupPolicyPolicyUtils(policy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]);
 }
 
 /**
@@ -1971,7 +1964,7 @@ function shouldEnableNegative(report: OnyxEntry<Report>, policy?: OnyxEntry<Poli
     const isFirstTimeCreatingReport = !report && !policy && iouType === CONST.IOU.TYPE.SUBMIT && !isUserInRecipients;
 
     const isExpenseReportType = isExpenseReport(report);
-    const isGroupPolicyType = isGroupPolicy(policy?.type ?? '');
+    const isGroupPolicyType = isGroupPolicyPolicyUtils(policy);
     const isCreatingNewIOU = iouType === CONST.IOU.TYPE.CREATE;
     const supportsNegativeAmounts = isExpenseReportType || isGroupPolicyType || isSelfDMReport || isCreatingNewIOU || isFirstTimeCreatingReport;
 
@@ -2785,7 +2778,7 @@ function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArchiv
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policy = getPolicy(moneyRequestReport?.policyID);
 
-    if (isExpenseReport(moneyRequestReport) && (!isCurrentUserSubmitter(moneyRequestReport) || !isPaidGroupPolicyPolicyUtils(policy))) {
+    if (isExpenseReport(moneyRequestReport) && (!isCurrentUserSubmitter(moneyRequestReport) || !isGroupPolicyPolicyUtils(policy))) {
         return false;
     }
 
@@ -6290,9 +6283,9 @@ function getParsedComment(text: string, parsingDetails?: ParsingDetails, mediaAt
 
     if (parsingDetails?.policyID) {
         // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-        const policyType = getPolicy(parsingDetails?.policyID)?.type;
-        if (policyType) {
-            isGroupPolicyReport = isGroupPolicy(policyType);
+        const policy = getPolicy(parsingDetails?.policyID);
+        if (policy?.type) {
+            isGroupPolicyReport = isGroupPolicyPolicyUtils(policy);
         }
     }
 
@@ -6728,7 +6721,7 @@ function buildOptimisticInvoiceReport(
  * Computes the optimistic report name using the policy's title field formula, with a fallback to the default expense report name.
  */
 function computeOptimisticReportName(report: Report, policy: OnyxEntry<Policy>, policyID: string | undefined, reportTransactions: Record<string, Transaction>): string | null {
-    if (!isGroupPolicy(policy?.type ?? '')) {
+    if (!isGroupPolicyPolicyUtils(policy)) {
         return null;
     }
 
@@ -13442,7 +13435,6 @@ export {
     isGroupChat,
     isGroupChatAdmin,
     isHarvestCreatedExpenseReport,
-    isGroupPolicy,
     isReportInGroupPolicy,
     isHoldCreator,
     isIOUOwnedByCurrentUser,
