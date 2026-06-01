@@ -104,21 +104,23 @@ function SearchTypeMenuAccordion({title, isExpanded, badgeText, children, onSect
                 >
                     {title}
                 </Text>
-                {!!badgeText && (
-                    <AnimatedBadge
-                        text={badgeText}
-                        isExpanded={isAccordionExpanded}
-                    />
-                )}
-                <View style={styles.searchTypeMenuAccessoryBox}>
-                    <Animated.View style={arrowAnimatedStyle}>
-                        <Icon
-                            fill={theme.icon}
-                            src={icons.UpArrow}
-                            width={variables.iconSizeSmall}
-                            height={variables.iconSizeSmall}
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+                    {!!badgeText && (
+                        <AnimatedBadge
+                            text={badgeText}
+                            isExpanded={isAccordionExpanded}
                         />
-                    </Animated.View>
+                    )}
+                    <View style={styles.searchTypeMenuAccessoryBox}>
+                        <Animated.View style={arrowAnimatedStyle}>
+                            <Icon
+                                fill={theme.icon}
+                                src={icons.UpArrow}
+                                width={variables.iconSizeSmall}
+                                height={variables.iconSizeSmall}
+                            />
+                        </Animated.View>
+                    </View>
                 </View>
             </PressableWithoutFeedback>
             <Accordion
