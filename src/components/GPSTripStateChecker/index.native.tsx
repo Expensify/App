@@ -43,6 +43,7 @@ function GPSTripStateChecker() {
         }
 
         handleGpsTripInProgressOnAppRestart();
+        checkAndCleanGpsNotification();
 
         return () => {
             hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).then((isRunning) => {
