@@ -16,15 +16,16 @@ function MultiScanEducationalModal() {
     const styles = useThemeStyles();
     const lazyIllustrations = useMemoizedLazyIllustrations(['MultiScan']);
 
-    if (!showEducationalPopup || !dismissEducationalPopup) {
-        return null;
-    }
+    // if (!showEducationalPopup || !dismissEducationalPopup) {
+    //     return null;
+    // }
 
     return (
         <FeatureTrainingModal
             title={translate('iou.scanMultipleReceipts')}
             image={lazyIllustrations.MultiScan}
             shouldRenderSVG
+            imageHeight={220}
             modalInnerContainerStyle={styles.pt0}
             illustrationOuterContainerStyle={styles.multiScanEducationalPopupImage}
             onConfirm={dismissEducationalPopup}
