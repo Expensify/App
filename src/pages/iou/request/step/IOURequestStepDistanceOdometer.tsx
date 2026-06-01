@@ -199,6 +199,7 @@ function IOURequestStepDistanceOdometer({
 
     const navigateToNextStep = useOdometerNavigation({
         iouType,
+        action,
         report,
         policy,
         transaction,
@@ -209,7 +210,6 @@ function IOURequestStepDistanceOdometer({
         currentUserLogin: currentUserEmailParam,
         currentUserAccountID: currentUserAccountIDParam,
         backToReport,
-        backTo: undefined,
         shouldSkipConfirmation,
         defaultExpensePolicy,
         isArchived,
