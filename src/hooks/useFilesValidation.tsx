@@ -40,11 +40,8 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
     const {showConfirmModal} = useConfirmModal();
 
     const [isValidatingFiles, setIsValidatingFiles] = useState(false);
-    const [isValidatingReceipts, setIsValidatingReceipts] = useState<boolean>();
-    const [isValidatingMultipleFiles, setIsValidatingMultipleFiles] = useState(false);
 
     const [pdfFilesToRender, setPdfFilesToRender] = useState<FileObject[]>([]);
-    const [validFilesToUpload, setValidFilesToUpload] = useState([] as FileObject[]);
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
 
     const validatedPDFs = useRef<FileObject[]>([]);
@@ -55,6 +52,8 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
     const originalFileOrder = useRef<Map<string, number>>(new Map());
     const pendingAfterHide = useRef<() => void>(() => {});
     const loaderTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+    const validFilesToUploadRef = useRef<FileObject[]>([]);
+    const currentValidationState = useRef<ValidationState>({isValidatingReceipts: false, isValidatingMultipleFiles: false});
 
     const updateFileOrderMapping = (oldFile: FileObject | undefined, newFile: FileObject) => {
         const originalIndex = originalFileOrder.current.get(oldFile?.uri ?? '');
@@ -87,16 +86,16 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
 
     const reset = () => {
         setIsValidatingFiles(false);
-        setIsValidatingReceipts(undefined);
         setPdfFilesToRender([]);
         setIsLoaderVisible(false);
-        setValidFilesToUpload([]);
         validatedPDFs.current = [];
         validFiles.current = [];
         filesToValidate.current = [];
         dataTransferItemList.current = [];
         collectedErrors.current = [];
         originalFileOrder.current.clear();
+        validFilesToUploadRef.current = [];
+        currentValidationState.current = {isValidatingReceipts: false, isValidatingMultipleFiles: false};
     };
 
     const runPendingAfterHide = () => {
@@ -109,7 +108,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         if (!error) {
             return '';
         }
-        const fileValidationErrorText = getFileValidationErrorText(translate, error, {isValidatingReceipt: isValidatingReceipts});
+        const fileValidationErrorText = getFileValidationErrorText(translate, error, {isValidatingReceipt: currentValidationState.current.isValidatingReceipts});
         const prompt = fileValidationErrorText.reason;
         if (error.error === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE) {
             return (
@@ -123,24 +122,20 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
     };
 
     const showErrorModal = async (error: FileValidationError, currentIndex: number, allErrors: FileValidationError[]) => {
-        const fileValidationErrorText = getFileValidationErrorText(translate, error, {isValidatingReceipt: isValidatingReceipts});
+        const fileValidationErrorText = getFileValidationErrorText(translate, error, {isValidatingReceipt: currentValidationState.current.isValidatingReceipts});
 
         const result = await showConfirmModal({
             title: fileValidationErrorText.title,
             prompt: getModalPrompt(error),
-            confirmText: translate(isValidatingMultipleFiles ? 'common.continue' : 'common.close'),
+            confirmText: translate(currentValidationState.current.isValidatingMultipleFiles ? 'common.continue' : 'common.close'),
             cancelText: translate('common.cancel'),
-            shouldShowCancelButton: isValidatingMultipleFiles,
+            shouldShowCancelButton: currentValidationState.current.isValidatingMultipleFiles,
         });
 
         if (result.action === ModalActions.CONFIRM) {
             // Handle MAX_FILE_LIMIT_EXCEEDED separately
             if (error.error === CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
-                const validationState: ValidationState = {
-                    isValidatingReceipts: isValidatingReceipts ?? false,
-                    isValidatingMultipleFiles,
-                };
-                validateAndResizeFiles(filesToValidate.current, dataTransferItemList.current, validationState);
+                validateAndResizeFiles(filesToValidate.current, dataTransferItemList.current, currentValidationState.current);
                 return;
             }
 
@@ -149,8 +144,8 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
                 const nextIndex = currentIndex + 1;
                 const nextError = allErrors.at(nextIndex);
                 if (nextError) {
-                    if (isValidatingMultipleFiles && currentIndex === allErrors.length - 2 && validFilesToUpload.length === 0) {
-                        setIsValidatingMultipleFiles(false);
+                    if (currentValidationState.current.isValidatingMultipleFiles && currentIndex === allErrors.length - 2 && validFilesToUploadRef.current.length === 0) {
+                        currentValidationState.current.isValidatingMultipleFiles = false;
                     }
                     showErrorModal(nextError, nextIndex, allErrors);
                     return;
@@ -158,10 +153,10 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
             }
 
             // No more errors, proceed with valid files
-            const sortedFiles = sortFilesByOriginalOrder(validFilesToUpload, originalFileOrder.current);
+            const sortedFiles = sortFilesByOriginalOrder(validFilesToUploadRef.current, originalFileOrder.current);
             // If we're validating attachments we need to wait for the error modal close
             // transition to finish before opening the attachment modal
-            if (isValidatingReceipts === false && error) {
+            if (currentValidationState.current.isValidatingReceipts === false && error) {
                 pendingAfterHide.current = () => {
                     if (sortedFiles.length !== 0) {
                         onFilesValidated(sortedFiles, dataTransferItemList.current);
@@ -192,7 +187,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         }
 
         if (validFiles.current.length > 0) {
-            setValidFilesToUpload(validFiles.current);
+            validFilesToUploadRef.current = validFiles.current;
         }
 
         if (collectedErrors.current.length > 0) {
@@ -341,7 +336,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
             }
 
             if (validNonPdfFiles.length > 0) {
-                setValidFilesToUpload(validNonPdfFiles);
+                validFilesToUploadRef.current = validNonPdfFiles;
             }
 
             if (collectedErrors.current.length > 0) {
@@ -396,8 +391,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
             isValidatingReceipts: validationOptions?.isValidatingReceipts ?? DEFAULT_IS_VALIDATING_RECEIPTS,
             isValidatingMultipleFiles: files.length > 1,
         };
-        setIsValidatingReceipts(validationState.isValidatingReceipts);
-        setIsValidatingMultipleFiles(validationState.isValidatingMultipleFiles);
+        currentValidationState.current = validationState;
 
         if (files.length > CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT) {
             filesToValidate.current = files.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT);
@@ -424,7 +418,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
                   }}
                   onPassword={() => {
                       validatedPDFs.current.push(file);
-                      if (isValidatingReceipts === true) {
+                      if (currentValidationState.current.isValidatingReceipts === true) {
                           collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.PROTECTED_FILE});
                       } else {
                           validFiles.current.push(file);
