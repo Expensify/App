@@ -7,7 +7,9 @@ import useOnyx from '@hooks/useOnyx';
 import usePreviousDefined from '@hooks/usePreviousDefined';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import fileDownload from '@libs/fileDownload';
+import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import {clearExportDownload, sendExportFileFromConcierge} from '@userActions/Export';
 import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -44,6 +46,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [exportDownload] = useOnyx(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}`);
     const displayedExport = usePreviousDefined(exportDownload);
 
@@ -55,12 +58,20 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     const isReady = state === CONST.EXPORT_DOWNLOAD.STATE.READY;
     const isFailed = state === CONST.EXPORT_DOWNLOAD.STATE.FAILED;
 
+    const getAuthenticatedURL = (url: string) => {
+        const encryptedAuthToken = session?.encryptedAuthToken ?? '';
+        return tryResolveUrlFromApiRoot(addEncryptedAuthTokenToURL(url, encryptedAuthToken, true));
+    };
+
     useEffect(() => {
         if (!isReady || !downloadURL || shouldSendFromConcierge) {
             return;
         }
-        fileDownload(translate, downloadURL);
-    }, [isReady, downloadURL, translate, shouldSendFromConcierge]);
+        const authenticatedURL = getAuthenticatedURL(downloadURL);
+        const downloadName = new URL(downloadURL).searchParams.get('downloadName') ?? undefined;
+        fileDownload(translate, authenticatedURL, downloadName);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isReady, downloadURL, shouldSendFromConcierge]);
 
     const handleSendFromConcierge = () => {
         sendExportFileFromConcierge(exportID, displayedExport ?? undefined);
@@ -75,7 +86,9 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
         if (!downloadURL) {
             return;
         }
-        fileDownload(translate, downloadURL);
+        const authenticatedURL = getAuthenticatedURL(downloadURL);
+        const downloadName = new URL(downloadURL).searchParams.get('downloadName') ?? undefined;
+        fileDownload(translate, authenticatedURL, downloadName);
     };
 
     const handleClose = () => {
