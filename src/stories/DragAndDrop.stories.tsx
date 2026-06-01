@@ -15,7 +15,7 @@ const defaultStyles = styles(defaultTheme);
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 const story: Meta<typeof DragAndDropConsumer> = {
-    title: 'Components/DragAndDrop',
+    title: 'Layout/DragAndDrop',
     component: DragAndDropConsumer,
 };
 

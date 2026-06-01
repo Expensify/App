@@ -13,7 +13,7 @@ type AddressSearchStory = StoryFn<typeof AddressSearch>;
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 const story: Meta<typeof AddressSearch> = {
-    title: 'Components/AddressSearch',
+    title: 'Forms/AddressSearch',
     component: AddressSearch,
     args: {
         label: 'Enter street',

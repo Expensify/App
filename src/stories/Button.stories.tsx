@@ -13,7 +13,7 @@ type ButtonStory = StoryFn<typeof Button>;
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 const story: Meta<typeof Button> = {
-    title: 'Components/Button',
+    title: 'Buttons & Actions/Button',
     component: Button,
 };
 

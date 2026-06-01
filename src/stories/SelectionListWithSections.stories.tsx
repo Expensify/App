@@ -17,7 +17,7 @@ const SelectionListWithNavigation = withNavigationFallback(SelectionList);
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 const story: Meta<typeof SelectionList> = {
-    title: 'Components/SelectionListWithSections',
+    title: 'Lists/SelectionListWithSections',
     component: SelectionList,
     parameters: {
         docs: {

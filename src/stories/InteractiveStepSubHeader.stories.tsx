@@ -10,7 +10,7 @@ import type {InteractiveStepSubHeaderHandle, InteractiveStepSubHeaderProps} from
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 const story = {
-    title: 'Components/InteractiveStepSubHeader',
+    title: 'Layout/InteractiveStepSubHeader',
     component: InteractiveStepSubHeader,
 };
 

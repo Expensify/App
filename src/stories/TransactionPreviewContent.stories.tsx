@@ -95,7 +95,7 @@ const iouReportMap = {
 type TransactionPreviewStory = StoryFn<typeof TransactionPreviewContent>;
 
 const story: Meta<typeof TransactionPreviewContent> = {
-    title: 'Components/TransactionPreview',
+    title: 'Data Display/TransactionPreview',
     component: TransactionPreviewContent,
     args: {
         action: actionR14932,

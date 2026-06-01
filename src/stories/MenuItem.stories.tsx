@@ -13,7 +13,7 @@ type MenuItemStory = StoryFn<typeof MenuItem>;
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 const story: Meta<typeof MenuItem> = {
-    title: 'Components/MenuItem',
+    title: 'Overlays & Menus/MenuItem',
     component: MenuItem,
     args: {
         interactive: true,

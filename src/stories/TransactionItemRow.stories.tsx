@@ -35,7 +35,7 @@ type TransactionItemRowProps = {
 };
 
 const story: Meta<typeof TransactionItemRow> = {
-    title: 'Components/TransactionItemRow',
+    title: 'Data Display/TransactionItemRow',
     component: TransactionItemRow,
     args: {
         transactionItem: transactionWithOptionalSearchFields,

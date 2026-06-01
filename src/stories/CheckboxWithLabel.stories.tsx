@@ -16,7 +16,7 @@ type CheckboxWithLabelStory = StoryFn<typeof CheckboxWithLabel>;
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 const story: Meta<typeof CheckboxWithLabel> = {
-    title: 'Components/CheckboxWithLabel',
+    title: 'Forms/CheckboxWithLabel',
     component: CheckboxWithLabel,
 };
 

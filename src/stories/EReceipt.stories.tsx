@@ -166,7 +166,7 @@ Onyx.merge('cardList', {
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 const story: Meta<typeof EReceipt> = {
-    title: 'Components/EReceipt',
+    title: 'Data Display/EReceipt',
     component: EReceipt,
 };
 

@@ -11,7 +11,7 @@ type BannerStory = StoryFn<typeof Banner>;
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 const story = {
-    title: 'Components/Banner',
+    title: 'Feedback/Banner',
     component: Banner,
 };
 

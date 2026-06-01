@@ -11,7 +11,7 @@ type InlineSystemMessageStory = StoryFn<typeof InlineSystemMessage>;
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 const story: Meta<typeof InlineSystemMessage> = {
-    title: 'Components/InlineSystemMessage',
+    title: 'Feedback/InlineSystemMessage',
     component: InlineSystemMessage,
 };
 

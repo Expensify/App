@@ -12,7 +12,7 @@ const AVATAR_URL = PRESET_AVATAR_CATALOG['car-blue100'].url;
 type AvatarStory = StoryFn<typeof Avatar>;
 
 const story: Meta<typeof Avatar> = {
-    title: 'Components/Avatar',
+    title: 'Data Display/Avatar',
     component: Avatar,
 };
 

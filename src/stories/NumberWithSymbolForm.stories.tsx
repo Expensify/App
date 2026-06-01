@@ -16,7 +16,7 @@ type NumberWithSymbolFormStory = StoryFn<typeof NumberWithSymbolForm>;
 const NumberWithSymbolFormWithNavigation = withNavigationFallback(NumberWithSymbolForm);
 
 const story: Meta<typeof NumberWithSymbolForm> = {
-    title: 'Components/NumberWithSymbolForm',
+    title: 'Forms/NumberWithSymbolForm',
     component: NumberWithSymbolFormWithNavigation,
 };
 

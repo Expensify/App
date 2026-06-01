@@ -10,7 +10,7 @@ import variables from '@src/styles/variables';
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 const story = {
-    title: 'Components/PromotedActionsBar',
+    title: 'Buttons & Actions/PromotedActionsBar',
     component: PromotedActionsBar,
 };
 

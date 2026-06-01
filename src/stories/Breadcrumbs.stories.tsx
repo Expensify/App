@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 const story = {
-    title: 'Components/Breadcrumbs',
+    title: 'Typography/Breadcrumbs',
     component: Breadcrumbs,
 };
 

@@ -13,7 +13,7 @@ type TemplateProps = Omit<BasePickerProps<string>, 'onInputChange'>;
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 const story: Meta<typeof Picker> = {
-    title: 'Components/Picker',
+    title: 'Forms/Picker',
     component: Picker,
 };
 

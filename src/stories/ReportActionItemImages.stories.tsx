@@ -12,7 +12,7 @@ type ReportActionItemImagesStory = StoryFn<typeof ReportActionItemImages>;
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 const story: Meta<typeof ReportActionItemImages> = {
-    title: 'Components/ReportActionItemImages',
+    title: 'Data Display/ReportActionItemImages',
     component: ReportActionItemImages,
 };
 

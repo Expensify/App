@@ -36,7 +36,7 @@ const mockTransactionsBig = Array.from({length: 12}).map((item, index) => {
 type MoneyRequestReportPreviewStory = StoryFn<typeof MoneyRequestReportPreviewContent>;
 
 export default {
-    title: 'Components/MoneyRequestReportPreviewContent',
+    title: 'Data Display/MoneyRequestReportPreviewContent',
     component: MoneyRequestReportPreviewContent,
     argTypes: {
         /** The associated chatReport */

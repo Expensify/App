@@ -11,7 +11,7 @@ type FormAlertWithSubmitButtonStory = StoryFn<typeof FormAlertWithSubmitButton>;
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 const story: Meta<typeof FormAlertWithSubmitButton> = {
-    title: 'Components/FormAlertWithSubmitButton',
+    title: 'Forms/FormAlertWithSubmitButton',
     component: FormAlertWithSubmitButton,
 };
 

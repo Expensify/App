@@ -11,7 +11,7 @@ type RadioButtonWithLabelStory = StoryFn<typeof RadioButtonWithLabel>;
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 const story: Meta<typeof RadioButtonWithLabel> = {
-    title: 'Components/RadioButtonWithLabel',
+    title: 'Forms/RadioButtonWithLabel',
     component: RadioButtonWithLabel,
 };
 

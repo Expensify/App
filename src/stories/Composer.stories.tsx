@@ -23,7 +23,7 @@ const ComposerWithNavigation = withNavigationFallback(Composer);
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 const story: Meta<typeof ComposerWithNavigation> = {
-    title: 'Components/Composer',
+    title: 'Forms/Composer',
     component: ComposerWithNavigation,
 };
 

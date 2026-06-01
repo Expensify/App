@@ -12,7 +12,7 @@ type TextInputStory = StoryFn<typeof TextInput>;
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 const story: Meta<typeof TextInput> = {
-    title: 'Components/TextInput',
+    title: 'Forms/TextInput',
     component: TextInput,
 };
 

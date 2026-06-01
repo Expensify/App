@@ -16,7 +16,7 @@ import CONST from '@src/CONST';
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 const story: Meta<typeof PopoverMenu.Root> = {
-    title: 'Components/PopoverMenu V2',
+    title: 'Overlays & Menus/PopoverMenu V2',
     component: PopoverMenu.Root,
 };
 

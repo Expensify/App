@@ -13,7 +13,7 @@ import CONST from '@src/CONST';
 type AvatarSelectorStory = StoryFn<typeof AvatarSelector>;
 
 const story: Meta<typeof AvatarSelector> = {
-    title: 'Components/AvatarSelector',
+    title: 'Data Display/AvatarSelector',
     component: AvatarSelector,
 };
 

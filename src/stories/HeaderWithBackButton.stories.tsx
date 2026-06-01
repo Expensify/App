@@ -11,7 +11,7 @@ type HeaderWithBackButtonStory = StoryFn<typeof HeaderWithBackButton>;
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 const story: Meta<typeof HeaderWithBackButton> = {
-    title: 'Components/HeaderWithBackButton',
+    title: 'Layout/HeaderWithBackButton',
     component: HeaderWithBackButton,
 };
 

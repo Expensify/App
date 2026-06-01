@@ -11,7 +11,7 @@ type HeaderStory = StoryFn<typeof Header>;
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 const story: Meta<typeof Header> = {
-    title: 'Components/Header',
+    title: 'Layout/Header',
     component: Header,
 };
 

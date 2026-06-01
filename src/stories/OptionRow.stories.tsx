@@ -10,7 +10,7 @@ import type {OptionRowProps} from '@components/OptionRow';
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 export default {
-    title: 'Components/OptionRow',
+    title: 'Lists/OptionRow',
     component: OptionRow,
     argTypes: {
         mode: {

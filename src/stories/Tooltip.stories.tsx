@@ -11,7 +11,7 @@ type TooltipStory = StoryFn<typeof Tooltip>;
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 const story: Meta<typeof Tooltip> = {
-    title: 'Components/Tooltip',
+    title: 'Feedback/Tooltip',
     component: Tooltip,
 };
 

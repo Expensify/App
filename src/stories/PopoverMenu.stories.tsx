@@ -16,7 +16,7 @@ type PopoverMenuStory = StoryFn<typeof PopoverMenu>;
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 const story: Meta<typeof PopoverMenu> = {
-    title: 'Components/PopoverMenu',
+    title: 'Overlays & Menus/PopoverMenu',
     component: PopoverMenu,
 };
 

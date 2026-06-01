@@ -56,10 +56,18 @@ const parameters: Parameters = {
             light: {name: 'Light', value: colors.productLight100},
         },
     },
+    options: {
+        storySort: {
+            order: ['Typography', 'Buttons & Actions', 'Forms', 'Data Display', 'Feedback', 'Overlays & Menus', 'Layout', 'Lists'],
+        },
+    },
 };
 
 const initialGlobals = {
     backgrounds: {value: 'dark'},
 };
 
-export {decorators, parameters, initialGlobals};
+// Generate a Docs page (with an auto prop table) for every story.
+const tags = ['autodocs'];
+
+export {decorators, parameters, initialGlobals, tags};

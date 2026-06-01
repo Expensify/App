@@ -50,7 +50,7 @@ type StorybookFormErrors = Partial<Record<keyof StorybookFormValues, string>>;
 const STORYBOOK_FORM_ID = 'TestForm' as keyof OnyxFormValuesMapping;
 
 const story: Meta<typeof FormProvider> = {
-    title: 'Components/Form',
+    title: 'Forms/Form',
     component: FormProvider,
     subcomponents: {
         InputWrapper: InputWrapper as ComponentType<unknown>,

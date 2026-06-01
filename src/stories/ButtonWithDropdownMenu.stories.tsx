@@ -12,7 +12,7 @@ type ButtonWithDropdownMenuStory = StoryFn<typeof ButtonWithDropdownMenu>;
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 const story = {
-    title: 'Components/ButtonWithDropdownMenu',
+    title: 'Buttons & Actions/ButtonWithDropdownMenu',
     component: ButtonWithDropdownMenu,
 };
 

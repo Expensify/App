@@ -12,7 +12,7 @@ type MagicCodeInputStory = StoryFn<typeof MagicCodeInput>;
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 const story: Meta<typeof MagicCodeInput> = {
-    title: 'Components/MagicCodeInput',
+    title: 'Forms/MagicCodeInput',
     component: MagicCodeInput,
 };
 
