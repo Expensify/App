@@ -33,7 +33,7 @@ The phone number linked to your Expensify Card is used for 3D Secure (Verified b
 1. Choose **Account** in the navigation tabs (on the left on web, on the bottom on mobile).
 2. Select **Profile**.
 3. Under **Private**, select **Phone number**.
-4. Enter your updated phone number on the and click **Save**.
+4. Enter your updated phone number and click **Save**.
 5. Enter the magic code sent to your email or phone to verify the change.
 
 After updating, your new phone number will be used for future 3D Secure SMS verification codes.
