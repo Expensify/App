@@ -6485,6 +6485,8 @@ function deleteAppReport({
     }
 
     const chatReport = getReportOrDraftReport(report?.parentReportID);
+    // Only clear the pointer when the chat still references the report being deleted, so we don't nullify a different active expense report.
+    const shouldClearChatIOUReportID = chatReport?.iouReportID === reportID;
     if (chatReport) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -6498,6 +6500,7 @@ function deleteAppReport({
                     allTransactionViolations,
                     bankAccountList,
                 ),
+                ...(shouldClearChatIOUReportID ? {iouReportID: null} : {}),
             },
         });
     }
@@ -6505,7 +6508,10 @@ function deleteAppReport({
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`,
-        value: {hasOutstandingChildRequest: report?.hasOutstandingChildRequest},
+        value: {
+            hasOutstandingChildRequest: report?.hasOutstandingChildRequest,
+            ...(shouldClearChatIOUReportID ? {iouReportID: chatReport?.iouReportID} : {}),
+        },
     });
 
     if (hash) {
