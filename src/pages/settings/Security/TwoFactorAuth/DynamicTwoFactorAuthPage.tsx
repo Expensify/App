@@ -95,7 +95,7 @@ function DynamicTwoFactorAuthPage() {
             stepCounter={{
                 step: 1,
                 text: translate('twoFactorAuth.stepCodes'),
-                total: 2,
+                total: 3,
             }}
             shouldEnableKeyboardAvoidingView={false}
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.COPY_CODES}

@@ -2241,9 +2241,8 @@ const translations: TranslationDeepObject<typeof en> = {
         stepCodes: 'Wiederherstellungscodes',
         keepCodesSafe: 'Bewahren Sie diese Codes sicher auf!',
         codesLoseAccess: dedent(`
-            Wenn Sie den Zugriff auf Ihre Authentifizierungs-App verlieren und diese Codes nicht haben, verlieren Sie den Zugriff auf Ihr Konto.
-
-            <strong>Hinweis</strong>: Das Einrichten der Zwei-Faktor-Authentifizierung meldet Sie von allen anderen aktiven Sitzungen ab.
+            Sie sind Ihre einzige Möglichkeit, wieder Zugriff zu erhalten, falls Sie Ihre Authentifizierungs-App verlieren.<br>
+            <strong>Hinweis</strong>: Wenn Sie die Zwei-Faktor-Authentifizierung einrichten, werden Sie von allen anderen aktiven Sitzungen abgemeldet.
         `),
         errorStepCodes: 'Bitte kopiere oder lade die Codes herunter, bevor du fortfährst',
         stepVerify: 'Bestätigen',

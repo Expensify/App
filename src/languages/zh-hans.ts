@@ -2175,9 +2175,8 @@ const translations: TranslationDeepObject<typeof en> = {
         stepCodes: '恢复代码',
         keepCodesSafe: '妥善保管这些验证码！',
         codesLoseAccess: dedent(`
-            如果你无法使用身份验证应用且没有这些代码，你将无法访问你的账户。
-
-            <strong>注意</strong>：设置双重身份验证后，你将在所有其他活跃会话中退出登录。
+            如果你丢失了身份验证器应用，这是你重新登录账户的唯一方式。<br>
+            <strong>注意</strong>：启用双重身份验证后，你将在所有其他活跃会话中被注销。
         `),
         errorStepCodes: '请在继续之前复制或下载这些代码',
         stepVerify: '验证',
