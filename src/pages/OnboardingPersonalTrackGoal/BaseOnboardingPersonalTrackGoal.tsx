@@ -8,15 +8,18 @@ import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useAutoCreateTrackWorkspace from '@hooks/useAutoCreateTrackWorkspace';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import {setOnboardingPersonalTrackGoal} from '@userActions/Welcome';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {BaseOnboardingPersonalTrackGoalProps} from './types';
@@ -33,8 +36,23 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
     const [inputError, setInputError] = useState('');
     const illustrations = useMemoizedLazyIllustrations(['RealEstate', 'HouseMoney', 'TargetWithArrow', 'Binoculars']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Checkmark']);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [personalDetailsForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
+    const autoCreateTrackWorkspace = useAutoCreateTrackWorkspace();
+    const isPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
 
     const isSomethingElseSelected = selectedGoal === CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE;
+
+    // Private-domain users already entered their name before Purpose, so PERSONAL_DETAILS isn't part of their flow.
+    // Mirror BaseOnboardingPurpose and complete the track workspace directly instead of sending them back to the name screen.
+    const completeTrackGoalSelection = (goal: string) => {
+        setOnboardingPersonalTrackGoal(goal);
+        if (isPrivateDomainAndHasAccessiblePolicies && personalDetailsForm?.firstName) {
+            autoCreateTrackWorkspace(personalDetailsForm.firstName, personalDetailsForm.lastName ?? '', CONST.ONBOARDING_CHOICES.TRACK_PERSONAL, goal);
+            return;
+        }
+        Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
+    };
 
     const menuIcons = useMemo(
         () => ({
@@ -94,8 +112,7 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
                                     setSelectedGoal(goal);
                                     setInputError('');
                                     if (goal !== CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE) {
-                                        setOnboardingPersonalTrackGoal(goal);
-                                        Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
+                                        completeTrackGoalSelection(goal);
                                     }
                                 }}
                             />
@@ -135,8 +152,7 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
                                 setInputError(translate('common.error.fieldRequired'));
                                 return;
                             }
-                            setOnboardingPersonalTrackGoal(somethingElseText.trim());
-                            Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
+                            completeTrackGoalSelection(somethingElseText.trim());
                         }}
                         pressOnEnter
                     />

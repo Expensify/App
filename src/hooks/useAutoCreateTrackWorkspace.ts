@@ -57,9 +57,11 @@ function useAutoCreateTrackWorkspace() {
     const mergedAccountConciergeReportID = !onboardingValues?.shouldRedirectToClassicAfterMerge && onboardingValues?.shouldValidate ? conciergeChatReportID : undefined;
 
     const autoCreateTrackWorkspace = useCallback(
-        async (firstName: string, lastName: string, onboardingPurposeSelected: OnboardingPurpose) => {
+        async (firstName: string, lastName: string, onboardingPurposeSelected: OnboardingPurpose, personalTrackGoalOverride?: string) => {
             const shouldCreateWorkspace = !isRestrictedPolicyCreation && !onboardingPolicyID && !hasPaidGroupAdminPolicy;
             const displayName = createDisplayName(currentUserEmail, {firstName, lastName}, formatPhoneNumber);
+            // Callers that set the goal in the same tick must pass it explicitly, because the Onyx value read above is still stale here.
+            const personalTrackGoal = personalTrackGoalOverride ?? onboardingPersonalTrackGoal;
 
             const engagementChoice =
                 onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL ? CONST.ONBOARDING_CHOICES.TRACK_PERSONAL : CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE;
@@ -98,7 +100,7 @@ function useAutoCreateTrackWorkspace() {
                     adminsChatReportID: newAdminsChatReportID,
                     onboardingPolicyID: newPolicyID,
                     shouldWaitForRHPVariantInitialization: isSidePanelReportSupported,
-                    personalTrackGoal: onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL ? (onboardingPersonalTrackGoal ?? undefined) : undefined,
+                    personalTrackGoal: onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL ? (personalTrackGoal ?? undefined) : undefined,
                     introSelected,
                     isSelfTourViewed,
                 });
