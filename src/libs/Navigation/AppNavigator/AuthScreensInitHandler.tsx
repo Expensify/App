@@ -8,7 +8,6 @@ import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
-import {search} from '@libs/actions/Search';
 import {init, isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
@@ -16,7 +15,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import {getReportIDFromLink} from '@libs/ReportUtils';
-import {getSuggestedSearches, TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getSearchParamFromUrl} from '@libs/Url';
@@ -147,16 +145,6 @@ function AuthScreensInitHandler() {
             lastWorkspaceNumber,
             translate,
         );
-
-        // Get search TODOs counters data
-        const suggestedSearches = getSuggestedSearches(session?.accountID);
-        for (const searchKey of TODO_SEARCH_KEYS) {
-            const queryJSON = suggestedSearches[searchKey].searchQueryJSON;
-            if (!queryJSON) {
-                continue;
-            }
-            search({queryJSON, searchKey, isLoading: false});
-        }
 
         Download.clearDownloads();
         clearStaleExportDownloads();

@@ -9,6 +9,7 @@ import {search} from '@libs/actions/Search';
 import {getDisplayableExpensifyCards} from '@libs/CardUtils';
 import {arePaymentsEnabled, hasApprovalFlow, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {getSuggestedSearches, TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -82,6 +83,8 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const {accountID} = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
+
+    const suggestedSearches = getSuggestedSearches(accountID);
 
     const awaitingApprovalQuery = buildAwaitingApprovalQuery(accountID);
     const repaidLast30DaysQuery = buildRepaidLast30DaysQuery(accountID);
@@ -303,6 +306,21 @@ function useYourSpendData(): UseYourSpendDataReturn {
                 isOffline,
                 isLoading: false,
                 shouldCalculateTotals: true,
+                shouldUpdateLastSearchParams: false,
+            });
+        }
+        for (const searchKey of TODO_SEARCH_KEYS) {
+            const queryJSON = suggestedSearches[searchKey].searchQueryJSON;
+            if (!queryJSON) {
+                continue;
+            }
+            search({
+                queryJSON,
+                searchKey,
+                offset: 0,
+                isOffline,
+                isLoading: false,
+                shouldCalculateTotals: false,
                 shouldUpdateLastSearchParams: false,
             });
         }
