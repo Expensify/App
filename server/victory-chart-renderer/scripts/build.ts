@@ -11,6 +11,7 @@
  */
 import {join, resolve} from 'node:path';
 import CLI from '@scripts/utils/CLI';
+import parseCompileTarget from '../../libs/parseCompileTarget';
 import createRnStubPlugin from '../../plugins/rnStubPlugin';
 
 const packageRoot = resolve(import.meta.dir, '..');
@@ -20,6 +21,7 @@ const cli = new CLI({
     namedArgs: {
         target: {
             description: 'Bun compile target (e.g. bun-darwin-arm64, bun-linux-x64)',
+            parse: parseCompileTarget,
         },
         outfile: {
             description: 'Path for the compiled binary output',
@@ -32,7 +34,7 @@ const {target, outfile} = cli.namedArgs;
 const buildResult = await Bun.build({
     entrypoints: [join(packageRoot, 'src/cli.tsx')],
     compile: {
-        target: target as Bun.Build.CompileTarget,
+        target,
         outfile,
     },
     packages: 'bundle',

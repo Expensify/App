@@ -7,5 +7,5 @@
             "@src/*": ["../src/*"]
         }
     },
-    "include": ["stubs", "plugins", "victory-chart-renderer/src", "victory-chart-renderer/tests", "victory-chart-renderer/scripts"]
+    "include": ["stubs", "plugins", "libs", "victory-chart-renderer/src", "victory-chart-renderer/tests", "victory-chart-renderer/scripts"]
 }
