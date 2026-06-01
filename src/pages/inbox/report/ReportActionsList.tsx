@@ -2,13 +2,13 @@ import {useRoute} from '@react-navigation/native';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-import {View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import InvertedFlashList from '@components/FlashList/InvertedFlashList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/FlatList/hooks/useFlatListScrollKey';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useMarkAsRead from '@hooks/useMarkAsRead';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
@@ -27,7 +27,6 @@ import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlight
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {
     getFirstVisibleReportActionID,
     getReportActionMessage,
@@ -167,7 +166,6 @@ function ReportActionsList({
     hasPreviousMessages,
     onShowPreviousMessages,
 }: ReportActionsListProps) {
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
@@ -363,17 +361,13 @@ function ReportActionsList({
             return;
         }
 
-        const handle = TransitionTracker.runAfterTransitions({
-            callback: () => {
-                if (shouldFocusToTopOnMount) {
-                    return;
-                }
-                setIsFloatingMessageCounterVisible(false);
-                reportScrollManager.scrollToBottom();
-            },
-            waitForUpcomingTransition: true,
+        InteractionManager.runAfterInteractions(() => {
+            if (shouldFocusToTopOnMount) {
+                return;
+            }
+            setIsFloatingMessageCounterVisible(false);
+            reportScrollManager.scrollToBottom();
         });
-        return () => handle.cancel();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -385,10 +379,8 @@ function ReportActionsList({
         }
         const prevSorted = lastAction?.reportActionID ? prevSortedVisibleReportActionsObjects[lastAction?.reportActionID] : null;
         if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER && !prevSorted) {
-            TransitionTracker.runAfterTransitions({
-                callback: () => {
-                    reportScrollManager.scrollToBottom();
-                },
+            InteractionManager.runAfterInteractions(() => {
+                reportScrollManager.scrollToBottom();
             });
         }
     }, [lastAction?.reportActionID, lastAction?.actionName, prevSortedVisibleReportActionsObjects, reportScrollManager]);
@@ -412,10 +404,8 @@ function ReportActionsList({
         if (lastIOUActionWithError?.reportActionID === prevLastIOUActionWithError?.reportActionID) {
             return;
         }
-        TransitionTracker.runAfterTransitions({
-            callback: () => {
-                reportScrollManager.scrollToBottom();
-            },
+        InteractionManager.runAfterInteractions(() => {
+            reportScrollManager.scrollToBottom();
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastAction]);
@@ -603,11 +593,7 @@ function ReportActionsList({
             return;
         }
 
-        TransitionTracker.runAfterTransitions({
-            callback: () => {
-                requestAnimationFrame(() => loadNewerChats(false));
-            },
-        });
+        InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadNewerChats(false)));
     }, [loadNewerChats]);
 
     const onEndReached = useCallback(() => {
