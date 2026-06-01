@@ -350,18 +350,31 @@ const ViolationsUtils = {
      * Checks a transaction for policy violations and returns an object with Onyx method, key and updated transaction
      * violations.
      */
-    getViolationsOnyxData(
-        updatedTransaction: Transaction,
-        transactionViolations: TransactionViolation[],
-        policy: Policy,
-        policyTagList: PolicyTagLists,
-        policyCategories: PolicyCategories,
-        hasDependentTags: boolean,
-        isInvoiceTransaction: boolean,
-        isSelfDM?: boolean,
-        iouReport?: OnyxEntry<Report>,
-        isFromExpenseReport?: boolean,
-    ): OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> {
+    getViolationsOnyxData({
+        updatedTransaction,
+        transactionViolations,
+        policy,
+        policyTagList,
+        policyCategories,
+        hasDependentTags,
+        isInvoiceTransaction,
+        isSelfDM,
+        iouReport,
+        isFromExpenseReport,
+        shouldRemoveRejectedExpenseViolation,
+    }: {
+        updatedTransaction: Transaction;
+        transactionViolations: TransactionViolation[];
+        policy: Policy;
+        policyTagList: PolicyTagLists;
+        policyCategories: PolicyCategories;
+        hasDependentTags: boolean;
+        isInvoiceTransaction: boolean;
+        isSelfDM?: boolean;
+        iouReport?: OnyxEntry<Report>;
+        isFromExpenseReport?: boolean;
+        shouldRemoveRejectedExpenseViolation?: boolean;
+    }): OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> {
         const isScanning = TransactionUtils.isScanning(updatedTransaction);
         const isScanRequest = TransactionUtils.isScanRequest(updatedTransaction);
         const isPartialTransaction = TransactionUtils.isPartialTransaction(updatedTransaction);
@@ -375,8 +388,9 @@ const ViolationsUtils = {
 
         let newTransactionViolations = [...transactionViolations];
 
-        // Remove AUTO_REPORTED_REJECTED_EXPENSE violation when the submitter edits the expense
-        if (iouReport && isFromExpenseReport && isCurrentUserSubmitter(iouReport)) {
+        // Remove AUTO_REPORTED_REJECTED_EXPENSE violation when the submitter edits the expense, when the transaction is moved to a different report,
+        // or when explicitly requested (e.g. from changeTransactionsReport)
+        if (shouldRemoveRejectedExpenseViolation || (iouReport && isFromExpenseReport && isCurrentUserSubmitter(iouReport))) {
             const hasRejectedExpenseViolation = newTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
             if (hasRejectedExpenseViolation) {
                 newTransactionViolations = newTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
