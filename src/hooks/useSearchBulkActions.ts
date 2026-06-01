@@ -26,7 +26,7 @@ import {
     getReportType,
     getTotalFormattedAmount,
     isCurrencySupportWalletBulkPay,
-    payMoneyRequestOnSearch,
+    payFromSearch,
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
     submitMoneyRequestOnSearch,
@@ -1013,7 +1013,20 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }) as PaymentData[];
 
             for (const item of paymentData) {
-                payMoneyRequestOnSearch(hash, [item]);
+                const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`];
+                const chatReportID = iouReport?.chatReportID ?? '';
+                const isItemInvoice = isInvoiceReport(item.reportID);
+                payFromSearch(
+                    hash,
+                    item.reportID,
+                    chatReportID,
+                    item.amount,
+                    item.paymentType as PaymentMethodType,
+                    isItemInvoice,
+                    isItemInvoice ? {policyID: item.policyID, payAsBusiness: item.payAsBusiness, bankAccountID: item.bankAccountID, fundID: item.fundID} : undefined,
+                    item.bankAccountID,
+                    undefined,
+                );
             }
 
             InteractionManager.runAfterInteractions(() => {
