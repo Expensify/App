@@ -143,7 +143,7 @@ jobs:
           fi
 
       - name: Run Claude Code (docs)
-        if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true' && steps.filter.outputs.docs == 'true'
+        if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true' && steps.filter.outputs.docs == 'true' && github.event_name == 'pull_request_target'
         uses: anthropics/claude-code-action@ba026a3e56b9f646ae3b1be02dd9c0812aa2f8ae # v1.0.86
         with:
           display_report: "true"
