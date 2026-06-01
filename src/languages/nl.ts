@@ -2117,6 +2117,7 @@ const translations: TranslationDeepObject<typeof en> = {
             yourAccountManager: 'Je accountmanager',
             accountManagerDescription: 'Stel vragen en krijg ondersteuning voor klanten',
             partnerManager: 'Partner Manager',
+            yourPartnerManager: 'Twój opiekun partnerski',
             partnerManagerDescription: 'Haal het maximale uit je partnership en stimuleer verwijzingen',
             guideDescription: 'Je instellingsspecialist',
             approvedPartnerTeamTitle: 'Maak kennis met je Approved!-partnerteam',

@@ -2007,6 +2007,7 @@ const translations: TranslationDeepObject<typeof en> = {
             yourAccountManager: 'Tu gestor de cuenta',
             accountManagerDescription: 'Haz preguntas y obtén ayuda al cliente',
             partnerManager: 'Gestor de socios',
+            yourPartnerManager: 'Tu gestor de partners',
             partnerManagerDescription: 'Maximiza tu colaboración y genera referencias',
             guideDescription: 'Tu especialista asignado',
             approvedPartnerTeamTitle: 'Conoce a tu equipo de partners de Approved!',

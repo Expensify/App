@@ -75,7 +75,7 @@ function HelpPage() {
         ? {
               key: partnerManagerDetails.login,
               title: partnerManagerDetails.displayName,
-              description: translate('initialSettingsPage.helpPage.partnerManagerDescription'),
+              description: isApprovedAccountant ? translate('initialSettingsPage.helpPage.partnerManagerDescription') : undefined,
               icon: partnerManagerDetails.avatar,
               iconType: CONST.ICON_TYPE_AVATAR,
               onPress: () => navigateToAndOpenReportWithAccountIDs([partnerManagerDetails.accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas, personalDetails),
@@ -195,6 +195,15 @@ function HelpPage() {
                                             shouldUseSingleExecution
                                         />
                                     </View>
+                                    {!!partnerManagerItem && isPaidPolicyAdmin && (
+                                        <View>
+                                            <Text style={[styles.textLabelSupportingNormal]}>{translate('initialSettingsPage.helpPage.yourPartnerManager')}</Text>
+                                            <MenuItemList
+                                                menuItems={[partnerManagerItem]}
+                                                shouldUseSingleExecution
+                                            />
+                                        </View>
+                                    )}
                                     {!!guideItem && isPaidPolicyAdmin && (
                                         <View>
                                             <Text style={[styles.textLabelSupportingNormal]}>{translate('initialSettingsPage.helpPage.guideDescription')}</Text>

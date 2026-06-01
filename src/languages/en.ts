@@ -2190,6 +2190,7 @@ const translations = {
             yourAccountManager: 'Your account manager',
             accountManagerDescription: 'Ask questions and get client support',
             partnerManager: 'Partner Manager',
+            yourPartnerManager: 'Your partner manager',
             partnerManagerDescription: 'Maximize your partnership and drive referrals',
             accountExecutive: 'Account Executive',
             accountExecutiveDescription: 'Get clients setup successfully',

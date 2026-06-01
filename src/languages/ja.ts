@@ -2101,6 +2101,7 @@ const translations: TranslationDeepObject<typeof en> = {
             yourAccountManager: 'お客様のアカウントマネージャー',
             accountManagerDescription: '質問してサポートを受ける',
             partnerManager: 'パートナーマネージャー',
+            yourPartnerManager: 'パートナーマネージャー',
             partnerManagerDescription: 'パートナーシップを最大限に活かし、紹介を促進しましょう',
             guideDescription: '設定スペシャリスト',
             approvedPartnerTeamTitle: '承認済みパートナーチームをご紹介します',

@@ -2061,6 +2061,7 @@ const translations: TranslationDeepObject<typeof en> = {
             yourAccountManager: '您的客户经理',
             accountManagerDescription: '提问并获得客户支持',
             partnerManager: '合作伙伴经理',
+            yourPartnerManager: '您的合作伙伴经理',
             partnerManagerDescription: '充分发挥合作伙伴关系，提升推荐量',
             guideDescription: '您的设置专员',
             approvedPartnerTeamTitle: '认识你的 Approved! 合作团队',
