@@ -191,7 +191,6 @@ export default {
     signInHeroImageMobileWidth: 303,
     signInHeroImageTabletHeight: 324.01,
     signInHeroImageTabletWidth: 346,
-    signInLocalePickerWidth: 150,
     signInHeroImageDesktopHeight: 362.4,
     signInHeroImageDesktopWidth: 386.99,
     signInHeroBackgroundWidth: 2000,

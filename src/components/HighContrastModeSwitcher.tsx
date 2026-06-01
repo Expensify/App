@@ -1,5 +1,4 @@
 import React from 'react';
-import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -37,7 +36,6 @@ function HighContrastModeSwitcher() {
             role={CONST.ROLE.BUTTON}
             accessibilityLabel={translate('themePage.enableHighContrast')}
             accessibilityState={{checked: isHighContrast}}
-            wrapperStyle={styles.flex1}
             style={[styles.flexRow, styles.alignItemsCenter]}
         >
             <Icon
@@ -47,9 +45,7 @@ function HighContrastModeSwitcher() {
                 height={variables.iconSizeSmall}
                 accessibilityLabel={translate('themePage.enableHighContrast')}
             />
-            <View style={[styles.ml2, styles.flex1, styles.pickerContainer, styles.pickerContainerSmall]}>
-                <Text style={styles.textSmall}>{translate('themePage.enableHighContrast')}</Text>
-            </View>
+            <Text style={[styles.textSmall, styles.ml2]}>{translate('themePage.enableHighContrast')}</Text>
         </PressableWithFeedback>
     );
 }

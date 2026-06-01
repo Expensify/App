@@ -6,7 +6,6 @@ import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
 
 const currentYear = new Date().getFullYear();
 
@@ -19,13 +18,11 @@ function Licenses() {
             <View style={[styles.renderHTML, styles.flexRow]}>
                 <RenderHTML html={`<muted-text-xs>${translate('termsOfUse.license')}</muted-text-xs>`} />
             </View>
-            <View style={[styles.mt4, styles.mb2, {maxWidth: variables.signInLocalePickerWidth}]}>
-                <View style={[styles.alignItemsCenter, styles.mb2, styles.flexRow]}>
-                    <HighContrastModeSwitcher />
-                </View>
-                <View style={[styles.alignItemsCenter, styles.flexRow]}>
-                    <LocalePicker size="small" />
-                </View>
+            <View style={[styles.mt4, styles.alignItemsCenter, styles.mb2, styles.flexRow, styles.justifyContentBetween]}>
+                <HighContrastModeSwitcher />
+            </View>
+            <View style={[styles.alignItemsCenter, styles.mb2, styles.flexRow, styles.justifyContentBetween]}>
+                <LocalePicker size="small" />
             </View>
         </>
     );
