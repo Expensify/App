@@ -280,6 +280,7 @@ describe('actions/Transaction', () => {
                 policy: mockPolicy,
                 allTransactions,
                 policyTagList,
+                transactionViolations: {},
             });
 
             let updatedTransaction: OnyxEntry<Transaction>;
