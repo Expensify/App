@@ -96,6 +96,10 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     // Dedupe and sort the union of Onyx personal details and imported contacts so pagination uses an alphabetical prefix.
     const sortedPersonalDetailOptionsWithContacts = mergeAndSortPersonalDetailsWithContacts(allPersonalDetailOptions, contacts);
 
+    // resetKey is typed string and resets pagination to page 1 when it changes. We want that only
+    // on the search-mode flip (not per keystroke), so it mirrors isSearching rather than the term.
+    const browsePaginationResetKey = String(isSearching);
+
     // Limits raw personal details entering getValidOptions to reduce processing cost on initial load.
     // Bypassed during search to avoid repeatedly calling loadMore and prevent FlashList onEndReached infinite loop.
     const {
@@ -103,7 +107,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         loadMore: loadMorePersonalDetails,
         hasMore: hasMorePersonalDetails,
     } = usePaginatedData(sortedPersonalDetailOptionsWithContacts, PAGINATION_SIZE, {
-        resetKey: isSearching ? 'searching' : 'notSearching',
+        resetKey: browsePaginationResetKey,
         skipPagination: isSearching,
     });
 
