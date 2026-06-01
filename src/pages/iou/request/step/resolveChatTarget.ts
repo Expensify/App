@@ -84,4 +84,3 @@ function resolveChatTargetForSubmitCleanup({participant, currentUserAccountID, r
 }
 
 export {resolveChatTargetForScan, resolveChatTargetForSubmitCleanup};
-export type {ChatTarget};

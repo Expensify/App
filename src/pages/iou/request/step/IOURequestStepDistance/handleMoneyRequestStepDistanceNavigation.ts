@@ -446,4 +446,3 @@ function handleMoneyRequestStepDistanceNavigation({
 }
 
 export default handleMoneyRequestStepDistanceNavigation;
-export type {MoneyRequestStepDistanceNavigationParams};
