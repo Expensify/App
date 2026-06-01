@@ -21,8 +21,8 @@ Search is much more powerful and customizable in New Expensify. Instead of worki
 
 You can:
 
- - **Customize what you see.** Choose which columns appear in your search results. [Learn how to customize the Spend column view](/articles/new-expensify/reports-and-expenses/Using-Reports-in-New-Expensify#how-to-customize-the-spend-column-view).
- - **Build your own filters.** Filter by submitter, approver, category, tag, merchant, dates, status, card, accounting status, and many more. [Learn how to use advanced search operators to filter and analyze](/articles/new-expensify/reports-and-expenses/Use-Search-Operators-to-Filter-and-Analyze).
+- **Customize what you see.** Choose which columns appear in your search results. [Learn how to customize the Spend column view](/articles/new-expensify/reports-and-expenses/Using-Reports-in-New-Expensify#how-to-customize-the-spend-column-view).
+- **Build your own filters.** Filter by submitter, approver, category, tag, merchant, dates, status, card, accounting status, and many more. [Learn how to use advanced search operators to filter and analyze](/articles/new-expensify/reports-and-expenses/Use-Search-Operators-to-Filter-and-Analyze).
 - **Save searches you run often.** Turn any filtered view into a saved search and reopen it with one click. [Learn how to save a search](/articles/new-expensify/reports-and-expenses/Using-Reports-in-New-Expensify#how-to-save-a-search).
 - **Filter by exports.** Use the **Exported to** filter to find expenses exported during a specific date range or sent to a particular destination, such as an accounting integration or export template. [Learn more about accounting search shortcuts](/articles/new-expensify/reports-and-expenses/Accounting-Search-Shortcuts).
 
@@ -89,11 +89,11 @@ Everything you can do on the web you can do on mobile.
 
 This includes:
 
- - Searching expenses and reports
- - Filtering spend data
- - Viewing other members' expenses and reports
- - Issuing company cards
- - Updating Workspace settings
+- Searching expenses and reports
+- Filtering spend data
+- Viewing other members' expenses and reports
+- Issuing company cards
+- Updating Workspace settings
 
 ### View unassigned company cards
 
