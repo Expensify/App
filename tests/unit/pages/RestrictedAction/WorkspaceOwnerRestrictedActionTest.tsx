@@ -9,7 +9,7 @@ import ROUTES from '@src/ROUTES';
 const {default: WorkspaceOwnerRestrictedActionWeb} = jest.requireActual<{default: React.ComponentType}>('@src/pages/RestrictedAction/Workspace/WorkspaceOwnerRestrictedAction/index.tsx');
 
 jest.mock('@libs/Navigation/Navigation', () => ({
-    closeRHPFlow: jest.fn(),
+    dismissModal: jest.fn(),
     navigate: jest.fn(),
     getActiveRoute: jest.fn(() => 'r/123'),
     goBack: jest.fn(),
@@ -95,27 +95,51 @@ jest.mock('@components/Button', () => {
     return MockButton;
 });
 
+type DismissModalOptions = {
+    afterTransition: () => void;
+};
+
+function getDismissModalOptions(): DismissModalOptions | undefined {
+    return jest.mocked(Navigation.dismissModal).mock.calls.at(0)?.at(0) as DismissModalOptions | undefined;
+}
+
 describe('WorkspaceOwnerRestrictedAction', () => {
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
-    it('closes RHP flow and navigates to add payment card on web', () => {
+    it('dismisses modal before navigating to add payment card on web', () => {
         render(<WorkspaceOwnerRestrictedActionWeb />);
 
         fireEvent.press(screen.getByText('workspace.restrictedAction.addPaymentCard'));
 
-        expect(Navigation.closeRHPFlow).toHaveBeenCalledTimes(1);
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD, {waitForTransition: true});
+        expect(Navigation.dismissModal).toHaveBeenCalledTimes(1);
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+
+        const options = getDismissModalOptions();
+        expect(typeof options?.afterTransition).toBe('function');
+
+        options?.afterTransition();
+
+        expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
     });
 
-    it('closes RHP flow and navigates to subscription route on native', () => {
+    it('dismisses modal before navigating to subscription route on native', () => {
         render(<WorkspaceOwnerRestrictedActionNative />);
 
         fireEvent.press(screen.getByText('workspace.restrictedAction.goToSubscription'));
 
-        expect(Navigation.closeRHPFlow).toHaveBeenCalledTimes(1);
+        expect(Navigation.dismissModal).toHaveBeenCalledTimes(1);
         expect(Navigation.getActiveRoute).toHaveBeenCalledTimes(1);
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_SUBSCRIPTION.getRoute('r/123'), {waitForTransition: true});
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+
+        const options = getDismissModalOptions();
+        expect(typeof options?.afterTransition).toBe('function');
+
+        options?.afterTransition();
+
+        expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_SUBSCRIPTION.getRoute('r/123'));
     });
 });
