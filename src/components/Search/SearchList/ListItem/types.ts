@@ -193,6 +193,12 @@ type TransactionGroupListItemType = ListItem & {
 
     /** Whether the report was rejected (REJECTED or REJECTEDTOSUBMITTER) */
     isRejectedReport?: boolean;
+
+    /** Total value of transactions in the group */
+    total?: number;
+
+    /** Currency of the group total */
+    currency?: string;
 };
 
 type ExpenseReportListItemType = TransactionReportGroupListItemType;

@@ -352,18 +352,18 @@ function updateMultipleMoneyRequests({
                     : optimisticViolations;
             const transactionPolicyTagList = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${transactionPolicy?.id}`] ?? {};
             const transactionPolicyCategories = policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${transactionPolicy?.id}`] ?? {};
-            optimisticViolationsData = ViolationsUtils.getViolationsOnyxData(
+            optimisticViolationsData = ViolationsUtils.getViolationsOnyxData({
                 updatedTransaction,
-                optimisticViolations,
-                transactionPolicy,
-                transactionPolicyTagList,
-                transactionPolicyCategories,
-                hasDependentTags(transactionPolicy, transactionPolicyTagList),
-                isInvoiceReportReportUtils(iouReport),
-                isSelfDM(iouReport),
+                transactionViolations: optimisticViolations,
+                policy: transactionPolicy,
+                policyTagList: transactionPolicyTagList,
+                policyCategories: transactionPolicyCategories,
+                hasDependentTags: hasDependentTags(transactionPolicy, transactionPolicyTagList),
+                isInvoiceTransaction: isInvoiceReportReportUtils(iouReport),
+                isSelfDM: isSelfDM(iouReport),
                 iouReport,
                 isFromExpenseReport,
-            );
+            });
             optimisticData.push(optimisticViolationsData);
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
