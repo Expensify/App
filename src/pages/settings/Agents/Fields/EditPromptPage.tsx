@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React from 'react';
 import {Platform, View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
@@ -16,7 +17,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditAgentPromptForm';
 
@@ -38,7 +38,7 @@ function EditPromptPage({route}: EditPromptPageProps) {
 
     const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM>) => {
         updateAgentPrompt(accountID, values[INPUT_IDS.PROMPT].trim(), agentPrompt?.prompt ?? '');
-        Navigation.goBack(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(accountID));
+        Navigation.goBack();
     };
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, (e) => {
@@ -68,7 +68,7 @@ function EditPromptPage({route}: EditPromptPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('editAgentPromptPage.title')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(accountID))}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM}
@@ -91,7 +91,7 @@ function EditPromptPage({route}: EditPromptPageProps) {
                         label={translate('editAgentPage.instructions')}
                         accessibilityLabel={translate('editAgentPage.instructions')}
                         role={CONST.ROLE.PRESENTATION}
-                        defaultValue={agentPrompt?.prompt ?? ''}
+                        defaultValue={Str.htmlDecode(agentPrompt?.prompt ?? '')}
                         multiline
                         containerStyles={[styles.flex1]}
                         touchableInputWrapperStyle={[styles.flex1]}
