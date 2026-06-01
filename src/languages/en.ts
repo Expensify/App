@@ -3635,6 +3635,7 @@ const translations = {
             companyName: 'Please enter a valid business name',
             addressCity: 'Please enter a valid city',
             addressStreet: 'Please enter a valid street address',
+            physicalAddressRequired: 'A physical address is required. PO boxes and mail drops are not accepted.',
             addressState: 'Please select a valid state',
             incorporationDateFuture: "Incorporation date can't be in the future",
             incorporationState: 'Please select a valid state',
