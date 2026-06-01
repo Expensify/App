@@ -276,7 +276,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     };
 
     const onPress = (event?: ModifiedMouseEvent) => {
-        if (isExpenseReportType || transactions.length === 0) {
+        if (isExpenseReportType) {
             onSelectRow(item, transactionPreviewData, event);
         }
         if (!isExpenseReportType) {
