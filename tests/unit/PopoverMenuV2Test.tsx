@@ -394,6 +394,67 @@ describe('PopoverMenu V2', () => {
             );
             expect(onOpenChange).not.toHaveBeenCalledWith(false);
         });
+
+        it('closes when Escape is pressed while open', () => {
+            const onOpenChange = jest.fn();
+            render(
+                <Harness
+                    initialOpen
+                    onOpenChange={onOpenChange}
+                >
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Item
+                            text="A"
+                            onSelect={() => {}}
+                        />
+                    </PopoverMenu.Content>
+                </Harness>,
+            );
+            onOpenChange.mockClear();
+            pressShortcut('Escape');
+            expect(onOpenChange).toHaveBeenCalledWith(false);
+        });
+
+        it('closes the whole popover on Escape even when a sub is the active level', () => {
+            const onOpenChange = jest.fn();
+            render(
+                <Harness
+                    initialOpen
+                    onOpenChange={onOpenChange}
+                >
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Sub id="sub">
+                            <PopoverMenu.Sub.Trigger text="More" />
+                            <PopoverMenu.Sub.Content>
+                                <PopoverMenu.Sub.BackButton text="Back" />
+                                <PopoverMenu.Item
+                                    text="Inner"
+                                    onSelect={() => {}}
+                                />
+                            </PopoverMenu.Sub.Content>
+                        </PopoverMenu.Sub>
+                    </PopoverMenu.Content>
+                </Harness>,
+            );
+            press('More');
+            onOpenChange.mockClear();
+            pressShortcut('Escape');
+            expect(onOpenChange).toHaveBeenCalledWith(false);
+        });
+
+        it('Escape shortcut is inactive while the popover is closed', () => {
+            render(
+                <Harness>
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Item
+                            text="A"
+                            onSelect={() => {}}
+                        />
+                    </PopoverMenu.Content>
+                </Harness>,
+            );
+            expect(registeredShortcuts.Escape?.isActive).toBe(false);
+        });
     });
 
     describe('Trigger', () => {

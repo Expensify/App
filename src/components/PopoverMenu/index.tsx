@@ -27,6 +27,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
+import suppressNextEscapeKeyUp from '@libs/suppressNextEscapeKeyUp';
 import variables from '@styles/variables';
 import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
@@ -539,6 +540,15 @@ function BasePopoverMenu({
     // On web, pressing the space bar after interacting with the parent view
     // can cause the parent view to scroll when the space bar is pressed.
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SPACE, keyboardShortcutSpaceCallback, {isActive: isWeb && isVisible, shouldPreventDefault: false});
+
+    useKeyboardShortcut(
+        CONST.KEYBOARD_SHORTCUTS.ESCAPE,
+        () => {
+            suppressNextEscapeKeyUp();
+            onClose();
+        },
+        {isActive: isVisible, shouldBubble: false},
+    );
 
     const handleModalHide = () => {
         onModalHide?.();
