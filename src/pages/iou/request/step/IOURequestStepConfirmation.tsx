@@ -757,10 +757,10 @@ function IOURequestStepConfirmation({
                 isCreatingTrackExpense={isCreatingTrackExpense}
             />
             {/*
-             * In this rollout, NEW_MANUAL_EXPENSE_FLOW means this screen is embedded on IOURequestStartPage.
-             * Skip MoneyRequestInitializer here to avoid duplicate initialization and navigation side effects.
+             * When this screen is embedded on IOURequestStartPage (shouldHideHeader=true),
+             * skip MoneyRequestInitializer to avoid duplicate initialization and navigation side effects.
              */}
-            {!isNewManualExpenseFlowEnabled && (
+            {!shouldHideHeader && (
                 <MoneyRequestInitializer
                     isLoadingTransaction={!!isLoadingTransaction}
                     transaction={transaction}
