@@ -1530,7 +1530,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             expect(transactionAfter?.modifiedMerchant).toBe(newMerchant);
         });
 
-        it('should call UpdateTrackExpense path on a self-DM track expense and not push next-step writes for the IOU report', async () => {
+        it('should set modifiedMerchant for a self-DM track expense', async () => {
             // Given a track-expense transaction inside a Self-DM (track-expense flow)
             const transactionID = 'txnMerchantTrack1';
             const transactionThreadReportID = 'threadMerchantTrack1';
