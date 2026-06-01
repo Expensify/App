@@ -9318,6 +9318,10 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         readyBody: "If it didn't automatically download, use the button below.",
         downloadFile: 'Download file',
         failedTitle: 'Export failed',
+        csvFailedBody: 'Your export could not be completed. Please try again later.',
+        pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
+        readyPartialBody: ({count, total, concierge}: {count: number; total: number; concierge: string}) =>
+            `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in ${concierge}.`,
         close: 'Close',
     },
     domain: {

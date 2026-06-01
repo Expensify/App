@@ -16,6 +16,7 @@ import ActivityIndicator from './ActivityIndicator';
 import Button from './Button';
 import Modal from './Modal';
 import Text from './Text';
+import TextLink from './TextLink';
 
 type ExportDownloadStatusModalProps = {
     /** The export ID to subscribe to */
@@ -50,10 +51,13 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     const state = displayedExport?.state;
     const shouldSendFromConcierge = displayedExport?.shouldSendFromConcierge;
     const downloadURL = displayedExport?.downloadURL;
+    const failedReportCount = displayedExport?.failedReportCount ?? 0;
+    const reportCount = displayedExport?.reportCount ?? 0;
     const isPreparing = state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING && !shouldSendFromConcierge;
     const isConcierge = !!shouldSendFromConcierge;
     const isReady = state === CONST.EXPORT_DOWNLOAD.STATE.READY;
     const isFailed = state === CONST.EXPORT_DOWNLOAD.STATE.FAILED;
+    const isPartialFailure = isReady && failedReportCount > 0;
 
     useEffect(() => {
         if (!isReady || !downloadURL || shouldSendFromConcierge) {
@@ -130,7 +134,18 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
             return (
                 <>
                     <Text style={[styles.textHeadlineH1, styles.textAlignCenter, styles.mb2]}>{translate('exportDownload.readyTitle')}</Text>
-                    <Text style={[styles.textAlignCenter, styles.mb5]}>{translate('exportDownload.readyBody')}</Text>
+                    {isPartialFailure ? (
+                        <Text style={[styles.textAlignCenter, styles.mb5]}>
+                            {translate('exportDownload.readyPartialBody', {
+                                count: reportCount,
+                                total: reportCount + failedReportCount,
+                                concierge: '',
+                            })}
+                            <TextLink onPress={handleGoToConcierge}>Concierge</TextLink>.
+                        </Text>
+                    ) : (
+                        <Text style={[styles.textAlignCenter, styles.mb5]}>{translate('exportDownload.readyBody')}</Text>
+                    )}
                     <Button
                         success
                         text={translate('exportDownload.downloadFile')}

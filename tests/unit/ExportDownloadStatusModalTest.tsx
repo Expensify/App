@@ -163,6 +163,36 @@ describe('ExportDownloadStatusModal', () => {
         expect(mockNavigateToConcierge).toHaveBeenCalled();
     });
 
+    it('shows partial failure body when failedReportCount > 0 in ready state', async () => {
+        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {
+            state: 'ready',
+            downloadURL: DOWNLOAD_URL,
+            reportCount: 3,
+            failedReportCount: 2,
+        });
+
+        renderModal();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText('exportDownload.readyTitle')).toBeTruthy();
+        expect(screen.queryByText('exportDownload.readyBody')).toBeNull();
+    });
+
+    it('shows standard ready body when failedReportCount is 0', async () => {
+        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {
+            state: 'ready',
+            downloadURL: DOWNLOAD_URL,
+            reportCount: 5,
+            failedReportCount: 0,
+        });
+
+        renderModal();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText('exportDownload.readyTitle')).toBeTruthy();
+        expect(screen.getByText('exportDownload.readyBody')).toBeTruthy();
+    });
+
     it('Close button calls clearExportDownload', async () => {
         const onClose = jest.fn();
         await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', downloadURL: DOWNLOAD_URL});

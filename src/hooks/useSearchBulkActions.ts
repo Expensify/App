@@ -11,6 +11,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {BulkPaySelectionData, PaymentData, SearchColumnType, SearchQueryJSON} from '@components/Search/types';
+import {exportReportsToPDF} from '@libs/actions/Export';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {deleteAppReport, exportReportToPDF, markAsManuallyExported, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
@@ -308,6 +309,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     > | null>(null);
 
     const [emptyReportsCount, setEmptyReportsCount] = useState<number>(0);
+    const [activeExportID, setActiveExportID] = useState<string | undefined>(undefined);
+    const [activeExportDownload] = useOnyx(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${activeExportID}`);
 
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
@@ -1468,8 +1471,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         options.push(exportButtonOption);
 
-        if (isExpenseReportSearch && selectedReportIDs.length === 1) {
-            const reportIDForPDF = selectedReportIDs.at(0);
+        if (isExpenseReportSearch && selectedReportIDs.length > 0) {
             options.push({
                 icon: expensifyIcons.Download,
                 text: translate('common.downloadAsPDF'),
@@ -1480,14 +1482,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         setIsOfflineModalVisible(true);
                         return;
                     }
-                    if (!reportIDForPDF) {
+                    if (selectedReportIDs.length === 1) {
+                        const reportIDForPDF = selectedReportIDs.at(0);
+                        if (!reportIDForPDF) {
+                            return;
+                        }
+                        await exportReportToPDF({reportID: reportIDForPDF});
+                        setPdfReportID(reportIDForPDF);
+                        setIsPdfModalVisible(true);
                         return;
                     }
-                    // Using await prevent the double-download on the second PDF export
-                    // by clearing Onyx filename before modal is visible
-                    await exportReportToPDF({reportID: reportIDForPDF});
-                    setPdfReportID(reportIDForPDF);
-                    setIsPdfModalVisible(true);
+                    const exportID = exportReportsToPDF(selectedReportIDs);
+                    setActiveExportID(exportID);
                 },
             });
         }
@@ -1788,6 +1794,15 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         clearSelectedTransactions();
     }, [clearSelectedTransactions]);
 
+    const handleExportModalClose = useCallback(() => {
+        if (activeExportDownload?.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING && !activeExportDownload?.shouldSendFromConcierge) {
+            return;
+        }
+        setActiveExportID(undefined);
+        selectAllMatchingItems(false);
+        clearSelectedTransactions();
+    }, [activeExportDownload?.state, activeExportDownload?.shouldSendFromConcierge, selectAllMatchingItems, clearSelectedTransactions]);
+
     const dismissModalAndUpdateUseHold = useCallback(() => {
         setIsHoldEducationalModalVisible(false);
         setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !isOffline);
@@ -1827,6 +1842,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         setIsPdfModalVisible,
         pdfReportID,
         handlePdfModalHide,
+        activeExportID,
+        handleExportModalClose,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
