@@ -8,7 +8,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resetSplitShares, setIndividualShare} from '@libs/actions/IOU/Split';
-import {convertToBackendAmount, convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import {calculateAmount} from '@libs/IOUUtils';
 import {getIOUConfirmationOptionsFromPayeePersonalDetail} from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
@@ -37,6 +37,9 @@ type UseSplitParticipantsParams = {
 
     /** Currency the IOU is being created in */
     iouCurrencyCode: string | undefined;
+
+    /** Account ID of the current user, used as the payer when recalculating split shares */
+    currentUserAccountID: number;
 };
 
 /**
@@ -51,10 +54,19 @@ type UseSplitParticipantsParams = {
  * Also exposes a `getSplitSectionHeader` callback that renders the section title and a
  * Reset link (visible only when shares have been manually modified).
  */
-function useSplitParticipants({isTypeSplit, shouldShowReadOnlySplits, payeePersonalDetails, selectedParticipants, transaction, iouAmount, iouCurrencyCode}: UseSplitParticipantsParams) {
+function useSplitParticipants({
+    isTypeSplit,
+    shouldShowReadOnlySplits,
+    payeePersonalDetails,
+    selectedParticipants,
+    transaction,
+    iouAmount,
+    iouCurrencyCode,
+    currentUserAccountID,
+}: UseSplitParticipantsParams) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {convertToDisplayString, getCurrencySymbol} = useCurrencyListActions();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencySymbol} = useCurrencyListActions();
 
     const transactionID = transaction?.transactionID;
     const onSplitShareChange = (accountID: number, value: number) => {
@@ -143,7 +155,7 @@ function useSplitParticipants({isTypeSplit, shouldShowReadOnlySplits, payeePerso
                         // Dismiss the keyboard so that MoneyRequestAmountInput's useEffect syncs the new amount.
                         // Without this, the effect skips the update while the input is focused (see formatAmountOnBlur guard).
                         Keyboard.dismiss();
-                        resetSplitShares(transaction);
+                        resetSplitShares(transaction, undefined, undefined, currentUserAccountID);
                     }}
                     accessibilityLabel={CONST.ROLE.BUTTON}
                     role={CONST.ROLE.BUTTON}

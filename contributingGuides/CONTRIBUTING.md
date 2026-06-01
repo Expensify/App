@@ -9,7 +9,9 @@ You can create as many accounts as needed in order to test your changes directly
 
 **Notes**: 
 
-1. When creating test accounts, include a `+` (plus sign) in the email address (e.g., matt+1@gmail.com). This marks the account and their associated workspaces as test accounts in Expensify, ensuring Expensify Guides are not assigned to help with account setup.
+1. When creating test accounts:
+  - Include a `+` (plus sign) in the email address (e.g., matt+1@gmail.com). This marks the account and their associated workspaces as test accounts in Expensify, ensuring Expensify Guides are not assigned to help with account setup.
+  - When testing on live servers with a private domain, stick to a single, consistent test domain. Please avoid generating random or "fake" domains (e.g., asdfkef23@asfdasfwaf.com).
 2. When testing chat functionality in the app please do this between accounts you or your fellow contributors own - **do not test chatting with Concierge**, as this diverts to our customer support team. Thank you.
 3. A member of our customer onboarding team gets auto-assigned to every new policy created by a non-paying account to help them set up. Please **do not interact with these teams, ask for calls, or support on your issues.** If you do need to test functionality inside the defaultRooms (#admins & #announce) for any issues you’re working on, please let them know that you are a contributor and don’t need assistance. They will proceed to ignore the chat.
 4. Please **do not post in any Expensify owned public room for testing** (e.g #exfy-roadmap, #new-expensify-feedback). These rooms include real customers and investors. You can create your own public rooms, or [use this test public room](https://staging.new.expensify.com/r/2091104345528462) on either staging or production. Thanks!

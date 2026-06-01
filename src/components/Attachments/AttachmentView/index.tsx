@@ -20,6 +20,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -144,6 +145,7 @@ function AttachmentView({
     const encryptedAuthToken = session?.encryptedAuthToken ?? '';
     const {translate} = useLocalize();
     const {updateCurrentURLAndReportID} = usePlaybackActionsContext();
+    const report = useReportOrReportDraft(reportID);
 
     const actions = useAttachmentCarouselPagerActions();
     const {onAttachmentError, onTap} = actions ?? {};
@@ -163,8 +165,8 @@ function AttachmentView({
             return;
         }
         const videoSource = isVideo && typeof source === 'string' ? source : undefined;
-        updateCurrentURLAndReportID(videoSource, reportID);
-    }, [file, isFocused, isInFocusedModal, isUsedInAttachmentModal, isVideo, reportID, source, updateCurrentURLAndReportID]);
+        updateCurrentURLAndReportID(videoSource, report, reportID);
+    }, [file, isFocused, isInFocusedModal, isUsedInAttachmentModal, isVideo, reportID, source, updateCurrentURLAndReportID, report]);
 
     const [imageError, setImageError] = useState(false);
 

@@ -46,11 +46,17 @@ You can send messages, attach files, and add emojis from the message bar at the 
 
 # Edit or Delete Messages
 
-**To edit or delete a message:**
-
+**Desktop:**
 1. Open a chat.
 2. Right-click a message.
 3. Select **Edit comment** or **Delete comment**.
+4. If editing, modify the message inline and press **Enter** to save.
+
+**Mobile:**
+1. Open a chat.
+2. Long-press a message.
+3. Select **Edit comment** or **Delete comment**.
+4. If editing, the message text appears in the composer at the bottom of the screen. Edit the text and tap the **Send** icon to save.
 
 ✏️ **Note:** You can only edit or delete your own messages. Deleted messages are permanently removed.
 
@@ -132,7 +138,7 @@ No, members must remove themselves.
 Yes, an “edited” label will appear.
 
 ## Why can’t I message in some rooms?
-Rooms may have restricted posting permissions for Admins only.
+Rooms may have restricted posting permissions for Admins only. In other cases, the conversation may be read-only, and you’ll see a "This conversation is read-only" banner at the bottom of the chat.
 
 ## What happens when I flag a message?
 The moderation team reviews it, may hide or delete the message, and can restrict the sender’s account.

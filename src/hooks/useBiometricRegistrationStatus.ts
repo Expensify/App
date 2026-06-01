@@ -75,5 +75,4 @@ function useBiometricRegistrationStatus(): BiometricRegistrationStatus {
 }
 
 export {REGISTRATION_STATUS};
-export type {RegistrationStatus};
 export default useBiometricRegistrationStatus;

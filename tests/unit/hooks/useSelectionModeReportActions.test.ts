@@ -138,13 +138,17 @@ jest.mock('@components/KYCWall/KYCWallContext', () => ({
 
 jest.mock('@components/Search/SearchContext', () => ({
     __esModule: true,
-    useSearchStateContext: jest.fn(() => ({
+    useSearchQueryContext: jest.fn(() => ({
         currentSearchQueryJSON: null,
         currentSearchKey: '',
+    })),
+    useSearchResultsContext: jest.fn(() => ({
         currentSearchResults: null,
+    })),
+    useSearchSelectionContext: jest.fn(() => ({
         selectedTransactionIDs: [],
     })),
-    useSearchActionsContext: jest.fn(() => ({
+    useSearchSelectionActions: jest.fn(() => ({
         clearSelectedTransactions: mockClearSelectedTransactions,
         setSelectedTransactions: jest.fn(),
     })),
@@ -168,7 +172,7 @@ jest.mock('@libs/ReportUtils', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actual,
-        hasHeldExpenses: jest.fn(() => false),
+        hasHeldExpensesFromTransactions: jest.fn(() => false),
         hasOnlyHeldExpenses: jest.fn(() => false),
         hasUpdatedTotal: jest.fn(() => true),
         hasViolations: jest.fn(() => false),
@@ -232,6 +236,8 @@ jest.mock('@libs/PaymentUtils', () => ({
 jest.mock('@libs/TransactionUtils', () => ({
     __esModule: true,
     hasAnyPendingRTERViolation: jest.fn(() => false),
+    hasOnlyPendingCardTransactions: jest.fn(() => false),
+    showPendingCardTransactionsBlockModal: jest.fn(),
     isExpensifyCardTransaction: jest.fn(() => false),
     isPending: jest.fn(() => false),
     getReimbursable: jest.fn(() => true),
@@ -254,7 +260,7 @@ const PayMoneyRequestActions = require('@libs/actions/IOU/PayMoneyRequest') as R
 const usePaymentOptionsMock = require('@hooks/usePaymentOptions') as {default: jest.Mock};
 
 function resetMocksToDefaults() {
-    ReportUtils.hasHeldExpenses.mockReturnValue(false);
+    ReportUtils.hasHeldExpensesFromTransactions.mockReturnValue(false);
     ReportUtils.hasOnlyHeldExpenses.mockReturnValue(false);
     ReportUtils.isReportOwner.mockReturnValue(false);
     ReportUtils.getNextApproverAccountID.mockReturnValue(0);
@@ -655,7 +661,7 @@ describe('useSelectionModeReportActions', () => {
         });
 
         it('opens hold menu when there are held expenses during payment', () => {
-            ReportUtils.hasHeldExpenses.mockReturnValue(true);
+            ReportUtils.hasHeldExpensesFromTransactions.mockReturnValue(true);
 
             const {result} = renderSelectionModeHook();
             act(() => {
@@ -694,7 +700,7 @@ describe('useSelectionModeReportActions', () => {
 
     describe('confirmApproval branches', () => {
         it('opens hold menu when there are held expenses during approval', () => {
-            ReportUtils.hasHeldExpenses.mockReturnValue(true);
+            ReportUtils.hasHeldExpensesFromTransactions.mockReturnValue(true);
 
             const {result} = renderSelectionModeHook();
             act(() => {
@@ -718,7 +724,7 @@ describe('useSelectionModeReportActions', () => {
 
     describe('handleHoldMenuClose', () => {
         it('resets hold menu state', () => {
-            ReportUtils.hasHeldExpenses.mockReturnValue(true);
+            ReportUtils.hasHeldExpensesFromTransactions.mockReturnValue(true);
 
             const {result} = renderSelectionModeHook();
 

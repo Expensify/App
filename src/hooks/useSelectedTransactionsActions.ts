@@ -3,7 +3,7 @@ import {DeviceEventEmitter} from 'react-native';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import {initBulkEditDraftTransaction} from '@libs/actions/IOU/BulkEdit';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
@@ -28,7 +28,7 @@ import {
     isTrackExpenseReport,
 } from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {getOriginalTransactionWithSplitInfo, hasTransactionBeenRejected} from '@libs/TransactionUtils';
+import {getChildTransactions, getOriginalTransactionWithSplitInfo, hasTransactionBeenRejected} from '@libs/TransactionUtils';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,6 +42,7 @@ import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from './useDefaultExpensePolicy';
 import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
+import useEnvironment from './useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
@@ -78,8 +79,9 @@ function useSelectedTransactionsActions({
     const {isOffline} = useNetworkWithOfflineStatus();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const {selectedTransactionIDs, currentSearchHash, selectedTransactions: selectedTransactionsMeta} = useSearchStateContext();
-    const {clearSelectedTransactions} = useSearchActionsContext();
+    const {selectedTransactionIDs, selectedTransactions: selectedTransactionsMeta} = useSearchSelectionContext();
+    const {currentSearchHash} = useSearchQueryContext();
+    const {clearSelectedTransactions} = useSearchSelectionActions();
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
@@ -97,6 +99,7 @@ function useSelectedTransactionsActions({
         'Trashcan',
         'ArrowRight',
         'Table',
+        'TablePencil',
         'DocumentMerge',
         'Export',
         'ArrowCollapse',
@@ -109,9 +112,10 @@ function useSelectedTransactionsActions({
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const {isBetaEnabled} = usePermissions();
-    const {deleteTransactions} = useDeleteTransactions({report, reportActions, policy});
+    const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({report, reportActions, policy});
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const defaultExpensePolicy = useDefaultExpensePolicy();
+    const {isProduction} = useEnvironment();
 
     const selectedTransactionsList = selectedTransactionIDs.reduce((acc, transactionID) => {
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -213,13 +217,24 @@ function useSelectedTransactionsActions({
     }
 
     const handleDeleteTransactions = () => {
-        const deletedThreadReportIDs = deleteTransactions(selectedTransactionIDs, duplicateTransactions, duplicateTransactionViolations, isOnSearch ? currentSearchHash : undefined, false);
-        clearSelectedTransactions(true);
+        const deleteResult = deleteTransactions(selectedTransactionIDs, duplicateTransactions, duplicateTransactionViolations, isOnSearch ? currentSearchHash : undefined, false);
         setIsDeleteModalVisible(false);
-        Navigation.removeReportScreen(new Set(deletedThreadReportIDs));
+
+        if (deleteResult.action === 'redirected') {
+            return deleteResult;
+        }
+
+        clearSelectedTransactions(true);
+        Navigation.removeReportScreen(new Set(deleteResult.deletedTransactionThreadReportIDs));
+        return deleteResult;
     };
 
     const handleDeleteTransactionsWithNavigation = (backToRoute?: Route) => {
+        if (shouldOpenSplitExpenseEditFlowOnDelete(selectedTransactionIDs)) {
+            handleDeleteTransactions();
+            return;
+        }
+
         Navigation.goBack(backToRoute);
 
         if (!backToRoute && !navigationRef.canGoBack()) {
@@ -328,7 +343,7 @@ function useSelectedTransactionsActions({
                         if (!action?.childReportID) {
                             continue;
                         }
-                        unholdRequest(transactionID, action.childReportID, policy, isOffline);
+                        unholdRequest(transactionID, action.childReportID, policy, isOffline, login ?? '', currentUserAccountID);
                     }
                     clearSelectedTransactions(true);
                 },
@@ -386,10 +401,12 @@ function useSelectedTransactionsActions({
 
             // If the user has any custom integration export templates, add them as export options
             const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy, includeReportLevelExport);
+            const standardTemplateNames = new Set<string>([CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT]);
             for (const template of exportTemplates) {
+                const isStandardTemplate = standardTemplateNames.has(template.templateName);
                 exportOptions.push({
                     text: template.name,
-                    icon: expensifyIcons.Table,
+                    icon: isStandardTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil,
                     description: template.description,
                     onSelected: () => beginExportWithTemplate(template.templateName, template.type, selectedTransactionIDs, template.policyID),
                 });
@@ -457,8 +474,13 @@ function useSelectedTransactionsActions({
         const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransaction?.comment?.originalTransactionID}`];
 
         const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(firstTransaction, originalTransaction);
+        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
+        const hasMultipleSplits = getChildTransactions(allTransactions, firstTransaction?.comment?.originalTransactionID, isProduction).length > 1;
         const canSplitTransaction =
-            selectedTransactionsList.length === 1 && report && !isExpenseSplit && isSplitAction(report, [firstTransaction], originalTransaction, login ?? '', currentUserAccountID, policy);
+            selectedTransactionsList.length === 1 &&
+            report &&
+            !(isExpenseSplit && hasMultipleSplits) &&
+            isSplitAction(report, [firstTransaction], originalTransaction, login ?? '', currentUserAccountID, policy, parentReport, isProduction);
 
         if (canSplitTransaction) {
             options.push({
@@ -466,7 +488,7 @@ function useSelectedTransactionsActions({
                 icon: expensifyIcons.ArrowSplit,
                 value: SPLIT,
                 onSelected: () => {
-                    initSplitExpense(firstTransaction, policy);
+                    initSplitExpense(firstTransaction, policy, report, currentUserAccountID, {isProduction});
                 },
             });
         }
@@ -505,12 +527,20 @@ function useSelectedTransactionsActions({
 
         const canRemoveReportTransaction = canDeleteTransaction(report, isReportArchived);
 
+        const shouldShowEditSplitOnDeleteAction = shouldOpenSplitExpenseEditFlowOnDelete(selectedTransactionIDs);
+
         if (canRemoveReportTransaction && canAllSelectedTransactionsBeRemoved) {
             options.push({
-                text: translate('common.delete'),
-                icon: expensifyIcons.Trashcan,
+                text: shouldShowEditSplitOnDeleteAction ? translate('iou.editSplits') : translate('common.delete'),
+                icon: shouldShowEditSplitOnDeleteAction ? expensifyIcons.ArrowSplit : expensifyIcons.Trashcan,
                 value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
+                shouldSkipDeleteModal: shouldShowEditSplitOnDeleteAction,
                 onSelected: () => {
+                    if (shouldShowEditSplitOnDeleteAction) {
+                        handleDeleteTransactions();
+                        return;
+                    }
+
                     if (onDeleteSelected) {
                         onDeleteSelected(handleDeleteTransactions, handleDeleteTransactionsWithNavigation);
                     } else {

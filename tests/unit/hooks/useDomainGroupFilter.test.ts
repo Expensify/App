@@ -236,7 +236,7 @@ describe('useDomainGroupFilter', () => {
             expect(result.current.selectedGroup).not.toBeNull();
 
             act(() => {
-                result.current.handleGroupChange(null);
+                result.current.handleGroupChange(undefined);
             });
             expect(result.current.selectedGroup).toBeNull();
         });

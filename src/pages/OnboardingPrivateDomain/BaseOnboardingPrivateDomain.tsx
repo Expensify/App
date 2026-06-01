@@ -8,6 +8,7 @@ import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeFo
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateOnboardingValuesAndNavigation} from '@libs/actions/Welcome';
@@ -28,10 +29,18 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     const {translate} = useLocalize();
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {
+        selector: (acc) => ({
+            validated: acc?.validated,
+            isFromPublicDomain: acc?.isFromPublicDomain,
+        }),
+    });
+    const {isBetaEnabled} = usePermissions();
+    const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
 
     const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES);
     const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
-    const joinablePoliciesLength = Object.keys(joinablePolicies ?? {}).length;
+    const joinablePoliciesLength = Object.values(joinablePolicies ?? {}).filter((policy) => policy.policyType !== CONST.POLICY.TYPE.SUBMIT || canUseSubmit2026).length;
 
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.PRIVATE_DOMAIN);
@@ -62,14 +71,41 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         Navigation.goBack(routeToNavigate);
     }, [route.params?.backTo, onboardingValues]);
 
+    const navigateToNextOnboardingStep = useCallback(
+        (backTo: string | undefined, options?: {forceReplace?: boolean}) => {
+            if (isVsb) {
+                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(backTo), options);
+                return;
+            }
+            if (isSmb) {
+                Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(backTo), options);
+                return;
+            }
+            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(backTo), options);
+        },
+        [isVsb, isSmb],
+    );
+
+    // Only validated public-domain users are blocked from this screen — for them the "people on YOUR domain" copy would reference gmail.com.
+    // An unvalidated public-domain user who just submitted a work email may land here before isFromPublicDomain updates; that's the staging happy path.
+    const shouldBlockPublicDomain = !!account?.validated && !!account?.isFromPublicDomain;
+
     useEffect(() => {
+        if (shouldBlockPublicDomain) {
+            return;
+        }
         if (isValidated) {
             return;
         }
         sendValidateCode();
-    }, [sendValidateCode, isValidated]);
+    }, [sendValidateCode, isValidated, shouldBlockPublicDomain]);
 
     useEffect(() => {
+        if (shouldBlockPublicDomain) {
+            navigateToNextOnboardingStep(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
+            return;
+        }
+
         if (!isValidated) {
             return;
         }
@@ -82,17 +118,13 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         // When validation succeeded but there are no joinable workspaces and the API call has completed,
         // navigate to the next onboarding step (same as the skip button behavior).
         if (getAccessiblePoliciesAction?.loading === false) {
-            if (isVsb) {
-                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
-                return;
-            }
-            if (isSmb) {
-                Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
-                return;
-            }
-            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
+            navigateToNextOnboardingStep(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
         }
-    }, [isValidated, joinablePoliciesLength, getAccessiblePoliciesAction?.loading, isVsb, isSmb]);
+    }, [isValidated, joinablePoliciesLength, getAccessiblePoliciesAction?.loading, shouldBlockPublicDomain, navigateToNextOnboardingStep]);
+
+    if (shouldBlockPublicDomain) {
+        return null;
+    }
 
     return (
         <ScreenWrapper
@@ -135,18 +167,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                         validateError={getAccessiblePoliciesAction?.errors}
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                         shouldShowSkipButton
-                        handleSkipButtonPress={() => {
-                            if (isVsb) {
-                                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
-                                return;
-                            }
-
-                            if (isSmb) {
-                                Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
-                                return;
-                            }
-                            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
-                        }}
+                        handleSkipButtonPress={() => navigateToNextOnboardingStep(route.params?.backTo)}
                         buttonStyles={[styles.flex2, styles.justifyContentEnd]}
                         isLoading={getAccessiblePoliciesAction?.loading}
                     />

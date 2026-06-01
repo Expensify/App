@@ -65,7 +65,6 @@ function NewTaskPage({route}: NewTaskPageProps) {
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     useFocusEffect(() => {
         focusTimeoutRef.current = setTimeout(() => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 blurActiveElement();
             });
@@ -105,6 +104,8 @@ function NewTaskPage({route}: NewTaskPageProps) {
             assigneeEmail: task?.assignee ?? '',
             currentUserAccountID: currentUserPersonalDetails.accountID,
             currentUserEmail: currentUserPersonalDetails.email ?? '',
+            currentUserDisplayName: currentUserPersonalDetails.displayName,
+            currentUserAvatar: currentUserPersonalDetails.avatar,
             assigneeAccountID: task.assigneeAccountID,
             assigneeChatReport: task.assigneeChatReport,
             policyID: parentReport?.policyID,

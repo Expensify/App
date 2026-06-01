@@ -105,4 +105,4 @@ function search<T>({data, activeSearchString, isItemInSearch}: SearchingMiddlewa
 }
 
 export default useSearching;
-export type {UseSearchingProps, UseSearchingResult, SearchingMethods, IsItemInSearchCallback};
+export type {SearchingMethods, IsItemInSearchCallback};
