@@ -20,6 +20,7 @@ import type {PaymentActionParams} from '@components/SettlementButton/types';
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEnvironment from '@hooks/useEnvironment';
 import useExpenseActions from '@hooks/useExpenseActions';
 import useExportActions from '@hooks/useExportActions';
 import useHoldRejectActions from '@hooks/useHoldRejectActions';
@@ -45,10 +46,10 @@ import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import type {KYCFlowEvent, TriggerKYCFlow, WorkspacePolicyPaymentOption} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
 import {sortPoliciesByName} from '@libs/PolicyUtils';
+import {REPORT_MORE_MENU_SECTIONS, sortAndSectionPopoverMenuItems} from '@libs/PopoverMenuSections';
 import {getFilteredReportActionsForReportView, hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
@@ -317,6 +318,8 @@ function MoneyReportHeaderSecondaryActionsContent({reportID, primaryAction, isRe
         onPDFModalOpen: openPDFDownload,
     });
 
+    const {isProduction} = useEnvironment();
+
     // Compute list of applicable secondary action keys
     const secondaryActions = moneyRequestReport
         ? getSecondaryReportActions({
@@ -335,6 +338,7 @@ function MoneyReportHeaderSecondaryActionsContent({reportID, primaryAction, isRe
               policies,
               outstandingReportsByPolicyID,
               isChatReportArchived,
+              isProduction,
           })
         : [];
 
@@ -346,7 +350,7 @@ function MoneyReportHeaderSecondaryActionsContent({reportID, primaryAction, isRe
             icon: expensifyIcons.Info,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.VIEW_DETAILS,
             onSelected: () => {
-                navigateToDetailsPage(moneyRequestReport, Navigation.getReportRHPActiveRoute());
+                navigateToDetailsPage(moneyRequestReport);
             },
         },
         ...exportActionEntries,
@@ -364,9 +368,10 @@ function MoneyReportHeaderSecondaryActionsContent({reportID, primaryAction, isRe
         },
     };
 
-    const applicableSecondaryActions = secondaryActions
-        .map((action) => secondaryActionsImplementation[action])
-        .filter((action) => action?.shouldShow !== false && action?.value !== primaryAction);
+    const applicableSecondaryActions = sortAndSectionPopoverMenuItems(
+        secondaryActions.map((action) => secondaryActionsImplementation[action]).filter((action) => action?.shouldShow !== false && action?.value !== primaryAction),
+        REPORT_MORE_MENU_SECTIONS,
+    );
 
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
 

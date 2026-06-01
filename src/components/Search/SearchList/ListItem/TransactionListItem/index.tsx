@@ -296,6 +296,7 @@ function TransactionListItemInner<TItem extends ListItem>({
         <TransactionListItemWide
             {...sharedProps}
             isLastItem={isLastItem}
+            currentSearchHash={currentSearchHash}
         />
     );
 }
