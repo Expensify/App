@@ -26,7 +26,7 @@ type WorkspaceCompanyCardsPageProps = PlatformStackScreenProps<WorkspaceSplitNav
 function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const policyID = route.params.policyID;
     const {translate} = useLocalize();
-    const {email: currentUserEmail = ''} = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const memoizedIllustrations = useMemoizedLazyIllustrations(['CompanyCard']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -89,7 +89,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
 
     const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
     const {assignCard, isAssigningCardDisabled} = useAssignCard({feedName, policyID, setShouldShowOfflineModal});
-    const canWriteCompanyCards = canMemberWrite(policy, currentUserEmail, CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS);
+    const canWriteCompanyCards = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS);
 
     return (
         <AccessOrNotFoundWrapper

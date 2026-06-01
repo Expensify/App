@@ -129,8 +129,8 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     const policyID = route.params.policyID;
     const backTo = route.params?.backTo;
     const policy = usePolicy(policyID);
-    const {email: currentUserEmail = ''} = useCurrentUserPersonalDetails();
-    const canWritePerDiem = canMemberWrite(policy, currentUserEmail, CONST.POLICY.POLICY_FEATURE.PER_DIEM);
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
+    const canWritePerDiem = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.PER_DIEM);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.perDiem');
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();

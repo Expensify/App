@@ -41,8 +41,8 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
 
     const policyID = route?.params?.policyID;
     const policy = usePolicy(policyID);
-    const {email: currentUserEmail = ''} = useCurrentUserPersonalDetails();
-    const canWriteExpensifyCard = canMemberWrite(policy, currentUserEmail, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
+    const canWriteExpensifyCard = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
 
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
 

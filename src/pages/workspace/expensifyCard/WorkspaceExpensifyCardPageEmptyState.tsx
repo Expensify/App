@@ -52,8 +52,8 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
-    const {email: currentUserEmail = ''} = useCurrentUserPersonalDetails();
-    const canWriteExpensifyCard = canMemberWrite(policy, currentUserEmail, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
+    const canWriteExpensifyCard = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
 
     // Dismiss the "Update to USD" modal if the currency changes to USD externally (e.g. from another device)
     const isCurrencyModalOpen = useRef(false);

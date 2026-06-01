@@ -66,12 +66,12 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     const defaultFundID = useDefaultFundID(policyID);
     const lastSelectedExpensifyCardFeedID = lastSelectedExpensifyCardFeed ?? defaultFundID;
     const [feedWithError, setFeedWithError] = useState<{fundID?: number; error?: Errors} | undefined>(undefined);
-    const {email: currentUserEmail = ''} = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
 
     const {primaryFeeds, otherFeeds} = useExpensifyCardFeedsForFeedSelector(policyID);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const policy = usePolicy(policyID);
-    const canWriteExpensifyCard = canMemberWrite(policy, currentUserEmail, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
+    const canWriteExpensifyCard = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
 
     const getIssueCardFundID = () => {
         if (primaryFeeds.length === 0) {

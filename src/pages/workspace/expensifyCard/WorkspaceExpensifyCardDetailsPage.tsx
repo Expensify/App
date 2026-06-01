@@ -21,6 +21,7 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
@@ -86,6 +87,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const [isFreezeModalVisible, setIsFreezeModalVisible] = useState(false);
     const [isUnfreezeModalVisible, setIsUnfreezeModalVisible] = useState(false);
     const {translate} = useLocalize();
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['FreezeCard', 'MoneySearch', 'Trashcan', 'CreditCardLock']);
     const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage']);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
@@ -96,7 +98,6 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const {showConfirmModal} = useConfirmModal();
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [cardFromCardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardByIdSelector(cardID)});
     const [cardFeeds] = useCardFeeds(policyID);
@@ -116,7 +117,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const translationForLimitType = getTranslationKeyForLimitType(card?.nameValuePairs?.limitType);
     const remainingLimitHintTranslationKey = getLimitHintTranslationKey(card?.nameValuePairs?.limitType);
     const remainingLimitHint = remainingLimitHintTranslationKey ? translate(remainingLimitHintTranslationKey, formattedAvailableSpendAmount) : undefined;
-    const canWriteExpensifyCard = canMemberWrite(policy, session?.email ?? '', CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
+    const canWriteExpensifyCard = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
     const isDeactivated = card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED;
 
     const fetchCardDetails = useCallback(() => {

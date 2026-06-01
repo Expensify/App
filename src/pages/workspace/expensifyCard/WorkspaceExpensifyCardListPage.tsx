@@ -72,7 +72,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const illustrations = useMemoizedLazyIllustrations(['HandCard', 'ExpensifyCardImage']);
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
-    const {email: currentUserEmail = ''} = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const defaultFundID = useDefaultFundID(policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
@@ -90,7 +90,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const isBankAccountVerified = !cardOnWaitlist;
     const {windowHeight} = useWindowDimensions();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
-    const canWriteExpensifyCard = canMemberWrite(policy, currentUserEmail, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
+    const canWriteExpensifyCard = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
     const headerHeight = useEmptyViewHeaderHeight(shouldDisplayButtonsInSeparateLine, isBankAccountVerified);
     const [footerHeight, setFooterHeight] = useState(0);
     const cardFeedIcon = (
