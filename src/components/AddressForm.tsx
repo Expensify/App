@@ -2,7 +2,7 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isRequiredFulfilled} from '@libs/ValidationUtils';
+import {isRequiredFulfilled, isValidAddress} from '@libs/ValidationUtils';
 import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
@@ -61,6 +61,9 @@ type AddressFormProps = {
 
     /** Whether the form submit button should be enabled when offline */
     enabledWhenOffline?: boolean;
+
+    /** Whether PO boxes and mail drops are rejected on address lines */
+    shouldValidatePhysicalAddress?: boolean;
 };
 
 function AddressForm({
@@ -77,6 +80,7 @@ function AddressForm({
     zip = '',
     shouldHideCountrySelector = false,
     enabledWhenOffline: enabledWhenOfflineProp = true,
+    shouldValidatePhysicalAddress = false,
 }: AddressFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -135,6 +139,16 @@ function AddressForm({
                 errors.state = translate('common.error.characterLimitExceedCounter', values.state.length, CONST.STATE_CHARACTER_LIMIT);
             }
 
+            if (shouldValidatePhysicalAddress) {
+                if (values.addressLine1 && !isValidAddress(values.addressLine1)) {
+                    errors.addressLine1 = translate('bankAccount.error.physicalAddressRequired');
+                }
+
+                if (values.addressLine2 && !isValidAddress(values.addressLine2)) {
+                    errors.addressLine2 = translate('bankAccount.error.physicalAddressRequired');
+                }
+            }
+
             // If no country is selected, default value is an empty string and there's no related regex data so we default to an empty object
             const countryRegexDetails = (values.country ? CONST.COUNTRY_ZIP_REGEX_DATA?.[values.country] : {}) as CountryZipRegex;
 
@@ -156,7 +170,7 @@ function AddressForm({
 
             return errors;
         },
-        [translate, shouldHideCountrySelector, country],
+        [translate, shouldHideCountrySelector, country, shouldValidatePhysicalAddress],
     );
 
     return (

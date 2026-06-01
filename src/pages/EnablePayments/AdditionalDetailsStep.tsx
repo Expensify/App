@@ -87,7 +87,7 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
         }
 
         if (values.addressStreet && !isValidAddress(values.addressStreet)) {
-            errors.addressStreet = translate('bankAccount.error.addressStreet');
+            errors.addressStreet = translate('bankAccount.error.physicalAddressRequired');
         }
 
         if (values.addressZipCode && !isValidZipCode(values.addressZipCode)) {

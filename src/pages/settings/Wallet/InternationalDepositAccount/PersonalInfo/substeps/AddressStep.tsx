@@ -123,7 +123,7 @@ function AddressStep({onNext, isEditing, shouldSaveDraft = false, shouldHideCoun
         <>
             <View style={[styles.mh5, styles.mb6]}>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('personalInfoStep.whatsYourAddress')}</Text>
-                <Text style={[styles.textSupporting]}>{translate('common.noPO')}</Text>
+                <Text style={[styles.textSupporting]}>{translate('personalInfoStep.addressSubtitle')}</Text>
             </View>
             <AddressForm
                 formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
@@ -139,6 +139,7 @@ function AddressStep({onNext, isEditing, shouldSaveDraft = false, shouldHideCoun
                 shouldSaveDraft={shouldSaveDraft}
                 shouldHideCountrySelector={shouldHideCountrySelector}
                 enabledWhenOffline={enabledWhenOffline}
+                shouldValidatePhysicalAddress
             />
         </>
     );

@@ -141,7 +141,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
             const street = values[inputFieldsIDs.street as keyof typeof values];
             if (street && !isValidAddress(street as FormValue)) {
                 // @ts-expect-error type mismatch to be fixed
-                errors[inputFieldsIDs.street] = translate('bankAccount.error.addressStreet');
+                errors[inputFieldsIDs.street] = translate('bankAccount.error.physicalAddressRequired');
             }
 
             const zipCode = values[inputFieldsIDs.zipCode as keyof typeof values];
