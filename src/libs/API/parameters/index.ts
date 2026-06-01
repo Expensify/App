@@ -333,7 +333,6 @@ export type {default as UpgradeToCorporateParams} from './UpgradeToCorporatePara
 export type {default as DowngradeToTeamParams} from './DowngradeToTeamParams';
 export type {default as RejectMoneyRequestInBulkParams} from './RejectMoneyRequestInBulkParams';
 export type {default as ApproveMoneyRequestOnSearchParams} from './ApproveMoneyRequestOnSearchParams';
-export type {default as PayMoneyRequestOnSearchParams} from './PayMoneyRequestOnSearchParams';
 export type {default as UpdateNetSuiteSubsidiaryParams} from './UpdateNetSuiteSubsidiaryParams';
 export type {default as DeletePolicyReportField} from './DeletePolicyReportField';
 export type {default as ConnectPolicyToNetSuiteParams} from './ConnectPolicyToNetSuiteParams';

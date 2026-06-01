@@ -1,6 +1,6 @@
 import React from 'react';
-import type {ValueOf} from 'type-fest';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import type {PaymentMethodType} from '@components/KYCWall/types';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import SettlementButton from '@components/SettlementButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
@@ -12,7 +12,7 @@ import usePolicy from '@hooks/usePolicy';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canIOUBePaid} from '@libs/actions/IOU/ReportWorkflow';
-import {getPayMoneyOnSearchInvoiceParams, payMoneyRequestOnSearch} from '@libs/actions/Search';
+import {getPayMoneyOnSearchInvoiceParams, payFromSearch} from '@libs/actions/Search';
 import {isInvoiceReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -58,16 +58,20 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
             return;
         }
 
-        const invoiceParams = getPayMoneyOnSearchInvoiceParams(policyID, payAsBusiness, methodID, paymentMethod);
-        payMoneyRequestOnSearch(hash, [
-            {
-                amount,
-                paymentType: type as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>,
-                reportID,
-                ...(isInvoiceReport(iouReport) ? invoiceParams : {}),
-                ...(type === CONST.IOU.PAYMENT_TYPE.VBBA && methodID != null ? {bankAccountID: methodID} : {}),
-            },
-        ]);
+        const isItemInvoice = isInvoiceReport(iouReport);
+        const invoiceParams = isItemInvoice ? getPayMoneyOnSearchInvoiceParams(policyID, payAsBusiness, methodID, paymentMethod) : undefined;
+        const bankAccountIDForPayment = type === CONST.IOU.PAYMENT_TYPE.VBBA && methodID != null ? methodID : undefined;
+        payFromSearch(
+            hash,
+            reportID,
+            iouReport?.chatReportID ?? '',
+            amount,
+            type as PaymentMethodType,
+            isItemInvoice,
+            isItemInvoice ? invoiceParams : undefined,
+            bankAccountIDForPayment,
+            undefined,
+        );
     };
 
     return (
