@@ -121,6 +121,7 @@ function WorkspaceHRPage({
                     <ConnectToHRFlow
                         key={activeHRFlow.key}
                         setupLink={activeHRFlow.setupLink}
+                        onDone={() => setActiveHRFlow(undefined)}
                     />
                 )}
                 <HeaderWithBackButton

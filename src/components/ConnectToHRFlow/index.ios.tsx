@@ -12,7 +12,7 @@ import {getShortLivedAuthTokenURL} from '@userActions/Link';
 import CONST from '@src/CONST';
 import type ConnectToHRFlowProps from './types';
 
-function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
+function ConnectToHRFlow({setupLink, onDone}: ConnectToHRFlowProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const hasOpened = useRef(false);
@@ -22,6 +22,7 @@ function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
     const dismiss = () => {
         isDismissed.current = true;
         setIsModalOpen(false);
+        onDone?.();
     };
 
     const openSession = () => {
@@ -41,6 +42,7 @@ function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
             })
             .finally(() => {
                 setIsModalOpen(false);
+                onDone?.();
             });
     };
 
@@ -64,7 +66,6 @@ function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
             <HeaderWithBackButton
                 title={translate('workspace.common.hr')}
                 onBackButtonPress={dismiss}
-                shouldDisplayHelpButton={false}
             />
             <FullPageOfflineBlockingView>
                 <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>

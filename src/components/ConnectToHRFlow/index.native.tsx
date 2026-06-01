@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {WebView} from 'react-native-webview';
 import type {WebViewOpenWindowEvent} from 'react-native-webview/lib/WebViewTypes';
@@ -13,7 +13,7 @@ import {getShortLivedAuthTokenURL} from '@userActions/Link';
 import CONST from '@src/CONST';
 import type ConnectToHRFlowProps from './types';
 
-function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
+function ConnectToHRFlow({setupLink, onDone}: ConnectToHRFlowProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [isWebViewOpen, setIsWebViewOpen] = useState(true);
@@ -22,14 +22,15 @@ function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
     const [authenticatedUrl, setAuthenticatedUrl] = useState<string | null>(null);
     const [cookiesCleared, setCookiesCleared] = useState(false);
     const hasFetched = useRef(false);
+    const cookieTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-    const fetchAuthUrl = useCallback(() => {
+    const fetchAuthUrl = () => {
         if (hasFetched.current) {
             return;
         }
         hasFetched.current = true;
         getShortLivedAuthTokenURL(setupLink).then(setAuthenticatedUrl);
-    }, [setupLink]);
+    };
 
     const {isOffline} = useNetwork({onReconnect: fetchAuthUrl});
 
@@ -40,6 +41,16 @@ function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
         fetchAuthUrl();
         // eslint-disable-next-line react-hooks/exhaustive-deps -- only fetch once on mount when online
     }, []);
+
+    useEffect(
+        () => () => {
+            if (!cookieTimerRef.current) {
+                return;
+            }
+            clearTimeout(cookieTimerRef.current);
+        },
+        [],
+    );
 
     const renderLoading = () => (
         <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
@@ -63,6 +74,7 @@ function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
             return;
         }
         setIsWebViewOpen(false);
+        onDone?.();
     };
 
     const isReady = cookiesCleared && !!authenticatedUrl;
@@ -77,7 +89,6 @@ function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
             <HeaderWithBackButton
                 title={translate('workspace.common.hr')}
                 onBackButtonPress={handleBackPress}
-                shouldDisplayHelpButton={false}
             />
             <FullPageOfflineBlockingView>
                 <View style={styles.flex1}>
@@ -89,7 +100,7 @@ function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
                                 // Brief delay to ensure the incognito WebView has fully cleared cookies
                                 // before mounting the main WebView. No deterministic completion signal is
                                 // available from the incognito session teardown.
-                                setTimeout(() => setCookiesCleared(true), CONST.MERGE_HR.COOKIE_CLEAR_DELAY_MS);
+                                cookieTimerRef.current = setTimeout(() => setCookiesCleared(true), CONST.MERGE_HR.COOKIE_CLEAR_DELAY_MS);
                             }}
                             style={styles.opacity0}
                         />
