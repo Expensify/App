@@ -508,7 +508,6 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Réduire le raisonnement',
         expandReasoning: 'Développer le raisonnement',
-        enableNotifications: {prompt: 'Vous souhaitez être averti lorsque Concierge répond ?', cta: 'Notifier'},
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -1261,7 +1260,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchSubmitTitle: 'Soumettre le rapport',
         pendingMatchSubmitDescription: 'Certaines dépenses sont en attente de rapprochement avec une transaction par carte de crédit. Voulez-vous les marquer comme espèces ?',
         routePending: 'Acheminement en attente...',
-        automaticallyEnterExpenseDetails: 'Concierge saisira automatiquement les détails de la dépense pour vous, ou vous pouvez les ajouter manuellement.',
+        automaticallyEnterExpenseDetails: 'Concierge remplira les détails pour vous.',
         receiptScanning: () => ({
             one: 'Scan des reçus...',
             other: 'Scan des reçus...',
@@ -9398,6 +9397,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         expenseLevelExport: 'Toutes les données - niveau dépense',
         exportInProgress: 'Export en cours',
         conciergeWillSend: 'Concierge vous enverra le fichier sous peu.',
+        currentView: 'Exporter la vue actuelle',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',

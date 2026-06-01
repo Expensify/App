@@ -460,10 +460,6 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Contraer razonamiento',
         expandReasoning: 'Expandir razonamiento',
-        enableNotifications: {
-            prompt: '¿Quieres que te avisemos cuando Concierge responda?',
-            cta: 'Notificar',
-        },
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -1224,7 +1220,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Problemas encontrados',
         }),
         fieldPending: 'Pendiente...',
-        automaticallyEnterExpenseDetails: 'Concierge introducirá automáticamente los detalles del gasto por ti, o puedes añadirlos manualmente.',
+        automaticallyEnterExpenseDetails: 'Concierge completará los detalles por ti.',
         receiptScanning: () => ({
             one: 'Escaneando recibo...',
             other: 'Escaneando recibos...',
@@ -9523,6 +9519,7 @@ ${amount} para ${merchant} - ${date}`,
     },
     export: {
         basicExport: 'Exportar básico',
+        currentView: 'Exportar vista actual',
         reportLevelExport: 'Todos los datos - a nivel de informe',
         expenseLevelExport: 'Todos los datos - a nivel de gasto',
         exportInProgress: 'Exportación en curso',
