@@ -10259,6 +10259,7 @@ describe('ReportUtils', () => {
             const onyxData = {optimisticData: [], failureData: []};
             const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, {});
             pushTransactionViolationsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, {}, autoSelections);
+
             // The optimistic data should contain a transaction merge auto-selecting the remaining category
             expect(onyxData.optimisticData).toContainEqual({
                 onyxMethod: Onyx.METHOD.MERGE,
