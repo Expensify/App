@@ -137,7 +137,7 @@ function CopyPolicySettingsSelectWorkspacesPage() {
         showButton: true,
         text: translate('common.next'),
         onConfirm,
-        isDisabled: selectedTargetIDs?.length === 0,
+        isDisabled: resolvedSelectedTargetIDs.length === 0,
     };
 
     const textInputOptions: TextInputOptions = {

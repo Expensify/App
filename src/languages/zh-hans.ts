@@ -494,6 +494,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: '上一年',
         nextYear: '明年',
         avatar: '头像',
+        restrictions: '限制',
     },
     socials: {
         podcast: '在播客上关注我们',
@@ -915,7 +916,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 公司卡片`,
             },
             fixPersonalCardConnection: {title: ({cardName}: {cardName?: string}) => (cardName ? `修复 ${cardName} 个人卡连接` : '修复个人银行卡连接'), subtitle: '钱包'},
-            fixAccountingConnection: {
+            fixPolicyConnection: {
                 title: ({integrationName}: {integrationName: string}) => `修复 ${integrationName} 连接`,
                 defaultSubtitle: '工作区',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会计`,
@@ -989,7 +990,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: ({days}: {days: number}) => `免费试用：剩余 ${days} ${days === 1 ? '天' : '天'} 天！`,
             offer50Body: '首年可享受五折优惠',
             offer25Body: '首年可享 75 折优惠',
-            addCardBody: '别再犹豫！现在就添加你的付款卡。',
+            addCardBody: '添加付款卡',
             ctaClaim: '报销申请',
             ctaAdd: '添加卡片',
             timeRemaining: ({formattedTime}: {formattedTime: string}) => `剩余时间：${formattedTime}`,
@@ -1215,7 +1216,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchSubmitTitle: '提交报告',
         pendingMatchSubmitDescription: '部分费用正在等待与信用卡交易匹配。您要将它们标记为现金吗？',
         routePending: '路由处理中…',
-        automaticallyEnterExpenseDetails: 'Concierge 将自动为您输入费用详情，或者您可以手动添加。',
+        automaticallyEnterExpenseDetails: 'Concierge 会帮你填写详细信息。',
         receiptScanning: () => ({
             one: '正在扫描收据…',
             other: '正在扫描收据…',
@@ -1900,6 +1901,8 @@ const translations: TranslationDeepObject<typeof en> = {
         offline: '离线',
         syncing: '正在同步',
         profileAvatar: '个人头像',
+        customInstructions: '自定义指令',
+        copilotIntoAccount: 'Copilot 到账户',
         publicSection: {
             title: '公开',
             subtitle: '这些详细信息会显示在你的公开资料中，任何人都可以看到。',
@@ -2504,6 +2507,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         addApprovalsTitle: '审批',
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `来自${members}的报销，审批人是${approvers}`,
         addApprovalButton: '添加审批工作流',
+        editWorkflowAction: '编辑',
+        addAgentAction: '添加代理',
         findWorkflow: '查找工作流',
         addApprovalTip: '除非存在更具体的工作流程，否则此默认工作流程适用于所有成员。',
         approver: '审批人',
@@ -2558,6 +2563,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         configureViaHR: ({provider}: {provider: string}) => `通过 ${provider} 配置。`,
         hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) => `审批由你的 ${provider} 集成管理。若要更新审批流程，请前往 ${provider} 连接设置。`,
         goToHRSettings: ({provider}: {provider: string}) => `前往 ${provider} 设置`,
+        approverFromProvider: ({provider}: {provider: string}) => `来自 ${provider}`,
+        finalApprover: '最终审批人',
+        manager: '经理',
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: '提交频率无法更改。请重试或联系支持团队。',
@@ -2726,10 +2734,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     expenseRulesPage: {
         title: '报销规则',
         findRule: '查找规则',
-        emptyRules: {
-            title: '您尚未创建任何规则',
-            subtitle: '添加规则以自动生成报销报告。',
-        },
+        emptyRules: {title: '尚未设置规则', subtitle: '添加规则以自动生成报销报告。'},
         changes: {
             billableUpdate: (value: boolean) => `更新报销 ${value ? '可计费' : '不可计费'}`,
             categoryUpdate: (value: string) => `将类别更新为“${value}”`,
@@ -2878,6 +2883,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         phoneOrEmail: '电话或邮箱',
         error: {
             invalidFormatEmailLogin: '输入的邮箱无效。请修正格式后重试。',
+            agentSignInBlocked: '代理帐户无法直接登录。要使用代理，请先登录您自己的帐户，然后通过 Copilot 访问该代理。',
         },
         cannotGetAccountDetails: '无法获取账户详情。请尝试重新登录。',
         loginForm: '登录表单',
@@ -4143,6 +4149,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             workflows: '工作流程',
             workspace: '工作区',
             findWorkspace: '查找工作区',
+            findRoom: '查找房间',
             edit: '编辑工作区',
             enabled: '已启用',
             disabled: '已禁用',
@@ -4281,9 +4288,12 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             travelInvoicingPayableAccount: '差旅应付账户',
             hr: '人力资源',
             rooms: '房间',
+            findDomain: '查找域名',
             cardAdminAlternateText: '管理工作区卡片。',
             peopleAdminAlternateText: '管理成员和审批流程。',
             paymentsAdminAlternateText: '管理工作流付款。',
+            readOnlyActionTitle: '别急……',
+            readOnlyActionPrompt: '你的工作区角色可以查看这些设置，但不能编辑。',
         },
         createdForClient: {
             title: '您已为客户创建了工作区！',
@@ -5402,7 +5412,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             needCategoryForExportToIntegration: (connectionName: string) => `要导出到 ${connectionName}，所有报销都必须先进行分类。`,
             subtitle: '更好地了解资金的支出去向。使用我们的默认类别或添加你自己的类别。',
             emptyCategories: {
-                title: '你还没有创建任何类别',
+                title: '尚无类别',
                 subtitle: '添加类别来整理您的支出。',
                 subtitleWithAccounting: (accountingPageURL: string) =>
                     `<muted-text><centered-text>您的类别目前正从会计连接中导入。前往<a href="${accountingPageURL}">会计</a>页面进行任何更改。</centered-text></muted-text>`,
@@ -5685,10 +5695,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             findReportField: '查找报表字段',
             deleteConfirmation: '确定要删除此报表字段吗？',
             deleteFieldsConfirmation: '确定要删除这些报表字段吗？',
-            emptyReportFields: {
-                title: '你还没有创建任何报表字段',
-                subtitle: '添加一个自定义字段（文本、日期或下拉菜单），用于显示在报表上。',
-            },
+            emptyReportFields: {title: '尚无报表字段', subtitle: '添加一个自定义字段（文本、日期或下拉菜单），用于显示在报表上。'},
             subtitle: '报表字段适用于所有支出，当你想提示填写额外信息时会很有帮助。',
             disableReportFields: '禁用报表字段',
             disableReportFieldsConfirmation: '确定要这样做吗？文本和日期字段将被删除，列表将被禁用。',
@@ -5712,10 +5719,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             disableValues: '禁用值',
             enableValue: '启用值',
             enableValues: '启用值',
-            emptyReportFieldsValues: {
-                title: '你尚未创建任何列表值',
-                subtitle: '添加自定义值以显示在报表中。',
-            },
+            emptyReportFieldsValues: {title: '尚无列表值', subtitle: '添加自定义值以显示在报表中。'},
             deleteValuePrompt: '确定要删除此列表值吗？',
             deleteValuesPrompt: '确定要删除这些列表值吗？',
             listValueRequiredError: '请输入列表值名称',
@@ -5751,7 +5755,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             subtitleWithDependentTags: (importSpreadsheetLink: string) =>
                 `<muted-text>标签可用于以更细致的方式分类成本。您正在使用<a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">依赖标签</a>。您可以<a href="${importSpreadsheetLink}">重新导入电子表格</a>来更新您的标签。</muted-text>`,
             emptyTags: {
-                title: '你还没有创建任何标签',
+                title: '尚无标签',
                 subtitle: '添加标签，以跟踪项目、地点、部门等。',
                 subtitleHTML: `<muted-text><centered-text>添加标签以跟踪项目、地点、部门等。<a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">了解更多</a>关于用于导入的标签文件格式。</centered-text></muted-text>`,
                 subtitleWithAccounting: (accountingPageURL: string) =>
@@ -6037,7 +6041,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 copyExisting: '复制现有设置',
                 createNew: '新建',
                 spendRulesEmptyStateTitle: '没有可供选择的规则',
-                spendRulesEmptyStateSubtitle: '你还没有创建任何规则。你可以在上一页面创建一个规则。',
+                spendRulesEmptyStateSubtitle: '尚未创建规则。您可以在上一屏创建一个。',
             },
             deactivateCardModal: {
                 deactivate: '停用',
@@ -7091,6 +7095,7 @@ ${reportName}
             syncingModalDescription: '首次连接可能需要一些时间。若发生任何错误，我们会通知你。',
             syncing: '正在同步员工',
         },
+        emptyDomain: {title: '通过域名提升安全性', subtitle: '要求您域中的成员通过单点登录登录、限制工作区创建等。'},
     },
     getAssistancePage: {
         title: '获取帮助',
@@ -7591,6 +7596,50 @@ ${reportName}
             `已更改卡片流水“${feedName}”的账单周期截止日${newValue ? ` 为“${newValue}”` : ''}${previousValue ? ` （先前为“${previousValue}”）` : ''}`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) => `已添加 ${fieldType} 报告字段“${fieldName}”${defaultValue ? ` 默认值为“${defaultValue}”` : ''}`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 公司商务卡消费要求`,
+        expensifyCardRule: {
+            actionVerb: {block: '已阻止', allow: '允许'},
+            amountOperator: {over: '结束', under: '在……之下'},
+            amountFilter: ({operator, amount}: {operator: string; amount: string}) => `金额 ${operator} ${amount}`,
+            theCard: '该卡',
+            multipleCards: ({count}: {count: number}) => ({
+                one: '1 张卡片',
+                other: `${count} 张卡片`,
+            }),
+            addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
+                let text = verb;
+                if (filters !== '') {
+                    text += ` ${filters}`;
+                }
+                text += ` 在 ${cards}`;
+                return text;
+            },
+            removeRule: ({cards}: {cards: string}) => `已从 ${cards} 中移除消费规则`,
+            restrictionVerb: {block: '阻止', allow: '仅允许'},
+            update: {
+                modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) => `已将 ${cards} 的消费规则从 ${fromAction} 更改为 ${toAction}`,
+                appliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: '已将支出规则应用于另外 1 张卡片',
+                    other: `已将支出规则应用于另外 ${count} 张卡片`,
+                }),
+                phraseVerb: {added: '已添加', removed: '已移除', changed: '已更改', set: '设置', applied: '已应用'},
+                bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} 商家“${value}”` : `商户“${value}”`),
+                bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `将商家 ${adjective} 从“${oldValue}”更改为“${newValue}”` : `商户从“${oldValue}”变更为“${newValue}”`,
+                bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective}支出类别“${value}”` : `支出类别「${value}」`),
+                bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `将${adjective}支出类别从“${oldValue}”修改为“${newValue}”` : `支出类别从“${oldValue}”更改为“${newValue}”`,
+                bodyMaxAmount: '最大金额',
+                bodyMaxAmountSet: ({value}: {value: string}) => `最大金额至 ${value}`,
+                bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `最大金额从 ${oldValue} 变为 ${newValue}`,
+                bodyAppliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: '将消费规则应用到另外 1 张卡片',
+                    other: `将消费规则应用到另外 ${count} 张卡片`,
+                }),
+                bodyRemovedFromCards: ({cards}: {cards: string}) => `来自 ${cards} 的消费规则`,
+                composeOnCards: ({content, cards}: {content: string; cards: string}) => `${cards} 上的 ${content}`,
+                composeFromCards: ({content, cards}: {content: string; cards: string}) => `来自 ${cards} 的 ${content}`,
+            },
+        },
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
@@ -7665,28 +7714,16 @@ ${reportName}
                 title: '暂无内容',
                 subtitle: `请尝试调整搜索条件，或使用 “+” 按钮创建新项目。`,
             },
-            emptyExpenseResults: {
-                title: '你还没有创建任何报销记录',
-                subtitle: '创建一笔报销，或试用 Expensify 以了解更多。',
-                subtitleWithOnlyCreateButton: '使用下面的绿色按钮来创建一笔报销。',
-            },
-            emptyReportResults: {
-                title: '你还没有创建任何报销报告',
-                subtitle: '创建报表或试用 Expensify，了解更多信息。',
-                subtitleWithOnlyCreateButton: '使用下方的绿色按钮创建报表。',
-            },
+            emptyExpenseResults: {title: '还没有报销费用', subtitle: '创建一笔报销，或试用 Expensify 以了解更多。', subtitleWithOnlyCreateButton: '使用下面的绿色按钮来创建一笔报销。'},
+            emptyReportResults: {title: '尚无报表', subtitle: '创建报表或试用 Expensify，了解更多信息。', subtitleWithOnlyCreateButton: '使用下方的绿色按钮创建报表。'},
             emptyInvoiceResults: {
-                title: dedent(`
-                    你还没有创建任何发票
-                `),
+                title: '还没有发票',
                 subtitle: '发送发票或试用 Expensify，了解更多信息。',
                 subtitleWithOnlyCreateButton: '使用下方的绿色按钮发送发票。',
+                subtitleCannotSend: '您需要一个启用了Invoices的工作区才能发送发票。',
+                subtitleCannotSendWithTestDrive: '您需要一个启用了Invoices的工作区才能发送发票。试用 Expensify，了解更多信息。',
             },
-            emptyTripResults: {
-                title: '没有行程可显示',
-                subtitle: '从下面开始预订您的第一趟行程。',
-                buttonText: '预订行程',
-            },
+            emptyTripResults: {title: '暂无行程', subtitle: '从下面开始预订您的第一趟行程。', buttonText: '预订行程'},
             emptySubmitResults: {
                 title: '没有可提交的报销',
                 subtitle: '一切就绪，庆祝一下你的胜利吧！',
@@ -7718,7 +7755,7 @@ ${reportName}
         resetColumns: '重置列',
         groupColumns: '分组列',
         expenseColumns: '报销列',
-        saveSearch: '保存搜索',
+        saveView: '保存视图',
         deleteSavedSearch: '删除已保存的搜索',
         deleteSavedSearchConfirm: '确定要删除此搜索吗？',
         searchName: '搜索名称',
@@ -7874,10 +7911,7 @@ ${reportName}
             description: '哇，项目真不少！我们会把它们打包好，Concierge 很快就会给你发送一个文件。',
         },
         exportedTo: '已导出到',
-        exportAll: {
-            selectAllMatchingItems: '选择所有匹配的项目',
-            allMatchingItemsSelected: '已选择所有匹配的项目',
-        },
+        exportAll: {selectAllMatchingItems: '选择所有匹配的项目', allMatchingItemsSelected: '已选择所有匹配的项目', selectAllOnThisPage: '选择本页全部内容'},
         errors: {
             pleaseSelectDatesForBothFromAndTo: '请选择起始和结束日期',
         },
@@ -8112,6 +8146,7 @@ ${reportName}
         workspaceName: '工作区名称',
         chatUserDisplayNames: '聊天成员显示名称',
         scrollToNewestMessages: '滚动到最新消息',
+        scrollToActionBadgeTarget: '滚动到需要关注的操作',
         preStyledText: '预设样式文本',
         viewAttachment: '查看附件',
         contextMenuAvailable: '上下文菜单可用。按 Shift+F10 打开。',
@@ -9217,6 +9252,12 @@ ${reportName}
             chooseWhereToMove: ({count}: {count: number}) => `选择将 ${count} 个 ${count === 1 ? '成员' : '成员'} 移动到哪里。`,
             domainGroup: '域名组',
             chooseWhereToMoveName: ({name}: {name: string}) => `选择将 ${name} 移动到哪里。`,
+            membersFeatureList: {
+                subtitle: ({domainName}: {domainName: string}) => `<muted-text>验证你的域，以便在 Expensify 中更好地管理 <strong>${domainName}</strong> 成员。</muted-text>`,
+                controlPolicyCreation: '限制创建工作区',
+                enableSamlSso: '启用 SAML 单点登录',
+                enforce2FA: '强制启用双重验证',
+            },
         },
         common: {
             settings: '设置',
