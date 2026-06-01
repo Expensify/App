@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Alert, AppState, View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabNavigatorSkeleton from '@components/Skeletons/TabNavigatorSkeleton';
 import TabSelector from '@components/TabSelector/TabSelector';
@@ -168,9 +167,6 @@ function ShareRootPage() {
         [isFileReady],
     );
 
-    const shareTabInputRef = useRef<AnimatedTextInputRef | null>(null);
-    const submitTabInputRef = useRef<AnimatedTextInputRef | null>(null);
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
@@ -191,7 +187,7 @@ function ShareRootPage() {
                         lazyLoadEnabled
                     >
                         <TopTab.Screen name={CONST.TAB.SHARE.SHARE}>{() => <ShareTab />}</TopTab.Screen>
-                        {isFileScannable && <TopTab.Screen name={CONST.TAB.SHARE.SUBMIT}>{() => <SubmitTab ref={submitTabInputRef} />}</TopTab.Screen>}
+                        {isFileScannable && <TopTab.Screen name={CONST.TAB.SHARE.SUBMIT}>{() => <SubmitTab />}</TopTab.Screen>}
                     </OnyxTabNavigator>
                 ) : (
                     <TabNavigatorSkeleton reasonAttributes={reasonAttributes} />

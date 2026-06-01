@@ -469,7 +469,6 @@
 "../../src/pages/Search/SearchMoneyRequestReportPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/Search/SearchPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/Search/SearchTransactionsChangeReport.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
-"../../src/pages/Share/ShareRootPage.tsx"	"@typescript-eslint/no-unused-vars"	1
 "../../src/pages/TransactionDuplicate/Confirmation.tsx"	"react-hooks/refs"	12
 "../../src/pages/Travel/TravelUpgrade.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/ValidateLoginPage/index.web.tsx"	"react-hooks/set-state-in-effect"	1
