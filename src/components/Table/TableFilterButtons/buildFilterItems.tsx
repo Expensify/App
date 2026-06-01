@@ -1,6 +1,6 @@
 import React from 'react';
 import type {ReactNode} from 'react';
-import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
+import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import type {FilterConfig, FilterConfigEntry} from '@components/Table/middlewares/filtering';
