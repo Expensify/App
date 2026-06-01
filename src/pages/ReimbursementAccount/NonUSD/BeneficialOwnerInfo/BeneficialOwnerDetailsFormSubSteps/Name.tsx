@@ -38,6 +38,7 @@ function Name({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBeingMo
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             formTitle={formTitle}
+            formSubtitle={translate('personalInfoStep.legalNameSubtitle')}
             onSubmit={handleSubmit}
             stepFields={stepFields}
             firstNameInputID={firstNameInputID}

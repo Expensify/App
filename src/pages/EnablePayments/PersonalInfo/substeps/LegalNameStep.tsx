@@ -36,6 +36,7 @@ function LegalNameStep({onNext, onMove, isEditing}: SubStepProps) {
             onMove={onMove}
             formID={ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS}
             formTitle={translate('personalInfoStep.whatsYourLegalName')}
+            formSubtitle={translate('personalInfoStep.legalNameSubtitle')}
             onSubmit={handleSubmit}
             stepFields={STEP_FIELDS}
             firstNameInputID={PERSONAL_INFO_STEP_KEY.FIRST_NAME}

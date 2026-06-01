@@ -39,6 +39,7 @@ function LegalNameStep({onNext, onMove, isEditing, enabledWhenOffline}: LegalNam
             onMove={onMove}
             formID={ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM}
             formTitle={translate('personalInfoStep.whatsYourLegalName')}
+            formSubtitle={translate('personalInfoStep.legalNameSubtitle')}
             onSubmit={handleSubmit}
             stepFields={STEP_FIELDS}
             firstNameInputID={PERSONAL_INFO_STEP_KEY.FIRST_NAME}
