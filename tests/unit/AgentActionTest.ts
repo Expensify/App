@@ -467,6 +467,80 @@ describe('deleteAgent', () => {
 
         expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
+
+    describe('cascade to policies containing the agent', () => {
+        const AGENT_EMAIL = 'agent@expensifail.com';
+        const OTHER_EMAIL = 'submitter@expensifail.com';
+        const OWNER_EMAIL = 'owner@expensifail.com';
+        const POLICY_ID = 'POLICY1';
+        const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`;
+
+        const buildPolicies = () => ({
+            [policyKey]: {
+                id: POLICY_ID,
+                owner: OWNER_EMAIL,
+                approver: OWNER_EMAIL,
+                employeeList: {
+                    [AGENT_EMAIL]: {email: AGENT_EMAIL, submitsTo: AGENT_EMAIL, forwardsTo: OWNER_EMAIL},
+                    [OTHER_EMAIL]: {email: OTHER_EMAIL, submitsTo: AGENT_EMAIL},
+                },
+            },
+        });
+
+        it('marks agent employeeList entry as pending DELETE optimistically', () => {
+            deleteAgent(TEST_ACCOUNT_ID, AGENT_EMAIL, buildPolicies() as never);
+
+            const {optimisticData} = getWriteOptions();
+            const policyUpdate = optimisticData.find((u) => u.key === policyKey);
+            const employees = (policyUpdate?.value as {employeeList: Record<string, {pendingAction: string}>})?.employeeList;
+            expect(employees?.[AGENT_EMAIL]).toEqual({pendingAction: 'delete'});
+        });
+
+        it('leaves other employees and approver chains untouched so the workflow card still renders', () => {
+            deleteAgent(TEST_ACCOUNT_ID, AGENT_EMAIL, buildPolicies() as never);
+
+            const {optimisticData} = getWriteOptions();
+            const policyUpdate = optimisticData.find((u) => u.key === policyKey);
+            const value = policyUpdate?.value as {employeeList: Record<string, unknown>; approver?: string; rules?: unknown};
+            expect(value?.employeeList[OTHER_EMAIL]).toBeUndefined();
+            expect(value?.approver).toBeUndefined();
+            expect(value?.rules).toBeUndefined();
+        });
+
+        it('nulls the agent employeeList entry on success', () => {
+            deleteAgent(TEST_ACCOUNT_ID, AGENT_EMAIL, buildPolicies() as never);
+
+            const {successData} = getWriteOptions();
+            const policyUpdate = successData.find((u) => u.key === policyKey);
+            const employees = (policyUpdate?.value as {employeeList: Record<string, unknown>})?.employeeList;
+            expect(employees?.[AGENT_EMAIL]).toBeNull();
+        });
+
+        it('restores agent pendingAction with errors on failure', () => {
+            deleteAgent(TEST_ACCOUNT_ID, AGENT_EMAIL, buildPolicies() as never);
+
+            const {failureData} = getWriteOptions();
+            const policyUpdate = failureData.find((u) => u.key === policyKey);
+            const agentEntry = (policyUpdate?.value as {employeeList: Record<string, {pendingAction?: string; errors?: unknown}>})?.employeeList[AGENT_EMAIL];
+            expect(agentEntry?.pendingAction).toBe('delete');
+            expect(agentEntry?.errors).toBeTruthy();
+        });
+
+        it('skips policies that do not contain the agent', () => {
+            const policies = {
+                [policyKey]: {
+                    id: POLICY_ID,
+                    owner: OWNER_EMAIL,
+                    approver: OWNER_EMAIL,
+                    employeeList: {[OWNER_EMAIL]: {email: OWNER_EMAIL}},
+                },
+            };
+            deleteAgent(TEST_ACCOUNT_ID, AGENT_EMAIL, policies as never);
+
+            const {optimisticData} = getWriteOptions();
+            expect(optimisticData.find((u) => u.key === policyKey)).toBeUndefined();
+        });
+    });
 });
 
 describe('clearAgentUpdateError', () => {

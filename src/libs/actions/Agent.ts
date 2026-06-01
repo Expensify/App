@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import type {OnyxCollection, OnyxCollectionInputValue} from 'react-native-onyx';
 import {read, write} from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {resolveAvatarURI} from '@libs/Avatars/PresetAvatarCatalog';
@@ -10,6 +11,8 @@ import type {AvatarSource} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Policy} from '@src/types/onyx';
+import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
 function openAgentsPage() {
@@ -315,7 +318,7 @@ function updateAgentAvatar(
     write(WRITE_COMMANDS.UPDATE_AGENT_AVATAR, params, {optimisticData, successData, failureData});
 }
 
-function deleteAgent(accountID: number) {
+function deleteAgent(accountID: number, agentEmail?: string, allPolicies?: OnyxCollection<Policy>) {
     const optimisticData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -347,6 +350,31 @@ function deleteAgent(accountID: number) {
             },
         },
     ];
+
+    // Mark the agent's row pending-delete on every policy it belongs to so workflow cards render
+    // the agent's approver row with strikethrough/RBR while DELETE_AGENT is in flight.
+    if (agentEmail && allPolicies) {
+        for (const policy of Object.values(allPolicies)) {
+            if (!policy?.id || !policy.employeeList?.[agentEmail]) {
+                continue;
+            }
+            const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policy.id}` as const;
+            const optimisticEmployees: OnyxCollectionInputValue<PolicyEmployee> = {
+                [agentEmail]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            };
+            const successEmployees: OnyxCollectionInputValue<PolicyEmployee> = {[agentEmail]: null};
+            const failureEmployees: OnyxCollectionInputValue<PolicyEmployee> = {
+                [agentEmail]: {
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            };
+
+            optimisticData.push({onyxMethod: Onyx.METHOD.MERGE, key: policyKey, value: {employeeList: optimisticEmployees}});
+            successData.push({onyxMethod: Onyx.METHOD.MERGE, key: policyKey, value: {employeeList: successEmployees}});
+            failureData.push({onyxMethod: Onyx.METHOD.MERGE, key: policyKey, value: {employeeList: failureEmployees}});
+        }
+    }
 
     write(WRITE_COMMANDS.DELETE_AGENT, {agentAccountID: accountID}, {optimisticData, successData, failureData});
     Navigation.goBack(ROUTES.SETTINGS_AGENTS);
