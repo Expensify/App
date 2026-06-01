@@ -66,6 +66,8 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
 
     const {primaryFeeds, otherFeeds} = useExpensifyCardFeedsForFeedSelector(policyID);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [domains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const getIssueCardFundID = () => {
         if (primaryFeeds.length === 0) {
@@ -119,7 +121,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
         const isFeedPendingDelete = entry.settings.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
         return {
             value: entry.fundID,
-            text: getExpensifyCardFeedDescription(entry.settings, policies),
+            text: getExpensifyCardFeedDescription(entry.settings, policies, domains, entry.fundID, cardList),
             keyForList: entry.fundID.toString(),
             isSelected: entry.fundID === lastSelectedExpensifyCardFeedID,
             isDisabled: isFeedPendingDelete || (isOtherWorkspaceSection && isOffline),

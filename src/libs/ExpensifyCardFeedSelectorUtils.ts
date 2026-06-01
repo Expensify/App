@@ -1,10 +1,12 @@
+import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isAdminSelector} from '@src/selectors/Domain';
-import type {Domain, ExpensifyCardSettings, Policy} from '@src/types/onyx';
+import type {CardList, Domain, ExpensifyCardSettings, Policy} from '@src/types/onyx';
 import {
-    getCardSettings,
+    getDomainNameFromExpensifyCardFeed,
+    getDomainNameFromExpensifyCardSettings,
     getFundIdFromSettingsKey,
     getLinkedPolicyIDsFromExpensifyCardSettings,
     getPreferredPolicyFromExpensifyCardSettings,
@@ -113,15 +115,70 @@ function partitionExpensifyCardFeedsForSelector(entries: ExpensifyCardFeedEntry[
     return {primary, other};
 }
 
-function getExpensifyCardFeedDescription(cardSettings: OnyxEntry<ExpensifyCardSettings>, policies: OnyxCollection<Policy>): string {
-    const domainName = getCardSettings(cardSettings)?.domainName ?? '';
-    if (domainName) {
-        return getDescriptionForPolicyDomainCard(domainName, policies);
+function getDomainNameFromFundID(fundID: number | undefined, domains: OnyxCollection<Domain> | undefined): string {
+    if (!fundID || !domains) {
+        return '';
     }
+
+    const domainFromKey = domains[`${ONYXKEYS.COLLECTION.DOMAIN}${fundID}`];
+    if (domainFromKey?.email) {
+        return Str.extractEmailDomain(domainFromKey.email);
+    }
+
+    for (const domain of Object.values(domains)) {
+        if (domain?.accountID === fundID && domain.email) {
+            return Str.extractEmailDomain(domain.email);
+        }
+    }
+
+    return '';
+}
+
+function getDomainNameFromWorkspaceFundID(fundID: number | undefined, policies: OnyxCollection<Policy> | undefined): string {
+    if (!fundID) {
+        return '';
+    }
+
+    const policy = Object.values(policies ?? {}).find((entry) => entry?.workspaceAccountID === fundID);
+    if (!policy?.owner) {
+        return '';
+    }
+
+    return Str.extractEmailDomain(policy.owner);
+}
+
+function getExpensifyCardFeedDescription(
+    cardSettings: OnyxEntry<ExpensifyCardSettings>,
+    policies: OnyxCollection<Policy>,
+    domains?: OnyxCollection<Domain>,
+    fundID?: number,
+    cardList?: CardList,
+): string {
+    const domainNameFromSettings = getDomainNameFromExpensifyCardSettings(cardSettings);
+    if (domainNameFromSettings) {
+        return getDescriptionForPolicyDomainCard(domainNameFromSettings, policies);
+    }
+
     const linkedPolicyIDs = getLinkedPolicyIDsFromExpensifyCardSettings(cardSettings);
     const preferredPolicyID = getPreferredPolicyFromExpensifyCardSettings(cardSettings);
     const policyIDForName = linkedPolicyIDs?.length ? linkedPolicyIDs.at(0) : preferredPolicyID;
-    return (policyIDForName && policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDForName.toUpperCase()}`]?.name) ?? '';
+    const policyName = policyIDForName && policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDForName.toUpperCase()}`]?.name;
+    if (policyName) {
+        return policyName;
+    }
+
+    const domainNameFromFund = getDomainNameFromFundID(fundID, domains);
+    if (domainNameFromFund) {
+        return getDescriptionForPolicyDomainCard(domainNameFromFund, policies);
+    }
+
+    const domainNameFromCards = getDomainNameFromExpensifyCardFeed(fundID, cardList);
+    if (domainNameFromCards) {
+        return getDescriptionForPolicyDomainCard(domainNameFromCards, policies);
+    }
+
+    const domainNameFromWorkspacePolicy = getDomainNameFromWorkspaceFundID(fundID, policies);
+    return domainNameFromWorkspacePolicy ? getDescriptionForPolicyDomainCard(domainNameFromWorkspacePolicy, policies) : '';
 }
 
 export {getAdminExpensifyCardFeedEntries, getExpensifyCardFeedDescription, partitionExpensifyCardFeedsForSelector, type ExpensifyCardFeedEntry};
