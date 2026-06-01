@@ -6600,13 +6600,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     const policyID = policy.id;
 
     // This flow only works for admins moving an IOU report to a policy where the submitter is NOT yet a member of the policy
-    if (
-        !isPolicyAdmin ||
-        !isIOUReportUsingReport(iouReport) ||
-        !submitterAccountID ||
-        !submitterLogin ||
-        isPolicyMember(policy, submitterLogin)
-    ) {
+    if (!isPolicyAdmin || !isIOUReportUsingReport(iouReport) || !submitterAccountID || !submitterLogin || isPolicyMember(policy, submitterLogin)) {
         return;
     }
 
