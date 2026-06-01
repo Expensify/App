@@ -29,7 +29,7 @@ function ExpenseReportSearchHandler() {
 
         return () => unsubscribe();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [shouldShowRequire2FAPage]);
 
     return null;
 }
