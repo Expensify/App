@@ -157,12 +157,12 @@ The most common ways to improve a component's performance are:
 
     *Examples: [#89120](https://github.com/Expensify/App/pull/89120), [#86865](https://github.com/Expensify/App/pull/86865)*
 
+> [!WARNING]
+> Do not reach for `InteractionManager.runAfterInteractions` as a deferral primitive. It is being removed from React Native and is in the process of being migrated out of the codebase. New usages should not be introduced. See [INTERACTION_MANAGER.md](https://github.com/Expensify/App/blob/main/contributingGuides/INTERACTION_MANAGER.md) for more details.
+
 2. Defer non-critical work past the next paint.
 
     INP measures the time from the input event to the next paint. Anything that doesn't need to be on screen at that paint can be pushed off the critical path. The user sees a fast response; the heavy work resolves a frame or two later.
-
-    > [!WARNING]
-    > Do not reach for `InteractionManager.runAfterInteractions` as a deferral primitive. It is being removed from React Native and is in the process of being migrated out of the codebase. New usages should not be introduced. See [INTERACTION_MANAGER.md](https://github.com/Expensify/App/blob/main/contributingGuides/INTERACTION_MANAGER.md) for more details.
 
     Techniques specific to non-visual changes:
 
