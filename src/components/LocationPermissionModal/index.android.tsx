@@ -1,4 +1,4 @@
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 import {Linking} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
@@ -14,18 +14,38 @@ import type LocationPermissionModalProps from './types';
 const isPermissionGranted = (status: string) => status === RESULTS.GRANTED || status === RESULTS.LIMITED;
 
 function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant, onInitialGetLocationCompleted}: LocationPermissionModalProps) {
+    const isModalActiveRef = useRef(false);
+    const onGrantRef = useRef(onGrant);
+    const onDenyRef = useRef(onDeny);
+    const resetPermissionFlowRef = useRef(resetPermissionFlow);
+
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {asset: ReceiptLocationMarker} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker' as IllustrationName));
-    const {showConfirmModal} = useConfirmModal();
+    const {showConfirmModal, closeModal} = useConfirmModal();
+
+    // Keep refs up to date
+    useEffect(() => {
+        onGrantRef.current = onGrant;
+        onDenyRef.current = onDeny;
+        resetPermissionFlowRef.current = resetPermissionFlow;
+    });
 
     useEffect(() => {
         if (!startPermissionFlow) {
             return;
         }
 
-        const handlePermissionResult = (hasError: boolean) => {
-            showConfirmModal({
+        let ignore = false;
+
+        const showPermissionModal = async (hasError: boolean) => {
+            if (ignore) {
+                return;
+            }
+
+            isModalActiveRef.current = true;
+
+            const {action} = await showConfirmModal({
                 confirmText: hasError ? translate('common.settings') : translate('common.continue'),
                 cancelText: translate('common.notNow'),
                 prompt: translate(hasError ? 'receipt.locationErrorMessage' : 'receipt.locationAccessMessage'),
@@ -39,41 +59,68 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                 iconHeight: 120,
                 shouldCenterIcon: true,
                 shouldReverseStackedButtons: true,
-            }).then(({action}) => {
-                if (action !== ModalActions.CONFIRM) {
-                    onDeny();
-                    resetPermissionFlow();
-                    return;
-                }
-
-                if (hasError && Linking.openSettings) {
-                    Linking.openSettings();
-                    resetPermissionFlow();
-                    return;
-                }
-
-                requestLocationPermission().then((status) => {
-                    if (isPermissionGranted(status)) {
-                        onGrant();
-                        resetPermissionFlow();
-                    } else if (status === RESULTS.BLOCKED) {
-                        handlePermissionResult(true);
-                    } else {
-                        onDeny();
-                        resetPermissionFlow();
-                    }
-                });
+                onBackdropPress: () => resetPermissionFlowRef.current(),
             });
-        };
 
-        getLocationPermission().then((status) => {
-            onInitialGetLocationCompleted?.();
-            if (isPermissionGranted(status)) {
-                return onGrant();
+            if (ignore) {
+                return;
             }
 
-            handlePermissionResult(status === RESULTS.BLOCKED);
-        });
+            isModalActiveRef.current = false;
+
+            if (action !== ModalActions.CONFIRM) {
+                onDenyRef.current();
+                return;
+            }
+
+            // Open settings if permission is blocked
+            if (hasError) {
+                Linking.openSettings?.();
+                resetPermissionFlowRef.current();
+                return;
+            }
+
+            // Request permission and handle result
+            const status = await requestLocationPermission();
+            if (ignore) {
+                return;
+            }
+
+            if (isPermissionGranted(status)) {
+                onGrantRef.current();
+            } else if (status === RESULTS.BLOCKED) {
+                closeModal();
+                showPermissionModal(true);
+            } else {
+                onDenyRef.current();
+            }
+        };
+
+        const checkInitialPermission = async () => {
+            const status = await getLocationPermission();
+            if (ignore) {
+                return;
+            }
+
+            onInitialGetLocationCompleted?.();
+
+            if (isPermissionGranted(status)) {
+                onGrantRef.current();
+            } else {
+                showPermissionModal(status === RESULTS.BLOCKED);
+            }
+        };
+
+        checkInitialPermission();
+
+        return () => {
+            ignore = true;
+            if (!isModalActiveRef.current) {
+                return;
+            }
+            isModalActiveRef.current = false;
+            closeModal();
+        };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- We only want to run this effect when startPermissionFlow changes
     }, [startPermissionFlow]);
 
