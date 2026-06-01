@@ -8,8 +8,5 @@ function getImageCacheFileExtension(contentType: string) {
     return imageCacheFileTypes[contentType] ?? '';
 }
 
-function isLocalAttachmentSource(source: string) {
-    return CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => source.startsWith(prefix));
-}
-
-export {getImageCacheFileExtension, isLocalAttachmentSource};
+// eslint-disable-next-line import/prefer-default-export
+export {getImageCacheFileExtension};

@@ -4,7 +4,6 @@ import type {RotationDegrees} from 'react-fast-pdf';
 import type {GestureResponderEvent, ImageURISource, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import {useAttachmentCarouselPagerActions} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import Button from '@components/Button';
@@ -28,7 +27,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {add as addCachedPDFPaths} from '@libs/actions/CachedPDFPaths';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import {isLocalAttachmentSource} from '@libs/AttachmentUtils';
 import {getFileResolution, isHighResolutionImage} from '@libs/fileDownload/FileUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {hasEReceipt, hasReceiptSource, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
@@ -173,8 +171,6 @@ function AttachmentView({
     const [imageError, setImageError] = useState(false);
 
     const {isOffline} = useNetwork({onReconnect: () => setImageError(false)});
-    const isLocalVideoSource = typeof source === 'string' && isLocalAttachmentSource(source);
-    const shouldShowOfflineVideoIndicator = isOffline && !!isVideo && typeof source === 'string' && !isLocalVideoSource;
 
     useEffect(() => {
         getFileResolution(file).then((resolution) => {
@@ -372,15 +368,11 @@ function AttachmentView({
         );
     }
 
-    if (shouldShowOfflineVideoIndicator) {
-        return <AttachmentOfflineIndicator />;
-    }
-
     if ((isVideo ?? (file?.name && Str.isVideo(file.name))) && typeof source === 'string') {
         return (
             <AttachmentViewVideo
                 source={source}
-                shouldUseSharedVideoElement={!isLocalAttachmentSource(source)}
+                shouldUseSharedVideoElement={!CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => source.startsWith(prefix))}
                 isHovered={isHovered}
                 duration={duration}
                 reportID={reportID}

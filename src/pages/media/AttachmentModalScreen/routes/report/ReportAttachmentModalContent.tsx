@@ -96,7 +96,6 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
     // Skip API root normalization for search attachments because this route is only opened from preview,
     // which already passes a resolved source. Keep normalization for other types to support email entry points.
     const source = getValidatedImageSource(sourceParam, type !== CONST.ATTACHMENT_TYPE.SEARCH);
-    const fileName = originalFileName ?? (typeof source === 'string' ? getFileName(source) : '');
     const modalType = useReportAttachmentModalType(source);
 
     const shouldShowNotFoundPage = !isLoading && type !== CONST.ATTACHMENT_TYPE.SEARCH && !report?.reportID;
@@ -108,7 +107,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         shouldShowNotFoundPage,
         isAuthTokenRequired: !!isAuthTokenRequired,
         attachmentLink: attachmentLink ?? '',
-        originalFileName: fileName,
+        originalFileName: originalFileName ?? '',
         isLoading,
         source,
         attachmentID,
