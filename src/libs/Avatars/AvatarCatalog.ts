@@ -12,8 +12,14 @@ type AvatarCatalog<ID extends string> = {
     resolveURI: (id: string) => string;
 };
 
-function createAvatarCatalog<ID extends string>(entries: Record<ID, AvatarEntry>, ordered: Array<{id: ID} & AvatarEntry>): AvatarCatalog<ID> {
+function createAvatarCatalog<ID extends string>(entries: Record<ID, AvatarEntry>, displayOrder: readonly ID[] = []): AvatarCatalog<ID> {
     const hasID = (id: string): id is ID => id in entries;
+
+    const explicit = displayOrder.filter(hasID);
+    const explicitSet = new Set<ID>(explicit);
+    const leftovers = (Object.keys(entries) as ID[]).filter((id) => !explicitSet.has(id)).sort();
+    const ordered = [...explicit, ...leftovers].map((id) => ({id, ...entries[id]}));
+
     return {
         entries,
         ordered,

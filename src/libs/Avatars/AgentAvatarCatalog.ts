@@ -17,10 +17,7 @@ const AGENT_AVATAR_ENTRIES: Record<AgentAvatarID, AvatarEntry> = {
     'bot-avatar--yellow': {local: BotAvatarYellow, url: `${CDN_BOT_AVATARS}/bot-avatar--yellow.png`},
 };
 
-const AGENT_AVATARS = createAvatarCatalog<AgentAvatarID>(
-    AGENT_AVATAR_ENTRIES,
-    (Object.keys(AGENT_AVATAR_ENTRIES) as AgentAvatarID[]).map((id) => ({id, ...AGENT_AVATAR_ENTRIES[id]})),
-);
+const AGENT_AVATARS = createAvatarCatalog<AgentAvatarID>(AGENT_AVATAR_ENTRIES);
 
 export {AGENT_AVATARS};
 export type {AgentAvatarID};

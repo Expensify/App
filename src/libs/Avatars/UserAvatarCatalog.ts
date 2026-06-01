@@ -185,19 +185,7 @@ const USER_AVATAR_ENTRIES: Record<UserAvatarID, AvatarEntry> = {
     ...SEASON_F1,
 };
 
-const buildOrderedAvatars = (): Array<{id: UserAvatarID} & AvatarEntry> => {
-    const allIDS = Object.keys(USER_AVATAR_ENTRIES) as UserAvatarID[];
-    const explicit = DISPLAY_ORDER.filter((id) => id in USER_AVATAR_ENTRIES);
-    const explicitSet = new Set<UserAvatarID>(explicit);
-    const leftovers = allIDS.filter((id) => !explicitSet.has(id)).sort();
-    const finalIDOrder = [...explicit, ...leftovers];
-    return finalIDOrder.map((id) => ({
-        id,
-        ...USER_AVATAR_ENTRIES[id],
-    }));
-};
-
-const USER_AVATARS = createAvatarCatalog<UserAvatarID>(USER_AVATAR_ENTRIES, buildOrderedAvatars());
+const USER_AVATARS = createAvatarCatalog<UserAvatarID>(USER_AVATAR_ENTRIES, DISPLAY_ORDER);
 
 /**
  * Returns a letter avatar component based on the first letter of the provided name.
