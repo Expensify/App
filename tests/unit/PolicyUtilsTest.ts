@@ -15,15 +15,15 @@ import {
     getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
     getAllTaxRates,
     getAllTaxRatesNamesAndValues,
-    getConnectedHRProvider,
     getConnectedIntegrationNamesForPolicies,
     getCustomUnitsForDuplication,
     getDefaultTimeTrackingRate,
     getEligibleBankAccountShareRecipients,
     getExpensifyTeamExclusions,
-    getHRApprovalMode,
     getManagerAccountID,
     getPolicyEmployeeAccountIDs,
+    getQBOVendorByID,
+    getQBOVendors,
     getRateDisplayValue,
     getSubmitToAccountID,
     getTagApproverRule,
@@ -38,9 +38,7 @@ import {
     hasOnlyPersonalPolicies,
     hasOtherControlWorkspaces,
     hasPolicyWithXeroConnection,
-    isAnyHRConnected,
-    isAnyHRReadOnlyWorkflowMode,
-    isMergeHRConnected,
+    hasVendorFeature,
     isPolicyMemberWithoutPendingDelete,
     shouldShowPolicy,
     sortPoliciesByName,
@@ -2812,243 +2810,109 @@ describe('PolicyUtils', () => {
         });
 
         it('returns false and does not navigate when isEnabling is false', () => {
-            expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, false, featureAlias, true)).toBe(false);
+            expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, false, featureAlias)).toBe(false);
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
         it('returns false when policy is not Submit', () => {
-            expect(tryNavigateToSubmitWorkspaceUpgrade(teamPolicyForNavTest, true, featureAlias, true)).toBe(false);
+            expect(tryNavigateToSubmitWorkspaceUpgrade(teamPolicyForNavTest, true, featureAlias)).toBe(false);
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
-        it('returns false when Submit policy but beta is disabled', () => {
-            expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, true, featureAlias, false)).toBe(false);
-            expect(Navigation.navigate).not.toHaveBeenCalled();
-        });
-
-        it('navigates to workspace upgrade with More features back route and returns true when eligible', () => {
+        it('navigates to workspace upgrade and returns true for Submit policy regardless of beta', () => {
             const policyID = submitPolicyForNavTest.id;
             const expectedRoute = ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, featureAlias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
 
-            expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, true, featureAlias, true)).toBe(true);
+            expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, true, featureAlias)).toBe(true);
 
             expect(Navigation.navigate).toHaveBeenCalledTimes(1);
             expect(Navigation.navigate).toHaveBeenCalledWith(expectedRoute);
         });
     });
 
-    describe('HR connection helpers', () => {
-        describe('isMergeHRConnected', () => {
-            it('returns false for undefined policy', () => {
-                expect(isMergeHRConnected(undefined)).toBe(false);
-            });
-
-            it('returns false for policy with no connections', () => {
-                const policy = createRandomPolicy(0);
-                delete policy.connections;
-                expect(isMergeHRConnected(policy)).toBe(false);
-            });
-
-            it('returns true for policy with merge_hris connection', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {approvalMode: null, finalApprover: null, integration: 'workday'}},
+    describe('Vendor matching helpers', () => {
+        const buildQBOPolicy = (
+            exportDestination: string | undefined,
+            vendors: Array<{id: string; name: string; currency: string}> = [{id: 'v-1', name: 'Acme Co', currency: 'USD'}],
+        ): Policy =>
+            ({
+                ...createRandomPolicy(0),
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: exportDestination ? {nonReimbursableExpensesExportDestination: exportDestination} : {},
+                        data: {vendors},
                     },
-                } as Policy;
-                expect(isMergeHRConnected(policy)).toBe(true);
+                } as unknown as Connections,
+            }) as Policy;
+
+        describe('hasVendorFeature', () => {
+            it('returns true when beta is enabled and QBO non-reimbursable export is Credit Card', () => {
+                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), true)).toBe(true);
             });
 
-            it('returns false for policy with gusto connection only', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {config: {approvalMode: null, finalApprover: null}},
-                    },
-                } as Policy;
-                expect(isMergeHRConnected(policy)).toBe(false);
+            it('returns true when beta is enabled and QBO non-reimbursable export is Debit Card', () => {
+                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD), true)).toBe(true);
+            });
+
+            it('returns false when beta is disabled, even with Credit Card export configured', () => {
+                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), false)).toBe(false);
+            });
+
+            it('returns false when QBO non-reimbursable export is Vendor Bill', () => {
+                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL), true)).toBe(false);
+            });
+
+            it('returns false when QBO export destination is not set', () => {
+                expect(hasVendorFeature(buildQBOPolicy(undefined), true)).toBe(false);
+            });
+
+            it('returns false when no QBO connection exists on the policy', () => {
+                const policy = {...createRandomPolicy(0), connections: {}} as Policy;
+                expect(hasVendorFeature(policy, true)).toBe(false);
+            });
+
+            it('returns false when policy is undefined', () => {
+                expect(hasVendorFeature(undefined, true)).toBe(false);
             });
         });
 
-        describe('getConnectedHRProvider', () => {
-            it('returns null for no connections', () => {
-                const policy = createRandomPolicy(0);
-                delete policy.connections;
-                expect(getConnectedHRProvider(policy)).toBeNull();
+        describe('getQBOVendors', () => {
+            it('returns the vendor list from the QBO connection', () => {
+                const vendors = [
+                    {id: 'v-1', name: 'Acme', currency: 'USD'},
+                    {id: 'v-2', name: 'Other Co', currency: 'USD'},
+                ];
+                const policy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, vendors);
+                expect(getQBOVendors(policy)).toEqual(vendors);
             });
 
-            it('returns Gusto when only Gusto is connected', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {config: {approvalMode: null, finalApprover: null}},
-                    },
-                } as Policy;
-                const provider = getConnectedHRProvider(policy);
-                expect(provider?.connectionName).toBe(CONST.POLICY.CONNECTIONS.NAME.GUSTO);
+            it('returns an empty array when no QBO connection exists', () => {
+                const policy = {...createRandomPolicy(0), connections: {}} as Policy;
+                expect(getQBOVendors(policy)).toEqual([]);
             });
 
-            it('prefers Gusto when both Gusto and Zenefits are connected', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {config: {approvalMode: null, finalApprover: null}},
-                        [CONST.POLICY.CONNECTIONS.NAME.ZENEFITS]: {config: {approvalMode: null, finalApprover: null, isConfigured: true}},
-                    },
-                } as Policy;
-                const provider = getConnectedHRProvider(policy);
-                expect(provider?.connectionName).toBe(CONST.POLICY.CONNECTIONS.NAME.GUSTO);
-            });
-
-            it('returns Merge HR with displayName from integration slug', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {approvalMode: null, finalApprover: null, integration: 'workday'}},
-                    },
-                } as Policy;
-                const provider = getConnectedHRProvider(policy);
-                expect(provider?.connectionName).toBe(CONST.POLICY.CONNECTIONS.NAME.MERGE_HR);
-                expect(provider?.displayName).toBe('Workday');
-                expect(provider?.mergeSlug).toBe('workday');
+            it('returns an empty array when policy is undefined', () => {
+                expect(getQBOVendors(undefined)).toEqual([]);
             });
         });
 
-        describe('isAnyHRConnected', () => {
-            it('returns false for empty connections', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    connections: {},
-                } as Policy;
-                expect(isAnyHRConnected(policy)).toBe(false);
+        describe('getQBOVendorByID', () => {
+            it('returns the matching vendor when the ID exists in the list', () => {
+                const policy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, [
+                    {id: 'v-1', name: 'Acme', currency: 'USD'},
+                    {id: 'v-2', name: 'Other Co', currency: 'USD'},
+                ]);
+                expect(getQBOVendorByID(policy, 'v-2')).toEqual({id: 'v-2', name: 'Other Co', currency: 'USD'});
             });
 
-            it('returns true for Gusto', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {config: {approvalMode: null, finalApprover: null}},
-                    },
-                } as Policy;
-                expect(isAnyHRConnected(policy)).toBe(true);
+            it('returns undefined when the ID is not in the list (the inactive-vendor case)', () => {
+                const policy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD);
+                expect(getQBOVendorByID(policy, 'v-missing')).toBeUndefined();
             });
 
-            it('returns true for Zenefits', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.ZENEFITS]: {config: {approvalMode: null, finalApprover: null, isConfigured: true}},
-                    },
-                } as Policy;
-                expect(isAnyHRConnected(policy)).toBe(true);
-            });
-
-            it('returns true for Merge HR', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {approvalMode: null, finalApprover: null, integration: 'workday'}},
-                    },
-                } as Policy;
-                expect(isAnyHRConnected(policy)).toBe(true);
-            });
-        });
-
-        describe('isAnyHRReadOnlyWorkflowMode', () => {
-            it('returns false with no HR connections', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    connections: {},
-                } as Policy;
-                expect(isAnyHRReadOnlyWorkflowMode(policy)).toBe(false);
-            });
-
-            it('returns false with custom mode for Gusto', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {config: {approvalMode: CONST.GUSTO.APPROVAL_MODE.CUSTOM, finalApprover: null}},
-                    },
-                } as Policy;
-                expect(isAnyHRReadOnlyWorkflowMode(policy)).toBe(false);
-            });
-
-            it('returns true with basic mode for Gusto', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {config: {approvalMode: CONST.GUSTO.APPROVAL_MODE.BASIC, finalApprover: null}},
-                    },
-                } as Policy;
-                expect(isAnyHRReadOnlyWorkflowMode(policy)).toBe(true);
-            });
-
-            it('returns true with manager mode for Zenefits', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.ZENEFITS]: {config: {approvalMode: CONST.ZENEFITS.APPROVAL_MODE.MANAGER, finalApprover: null, isConfigured: true}},
-                    },
-                } as Policy;
-                expect(isAnyHRReadOnlyWorkflowMode(policy)).toBe(true);
-            });
-
-            it('returns true with basic mode for Merge HR', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {approvalMode: CONST.MERGE_HR.APPROVAL_MODE.BASIC, finalApprover: null, integration: 'workday'}},
-                    },
-                } as Policy;
-                expect(isAnyHRReadOnlyWorkflowMode(policy)).toBe(true);
-            });
-        });
-
-        describe('getHRApprovalMode', () => {
-            it('returns null for no connection', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    connections: {},
-                } as Policy;
-                expect(getHRApprovalMode(policy, undefined)).toBeNull();
-            });
-
-            it('returns correct mode for Gusto', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {config: {approvalMode: CONST.GUSTO.APPROVAL_MODE.CUSTOM, finalApprover: null}},
-                    },
-                } as Policy;
-                expect(getHRApprovalMode(policy, CONST.POLICY.CONNECTIONS.NAME.GUSTO)).toBe(CONST.GUSTO.APPROVAL_MODE.CUSTOM);
-            });
-
-            it('returns correct mode for Zenefits', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.ZENEFITS]: {config: {approvalMode: CONST.ZENEFITS.APPROVAL_MODE.MANAGER, finalApprover: null, isConfigured: true}},
-                    },
-                } as Policy;
-                expect(getHRApprovalMode(policy, CONST.POLICY.CONNECTIONS.NAME.ZENEFITS)).toBe(CONST.ZENEFITS.APPROVAL_MODE.MANAGER);
-            });
-
-            it('returns correct mode for Merge HR', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {approvalMode: CONST.MERGE_HR.APPROVAL_MODE.BASIC, finalApprover: null, integration: 'workday'}},
-                    },
-                } as Policy;
-                expect(getHRApprovalMode(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR)).toBe(CONST.MERGE_HR.APPROVAL_MODE.BASIC);
-            });
-
-            it('returns null for unknown connection name', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    connections: {},
-                } as Policy;
-                expect(getHRApprovalMode(policy, CONST.POLICY.CONNECTIONS.NAME.GUSTO)).toBeNull();
+            it('returns undefined when no QBO connection exists', () => {
+                const policy = {...createRandomPolicy(0), connections: {}} as Policy;
+                expect(getQBOVendorByID(policy, 'v-1')).toBeUndefined();
             });
         });
     });

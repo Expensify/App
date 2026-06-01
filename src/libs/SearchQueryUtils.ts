@@ -13,6 +13,7 @@ import type {
     ReportFieldNegatedKey,
     ReportFieldTextKey,
     SearchAmountFilterKeys,
+    SearchAutocompleteResult,
     SearchDateFilterKeys,
     SearchDateKey,
     SearchDatePreset,
@@ -48,6 +49,7 @@ import type {SearchFullscreenNavigatorParamList} from './Navigation/types';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getCleanedTagName} from './PolicyUtils';
 import {getReportName} from './ReportNameUtils';
+import {parse as parseForAutocomplete} from './SearchParser/autocompleteParser';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
 import StringUtils from './StringUtils';
 import {hashText} from './UserUtils';
@@ -953,6 +955,9 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
 
                 if (keyInCorrectForm) {
+                    if (!isNegated && filterKey === FILTER_KEYS.TAG && filterValueArray.length === 1 && filterValueArray.at(0) === CONST.SEARCH.TAG_EMPTY_VALUE) {
+                        return `-${CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS}:${CONST.SEARCH.HAS_VALUES.TAG}`;
+                    }
                     return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeSearchValue).join(',')}`;
                 }
             }
@@ -1096,7 +1101,21 @@ function buildFilterFormValuesFromQuery(
             filtersForm[key as typeof filterKey] = filterValues.filter((expenseType) => VALID_EXPENSE_TYPES.has(expenseType as ExpenseTypeValue)) as ExpenseTypeValues;
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
-            filtersForm[key as typeof filterKey] = filterValues.filter((hasType) => VALID_HAS_TYPES.has(hasType as HasFilterValue)) as HasFilterValues;
+            const validHasFilters = filterList.filter((item) => VALID_HAS_TYPES.has(item.value as HasFilterValue));
+            const positiveHasFilters = validHasFilters.filter((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO).map((item) => item.value.toString()) as HasFilterValues;
+            const negatedHasFilters = validHasFilters.filter((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO).map((item) => item.value.toString()) as HasFilterValues;
+            const hasNegatedTagFilter = negatedHasFilters.includes(CONST.SEARCH.HAS_VALUES.TAG);
+            const remainingNegatedHasFilters = negatedHasFilters.filter((hasType) => hasType !== CONST.SEARCH.HAS_VALUES.TAG);
+
+            if (hasNegatedTagFilter) {
+                filtersForm[FILTER_KEYS.TAG] = [CONST.SEARCH.TAG_EMPTY_VALUE];
+            }
+            if (positiveHasFilters.length > 0) {
+                filtersForm[FILTER_KEYS.HAS] = positiveHasFilters;
+            }
+            if (remainingNegatedHasFilters.length > 0) {
+                filtersForm[FILTER_KEYS.HAS_NOT] = remainingNegatedHasFilters;
+            }
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS) {
             filtersForm[key as typeof filterKey] = filterValues.filter((isType) => VALID_IS_TYPES.has(isType as IsFilterValue)) as IsFilterValues;
@@ -1860,6 +1879,18 @@ function traverseAndUpdatedQuery(queryJSON: SearchQueryJSON | Readonly<SearchQue
     return standardQuery;
 }
 
+function getKeywordQueryWithCurrentSearchContext(queryString: SearchQueryString, currentQueryJSON: Readonly<SearchQueryJSON>): SearchQueryString {
+    const autocompleteRanges = (parseForAutocomplete(queryString) as SearchAutocompleteResult).ranges;
+    const hasOnlyKeywordSearch = queryString.trim().length > 0 && autocompleteRanges.length === 0;
+    if (!hasOnlyKeywordSearch) {
+        return queryString;
+    }
+
+    const currentFiltersWithoutKeywords = currentQueryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+    const currentQueryString = buildSearchQueryString({...currentQueryJSON, flatFilters: currentFiltersWithoutKeywords});
+    return `${currentQueryString} ${queryString}`;
+}
+
 /**
  * Returns new string query, after parsing it and traversing to update some filter values.
  * If there are any personal emails, it will try to substitute them with accountIDs
@@ -2087,33 +2118,6 @@ function getEmptyDateValues(): SearchDateValues {
 }
 
 /**
- * Returns an object containing the filter values needed to reset
- * the currently applied advanced filters back to their initial state.
- *
- * - STATUS is reset to `ALL`
- * - TYPE is reset to `EXPENSE`
- * - Other filters are reset to `undefined`
- * - COLUMNS is excluded from resetting
- */
-function getAdvancedFiltersToReset(searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>) {
-    return Object.keys(searchAdvancedFiltersForm).reduce((acc, filterKey) => {
-        if (filterKey === FILTER_KEYS.STATUS) {
-            if (searchAdvancedFiltersForm[filterKey] !== CONST.SEARCH.STATUS.EXPENSE.ALL) {
-                acc[filterKey] = CONST.SEARCH.STATUS.EXPENSE.ALL;
-            }
-        } else if (filterKey === FILTER_KEYS.TYPE) {
-            if (searchAdvancedFiltersForm[filterKey] !== CONST.SEARCH.DATA_TYPES.EXPENSE) {
-                acc[filterKey] = CONST.SEARCH.DATA_TYPES.EXPENSE;
-            }
-        } else if (filterKey !== FILTER_KEYS.COLUMNS) {
-            acc[filterKey as SearchAdvancedFiltersKey] = undefined;
-        }
-
-        return acc;
-    }, {} as Partial<SearchAdvancedFiltersForm>);
-}
-
-/**
  * Set of filter keys that represent free-text fields where the default `:` (eq) operator
  * should be treated as a substring/partial match (`contains`) when querying the backend.
  * This allows searches like `merchant:coffee` to match "Coffee shop".
@@ -2188,6 +2192,7 @@ export {
     buildCannedSearchQuery,
     sanitizeSearchValue,
     getQueryWithUpdatedValues,
+    getKeywordQueryWithCurrentSearchContext,
     getCurrentSearchQueryJSON,
     getQueryWithoutFilters,
     isDefaultExpensesQuery,
@@ -2203,7 +2208,6 @@ export {
     buildOptimisticSnapshotData,
     getDateFilterKeys,
     getEmptyDateValues,
-    getAdvancedFiltersToReset,
     getDateModifierTitle,
     applyContainsOperatorToTextFields,
     serializeQueryJSONForBackend,

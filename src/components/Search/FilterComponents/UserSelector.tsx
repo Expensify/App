@@ -1,6 +1,5 @@
 import React, {useRef} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import type {SearchFilterSelectionListProps} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
@@ -16,19 +15,18 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ListFilterWrapper from './ListFilterViewWrapper';
 
-type UserSelectorProps = SearchFilterSelectionListProps & {
+type UserSelectorProps = {
     value: string[] | undefined;
-    autoFocus?: boolean;
     onChange: (options: string[]) => void;
 };
 
-function UserSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus = true, footer, onChange}: UserSelectorProps) {
+function UserSelector({value = [], onChange}: UserSelectorProps) {
     const selectionListRef = useRef<SelectionListHandle<ListItem> | null>(null);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const shouldFocusInputOnScreenFocus = autoFocus && canFocusInputOnScreenFocus();
+    const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const initialSelectedAccountIDs = value.reduce<Set<string>>((acc, id) => {
@@ -82,9 +80,6 @@ function UserSelector({value = [], selectionListTextInputStyle, selectionListSty
               onChangeText: setSearchTerm,
               headerMessage,
               disableAutoFocus: !shouldFocusInputOnScreenFocus,
-              style: {
-                  containerStyle: selectionListTextInputStyle,
-              },
           }
         : undefined;
 
@@ -102,8 +97,7 @@ function UserSelector({value = [], selectionListTextInputStyle, selectionListSty
                 onSelectRow={selectUser}
                 isLoadingNewOptions={isLoadingNewOptions}
                 shouldShowLoadingPlaceholder={!areOptionsInitialized}
-                style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
-                footerContent={footer}
+                style={{contentContainerStyle: [styles.pb0]}}
             />
         </ListFilterWrapper>
     );
