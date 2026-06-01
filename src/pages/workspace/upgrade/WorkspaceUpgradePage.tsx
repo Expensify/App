@@ -20,18 +20,13 @@ import {canEditWorkspaceSettings, canModifyPlan, getDefaultApprover, getPerDiemC
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import {
-    enableAutoApprovalOptions,
-    enableCompanyCards,
     enableExpensifyCard,
-    enablePolicyAutoReimbursementLimit,
     enablePolicyConnections,
     enablePolicyHR,
     enablePolicyInvoicing,
     enablePolicyReportFields,
-    enablePolicyRules,
     isCurrencySupportedForDirectReimbursement,
     setPolicyPreventMemberCreatedTitle,
-    setPolicyPreventSelfApproval,
     setWorkspaceApprovalMode,
     setWorkspaceReimbursement,
     upgradeToCorporate,
@@ -154,7 +149,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }
 
         const featureKey = feature ? FEATURE_ID_TO_ATTRIBUTE_KEY[feature.id] : undefined;
-        const perDiemCustomUnitID = featureKey === 'arePerDiemRatesEnabled' ? perDiemCustomUnit?.customUnitID : undefined;
+        const perDiemCustomUnitID = featureKey === CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED ? perDiemCustomUnit?.customUnitID : undefined;
         upgradeToCorporate(policy, featureKey, perDiemCustomUnitID);
     };
 
@@ -172,15 +167,6 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             return;
         }
         switch (feature.id) {
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.preventSelfApproval.id:
-                setPolicyPreventSelfApproval(policyID, true, policy?.preventSelfApproval);
-                break;
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoApproveCompliantReports.id:
-                enableAutoApprovalOptions(policyID, true, policy?.shouldShowAutoApprovalOptions, policy?.autoApproval?.limit, policy?.autoApproval?.auditRate);
-                break;
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.id:
-                enablePolicyAutoReimbursementLimit(policyID, true, policy?.shouldShowAutoReimbursementLimitOption, policy?.autoReimbursement?.limit);
-                break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id:
                 switch (route.params.featureName) {
                     case CONST.REPORT_FIELDS_FEATURE.qbo.classes:
@@ -208,16 +194,6 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                         enablePolicyReportFields(policyID, true);
                     }
                 }
-                break;
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
-                enablePolicyRules(policy, true, false, policyDataRef.current);
-                break;
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.id:
-                enableCompanyCards(policyID, true, false);
-                break;
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id:
-                enablePerDiem(policyID, true, perDiemCustomUnit?.customUnitID, false);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.id:
                 enablePolicyHR(policyID, true);
@@ -263,35 +239,6 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 break;
             default:
                 break;
-
-        // QBO/Xero report-field sync updates require connection-specific API calls
-        // that can't be handled by the generic featureKey parameter
-        if (feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id) {
-            switch (route.params.featureName) {
-                case CONST.REPORT_FIELDS_FEATURE.qbo.classes:
-                    updateQuickbooksOnlineSyncClasses(policyID, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD, qboConfig?.syncClasses);
-                    break;
-                case CONST.REPORT_FIELDS_FEATURE.qbo.customers:
-                    updateQuickbooksOnlineSyncCustomers(policyID, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD, qboConfig?.syncCustomers);
-                    break;
-                case CONST.REPORT_FIELDS_FEATURE.qbo.locations:
-                    updateQuickbooksOnlineSyncLocations(policyID, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD, qboConfig?.syncLocations);
-                    break;
-                case CONST.REPORT_FIELDS_FEATURE.xero.mapping: {
-                    const {trackingCategories} = policy?.connections?.xero?.data ?? {};
-                    const currentTrackingCategory = trackingCategories?.find((category) => category.id === categoryId);
-                    const {mappings} = policy?.connections?.xero?.config ?? {};
-                    const currentTrackingCategoryValue = currentTrackingCategory ? (mappings?.[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${currentTrackingCategory.id}`] ?? '') : '';
-                    updateXeroMappings(
-                        policyID,
-                        categoryId ? {[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`]: CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.REPORT_FIELD} : {},
-                        categoryId ? {[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`]: currentTrackingCategoryValue} : {},
-                    );
-                    break;
-                }
-                default:
-                    break;
-            }
         }
     }, [
         policyID,
