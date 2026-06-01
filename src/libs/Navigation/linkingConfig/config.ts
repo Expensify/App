@@ -1232,6 +1232,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.TAX_CREATE]: {
                             path: ROUTES.WORKSPACE_TAX_CREATE.route,
                         },
+                        [SCREENS.WORKSPACE.TAX_CREATE_VALUE]: {
+                            path: ROUTES.WORKSPACE_TAX_CREATE_VALUE.route,
+                        },
                         [SCREENS.WORKSPACE.TAX_EDIT]: {
                             path: ROUTES.WORKSPACE_TAX_EDIT.route,
                         },

@@ -977,7 +977,11 @@
         "zxcv",
         "zxldvw",
         "águero",
-        "مثال"
+        "مثال",
+        "NitroFetch",
+        "Prefetch",
+        "Prefetcher",
+        "knip"
     ],
     "ignorePaths": [
         ".gitignore",

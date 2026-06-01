@@ -11,10 +11,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToBackendAmount, convertToFrontendAmountAsString, getCurrencyDecimals, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {formatToParts} from '@libs/NumberFormatUtils';
 import {parseFloatAnyLocale, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getTransactionDetails, isInvoiceReport, shouldEnableNegative} from '@libs/ReportUtils';
-import {getCurrency as getTransactionCurrency, isDeletedTransaction, isExpenseUnreported, isScanning} from '@libs/TransactionUtils';
+import {isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {isExpenseReport, isInvoiceReport, shouldEnableNegative} from '@libs/ReportUtils';
+import {getAmount as getTransactionAmount, getCurrency as getTransactionCurrency, isDeletedTransaction, isExpenseUnreported, isScanning} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {Policy, Report} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
 type TotalCellProps = TransactionDataCellProps &
@@ -42,15 +44,16 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
     const {convertToDisplayString} = useCurrencyListActions();
     const currency = getTransactionCurrency(transactionItem);
 
+    const effectiveReport = report ?? transactionItem.report;
+    const effectivePolicy = policy ?? transactionItem.policy;
     const isDeleted = isDeletedTransaction(transactionItem);
-    const amount = getTransactionDetails(transactionItem, undefined, undefined, isDeleted)?.amount;
+    const isFromExpenseReport = (!isEmptyObject(effectiveReport) && isExpenseReport(effectiveReport)) || isPaidGroupPolicy(effectivePolicy);
+    const amount = getTransactionAmount(transactionItem, isFromExpenseReport, transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID, isDeleted);
     let amountToDisplay = convertToDisplayString(amount, currency);
     if (isScanning(transactionItem)) {
         amountToDisplay = translate('iou.receiptStatusTitle');
     }
 
-    const effectiveReport = report ?? transactionItem.report;
-    const effectivePolicy = policy ?? transactionItem.policy;
     const iouType = getTransactionItemIouType({...transactionItem, report: effectiveReport});
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isUnreportedExpense = isExpenseUnreported(transactionItem);
