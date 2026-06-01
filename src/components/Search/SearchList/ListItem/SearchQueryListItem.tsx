@@ -4,11 +4,13 @@ import type {ValueOf} from 'type-fest';
 import Icon from '@components/Icon';
 import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItem, ListItemFocusEventHandler} from '@components/SelectionList/ListItem/types';
+import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {OptionData} from '@libs/ReportUtils';
 import type CONST from '@src/CONST';
+import type {Route} from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type SearchQueryItem = ListItem & {
@@ -20,6 +22,10 @@ type SearchQueryItem = ListItem & {
     autocompleteID?: string;
     roomType?: ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
     mapKey?: string;
+    /** For NAVIGATE items: the route to navigate to when the item is selected */
+    route?: Route;
+    /** Optional small, muted text shown on the right side of the row (e.g. the workspace name for a workspace page) */
+    rightText?: string;
 };
 
 type SearchQueryListItemProps = {
@@ -89,6 +95,14 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
                         />
                     )}
                 </View>
+                {!!item.rightText && (
+                    <Text
+                        numberOfLines={1}
+                        style={[styles.textMicroSupporting, styles.ml2, styles.flexShrink0]}
+                    >
+                        {item.rightText}
+                    </Text>
+                )}
             </>
         </BaseListItem>
     );
