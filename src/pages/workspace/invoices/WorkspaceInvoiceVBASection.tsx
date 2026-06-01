@@ -30,7 +30,7 @@ type WorkspaceInvoiceVBASectionProps = {
     /** The policy ID currently being configured */
     policyID: string;
 
-    /** Whether the current user can edit invoicing settings. */
+    /** Whether the current user can edit miscellaneous settings. */
     canWriteMoreFeatures: boolean;
 };
 
