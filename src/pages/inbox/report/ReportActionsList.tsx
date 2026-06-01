@@ -874,6 +874,8 @@ function ReportActionsList({
         requestAnimationFrame(() => setShouldAutoscrollToBottom(false));
     }, [shouldFocusToTopOnMount, shouldAutoscrollToBottom, prevHasOnceLoadedReportActions, reportLoadingState?.hasOnceLoadedReportActions]);
 
+    console.log('[ReportActionsList]', renderedVisibleReportActions);
+
     return (
         <>
             <FloatingMessageCounter
