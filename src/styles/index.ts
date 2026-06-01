@@ -703,7 +703,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         tabNavigatorBarContainer: {
-            zIndex: 1,
             width: variables.navigationTabBarSize + variables.sideBarWithLHBWidth,
             marginRight: -variables.sideBarWithLHBWidth,
             overflow: 'visible',
@@ -4714,6 +4713,10 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.appBG,
             borderWidth: 2,
             overflow: 'hidden',
+        },
+
+        sidebarStatusAvatarHovered: {
+            borderColor: theme.hoverComponentBG,
         },
 
         profilePageAvatar: {
