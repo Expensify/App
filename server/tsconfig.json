@@ -3,10 +3,10 @@
     "compilerOptions": {
         "types": ["@types/bun"],
         "paths": {
+            "@libs/*": ["./libs/*"],
+            "@plugins/*": ["./plugins/*"],
             "@scripts/*": ["../scripts/*", "../.github/scripts/*"],
-            "@src/*": ["../src/*"],
-            "new.expensify/server/libs/parseCompileTarget": ["./libs/parseCompileTarget.ts"],
-            "new.expensify/server/plugins/rnStubPlugin": ["./plugins/rnStubPlugin.ts"]
+            "@src/*": ["../src/*"]
         }
     },
     "include": ["stubs", "plugins", "libs", "victory-chart-renderer/src", "victory-chart-renderer/tests", "victory-chart-renderer/scripts"]
