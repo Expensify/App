@@ -9,6 +9,7 @@ import {search} from '@libs/actions/Search';
 import {getDisplayableExpensifyCards} from '@libs/CardUtils';
 import {arePaymentsEnabled, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -285,9 +286,37 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const approvalTotals: YourSpendRowTotals = shouldUseCachedApproval && cachedApprovalReady ? cachedApprovalReady : approvalTotalsRaw;
     const paymentTotals: YourSpendRowTotals = shouldUseCachedPayment && cachedPaymentReady ? cachedPaymentReady : paymentTotalsRaw;
 
-    // Re-fires the search effect when applicability flips or the user
-    // joins/leaves a workspace (which changes the policyID filter).
-    const applicabilityKey = `${isApprovalApplicable ? 1 : 0}${isPaymentApplicable ? 1 : 0}|${paidGroupPolicyIDs.join(',')}`;
+    // Signature of the reports the user owns on a paid group workspace that are currently
+    // OUTSTANDING (awaiting approval). The home query results are cached snapshots that are
+    // not patched when a report's state changes, so without this the "Awaiting approval"
+    // total stays stale after the user approves their last outstanding expense. Folding the
+    // signature into the search effect's key refires the search whenever a report enters or
+    // leaves the OUTSTANDING state.
+    const [outstandingReportsSignature] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: (reports) => {
+            if (!reports || paidGroupPolicyIDs.length === 0) {
+                return '';
+            }
+            const policyIDSet = new Set(paidGroupPolicyIDs);
+            const ids: string[] = [];
+            for (const report of Object.values(reports)) {
+                if (
+                    report?.policyID &&
+                    policyIDSet.has(report.policyID) &&
+                    report.ownerAccountID === accountID &&
+                    report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED &&
+                    report.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED
+                ) {
+                    ids.push(report.reportID);
+                }
+            }
+            return ids.sort().join(',');
+        },
+    });
+
+    // Re-fires the search effect when applicability flips, the user joins/leaves a workspace
+    // (which changes the policyID filter), or the set of OUTSTANDING reports changes.
+    const applicabilityKey = `${isApprovalApplicable ? 1 : 0}${isPaymentApplicable ? 1 : 0}|${paidGroupPolicyIDs.join(',')}|${outstandingReportsSignature ?? ''}`;
 
     const fireSearches = useEffectEvent(() => {
         if (isOffline) {

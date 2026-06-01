@@ -19,7 +19,7 @@ import {buildAwaitingApprovalQuery, buildRecentCardTransactionsQuery, buildRepai
 import {useYourSpendData} from '@pages/home/YourSpendSection/useYourSpendData';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, Policy} from '@src/types/onyx';
+import type {Card, Policy, Report} from '@src/types/onyx';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type SearchResults from '@src/types/onyx/SearchResults';
 
@@ -468,5 +468,71 @@ describe('useYourSpendData — approval cache is keyed by query hash', () => {
 
         // Should NOT be READY — the cache for hash A must not apply to hash B.
         expect(result.current.approvalRowState).not.toBe(YOUR_SPEND_ROW_STATE.READY);
+    });
+});
+
+// refire on report state change
+
+describe('useYourSpendData — refires search when a relevant report state changes', () => {
+    function makeReport(overrides: Partial<Report> = {}): Report {
+        return {
+            reportID: 'r1',
+            policyID: 'policy_1',
+            ownerAccountID: ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            ...overrides,
+        } as Report;
+    }
+
+    function setupReports(reports: Report[]) {
+        onyxData[ONYXKEYS.COLLECTION.REPORT] = Object.fromEntries(reports.map((r) => [`${ONYXKEYS.COLLECTION.REPORT}${r.reportID}`, r]));
+    }
+
+    /** Counts how many times search() has been dispatched for the approval query. */
+    function approvalSearchCallCount(): number {
+        const approvalHash = buildSearchQueryJSON(APPROVAL_QUERY)?.hash;
+        return mockedSearch.mock.calls.filter((call) => call.at(0)?.queryJSON?.hash === approvalHash).length;
+    }
+
+    beforeEach(() => {
+        mockedIsPaidGroupPolicy.mockReturnValue(true);
+        setupPolicies([makeCorporatePolicy({id: 'policy_1'})]);
+    });
+
+    it('refires the approval search when an owned report leaves the OUTSTANDING state', () => {
+        setupReports([makeReport()]);
+        const {rerender} = renderHook(() => useYourSpendData());
+        const before = approvalSearchCallCount();
+
+        // Approve the report: it leaves the OUTSTANDING set, so the signature changes.
+        setupReports([makeReport({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED})]);
+        rerender(undefined);
+
+        expect(approvalSearchCallCount()).toBeGreaterThan(before);
+    });
+
+    it('does not refire when an unrelated field on the report changes', () => {
+        setupReports([makeReport({reportName: 'Before'})]);
+        const {rerender} = renderHook(() => useYourSpendData());
+        const before = approvalSearchCallCount();
+
+        // Same state/status, only a non-projected field changes — signature is unchanged.
+        setupReports([makeReport({reportName: 'After'})]);
+        rerender(undefined);
+
+        expect(approvalSearchCallCount()).toBe(before);
+    });
+
+    it('does not refire when an OUTSTANDING report on an unrelated policy changes', () => {
+        setupReports([makeReport()]);
+        const {rerender} = renderHook(() => useYourSpendData());
+        const before = approvalSearchCallCount();
+
+        // Add an OUTSTANDING report on a policy that is not in paidGroupPolicyIDs.
+        setupReports([makeReport(), makeReport({reportID: 'r2', policyID: 'policy_other'})]);
+        rerender(undefined);
+
+        expect(approvalSearchCallCount()).toBe(before);
     });
 });
