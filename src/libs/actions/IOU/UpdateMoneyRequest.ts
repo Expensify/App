@@ -1534,7 +1534,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         // Update violation limit, if we modify attendees. The given limit value is for a single attendee, if we have multiple attendees we should multiply limit by attendee count
         const overLimitViolation = violations?.find((violation) => violation.name === 'overLimit');
         if (overLimitViolation) {
-            const limitForSingleAttendee = ViolationsUtils.getViolationAmountLimit(overLimitViolation);
+            const limitForSingleAttendee = overLimitViolation.data?.amount ?? 0;
             if (limitForSingleAttendee * (transactionChanges?.attendees?.length ?? 1) > Math.abs(getAmount(transaction))) {
                 optimisticData.push({
                     onyxMethod: Onyx.METHOD.MERGE,
@@ -1647,18 +1647,18 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             );
         }
 
-        const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
+        const violationsOnyxData = ViolationsUtils.getViolationsOnyxData({
             updatedTransaction,
-            optimisticViolations,
+            transactionViolations: optimisticViolations,
             policy,
-            policyTagList ?? {},
-            policyCategories ?? {},
-            hasDependentTags(policy, policyTagList ?? {}),
-            isInvoice,
-            isSelfDM(iouReport),
+            policyTagList: policyTagList ?? {},
+            policyCategories: policyCategories ?? {},
+            hasDependentTags: hasDependentTags(policy, policyTagList ?? {}),
+            isInvoiceTransaction: isInvoice,
+            isSelfDM: isSelfDM(iouReport),
             iouReport,
             isFromExpenseReport,
-        );
+        });
         optimisticData.push(violationsOnyxData);
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,

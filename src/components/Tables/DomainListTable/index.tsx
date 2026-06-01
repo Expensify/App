@@ -18,6 +18,7 @@ type DomainRowData = {
     keyForList: string;
     domainAccountID: number;
     title: string;
+    disabled: boolean;
     isAdmin: boolean;
     isValidated: boolean;
     pendingAction?: OnyxCommon.PendingAction;

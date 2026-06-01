@@ -41,6 +41,7 @@ import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustra
 import ExpensifyCardProtectionIllustration from '@assets/images/expensifyCard/cardProtectionIllustration.svg';
 // Other Images
 import Hand from '@assets/images/hand.svg';
+import LaptopWithMembers from '@assets/images/illustration-laptop-members.svg';
 import LaptopOnDeskWithCoffeeAndKey from '@assets/images/laptop-on-desk-with-coffee-and-key.svg';
 import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
@@ -113,6 +114,7 @@ import Binoculars from '@assets/images/simple-illustrations/simple-illustration_
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
 import Broom from '@assets/images/simple-illustrations/simple-illustration__broom.svg';
 import Building from '@assets/images/simple-illustrations/simple-illustration__building.svg';
+import BuildingCross from '@assets/images/simple-illustrations/simple-illustration__building_cross.svg';
 import Buildings from '@assets/images/simple-illustrations/simple-illustration__buildings.svg';
 import CalculatorMoney from '@assets/images/simple-illustrations/simple-illustration__calculator-money.svg';
 import CalendarMonthly from '@assets/images/simple-illustrations/simple-illustration__calendar-monthly.svg';
@@ -251,6 +253,7 @@ const Illustrations = {
     LaptopWithSecondScreenSync,
     LaptopWithSecondScreenX,
     LaptopOnDeskWithCoffeeAndKey,
+    LaptopWithMembers,
 
     // Expensify Card
     ExpensifyCardIllustration,
@@ -315,6 +318,7 @@ const Illustrations = {
     Accounting,
     AiBot,
     Building,
+    BuildingCross,
     BankCoin,
     Coins,
     CreditCardsNew,

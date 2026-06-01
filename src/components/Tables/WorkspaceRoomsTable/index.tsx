@@ -1,6 +1,5 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
-import {View} from 'react-native';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 import Table from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
@@ -65,9 +64,7 @@ function WorkspaceRoomsTable({rooms}: WorkspaceRoomsTableProps) {
             title={translate('workspace.common.rooms')}
             keyExtractor={(row, index) => `${row.reportID}-${index}`}
         >
-            <View style={[styles.searchBarMargin, styles.searchBarWidth(shouldUseNarrowTableLayout)]}>
-                <Table.SearchBar label={translate('workspace.common.findRoom')} />
-            </View>
+            <Table.SearchBar label={translate('workspace.common.findRoom')} />
             <Table.Header />
             <Table.Body />
         </Table>

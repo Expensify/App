@@ -619,7 +619,10 @@ function WorkspacesListPage() {
     useAndroidBackButtonHandler(onBackButtonPress);
 
     return (
-        <WorkspaceListLayout headerButton={headerButton}>
+        <WorkspaceListLayout
+            activeTabKey="workspaces"
+            headerButton={headerButton}
+        >
             {shouldShowLoadingIndicator ? (
                 <View style={[styles.flex1, styles.fullScreenLoading]}>
                     <ActivityIndicator
