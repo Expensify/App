@@ -47,9 +47,10 @@ type WorkspaceRowData = {
 type WorkspaceListTableProps = {
     ref?: React.Ref<TableHandle<WorkspaceRowData, WorkspaceTableColumnKey, string>> | undefined;
     workspaces: WorkspaceRowData[];
+    headerComponent: React.JSX.Element;
 };
 
-export default function WorkspaceListTable({ref, workspaces}: WorkspaceListTableProps) {
+export default function WorkspaceListTable({ref, headerComponent, workspaces}: WorkspaceListTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -104,6 +105,7 @@ export default function WorkspaceListTable({ref, workspaces}: WorkspaceListTable
             isItemInSearch={isTableItemInSearch}
             initialSortColumn="workspaces"
             title={translate('common.workspaces')}
+            ListHeaderComponent={headerComponent}
             ListEmptyComponent={WorkspacesEmptyStateComponent}
             keyExtractor={(row, index) => `${row.policyID}-${index}`}
         >

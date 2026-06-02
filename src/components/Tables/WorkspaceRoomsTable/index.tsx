@@ -14,9 +14,11 @@ type WorkspaceRoomsTableColumnKey = 'name' | 'createdBy' | 'members' | 'actions'
 type WorkspaceRoomsTableProps = {
     /** Pre-built row data for each room */
     rooms: WorkspaceRoomRowData[];
+
+    headerComponent: React.JSX.Element;
 };
 
-function WorkspaceRoomsTable({rooms}: WorkspaceRoomsTableProps) {
+function WorkspaceRoomsTable({rooms, headerComponent}: WorkspaceRoomsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -63,6 +65,7 @@ function WorkspaceRoomsTable({rooms}: WorkspaceRoomsTableProps) {
             initialSortColumn="name"
             title={translate('workspace.common.rooms')}
             keyExtractor={(row, index) => `${row.reportID}-${index}`}
+            ListHeaderComponent={headerComponent}
         >
             <Table.SearchBar label={translate('workspace.common.findRoom')} />
             <Table.Header />

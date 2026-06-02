@@ -28,9 +28,10 @@ type DomainRowData = {
 
 type DomainListTableProps = {
     domains: DomainRowData[];
+    headerComponent: React.JSX.Element;
 };
 
-export default function DomainListTable({domains}: DomainListTableProps) {
+export default function DomainListTable({domains, headerComponent}: DomainListTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -71,6 +72,7 @@ export default function DomainListTable({domains}: DomainListTableProps) {
             initialSortColumn="domains"
             title={translate('common.domains')}
             ListEmptyComponent={DomainListEmptyState}
+            ListHeaderComponent={headerComponent}
             keyExtractor={(row, index) => `${row.domainAccountID}-${index}`}
         >
             {domains.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.common.findDomain')} />}
