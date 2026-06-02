@@ -976,7 +976,8 @@
         "مثال",
         "NitroFetch",
         "Prefetch",
-        "Prefetcher"
+        "Prefetcher",
+        "knip"
     ],
     "ignorePaths": [
         ".gitignore",
