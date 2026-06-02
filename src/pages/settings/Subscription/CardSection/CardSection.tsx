@@ -100,15 +100,6 @@ function CardSection() {
     const viewPurchases = () => {
         const query = buildQueryStringFromFilterFormValues({
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            status: [
-                CONST.SEARCH.STATUS.EXPENSE.UNREPORTED,
-                CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
-                CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
-                CONST.SEARCH.STATUS.EXPENSE.APPROVED,
-                CONST.SEARCH.STATUS.EXPENSE.DONE,
-                CONST.SEARCH.STATUS.EXPENSE.PAID,
-                CONST.SEARCH.STATUS.EXPENSE.DELETED,
-            ],
             merchant: CONST.EXPENSIFY_MERCHANT,
             from: session?.accountID ? [session.accountID.toString()] : undefined,
         });
