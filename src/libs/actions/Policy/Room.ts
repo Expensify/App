@@ -1,15 +1,12 @@
 import {read} from '@libs/API';
-import type {OpenWorkspaceRoomsPageParams} from '@libs/API/parameters';
+import type {OpenPolicyRoomsPageParams} from '@libs/API/parameters';
 import {READ_COMMANDS} from '@libs/API/types';
-import Log from '@libs/Log';
 
-export default function openWorkspaceRoomsPage(policyID: string) {
-    if (!policyID) {
-        Log.warn('openWorkspaceRoomsPage invalid params', {policyID});
-        return;
-    }
+function openPolicyRoomsPage(policyID: string) {
+    const params: OpenPolicyRoomsPageParams = {policyID};
 
-    const params: OpenWorkspaceRoomsPageParams = {policyID};
-
-    read(READ_COMMANDS.OPEN_WORKSPACE_ROOMS_PAGE, params);
+    read(READ_COMMANDS.OPEN_POLICY_ROOMS_PAGE, params);
 }
+
+// eslint-disable-next-line import/prefer-default-export
+export {openPolicyRoomsPage};

@@ -20,11 +20,10 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {saveResponse} from '@libs/actions/ExitSurvey';
+import {switchToOldDot} from '@libs/actions/ExitSurvey';
 import {setErrorFields} from '@libs/actions/FormActions';
 import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import StatusBar from '@libs/StatusBar';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
@@ -54,11 +53,6 @@ function DynamicExitSurveyReasonPage() {
     // When the keyboard is shown, the bottom inset doesn't affect the height, so we take it out from the calculation.
     const {top: safeAreaInsetsTop} = useSafeAreaInsets();
 
-    const submitForm = useCallback(() => {
-        saveResponse(draftResponse);
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXIT_SURVEY_CONFIRM.path), {forceReplace: true});
-    }, [draftResponse]);
-
     const goBackJustOnce = useCallback(() => {
         Log.info('[ExitSurvey] User chose Go back just once');
         Navigation.dismissModal();
@@ -79,9 +73,11 @@ function DynamicExitSurveyReasonPage() {
             });
             return;
         }
-        submitForm();
-    }, [draftResponse, submitForm, translate]);
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, switchToClassic);
+        switchToOldDot(draftResponse);
+        Navigation.dismissModal();
+        openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+    }, [draftResponse, translate]);
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, switchToClassic, {isActive: !isOffline});
 
     const formTopMarginsStyle = styles.mt3;
     const baseResponseInputContainerStyle = styles.mt3;
@@ -107,7 +103,7 @@ function DynamicExitSurveyReasonPage() {
             <FormProvider
                 formID={ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM}
                 style={[styles.flex1, styles.mh5, formTopMarginsStyle, StyleUtils.getMaximumHeight(formMaxHeight)]}
-                onSubmit={submitForm}
+                onSubmit={switchToClassic}
                 submitButtonText=""
                 isSubmitButtonVisible={false}
                 shouldValidateOnBlur={false}
