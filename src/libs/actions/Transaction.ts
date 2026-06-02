@@ -1817,25 +1817,8 @@ function changeTransactionsReport({
     });
 }
 
-let storedDefaultP2PMileageRate: DefaultP2PMileageRate | undefined;
-
 function getDefaultP2PMileageRate() {
-    // Reset before each fetch so a stale rate from a previous session/account can't leak
-    // through flows that call openApp without a full reload (sign-out, supportal, delegate switch).
-    storedDefaultP2PMileageRate = undefined;
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_DEFAULT_P2P_MILEAGE_RATE, null).then((response) => {
-        const updates = response?.onyxData as Array<{key: string; value: unknown}> | undefined;
-        const rateUpdate = updates?.find((update) => update.key === 'defaultP2PMileageRate');
-        const value = rateUpdate?.value;
-        if (value && typeof value === 'object' && 'rate' in value && 'unit' in value) {
-            storedDefaultP2PMileageRate = value as DefaultP2PMileageRate;
-        }
-    });
-}
-
-function getStoredDefaultP2PMileageRate(): DefaultP2PMileageRate | undefined {
-    return storedDefaultP2PMileageRate;
+    API.read(READ_COMMANDS.GET_DEFAULT_P2P_MILEAGE_RATE, null);
 }
 
 function mergeTransactionIdsHighlightOnSearchRoute(type: SearchDataTypes, data: Record<string, boolean> | null) {

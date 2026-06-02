@@ -27,6 +27,9 @@ const ONYXKEYS = {
      * which tab is the leader, and which ones are the followers */
     ACTIVE_CLIENTS: 'activeClients',
 
+    /** Contains the default rate and unit to use for P2P distance expenses, based on the user's personal policy outputCurrency. */
+    DEFAULT_P2P_MILEAGE_RATE: 'defaultP2PMileageRate',
+
     /** A unique ID for the device */
     DEVICE_ID: 'deviceID',
 
