@@ -3968,8 +3968,7 @@ function buildNewReportOptimisticData(
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
 
-    // TODO: We'll pass the conciergeReportID in the next PR. Ref: https://github.com/Expensify/App/issues/66411
-    const message = getReportPreviewMessage(optimisticReportData, undefined);
+    const message = getReportPreviewMessage(optimisticReportData);
     const createReportActionMessage = [
         {
             html: message,

@@ -4541,7 +4541,7 @@ function createWorkspaceFromIOUPayment(
                     message: [
                         {
                             type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                            text: ReportUtils.getReportPreviewMessage(expenseReport, conciergeReportID, null, false, false, newWorkspace),
+                            text: ReportUtils.getReportPreviewMessage(expenseReport, null, false, false, newWorkspace),
                         },
                     ],
                     created: DateUtils.getDBTime(),

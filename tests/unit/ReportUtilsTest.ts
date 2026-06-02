@@ -182,6 +182,7 @@ import type {
     Report,
     ReportAction,
     ReportActions,
+    ReportAttributesDerivedValue,
     ReportMetadata,
     ReportNameValuePairs,
     Transaction,
@@ -14381,7 +14382,7 @@ describe('ReportUtils', () => {
             };
 
             // When we call getReportPreviewMessage
-            const result = getReportPreviewMessage(report, undefined, reportAction, false, false, undefined, false, reportAction);
+            const result = getReportPreviewMessage(report, reportAction, false, false, undefined, false, reportAction);
 
             // Then it should return the childReportName instead of "payer owes $0"
             expect(result).toBe('Expense Report 2025-01-15');
@@ -14401,7 +14402,7 @@ describe('ReportUtils', () => {
             };
 
             // When we call getReportPreviewMessage
-            const result = getReportPreviewMessage(report, undefined, reportAction, false, false, undefined, false, reportAction);
+            const result = getReportPreviewMessage(report, reportAction, false, false, undefined, false, reportAction);
 
             // Then it should return the message from the report action (not the childReportName)
             expect(result).toBe('payer owes $100');
@@ -14417,28 +14418,28 @@ describe('ReportUtils', () => {
             };
 
             // When we call getReportPreviewMessage with isCopyAction = true
-            const result = getReportPreviewMessage(report, undefined, reportAction, false, false, undefined, false, reportAction, true);
+            const result = getReportPreviewMessage(report, reportAction, false, false, undefined, false, reportAction, true);
 
             // Then it should return the childReportName instead of "payer owes $0"
             expect(result).toBe('Expense Report 2025-01-15');
         });
 
-        it('should pass conciergeReportID through to computeReportName when isCopyAction is true', async () => {
+        it('should use the report name from the reportAttributes param when isCopyAction is true', async () => {
             const report = LHNTestUtils.getFakeReport();
+            report.reportName = 'Stale Report Name';
             const reportAction: ReportAction = {
                 ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-                childReportName: 'Expense Report',
+                childReportName: 'Child Report Name',
                 childMoneyRequestCount: 0,
             };
+            const reportAttributes = {
+                [report.reportID]: {reportName: 'Computed Report Name'},
+            } as ReportAttributesDerivedValue['reports'];
 
-            // When called with conciergeReportID undefined, the function should not throw
-            const result1 = getReportPreviewMessage(report, undefined, reportAction, false, false, undefined, false, reportAction, true);
-            expect(typeof result1).toBe('string');
-
-            // When called with a specific conciergeReportID, the function should not throw
-            const result2 = getReportPreviewMessage(report, '12345', reportAction, false, false, undefined, false, reportAction, true);
-            expect(typeof result2).toBe('string');
+            // When called with reportAttributes that provide a report name, it should be preferred over the report's own name
+            const result = getReportPreviewMessage(report, reportAction, false, false, undefined, false, reportAction, true, reportAttributes);
+            expect(result).toBe('Computed Report Name');
         });
     });
 

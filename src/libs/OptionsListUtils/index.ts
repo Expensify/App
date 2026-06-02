@@ -657,7 +657,6 @@ function getLastMessageTextForReport({
     reportAttributesDerived,
     policyTags,
     currentUserLogin,
-    conciergeReportID,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     sortedActions = deprecatedAllSortedReportActions,
 }: {
@@ -739,7 +738,7 @@ function getLastMessageTextForReport({
             }
         }
     } else if (isMoneyRequestAction(lastReportAction)) {
-        const properSchemaForMoneyRequestMessage = getReportPreviewMessage(report, conciergeReportID, lastReportAction, true, false, null, true);
+        const properSchemaForMoneyRequestMessage = getReportPreviewMessage(report, lastReportAction, true, false, null, true);
         lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(properSchemaForMoneyRequestMessage));
     } else if (isReportPreviewAction(lastReportAction)) {
         const iouReport = getReportOrDraftReport(getIOUReportIDFromReportActionPreview(lastReportAction));
@@ -758,7 +757,6 @@ function getLastMessageTextForReport({
         } else {
             const reportPreviewMessage = getReportPreviewMessage(
                 !isEmptyObject(iouReport) ? iouReport : null,
-                conciergeReportID,
                 lastIOUMoneyReportAction ?? lastReportAction,
                 true,
                 reportUtilsIsChatReport(report),
@@ -1012,8 +1010,7 @@ function getLastMessageTextForReport({
                 lastMessageTextFromReport = lastVisibleMessage?.lastMessageText;
             } else if (!isCreatedAction(lastReportAction)) {
                 lastMessageTextFromReport =
-                    formatReportLastMessageText(Parser.htmlToText(getReportPreviewMessage(report, conciergeReportID, lastReportAction, true, false, null, true))) ||
-                    lastVisibleMessage?.lastMessageText;
+                    formatReportLastMessageText(Parser.htmlToText(getReportPreviewMessage(report, lastReportAction, true, false, null, true))) || lastVisibleMessage?.lastMessageText;
             }
         } else if (report?.transactionCount === 0) {
             lastMessageTextFromReport = translate('report.noActivityYet');

@@ -131,13 +131,7 @@ import Parser from './Parser';
 import {getParsedMessageWithShortMentions} from './ParsingUtils';
 import {getBankAccountLastFourDigits} from './PaymentUtils';
 import Permissions from './Permissions';
-import {
-    getAccountIDsByLogins,
-    getDisplayNameOrDefault,
-    getLoginsByAccountIDs,
-    getPersonalDetailByEmail,
-    getShortMentionIfFound,
-} from './PersonalDetailsUtils';
+import {getAccountIDsByLogins, getDisplayNameOrDefault, getLoginsByAccountIDs, getPersonalDetailByEmail, getShortMentionIfFound} from './PersonalDetailsUtils';
 import {
     canSendInvoiceFromWorkspace,
     getActivePolicies,
@@ -226,13 +220,7 @@ import {
 // The functions imported here are pure utility functions that don't create initialization-time dependencies.
 // ReportNameUtils imports helper functions from ReportUtils, and ReportUtils imports name generation functions from ReportNameUtils.
 // eslint-disable-next-line import/no-cycle
-import {
-    computeReportName,
-    getGroupChatName,
-    getInvoicePayerName,
-    getInvoiceReportName,
-    getReportName as getReportNameFromNameUtils,
-} from './ReportNameUtils';
+import {getGroupChatName, getInvoicePayerName, getInvoiceReportName, getReportName} from './ReportNameUtils';
 import type {ArchivedReportsIDSet} from './SearchUIUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {isTaskCompleted} from './TaskUtils';
@@ -5341,7 +5329,6 @@ function getTransactionReportName({
  */
 function getReportPreviewMessage(
     reportOrID: OnyxInputOrEntry<Report> | string,
-    conciergeReportID: string | undefined,
     iouReportAction: OnyxInputOrEntry<ReportAction> = null,
     shouldConsiderScanningReceiptOrPendingRoute = false,
     isPreviewMessageForParentChatReport = false,
@@ -5349,12 +5336,13 @@ function getReportPreviewMessage(
     isForListPreview = false,
     originalReportAction: OnyxInputOrEntry<ReportAction> = iouReportAction,
     isCopyAction = false,
+    reportAttributes?: ReportAttributesDerivedValue['reports'],
 ): string {
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, deprecatedAllReports) : reportOrID;
     const reportActionMessage = getReportActionHtml(iouReportAction);
     if (isCopyAction) {
         if (report) {
-            return computeReportName({report, currentUserLogin: '', conciergeReportID}) || (originalReportAction?.childReportName ?? '');
+            return getReportName(report, reportAttributes ?? reportAttributesDerivedValue) || (originalReportAction?.childReportName ?? '');
         }
         return originalReportAction?.childReportName ?? '';
     }
@@ -5680,7 +5668,7 @@ function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, repo
     const reportIDToName: Record<string, string> = {};
     for (const match of matches) {
         if (match[1] !== childReportID) {
-            reportIDToName[match[1]] = getReportNameFromNameUtils(getReportOrDraftReport(match[1]), reportAttributesDerivedValue) ?? '';
+            reportIDToName[match[1]] = getReportName(getReportOrDraftReport(match[1]), reportAttributesDerivedValue) ?? '';
         }
     }
 
@@ -5848,7 +5836,7 @@ function getParentNavigationSubtitle(
     }
 
     return {
-        reportName: getReportNameFromNameUtils(parentReport, reportAttributes ?? reportAttributesDerivedValue),
+        reportName: getReportName(parentReport, reportAttributes ?? reportAttributesDerivedValue),
         workspaceName: getPolicyName({report: parentReport, policy, returnEmptyIfNotFound: true}),
     };
 }
@@ -6630,7 +6618,7 @@ function getMovedTransactionMessage(translate: LocalizedTranslate, action: Repor
 
     const report = fromReport ?? toReport;
 
-    const reportName = Parser.htmlToText(getReportNameFromNameUtils(report, reportAttributes) ?? report?.reportName ?? '');
+    const reportName = Parser.htmlToText(getReportName(report, reportAttributes) ?? report?.reportName ?? '');
     const reportUrl = getReportURLForCurrentContext(report?.reportID);
     if (typeof fromReportID === 'undefined') {
         return reportName ? translate('iou.movedTransactionTo', reportUrl, reportName) : translate('iou.movedTransactionToAnotherReport');
@@ -6644,7 +6632,7 @@ function getUnreportedTransactionMessage(translate: LocalizedTranslate, action: 
 
     const fromReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
 
-    const reportName = Parser.htmlToText(getReportNameFromNameUtils(fromReport, reportAttributes) ?? fromReport?.reportName ?? '');
+    const reportName = Parser.htmlToText(getReportName(fromReport, reportAttributes) ?? fromReport?.reportName ?? '');
 
     let reportUrl = getReportURLForCurrentContext(fromReportID);
 
@@ -7218,7 +7206,7 @@ function buildOptimisticReportPreview(
     delegateAccountIDParam: number | undefined = undefined,
 ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> {
     const hasReceipt = hasReceiptTransactionUtils(transaction);
-    const message = getReportPreviewMessage(iouReport, conciergeReportID);
+    const message = getReportPreviewMessage(iouReport);
     const created = DateUtils.getDBTime();
     const reportActorAccountID = (isInvoiceReport(iouReport) || isExpenseReport(iouReport) ? iouReport?.ownerAccountID : iouReport?.managerID) ?? -1;
     // Falls back to module-level delegateEmail (from Onyx.connect) for callers not yet migrated; will be removed in https://github.com/Expensify/App/issues/66425
@@ -7409,8 +7397,7 @@ function updateReportPreview(
         }
     }
 
-    // TODO: We'll pass the conciergeReportID in the next PR. Ref: https://github.com/Expensify/App/issues/66411
-    const message = getReportPreviewMessage(iouReport, undefined, reportPreviewAction);
+    const message = getReportPreviewMessage(iouReport, reportPreviewAction);
     const originalMessage = getOriginalMessage(reportPreviewAction);
     return {
         ...reportPreviewAction,
@@ -12390,10 +12377,10 @@ function getChatListItemReportName(action: ReportAction & {reportName?: string},
     }
 
     if (report?.reportID) {
-        return getReportNameFromNameUtils(getReport(report?.reportID, deprecatedAllReports), reportAttributesDerivedValue);
+        return getReportName(getReport(report?.reportID, deprecatedAllReports), reportAttributesDerivedValue);
     }
 
-    return getReportNameFromNameUtils(report, reportAttributesDerivedValue);
+    return getReportName(report, reportAttributesDerivedValue);
 }
 
 /**
