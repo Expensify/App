@@ -518,7 +518,7 @@ function MoneyRequestReportTransactionList({
                     const firstIdx = visualOrderTransactions.findIndex((t) => t.transactionID === firstChild.transactionID);
                     const lastIdx = visualOrderTransactions.findIndex((t) => t.transactionID === lastChild.transactionID);
                     const target = farthestEndFromAnchor(firstIdx, lastIdx, anchorIdx) === 'first' ? firstChild : lastChild;
-                    if (rangeApi.applyShiftClick(target, {shiftKey: true})) {
+                    if (rangeApi.applyShiftClick(target, options)) {
                         return;
                     }
                 }

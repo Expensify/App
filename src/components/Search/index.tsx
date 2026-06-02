@@ -1192,7 +1192,7 @@ function Search({
                     const firstIdx = flattenedShiftRangeItems.findIndex((r) => r.keyForList === firstChild.keyForList);
                     const lastIdx = flattenedShiftRangeItems.findIndex((r) => r.keyForList === lastChild.keyForList);
                     const target = farthestEndFromAnchor(firstIdx, lastIdx, anchorIdx) === 'first' ? firstChild : lastChild;
-                    if (rangeApi.applyShiftClick(target, {shiftKey: true})) {
+                    if (rangeApi.applyShiftClick(target, options)) {
                         return;
                     }
                 }

@@ -140,7 +140,12 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
         if (selectableCardIDs.length === 0) {
             return;
         }
-        setSelectedCardIDs((prev) => (prev.length > 0 ? [] : [...selectableCardIDs]));
+        setSelectedCardIDs((prev) => {
+            if (prev.length > 0) {
+                return [];
+            }
+            return [...selectableCardIDs];
+        });
         rangeApi.clearAnchor();
     };
     const isSelectAllChecked = selectedCardIDs.length > 0 && selectedCardIDs.length === selectableCardIDs.length;

@@ -4,9 +4,9 @@ import Checkbox from '@components/Checkbox';
 import Text from '@components/Text';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
-import {getModifierKeysFromEvent} from '@libs/shiftRangeSelection';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
+import {getModifierKeysFromEvent} from '@libs/shiftRangeSelection';
 import CONST from '@src/CONST';
 import type {ExpenseReportListItemRowNarrowProps} from './types';
 
