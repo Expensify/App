@@ -43,6 +43,7 @@ jest.mock('@libs/PolicyUtils', () => ({
     hasAccountingConnections: jest.fn().mockReturnValue(true),
     getValidConnectedIntegration: jest.fn().mockReturnValue('netsuite'),
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
+    isGroupPolicy: jest.fn().mockReturnValue(true),
 }));
 jest.mock('@src/libs/SearchUIUtils', () => ({
     getSuggestedSearches: jest.fn().mockReturnValue({}),

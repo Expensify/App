@@ -160,6 +160,7 @@ import {
     hasDependentTags as hasDependentTagsPolicyUtils,
     hasDynamicExternalWorkflow,
     isExpensifyTeam,
+    isGroupPolicy as isGroupPolicyPolicyUtils,
     isInstantSubmitEnabled,
     isPaidGroupPolicy as isPaidGroupPolicyPolicyUtils,
     isPendingDeletePolicy,
@@ -1744,14 +1745,14 @@ function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Whether the provided policyType is a Free, Collect or Control policy type
+ * Whether the provided policyType is a Collect or Control policy type
  */
 function isGroupPolicy(policyType: string): boolean {
     return policyType === CONST.POLICY.TYPE.CORPORATE || policyType === CONST.POLICY.TYPE.TEAM;
 }
 
 /**
- * Whether the provided report belongs to a Free, Collect or Control policy
+ * Whether the provided report belongs to a Collect or Control policy
  */
 function isReportInGroupPolicy(report: OnyxInputOrEntry<Report>, policy?: OnyxInputOrEntry<Policy>): boolean {
     const policyType = policy?.type ?? getPolicyType(report, allPolicies);
@@ -2795,7 +2796,7 @@ function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArchiv
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policy = getPolicy(moneyRequestReport?.policyID);
 
-    if (isExpenseReport(moneyRequestReport) && (!isCurrentUserSubmitter(moneyRequestReport) || !isPaidGroupPolicyPolicyUtils(policy))) {
+    if (isExpenseReport(moneyRequestReport) && (!isCurrentUserSubmitter(moneyRequestReport) || !isGroupPolicyPolicyUtils(policy))) {
         return false;
     }
 
@@ -6738,7 +6739,7 @@ function buildOptimisticInvoiceReport(
  * Computes the optimistic report name using the policy's title field formula, with a fallback to the default expense report name.
  */
 function computeOptimisticReportName(report: Report, policy: OnyxEntry<Policy>, policyID: string | undefined, reportTransactions: Record<string, Transaction>): string | null {
-    if (!isGroupPolicy(policy?.type ?? '')) {
+    if (!isGroupPolicyPolicyUtils(policy)) {
         return null;
     }
 
@@ -9259,18 +9260,18 @@ function hasVisibleReportFieldViolations(report: OnyxEntry<Report>, policy: Onyx
         return false;
     }
 
-    const isPaidGroupPolicyReport = isExpenseReport(report) && (policy?.type === CONST.POLICY.TYPE.CORPORATE || policy?.type === CONST.POLICY.TYPE.TEAM);
-    if (!isPaidGroupPolicyReport && !isInvoiceReport(report)) {
+    const isGroupPolicyReport = isExpenseReport(report) && isGroupPolicyPolicyUtils(policy);
+    if (!isGroupPolicyReport && !isInvoiceReport(report)) {
         return false;
     }
 
     // We only show the RBR to the submitter for expense reports
-    if (isPaidGroupPolicyReport && !isCurrentUserSubmitter(report)) {
+    if (isGroupPolicyReport && !isCurrentUserSubmitter(report)) {
         return false;
     }
 
     // Allow both open and processing reports to show RBR for field violations (expense reports only)
-    if (isPaidGroupPolicyReport && !isOpenOrProcessingReport(report)) {
+    if (isGroupPolicyReport && !isOpenOrProcessingReport(report)) {
         return false;
     }
 
@@ -11627,7 +11628,7 @@ function getOutstandingChildRequest(iouReport: OnyxInputOrEntry<Report>): Outsta
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policy = getPolicy(iouReport.policyID);
-    const shouldBeManuallySubmitted = isPaidGroupPolicyPolicyUtils(policy) && !policy?.harvesting?.enabled && isOpenReport(iouReport);
+    const shouldBeManuallySubmitted = isGroupPolicyPolicyUtils(policy) && !policy?.harvesting?.enabled && isOpenReport(iouReport);
     if (shouldBeManuallySubmitted) {
         return {
             hasOutstandingChildRequest: true,
@@ -13459,7 +13460,6 @@ export {
     isGroupChat,
     isGroupChatAdmin,
     isHarvestCreatedExpenseReport,
-    isGroupPolicy,
     isReportInGroupPolicy,
     isHoldCreator,
     isIOUOwnedByCurrentUser,

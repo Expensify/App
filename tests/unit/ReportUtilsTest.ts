@@ -264,6 +264,7 @@ jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
     isPolicyAdmin: jest.fn().mockImplementation((policy?: Policy) => policy?.role === 'admin'),
     isPaidGroupPolicy: jest.fn().mockImplementation((policy?: Policy) => policy?.type === 'corporate' || policy?.type === 'team'),
+    isGroupPolicy: jest.fn().mockImplementation((policy?: Policy) => policy?.type === 'corporate' || policy?.type === 'team' || policy?.type === 'submit2026'),
     isPolicyOwner: jest.fn().mockImplementation((policy?: Policy, currentUserAccountID?: number) => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID),
 }));
 
@@ -3907,6 +3908,7 @@ describe('ReportUtils', () => {
                         ownerAccountID: currentUserAccountID,
                     };
                     mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
+                    mockedPolicyUtils.isGroupPolicy.mockReturnValue(true);
                     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], [CONST.BETAS.ALL]);
                     expect(moneyRequestOptions.length).toBe(2);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
@@ -8724,6 +8726,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
             mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
+            mockedPolicyUtils.isGroupPolicy.mockReturnValue(true);
 
             // When it's checked if the transactions can be added
             // Simulate how components determined if a report is archived by using this hook
@@ -12685,7 +12688,12 @@ describe('ReportUtils', () => {
     });
 
     describe('buildOptimisticExpenseReport', () => {
-        beforeEach(Onyx.clear);
+        beforeEach(() => {
+            Onyx.clear();
+            // Earlier tests override isGroupPolicy with a persistent mockReturnValue(true); restore the
+            // type-based implementation so computeOptimisticReportName behaves correctly here.
+            mockedPolicyUtils.isGroupPolicy.mockImplementation((policy?: Policy) => policy?.type === 'corporate' || policy?.type === 'team' || policy?.type === 'submit2026');
+        });
 
         it('should include the policy name in report name from report draft', async () => {
             const chatReportID = '1';
