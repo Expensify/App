@@ -322,7 +322,7 @@ describe('PolicyUtils', () => {
         it('should return domainID for given policyID when workspaceID is not set', async () => {
             const policy: Policy = {
                 ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
-                policyAccountID: 0,
+                workspaceAccountID: 0,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}2`, policy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}18441278`, {
@@ -346,7 +346,7 @@ describe('PolicyUtils', () => {
         it('should return lastSelectedExpensifyCardFeed for given policyID when lastSelectedExpensifyCardFeed is set', async () => {
             const policy: Policy = {
                 ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
-                policyAccountID: 0,
+                workspaceAccountID: 0,
             };
             const lastSelectedExpensifyCardFeed = 11111;
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}2`, policy);
@@ -364,7 +364,7 @@ describe('PolicyUtils', () => {
         it('should return workspaceAccountID for given policyID', async () => {
             const policy: Policy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                policyAccountID: 123234,
+                workspaceAccountID: 123234,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
             const {result} = renderHook(() => useDefaultFundID(policy.id));

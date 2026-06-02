@@ -19,7 +19,7 @@ function usePoliciesWithCardFeedErrors() {
             continue;
         }
 
-        const policyWithCardFeedErrors = cleanPolicies.find((policy) => policy?.policyAccountID === Number(workspaceAccountID));
+        const policyWithCardFeedErrors = cleanPolicies.find((policy) => policy?.workspaceAccountID === Number(workspaceAccountID));
         if (!policyWithCardFeedErrors) {
             continue;
         }

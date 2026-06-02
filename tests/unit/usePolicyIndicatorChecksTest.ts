@@ -12,7 +12,7 @@ const otherUserID = 'employee@example.com';
 
 const WORKSPACE = {
     policyID: '1',
-    policyAccountID: 12345,
+    workspaceAccountID: 12345,
     policyName: 'Test Workspace',
 };
 
@@ -34,7 +34,7 @@ describe('usePolicyIndicatorChecks', () => {
                         name: WORKSPACE.policyName,
                         owner: userID,
                         role: 'admin',
-                        policyAccountID: WORKSPACE.policyAccountID,
+                        workspaceAccountID: WORKSPACE.workspaceAccountID,
                         errors: {policyError: 'Something went wrong'},
                     },
                 } as unknown as OnyxMultiSetInput);
@@ -57,7 +57,7 @@ describe('usePolicyIndicatorChecks', () => {
                         name: WORKSPACE.policyName,
                         owner: userID,
                         role: 'admin',
-                        policyAccountID: WORKSPACE.policyAccountID,
+                        workspaceAccountID: WORKSPACE.workspaceAccountID,
                         customUnits: {errors: {customUnitError: 'Invalid custom unit'}},
                     },
                 } as unknown as OnyxMultiSetInput);
@@ -80,7 +80,7 @@ describe('usePolicyIndicatorChecks', () => {
                         name: WORKSPACE.policyName,
                         owner: userID,
                         role: 'admin',
-                        policyAccountID: WORKSPACE.policyAccountID,
+                        workspaceAccountID: WORKSPACE.workspaceAccountID,
                         employeeList: {
                             [otherUserID]: {
                                 email: otherUserID,
@@ -108,7 +108,7 @@ describe('usePolicyIndicatorChecks', () => {
                         name: WORKSPACE.policyName,
                         owner: userID,
                         role: 'admin',
-                        policyAccountID: WORKSPACE.policyAccountID,
+                        workspaceAccountID: WORKSPACE.workspaceAccountID,
                         connections: {
                             quickbooksOnline: {
                                 lastSync: {
@@ -143,7 +143,7 @@ describe('usePolicyIndicatorChecks', () => {
                         name: WORKSPACE.policyName,
                         owner: userID,
                         role: 'admin',
-                        policyAccountID: WORKSPACE.policyAccountID,
+                        workspaceAccountID: WORKSPACE.workspaceAccountID,
                         connections: {
                             quickbooksOnline: {
                                 config: {
@@ -173,7 +173,7 @@ describe('usePolicyIndicatorChecks', () => {
                         name: WORKSPACE.policyName,
                         owner: userID,
                         role: 'admin',
-                        policyAccountID: WORKSPACE.policyAccountID,
+                        workspaceAccountID: WORKSPACE.workspaceAccountID,
                         receiptPartners: {
                             uber: {error: 'Invalid Uber credentials'},
                         },
@@ -198,12 +198,12 @@ describe('usePolicyIndicatorChecks', () => {
                         name: WORKSPACE.policyName,
                         owner: userID,
                         role: 'admin',
-                        policyAccountID: WORKSPACE.policyAccountID,
+                        workspaceAccountID: WORKSPACE.workspaceAccountID,
                     },
                     [ONYXKEYS.CARD_LIST]: {
                         card1: {
                             bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
-                            fundID: String(WORKSPACE.policyAccountID),
+                            fundID: String(WORKSPACE.workspaceAccountID),
                             lastScrapeResult: 403,
                         },
                     },
@@ -253,7 +253,7 @@ describe('usePolicyIndicatorChecks', () => {
                         name: WORKSPACE.policyName,
                         owner: userID,
                         role: 'admin',
-                        policyAccountID: WORKSPACE.policyAccountID,
+                        workspaceAccountID: WORKSPACE.workspaceAccountID,
                     },
                     [ONYXKEYS.CARD_LIST]: {},
                 } as unknown as OnyxMultiSetInput);
@@ -297,7 +297,7 @@ describe('usePolicyIndicatorChecks', () => {
                         name: WORKSPACE.policyName,
                         owner: userID,
                         role: 'admin',
-                        policyAccountID: WORKSPACE.policyAccountID,
+                        workspaceAccountID: WORKSPACE.workspaceAccountID,
                         errors: {policyError: 'Policy error'},
                         customUnits: {errors: {customUnitError: 'Custom unit error'}},
                         employeeList: {
@@ -325,7 +325,7 @@ describe('usePolicyIndicatorChecks', () => {
     describe('multiple policies', () => {
         const SECOND_WORKSPACE = {
             policyID: '2',
-            policyAccountID: 67890,
+            workspaceAccountID: 67890,
             policyName: 'Second Workspace',
         };
 
@@ -338,14 +338,14 @@ describe('usePolicyIndicatorChecks', () => {
                         name: WORKSPACE.policyName,
                         owner: userID,
                         role: 'admin',
-                        policyAccountID: WORKSPACE.policyAccountID,
+                        workspaceAccountID: WORKSPACE.workspaceAccountID,
                     },
                     [`${ONYXKEYS.COLLECTION.POLICY}${SECOND_WORKSPACE.policyID}` as const]: {
                         id: SECOND_WORKSPACE.policyID,
                         name: SECOND_WORKSPACE.policyName,
                         owner: userID,
                         role: 'admin',
-                        policyAccountID: SECOND_WORKSPACE.policyAccountID,
+                        workspaceAccountID: SECOND_WORKSPACE.workspaceAccountID,
                         errors: {policyError: 'Something went wrong'},
                     },
                     [ONYXKEYS.CARD_LIST]: {},

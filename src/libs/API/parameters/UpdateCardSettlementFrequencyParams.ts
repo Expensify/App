@@ -3,7 +3,7 @@ import type CONST from '@src/CONST';
 
 type UpdateCardSettlementFrequencyParams = {
     settlementFrequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>;
-    policyAccountID: number;
+    workspaceAccountID: number;
 };
 
 export default UpdateCardSettlementFrequencyParams;

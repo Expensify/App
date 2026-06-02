@@ -1,5 +1,5 @@
 type ToggleCardContinuousReconciliationParams = {
-    policyAccountID: number;
+    workspaceAccountID: number;
     shouldUseContinuousReconciliation: boolean;
     expensifyCardContinuousReconciliationConnection?: string;
 };

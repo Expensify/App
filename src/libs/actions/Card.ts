@@ -696,7 +696,7 @@ function updateSettlementFrequency(
     ];
 
     const parameters = {
-        policyAccountID: workspaceAccountID,
+        workspaceAccountID,
         settlementFrequency,
     };
 
@@ -1575,12 +1575,12 @@ type ContinuousReconciliationUpdate = OnyxUpdate<
 function toggleContinuousReconciliation(workspaceAccountID: number, shouldUseContinuousReconciliation: boolean, connectionName: ConnectionName, oldConnectionName?: ConnectionName) {
     const parameters = shouldUseContinuousReconciliation
         ? {
-              policyAccountID: workspaceAccountID,
+              workspaceAccountID,
               shouldUseContinuousReconciliation,
               expensifyCardContinuousReconciliationConnection: connectionName,
           }
         : {
-              policyAccountID: workspaceAccountID,
+              workspaceAccountID,
               shouldUseContinuousReconciliation,
           };
 

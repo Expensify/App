@@ -63,7 +63,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
         owner: '1',
         outputCurrency: 'USD',
         isPolicyExpenseChatEnabled: false,
-        policyAccountID: 123,
+        workspaceAccountID: 123,
     };
 
     beforeAll(() => {
@@ -139,7 +139,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
                     owner: '1',
                     outputCurrency: 'USD',
                     isPolicyExpenseChatEnabled: false,
-                    policyAccountID: 123,
+                    workspaceAccountID: 123,
                 });
             });
 
@@ -208,7 +208,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
                 owner: '1',
                 outputCurrency: 'USD',
                 isPolicyExpenseChatEnabled: false,
-                policyAccountID: 123,
+                workspaceAccountID: 123,
             });
 
             // Set initial state
@@ -241,7 +241,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
                 owner: '1',
                 outputCurrency: 'USD',
                 isPolicyExpenseChatEnabled: false,
-                policyAccountID: 123,
+                workspaceAccountID: 123,
             };
             mockUsePolicy.mockReturnValue(testPolicy);
 
@@ -261,7 +261,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
         it('uses policy workspaceAccountID for building expensify cards key', async () => {
             const policyWithWorkspaceID = {
                 ...mockPolicy,
-                policyAccountID: 456,
+                workspaceAccountID: 456,
             };
             mockUsePolicy.mockReturnValue(policyWithWorkspaceID);
             mockIsPolicyAdmin.mockReturnValue(true);
@@ -279,7 +279,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
         it('uses DEFAULT_NUMBER_ID when policy has no workspaceAccountID', async () => {
             const policyWithoutWorkspaceID = {
                 ...mockPolicy,
-                policyAccountID: undefined,
+                workspaceAccountID: undefined,
             };
             mockUsePolicy.mockReturnValue(policyWithoutWorkspaceID);
             mockIsPolicyAdmin.mockReturnValue(true);

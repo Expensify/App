@@ -11,7 +11,7 @@ const userID = 'johndoe12@expensify.com';
 
 const cardFeed = {
     feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
-    policyAccountID: 12345,
+    workspaceAccountID: 12345,
 };
 
 describe('useAccountIndicatorChecks', () => {
@@ -207,7 +207,7 @@ describe('useAccountIndicatorChecks', () => {
                     [ONYXKEYS.CARD_LIST]: {
                         card1: {
                             bank: cardFeed.feedName,
-                            fundID: String(cardFeed.policyAccountID),
+                            fundID: String(cardFeed.workspaceAccountID),
                             lastScrapeResult: 403,
                         },
                     },
