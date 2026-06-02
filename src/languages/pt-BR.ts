@@ -3068,7 +3068,7 @@ ${amount} para ${merchant} - ${date}`,
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Crie](${workspaceConfirmationLink}) um espaço de trabalho`,
-                description: 'Crie um workspace e configure as configurações com a ajuda do seu executivo de contas!',
+                description: 'Crie um workspace e configure as definições com a ajuda do seu executivo de contas!',
             },
             createWorkspaceTask: {
                 title: ({workspaceSettingsLink}) => `Crie um [espaço de trabalho](${workspaceSettingsLink})`,

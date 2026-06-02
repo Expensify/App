@@ -2077,7 +2077,7 @@ const translations: TranslationDeepObject<typeof en> = {
             conciergeChatDescription: '你的个人 AI 助理',
             accountManagerDescription: '您的客户经理',
             partnerManagerDescription: '您的合作伙伴经理',
-            guideDescription: '您的客户代表',
+            guideDescription: '您的客户经理',
         },
     },
     closeAccountPage: {
@@ -9023,7 +9023,7 @@ ${reportName}
         confirmation: {
             title: '确认通话',
             description: '请确认以下详情是否正确。确认通话后，我们会发送一封包含更多信息的邀请。',
-            setupSpecialist: '您的客户代表',
+            setupSpecialist: '您的客户经理',
             meetingLength: '会议时长',
             dateTime: '日期和时间',
             minutes: '30 分钟',

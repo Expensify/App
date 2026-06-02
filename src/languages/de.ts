@@ -2140,7 +2140,7 @@ const translations: TranslationDeepObject<typeof en> = {
             conciergeChatDescription: 'Ihr persönlicher KI-Agent',
             accountManagerDescription: 'Ihre Kundenbetreuung',
             partnerManagerDescription: 'Ihre Partnermanagerin / Ihr Partnermanager',
-            guideDescription: 'Ihre Kundenbetreuerin/Ihr Kundenbetreuer',
+            guideDescription: 'Ihre Account Managerin / Ihr Account Manager',
         },
     },
     closeAccountPage: {
@@ -3085,7 +3085,7 @@ ${amount} für ${merchant} – ${date}`,
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Erstelle](${workspaceConfirmationLink}) einen Workspace`,
-                description: 'Erstellen Sie einen Arbeitsbereich und konfigurieren Sie die Einstellungen mit Hilfe Ihrer Account Executive!',
+                description: 'Erstellen Sie einen Workspace und konfigurieren Sie die Einstellungen mit Hilfe Ihrer Account Executive!',
             },
             createWorkspaceTask: {
                 title: ({workspaceSettingsLink}) => `[Workspace] erstellen (${workspaceSettingsLink})`,
@@ -9323,7 +9323,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         confirmation: {
             title: 'Anruf bestätigen',
             description: 'Stell sicher, dass die Details unten für dich gut aussehen. Sobald du den Anruf bestätigst, senden wir dir eine Einladung mit weiteren Informationen.',
-            setupSpecialist: 'Ihre Kundenbetreuerin/Ihr Kundenbetreuer',
+            setupSpecialist: 'Ihre Account Managerin / Ihr Account Manager',
             meetingLength: 'Meetingdauer',
             dateTime: 'Datum & Uhrzeit',
             minutes: '30 Minuten',
