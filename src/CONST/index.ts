@@ -10164,6 +10164,7 @@ const CONST = {
         IPHONE: 14,
         ANDROID: 16,
         NEWDOT: 83,
+        OAUTH: 86,
     },
 } as const;
 
