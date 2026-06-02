@@ -7,7 +7,7 @@ import {fetch as nitroFetch, Headers as NitroHeaders, Request as NitroRequest, R
 // nitro-fetch is a native HTTP client and cannot read local-scheme URLs (file://, blob:, data:).
 // So we route only http(s) requests through nitro-fetch and fall back to the original fetch for local schemes.
 const originalFetch = globalThis.fetch;
-const LOCAL_SCHEME_REGEX = /^(file|blob|data):/i;
+const LOCAL_SCHEME_REGEX = /^(file|blob|data|content):/i;
 
 const getRequestUrl = (input: RequestInfo | URL): string => {
     if (typeof input === 'string') {
