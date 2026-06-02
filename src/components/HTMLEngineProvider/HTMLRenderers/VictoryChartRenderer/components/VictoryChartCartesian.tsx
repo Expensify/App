@@ -1,6 +1,5 @@
 import React, {useCallback, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
-import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {Scale} from 'victory-native';
 import {CartesianChart} from 'victory-native';
@@ -109,19 +108,14 @@ function VictoryChartCartesian() {
                 )}
             </CartesianChart>
             {hasBarTooltips && chartWidth > 0 && (
-                <View
-                    pointerEvents="none"
-                    style={styles.chartContent}
-                >
-                    <ChartTooltipLayer
-                        matchedIndex={matchedIndex}
-                        isTooltipActive={isTooltipActive}
-                        data={tooltipData}
-                        formatValue={formatTooltipValue}
-                        chartWidth={chartWidth}
-                        initialTooltipPosition={initialTooltipPosition}
-                    />
-                </View>
+                <ChartTooltipLayer
+                    matchedIndex={matchedIndex}
+                    isTooltipActive={isTooltipActive}
+                    data={tooltipData}
+                    formatValue={formatTooltipValue}
+                    chartWidth={chartWidth}
+                    initialTooltipPosition={initialTooltipPosition}
+                />
             )}
         </Animated.View>
     );
