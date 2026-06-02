@@ -44,7 +44,7 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
 
     useEffect(() => {
         clearPersonalBankAccount(onSuccessFallbackRoute ? {onSuccessFallbackRoute} : undefined);
-    }, []);
+    }, [onSuccessFallbackRoute]);
 
     const handleConnectManually = () => {
         updateAddPersonalBankAccountDraft({
