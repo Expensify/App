@@ -1,6 +1,5 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
-import {View} from 'react-native';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 import Table from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
@@ -24,10 +23,10 @@ function WorkspaceRoomsTable({rooms}: WorkspaceRoomsTableProps) {
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     const columns: Array<TableColumn<WorkspaceRoomsTableColumnKey>> = [
-        {key: 'name', label: translate('common.name')},
-        {key: 'createdBy', label: translate('common.createdBy')},
-        {key: 'members', label: translate('common.members'), width: variables.workspaceRoomsMembersColumnWidth},
-        {key: 'actions', label: '', width: variables.workspaceRoomsActionsColumnWidth, styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]}},
+        {key: 'name', label: translate('common.name'), sortable: true},
+        {key: 'createdBy', label: translate('common.createdBy'), sortable: true},
+        {key: 'members', label: translate('common.members'), width: variables.workspaceRoomsMembersColumnWidth, sortable: true},
+        {key: 'actions', label: '', width: variables.workspaceRoomsActionsColumnWidth, styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]}, sortable: false},
     ];
 
     const compareItems: CompareItemsCallback<WorkspaceRoomRowData, WorkspaceRoomsTableColumnKey> = (a, b, activeSorting) => {
@@ -63,12 +62,9 @@ function WorkspaceRoomsTable({rooms}: WorkspaceRoomsTableProps) {
             isItemInSearch={isItemInSearch}
             initialSortColumn="name"
             title={translate('workspace.common.rooms')}
-            // Index in the key remounts the row on sort so it picks up its new rowIndex.
-            keyExtractor={(row, index) => `${row.reportID}_${index}`}
+            keyExtractor={(row, index) => `${row.reportID}-${index}`}
         >
-            <View style={[styles.searchBarMargin, styles.searchBarWidth(shouldUseNarrowTableLayout)]}>
-                <Table.SearchBar label={translate('workspace.common.findRoom')} />
-            </View>
+            <Table.SearchBar label={translate('workspace.common.findRoom')} />
             <Table.Header />
             <Table.Body />
         </Table>
@@ -76,4 +72,4 @@ function WorkspaceRoomsTable({rooms}: WorkspaceRoomsTableProps) {
 }
 
 export default WorkspaceRoomsTable;
-export type {WorkspaceRoomRowData, WorkspaceRoomsTableColumnKey};
+export type {WorkspaceRoomRowData};

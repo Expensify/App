@@ -187,7 +187,8 @@ function AccessOrNotFoundWrapper({
     const {isOffline} = useNetwork();
 
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const isPageAccessible = accessVariants.reduce((acc, variant) => {
+    const accessVariantsToCheck = policyFeature ? accessVariants.filter((variant) => variant !== CONST.POLICY.ACCESS_VARIANTS.ADMIN) : accessVariants;
+    const isPageAccessible = accessVariantsToCheck.reduce((acc, variant) => {
         const accessFunction = ACCESS_VARIANTS[variant];
         if (variant === CONST.IOU.ACCESS_VARIANTS.CREATE) {
             return acc && accessFunction(policy, login, report, allPolicies ?? null, betas, iouType, isReportArchived, isRestrictedToPreferredPolicy);
