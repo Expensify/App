@@ -92,7 +92,7 @@ function HelpPage() {
     const conciergeItem = {
         key: 'initialSettingsPage.helpPage.conciergeChat',
         title: translate('initialSettingsPage.helpPage.conciergeChat'),
-        description: isApprovedAccountant || !hasActiveItem ? translate('initialSettingsPage.helpPage.conciergeChatDescription') : undefined,
+        description: hasActiveItem ? undefined : translate('initialSettingsPage.helpPage.conciergeChatDescription'),
         icon: icons.ConciergeAvatar,
         iconType: CONST.ICON_TYPE_AVATAR,
         onPress: openConciergeAnywhere,
@@ -115,7 +115,7 @@ function HelpPage() {
         sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.HELP_DOCS,
     };
 
-    const moreResourcesItems = [conciergeItem, helpSiteItem];
+    const moreResourcesItems = hasActiveItem ? [helpSiteItem] : [conciergeItem, helpSiteItem];
 
     useEffect(() => {
         openHelpPage();
@@ -153,6 +153,15 @@ function HelpPage() {
                         {isApprovedAccountant ? (
                             <>
                                 <View style={[styles.flex1, styles.mt8, styles.gap5]}>
+                                    {hasActiveItem && (
+                                        <View>
+                                        <Text style={[styles.textLabelSupportingNormal]}>{translate('initialSettingsPage.helpPage.conciergeChatDescription')}</Text>
+                                        <MenuItemList
+                                        menuItems={[conciergeItem]}
+                                        shouldUseSingleExecution
+                                        />
+                                        </View>
+                                    )}
                                     {!!partnerManagerItem && (
                                         <View>
                                             <Text style={[styles.textLabelSupportingNormal, styles.mb2]}>{translate('initialSettingsPage.helpPage.partnerManager')}</Text>
@@ -229,7 +238,7 @@ function HelpPage() {
                                 </View>
                                 {hasActiveItem && <Text style={[styles.textLabelSupportingNormal, styles.mt5, styles.mb2]}>{translate('initialSettingsPage.helpPage.moreResources')}</Text>}
                                 <MenuItemList
-                                    menuItems={hasActiveItem ? [helpSiteItem] : moreResourcesItems}
+                                    menuItems={moreResourcesItems}
                                     shouldUseSingleExecution
                                 />
                             </>
