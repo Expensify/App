@@ -1,0 +1,31 @@
+diff --git a/node_modules/expo-video/android/src/main/java/expo/modules/video/FullscreenPlayerActivity.kt b/node_modules/expo-video/android/src/main/java/expo/modules/video/FullscreenPlayerActivity.kt
+index 721a944..9f4e2b1 100644
+--- a/node_modules/expo-video/android/src/main/java/expo/modules/video/FullscreenPlayerActivity.kt
++++ b/node_modules/expo-video/android/src/main/java/expo/modules/video/FullscreenPlayerActivity.kt
+@@ -11,6 +11,7 @@
+ import android.view.accessibility.CaptioningManager
+ import android.view.WindowInsets
+ import android.view.WindowInsetsController
++import androidx.media3.common.Player
+ import android.widget.ImageButton
+ import androidx.media3.ui.PlayerView
+ import expo.modules.kotlin.exception.CodedException
+@@ -111,6 +112,18 @@
+     playerView.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+       applyRectHint(this, calculateRectHint(playerView))
+     }
++
++    // When the player reaches STATE_ENDED, the controller layout changes
++    // (play button becomes replay, progress bar stops auto-hiding). Force a
++    // fresh layout pass so the settings button anchor view and controller
++    // dimensions are up-to-date when the Speed/Audio popup is next opened.
++    playerView.player?.addListener(object : Player.Listener {
++      override fun onPlaybackStateChanged(playbackState: Int) {
++        if (playbackState == Player.STATE_ENDED) {
++          playerView.post { playerView.requestLayout() }
++        }
++      }
++    })
+   }
+
+   override fun finish() {
