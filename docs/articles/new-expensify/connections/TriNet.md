@@ -43,6 +43,10 @@ Before connecting Expensify with TriNet, ensure that:
 
 # FAQ
 
+## Can I connect multiple HR platforms at the same time?
+
+No. Expensify only supports one HR platform connection per workspace at a time. If you already have an HR platform connected (for example, Gusto) and try to connect TriNet, you will see a prompt to disconnect the existing platform first. To switch, go to **Settings > Workspaces > [Workspace Name] > HR** and disconnect the current provider before connecting a new one.
+
 ## Will my employees receive a notification?
 Yes, each employee will receive a welcome email at their work email address. This email includes account validation steps and a password setup link. Employees can also download the Expensify app for iOS and Android.
 
