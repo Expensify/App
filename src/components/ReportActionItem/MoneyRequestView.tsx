@@ -18,6 +18,7 @@ import UserPills from '@components/UserPills';
 import ViolationMessages from '@components/ViolationMessages';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useActiveRoute from '@hooks/useActiveRoute';
+import useAttendees from '@hooks/useAttendees';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -31,6 +32,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -206,6 +208,7 @@ function MoneyRequestView({
         transaction = updatedTransaction;
     }
     const isExpenseUnreported = isExpenseUnreportedTransactionUtils(transaction);
+    const personalPolicy = usePersonalPolicy();
     const {policyForMovingExpensesID, policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
     const isTimeRequest = isTimeRequestTransactionUtils(transaction);
 
@@ -277,7 +280,6 @@ function MoneyRequestView({
     const {
         created: transactionDate,
         amount: transactionAmount,
-        attendees: transactionAttendees,
         taxAmount: transactionTaxAmount,
         currency: transactionCurrency,
         comment: transactionDescription,
@@ -289,7 +291,8 @@ function MoneyRequestView({
         originalCurrency: transactionOriginalCurrency,
         postedDate: transactionPostedDate,
         convertedAmount: transactionConvertedAmount,
-    } = getTransactionDetails(transaction, undefined, undefined, allowNegativeAmount, false, currentUserPersonalDetails) ?? {};
+    } = getTransactionDetails(transaction, undefined, undefined, allowNegativeAmount, false) ?? {};
+    const transactionAttendees = useAttendees(transaction);
     const isEmptyMerchant = isInvalidMerchantValue(transactionMerchant);
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
@@ -468,7 +471,15 @@ function MoneyRequestView({
     let amountDescription = `${translate('iou.amount')}`;
     let dateDescription = `${translate('common.date')}`;
 
-    const {unit, rate, name: rateName} = DistanceRequestUtils.getRate({transaction: updatedTransaction ?? transaction, policy: distanceOriginalPolicy ?? policy});
+    const {
+        unit,
+        rate,
+        name: rateName,
+    } = DistanceRequestUtils.getRate({
+        transaction: updatedTransaction ?? transaction,
+        policy: distanceOriginalPolicy ?? policy,
+        personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+    });
     const distance = getDistanceInMeters(transactionBackup ?? updatedTransaction ?? transaction, unit);
     const currency = transactionCurrency ?? CONST.CURRENCY.USD;
     const hasRequiredCompanyCardViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.COMPANY_CARD_REQUIRED);
@@ -645,6 +656,7 @@ function MoneyRequestView({
                     return ViolationsUtils.getViolationTranslation({
                         violation,
                         translate,
+                        convertToDisplayString,
                         canEdit,
                         companyCardPageURL,
                         connectionLink,
