@@ -2892,6 +2892,7 @@ ${amount} für ${merchant} – ${date}`,
         waitForPDF: 'Bitte warten, während wir das PDF erstellen.',
         errorPDF: 'Beim Versuch, Ihre PDF zu erstellen, ist ein Fehler aufgetreten',
         successPDF: 'Dein PDF wurde erstellt! Falls es nicht automatisch heruntergeladen wurde, verwende die Schaltfläche unten.',
+        goToRoom: 'Zum Raum gehen',
     },
     reportDescriptionPage: {
         roomDescription: 'Zimmerbeschreibung',

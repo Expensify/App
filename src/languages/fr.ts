@@ -2900,6 +2900,7 @@ ${amount} pour ${merchant} - ${date}`,
         waitForPDF: 'Veuillez patienter pendant que nous générons le PDF.',
         errorPDF: 'Une erreur s’est produite lors de la tentative de génération de votre PDF',
         successPDF: 'Votre PDF a été généré ! S’il ne s’est pas téléchargé automatiquement, utilisez le bouton ci-dessous.',
+        goToRoom: 'Aller à la salle',
     },
     reportDescriptionPage: {
         roomDescription: 'Description de la salle',
@@ -2976,7 +2977,7 @@ ${amount} pour ${merchant} - ${date}`,
         phoneOrEmail: 'Téléphone ou e-mail',
         error: {
             agentSignInBlocked:
-                'Les comptes d\u2019agent ne permettent pas de se connecter directement. Pour utiliser un agent, connectez-vous avec votre propre compte et accédez-y via Copilot.',
+                'Les comptes d’agent ne permettent pas de se connecter directement. Pour utiliser un agent, connectez-vous avec votre propre compte et accédez-y via Copilot.',
             invalidFormatEmailLogin: 'L’adresse e-mail saisie est invalide. Veuillez corriger le format et réessayer.',
         },
         cannotGetAccountDetails: 'Impossible de récupérer les détails du compte. Veuillez essayer de vous reconnecter.',
