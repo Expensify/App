@@ -4834,7 +4834,7 @@ describe('ReportUtils', () => {
                 canUnholdRequest: false,
             });
 
-            putOnHold(expenseTransaction.transactionID, 'hold', transactionThreadReport.reportID, false, currentUserEmail, currentUserAccountID);
+            putOnHold(expenseTransaction.transactionID, 'hold', transactionThreadReport.reportID, false, currentUserEmail, currentUserAccountID, undefined, []);
             await waitForBatchedUpdates();
 
             const expenseReportUpdated = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -16886,6 +16886,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed,
                 ownerBillingGracePeriodEnd: pastGracePeriod,
+                currentUserAccountID,
             });
 
             // Trigger CREATE_NEW_EXPENSE onSelected
@@ -17337,6 +17338,7 @@ describe('ReportUtils', () => {
                     draftTransactionIDs: undefined,
                     amountOwed: 100,
                     ownerBillingGracePeriodEnd: gracePeriodEnd,
+                    currentUserAccountID,
                 });
                 options.at(2)?.onSelected?.();
 
