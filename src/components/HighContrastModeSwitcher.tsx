@@ -40,7 +40,7 @@ function HighContrastModeSwitcher() {
         >
             <Icon
                 src={icons.Moon}
-                fill={isHighContrast ? theme.text : theme.icon}
+                fill={theme.icon}
                 width={variables.iconSizeSmall}
                 height={variables.iconSizeSmall}
                 accessibilityLabel={label}
