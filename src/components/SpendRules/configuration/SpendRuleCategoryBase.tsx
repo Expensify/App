@@ -10,7 +10,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useSearchResults from '@hooks/useSearchResults';
-import {applyShiftRangeBatchToKeySet} from '@hooks/useShiftRangeSelection';
+import {applyShiftRangeBatchToKeySet} from '@libs/shiftRangeSelection';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';

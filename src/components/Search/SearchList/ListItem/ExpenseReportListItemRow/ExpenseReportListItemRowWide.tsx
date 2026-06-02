@@ -11,7 +11,7 @@ import TotalCell from '@components/Search/SearchList/ListItem/TotalCell';
 import UserInfoCell from '@components/Search/SearchList/ListItem/UserInfoCell';
 import WorkspaceCell from '@components/Search/SearchList/ListItem/WorkspaceCell';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import {getModifierKeysFromEvent} from '@hooks/useShiftRangeSelection';
+import {getModifierKeysFromEvent} from '@libs/shiftRangeSelection';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';

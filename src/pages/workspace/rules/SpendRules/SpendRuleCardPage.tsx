@@ -18,7 +18,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSearchResults from '@hooks/useSearchResults';
-import {applyShiftRangeBatchToKeySet} from '@hooks/useShiftRangeSelection';
+import {applyShiftRangeBatchToKeySet} from '@libs/shiftRangeSelection';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateDraftSpendRule} from '@libs/actions/User';

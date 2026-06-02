@@ -15,12 +15,12 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
 import useShiftRangeSelection from '@hooks/useShiftRangeSelection';
-import type {Modifiers} from '@hooks/useShiftRangeSelection';
 import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import {isFocusRestoreInProgress} from '@libs/NavigationFocusReturn';
+import type {Modifiers} from '@libs/shiftRangeSelection';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -217,12 +217,33 @@ function BaseSelectionList<TItem extends ListItem>({
 
     const debouncedScrollToIndex = useDebounce(scrollToIndex, CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME, {leading: true, trailing: true});
 
+    const rangeApi = useShiftRangeSelection<TItem>({
+        items: data,
+        getItemKey: (item) => item.keyForList ?? null,
+        getSelectedKeys: () => {
+            // Mirror isItemSelected so custom isSelected callers still get an anchor.
+            const keys = new Set<string>();
+            for (const item of data) {
+                if (item.keyForList && isItemSelected(item)) {
+                    keys.add(item.keyForList);
+                }
+            }
+            return keys;
+        },
+        isDisabledItem: (item) => !!item.isDisabled || !!item.isDisabledCheckbox,
+        onApplyRange: onShiftRangeApply,
+    });
+
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex,
         maxIndex: data.length - 1,
         disabledIndexes: dataDetails.disabledArrowKeyIndexes,
         isActive: isFocused,
         onFocusedIndexChange: (index: number) => {
+            const focusedItem = data.at(index);
+            if (focusedItem) {
+                rangeApi.notifyAnchor(focusedItem);
+            }
             if (suppressNextFocusScrollRef.current) {
                 suppressNextFocusScrollRef.current = false;
                 return;
@@ -257,24 +278,6 @@ function BaseSelectionList<TItem extends ListItem>({
     // This prevents "index out of bounds" errors when filtering reduces the list size
     const extraData = useMemo(() => [data.length], [data.length]);
     const syncedSearchValue = searchValueForFocusSync ?? textInputOptions?.value;
-
-    const noopApply = useCallback(() => {}, []);
-    const rangeApi = useShiftRangeSelection<TItem>({
-        items: data,
-        getItemKey: (item) => item.keyForList ?? null,
-        getSelectedKeys: () => {
-            // Mirror isItemSelected so consumers using selectedItems / custom isSelected resolve an anchor too.
-            const keys = new Set<string>();
-            for (const item of data) {
-                if (item.keyForList && isItemSelected(item)) {
-                    keys.add(item.keyForList);
-                }
-            }
-            return keys;
-        },
-        isDisabledItem: (item) => !!item.isDisabled || !!item.isDisabledCheckbox,
-        onApplyRange: onShiftRangeApply ?? noopApply,
-    });
 
     const handleSelectionButtonPress = useCallback(
         (item: TItem, itemTransactions?: unknown, options?: Partial<Modifiers>) => {
@@ -380,19 +383,6 @@ function BaseSelectionList<TItem extends ListItem>({
         },
     );
 
-    // Bump the hook's anchor on arrow-key focus moves; the ref dedupes across data re-references.
-    const previousFocusAnchorKeyRef = useRef<string | null>(null);
-    useEffect(() => {
-        if (focusedIndex < 0 || focusedIndex >= data.length) {
-            return;
-        }
-        const item = data.at(focusedIndex);
-        if (!item?.keyForList || previousFocusAnchorKeyRef.current === item.keyForList) {
-            return;
-        }
-        previousFocusAnchorKeyRef.current = item.keyForList;
-        rangeApi.notifyAnchor(item);
-    }, [focusedIndex, data, rangeApi]);
     const textInputKeyPress = useCallback(
         (event: TextInputKeyPressEvent) => {
             if (event.nativeEvent.key !== CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {

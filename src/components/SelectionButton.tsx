@@ -158,6 +158,10 @@ function SelectionButton({
                 if (shouldStopMouseDownPropagation) {
                     e.stopPropagation();
                 }
+                // Shift+mousedown otherwise extends browser text selection, swallowing the click on web.
+                if (e.shiftKey) {
+                    e.preventDefault();
+                }
                 onMouseDown?.(e);
             }}
             ref={ref as PressableRef}

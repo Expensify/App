@@ -3,7 +3,7 @@ import type {NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SelectionListProps} from '@components/SelectionList/types';
 import type useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
-import type {Modifiers} from '@hooks/useShiftRangeSelection';
+import type {Modifiers} from '@libs/shiftRangeSelection';
 import type useSingleExecution from '@hooks/useSingleExecution';
 import {isMobileChrome} from '@libs/Browser';
 import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';

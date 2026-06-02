@@ -1,9 +1,14 @@
 import {act, renderHook} from '@testing-library/react-native';
-import useShiftRangeSelection, {applyShiftRangeBatchToKeySet, applyShiftRangeBatchToValueArray, getModifierKeysFromEvent} from '@hooks/useShiftRangeSelection';
-import type {ShiftRangeBatch} from '@hooks/useShiftRangeSelection';
+import useShiftRangeSelection from '@hooks/useShiftRangeSelection';
+import {applyShiftRangeBatchToKeySet, farthestEndFromAnchor, getModifierKeysFromEvent} from '@libs/shiftRangeSelection';
+import type {ShiftRangeBatch} from '@libs/shiftRangeSelection';
 
 type Row = {keyForList: string; isHeader?: boolean; isDisabled?: boolean};
+
+// Fixed-length tuple types let the test access indices without triggering the `prefer-at` lint rule.
+type Tuple2<T> = [T, T];
 type Tuple5<T> = [T, T, T, T, T];
+type Tuple6<T> = [T, T, T, T, T, T];
 type Tuple7<T> = [T, T, T, T, T, T, T];
 
 const ROWS: Tuple5<Row> = [{keyForList: 'a'}, {keyForList: 'b'}, {keyForList: 'c'}, {keyForList: 'd'}, {keyForList: 'e'}];
@@ -28,22 +33,16 @@ function makeParams(overrides: Partial<Parameters<typeof useShiftRangeSelection<
     };
 }
 
-function keys(batch: ShiftRangeBatch<Row>): {toSelect: string[]; toDeselect: string[]} {
+function makeApplyMock() {
+    return jest.fn<void, [ShiftRangeBatch<Row>]>();
+}
+
+function nthBatchKeys(mockFn: ReturnType<typeof makeApplyMock>, n: number): {toSelect: string[]; toDeselect: string[]} {
+    const batch = mockFn.mock.calls.at(n)?.at(0) ?? {toSelect: [], toDeselect: []};
     return {
         toSelect: batch.toSelect.map((r) => r.keyForList),
         toDeselect: batch.toDeselect.map((r) => r.keyForList),
     };
-}
-
-type RowApplyMock = jest.MockedFunction<(batch: ShiftRangeBatch<Row>) => void>;
-
-function makeApplyMock(): RowApplyMock {
-    return jest.fn<void, [ShiftRangeBatch<Row>]>();
-}
-
-function nthBatchKeys(mockFn: RowApplyMock, n: number): {toSelect: string[]; toDeselect: string[]} {
-    const batch = mockFn.mock.calls.at(n)?.at(0);
-    return keys(batch ?? {toSelect: [], toDeselect: []});
 }
 
 describe('useShiftRangeSelection', () => {
@@ -59,7 +58,7 @@ describe('useShiftRangeSelection', () => {
             expect(result.current.getAnchorKey()).toBe('c');
         });
 
-        it('returns the session anchor while a shift session is active', () => {
+        it('returns the active anchor across a shift+click sequence', () => {
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams()));
             act(() => result.current.notifyAnchor(ROWS[1]));
             act(() => {
@@ -68,7 +67,7 @@ describe('useShiftRangeSelection', () => {
             expect(result.current.getAnchorKey()).toBe('b');
         });
 
-        it('clearAnchor wipes both anchor and session', () => {
+        it('clearAnchor resets the hook', () => {
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams()));
             act(() => result.current.notifyAnchor(ROWS[0]));
             act(() => {
@@ -92,6 +91,26 @@ describe('useShiftRangeSelection', () => {
                 applied = result.current.applyShiftClick(ROWS[2], {shiftKey: false});
             });
             expect(applied).toBe(false);
+        });
+
+        it('returns false when additive is true but shiftKey is false', () => {
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams()));
+            act(() => result.current.notifyAnchor(ROWS[0]));
+            let applied = true;
+            act(() => {
+                applied = result.current.applyShiftClick(ROWS[2], {shiftKey: false, additive: true});
+            });
+            expect(applied).toBe(false);
+        });
+
+        it('returns true when a shift+click successfully extends a range', () => {
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams()));
+            act(() => result.current.notifyAnchor(ROWS[0]));
+            let applied = false;
+            act(() => {
+                applied = result.current.applyShiftClick(ROWS[2], {shiftKey: true});
+            });
+            expect(applied).toBe(true);
         });
 
         it('returns false when the target row is a header', () => {
@@ -134,15 +153,34 @@ describe('useShiftRangeSelection', () => {
             expect(onApplyRange).not.toHaveBeenCalled();
         });
 
-        it('returns false when target has no key', () => {
+        it("returns false when the target row's key is empty", () => {
             const onApplyRange = makeApplyMock();
             const missingKeyRow: Row = {keyForList: ''};
-            const itemsWithMissingKey: [Row, Row, Row, Row, Row, Row] = [...ROWS, missingKeyRow];
+            const itemsWithMissingKey: Tuple6<Row> = [...ROWS, missingKeyRow];
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({items: itemsWithMissingKey, onApplyRange})));
             act(() => result.current.notifyAnchor(ROWS[0]));
             let applied = true;
             act(() => {
                 applied = result.current.applyShiftClick(missingKeyRow, {shiftKey: true});
+            });
+            expect(applied).toBe(false);
+        });
+
+        it('returns false when the target row cannot be keyed', () => {
+            const onApplyRange = makeApplyMock();
+            const items: Tuple2<Row> = [{keyForList: 'a'}, {keyForList: 'b'}];
+            const {result} = renderHook(() =>
+                useShiftRangeSelection<Row>(
+                    makeParams({
+                        items,
+                        getItemKey: () => null,
+                        onApplyRange,
+                    }),
+                ),
+            );
+            let applied = true;
+            act(() => {
+                applied = result.current.applyShiftClick(items[1], {shiftKey: true});
             });
             expect(applied).toBe(false);
         });
@@ -160,7 +198,7 @@ describe('useShiftRangeSelection', () => {
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['b', 'c', 'd'], toDeselect: []});
         });
 
-        it('falls back to first-selected when no notifyAnchor', () => {
+        it('uses the first selected row as anchor when no plain click came first', () => {
             const onApplyRange = makeApplyMock();
             const {result} = renderHook(() =>
                 useShiftRangeSelection<Row>(
@@ -192,7 +230,7 @@ describe('useShiftRangeSelection', () => {
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['c', 'd', 'e'], toDeselect: []});
         });
 
-        it('falls back to first-visible when no anchor and no selection', () => {
+        it('uses the first selectable row as anchor when nothing is selected', () => {
             const onApplyRange = makeApplyMock();
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
             act(() => {
@@ -201,7 +239,7 @@ describe('useShiftRangeSelection', () => {
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'b', 'c'], toDeselect: []});
         });
 
-        it('first-visible fallback skips headers', () => {
+        it('the row-fallback anchor skips header rows', () => {
             const onApplyRange = makeApplyMock();
             const {result} = renderHook(() =>
                 useShiftRangeSelection<Row>(
@@ -217,9 +255,46 @@ describe('useShiftRangeSelection', () => {
             });
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'b'], toDeselect: []});
         });
+
+        it('ignores a header passed to notifyAnchor and falls back to the selected row', () => {
+            const onApplyRange = makeApplyMock();
+            const {result} = renderHook(() =>
+                useShiftRangeSelection<Row>(
+                    makeParams({
+                        items: GROUPED,
+                        isHeaderItem: (r) => !!r.isHeader,
+                        getSelectedKeys: () => new Set(['c']),
+                        onApplyRange,
+                    }),
+                ),
+            );
+            act(() => result.current.notifyAnchor(GROUPED[0]));
+            act(() => {
+                result.current.applyShiftClick(GROUPED[5], {shiftKey: true});
+            });
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['c', 'd'], toDeselect: []});
+        });
+
+        it('ignores a disabled row passed to notifyAnchor and falls back to the first selectable row', () => {
+            const onApplyRange = makeApplyMock();
+            const {result} = renderHook(() =>
+                useShiftRangeSelection<Row>(
+                    makeParams({
+                        items: MIXED,
+                        isDisabledItem: (r) => !!r.isDisabled,
+                        onApplyRange,
+                    }),
+                ),
+            );
+            act(() => result.current.notifyAnchor(MIXED[1]));
+            act(() => {
+                result.current.applyShiftClick(MIXED[4], {shiftKey: true});
+            });
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'c', 'e'], toDeselect: []});
+        });
     });
 
-    describe('range computation — direction', () => {
+    describe('range computation', () => {
         it('selects from anchor down through the target when the target is below', () => {
             const onApplyRange = makeApplyMock();
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
@@ -275,6 +350,26 @@ describe('useShiftRangeSelection', () => {
             });
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'c', 'e'], toDeselect: []});
         });
+
+        it('emits a single-row batch when the target equals the anchor', () => {
+            const onApplyRange = makeApplyMock();
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
+            act(() => result.current.notifyAnchor(ROWS[2]));
+            act(() => {
+                result.current.applyShiftClick(ROWS[2], {shiftKey: true});
+            });
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['c'], toDeselect: []});
+        });
+
+        it('always includes the anchor row in the emitted toSelect batch', () => {
+            const onApplyRange = makeApplyMock();
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
+            act(() => result.current.notifyAnchor(ROWS[2]));
+            act(() => {
+                result.current.applyShiftClick(ROWS[4], {shiftKey: true});
+            });
+            expect(nthBatchKeys(onApplyRange, 0).toSelect).toContain('c');
+        });
     });
 
     describe('session continuity', () => {
@@ -317,7 +412,7 @@ describe('useShiftRangeSelection', () => {
             expect(nthBatchKeys(onApplyRange, 1)).toEqual({toSelect: ['a', 'b', 'c'], toDeselect: ['d', 'e']});
         });
 
-        it('ends the session when notifyAnchor is called mid-session, so the next shift+click starts fresh', () => {
+        it('notifyAnchor mid-session ends the session', () => {
             const onApplyRange = makeApplyMock();
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
             act(() => result.current.notifyAnchor(ROWS[0]));
@@ -344,6 +439,24 @@ describe('useShiftRangeSelection', () => {
             });
             expect(onApplyRange).toHaveBeenCalledTimes(1);
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'b', 'c', 'd'], toDeselect: []});
+        });
+
+        it('clearAnchor mid-session lets the next shift+click start fresh', () => {
+            const onApplyRange = makeApplyMock();
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
+            act(() => result.current.notifyAnchor(ROWS[0]));
+            act(() => {
+                result.current.applyShiftClick(ROWS[4], {shiftKey: true});
+            });
+            act(() => result.current.clearAnchor());
+            onApplyRange.mockClear();
+            act(() => {
+                result.current.notifyAnchor(ROWS[2]);
+            });
+            act(() => {
+                result.current.applyShiftClick(ROWS[3], {shiftKey: true});
+            });
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['c', 'd'], toDeselect: []});
         });
     });
 
@@ -384,7 +497,7 @@ describe('useShiftRangeSelection', () => {
             expect(nthBatchKeys(onApplyRange, 1)).toEqual({toSelect: ['a', 'b', 'c'], toDeselect: ['d', 'e']});
         });
 
-        it('uses the anchor fallback chain when no prior notify happened', () => {
+        it('uses the selected-row fallback when no prior notify happened', () => {
             const onApplyRange = makeApplyMock();
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange, getSelectedKeys: () => ['b']})));
             act(() => {
@@ -392,12 +505,66 @@ describe('useShiftRangeSelection', () => {
             });
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['b', 'c', 'd'], toDeselect: []});
         });
+
+        it('uses the first selectable row when additive shift+click has no anchor and no selection', () => {
+            const onApplyRange = makeApplyMock();
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
+            act(() => {
+                result.current.applyShiftClick(ROWS[2], {shiftKey: true, additive: true});
+            });
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'b', 'c'], toDeselect: []});
+        });
+
+        it('extends additively after a non-additive range was emitted', () => {
+            const onApplyRange = makeApplyMock();
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
+            act(() => result.current.notifyAnchor(ROWS[0]));
+            act(() => {
+                result.current.applyShiftClick(ROWS[2], {shiftKey: true});
+            });
+            act(() => {
+                result.current.applyShiftClick(ROWS[4], {shiftKey: true, additive: true});
+            });
+            expect(nthBatchKeys(onApplyRange, 1)).toEqual({toSelect: ['a', 'b', 'c', 'd', 'e'], toDeselect: []});
+        });
+    });
+
+    describe('items change mid-session', () => {
+        it('extends from the anchor when the previous endpoint disappears mid-session', () => {
+            const onApplyRange = makeApplyMock();
+            const {result, rerender} = renderHook(({items}: {items: Row[]}) => useShiftRangeSelection<Row>(makeParams({items, onApplyRange})), {
+                initialProps: {items: [...ROWS]},
+            });
+            act(() => result.current.notifyAnchor(ROWS[0]));
+            act(() => {
+                result.current.applyShiftClick(ROWS[4], {shiftKey: true});
+            });
+            rerender({items: ROWS.slice(0, 3)});
+            onApplyRange.mockClear();
+            act(() => {
+                result.current.applyShiftClick(ROWS[1], {shiftKey: true});
+            });
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'b'], toDeselect: []});
+        });
+
+        it('keeps the anchor active when items shrink mid-session', () => {
+            const onApplyRange = makeApplyMock();
+            const {result, rerender} = renderHook(({items}: {items: Row[]}) => useShiftRangeSelection<Row>(makeParams({items, onApplyRange})), {
+                initialProps: {items: [...ROWS]},
+            });
+            act(() => result.current.notifyAnchor(ROWS[0]));
+            rerender({items: ROWS.slice(0, 3)});
+            act(() => {
+                result.current.applyShiftClick(ROWS[2], {shiftKey: true});
+            });
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'b', 'c'], toDeselect: []});
+        });
     });
 
     describe('defensive bails', () => {
         it('returns false when every item is excluded and no anchor can be resolved', () => {
             const onApplyRange = makeApplyMock();
-            const allHeaders: [Row, Row] = [
+            const allHeaders: Tuple2<Row> = [
                 {keyForList: 'h1', isHeader: true},
                 {keyForList: 'h2', isHeader: true},
             ];
@@ -418,121 +585,18 @@ describe('useShiftRangeSelection', () => {
             expect(onApplyRange).not.toHaveBeenCalled();
         });
 
-        it('returns false when getItemKey returns null/undefined for the target', () => {
-            const onApplyRange = makeApplyMock();
-            const items: [Row, Row] = [{keyForList: 'a'}, {keyForList: 'b'}];
-            const {result} = renderHook(() =>
-                useShiftRangeSelection<Row>(
-                    makeParams({
-                        items,
-                        getItemKey: () => null,
-                        onApplyRange,
-                    }),
-                ),
-            );
-            let applied = true;
-            act(() => {
-                applied = result.current.applyShiftClick(items[1], {shiftKey: true});
-            });
-            expect(applied).toBe(false);
+        it('ignores notifyAnchor when the item key is empty', () => {
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams()));
+            act(() => result.current.notifyAnchor({keyForList: ''}));
+            expect(result.current.getAnchorKey()).toBeNull();
         });
 
-        it('does not emit deselects from a vanished previous endpoint when items change mid-session', () => {
-            const onApplyRange = makeApplyMock();
-            const {result, rerender} = renderHook(({items}: {items: Row[]}) => useShiftRangeSelection<Row>(makeParams({items, onApplyRange})), {
-                initialProps: {items: [...ROWS]},
-            });
-            act(() => result.current.notifyAnchor(ROWS[0]));
-            act(() => {
-                result.current.applyShiftClick(ROWS[4], {shiftKey: true});
-            });
-            rerender({items: ROWS.slice(0, 3)});
-            onApplyRange.mockClear();
-            act(() => {
-                result.current.applyShiftClick(ROWS[1], {shiftKey: true});
-            });
-            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'b'], toDeselect: []});
-        });
-
-        it('falls back to first-selected on the next shift+click when notifyAnchor was passed a header item', () => {
-            const onApplyRange = makeApplyMock();
-            const {result} = renderHook(() =>
-                useShiftRangeSelection<Row>(
-                    makeParams({
-                        items: GROUPED,
-                        isHeaderItem: (r) => !!r.isHeader,
-                        getSelectedKeys: () => new Set(['c']),
-                        onApplyRange,
-                    }),
-                ),
-            );
-            act(() => result.current.notifyAnchor(GROUPED[0]));
-            act(() => {
-                result.current.applyShiftClick(GROUPED[5], {shiftKey: true});
-            });
-            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['c', 'd'], toDeselect: []});
-        });
-
-        it('falls back to first-visible on the next shift+click when notifyAnchor was passed a disabled item', () => {
-            const onApplyRange = makeApplyMock();
-            const {result} = renderHook(() =>
-                useShiftRangeSelection<Row>(
-                    makeParams({
-                        items: MIXED,
-                        isDisabledItem: (r) => !!r.isDisabled,
-                        onApplyRange,
-                    }),
-                ),
-            );
-            act(() => result.current.notifyAnchor(MIXED[1]));
-            act(() => {
-                result.current.applyShiftClick(MIXED[4], {shiftKey: true});
-            });
-            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'c', 'e'], toDeselect: []});
-        });
-
-        it('clearAnchor ends an active shift session so the next shift+click starts fresh with no prevEnd', () => {
+        it('clearAnchor on an idle hook is a no-op', () => {
             const onApplyRange = makeApplyMock();
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
-            act(() => result.current.notifyAnchor(ROWS[0]));
-            act(() => {
-                result.current.applyShiftClick(ROWS[4], {shiftKey: true});
-            });
             act(() => result.current.clearAnchor());
-            onApplyRange.mockClear();
-            act(() => {
-                result.current.notifyAnchor(ROWS[2]);
-            });
-            act(() => {
-                result.current.applyShiftClick(ROWS[3], {shiftKey: true});
-            });
-            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['c', 'd'], toDeselect: []});
-        });
-    });
-
-    describe('end-to-end interaction flows', () => {
-        it('includes the anchor row in the range when the user selected then deselected it before shift+clicking', () => {
-            const onApplyRange = makeApplyMock();
-            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
-            act(() => result.current.notifyAnchor(ROWS[1]));
-            act(() => result.current.notifyAnchor(ROWS[1]));
-            act(() => {
-                result.current.applyShiftClick(ROWS[4], {shiftKey: true});
-            });
-            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['b', 'c', 'd', 'e'], toDeselect: []});
-        });
-
-        it('shrinks the existing range when a second shift+click lands before the previous endpoint with no plain click in between', () => {
-            const onApplyRange = makeApplyMock();
-            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
-            act(() => result.current.notifyAnchor(ROWS[0]));
-            act(() => {
-                result.current.applyShiftClick(ROWS[4], {shiftKey: true});
-            });
-            act(() => {
-                result.current.applyShiftClick(ROWS[2], {shiftKey: true});
-            });
-            expect(nthBatchKeys(onApplyRange, 1)).toEqual({toSelect: ['a', 'b', 'c'], toDeselect: ['d', 'e']});
+            expect(onApplyRange).not.toHaveBeenCalled();
+            expect(result.current.getAnchorKey()).toBeNull();
         });
     });
 });
@@ -555,10 +619,18 @@ describe('getModifierKeysFromEvent', () => {
         expect(getModifierKeysFromEvent({nativeEvent: {shiftKey: false}} as EventArg).shiftKey).toBe(false);
     });
 
-    it('marks additive when both platform modifier keys are set', () => {
-        // Cross-platform: setting both metaKey and ctrlKey is true on every OS so the additive bit
-        // is positive regardless of which branch the helper selects.
-        expect(getModifierKeysFromEvent({metaKey: true, ctrlKey: true} as EventArg).additive).toBe(true);
+    it('outer shiftKey false takes precedence over nativeEvent shiftKey true', () => {
+        expect(getModifierKeysFromEvent({shiftKey: false, nativeEvent: {shiftKey: true}} as EventArg).shiftKey).toBe(false);
+    });
+
+    it('marks additive when either modifier key is set', () => {
+        expect(getModifierKeysFromEvent({metaKey: true} as EventArg).additive).toBe(true);
+        expect(getModifierKeysFromEvent({ctrlKey: true} as EventArg).additive).toBe(true);
+    });
+
+    it('reads metaKey and ctrlKey from nativeEvent as a fallback', () => {
+        expect(getModifierKeysFromEvent({nativeEvent: {metaKey: true}} as EventArg).additive).toBe(true);
+        expect(getModifierKeysFromEvent({nativeEvent: {ctrlKey: true}} as EventArg).additive).toBe(true);
     });
 
     it('reports additive false when neither modifier key is set', () => {
@@ -577,6 +649,11 @@ describe('applyShiftRangeBatchToKeySet', () => {
         expect(out).not.toBe(prev);
     });
 
+    it('adds toSelect keys when the previous list is empty', () => {
+        const out = applyShiftRangeBatchToKeySet({toSelect: [{keyForList: 'a'}, {keyForList: 'b'}], toDeselect: []}, [] as string[], getKey);
+        expect(out).toEqual(['a', 'b']);
+    });
+
     it('adds toSelect keys, preserving prevKeys order then new keys', () => {
         const out = applyShiftRangeBatchToKeySet({toSelect: [{keyForList: 'c'}, {keyForList: 'd'}], toDeselect: []}, ['a', 'b'], getKey);
         expect(out).toEqual(['a', 'b', 'c', 'd']);
@@ -592,12 +669,17 @@ describe('applyShiftRangeBatchToKeySet', () => {
         expect(out).toEqual(['a', 'b', 'c']);
     });
 
+    it('re-adds a key at the end when it appears in both toDeselect and toSelect', () => {
+        const out = applyShiftRangeBatchToKeySet({toSelect: [{keyForList: 'b'}], toDeselect: [{keyForList: 'b'}]}, ['a', 'b', 'c'], getKey);
+        expect(out).toEqual(['a', 'c', 'b']);
+    });
+
     it('skips items where isSelectable returns false', () => {
         const out = applyShiftRangeBatchToKeySet({toSelect: [{keyForList: 'b'}, {keyForList: 'c'}], toDeselect: []}, ['a'], getKey, (i) => i.keyForList !== 'b');
         expect(out).toEqual(['a', 'c']);
     });
 
-    it('default isSelectable skips items with isDisabled or isDisabledCheckbox', () => {
+    it('skips items with isDisabled or isDisabledCheckbox by default', () => {
         const out = applyShiftRangeBatchToKeySet({toSelect: [{keyForList: 'b', isDisabled: true}, {keyForList: 'c'}], toDeselect: []}, ['a'], getKey);
         expect(out).toEqual(['a', 'c']);
     });
@@ -609,70 +691,16 @@ describe('applyShiftRangeBatchToKeySet', () => {
     });
 });
 
-describe('applyShiftRangeBatchToValueArray', () => {
-    type Item = {id: string; isDisabled?: boolean};
-    type Value = {id: string; label: string};
-    const getItemKey = (i: Item) => i.id;
-    const getValueKey = (v: Value) => v.id;
-    const buildValue = (i: Item): Value => ({id: i.id, label: i.id.toUpperCase()});
-
-    it('returns a copy of prevValues for empty batches', () => {
-        const prev: Value[] = [{id: 'a', label: 'A'}];
-        const out = applyShiftRangeBatchToValueArray({toSelect: [], toDeselect: []}, prev, getItemKey, getValueKey, buildValue);
-        expect(out).toEqual(prev);
-        expect(out).not.toBe(prev);
+describe('farthestEndFromAnchor', () => {
+    it('returns last when the anchor is above the group', () => {
+        expect(farthestEndFromAnchor(3, 6, 0)).toBe('last');
     });
 
-    it('builds and appends new values for toSelect items', () => {
-        const out = applyShiftRangeBatchToValueArray({toSelect: [{id: 'b'}, {id: 'c'}], toDeselect: []}, [{id: 'a', label: 'A'}], getItemKey, getValueKey, buildValue);
-        expect(out).toEqual([
-            {id: 'a', label: 'A'},
-            {id: 'b', label: 'B'},
-            {id: 'c', label: 'C'},
-        ]);
+    it('returns first when the anchor is below the group', () => {
+        expect(farthestEndFromAnchor(3, 6, 10)).toBe('first');
     });
 
-    it('removes prev values whose key matches toDeselect', () => {
-        const out = applyShiftRangeBatchToValueArray(
-            {toSelect: [], toDeselect: [{id: 'b'}]},
-            [
-                {id: 'a', label: 'A'},
-                {id: 'b', label: 'B'},
-                {id: 'c', label: 'C'},
-            ],
-            getItemKey,
-            getValueKey,
-            buildValue,
-        );
-        expect(out).toEqual([
-            {id: 'a', label: 'A'},
-            {id: 'c', label: 'C'},
-        ]);
-    });
-
-    it('skips toSelect items whose key is already present in prev', () => {
-        const out = applyShiftRangeBatchToValueArray({toSelect: [{id: 'a'}, {id: 'b'}], toDeselect: []}, [{id: 'a', label: 'A'}], getItemKey, getValueKey, buildValue);
-        expect(out).toEqual([
-            {id: 'a', label: 'A'},
-            {id: 'b', label: 'B'},
-        ]);
-    });
-
-    it('skips items where buildValue returns null/undefined', () => {
-        const out = applyShiftRangeBatchToValueArray({toSelect: [{id: 'b'}, {id: 'c'}], toDeselect: []}, [{id: 'a', label: 'A'}], getItemKey, getValueKey, (i) =>
-            i.id === 'b' ? null : buildValue(i),
-        );
-        expect(out).toEqual([
-            {id: 'a', label: 'A'},
-            {id: 'c', label: 'C'},
-        ]);
-    });
-
-    it('skips items where isSelectable returns false', () => {
-        const out = applyShiftRangeBatchToValueArray({toSelect: [{id: 'b'}, {id: 'c'}], toDeselect: []}, [{id: 'a', label: 'A'}], getItemKey, getValueKey, buildValue, (i) => i.id !== 'b');
-        expect(out).toEqual([
-            {id: 'a', label: 'A'},
-            {id: 'c', label: 'C'},
-        ]);
+    it('returns last when there is no anchor', () => {
+        expect(farthestEndFromAnchor(3, 6, -1)).toBe('last');
     });
 });

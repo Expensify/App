@@ -29,8 +29,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
-import useShiftRangeSelection, {applyShiftRangeBatchToKeySet} from '@hooks/useShiftRangeSelection';
-import type {Modifiers} from '@hooks/useShiftRangeSelection';
+import useShiftRangeSelection from '@hooks/useShiftRangeSelection';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -42,6 +41,8 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {canMemberWrite, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
+import {applyShiftRangeBatchToKeySet} from '@libs/shiftRangeSelection';
+import type {Modifiers} from '@libs/shiftRangeSelection';
 import Navigation from '@navigation/Navigation';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';

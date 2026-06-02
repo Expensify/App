@@ -3,7 +3,7 @@ import type {GestureResponderEvent, InputModeOptions, StyleProp, TextStyle, View
 import type {ValueOf} from 'type-fest';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
-import type {Modifiers, ShiftRangeBatch} from '@hooks/useShiftRangeSelection';
+import type {Modifiers, ShiftRangeBatch} from '@libs/shiftRangeSelection';
 import type CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {ListItem, ValidListItem} from './ListItem/types';
@@ -47,7 +47,7 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     /** Called when a selection button is pressed */
     onSelectionButtonPress?: (item: TItem, itemTransactions?: unknown, options?: Partial<Modifiers>) => void;
 
-    /** Apply a shift+click range batch atomically. Opt-in: without it, shift+click falls through to per-item toggle. */
+    /** Apply a shift+click range batch atomically. Without this, shift+click falls through to per-item toggle. */
     onShiftRangeApply?: (batch: ShiftRangeBatch<TItem>) => void;
 
     /** Callback to fire when an error is dismissed */

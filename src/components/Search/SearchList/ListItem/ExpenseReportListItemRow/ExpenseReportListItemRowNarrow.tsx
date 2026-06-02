@@ -4,7 +4,7 @@ import Checkbox from '@components/Checkbox';
 import Text from '@components/Text';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
-import {getModifierKeysFromEvent} from '@hooks/useShiftRangeSelection';
+import {getModifierKeysFromEvent} from '@libs/shiftRangeSelection';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';

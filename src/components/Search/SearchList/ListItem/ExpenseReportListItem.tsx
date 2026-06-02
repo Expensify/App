@@ -19,7 +19,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import type {Modifiers} from '@hooks/useShiftRangeSelection';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,6 +28,7 @@ import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {getNonHeldAndFullAmount, isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete} from '@libs/ReportUtils';
+import type {Modifiers} from '@libs/shiftRangeSelection';
 import {isOnHold, isViolationDismissed, shouldShowViolation, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -154,7 +154,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
         handleActionButtonPress({
             hash: currentSearchHash,
             item: reportItem,
-            goToItem: () => onSelectRow(reportItem as unknown as TItem),
+            goToItem: () => onSelectRow(item),
             snapshotReport,
             snapshotPolicy,
             policy: parentPolicy,
@@ -196,6 +196,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     }, [
         currentSearchHash,
         reportItem,
+        item,
         onSelectRow,
         snapshotReport,
         snapshotChatReport,
@@ -219,9 +220,9 @@ function ExpenseReportListItem<TItem extends ListItem>({
 
     const handleSelectionButtonPress = useCallback(
         (_passedItem?: unknown, options?: Partial<Modifiers>) => {
-            onSelectionButtonPress?.(reportItem as unknown as TItem, undefined, options);
+            onSelectionButtonPress?.(item, undefined, options);
         },
-        [onSelectionButtonPress, reportItem],
+        [onSelectionButtonPress, item],
     );
 
     const listItemPressableStyle = useMemo(

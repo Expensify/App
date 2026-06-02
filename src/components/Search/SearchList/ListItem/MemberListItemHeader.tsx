@@ -3,27 +3,26 @@ import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Checkbox from '@components/Checkbox';
 import type {SearchColumnType} from '@components/Search/types';
-import type {ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
-import {getModifierKeysFromEvent} from '@hooks/useShiftRangeSelection';
-import type {Modifiers} from '@hooks/useShiftRangeSelection';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getModifierKeysFromEvent} from '@libs/shiftRangeSelection';
+import type {Modifiers} from '@libs/shiftRangeSelection';
 import CONST from '@src/CONST';
 import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
 import TextCell from './TextCell';
 import TotalCell from './TotalCell';
 import type {TransactionMemberGroupListItemType} from './types';
 
-type MemberListItemHeaderProps<TItem extends ListItem> = {
+type MemberListItemHeaderProps = {
     /** The member currently being looked at */
     member: TransactionMemberGroupListItemType;
 
     /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress?: (item: TItem, options?: Partial<Modifiers>) => void;
+    onCheckboxPress?: (options?: Partial<Modifiers>) => void;
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
@@ -50,7 +49,7 @@ type MemberListItemHeaderProps<TItem extends ListItem> = {
     isLargeScreenWidth?: boolean;
 };
 
-function MemberListItemHeader<TItem extends ListItem>({
+function MemberListItemHeader({
     member: memberItem,
     onCheckboxPress,
     isDisabled,
@@ -61,7 +60,7 @@ function MemberListItemHeader<TItem extends ListItem>({
     onDownArrowClick,
     columns,
     isLargeScreenWidth,
-}: MemberListItemHeaderProps<TItem>) {
+}: MemberListItemHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -131,7 +130,7 @@ function MemberListItemHeader<TItem extends ListItem>({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
-                            onPress={(event) => onCheckboxPress?.(memberItem as unknown as TItem, getModifierKeysFromEvent(event))}
+                            onPress={(event) => onCheckboxPress?.(getModifierKeysFromEvent(event))}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || memberItem.isDisabledCheckbox}

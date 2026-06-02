@@ -5,7 +5,7 @@ import Icon from '@components/Icon';
 import RadioButton from '@components/RadioButton';
 import DateCell from '@components/Search/SearchList/ListItem/DateCell';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import {getModifierKeysFromEvent} from '@hooks/useShiftRangeSelection';
+import {getModifierKeysFromEvent} from '@libs/shiftRangeSelection';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';

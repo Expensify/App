@@ -1,7 +1,7 @@
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ExpenseReportListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchColumnType} from '@components/Search/types';
-import type {Modifiers} from '@hooks/useShiftRangeSelection';
+import type {Modifiers} from '@libs/shiftRangeSelection';
 import type {ReportAction} from '@src/types/onyx';
 
 type ExpenseReportListItemRowNarrowProps = {

@@ -2,14 +2,13 @@ import React from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import type {SearchColumnType} from '@components/Search/types';
-import type {ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {getModifierKeysFromEvent} from '@hooks/useShiftRangeSelection';
-import type {Modifiers} from '@hooks/useShiftRangeSelection';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getModifierKeysFromEvent} from '@libs/shiftRangeSelection';
+import type {Modifiers} from '@libs/shiftRangeSelection';
 import CONST from '@src/CONST';
 import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
 import TextCell from './TextCell';
@@ -48,7 +47,7 @@ type ColumnStyleKey =
     | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR
     | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER;
 
-type BaseListItemHeaderProps<TItem extends ListItem> = {
+type BaseListItemHeaderProps = {
     /** The group item being rendered */
     item: BaseGroupListItemType;
 
@@ -62,7 +61,7 @@ type BaseListItemHeaderProps<TItem extends ListItem> = {
     columnStyleKey: ColumnStyleKey;
 
     /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress?: (item: TItem, options?: Partial<Modifiers>) => void;
+    onCheckboxPress?: (options?: Partial<Modifiers>) => void;
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
@@ -86,7 +85,7 @@ type BaseListItemHeaderProps<TItem extends ListItem> = {
     columns?: SearchColumnType[];
 };
 
-function BaseListItemHeader<TItem extends ListItem>({
+function BaseListItemHeader({
     item,
     displayName,
     groupColumnKey,
@@ -99,7 +98,7 @@ function BaseListItemHeader<TItem extends ListItem>({
     isExpanded,
     onDownArrowClick,
     columns,
-}: BaseListItemHeaderProps<TItem>) {
+}: BaseListItemHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -146,7 +145,7 @@ function BaseListItemHeader<TItem extends ListItem>({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
-                            onPress={(event) => onCheckboxPress?.(item as unknown as TItem, getModifierKeysFromEvent(event))}
+                            onPress={(event) => onCheckboxPress?.(getModifierKeysFromEvent(event))}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || item.isDisabledCheckbox}

@@ -1,33 +1,7 @@
-import type {KeyboardEvent as ReactKeyboardEvent} from 'react';
-import {useEffect, useMemo, useRef} from 'react';
-import type {GestureResponderEvent} from 'react-native';
-import getOperatingSystem from '@libs/getOperatingSystem';
-import CONST from '@src/CONST';
-
-/**
- * Excel/AG Grid-style shift+click range selection. Consumers call notifyAnchor on plain
- * clicks / focus changes and clearAnchor on select-all / deselect-all; the session lives
- * between shift+clicks and is ended by either notify. Headers and disabled rows are excluded.
- *
- * Holding the platform additive modifier (Cmd on Mac/iOS, Ctrl elsewhere) while shift+clicking
- * extends the selection without deselecting the previous range — matches Excel/Finder/Classic.
- */
+import {useReducer} from 'react';
+import type {Modifiers, ShiftRangeBatch} from '@libs/shiftRangeSelection';
 
 type ItemWithKey = {keyForList?: string | null};
-
-type ModifierEvent = (GestureResponderEvent | KeyboardEvent | ReactKeyboardEvent | MouseEvent) & {
-    shiftKey?: boolean;
-    metaKey?: boolean;
-    ctrlKey?: boolean;
-    nativeEvent?: {shiftKey?: boolean; metaKey?: boolean; ctrlKey?: boolean};
-};
-
-type Modifiers = {shiftKey: boolean; additive: boolean};
-
-type ShiftRangeBatch<TItem> = {
-    toSelect: TItem[];
-    toDeselect: TItem[];
-};
 
 type Params<TItem> = {
     items: TItem[];
@@ -35,7 +9,7 @@ type Params<TItem> = {
     getSelectedKeys?: () => ReadonlySet<string> | readonly string[];
     isHeaderItem?: (item: TItem) => boolean;
     isDisabledItem?: (item: TItem) => boolean;
-    onApplyRange: (batch: ShiftRangeBatch<TItem>) => void;
+    onApplyRange?: (batch: ShiftRangeBatch<TItem>) => void;
 };
 
 type Api<TItem> = {
@@ -45,277 +19,185 @@ type Api<TItem> = {
     getAnchorKey: () => string | null;
 };
 
-const ADDITIVE_VIA_META = getOperatingSystem() === CONST.OS.MAC_OS || getOperatingSystem() === CONST.OS.IOS;
+type SessionState = {kind: 'idle'} | {kind: 'anchored'; anchor: string} | {kind: 'ranging'; anchor: string; prevEnd: string};
 
-type Session = {anchor: string; prevEnd: string};
+type SessionEvent = {type: 'notify'; key: string} | {type: 'clear'} | {type: 'range'; anchor: string; prevEnd: string};
 
+const IDLE: SessionState = {kind: 'idle'};
+
+function sessionReducer(state: SessionState, event: SessionEvent): SessionState {
+    switch (event.type) {
+        case 'notify':
+            return {kind: 'anchored', anchor: event.key};
+        case 'clear':
+            return IDLE;
+        case 'range':
+            return {kind: 'ranging', anchor: event.anchor, prevEnd: event.prevEnd};
+        default: {
+            const exhaustive: never = event;
+            return exhaustive;
+        }
+    }
+}
+
+/** Shift+click range selection. Consumers notify on plain clicks / select-all so the hook can resolve an anchor for the next shift+click. */
 function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
-    const paramsRef = useRef(params);
-    useEffect(() => {
-        paramsRef.current = params;
-    });
-    const anchorRef = useRef<string | null>(null);
-    const sessionRef = useRef<Session | null>(null);
+    const [state, dispatch] = useReducer(sessionReducer, IDLE);
 
-    return useMemo<Api<TItem>>(() => {
-        const runRange = (target: TItem, additive: boolean): boolean => {
-            const p = paramsRef.current;
-            const targetKey = keyOf(p, target);
-            if (!targetKey || isExcluded(p, target)) {
+    return {
+        applyShiftClick: (target, options) => {
+            if (!options?.shiftKey) {
                 return false;
             }
-
-            const session = sessionRef.current;
-            let anchor: string;
-            let prevEnd: string | null;
-            if (session) {
-                anchor = session.anchor;
-                prevEnd = session.prevEnd;
-            } else {
-                const resolved = resolveAnchor(p, anchorRef.current);
-                if (!resolved) {
-                    return false;
-                }
-                anchor = resolved;
-                prevEnd = null;
-            }
-
-            const anchorIdx = indexOfKey(p, anchor);
-            const targetIdx = indexOfKey(p, targetKey);
-            if (anchorIdx < 0 || targetIdx < 0) {
+            const result = computeShiftRange(params, state, target, !!options.additive);
+            if (!result) {
                 return false;
             }
-
-            const newRange = orderedRange(anchorIdx, targetIdx);
-            // Guard against stale prevEnd: indexOfKey returns -1 → items.at(-1) would deselect the last row.
-            // In additive mode the previous range is preserved, so prevRange is intentionally null.
-            const prevEndIdx = !additive && prevEnd != null ? indexOfKey(p, prevEnd) : -1;
-            const prevRange = prevEndIdx >= 0 ? orderedRange(anchorIdx, prevEndIdx) : null;
-            const isUsable = (i: number) => !isExcluded(p, p.items.at(i));
-
-            const toSelect: TItem[] = [];
-            for (let i = newRange[0]; i <= newRange[1]; i++) {
-                if (isUsable(i)) {
-                    const row = p.items.at(i);
-                    if (row) {
-                        toSelect.push(row);
-                    }
-                }
+            if (result.batch.toSelect.length || result.batch.toDeselect.length) {
+                params.onApplyRange?.(result.batch);
             }
-            const toDeselect: TItem[] = [];
-            if (prevRange) {
-                for (let i = prevRange[0]; i <= prevRange[1]; i++) {
-                    if (i >= newRange[0] && i <= newRange[1]) {
-                        continue;
-                    }
-                    if (isUsable(i)) {
-                        const row = p.items.at(i);
-                        if (row) {
-                            toDeselect.push(row);
-                        }
-                    }
-                }
-            }
-
-            if (toSelect.length || toDeselect.length) {
-                p.onApplyRange({toSelect, toDeselect});
-            }
-            sessionRef.current = {anchor, prevEnd: targetKey};
+            dispatch({type: 'range', anchor: result.anchor, prevEnd: result.prevEnd});
             return true;
-        };
+        },
+        notifyAnchor: (item) => {
+            const key = keyOf(params, item);
+            if (key) {
+                dispatch({type: 'notify', key});
+            }
+        },
+        clearAnchor: () => dispatch({type: 'clear'}),
+        getAnchorKey: () => (state.kind === 'idle' ? null : state.anchor),
+    };
+}
 
-        return {
-            applyShiftClick: (item, options) => !!options?.shiftKey && runRange(item, !!options?.additive),
-            notifyAnchor: (item) => {
-                const k = keyOf(paramsRef.current, item);
-                if (k) {
-                    anchorRef.current = k;
-                }
-                sessionRef.current = null;
-            },
-            clearAnchor: () => {
-                anchorRef.current = null;
-                sessionRef.current = null;
-            },
-            getAnchorKey: () => sessionRef.current?.anchor ?? anchorRef.current,
-        };
-    }, []);
+type ShiftRangeResult<TItem> = {
+    batch: ShiftRangeBatch<TItem>;
+    anchor: string;
+    prevEnd: string;
+};
+
+function computeShiftRange<TItem>(params: Params<TItem>, state: SessionState, target: TItem, additive: boolean): ShiftRangeResult<TItem> | null {
+    const targetKey = keyOf(params, target);
+    if (!targetKey || isExcluded(params, target)) {
+        return null;
+    }
+
+    let anchor: string;
+    let prevEnd: string | null;
+    if (state.kind === 'ranging') {
+        anchor = state.anchor;
+        prevEnd = state.prevEnd;
+    } else {
+        const seed = state.kind === 'anchored' ? state.anchor : null;
+        const resolved = resolveAnchor(params, seed);
+        if (!resolved) {
+            return null;
+        }
+        anchor = resolved;
+        prevEnd = null;
+    }
+
+    const anchorIdx = indexOfKey(params, anchor);
+    const targetIdx = indexOfKey(params, targetKey);
+    if (anchorIdx < 0 || targetIdx < 0) {
+        return null;
+    }
+
+    const newRange = orderedRange(anchorIdx, targetIdx);
+    // Additive preserves the prior range; otherwise prevEndIdx is -1 when prevEnd has been removed.
+    const prevEndIdx = !additive && prevEnd != null ? indexOfKey(params, prevEnd) : -1;
+    const prevRange = prevEndIdx >= 0 ? orderedRange(anchorIdx, prevEndIdx) : null;
+
+    const toSelect: TItem[] = [];
+    for (let i = newRange[0]; i <= newRange[1]; i++) {
+        const row = params.items.at(i);
+        if (row && !isExcluded(params, row)) {
+            toSelect.push(row);
+        }
+    }
+    const toDeselect: TItem[] = [];
+    if (prevRange) {
+        for (let i = prevRange[0]; i <= prevRange[1]; i++) {
+            if (i >= newRange[0] && i <= newRange[1]) {
+                continue;
+            }
+            const row = params.items.at(i);
+            if (row && !isExcluded(params, row)) {
+                toDeselect.push(row);
+            }
+        }
+    }
+
+    return {batch: {toSelect, toDeselect}, anchor, prevEnd: targetKey};
 }
 
 function hasKeyForList(item: unknown): item is ItemWithKey {
     return typeof item === 'object' && item !== null && 'keyForList' in item;
 }
 
-function keyOf<TItem>(p: Params<TItem>, item: TItem | null | undefined): string | null {
+function keyOf<TItem>(params: Params<TItem>, item: TItem | null | undefined): string | null {
     if (item == null) {
         return null;
     }
-    if (p.getItemKey) {
-        return p.getItemKey(item) ?? null;
+    if (params.getItemKey) {
+        return params.getItemKey(item) ?? null;
     }
     return hasKeyForList(item) ? (item.keyForList ?? null) : null;
 }
 
-function isExcluded<TItem>(p: Params<TItem>, item: TItem | null | undefined): boolean {
+function isExcluded<TItem>(params: Params<TItem>, item: TItem | null | undefined): boolean {
     if (item == null) {
         return true;
     }
-    if (p.isHeaderItem?.(item)) {
+    if (params.isHeaderItem?.(item)) {
         return true;
     }
-    if (p.isDisabledItem?.(item)) {
+    if (params.isDisabledItem?.(item)) {
         return true;
     }
     return false;
 }
 
-function indexOfKey<TItem>(p: Params<TItem>, key: string): number {
-    return p.items.findIndex((row) => keyOf(p, row) === key);
+function indexOfKey<TItem>(params: Params<TItem>, key: string): number {
+    return params.items.findIndex((row) => keyOf(params, row) === key);
 }
 
 function orderedRange(a: number, b: number): readonly [number, number] {
     return a <= b ? [a, b] : [b, a];
 }
 
-function resolveAnchor<TItem>(p: Params<TItem>, source: string | null): string | null {
+function resolveAnchor<TItem>(params: Params<TItem>, source: string | null): string | null {
     if (source) {
-        const idx = indexOfKey(p, source);
-        if (idx >= 0 && !isExcluded(p, p.items.at(idx))) {
+        const idx = indexOfKey(params, source);
+        if (idx >= 0 && !isExcluded(params, params.items.at(idx))) {
             return source;
         }
     }
-    if (p.getSelectedKeys) {
-        const sel = p.getSelectedKeys();
-        const set: ReadonlySet<string> = sel instanceof Set ? sel : new Set(sel);
+    if (params.getSelectedKeys) {
+        const selected = params.getSelectedKeys();
+        const set: ReadonlySet<string> = selected instanceof Set ? selected : new Set(selected);
         if (set.size) {
-            for (const row of p.items) {
-                if (isExcluded(p, row)) {
+            for (const row of params.items) {
+                if (isExcluded(params, row)) {
                     continue;
                 }
-                const k = keyOf(p, row);
-                if (k && set.has(k)) {
-                    return k;
+                const key = keyOf(params, row);
+                if (key && set.has(key)) {
+                    return key;
                 }
             }
         }
     }
-    for (const row of p.items) {
-        if (isExcluded(p, row)) {
+    for (const row of params.items) {
+        if (isExcluded(params, row)) {
             continue;
         }
-        const k = keyOf(p, row);
-        if (k) {
-            return k;
+        const key = keyOf(params, row);
+        if (key) {
+            return key;
         }
     }
     return null;
 }
 
-function getModifierKeysFromEvent(e?: ModifierEvent | null): Modifiers {
-    const shiftKey = !!(e?.shiftKey ?? e?.nativeEvent?.shiftKey);
-    const additive = ADDITIVE_VIA_META ? !!(e?.metaKey ?? e?.nativeEvent?.metaKey) : !!(e?.ctrlKey ?? e?.nativeEvent?.ctrlKey);
-    return {shiftKey, additive};
-}
-
-function applyShiftRangeBatchToKeySet<TItem, TKey extends string | number>(
-    batch: ShiftRangeBatch<TItem>,
-    prevKeys: readonly TKey[],
-    getKey: (item: TItem) => TKey | null | undefined,
-    isSelectable?: (item: TItem) => boolean,
-): TKey[] {
-    if (!batch.toSelect.length && !batch.toDeselect.length) {
-        return [...prevKeys];
-    }
-    const removeSet = new Set<TKey>();
-    for (const it of batch.toDeselect) {
-        const k = getKey(it);
-        if (k != null) {
-            removeSet.add(k);
-        }
-    }
-    const addOrdered: TKey[] = [];
-    const addSet = new Set<TKey>();
-    for (const it of batch.toSelect) {
-        const k = getKey(it);
-        if (k == null || addSet.has(k)) {
-            continue;
-        }
-        if (isSelectable ? !isSelectable(it) : isBlocked(it)) {
-            continue;
-        }
-        addSet.add(k);
-        addOrdered.push(k);
-    }
-    const next: TKey[] = [];
-    const seen = new Set<TKey>();
-    for (const k of prevKeys) {
-        if (removeSet.has(k) || seen.has(k)) {
-            continue;
-        }
-        seen.add(k);
-        next.push(k);
-    }
-    for (const k of addOrdered) {
-        if (!seen.has(k)) {
-            seen.add(k);
-            next.push(k);
-        }
-    }
-    return next;
-}
-
-function applyShiftRangeBatchToValueArray<TItem, TValue, TKey extends string | number>(
-    batch: ShiftRangeBatch<TItem>,
-    prevValues: readonly TValue[],
-    getItemKey: (item: TItem) => TKey | null | undefined,
-    getValueKey: (value: TValue) => TKey,
-    buildValue: (item: TItem) => TValue | null | undefined,
-    isSelectable?: (item: TItem) => boolean,
-): TValue[] {
-    if (!batch.toSelect.length && !batch.toDeselect.length) {
-        return [...prevValues];
-    }
-    const removeSet = new Set<TKey>();
-    for (const it of batch.toDeselect) {
-        const k = getItemKey(it);
-        if (k != null) {
-            removeSet.add(k);
-        }
-    }
-    const next: TValue[] = [];
-    const seen = new Set<TKey>();
-    for (const v of prevValues) {
-        const k = getValueKey(v);
-        if (removeSet.has(k) || seen.has(k)) {
-            continue;
-        }
-        seen.add(k);
-        next.push(v);
-    }
-    for (const it of batch.toSelect) {
-        const k = getItemKey(it);
-        if (k == null || seen.has(k)) {
-            continue;
-        }
-        if (isSelectable ? !isSelectable(it) : isBlocked(it)) {
-            continue;
-        }
-        const v = buildValue(it);
-        if (v != null) {
-            seen.add(k);
-            next.push(v);
-        }
-    }
-    return next;
-}
-
-function isBlocked(item: unknown): boolean {
-    if (typeof item !== 'object' || item === null) {
-        return false;
-    }
-    return ('isDisabled' in item && !!item.isDisabled) || ('isDisabledCheckbox' in item && !!item.isDisabledCheckbox);
-}
-
 export default useShiftRangeSelection;
-export {getModifierKeysFromEvent, applyShiftRangeBatchToKeySet, applyShiftRangeBatchToValueArray};
-export type {ShiftRangeBatch, Modifiers};

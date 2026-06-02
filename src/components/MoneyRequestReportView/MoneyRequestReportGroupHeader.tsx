@@ -7,12 +7,12 @@ import Text from '@components/Text';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
-import {getModifierKeysFromEvent} from '@hooks/useShiftRangeSelection';
-import type {Modifiers} from '@hooks/useShiftRangeSelection';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedLeafCategoryName} from '@libs/CategoryUtils';
 import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
+import {getModifierKeysFromEvent} from '@libs/shiftRangeSelection';
+import type {Modifiers} from '@libs/shiftRangeSelection';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {GroupedTransactions} from '@src/types/onyx';
@@ -92,10 +92,9 @@ function MoneyRequestReportGroupHeader({
               styles.pv2,
               styles.ph3,
               styles.borderBottom,
-              styles.userSelectNone,
               isSelected && {borderColor: theme.buttonHoveredBG},
           ]
-        : [styles.ph4, styles.pv3, styles.borderBottom, styles.userSelectNone];
+        : [styles.ph4, styles.pv3, styles.borderBottom];
 
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>

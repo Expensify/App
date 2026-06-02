@@ -33,8 +33,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
-import useShiftRangeSelection, {applyShiftRangeBatchToKeySet} from '@hooks/useShiftRangeSelection';
-import type {Modifiers} from '@hooks/useShiftRangeSelection';
+import useShiftRangeSelection from '@hooks/useShiftRangeSelection';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -63,6 +62,8 @@ import {
 } from '@libs/ReportUtils';
 import type {SortableColumnName} from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, getTableMinWidth, hasFlexColumn, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
+import {applyShiftRangeBatchToKeySet, farthestEndFromAnchor} from '@libs/shiftRangeSelection';
+import type {Modifiers} from '@libs/shiftRangeSelection';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {transactionHasRBR} from '@libs/TransactionPreviewUtils';
 import {getTransactionPendingAction, getVisibleTransactionViolations, isTransactionPendingDelete, shouldShowExpenseBreakdown} from '@libs/TransactionUtils';
@@ -416,7 +417,7 @@ function MoneyRequestReportTransactionList({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [resolvedTransactions, currentGroupBy, report?.reportID, report?.currency, localeCompare, shouldShowGroupedTransactions]);
 
-    // Visually-rendered order, not the prop-level `transactions` (which is DB-insertion order).
+    // Visual order, not the prop's DB-insertion order.
     const visualOrderTransactions = useMemo(
         () => (shouldShowGroupedTransactions && groupedTransactions.length > 0 ? groupedTransactions.flatMap((group) => group.transactions) : resolvedTransactions),
         [groupedTransactions, resolvedTransactions, shouldShowGroupedTransactions],
@@ -508,22 +509,18 @@ function MoneyRequestReportTransactionList({
             }
             const selectableChildren = group.transactions.filter((t) => !isTransactionPendingDelete(t));
 
-            // Shift+click header extends through the group; target = farthest child from anchor so both group edges are covered.
             if (options?.shiftKey && selectableChildren.length > 0) {
-                const anchorKey = rangeApi.getAnchorKey();
-                const anchorIdx = anchorKey ? visualOrderTransactions.findIndex((t) => t.transactionID === anchorKey) : -1;
-                let target = selectableChildren.at(-1) ?? selectableChildren.at(0);
-                if (anchorIdx >= 0 && target) {
-                    const firstChild = selectableChildren.at(0);
-                    const lastChild = selectableChildren.at(-1);
-                    if (firstChild && lastChild) {
-                        const firstIdx = visualOrderTransactions.findIndex((t) => t.transactionID === firstChild.transactionID);
-                        const lastIdx = visualOrderTransactions.findIndex((t) => t.transactionID === lastChild.transactionID);
-                        target = Math.abs(firstIdx - anchorIdx) > Math.abs(lastIdx - anchorIdx) ? firstChild : lastChild;
+                const firstChild = selectableChildren.at(0);
+                const lastChild = selectableChildren.at(-1);
+                if (firstChild && lastChild) {
+                    const anchorKey = rangeApi.getAnchorKey();
+                    const anchorIdx = anchorKey ? visualOrderTransactions.findIndex((t) => t.transactionID === anchorKey) : -1;
+                    const firstIdx = visualOrderTransactions.findIndex((t) => t.transactionID === firstChild.transactionID);
+                    const lastIdx = visualOrderTransactions.findIndex((t) => t.transactionID === lastChild.transactionID);
+                    const target = farthestEndFromAnchor(firstIdx, lastIdx, anchorIdx) === 'first' ? firstChild : lastChild;
+                    if (rangeApi.applyShiftClick(target, {shiftKey: true})) {
+                        return;
                     }
-                }
-                if (target && rangeApi.applyShiftClick(target, {shiftKey: true})) {
-                    return;
                 }
             }
 

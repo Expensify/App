@@ -29,7 +29,6 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
-import {applyShiftRangeBatchToValueArray} from '@hooks/useShiftRangeSelection';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
@@ -502,15 +501,32 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         selectAllAccessibilityLabel={translate('accessibilityHints.selectAllPerDiemRates')}
                         onSelectionButtonPress={toggleSubRate}
                         onShiftRangeApply={(batch) =>
-                            setSelectedPerDiem((prev) =>
-                                applyShiftRangeBatchToValueArray(
-                                    batch,
-                                    prev,
-                                    (r) => r.subRateID,
-                                    (v) => v.subRateID,
-                                    (r) => generateSingleSubRateData(allRatesArray, r.rateID, r.subRateID) ?? null,
-                                ),
-                            )
+                            setSelectedPerDiem((prev) => {
+                                if (!batch.toSelect.length && !batch.toDeselect.length) {
+                                    return prev;
+                                }
+                                const removeSet = new Set(batch.toDeselect.map((r) => r.subRateID));
+                                const seen = new Set<string>();
+                                const next: SubRateData[] = [];
+                                for (const value of prev) {
+                                    if (removeSet.has(value.subRateID) || seen.has(value.subRateID)) {
+                                        continue;
+                                    }
+                                    seen.add(value.subRateID);
+                                    next.push(value);
+                                }
+                                for (const row of batch.toSelect) {
+                                    if (row.isDisabled || row.isDisabledCheckbox || seen.has(row.subRateID)) {
+                                        continue;
+                                    }
+                                    const built = generateSingleSubRateData(allRatesArray, row.rateID, row.subRateID);
+                                    if (built) {
+                                        seen.add(row.subRateID);
+                                        next.push(built);
+                                    }
+                                }
+                                return next;
+                            })
                         }
                         customListHeader={getCustomListHeader()}
                         selectedItems={selectedPerDiem.map((item) => item.subRateID)}

@@ -30,7 +30,6 @@ import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShiftRangeSelection from '@hooks/useShiftRangeSelection';
-import type {Modifiers} from '@hooks/useShiftRangeSelection';
 import useStableArrayReference from '@hooks/useStableArrayReference';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -69,6 +68,8 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
+import {farthestEndFromAnchor} from '@libs/shiftRangeSelection';
+import type {Modifiers} from '@libs/shiftRangeSelection';
 import {cancelSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {cancelSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -1156,7 +1157,7 @@ function Search({
 
     const {stableSortedData, hasCachedOptimisticItem} = useStableOptimisticSortedData(sortedData, searchResults, optimisticTrackingState);
 
-    // Flatten any group-shaped data so children appear in the range items; header exclusion is gated separately on validGroupBy.
+    // Children must be in the range items; header exclusion is gated on validGroupBy separately.
     const flattenedShiftRangeItems = useMemo<SearchListItem[]>(() => {
         if (!areItemsGrouped) {
             return stableSortedData;
@@ -1182,16 +1183,15 @@ function Search({
             if (isReportActionListItemType(item) || isTaskListItemType(item)) {
                 return;
             }
-            // Shift+click on a group header extends through the group; target = farthest loaded child from anchor so both group edges are covered.
             if (options?.shiftKey && isTransactionGroupListItemType(item) && item.transactions && item.transactions.length > 0) {
-                const anchorKey = rangeApi.getAnchorKey();
-                const anchorIdx = anchorKey ? flattenedShiftRangeItems.findIndex((r) => r.keyForList === anchorKey) : -1;
                 const firstChild = item.transactions.at(0);
                 const lastChild = item.transactions.at(-1);
                 if (firstChild && lastChild) {
+                    const anchorKey = rangeApi.getAnchorKey();
+                    const anchorIdx = anchorKey ? flattenedShiftRangeItems.findIndex((r) => r.keyForList === anchorKey) : -1;
                     const firstIdx = flattenedShiftRangeItems.findIndex((r) => r.keyForList === firstChild.keyForList);
                     const lastIdx = flattenedShiftRangeItems.findIndex((r) => r.keyForList === lastChild.keyForList);
-                    const target = anchorIdx >= 0 && Math.abs(firstIdx - anchorIdx) > Math.abs(lastIdx - anchorIdx) ? firstChild : lastChild;
+                    const target = farthestEndFromAnchor(firstIdx, lastIdx, anchorIdx) === 'first' ? firstChild : lastChild;
                     if (rangeApi.applyShiftClick(target, {shiftKey: true})) {
                         return;
                     }
@@ -1201,7 +1201,7 @@ function Search({
                 return;
             }
 
-            // Anchor on a selectable child in grouped views — the group header itself is rejected by the hook.
+            // The hook rejects group headers; pick a selectable child as the anchor.
             const anchorSource: SearchListItem =
                 validGroupBy && isTransactionGroupListItemType(item) && item.transactions && item.transactions.length > 0
                     ? (item.transactions.find((t) => !isTransactionPendingDelete(t)) ?? item)

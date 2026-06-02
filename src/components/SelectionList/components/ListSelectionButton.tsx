@@ -2,8 +2,8 @@ import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import SelectionButton from '@components/SelectionButton';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
-import {getModifierKeysFromEvent} from '@hooks/useShiftRangeSelection';
-import type {Modifiers} from '@hooks/useShiftRangeSelection';
+import {getModifierKeysFromEvent} from '@libs/shiftRangeSelection';
+import type {Modifiers} from '@libs/shiftRangeSelection';
 import CONST from '@src/CONST';
 
 type ListSelectionButtonProps<TItem extends ListItem> = {

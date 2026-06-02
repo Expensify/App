@@ -2,7 +2,7 @@ import type {TransactionListItemType} from '@components/Search/SearchList/ListIt
 import type {SearchColumnType} from '@components/Search/types';
 import type {ListItemFocusEventHandler} from '@components/SelectionList/ListItem/types';
 import type {ListItem} from '@components/SelectionList/types';
-import type {Modifiers} from '@hooks/useShiftRangeSelection';
+import type {Modifiers} from '@libs/shiftRangeSelection';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {CardList, ReportAction, TransactionViolation} from '@src/types/onyx';
