@@ -49,6 +49,9 @@ function getWebModalAnimation(type: BaseModalProps['type'], isSmallScreenWidth: 
 function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = () => {}, children, shouldHandleNavigationBack, ...rest}: BaseModalProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
+    // We gate the web animation on raw screen width (desktop vs mobile web) rather than shouldUseNarrowLayout,
+    // because a modal opened on top of an RHP on desktop must keep its desktop animation, not the narrow one.
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [previousStatusBarColor, setPreviousStatusBarColor] = useState<string>();
 
