@@ -3,7 +3,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
 import '@libs/actions/IOU/MoneyRequest';
-import {shouldOptimisticallyUpdateSearch} from '@libs/actions/IOU/SearchUpdate';
+import {getSearchOnyxUpdate, shouldOptimisticallyUpdateSearch} from '@libs/actions/IOU/SearchUpdate';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
@@ -336,6 +336,39 @@ describe('actions/IOU', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
             expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, nonMatchingIOUReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
+        });
+    });
+
+    describe('getSearchOnyxUpdate', () => {
+        it('returns undefined when the participant has no accountID', () => {
+            const result = getSearchOnyxUpdate({
+                transaction: {...createRandomTransaction(1)},
+                participant: {},
+                iouReport: undefined,
+                iouAction: undefined,
+                policy: undefined,
+                transactionThreadReportID: undefined,
+                isFromOneTransactionReport: false,
+                isInvoice: false,
+            });
+            expect(result).toBeUndefined();
+        });
+
+        it('returns undefined when there is no current user account', async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {});
+            await Onyx.set(ONYXKEYS.SESSION, {});
+            await waitForBatchedUpdates();
+            const result = getSearchOnyxUpdate({
+                transaction: {...createRandomTransaction(1)},
+                participant: {accountID: 42, login: 'test@test.com'},
+                iouReport: undefined,
+                iouAction: undefined,
+                policy: undefined,
+                transactionThreadReportID: undefined,
+                isFromOneTransactionReport: false,
+                isInvoice: false,
+            });
+            expect(result).toBeUndefined();
         });
     });
 });
