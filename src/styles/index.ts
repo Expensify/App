@@ -3371,6 +3371,10 @@ const staticStyles = (theme: ThemeColors) =>
             boxShadow: 'none',
         },
 
+        scrollbarGutterStable: {
+            scrollbarGutter: 'stable',
+        },
+
         smallEditIcon: {
             alignItems: 'center',
             backgroundColor: theme.buttonDefaultBG,

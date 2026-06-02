@@ -2,16 +2,23 @@
 // On all other platforms, the action sheet is implemented using the Animated.ScrollView
 import React from 'react';
 import Reanimated from 'react-native-reanimated';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {Actions, ActionSheetAwareScrollViewProvider, useActionSheetAwareScrollViewActions, useActionSheetAwareScrollViewState} from './ActionSheetAwareScrollViewContext';
 import type {ActionSheetAwareScrollViewProps, RenderActionSheetAwareScrollViewComponent} from './types';
 import useActionSheetAwareScrollViewRef from './useActionSheetAwareScrollViewRef';
 
 function ActionSheetAwareScrollView({children, ref, ...restProps}: ActionSheetAwareScrollViewProps) {
     const {onRef} = useActionSheetAwareScrollViewRef(ref);
+    const styles = useThemeStyles();
 
     return (
         <Reanimated.ScrollView
             {...restProps}
+            // On web, FlashList feeds this scroll view's content width back into its layout. When the vertical
+            // scrollbar appears/disappears, the width oscillates by the scrollbar size, retriggering layout in a
+            // loop until React throws "Maximum update depth exceeded" and crashes. Reserving the scrollbar gutter
+            // keeps the content width stable and breaks the loop.
+            style={[restProps.style, styles.scrollbarGutterStable]}
             ref={onRef}
         >
             {children}
