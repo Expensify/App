@@ -90,7 +90,7 @@ variables referenced here get updated since your local `.env` file is ignored.
 # Running the tests
 ## Unit tests
 Unit tests are valuable when you want to test one component. They should be short, fast, and ideally only test one thing.
-Often times in order to write a unit test, you may need to mock data, a component, or library. We use the library [Jest](https://jestjs.io/)
+Oftentimes in order to write a unit test, you may need to mock data, a component, or library. We use the library [Jest](https://jestjs.io/)
 to help run our Unit tests.
 
 * To run the **Jest unit tests**: `npm run test`
