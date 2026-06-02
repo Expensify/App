@@ -349,7 +349,7 @@
 "../../src/libs/actions/IOU/UpdateMoneyRequest.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/IOU/index.ts"	"@typescript-eslint/no-deprecated/getMoneyRequestPolicyTags"	1
 "../../src/libs/actions/IOU/index.ts"	"@typescript-eslint/no-deprecated/getPolicyTagsData"	2
-"../../src/libs/actions/IOU/index.ts"	"rulesdir/no-onyx-connect"	11
+"../../src/libs/actions/IOU/index.ts"	"rulesdir/no-onyx-connect"	12
 "../../src/libs/actions/ImportTransactions.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/InputFocus/index.web.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/libs/actions/InputFocus/index.web.ts"	"no-restricted-syntax"	1
