@@ -122,7 +122,7 @@ describe('actions/BankAccounts', () => {
             expect(await getOnyxValue(ONYXKEYS.PERSONAL_BANK_ACCOUNT)).toBeFalsy();
         });
 
-        test('preserves navigation fields and clears form/status fields when shouldPreserveAccountData=true', async () => {
+        test('keeps only the preserved data and wipes every other field when preservedData is passed', async () => {
             await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
                 onSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS,
                 exitReportID: 'report123',
@@ -133,23 +133,18 @@ describe('actions/BankAccounts', () => {
             });
             await waitForBatchedUpdates();
 
-            clearPersonalBankAccount(true);
+            clearPersonalBankAccount({onSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS});
             await waitForBatchedUpdates();
 
             const result = await getOnyxValue(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
-            expect(result?.onSuccessFallbackRoute).toBe(ROUTES.ENABLE_PAYMENTS);
-            expect(result?.exitReportID).toBe('report123');
-            expect(result?.shouldShowSuccess).toBeFalsy();
-            expect(result?.isLoading).toBeFalsy();
-            expect(result?.errors).toBeFalsy();
-            expect(result?.updateError).toBeFalsy();
+            expect(result).toEqual({onSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS});
         });
 
-        test('always clears the form draft regardless of the flag', async () => {
+        test('always clears the form draft regardless of the preserved data', async () => {
             await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL});
             await waitForBatchedUpdates();
 
-            clearPersonalBankAccount(true);
+            clearPersonalBankAccount({onSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS});
             await waitForBatchedUpdates();
 
             expect((await getOnyxValue(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT))?.setupType).toBeFalsy();
