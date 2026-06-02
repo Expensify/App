@@ -8,6 +8,7 @@ import {
     isInvalidMerchantValue,
     isRequiredFulfilled,
     isValidAccountRoute,
+    isValidAddress,
     isValidDate,
     isValidEmailWithTLD,
     isValidExpirationDate,
@@ -603,6 +604,53 @@ describe('ValidationUtils', () => {
             expect(isInvalidMerchantValue('')).toBe(true);
             expect(isInvalidMerchantValue('Expense')).toBe(true);
             expect(isInvalidMerchantValue('(none)')).toBe(true);
+        });
+    });
+
+    describe('isValidAddress', () => {
+        describe('invalid PO box formats', () => {
+            test.each([['PO Box 123'], ['P.O. Box 456'], ['Post Office Box 789'], ['po box 100'], ['PO Box #123']])('Should return false for PO box format: %s', (address) => {
+                expect(isValidAddress(address)).toBe(false);
+            });
+        });
+
+        describe('invalid PMB formats', () => {
+            test.each([
+                ['PMB 123'],
+                ['PMB#456'],
+                ['PMB# 456'],
+                ['PMB #456'],
+                ['PMB # 456'],
+                ['Private Mail Box 789'],
+                ['Private Mail Box #789'],
+                ['Private Mail Box # 789'],
+                ['private mailbox 100'],
+            ])('Should return false for PMB format: %s', (address) => {
+                expect(isValidAddress(address)).toBe(false);
+            });
+        });
+
+        describe('valid physical addresses', () => {
+            test.each([['742 Evergreen Terrace'], ['1600 Pennsylvania Ave NW'], ['100 Market Street, Apt 5'], ['123 Blackbox Hill Road'], ['123 Boxwood Lane'], ['456 Mailbox Drive']])(
+                'Should return true for valid physical address: %s',
+                (address) => {
+                    expect(isValidAddress(address)).toBe(true);
+                },
+            );
+        });
+
+        describe('invalid non-address values', () => {
+            test('Should return false for empty string', () => {
+                expect(isValidAddress('')).toBe(false);
+            });
+
+            test('Should return false for non-string values', () => {
+                expect(isValidAddress(123 as unknown as string)).toBe(false);
+            });
+
+            test('Should return false for addresses containing only emojis', () => {
+                expect(isValidAddress('😊')).toBe(false);
+            });
         });
     });
 
