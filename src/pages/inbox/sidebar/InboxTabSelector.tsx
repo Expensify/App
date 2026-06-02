@@ -40,7 +40,7 @@ function InboxTabSelector() {
 
     return (
         <TabSelectorContextProvider activeTabKey={activeTab}>
-            <View style={styles.mb2}>
+            <View style={[styles.pt1, styles.mb1]}>
                 <TabSelectorBase
                     tabs={tabs}
                     activeTabKey={activeTab}
