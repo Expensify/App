@@ -1,4 +1,4 @@
-import {getReportLayoutGroupBy, setReportLayout} from '@libs/actions/ReportLayout';
+import {getReportLayoutGroupBy, getReportLayoutSelection, isMatrixLayout, setReportLayout} from '@libs/actions/ReportLayout';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
@@ -62,5 +62,41 @@ describe('setReportLayout', () => {
 
         expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, {name: 'expensify_groupByOption', value: CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY}, expect.any(Object));
         expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, {name: 'expensify_layoutOption', value: ''}, expect.any(Object));
+    });
+});
+
+describe('isMatrixLayout', () => {
+    it('returns true when storedValue is matrix', () => {
+        expect(isMatrixLayout(CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX)).toBe(true);
+    });
+
+    it('returns false when storedValue is detailed', () => {
+        expect(isMatrixLayout(CONST.REPORT_LAYOUT.LAYOUT_OPTION.DETAILED)).toBe(false);
+    });
+
+    it('returns false when storedValue is null or undefined', () => {
+        expect(isMatrixLayout(null)).toBe(false);
+        expect(isMatrixLayout(undefined)).toBe(false);
+    });
+
+    it('returns false for any other value', () => {
+        expect(isMatrixLayout('something-else')).toBe(false);
+    });
+});
+
+describe('getReportLayoutSelection', () => {
+    it('returns MATRIX when the layout option is matrix, regardless of group-by', () => {
+        expect(getReportLayoutSelection(CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX, CONST.REPORT_LAYOUT.GROUP_BY.TAG)).toBe(CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX);
+        expect(getReportLayoutSelection(CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX, null)).toBe(CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX);
+    });
+
+    it('returns the group-by value when the layout option is not matrix', () => {
+        expect(getReportLayoutSelection(null, CONST.REPORT_LAYOUT.GROUP_BY.TAG)).toBe(CONST.REPORT_LAYOUT.GROUP_BY.TAG);
+        expect(getReportLayoutSelection(CONST.REPORT_LAYOUT.LAYOUT_OPTION.DETAILED, CONST.REPORT_LAYOUT.GROUP_BY.TAG)).toBe(CONST.REPORT_LAYOUT.GROUP_BY.TAG);
+    });
+
+    it('defaults to CATEGORY when neither NVP is set', () => {
+        expect(getReportLayoutSelection(null, null)).toBe(CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY);
+        expect(getReportLayoutSelection(undefined, undefined)).toBe(CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY);
     });
 });
