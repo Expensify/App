@@ -14,7 +14,10 @@ type ImportFinalModal<TPath extends SpreadsheetTranslationPaths> = {
     promptKey: TPath;
 
     /** Parameters for the translation */
-    promptKeyParams: TranslationParameters<TPath>[0];
+    promptKeyParams?: TranslationParameters<TPath>[0];
+
+    /** Optional message appended after the prompt */
+    pendingMessageKey?: SpreadsheetTranslationPaths;
 };
 
 /**
@@ -48,12 +51,6 @@ type ImportedSpreadsheet = {
     /** Columns' names */
     columns: Record<number, string>;
 
-    /** Whether final modal should be opened */
-    shouldFinalModalBeOpened: boolean;
-
-    /** Texts to display depending on request success/failure */
-    importFinalModal: ImportFinalModalUnion;
-
     /** Whether the first row of the spreadsheet contains headers */
     containsHeader: boolean;
 
@@ -77,7 +74,13 @@ type ImportedSpreadsheet = {
 
     /** Settings for importing transactions from the spreadsheet */
     importTransactionSettings?: ImportTransactionSettings;
+
+    /** ID for matching an async import result modal to the request that produced it */
+    importFinalModalID?: string | null;
+
+    /** Modal to show after a queued import request finishes */
+    importFinalModal?: ImportFinalModalUnion | null;
 };
 
 export default ImportedSpreadsheet;
-export type {ImportTransactionSettings};
+export type {ImportFinalModalUnion as ImportFinalModal, ImportTransactionSettings};

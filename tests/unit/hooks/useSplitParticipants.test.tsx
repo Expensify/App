@@ -25,6 +25,7 @@ jest.mock('@hooks/useThemeStyles', () => ({
 jest.mock('@hooks/useCurrencyList', () => ({
     useCurrencyListActions: () => ({
         convertToDisplayString: (amount?: number, currency?: string) => `${currency ?? 'USD'} ${(amount ?? 0).toFixed(2)}`,
+        convertToDisplayStringWithoutCurrency: (amount: number) => `${(amount ?? 0).toFixed(2)}`,
         getCurrencySymbol: () => '$',
     }),
 }));
@@ -55,6 +56,7 @@ function makeBase(overrides: Partial<Params> = {}): Params {
         iouAmount: 1000,
         iouCurrencyCode: 'USD',
         ...overrides,
+        currentUserAccountID: payee.accountID,
     };
 }
 

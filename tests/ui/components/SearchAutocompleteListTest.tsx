@@ -49,19 +49,22 @@ jest.mock('@hooks/useFilteredOptions', () => ({
 
 jest.mock('@libs/OptionsListUtils', () => ({
     getSearchOptions: jest.fn(() => ({
-        recentReports: [
-            {
-                reportID: '10',
-                keyForList: '10',
-                text: 'Test Report',
-                alternateText: 'alternate text',
-                lastMessageText: 'last message',
-            },
-        ],
-        personalDetails: [],
-        currentUserOption: null,
-        userToInvite: null,
-        categoryOptions: [],
+        options: {
+            recentReports: [
+                {
+                    reportID: '10',
+                    keyForList: '10',
+                    text: 'Test Report',
+                    alternateText: 'alternate text',
+                    lastMessageText: 'last message',
+                },
+            ],
+            personalDetails: [],
+            currentUserOption: null,
+            userToInvite: null,
+            categoryOptions: [],
+        },
+        hasMore: false,
     })),
     combineOrderingOfReportsAndPersonalDetails: jest.fn(() => ({recentReports: [], personalDetails: []})),
     getAlternateText: jest.fn(),
@@ -98,12 +101,14 @@ describe('SearchAutocompleteList', () => {
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
         };
 
+        const reportData = {
+            reportID,
+            parentReportID,
+            parentReportActionID: parentActionID,
+        };
+
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-                reportID,
-                parentReportID,
-                parentReportActionID: parentActionID,
-            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, reportData);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
                 [parentActionID]: parentReportAction,
             });
@@ -135,12 +140,13 @@ describe('SearchAutocompleteList', () => {
             actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
         };
 
+        const reportData = {
+            reportID,
+            parentReportID,
+            parentReportActionID: parentActionID,
+        };
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-                reportID,
-                parentReportID,
-                parentReportActionID: parentActionID,
-            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, reportData);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
                 [parentActionID]: parentReportAction,
             });

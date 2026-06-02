@@ -26,6 +26,7 @@ import {
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {
+    getDistanceRequestType,
     getReimbursable,
     getRequestType,
     getTransactionType,
@@ -38,6 +39,7 @@ import {
     isPerDiemRequest,
     isScanning,
 } from '@libs/TransactionUtils';
+import type {CurrentUser} from '@userActions/Policy/Policy';
 import {createNewReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,9 +47,10 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
-import type {RequestMoneyInformation} from '.';
-import {getAllReportActionsFromIOU, getAllReports, getAllTransactions, getAllTransactionViolations, getMoneyRequestParticipantsFromReport} from '.';
+import {getAllReportActionsFromIOU, getAllReports, getAllTransactions, getAllTransactionViolations} from '.';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
+import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
+import type {RequestMoneyInformation} from './MoneyRequestBuilder';
 import type {PerDiemExpenseInformation} from './PerDiem';
 import {submitPerDiemExpense} from './PerDiem';
 import type {CreateDistanceRequestInformation} from './Split';
@@ -71,40 +74,107 @@ function getIOUActionForTransactions(transactionIDList: Array<string | undefined
     );
 }
 
-type MergeDuplicatesFuncParams = MergeDuplicatesParams & {currentUserLogin: string; currentUserAccountID: number};
+type DuplicateTransactionParams = {
+    transactionID: string | undefined;
+    originalSelectedTransaction: OnyxEntry<OnyxTypes.Transaction>;
+    billable: boolean;
+    comment: string;
+    category: string;
+    created: string;
+    currency: string;
+    merchant: string;
+    reimbursable: boolean;
+    tag: string;
+    taxCode?: string;
+    taxAmount?: number;
+    taxValue?: string;
+};
+
+function buildOptimisticTransactionData({
+    transactionID,
+    originalSelectedTransaction,
+    billable,
+    comment,
+    category,
+    created,
+    currency,
+    merchant,
+    reimbursable,
+    tag,
+    taxCode,
+    taxAmount,
+    taxValue,
+}: DuplicateTransactionParams): OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION> {
+    return {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+        value: {
+            ...originalSelectedTransaction,
+            billable,
+            comment: {
+                comment,
+            },
+            category,
+            created,
+            currency,
+            modifiedMerchant: merchant,
+            reimbursable,
+            tag,
+            taxCode: taxCode ?? originalSelectedTransaction?.taxCode,
+            taxAmount: taxAmount ?? originalSelectedTransaction?.taxAmount,
+            taxValue: taxValue ?? originalSelectedTransaction?.taxValue,
+            // Clear `taxName` to stay consistent with the server response,
+            // and avoid retaining an outdated value that doesn't match the new `taxCode`.
+            taxName: taxCode ? null : originalSelectedTransaction?.taxName,
+        },
+    };
+}
+
+function buildFailureTransactionData(transactionID: string | undefined, originalSelectedTransaction: OnyxEntry<OnyxTypes.Transaction>): OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION> {
+    return {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        value: originalSelectedTransaction as OnyxTypes.Transaction,
+    };
+}
+
+type MergeDuplicatesFuncParams = MergeDuplicatesParams & {currentUserLogin: string; currentUserAccountID: number; taxAmount?: number; taxValue?: string};
 
 /** Merge several transactions into one by updating the fields of the one we want to keep and deleting the rest */
-function mergeDuplicates({transactionThreadReportID: optimisticTransactionThreadReportID, currentUserLogin, currentUserAccountID, ...params}: MergeDuplicatesFuncParams) {
+function mergeDuplicates({
+    transactionThreadReportID: optimisticTransactionThreadReportID,
+    currentUserLogin,
+    currentUserAccountID,
+    taxAmount,
+    taxValue,
+    ...params
+}: MergeDuplicatesFuncParams) {
     const allParams: MergeDuplicatesParams = {...params};
     const allTransactions = getAllTransactions();
+    // TODO: https://github.com/Expensify/App/issues/66512
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
     const originalSelectedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`];
 
-    const optimisticTransactionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION> = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
-        value: {
-            ...originalSelectedTransaction,
-            billable: params.billable,
-            comment: {
-                comment: params.comment,
-            },
-            category: params.category,
-            created: params.created,
-            currency: params.currency,
-            modifiedMerchant: params.merchant,
-            reimbursable: params.reimbursable,
-            tag: params.tag,
-        },
-    };
+    const optimisticTransactionData = buildOptimisticTransactionData({
+        transactionID: params.transactionID,
+        originalSelectedTransaction,
+        billable: params.billable,
+        comment: params.comment,
+        category: params.category,
+        created: params.created,
+        currency: params.currency,
+        merchant: params.merchant,
+        reimbursable: params.reimbursable,
+        tag: params.tag,
+        taxCode: params.taxCode,
+        taxAmount,
+        taxValue,
+    });
 
-    const failureTransactionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION> = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        value: originalSelectedTransaction as OnyxTypes.Transaction,
-    };
+    const failureTransactionData = buildFailureTransactionData(params.transactionID, originalSelectedTransaction);
 
     const optimisticTransactionDuplicatesData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = params.transactionIDList.map((id) => ({
         onyxMethod: Onyx.METHOD.SET,
@@ -277,8 +347,8 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
 
     if (optimisticTransactionThreadReportID) {
         const iouAction = getIOUActionForReportID(params.reportID, params.transactionID);
-        const optimisticCreatedAction = buildOptimisticCreatedReportAction(currentUserLogin);
-        const optimisticTransactionThreadReport = buildTransactionThread(iouAction, expenseReport, undefined, optimisticTransactionThreadReportID);
+        const optimisticCreatedAction = buildOptimisticCreatedReportAction({emailCreatingAction: currentUserLogin});
+        const optimisticTransactionThreadReport = buildTransactionThread(iouAction, expenseReport, currentUserAccountID, undefined, optimisticTransactionThreadReportID);
 
         allParams.transactionThreadReportID = optimisticTransactionThreadReportID;
         allParams.createdReportActionIDForThread = optimisticCreatedAction?.reportActionID;
@@ -344,40 +414,35 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
 }
 
 /** Instead of merging the duplicates, it updates the transaction we want to keep and puts the others on hold without deleting them */
-function resolveDuplicates(params: MergeDuplicatesParams) {
+function resolveDuplicates({taxAmount, taxValue, ...params}: MergeDuplicatesParams & {taxAmount?: number; taxValue?: string}) {
     if (!params.transactionID) {
         return;
     }
 
     const allTransactions = getAllTransactions();
+    // TODO: https://github.com/Expensify/App/issues/66512
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const allTransactionViolations = getAllTransactionViolations();
 
     const originalSelectedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`];
 
-    const optimisticTransactionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION> = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
-        value: {
-            ...originalSelectedTransaction,
-            billable: params.billable,
-            comment: {
-                comment: params.comment,
-            },
-            category: params.category,
-            created: params.created,
-            currency: params.currency,
-            modifiedMerchant: params.merchant,
-            reimbursable: params.reimbursable,
-            tag: params.tag,
-        },
-    };
+    const optimisticTransactionData = buildOptimisticTransactionData({
+        transactionID: params.transactionID,
+        originalSelectedTransaction,
+        billable: params.billable,
+        comment: params.comment,
+        category: params.category,
+        created: params.created,
+        currency: params.currency,
+        merchant: params.merchant,
+        reimbursable: params.reimbursable,
+        tag: params.tag,
+        taxCode: params.taxCode,
+        taxAmount,
+        taxValue,
+    });
 
-    const failureTransactionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION> = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        value: originalSelectedTransaction as OnyxTypes.Transaction,
-    };
+    const failureTransactionData = buildFailureTransactionData(params.transactionID, originalSelectedTransaction);
 
     const optimisticTransactionViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [...params.transactionIDList, params.transactionID].map((id) => {
         const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
@@ -556,6 +621,15 @@ function buildDuplicateTransactionParams(transaction: OnyxTypes.Transaction, tra
 }
 
 /**
+ * Returns the request type the duplicate should be created with. SCAN sources become MANUAL because
+ * `buildDuplicateTransactionParams` strips the receipt — without one, the duplicate cannot be a scan request.
+ */
+function getDuplicateRequestType(transaction: OnyxTypes.Transaction) {
+    const sourceRequestType = getRequestType(transaction);
+    return sourceRequestType === CONST.IOU.REQUEST_TYPE.SCAN ? CONST.IOU.REQUEST_TYPE.MANUAL : sourceRequestType;
+}
+
+/**
  * Routes a duplicate expense to the correct creation function based on transaction type.
  * Shared between duplicateExpenseTransaction and duplicateReport.
  */
@@ -571,6 +645,7 @@ function createExpenseByType({
     customUnitPolicyID,
     personalDetails,
     recentWaypoints,
+    conciergeReportID,
 }: {
     transactionType: string;
     params: RequestMoneyInformation;
@@ -583,6 +658,7 @@ function createExpenseByType({
     customUnitPolicyID?: string;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
+    conciergeReportID: string | undefined;
 }) {
     switch (transactionType) {
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
@@ -592,7 +668,13 @@ function createExpenseByType({
                 currentUserLogin: params.currentUserEmailParam,
                 currentUserAccountID: params.currentUserAccountIDParam,
                 existingTransaction: {
-                    ...(params.transactionParams ?? {}),
+                    iouRequestType: getDuplicateRequestType(transaction),
+                    amount: 0,
+                    currency: '',
+                    created: '',
+                    merchant: '',
+                    reportID: '1',
+                    transactionID: '1',
                     comment: {
                         ...transaction.comment,
                         hold: undefined,
@@ -600,22 +682,20 @@ function createExpenseByType({
                         source: undefined,
                         waypoints,
                     },
-                    iouRequestType: getRequestType(transaction),
-                    modifiedCreated: '',
-                    reportID: '1',
-                    transactionID: '1',
                 },
                 transactionParams: {
                     ...(params.transactionParams ?? {}),
                     comment: Parser.htmlToMarkdown(transactionDetails?.comment ?? ''),
                     validWaypoints: waypoints,
                     modifiedAmount: transactionDetails?.amount,
+                    distanceRequestType: getDistanceRequestType(transaction),
                 },
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 quickAction,
                 customUnitPolicyID,
                 personalDetails,
                 recentWaypoints,
+                shouldHandleNavigation: false,
             };
             return createDistanceRequest(distanceParams);
         }
@@ -629,6 +709,7 @@ function createExpenseByType({
                 },
                 hasViolations: false,
                 customUnitPolicyID,
+                conciergeReportID,
             };
             return submitPerDiemExpense(perDiemParams);
         }
@@ -643,7 +724,6 @@ type DuplicateExpenseTransactionParams = {
     optimisticIOUReportID: string;
     isASAPSubmitBetaEnabled: boolean;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
-    activePolicyID: string | undefined;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     isSelfTourViewed: boolean;
@@ -652,17 +732,16 @@ type DuplicateExpenseTransactionParams = {
     targetPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
     targetReport?: OnyxTypes.Report;
     existingTransactionDraft: OnyxEntry<OnyxTypes.Transaction>;
-    draftTransactionIDs: string[];
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     targetPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     shouldPlaySound?: boolean;
     shouldDeferAutoSubmit?: boolean;
+    conciergeReportID: string | undefined;
     existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
     optimisticReportPreviewActionID?: string;
-    currentUserLogin: string;
-    currentUserAccountID: number;
+    currentUser: CurrentUser;
 };
 
 function duplicateExpenseTransaction({
@@ -671,7 +750,6 @@ function duplicateExpenseTransaction({
     optimisticIOUReportID,
     isASAPSubmitBetaEnabled,
     introSelected,
-    activePolicyID,
     quickAction,
     policyRecentlyUsedCurrencies,
     isSelfTourViewed,
@@ -680,21 +758,21 @@ function duplicateExpenseTransaction({
     targetPolicyCategories,
     targetReport,
     existingTransactionDraft,
-    draftTransactionIDs,
     betas,
     personalDetails,
     recentWaypoints,
     targetPolicyTags,
     shouldPlaySound = true,
     shouldDeferAutoSubmit = false,
+    conciergeReportID,
     existingIOUReport,
     optimisticReportPreviewActionID: externalReportPreviewActionID,
-    currentUserAccountID,
-    currentUserLogin,
+    currentUser,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
     }
+    const {accountID: currentUserAccountID, email: currentUserLogin = ''} = currentUser;
 
     const participants = getMoneyRequestParticipantsFromReport(targetReport, currentUserAccountID);
     const transactionDetails = getTransactionDetails(transaction);
@@ -715,7 +793,6 @@ function duplicateExpenseTransaction({
         gpsPoint: undefined,
         action: CONST.IOU.ACTION.CREATE,
         transactionParams,
-        shouldHandleNavigation: false,
         shouldPlaySound,
         shouldGenerateTransactionThreadReport: true,
         isASAPSubmitBetaEnabled,
@@ -725,7 +802,15 @@ function duplicateExpenseTransaction({
         policyRecentlyUsedCurrencies,
         quickAction,
         existingTransactionDraft,
-        draftTransactionIDs,
+        existingTransaction: {
+            iouRequestType: getDuplicateRequestType(transaction),
+            amount: 0,
+            currency: '',
+            created: '',
+            merchant: '',
+            reportID: '1',
+            transactionID: '1',
+        },
         isSelfTourViewed,
         betas,
         personalDetails,
@@ -741,7 +826,13 @@ function duplicateExpenseTransaction({
                 participant: {accountID: currentUserAccountID, selected: true},
             },
             existingTransaction: {
-                ...(params.transactionParams ?? {}),
+                iouRequestType: getDuplicateRequestType(transaction),
+                amount: 0,
+                currency: '',
+                created: '',
+                merchant: '',
+                reportID: '1',
+                transactionID: '1',
                 comment: {
                     ...transaction.comment,
                     hold: undefined,
@@ -749,10 +840,6 @@ function duplicateExpenseTransaction({
                     source: undefined,
                     waypoints,
                 },
-                iouRequestType: getRequestType(transaction),
-                modifiedCreated: '',
-                reportID: '1',
-                transactionID: '1',
             },
             transactionParams: {
                 ...(params.transactionParams ?? {}),
@@ -760,12 +847,11 @@ function duplicateExpenseTransaction({
             },
             report: undefined,
             isDraftPolicy: false,
+            currentUser: {accountID: currentUserAccountID, email: currentUserLogin},
             introSelected,
-            activePolicyID,
             quickAction,
             recentWaypoints,
             betas,
-            draftTransactionIDs,
             isSelfTourViewed,
         };
         return trackExpense(trackExpenseParams);
@@ -789,6 +875,7 @@ function duplicateExpenseTransaction({
         customUnitPolicyID,
         personalDetails,
         recentWaypoints,
+        conciergeReportID,
     });
 }
 
@@ -806,11 +893,11 @@ type DuplicateReportParams = {
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
-    draftTransactionIDs: string[];
     isSelfTourViewed: boolean;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     translate: LocalizedTranslate;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
+    conciergeReportID: string | undefined;
     currentUserLogin: string;
     currentUserAccountID: number;
     shouldPlaySound?: boolean;
@@ -830,11 +917,11 @@ function duplicateReport({
     personalDetails,
     quickAction,
     policyRecentlyUsedCurrencies,
-    draftTransactionIDs,
     isSelfTourViewed,
     transactionViolations,
     translate,
     recentWaypoints,
+    conciergeReportID,
     currentUserAccountID,
     currentUserLogin,
     shouldPlaySound = true,
@@ -906,7 +993,6 @@ function duplicateReport({
             gpsPoint: undefined,
             action: CONST.IOU.ACTION.CREATE,
             transactionParams,
-            shouldHandleNavigation: false,
             shouldPlaySound: false,
             shouldGenerateTransactionThreadReport: true,
             isASAPSubmitBetaEnabled,
@@ -916,7 +1002,15 @@ function duplicateReport({
             quickAction,
             policyRecentlyUsedCurrencies,
             existingTransactionDraft: undefined,
-            draftTransactionIDs,
+            existingTransaction: {
+                iouRequestType: getDuplicateRequestType(transaction),
+                amount: 0,
+                currency: '',
+                created: '',
+                merchant: '',
+                reportID: '1',
+                transactionID: '1',
+            },
             isSelfTourViewed,
             betas,
             personalDetails,
@@ -935,6 +1029,7 @@ function duplicateReport({
             customUnitPolicyID: targetPolicy?.id,
             personalDetails,
             recentWaypoints,
+            conciergeReportID,
         });
 
         if (result?.iouReport) {
@@ -958,16 +1053,14 @@ type BulkDuplicateExpensesParams = {
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     isASAPSubmitBetaEnabled: boolean;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
-    activePolicyID: string | undefined;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     isSelfTourViewed: boolean;
     transactionDrafts: Record<string, OnyxTypes.Transaction> | undefined;
-    draftTransactionIDs: string[];
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
-    currentUserLogin: string;
-    currentUserAccountID: number;
+    conciergeReportID: string | undefined;
+    currentUser: CurrentUser;
 };
 
 function bulkDuplicateExpenses({
@@ -981,16 +1074,14 @@ function bulkDuplicateExpenses({
     personalDetails,
     isASAPSubmitBetaEnabled,
     introSelected,
-    activePolicyID,
     quickAction,
     policyRecentlyUsedCurrencies,
     isSelfTourViewed,
     transactionDrafts,
-    draftTransactionIDs,
     betas,
     recentWaypoints,
-    currentUserAccountID,
-    currentUserLogin,
+    conciergeReportID,
+    currentUser,
 }: BulkDuplicateExpensesParams) {
     const transactionsToDuplicate = transactionIDs.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is OnyxTypes.Transaction => !!t);
 
@@ -1068,7 +1159,6 @@ function bulkDuplicateExpenses({
             optimisticIOUReportID: currentOptimisticIOUReportID,
             isASAPSubmitBetaEnabled,
             introSelected,
-            activePolicyID,
             quickAction,
             policyRecentlyUsedCurrencies,
             isSelfTourViewed,
@@ -1077,17 +1167,16 @@ function bulkDuplicateExpenses({
             targetPolicyCategories: targetPolicyCategories ?? {},
             targetReport: currentTargetReport,
             existingTransactionDraft,
-            draftTransactionIDs,
             betas,
             personalDetails,
             recentWaypoints,
             targetPolicyTags,
             shouldPlaySound: false,
             shouldDeferAutoSubmit,
+            conciergeReportID,
             existingIOUReport: optimisticIOUReport,
             optimisticReportPreviewActionID: currentReportPreviewActionID,
-            currentUserAccountID,
-            currentUserLogin,
+            currentUser,
         });
 
         if (result?.iouReport) {
@@ -1117,11 +1206,11 @@ type BulkDuplicateReportsParams = {
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
-    draftTransactionIDs: string[];
     isSelfTourViewed: boolean;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     translate: LocalizedTranslate;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
+    conciergeReportID: string | undefined;
     currentUserLogin: string;
     currentUserAccountID: number;
 };
@@ -1141,11 +1230,11 @@ function bulkDuplicateReports({
     personalDetails,
     quickAction,
     policyRecentlyUsedCurrencies,
-    draftTransactionIDs,
     isSelfTourViewed,
     transactionViolations,
     translate,
     recentWaypoints,
+    conciergeReportID,
     currentUserLogin,
     currentUserAccountID,
 }: BulkDuplicateReportsParams) {
@@ -1215,7 +1304,6 @@ function bulkDuplicateReports({
             personalDetails,
             quickAction,
             policyRecentlyUsedCurrencies,
-            draftTransactionIDs,
             isSelfTourViewed,
             transactionViolations,
             translate,
@@ -1223,6 +1311,7 @@ function bulkDuplicateReports({
             shouldPlaySound: false,
             currentUserAccountID,
             currentUserLogin,
+            conciergeReportID,
         });
     }
 
@@ -1230,4 +1319,4 @@ function bulkDuplicateReports({
 }
 
 export {getIOUActionForTransactions, mergeDuplicates, resolveDuplicates, duplicateExpenseTransaction, bulkDuplicateExpenses, duplicateReport, bulkDuplicateReports};
-export type {DuplicateExpenseTransactionParams, BulkDuplicateExpensesParams, DuplicateReportParams, BulkDuplicateReportsParams};
+export type {DuplicateReportParams, BulkDuplicateReportsParams};

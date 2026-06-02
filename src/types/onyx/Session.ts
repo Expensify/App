@@ -1,6 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type * as OnyxCommon from './OnyxCommon';
+import type {Errors} from './OnyxCommon';
 
 /** Possible states of the automatic authentication after user clicks on a magic link */
 type AutoAuthState = ValueOf<typeof CONST.AUTO_AUTH_STATE>;
@@ -32,7 +32,7 @@ type Session = {
     autoAuthState?: AutoAuthState;
 
     /** Server side errors keyed by microtime */
-    errors?: OnyxCommon.Errors;
+    errors?: Errors;
 
     /** User signed in with short lived token */
     signedInWithShortLivedAuthToken?: boolean;
@@ -48,6 +48,9 @@ type Session = {
 
     /** Timestamp of the session creation date */
     creationDate?: number;
+
+    /** How the user authenticated for the current session, forwarded to the fraud protection backend */
+    authMethod?: string;
 };
 
 export default Session;

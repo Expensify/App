@@ -1,5 +1,6 @@
 import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {DetachReceiptParams, ReplaceReceiptParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -20,17 +21,19 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {ReplaceReceipt} from '.';
-import {getAllReports, getAllTransactions, getAllTransactionViolations, getPolicyTags, getReceiptError} from '.';
+import {getAllReports, getAllTransactions, getAllTransactionViolations} from '.';
+import {getReceiptError} from './MoneyRequestBuilder';
 
-/**
- * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
- * TODO: remove `getPolicyTagsData` from this file https://github.com/Expensify/App/issues/80048
- */
-function getPolicyTagsData(policyID: string | undefined) {
-    const allPolicyTags = getPolicyTags();
-    return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
-}
+type ReplaceReceipt = {
+    transactionID: string;
+    file?: File;
+    source: string;
+    state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
+    transactionPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
+    transactionPolicy: OnyxEntry<OnyxTypes.Policy>;
+    isSameReceipt?: boolean;
+    transactionPolicyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
+};
 
 function detachReceipt(
     transactionID: string | undefined,
@@ -42,6 +45,8 @@ function detachReceipt(
         return;
     }
     const allTransactions = getAllTransactions();
+    // TODO: https://github.com/Expensify/App/issues/66512
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
 
@@ -98,15 +103,15 @@ function detachReceipt(
 
     if (transactionPolicy && isPaidGroupPolicy(transactionPolicy) && newTransaction) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
-        const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
-            newTransaction,
-            currentTransactionViolations,
-            transactionPolicy,
-            transactionPolicyTagList ?? {},
-            transactionPolicyCategories ?? {},
-            hasDependentTags(transactionPolicy, transactionPolicyTagList ?? {}),
-            isInvoiceReportReportUtils(expenseReport),
-        );
+        const violationsOnyxData = ViolationsUtils.getViolationsOnyxData({
+            updatedTransaction: newTransaction,
+            transactionViolations: currentTransactionViolations,
+            policy: transactionPolicy,
+            policyTagList: transactionPolicyTagList ?? {},
+            policyCategories: transactionPolicyCategories ?? {},
+            hasDependentTags: hasDependentTags(transactionPolicy, transactionPolicyTagList ?? {}),
+            isInvoiceTransaction: isInvoiceReportReportUtils(expenseReport),
+        });
         optimisticData.push(violationsOnyxData);
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -170,12 +175,14 @@ function detachReceipt(
     );
 }
 
-function replaceReceipt({transactionID, file, source, state, transactionPolicy, transactionPolicyCategories, isSameReceipt}: ReplaceReceipt) {
+function replaceReceipt({transactionID, file, source, state, transactionPolicy, transactionPolicyCategories, isSameReceipt, transactionPolicyTagList}: ReplaceReceipt) {
     if (!file) {
         return;
     }
 
     const allTransactions = getAllTransactions();
+    // TODO: https://github.com/Expensify/App/issues/66512
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
 
@@ -189,7 +196,7 @@ function replaceReceipt({transactionID, file, source, state, transactionPolicy, 
         filename: file.name,
     };
     const newTransaction = transaction && {...transaction, receipt: receiptOptimistic};
-    const retryParams: ReplaceReceipt = {transactionID, file: undefined, source, transactionPolicy, transactionPolicyCategories};
+    const retryParams: ReplaceReceipt = {transactionID, file: undefined, source, transactionPolicy, transactionPolicyCategories, transactionPolicyTagList};
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [
@@ -233,19 +240,16 @@ function replaceReceipt({transactionID, file, source, state, transactionPolicy, 
     ];
 
     if (transactionPolicy && isPaidGroupPolicy(transactionPolicy) && newTransaction) {
-        // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const policyTagList = getPolicyTagsData(transactionPolicy.id);
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
-        const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
-            newTransaction,
-            currentTransactionViolations,
-            transactionPolicy,
-            policyTagList ?? {},
-            transactionPolicyCategories ?? {},
-            hasDependentTags(transactionPolicy, policyTagList ?? {}),
-            isInvoiceReportReportUtils(expenseReport),
-        );
+        const violationsOnyxData = ViolationsUtils.getViolationsOnyxData({
+            updatedTransaction: newTransaction,
+            transactionViolations: currentTransactionViolations,
+            policy: transactionPolicy,
+            policyTagList: transactionPolicyTagList ?? {},
+            policyCategories: transactionPolicyCategories ?? {},
+            hasDependentTags: hasDependentTags(transactionPolicy, transactionPolicyTagList ?? {}),
+            isInvoiceTransaction: isInvoiceReportReportUtils(expenseReport),
+        });
         optimisticData.push(violationsOnyxData);
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -354,3 +358,4 @@ function checkIfLocalFileIsAccessible(
 }
 
 export {checkIfLocalFileIsAccessible, detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt, setMoneyRequestReceipt};
+export type {ReplaceReceipt};

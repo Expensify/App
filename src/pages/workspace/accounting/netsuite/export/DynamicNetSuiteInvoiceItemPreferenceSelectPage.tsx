@@ -5,7 +5,7 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import type {SelectorType} from '@components/SelectionScreen';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -15,7 +15,7 @@ import {updateNetSuiteInvoiceItemPreference} from '@libs/actions/connections/Net
 import {clearNetSuiteErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import {areSettingsInErrorFields, findSelectedInvoiceItemWithDefaultSelect, settingsPendingAction} from '@libs/PolicyUtils';
+import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -35,7 +35,7 @@ function DynamicNetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConn
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT.path);
 
     const {items} = policy?.connections?.netsuite?.options.data ?? {};
-    const selectedItem = useMemo(() => findSelectedInvoiceItemWithDefaultSelect(items, config?.invoiceItem), [items, config?.invoiceItem]);
+    const selectedItem = useMemo(() => items?.find(({id}) => id === config?.invoiceItem), [items, config?.invoiceItem]);
 
     const selectedValue = Object.values(CONST.NETSUITE_INVOICE_ITEM_PREFERENCE).find((value) => value === config?.invoiceItemPreference) ?? CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE;
 
@@ -101,7 +101,7 @@ function DynamicNetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConn
                     onSelectRow={(selection: SelectorType) => {
                         selectInvoicePreference(selection as MenuListItem);
                     }}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     showScrollIndicator
                     shouldUpdateFocusedIndex
                     initiallyFocusedItemKey={options.find((mode) => mode.isSelected)?.keyForList}

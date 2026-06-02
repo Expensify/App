@@ -2,8 +2,7 @@ import {NavigationContainerRefContext, NavigationContext} from '@react-navigatio
 import type {AnimationObject, LottieViewProps} from 'lottie-react-native';
 import LottieView from 'lottie-react-native';
 import React, {useContext, useEffect, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import useAppState from '@hooks/useAppState';
 import useNetwork from '@hooks/useNetwork';
@@ -11,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Accessibility from '@libs/Accessibility';
 import {getBrowser, isMobile} from '@libs/Browser';
 import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import CONST from '@src/CONST';
 import {useSplashScreenState} from '@src/SplashScreenStateContext';
 
@@ -41,13 +41,12 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const interactionTask = InteractionManager.runAfterInteractions(() => {
-            setIsInteractionComplete(true);
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => setIsInteractionComplete(true),
         });
 
         return () => {
-            interactionTask.cancel();
+            handle.cancel();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -117,7 +116,6 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
 
     return (
         <LottieView
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             source={animationFile}
             key={`${hasNavigatedAway}`}

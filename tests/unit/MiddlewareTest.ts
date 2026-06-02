@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import SaveResponseInOnyx from '@libs/Middleware/SaveResponseInOnyx';
+import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
 // This import is needed to initialize the Onyx connections that call replaceOptimisticReportWithActualReport
 import '@src/libs/actions/replaceOptimisticReportWithActualReport';
 import HttpUtils from '@src/libs/HttpUtils';
@@ -21,18 +22,21 @@ Onyx.init({
     keys: ONYXKEYS,
 });
 
-beforeAll(() => {
-    global.fetch = TestHelper.getGlobalFetchMock();
-});
-
 beforeEach(async () => {
     await Onyx.clear();
+    await waitForBatchedUpdates();
+    // Explicitly reset PersistedRequests module state (knownRequestIDs, ongoingRequest,
+    // pendingSaveOperations) which Onyx.clear() alone does not fully reset.
+    await PersistedRequests.clear();
     await waitForBatchedUpdates();
     SequentialQueue.resetQueue();
     MainQueue.clear();
     HttpUtils.cancelPendingRequests();
     NetworkStore.checkRequiredData();
     await waitForNetworkPromises();
+    // Reassign global.fetch to a fresh mock to clear any leftover mockImplementationOnce
+    // queue from the previous test. jest.clearAllMocks() only resets call counts, not the queue.
+    global.fetch = TestHelper.getGlobalFetchMock();
     jest.clearAllMocks();
     Request.clearMiddlewares();
 });
@@ -62,6 +66,7 @@ describe('Middleware', () => {
             const result = await Request.processWithMiddleware({
                 command: 'GetTransactionsPending3DSReview',
                 data: {apiRequestType: 'makeRequestWithSideEffects'},
+                requestIndex: 1,
             });
 
             // Then the response should not be undefined — the caller may need the raw response for side effects
@@ -77,10 +82,12 @@ describe('Middleware', () => {
                 {
                     command: 'OpenReport',
                     data: {authToken: 'testToken', reportID: '1234'},
+                    requestIndex: 2,
                 },
                 {
                     command: 'AddComment',
                     data: {authToken: 'testToken', reportID: '1234', reportActionID: '5678'},
+                    requestIndex: 3,
                 },
             ];
             for (const request of requests) {
@@ -112,10 +119,12 @@ describe('Middleware', () => {
                 {
                     command: 'OpenReport',
                     data: {authToken: 'testToken', reportID: '1234'},
+                    requestIndex: 4,
                 },
                 {
                     command: 'AddComment',
                     data: {authToken: 'testToken', reportID: '1234', reportActionID: '5678'},
+                    requestIndex: 5,
                 },
             ];
             for (const request of requests) {
@@ -160,14 +169,17 @@ describe('Middleware', () => {
                 {
                     command: 'RequestMoney',
                     data: {authToken: 'testToken'},
+                    requestIndex: 6,
                 },
                 {
                     command: 'AddComment',
                     data: {authToken: 'testToken', reportID: '1234', reportActionID: '5678'},
+                    requestIndex: 7,
                 },
                 {
                     command: 'OpenReport',
                     data: {authToken: 'testToken', reportID: '2345', reportActionID: undefined, parentReportActionID: undefined},
+                    requestIndex: 8,
                 },
             ];
             for (const request of requests) {
@@ -223,6 +235,7 @@ describe('Middleware', () => {
                 {
                     command: 'MoveIOUReportToExistingPolicy',
                     data: {authToken: 'testToken', optimisticReportID: '1234'},
+                    requestIndex: 9,
                 },
             ];
             for (const request of requests) {
@@ -279,10 +292,12 @@ describe('Middleware', () => {
                 {
                     command: 'OpenReport',
                     data: {authToken: 'testToken', reportID: optimisticReportID, createdReportActionID: '5678'},
+                    requestIndex: 10,
                 },
                 {
                     command: 'OpenReport',
                     data: {authToken: 'testToken', reportID: preexistingReportID},
+                    requestIndex: 11,
                 },
             ];
             for (const request of requests) {
@@ -398,6 +413,7 @@ describe('Middleware', () => {
                 {
                     command: 'OpenReport',
                     data: {authToken: 'testToken', reportID: optimisticReportID, createdReportActionID: '5678'},
+                    requestIndex: 12,
                 },
             ];
             for (const request of requests) {

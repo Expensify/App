@@ -13,6 +13,7 @@ const lightContrastTheme = {
     mentionText: colors.blue700,
     textLight: colors.productLight900,
     iconColorfulBackground: colors.yellow800,
+    receiptPlaceholderPlus: colors.green800,
 } satisfies ThemeColors;
 
 export default lightContrastTheme;

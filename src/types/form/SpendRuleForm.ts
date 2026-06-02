@@ -25,5 +25,4 @@ type SpendRuleForm = Form<
 >;
 
 export {SPEND_RULE_CATEGORIES, isSpendRuleCategory};
-export type {InputID, SpendRuleForm, SpendRuleCategory};
-export default INPUT_IDS;
+export type {SpendRuleForm, SpendRuleCategory};

@@ -47,7 +47,6 @@ function ConfirmModalWrapper({closeModal, onModalHide, ...props}: ConfirmModalWr
 
     return (
         <ConfirmModal
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             isVisible={isVisible}
             onConfirm={handleConfirm}
