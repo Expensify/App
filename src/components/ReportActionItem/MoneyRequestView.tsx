@@ -324,7 +324,8 @@ function MoneyRequestView({
         updatedTransaction?.taxAmount !== undefined
             ? convertToDisplayString(Math.abs(updatedTransaction?.taxAmount), actualCurrency)
             : convertToDisplayString(Math.abs(transactionTaxAmount ?? 0), actualCurrency);
-    const formattedConvertedTaxAmount = transaction?.convertedTaxAmount !== undefined ? convertToDisplayString(Math.abs(transaction.convertedTaxAmount), moneyRequestReport?.currency) : '';
+    // Skip a zero converted tax (e.g. tax exempt) so we don't render a redundant "Converted 0.00".
+    const formattedConvertedTaxAmount = transaction?.convertedTaxAmount ? convertToDisplayString(Math.abs(transaction.convertedTaxAmount), moneyRequestReport?.currency) : '';
 
     const taxRatesDescription = taxRates?.name;
 
