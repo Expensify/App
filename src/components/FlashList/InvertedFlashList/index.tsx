@@ -20,6 +20,9 @@ type InvertedFlashListProps<T> = FlashListProps<T> & {
 
     /** Whether the list should handle `maintainVisibleContentPosition` */
     shouldMaintainVisibleContentPosition?: boolean;
+
+    /** Pixels of newer content to reveal below the `initialScrollKey` item once the deep-link scroll settles. */
+    initialScrollOffset?: number;
 };
 
 function InvertedFlashList<T>({
@@ -29,6 +32,7 @@ function InvertedFlashList<T>({
     onStartReached: onStartReachedProp,
     maintainVisibleContentPosition: maintainVisibleContentPositionProp,
     shouldMaintainVisibleContentPosition,
+    initialScrollOffset,
     ...restProps
 }: InvertedFlashListProps<T>) {
     const {
@@ -41,6 +45,8 @@ function InvertedFlashList<T>({
         initialScrollKey,
         onStartReached: onStartReachedProp,
         shouldMaintainVisibleContentPosition,
+        listRef: restProps.ref,
+        initialScrollOffset,
     });
 
     const maintainVisibleContentPosition = maintainVisibleContentPositionProp

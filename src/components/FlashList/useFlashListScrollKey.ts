@@ -1,5 +1,6 @@
 import type {FlashListProps} from '@shopify/flash-list';
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useRef, useState} from 'react';
+import type {FlatListRefType} from '@pages/inbox/ReportScreenContext';
 
 type FlashListScrollKeyProps<T> = {
     /** The array of items to render in the list. */
@@ -16,16 +17,47 @@ type FlashListScrollKeyProps<T> = {
 
     /** Whether the list should handle `maintainVisibleContentPosition` */
     shouldMaintainVisibleContentPosition?: boolean;
+
+    /** Ref to the underlying list instance, used to reveal content below the anchored item. */
+    listRef?: FlatListRefType;
+
+    /**
+     * Pixels of newer content to reveal below the anchored item once the initial deep-link scroll settles.
+     * When set, the anchored item is lifted by this amount so it does not render flush against the bottom.
+     */
+    initialScrollOffset?: number;
 };
 
-export default function useFlashListScrollKey<T>({data, keyExtractor, initialScrollKey, onStartReached, shouldMaintainVisibleContentPosition}: FlashListScrollKeyProps<T>) {
+export default function useFlashListScrollKey<T>({
+    data,
+    keyExtractor,
+    initialScrollKey,
+    onStartReached,
+    shouldMaintainVisibleContentPosition,
+    listRef,
+    initialScrollOffset,
+}: FlashListScrollKeyProps<T>) {
     const [isInitialRender, setIsInitialRender] = useState(!!initialScrollKey);
     const [hasLinkingSettled, setHasLinkingSettled] = useState(!initialScrollKey);
+
+    const targetIndex = useMemo(() => (initialScrollKey ? data.findIndex((item, index) => keyExtractor(item, index) === initialScrollKey) : -1), [data, initialScrollKey, keyExtractor]);
+
+    // Keep the latest values available to the deferred (RAF) callback below without re-running the handoff effect.
+    // The refs are written from a commit-time effect (never during render) so the RAF closure reads fresh values.
+    const targetIndexRef = useRef(targetIndex);
+    const listRefRef = useRef(listRef);
+    const initialScrollOffsetRef = useRef(initialScrollOffset);
+    useEffect(() => {
+        targetIndexRef.current = targetIndex;
+        listRefRef.current = listRef;
+        initialScrollOffsetRef.current = initialScrollOffset;
+    });
 
     // Two-frame handoff for deep-link:
     // RAF 1: switch from sliced data to the full array — FlashList's default MVCP pins the
     //        linked item through the data swap.
-    // RAF 2: pinning has happened, disable MVCP so it doesn't cause later jumps.
+    // RAF 2: pinning has happened, disable MVCP so it doesn't cause later jumps, then lift the anchored
+    //        item by `initialScrollOffset` so a sliver of newer content shows below it.
     useEffect(() => {
         if (!isInitialRender) {
             return;
@@ -43,7 +75,16 @@ export default function useFlashListScrollKey<T>({data, keyExtractor, initialScr
 
         requestAnimationFrame(() => {
             setIsInitialRender(false);
-            requestAnimationFrame(() => setHasLinkingSettled(true));
+            requestAnimationFrame(() => {
+                setHasLinkingSettled(true);
+
+                // Lift the anchored action so newer content peeks out below it. When the anchor is the newest
+                // action (targetIndex === 0) there is nothing newer to reveal, so we keep it at the bottom.
+                const offset = initialScrollOffsetRef.current ?? 0;
+                if (offset > 0 && targetIndexRef.current > 0) {
+                    listRefRef.current?.current?.scrollToIndex({index: targetIndexRef.current, viewOffset: -offset, animated: false});
+                }
+            });
         });
     }, [isInitialRender, initialScrollKey]);
 
@@ -53,7 +94,6 @@ export default function useFlashListScrollKey<T>({data, keyExtractor, initialScr
         return {displayedData: data, onStartReached, maintainVisibleContentPosition};
     }
 
-    const targetIndex = data.findIndex((item, index) => keyExtractor(item, index) === initialScrollKey);
     if (targetIndex <= 0) {
         return {displayedData: data, onStartReached, maintainVisibleContentPosition};
     }

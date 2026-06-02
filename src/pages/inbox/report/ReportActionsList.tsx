@@ -966,6 +966,7 @@ function ReportActionsList({
                     }
                     onLoad={onLoad}
                     initialScrollKey={initialScrollKey}
+                    initialScrollOffset={CONST.REPORT.ACTIONS.LINKED_ACTION_VERTICAL_OFFSET}
                     onContentSizeChange={() => {
                         trackVerticalScrolling(undefined);
                     }}

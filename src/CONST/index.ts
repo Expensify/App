@@ -1753,6 +1753,9 @@ const CONST = {
             THREAD_DISABLED: ['CREATED'],
             LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD: 2000,
             ACTION_VISIBLE_THRESHOLD: 250,
+            // When opening a report at a linked or unread action, reveal this many pixels of the newer content
+            // below the anchored action so it does not render flush against the bottom and hints there is more.
+            LINKED_ACTION_VERTICAL_OFFSET: 100,
             MAX_GROUPING_TIME: 300000,
         },
         CANCEL_PAYMENT_REASONS: {
