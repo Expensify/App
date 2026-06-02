@@ -136,6 +136,7 @@ function TransactionPreviewContent({
         ? ViolationsUtils.getViolationTranslation({
               violation: firstViolation,
               translate,
+              convertToDisplayString,
               canEdit,
               companyCardPageURL,
               connectionLink,
