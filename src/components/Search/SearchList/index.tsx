@@ -21,6 +21,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
+import type {Modifiers} from '@hooks/useShiftRangeSelection';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUndeleteTransactions from '@hooks/useUndeleteTransactions';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -82,7 +83,7 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     canSelectMultiple: boolean;
 
     /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress: (item: SearchListItem, itemTransactions?: TransactionListItemType[], options?: {shiftKey?: boolean}) => void;
+    onCheckboxPress: (item: SearchListItem, itemTransactions?: TransactionListItemType[], options?: Partial<Modifiers>) => void;
 
     /** Callback to fire when "Select All" checkbox is pressed. Only use along with `canSelectMultiple` */
     onAllCheckboxPress: () => void;

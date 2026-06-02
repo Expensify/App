@@ -20,6 +20,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import type {Modifiers} from '@hooks/useShiftRangeSelection';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
@@ -292,10 +293,10 @@ function TransactionGroupListItem<TItem extends ListItem>({
         onLongPressRow?.(transaction as unknown as TItem);
     };
 
-    const handleSelectionButtonPress = (val: TItem, options?: {shiftKey?: boolean}) => {
+    const handleSelectionButtonPress = (val: TItem, options?: Partial<Modifiers>) => {
         onSelectionButtonPress?.(val, isExpenseReportType ? undefined : transactions, options);
     };
-    const handleSelectionButtonPressForExpanded = (val: TItem, _itemTransactions?: TransactionListItemType[], options?: {shiftKey?: boolean}) => handleSelectionButtonPress(val, options);
+    const handleSelectionButtonPressForExpanded = (val: TItem, _itemTransactions?: TransactionListItemType[], options?: Partial<Modifiers>) => handleSelectionButtonPress(val, options);
 
     const onExpandIconPress = () => {
         if (isEmpty && !shouldDisplayEmptyView) {

@@ -7,7 +7,8 @@ import Text from '@components/Text';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
-import {getShiftKeyFromEvent} from '@hooks/useShiftRangeSelection';
+import {getModifierKeysFromEvent} from '@hooks/useShiftRangeSelection';
+import type {Modifiers} from '@hooks/useShiftRangeSelection';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedLeafCategoryName} from '@libs/CategoryUtils';
@@ -43,7 +44,7 @@ type MoneyRequestReportGroupHeaderProps = {
     isDisabled?: boolean;
 
     /** Callback when group checkbox is toggled - receives groupKey */
-    onToggleSelection?: (groupKey: string, options?: {shiftKey?: boolean}) => void;
+    onToggleSelection?: (groupKey: string, options?: Partial<Modifiers>) => void;
 
     /** Pending action for offline feedback styling (Pattern B - Optimistic WITH Feedback) */
     pendingAction?: PendingAction;
@@ -80,7 +81,7 @@ function MoneyRequestReportGroupHeader({
     const textStyle = shouldUseNarrowLayout ? {fontSize: variables.fontSizeLabel, lineHeight: 16} : [styles.labelStrong];
 
     const handleToggleSelection = (event?: GestureResponderEvent | KeyboardEvent) => {
-        onToggleSelection?.(groupKey, {shiftKey: getShiftKeyFromEvent(event)});
+        onToggleSelection?.(groupKey, getModifierKeysFromEvent(event));
     };
 
     const groupHeaderStyle = !shouldUseNarrowLayout

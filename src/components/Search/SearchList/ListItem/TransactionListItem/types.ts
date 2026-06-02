@@ -2,6 +2,7 @@ import type {TransactionListItemType} from '@components/Search/SearchList/ListIt
 import type {SearchColumnType} from '@components/Search/types';
 import type {ListItemFocusEventHandler} from '@components/SelectionList/ListItem/types';
 import type {ListItem} from '@components/SelectionList/types';
+import type {Modifiers} from '@hooks/useShiftRangeSelection';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {CardList, ReportAction, TransactionViolation} from '@src/types/onyx';
@@ -14,7 +15,7 @@ type TransactionListItemSharedProps<TItem extends ListItem> = {
     isDisabled?: boolean | null;
     canSelectMultiple?: boolean;
     onSelectRow: (item: TItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
-    onCheckboxPress?: (item: TItem, itemTransactions?: TransactionListItemType[], options?: {shiftKey?: boolean}) => void;
+    onCheckboxPress?: (item: TItem, itemTransactions?: TransactionListItemType[], options?: Partial<Modifiers>) => void;
     onFocus?: ListItemFocusEventHandler;
     onLongPressRow?: (item: TItem) => void;
     shouldSyncFocus?: boolean;

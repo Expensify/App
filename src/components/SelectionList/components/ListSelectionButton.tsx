@@ -2,7 +2,8 @@ import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import SelectionButton from '@components/SelectionButton';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
-import {getShiftKeyFromEvent} from '@hooks/useShiftRangeSelection';
+import {getModifierKeysFromEvent} from '@hooks/useShiftRangeSelection';
+import type {Modifiers} from '@hooks/useShiftRangeSelection';
 import CONST from '@src/CONST';
 
 type ListSelectionButtonProps<TItem extends ListItem> = {
@@ -10,7 +11,7 @@ type ListSelectionButtonProps<TItem extends ListItem> = {
     item: TItem;
 
     /** Callback to fire when the item is pressed */
-    onSelectRow: (item: TItem, options?: {shiftKey?: boolean}) => void;
+    onSelectRow: (item: TItem, options?: Partial<Modifiers>) => void;
 
     /** Custom accessibility label */
     accessibilityLabel?: string;
@@ -54,7 +55,7 @@ function ListSelectionButton<TItem extends ListItem>({
             role={role}
             accessibilityLabel={label}
             isChecked={item.isSelected ?? false}
-            onPress={(event) => onSelectRow(item, {shiftKey: getShiftKeyFromEvent(event)})}
+            onPress={(event) => onSelectRow(item, getModifierKeysFromEvent(event))}
             disabled={disabled}
             style={style}
             containerStyle={containerStyle}

@@ -30,6 +30,7 @@ import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShiftRangeSelection from '@hooks/useShiftRangeSelection';
+import type {Modifiers} from '@hooks/useShiftRangeSelection';
 import useStableArrayReference from '@hooks/useStableArrayReference';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -1177,7 +1178,7 @@ function Search({
     });
 
     const toggleTransaction = useCallback(
-        (item: SearchListItem, itemTransactions?: TransactionListItemType[], options?: {shiftKey?: boolean}) => {
+        (item: SearchListItem, itemTransactions?: TransactionListItemType[], options?: Partial<Modifiers>) => {
             if (isReportActionListItemType(item) || isTaskListItemType(item)) {
                 return;
             }

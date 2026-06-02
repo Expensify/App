@@ -15,6 +15,7 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
 import useShiftRangeSelection from '@hooks/useShiftRangeSelection';
+import type {Modifiers} from '@hooks/useShiftRangeSelection';
 import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -276,7 +277,7 @@ function BaseSelectionList<TItem extends ListItem>({
     });
 
     const handleSelectionButtonPress = useCallback(
-        (item: TItem, itemTransactions?: unknown, options?: {shiftKey?: boolean}) => {
+        (item: TItem, itemTransactions?: unknown, options?: Partial<Modifiers>) => {
             if (onShiftRangeApply && rangeApi.applyShiftClick(item, options)) {
                 return;
             }

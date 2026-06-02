@@ -5,6 +5,7 @@ import type {ValueOf} from 'type-fest';
 import type {HoldMenuCallback} from '@components/Search';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {Modifiers} from '@hooks/useShiftRangeSelection';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
@@ -238,7 +239,7 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     item: TItem;
 
     /** Callback to fire when the selection button is pressed */
-    onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[], options?: {shiftKey?: boolean}) => void;
+    onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[], options?: Partial<Modifiers>) => void;
 
     /** Which side of the row to render the selection button on */
     selectionButtonPosition?: ValueOf<typeof CONST.SELECTION_BUTTON_POSITION>;
@@ -368,7 +369,7 @@ type SpendRuleListItemType = ListItem & {
  */
 type SelectableListItemProps<TItem extends ListItem> = BaseListItemProps<TItem> & {
     /** Callback to fire when the selection button is pressed */
-    onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[], options?: {shiftKey?: boolean}) => void;
+    onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[], options?: Partial<Modifiers>) => void;
 
     /** Which side of the row to render the selection button on */
     selectionButtonPosition?: ValueOf<typeof CONST.SELECTION_BUTTON_POSITION>;

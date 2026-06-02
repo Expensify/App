@@ -11,7 +11,7 @@ import TotalCell from '@components/Search/SearchList/ListItem/TotalCell';
 import UserInfoCell from '@components/Search/SearchList/ListItem/UserInfoCell';
 import WorkspaceCell from '@components/Search/SearchList/ListItem/WorkspaceCell';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import {getShiftKeyFromEvent} from '@hooks/useShiftRangeSelection';
+import {getModifierKeysFromEvent} from '@hooks/useShiftRangeSelection';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -217,7 +217,7 @@ function ExpenseReportListItemRowWide({
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                 {!!canSelectMultiple && (
                     <Checkbox
-                        onPress={(event) => onCheckboxPress(undefined, {shiftKey: getShiftKeyFromEvent(event)})}
+                        onPress={(event) => onCheckboxPress(undefined, getModifierKeysFromEvent(event))}
                         isChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
                         containerStyle={styles.m0}

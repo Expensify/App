@@ -30,6 +30,7 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useShiftRangeSelection, {applyShiftRangeBatchToKeySet} from '@hooks/useShiftRangeSelection';
+import type {Modifiers} from '@hooks/useShiftRangeSelection';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -124,7 +125,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
         getSelectedKeys: () => selectedCardIDs.map(String),
         onApplyRange: (batch) => setSelectedCardIDs((prev) => applyShiftRangeBatchToKeySet(batch, prev, (c) => c.cardID)),
     });
-    const toggleCardSelection = (cardID: number, options?: {shiftKey?: boolean}) => {
+    const toggleCardSelection = (cardID: number, options?: Partial<Modifiers>) => {
         const card = filteredSortedCards.find((c) => c.cardID === cardID);
         if (card && rangeApi.applyShiftClick(card, options)) {
             return;

@@ -19,6 +19,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import type {Modifiers} from '@hooks/useShiftRangeSelection';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -217,7 +218,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     ]);
 
     const handleSelectionButtonPress = useCallback(
-        (_passedItem?: unknown, options?: {shiftKey?: boolean}) => {
+        (_passedItem?: unknown, options?: Partial<Modifiers>) => {
             onSelectionButtonPress?.(reportItem as unknown as TItem, undefined, options);
         },
         [onSelectionButtonPress, reportItem],

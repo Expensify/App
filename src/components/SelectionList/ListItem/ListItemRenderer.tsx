@@ -3,6 +3,7 @@ import type {NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SelectionListProps} from '@components/SelectionList/types';
 import type useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import type {Modifiers} from '@hooks/useShiftRangeSelection';
 import type useSingleExecution from '@hooks/useSingleExecution';
 import {isMobileChrome} from '@libs/Browser';
 import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
@@ -62,7 +63,7 @@ function ListItemRenderer<TItem extends ListItem>({
             return onSelectionButtonPress;
         }
         return onSelectionButtonPress
-            ? (_passedItem: TItem, itemTransactions?: TransactionListItemType[], options?: {shiftKey?: boolean}) => onSelectionButtonPress(item, itemTransactions, options)
+            ? (_passedItem: TItem, itemTransactions?: TransactionListItemType[], options?: Partial<Modifiers>) => onSelectionButtonPress(item, itemTransactions, options)
             : undefined;
     };
 

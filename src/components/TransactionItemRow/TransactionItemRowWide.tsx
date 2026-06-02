@@ -18,7 +18,7 @@ import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {getShiftKeyFromEvent} from '@hooks/useShiftRangeSelection';
+import {getModifierKeysFromEvent} from '@hooks/useShiftRangeSelection';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -582,7 +582,7 @@ function TransactionItemRowWide({
                         <Checkbox
                             disabled={isDisabled}
                             onPress={(event) => {
-                                onCheckboxPress(transactionItem.transactionID, {shiftKey: getShiftKeyFromEvent(event)});
+                                onCheckboxPress(transactionItem.transactionID, getModifierKeysFromEvent(event));
                             }}
                             accessibilityLabel={CONST.ROLE.CHECKBOX}
                             isChecked={isSelected}

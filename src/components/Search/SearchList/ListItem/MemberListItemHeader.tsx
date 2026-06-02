@@ -7,7 +7,8 @@ import type {ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
-import {getShiftKeyFromEvent} from '@hooks/useShiftRangeSelection';
+import {getModifierKeysFromEvent} from '@hooks/useShiftRangeSelection';
+import type {Modifiers} from '@hooks/useShiftRangeSelection';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -22,7 +23,7 @@ type MemberListItemHeaderProps<TItem extends ListItem> = {
     member: TransactionMemberGroupListItemType;
 
     /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress?: (item: TItem, options?: {shiftKey?: boolean}) => void;
+    onCheckboxPress?: (item: TItem, options?: Partial<Modifiers>) => void;
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
@@ -130,7 +131,7 @@ function MemberListItemHeader<TItem extends ListItem>({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
-                            onPress={(event) => onCheckboxPress?.(memberItem as unknown as TItem, {shiftKey: getShiftKeyFromEvent(event)})}
+                            onPress={(event) => onCheckboxPress?.(memberItem as unknown as TItem, getModifierKeysFromEvent(event))}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || memberItem.isDisabledCheckbox}

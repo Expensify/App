@@ -11,6 +11,7 @@ import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
+import type {Modifiers} from '@hooks/useShiftRangeSelection';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -41,7 +42,7 @@ type MoneyRequestReportTransactionItemProps = {
     isSelectionModeEnabled: boolean;
 
     /** Callback function triggered upon pressing a transaction checkbox. */
-    toggleTransaction: (transactionID: string, options?: {shiftKey?: boolean}) => void;
+    toggleTransaction: (transactionID: string, options?: Partial<Modifiers>) => void;
 
     /** Callback function triggered upon pressing a transaction. */
     handleOnPress: (transactionID: string) => void;

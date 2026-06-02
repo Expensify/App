@@ -1,5 +1,5 @@
 import {act, renderHook} from '@testing-library/react-native';
-import useShiftRangeSelection, {applyShiftRangeBatchToKeySet, applyShiftRangeBatchToValueArray, getShiftKeyFromEvent} from '@hooks/useShiftRangeSelection';
+import useShiftRangeSelection, {applyShiftRangeBatchToKeySet, applyShiftRangeBatchToValueArray, getModifierKeysFromEvent} from '@hooks/useShiftRangeSelection';
 import type {ShiftRangeBatch} from '@hooks/useShiftRangeSelection';
 
 type Row = {keyForList: string; isHeader?: boolean; isDisabled?: boolean};
@@ -347,6 +347,53 @@ describe('useShiftRangeSelection', () => {
         });
     });
 
+    describe('additive shift+click', () => {
+        it('extends without emitting toDeselect when the additive modifier is set', () => {
+            const onApplyRange = makeApplyMock();
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
+            act(() => result.current.notifyAnchor(ROWS[0]));
+            act(() => {
+                result.current.applyShiftClick(ROWS[2], {shiftKey: true, additive: true});
+            });
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'b', 'c'], toDeselect: []});
+        });
+
+        it('preserves the previous range when a second additive shift+click lands inside it', () => {
+            const onApplyRange = makeApplyMock();
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
+            act(() => result.current.notifyAnchor(ROWS[0]));
+            act(() => {
+                result.current.applyShiftClick(ROWS[4], {shiftKey: true, additive: true});
+            });
+            act(() => {
+                result.current.applyShiftClick(ROWS[2], {shiftKey: true, additive: true});
+            });
+            expect(nthBatchKeys(onApplyRange, 1)).toEqual({toSelect: ['a', 'b', 'c'], toDeselect: []});
+        });
+
+        it('lets a subsequent non-additive shift+click replace the additive range', () => {
+            const onApplyRange = makeApplyMock();
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
+            act(() => result.current.notifyAnchor(ROWS[0]));
+            act(() => {
+                result.current.applyShiftClick(ROWS[4], {shiftKey: true, additive: true});
+            });
+            act(() => {
+                result.current.applyShiftClick(ROWS[2], {shiftKey: true});
+            });
+            expect(nthBatchKeys(onApplyRange, 1)).toEqual({toSelect: ['a', 'b', 'c'], toDeselect: ['d', 'e']});
+        });
+
+        it('uses the anchor fallback chain when no prior notify happened', () => {
+            const onApplyRange = makeApplyMock();
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange, getSelectedKeys: () => ['b']})));
+            act(() => {
+                result.current.applyShiftClick(ROWS[3], {shiftKey: true, additive: true});
+            });
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['b', 'c', 'd'], toDeselect: []});
+        });
+    });
+
     describe('defensive bails', () => {
         it('returns false when every item is excluded and no anchor can be resolved', () => {
             const onApplyRange = makeApplyMock();
@@ -490,20 +537,32 @@ describe('useShiftRangeSelection', () => {
     });
 });
 
-describe('getShiftKeyFromEvent', () => {
-    it('returns false for nullish input', () => {
-        expect(getShiftKeyFromEvent(undefined)).toBe(false);
-        expect(getShiftKeyFromEvent(null)).toBe(false);
+describe('getModifierKeysFromEvent', () => {
+    type EventArg = Parameters<typeof getModifierKeysFromEvent>[0];
+
+    it('returns shiftKey false and additive false for nullish input', () => {
+        expect(getModifierKeysFromEvent(undefined)).toEqual({shiftKey: false, additive: false});
+        expect(getModifierKeysFromEvent(null)).toEqual({shiftKey: false, additive: false});
     });
 
     it('reads shiftKey from the outer event when present', () => {
-        expect(getShiftKeyFromEvent({shiftKey: true} as Parameters<typeof getShiftKeyFromEvent>[0])).toBe(true);
-        expect(getShiftKeyFromEvent({shiftKey: false} as Parameters<typeof getShiftKeyFromEvent>[0])).toBe(false);
+        expect(getModifierKeysFromEvent({shiftKey: true} as EventArg).shiftKey).toBe(true);
+        expect(getModifierKeysFromEvent({shiftKey: false} as EventArg).shiftKey).toBe(false);
     });
 
     it('falls back to nativeEvent.shiftKey when outer shiftKey is absent', () => {
-        expect(getShiftKeyFromEvent({nativeEvent: {shiftKey: true}} as Parameters<typeof getShiftKeyFromEvent>[0])).toBe(true);
-        expect(getShiftKeyFromEvent({nativeEvent: {shiftKey: false}} as Parameters<typeof getShiftKeyFromEvent>[0])).toBe(false);
+        expect(getModifierKeysFromEvent({nativeEvent: {shiftKey: true}} as EventArg).shiftKey).toBe(true);
+        expect(getModifierKeysFromEvent({nativeEvent: {shiftKey: false}} as EventArg).shiftKey).toBe(false);
+    });
+
+    it('marks additive when both platform modifier keys are set', () => {
+        // Cross-platform: setting both metaKey and ctrlKey is true on every OS so the additive bit
+        // is positive regardless of which branch the helper selects.
+        expect(getModifierKeysFromEvent({metaKey: true, ctrlKey: true} as EventArg).additive).toBe(true);
+    });
+
+    it('reports additive false when neither modifier key is set', () => {
+        expect(getModifierKeysFromEvent({shiftKey: true} as EventArg).additive).toBe(false);
     });
 });
 

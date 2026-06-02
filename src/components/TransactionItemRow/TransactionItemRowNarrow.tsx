@@ -5,7 +5,7 @@ import Icon from '@components/Icon';
 import RadioButton from '@components/RadioButton';
 import DateCell from '@components/Search/SearchList/ListItem/DateCell';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import {getShiftKeyFromEvent} from '@hooks/useShiftRangeSelection';
+import {getModifierKeysFromEvent} from '@hooks/useShiftRangeSelection';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -86,7 +86,7 @@ function TransactionItemRowNarrow({
                         <Checkbox
                             disabled={isDisabled}
                             onPress={(event) => {
-                                onCheckboxPress(transactionItem.transactionID, {shiftKey: getShiftKeyFromEvent(event)});
+                                onCheckboxPress(transactionItem.transactionID, getModifierKeysFromEvent(event));
                             }}
                             accessibilityLabel={CONST.ROLE.CHECKBOX}
                             isChecked={isSelected}

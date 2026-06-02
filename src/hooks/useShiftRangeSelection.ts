@@ -1,19 +1,28 @@
 import type {KeyboardEvent as ReactKeyboardEvent} from 'react';
 import {useEffect, useMemo, useRef} from 'react';
 import type {GestureResponderEvent} from 'react-native';
+import getOperatingSystem from '@libs/getOperatingSystem';
+import CONST from '@src/CONST';
 
 /**
  * Excel/AG Grid-style shift+click range selection. Consumers call notifyAnchor on plain
  * clicks / focus changes and clearAnchor on select-all / deselect-all; the session lives
  * between shift+clicks and is ended by either notify. Headers and disabled rows are excluded.
+ *
+ * Holding the platform additive modifier (Cmd on Mac/iOS, Ctrl elsewhere) while shift+clicking
+ * extends the selection without deselecting the previous range — matches Excel/Finder/Classic.
  */
 
 type ItemWithKey = {keyForList?: string | null};
 
 type ModifierEvent = (GestureResponderEvent | KeyboardEvent | ReactKeyboardEvent | MouseEvent) & {
     shiftKey?: boolean;
-    nativeEvent?: {shiftKey?: boolean};
+    metaKey?: boolean;
+    ctrlKey?: boolean;
+    nativeEvent?: {shiftKey?: boolean; metaKey?: boolean; ctrlKey?: boolean};
 };
+
+type Modifiers = {shiftKey: boolean; additive: boolean};
 
 type ShiftRangeBatch<TItem> = {
     toSelect: TItem[];
@@ -30,11 +39,13 @@ type Params<TItem> = {
 };
 
 type Api<TItem> = {
-    applyShiftClick: (item: TItem, options?: {shiftKey?: boolean}) => boolean;
+    applyShiftClick: (item: TItem, options?: Partial<Modifiers>) => boolean;
     notifyAnchor: (item: TItem) => void;
     clearAnchor: () => void;
     getAnchorKey: () => string | null;
 };
+
+const ADDITIVE_VIA_META = getOperatingSystem() === CONST.OS.MAC_OS || getOperatingSystem() === CONST.OS.IOS;
 
 type Session = {anchor: string; prevEnd: string};
 
@@ -47,7 +58,7 @@ function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
     const sessionRef = useRef<Session | null>(null);
 
     return useMemo<Api<TItem>>(() => {
-        const runRange = (target: TItem): boolean => {
+        const runRange = (target: TItem, additive: boolean): boolean => {
             const p = paramsRef.current;
             const targetKey = keyOf(p, target);
             if (!targetKey || isExcluded(p, target)) {
@@ -77,7 +88,8 @@ function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
 
             const newRange = orderedRange(anchorIdx, targetIdx);
             // Guard against stale prevEnd: indexOfKey returns -1 → items.at(-1) would deselect the last row.
-            const prevEndIdx = prevEnd != null ? indexOfKey(p, prevEnd) : -1;
+            // In additive mode the previous range is preserved, so prevRange is intentionally null.
+            const prevEndIdx = !additive && prevEnd != null ? indexOfKey(p, prevEnd) : -1;
             const prevRange = prevEndIdx >= 0 ? orderedRange(anchorIdx, prevEndIdx) : null;
             const isUsable = (i: number) => !isExcluded(p, p.items.at(i));
 
@@ -113,7 +125,7 @@ function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
         };
 
         return {
-            applyShiftClick: (item, options) => !!options?.shiftKey && runRange(item),
+            applyShiftClick: (item, options) => !!options?.shiftKey && runRange(item, !!options?.additive),
             notifyAnchor: (item) => {
                 const k = keyOf(paramsRef.current, item);
                 if (k) {
@@ -199,8 +211,10 @@ function resolveAnchor<TItem>(p: Params<TItem>, source: string | null): string |
     return null;
 }
 
-function getShiftKeyFromEvent(e?: ModifierEvent | null): boolean {
-    return !!(e?.shiftKey ?? e?.nativeEvent?.shiftKey);
+function getModifierKeysFromEvent(e?: ModifierEvent | null): Modifiers {
+    const shiftKey = !!(e?.shiftKey ?? e?.nativeEvent?.shiftKey);
+    const additive = ADDITIVE_VIA_META ? !!(e?.metaKey ?? e?.nativeEvent?.metaKey) : !!(e?.ctrlKey ?? e?.nativeEvent?.ctrlKey);
+    return {shiftKey, additive};
 }
 
 function applyShiftRangeBatchToKeySet<TItem, TKey extends string | number>(
@@ -303,5 +317,5 @@ function isBlocked(item: unknown): boolean {
 }
 
 export default useShiftRangeSelection;
-export {getShiftKeyFromEvent, applyShiftRangeBatchToKeySet, applyShiftRangeBatchToValueArray};
-export type {ShiftRangeBatch};
+export {getModifierKeysFromEvent, applyShiftRangeBatchToKeySet, applyShiftRangeBatchToValueArray};
+export type {ShiftRangeBatch, Modifiers};

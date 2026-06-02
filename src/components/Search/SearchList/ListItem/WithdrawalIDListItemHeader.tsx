@@ -12,7 +12,8 @@ import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {getShiftKeyFromEvent} from '@hooks/useShiftRangeSelection';
+import {getModifierKeysFromEvent} from '@hooks/useShiftRangeSelection';
+import type {Modifiers} from '@hooks/useShiftRangeSelection';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,7 +32,7 @@ type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
     withdrawalID: TransactionWithdrawalIDGroupListItemType;
 
     /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress?: (item: TItem, options?: {shiftKey?: boolean}) => void;
+    onCheckboxPress?: (item: TItem, options?: Partial<Modifiers>) => void;
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
@@ -186,7 +187,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
-                            onPress={(event) => onCheckboxPress?.(withdrawalIDItem as unknown as TItem, {shiftKey: getShiftKeyFromEvent(event)})}
+                            onPress={(event) => onCheckboxPress?.(withdrawalIDItem as unknown as TItem, getModifierKeysFromEvent(event))}
                             isChecked={isSelectAllChecked}
                             disabled={!!isDisabled || withdrawalIDItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}

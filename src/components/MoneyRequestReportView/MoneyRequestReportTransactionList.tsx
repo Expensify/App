@@ -34,6 +34,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useShiftRangeSelection, {applyShiftRangeBatchToKeySet} from '@hooks/useShiftRangeSelection';
+import type {Modifiers} from '@hooks/useShiftRangeSelection';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -443,7 +444,7 @@ function MoneyRequestReportTransactionList({
     });
 
     const toggleTransaction = useCallback(
-        (transactionID: string, options?: {shiftKey?: boolean}) => {
+        (transactionID: string, options?: Partial<Modifiers>) => {
             const item = visualOrderTransactions.find((t) => t.transactionID === transactionID);
             if (item && rangeApi.applyShiftClick(item, options)) {
                 return;
@@ -500,7 +501,7 @@ function MoneyRequestReportTransactionList({
     }, [groupedTransactions, selectedTransactionIDs]);
 
     const toggleGroupSelection = useCallback(
-        (groupKey: string, options?: {shiftKey?: boolean}) => {
+        (groupKey: string, options?: Partial<Modifiers>) => {
             const group = groupedTransactions.find((g) => g.groupKey === groupKey);
             if (!group) {
                 return;
