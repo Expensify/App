@@ -61,17 +61,35 @@ You can issue virtual or physical cards to employees:
    - **Fixed limit**: Spend until the limit is reached
    - **Single-use (virtual only)**: Expires after one transaction
 6. Enter the spending limit
-7. (Optional for virtual cards) Toggle **Set expiration date** to define:
-   - **Start date**
-   - **End date**
-   - **When enabled:** Both dates are required. The card activates at 12:00 AM local time on the Start date and expires at 11:59 PM local time on the End date.
-   - **When disabled:** The card does not expire automatically.
+7. On the **Set card rules** step, apply a spend rule and set an expiration date:
+   - To restrict where and how the card can be used, toggle **Add spend rule** on, then choose:
+     - **Copy existing**: Reuse an existing spend rule. Click **Choose a rule** and select one from the list.
+     - **Create new**: Build a new rule. Set the restriction type to **Allow** or **Block**, then add any combination of **Merchant**, **Spend category**, and **Max amount**.
+   - (Virtual cards only) Toggle **Add expiration date** to define:
+     - **Start date**
+     - **End date**
+     - **When enabled:** Both dates are required. The card activates at 12:00 AM local time on the Start date and expires at 11:59 PM local time on the End date.
+     - **When disabled:** The card does not expire automatically.
 8. Name the card for easier tracking
-9. Click **Issue card** to confirm
+9. On the confirmation screen, review the details — including the **Restrictions** summary if you applied a spend rule — then click **Issue card** to confirm
+
+The **Add spend rule** option appears only when **Rules** is enabled for the workspace.
 
 ![Choose a Smart limit type]({{site.url}}/assets/images/ExpensifyHelp-ExpensifyCard_03.png){:width="100%"}
 
 ![Click issue card to confirm and issue the card]({{site.url}}/assets/images/ExpensifyHelp-ExpensifyCard_04.png){:width="100%"}
+
+<!-- SCREENSHOT:
+Suggestion: The Set card rules step with Add spend rule toggled on, showing the Copy existing / Create new tabs and the Merchant, Spend category, and Max amount fields.
+Location: After the Step 3 issue card numbered list.
+Purpose: Shows admins where to apply a spend rule while issuing a card.
+-->
+
+<!-- SCREENSHOT:
+Suggestion: The issue card confirmation screen showing the Restrictions row that summarizes the applied spend rule.
+Location: After the Step 3 issue card numbered list.
+Purpose: Shows admins how applied restrictions appear before clicking Issue card.
+-->
 
 ---
 
@@ -167,6 +185,10 @@ Yes. You can link a single Expensify Card feed to multiple workspaces using the 
 
 - **Yes**: Employees can have unlimited **virtual cards** (e.g. for trips or subscriptions).
 - **Yes**: Employees can be issued multiple physical cards with different limit types.
+
+## Can I restrict where an Expensify Card can be used when I issue it?
+
+Yes. When **Rules** is enabled for the workspace, the **Set card rules** step lets you toggle **Add spend rule** on and either **Copy existing** to reuse an existing spend rule or **Create new** to build one. A spend rule can **Allow** or **Block** spend based on **Merchant**, **Spend category**, and **Max amount**. Any restrictions you apply appear under **Restrictions** on the confirmation screen before you click **Issue card**.
 
 ## How is the Expensify Card limit determined?
 
