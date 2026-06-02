@@ -15214,7 +15214,7 @@ describe('ReportUtils', () => {
                     routingNumber: '011000015',
                     addressName: 'Test User',
                     bankName: 'Test Bank',
-                    reimburser: friendEmail,
+                    reimburser: currentUserEmail,
                     state: CONST.BANK_ACCOUNT.STATE.OPEN,
                 },
             };
@@ -15278,7 +15278,7 @@ describe('ReportUtils', () => {
                     routingNumber: '011000015',
                     addressName: 'Test User',
                     bankName: 'Test Bank',
-                    reimburser: friendEmail,
+                    reimburser: currentUserEmail,
                     state: CONST.BANK_ACCOUNT.STATE.SETUP,
                 },
             };
