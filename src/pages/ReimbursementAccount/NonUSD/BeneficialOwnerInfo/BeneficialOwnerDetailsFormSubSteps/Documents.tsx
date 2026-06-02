@@ -13,15 +13,15 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import getCurrencyForNonUSDBankAccount from '@pages/ReimbursementAccount/NonUSD/utils/getCurrencyForNonUSDBankAccount';
 import getNeededDocumentsStatusForBeneficialOwner from '@pages/ReimbursementAccount/NonUSD/utils/getNeededDocumentsStatusForBeneficialOwner';
+import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/NonUSD/utils/getValuesForBeneficialOwner';
 import {clearErrorFields, clearErrors, setDraftValues, setErrorFields} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
-import SafeString from '@src/utils/SafeString';
 
 type DocumentsProps = SubPageProps & {ownerBeingModifiedID: string};
 
-const {PROOF_OF_OWNERSHIP, ADDRESS_PROOF, COPY_OF_ID, CODICE_FISCALE, NATIONALITY, COUNTRY, PREFIX} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
+const {PROOF_OF_OWNERSHIP, ADDRESS_PROOF, COPY_OF_ID, CODICE_FISCALE, PREFIX} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 
 function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
     const {translate} = useLocalize();
@@ -31,15 +31,12 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
     const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const {country, currency} = getCurrencyForNonUSDBankAccount(policy, reimbursementAccountDraft, reimbursementAccount);
+    const values = useMemo(() => getValuesForBeneficialOwner(ownerBeingModifiedID, reimbursementAccountDraft), [ownerBeingModifiedID, reimbursementAccountDraft]);
     const proofOfOwnershipInputID = `${PREFIX}_${ownerBeingModifiedID}_${PROOF_OF_OWNERSHIP}` as const;
     const copyOfIDInputID = `${PREFIX}_${ownerBeingModifiedID}_${COPY_OF_ID}` as const;
     const addressProofInputID = `${PREFIX}_${ownerBeingModifiedID}_${ADDRESS_PROOF}` as const;
     const codiceFiscaleInputID = `${PREFIX}_${ownerBeingModifiedID}_${CODICE_FISCALE}` as const;
-    const beneficialOwnerNationalityInputID = `${PREFIX}_${ownerBeingModifiedID}_${NATIONALITY}` as const;
-    const beneficialOwnerNationality = SafeString(reimbursementAccountDraft?.[beneficialOwnerNationalityInputID]);
-    const beneficialOwnerAddressCountryInputID = `${PREFIX}_${ownerBeingModifiedID}_${COUNTRY}` as const;
-    const beneficialOwnerAddressCountry = SafeString(reimbursementAccountDraft?.[beneficialOwnerAddressCountryInputID]);
-    const isDocumentNeededStatus = getNeededDocumentsStatusForBeneficialOwner(currency, country, beneficialOwnerNationality, beneficialOwnerAddressCountry);
+    const isDocumentNeededStatus = getNeededDocumentsStatusForBeneficialOwner(currency, country, values.nationality, values.country);
     const defaultValues: Record<string, FileObject[]> = {
         [proofOfOwnershipInputID]: Array.isArray(reimbursementAccountDraft?.[proofOfOwnershipInputID]) ? (reimbursementAccountDraft?.[proofOfOwnershipInputID] ?? []) : [],
         [copyOfIDInputID]: Array.isArray(reimbursementAccountDraft?.[copyOfIDInputID]) ? (reimbursementAccountDraft?.[copyOfIDInputID] ?? []) : [],

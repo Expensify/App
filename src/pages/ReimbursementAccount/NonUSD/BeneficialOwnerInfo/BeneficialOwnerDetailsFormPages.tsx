@@ -8,6 +8,7 @@ import type {SubPageProps} from '@hooks/useSubPage/types';
 import Navigation from '@libs/Navigation/Navigation';
 import getCurrencyForNonUSDBankAccount from '@pages/ReimbursementAccount/NonUSD/utils/getCurrencyForNonUSDBankAccount';
 import getNeededDocumentsStatusForBeneficialOwner from '@pages/ReimbursementAccount/NonUSD/utils/getNeededDocumentsStatusForBeneficialOwner';
+import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/NonUSD/utils/getValuesForBeneficialOwner';
 import {clearErrors, setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,7 +25,7 @@ import OwnershipPercentage from './BeneficialOwnerDetailsFormSubSteps/OwnershipP
 
 const {PAGE_NAME, BENEFICIAL_OWNER_INFO_STEP} = CONST.NON_USD_BANK_ACCOUNT;
 const SUB_PAGE_NAMES = BENEFICIAL_OWNER_INFO_STEP.SUB_PAGE_NAMES;
-const {OWNERSHIP_PERCENTAGE, NATIONALITY, COUNTRY, PREFIX} = BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
+const {OWNERSHIP_PERCENTAGE, PREFIX} = BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 
 type BeneficialOwnerSubPageProps = SubPageProps & {
     ownerBeingModifiedID: string;
@@ -68,10 +69,10 @@ function BeneficialOwnerDetailsFormPages({stepNames, policyID, onFinished, backT
     const isEditingCreatedOwner = reimbursementAccountDraft?.isEditingCreatedOwner ?? false;
     const ownerKeys = reimbursementAccountDraft?.beneficialOwnerKeys ?? [];
 
-    const beneficialOwnerNationalityInputID = `${PREFIX}_${ownerBeingModifiedID}_${NATIONALITY}` as const;
-    const beneficialOwnerNationality = SafeString(reimbursementAccountDraft?.[beneficialOwnerNationalityInputID]);
-    const beneficialOwnerAddressCountryInputID = `${PREFIX}_${ownerBeingModifiedID}_${COUNTRY}` as const;
-    const beneficialOwnerAddressCountry = SafeString(reimbursementAccountDraft?.[beneficialOwnerAddressCountryInputID]);
+    const {nationality: beneficialOwnerNationality, country: beneficialOwnerAddressCountry} = useMemo(
+        () => getValuesForBeneficialOwner(ownerBeingModifiedID, reimbursementAccountDraft),
+        [ownerBeingModifiedID, reimbursementAccountDraft],
+    );
 
     const totalOwnedPercentage = Object.fromEntries(
         ownerKeys.map((key) => {
