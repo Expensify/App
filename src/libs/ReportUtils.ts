@@ -67,7 +67,6 @@ import type {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotA
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type {ErrorFields, Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {
-    OriginalMessageChangeLog,
     OriginalMessageChangePolicy,
     OriginalMessageExportIntegration,
     OriginalMessageModifiedExpense,
@@ -118,8 +117,6 @@ import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNum
 import {translateLocal} from './Localize';
 import Log from './Log';
 import {isEmailPublicDomain} from './LoginUtils';
-// eslint-disable-next-line import/no-cycle
-import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
 import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForCurrentContext';
 import getStateFromPath from './Navigation/helpers/getStateFromPath';
@@ -128,7 +125,6 @@ import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmost
 import {linkingConfig} from './Navigation/linkingConfig';
 import Navigation, {navigationRef} from './Navigation/Navigation';
 import type {MoneyRequestNavigatorParamList, ReportsSplitNavigatorParamList} from './Navigation/types';
-import {getCurrentUserEmail} from './Network/NetworkStore';
 import {getDBTimeWithSkew} from './NetworkState';
 import {rand64} from './NumberUtils';
 import Parser from './Parser';
@@ -138,10 +134,8 @@ import Permissions from './Permissions';
 import {
     getAccountIDsByLogins,
     getDisplayNameOrDefault,
-    getEffectiveDisplayName,
     getLoginsByAccountIDs,
     getPersonalDetailByEmail,
-    getPersonalDetailsByIDs,
     getShortMentionIfFound,
 } from './PersonalDetailsUtils';
 import {
@@ -176,7 +170,6 @@ import {
     formatLastMessageText,
     getActionableJoinRequestPendingReportAction,
     getAllReportActions,
-    getCreatedReportForUnapprovedTransactionsMessage,
     getIOUActionForTransactionID,
     getIOUReportIDFromReportActionPreview,
     getLastVisibleAction,
@@ -209,20 +202,16 @@ import {
     isExportIntegrationAction,
     isForwardedAction,
     isIntegrationMessageAction,
-    isModifiedExpenseAction,
     isMoneyRequestAction,
     isMovedAction,
     isOlderReportAction,
     isPendingRemove,
-    isPolicyChangeLogAction,
     isReimbursementQueuedAction,
     isReopenedAction,
-    isReportActionAttachment,
     isReportActionVisible,
     isReportPreviewAction,
     isRetractedAction,
     isReversedTransaction,
-    isRoomChangeLogAction,
     isSentMoneyReportAction,
     isSplitBillAction as isSplitBillReportAction,
     isSubmittedAction,
@@ -238,16 +227,10 @@ import {
 // ReportNameUtils imports helper functions from ReportUtils, and ReportUtils imports name generation functions from ReportNameUtils.
 // eslint-disable-next-line import/no-cycle
 import {
-    buildReportNameFromParticipantNames,
     computeReportName,
-    computeReportNameBasedOnReportAction,
-    generateArchivedReportName,
     getGroupChatName,
     getInvoicePayerName,
     getInvoiceReportName,
-    getInvoicesChatName,
-    getMoneyRequestReportName,
-    getPolicyExpenseChatName,
     getReportName as getReportNameFromNameUtils,
 } from './ReportNameUtils';
 import type {ArchivedReportsIDSet} from './SearchUIUtils';
@@ -967,22 +950,6 @@ type GetPolicyNameParams = {
     policy?: OnyxInputOrEntry<Policy>;
     policies?: Policy[];
     reports?: Report[];
-};
-
-type GetReportNameParams = {
-    report: OnyxEntry<Report>;
-    policy?: OnyxEntry<Policy>;
-    parentReportActionParam?: OnyxInputOrEntry<ReportAction>;
-    personalDetails?: Partial<PersonalDetailsList>;
-    invoiceReceiverPolicy?: OnyxEntry<Policy>;
-    /** Report attributes used to return a precomputed report name */
-    reportAttributes?: ReportAttributesDerivedValue['reports'];
-    transactions?: Transaction[];
-    reports?: Report[];
-    isReportArchived?: boolean;
-    // TODO: Make this required when https://github.com/Expensify/App/issues/66411 is done
-    /** Used to identify the Concierge chat so its name can be set to the Concierge display name */
-    conciergeReportID?: string;
 };
 
 type GetReportStatusParams = {
@@ -5686,60 +5653,6 @@ function getModifiedExpenseOriginalMessage(
     }
 
     return originalMessage;
-}
-
-/**
- * Check if original message is an object and can be used as a ChangeLog type
- * @param originalMessage
- */
-function isChangeLogObject(originalMessage?: OriginalMessageChangeLog): OriginalMessageChangeLog | undefined {
-    if (originalMessage && typeof originalMessage === 'object') {
-        return originalMessage;
-    }
-    return undefined;
-}
-
-/**
- * Build invited usernames for admin chat threads
- * @param parentReportAction
- * @param parentReportActionMessage
- */
-function getAdminRoomInvitedParticipants(translate: LocalizedTranslate, parentReportAction: OnyxEntry<ReportAction>, parentReportActionMessage: string) {
-    if (isEmptyObject(parentReportAction)) {
-        return parentReportActionMessage || translate('parentReportAction.deletedMessage');
-    }
-    if (!getOriginalMessage(parentReportAction)) {
-        return parentReportActionMessage || translate('parentReportAction.deletedMessage');
-    }
-    if (!isPolicyChangeLogAction(parentReportAction) && !isRoomChangeLogAction(parentReportAction)) {
-        return parentReportActionMessage || translate('parentReportAction.deletedMessage');
-    }
-
-    const originalMessage = isChangeLogObject(getOriginalMessage(parentReportAction) as OriginalMessageChangeLog);
-    const personalDetails = getPersonalDetailsByIDs({accountIDs: originalMessage?.targetAccountIDs ?? [], currentUserAccountID: 0});
-
-    const participants = personalDetails.map((personalDetail) => {
-        const name = getEffectiveDisplayName(formatPhoneNumberPhoneUtils, personalDetail);
-        if (name && name?.length > 0) {
-            return name;
-        }
-        return translate('common.hidden');
-    });
-    const users = participants.length > 1 ? participants.join(` ${translate('common.and')} `) : participants.at(0);
-    if (!users) {
-        return parentReportActionMessage;
-    }
-    const actionType = parentReportAction.actionName;
-    const isInviteAction = actionType === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || actionType === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM;
-
-    const verbKey = isInviteAction ? 'workspace.invite.invited' : 'workspace.invite.removed';
-    const prepositionKey = isInviteAction ? 'workspace.invite.to' : 'workspace.invite.from';
-    const verb = translate(verbKey);
-    const preposition = translate(prepositionKey);
-
-    const roomName = originalMessage?.roomName ?? '';
-
-    return roomName ? `${verb} ${users} ${preposition} ${roomName}` : `${verb} ${users}`;
 }
 
 /**
