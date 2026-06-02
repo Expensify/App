@@ -41,6 +41,8 @@ jest.mock('@libs/SearchQueryUtils', () => ({
 jest.mock('@libs/telemetry/submitFollowUpAction', () => ({
     setPendingSubmitFollowUpAction: jest.fn(),
     endSubmitFollowUpActionSpan: jest.fn(),
+    hasSubmitSpan: jest.fn(() => false),
+    setSubmitSpanAttributes: jest.fn(),
 }));
 
 describe('submitDismissStrategies', () => {

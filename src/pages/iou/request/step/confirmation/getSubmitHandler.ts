@@ -1,4 +1,4 @@
-import type {SpanAttributeValue} from '@sentry/core';
+import type {SpanAttributeValue} from '@libs/telemetry/submitFollowUpAction';
 import CONST from '@src/CONST';
 
 const SUBMIT_HANDLER = {

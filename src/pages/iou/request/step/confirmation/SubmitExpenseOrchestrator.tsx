@@ -1,4 +1,3 @@
-import type {SpanAttributeValue} from '@sentry/core';
 import React, {useEffect, useRef, useState} from 'react';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import DateUtils from '@libs/DateUtils';
@@ -14,6 +13,7 @@ import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
+import type {SpanAttributeValue} from '@libs/telemetry/submitFollowUpAction';
 import {getTrackingElapsedMs, hasSubmitSpan, setFastPath, setPendingSubmitFollowUpAction, setSubmitSpanAttributes, startTracking} from '@libs/telemetry/submitFollowUpAction';
 import {updateLastLocationPermissionPrompt} from '@userActions/IOU/MoneyRequest';
 import type {IOUType} from '@src/CONST';

@@ -1,4 +1,3 @@
-import type {SpanAttributeValue} from '@sentry/core';
 import {flushDeferredWrite} from '@libs/deferredLayoutWrite';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getTopmostFullScreenRoute from '@libs/Navigation/helpers/getTopmostFullScreenRoute';
@@ -7,6 +6,7 @@ import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import type {SpanAttributeValue} from '@libs/telemetry/submitFollowUpAction';
 import {endSubmitFollowUpActionSpan, hasSubmitSpan, setPendingSubmitFollowUpAction, setSubmitSpanAttributes} from '@libs/telemetry/submitFollowUpAction';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
