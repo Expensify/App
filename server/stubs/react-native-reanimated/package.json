@@ -1,0 +1,6 @@
+{
+    "name": "react-native-reanimated",
+    "version": "0.0.0-stub",
+    "private": true,
+    "main": "./index.ts"
+}
