@@ -118,6 +118,13 @@ describe('actions/Policy', () => {
             expect(policy?.role).toBe(CONST.POLICY.ROLE.ADMIN);
             expect(policy?.owner).toBe(ESH_EMAIL);
             expect(policy?.areWorkflowsEnabled).toBe(true);
+            expect(policy?.areDistanceRatesEnabled).toBe(false);
+            expect(policy?.areReportFieldsEnabled).toBe(false);
+            expect(policy?.areConnectionsEnabled).toBe(false);
+            expect(policy?.areExpensifyCardsEnabled).toBe(false);
+            expect(policy?.areInvoicesEnabled).toBe(false);
+            expect(policy?.areRulesEnabled).toBe(false);
+            expect(policy?.arePerDiemRatesEnabled).toBe(false);
             expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.BASIC);
             expect(policy?.approver).toBe(ESH_EMAIL);
             expect(policy?.isPolicyExpenseChatEnabled).toBe(true);

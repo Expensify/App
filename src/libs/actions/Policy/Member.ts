@@ -2,6 +2,7 @@ import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} fr
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
 import * as API from '@libs/API';
 import type {
     AddMembersToWorkspaceParams,
@@ -11,7 +12,7 @@ import type {
     RequestWorkspaceOwnerChangeParams,
     UpdateWorkspaceMembersRoleParams,
 } from '@libs/API/parameters';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -29,6 +30,7 @@ import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ImportedSpreadsheetMemberData, InvitedEmailsToAccountIDs, Policy, PolicyEmployee, PolicyOwnershipChangeChecks, Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ApprovalRule} from '@src/types/onyx/Policy';
@@ -144,42 +146,15 @@ function buildRoomMembersOnyxData(
 /**
  * Updates the import spreadsheet data according to the result of the import
  */
-function updateImportSpreadsheetData(addedMembersLength: number, updatedMembersLength: number): OnyxData<typeof ONYXKEYS.IMPORTED_SPREADSHEET> {
-    const onyxData: OnyxData<typeof ONYXKEYS.IMPORTED_SPREADSHEET> = {
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                value: {
-                    shouldFinalModalBeOpened: true,
-                    importFinalModal: {
-                        titleKey: 'spreadsheet.importSuccessfulTitle',
-                        promptKey: 'spreadsheet.importMembersSuccessfulDescription',
-                        promptKeyParams: {
-                            added: addedMembersLength,
-                            updated: updatedMembersLength,
-                        },
-                    },
-                },
-            },
-        ],
-
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                value: {
-                    shouldFinalModalBeOpened: true,
-                    importFinalModal: {
-                        titleKey: 'spreadsheet.importFailedTitle',
-                        promptKey: 'spreadsheet.importFailedDescription',
-                    },
-                },
-            },
-        ],
+function getImportMembersFinalModal(addedMembersLength: number, updatedMembersLength: number): ImportFinalModal {
+    return {
+        titleKey: 'spreadsheet.importSuccessfulTitle',
+        promptKey: 'spreadsheet.importMembersSuccessfulDescription',
+        promptKeyParams: {
+            added: addedMembersLength,
+            updated: updatedMembersLength,
+        },
     };
-
-    return onyxData;
 }
 
 /**
@@ -955,7 +930,7 @@ function addMembersToWorkspace(
     policyMemberAccountIDs: number[],
     role: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    currentUserAccountID: number,
+    currentUser: CurrentUser,
     approverEmail?: string,
     // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
     reportActionsList?: OnyxCollection<ReportActions>,
@@ -970,7 +945,7 @@ function addMembersToWorkspace(
         policyMemberAccountIDs,
         role,
         formatPhoneNumber,
-        {accountID: currentUserAccountID},
+        currentUser,
         approverEmail,
         undefined,
         reportActionsList,
@@ -1002,10 +977,10 @@ type PolicyMember = {
     overLimitForwardsTo?: string;
 };
 
-function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMember[]) {
+async function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMember[]): Promise<ImportFinalModal> {
     if (!policy?.id) {
         Log.warn('importPolicyMembers called without a valid policy');
-        return;
+        return getImportFailedFinalModal();
     }
     const {added, updated} = members.reduce(
         (acc, curr) => {
@@ -1031,7 +1006,7 @@ function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMember[])
         },
         {added: 0, updated: 0},
     );
-    const onyxData = updateImportSpreadsheetData(added, updated);
+    const importFinalModal = getImportMembersFinalModal(added, updated);
 
     const parameters = {
         policyID: policy.id,
@@ -1049,7 +1024,15 @@ function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMember[])
         ),
     };
 
-    API.write(WRITE_COMMANDS.IMPORT_MEMBERS_SPREADSHEET, parameters, onyxData);
+    try {
+        // We need the server result immediately so the initiating page can show the final confirmation modal
+        // without storing transient modal state in Onyx.
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_MEMBERS_SPREADSHEET, parameters);
+        return response?.jsonCode === CONST.JSON_CODE.SUCCESS ? importFinalModal : getImportFailedFinalModal();
+    } catch {
+        return getImportFailedFinalModal();
+    }
 }
 
 /**
