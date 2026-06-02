@@ -176,7 +176,7 @@
 "../../src/components/SymbolButton.tsx"	"no-restricted-syntax"	1
 "../../src/components/TestDrive/Modal/AdminTestDriveModal.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/components/TestDrive/Modal/EmployeeTestDriveModal.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
-"../../src/components/TestDrive/TestDriveDemo.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	2
+"../../src/components/TestDrive/TestDriveDemo.tsx"	"no-restricted-imports"	1
 "../../src/components/TextInput/BaseTextInput/implementation/index.native.tsx"	"react-hooks/refs"	2
 "../../src/components/TextInput/BaseTextInput/implementation/index.native.tsx"	"react-hooks/static-components"	1
 "../../src/components/TextInput/BaseTextInput/implementation/index.tsx"	"react-hooks/refs"	2
@@ -541,8 +541,8 @@
 "../../src/pages/settings/Profile/CustomStatus/StatusPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/settings/Profile/PronounsPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/settings/Rules/ExpenseRulesPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
-"../../src/pages/settings/Security/MergeAccounts/AccountDetailsPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	3
-"../../src/pages/settings/Security/MergeAccounts/AccountValidatePage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
+"../../src/pages/settings/Security/MergeAccounts/AccountDetailsPage.tsx"	"no-restricted-imports"	1
+"../../src/pages/settings/Security/MergeAccounts/AccountValidatePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Security/MergeAccounts/MergeResultPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/settings/Security/TwoFactorAuth/DynamicVerifyPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/settings/Security/TwoFactorAuth/ReplaceDeviceVerifyNewPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
