@@ -76,10 +76,7 @@ type PayMoneyRequestData = {
     >;
 };
 
-type SearchPayOnyxKey =
-    | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
-    | typeof ONYXKEYS.COLLECTION.SNAPSHOT
-    | typeof ONYXKEYS.COLLECTION.REPORT;
+type SearchPayOnyxKey = typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.REPORT;
 
 type AdditionalPayOnyxData = {
     optimisticData?: Array<OnyxUpdate<SearchPayOnyxKey>>;
@@ -109,13 +106,15 @@ type PayMoneyRequestFunctionParams = {
     conciergeReportID: string | undefined;
     onPaid?: () => void;
     additionalOnyxData?: AdditionalPayOnyxData;
+    // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountID?: number | undefined;
 };
 
 function mergeAdditionalPayOnyxData<
     T extends {
-        optimisticData?: ReadonlyArray<unknown>;
-        successData?: ReadonlyArray<unknown>;
-        failureData?: ReadonlyArray<unknown>;
+        optimisticData?: readonly unknown[];
+        successData?: readonly unknown[];
+        failureData?: readonly unknown[];
     },
 >(onyxData: T, additionalOnyxData?: AdditionalPayOnyxData): T {
     if (!additionalOnyxData) {
@@ -152,6 +151,7 @@ function getPayMoneyRequestParams({
     defaultWorkspaceName,
     currentUserLocalCurrency,
     conciergeReportID,
+    delegateAccountID,
 }: {
     initialChatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -175,6 +175,8 @@ function getPayMoneyRequestParams({
     currentUserLocalCurrency: string | undefined;
     // TODO: This will be required eventually. Ref: https://github.com/Expensify/App/issues/66411
     conciergeReportID?: string;
+    // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountID?: number | undefined;
 }): PayMoneyRequestData {
     // TODO: https://github.com/Expensify/App/issues/66512
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -264,6 +266,7 @@ function getPayMoneyRequestParams({
         isSettlingUp: true,
         payAsBusiness,
         bankAccountID,
+        delegateAccountIDParam: delegateAccountID,
     });
 
     // In some instances, the report preview action might not be available to the payer (only whispered to the requestor)
@@ -484,7 +487,7 @@ function getPayMoneyRequestParams({
     let optimisticHoldActionID;
     let optimisticHoldReportExpenseActionIDs;
     if (!full) {
-        const holdReportOnyxData = getReportFromHoldRequestsOnyxData({chatReport, iouReport, recipient, policy: reportPolicy, betas, conciergeReportID});
+        const holdReportOnyxData = getReportFromHoldRequestsOnyxData({chatReport, iouReport, recipient, policy: reportPolicy, betas, conciergeReportID, delegateAccountID});
 
         onyxData.optimisticData?.push(...holdReportOnyxData.optimisticData);
         onyxData.successData?.push(...holdReportOnyxData.successData);
@@ -796,6 +799,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         conciergeReportID,
         onPaid,
         additionalOnyxData,
+        delegateAccountID,
     } = params;
     const policyForBillingRestriction = chatReportPolicy ?? (policy?.id === chatReport.policyID ? policy : undefined);
     if (
@@ -829,6 +833,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         isSelfTourViewed,
         bankAccountID: paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
         conciergeReportID,
+        delegateAccountID,
     });
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
