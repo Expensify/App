@@ -544,6 +544,7 @@ const SCREENS = {
     },
 
     WORKSPACES_LIST: 'Workspaces_List',
+    DOMAINS_LIST: 'Domains_List',
 
     WORKSPACE: {
         ACCOUNTING: {

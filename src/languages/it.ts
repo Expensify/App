@@ -4403,11 +4403,10 @@ ${amount} per ${merchant} - ${date}`,
             travelInvoicingPayableAccount: 'Conto debiti per viaggi',
             hr: 'Risorse umane',
             rooms: 'Stanze',
+            findDomain: 'Trova dominio',
             cardAdminAlternateText: 'Gestisci le carte dello spazio di lavoro.',
             peopleAdminAlternateText: 'Gestisci i membri e i flussi di approvazione.',
             paymentsAdminAlternateText: 'Gestisci i pagamenti del flusso di lavoro.',
-            readOnlyActionTitle: 'Non così in fretta...',
-            readOnlyActionPrompt: 'Il tuo ruolo nello spazio di lavoro può visualizzare queste impostazioni, ma non può modificarle.',
         },
         createdForClient: {
             title: 'Hai creato uno spazio di lavoro per il tuo cliente!',
@@ -6064,17 +6063,27 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             error: 'Si è verificato un errore durante la duplicazione del tuo nuovo workspace. Riprova.',
         },
         copyPolicySettings: {
-            error: 'Si è verificato un errore durante la copia delle impostazioni dello spazio di lavoro. Riprova.',
             title: 'Copia impostazioni',
-            selectWorkspaces: 'Seleziona gli spazi di lavoro',
-            description: 'Scegli gli spazi di lavoro a cui vuoi copiare le impostazioni, poi seleziona le impostazioni che desideri copiare.',
-            searchPlaceholder: 'Cerca spazio di lavoro',
-            selectFeatures: 'Seleziona le funzionalità da copiare',
-            whichFeatures: 'Seleziona le impostazioni da sovrascrivere nei tuoi workspace esistenti.',
-            workflowsWithoutMembersConfirm: 'Continua senza membri',
-            workflowsWithoutMembersPrompt: 'La copia dei workflow senza membri non copierà i workflow di approvazione. Le impostazioni di invio e pagamento verranno comunque copiate.',
-            accountingMismatch: ({part}: {part: string}) =>
-                `Puoi copiare ${part} solo se tutti gli spazi di lavoro usano lo stesso sistema di contabilità e la stessa connessione aziendale.`,
+            error: 'Si è verificato un errore durante la copia delle impostazioni dello spazio di lavoro. Riprova.',
+            selectWorkspaces: {
+                title: 'Seleziona gli spazi di lavoro',
+                description: 'Scegli gli spazi di lavoro a cui vuoi copiare le impostazioni, poi seleziona le impostazioni che desideri copiare.',
+                searchPlaceholder: 'Cerca spazio di lavoro',
+            },
+            selectSettings: {
+                title: 'Seleziona le funzionalità da copiare',
+                description: 'Seleziona le impostazioni da sovrascrivere nei tuoi workspace esistenti.',
+                accountingMismatch: ({part}: {part: string}) =>
+                    `Puoi copiare ${part} solo se tutti gli spazi di lavoro usano lo stesso sistema di contabilità e la stessa connessione aziendale.`,
+            },
+            confirmSettings: {
+                title: 'Assicuriamoci che sia tutto corretto.',
+                description: ({workspaceName}: {workspaceName: string}) => `Copieremo le seguenti impostazioni da <strong>${workspaceName}</strong> agli spazi di lavoro che hai specificato`,
+            },
+            confirmWorkflows: {
+                continue: 'Continua senza membri',
+                description: 'Copiare Flussi di lavoro senza Membri non copierà i flussi di lavoro di approvazione. Le impostazioni di invio e pagamento verranno comunque copiate.',
+            },
         },
         emptyWorkspace: {
             title: 'Non hai nessuna area di lavoro',
@@ -7296,6 +7305,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             syncingModalTitle: 'La tua connessione è in sincronizzazione',
             syncingModalDescription: "La prima connessione può richiedere un po' di tempo. Ti verrà notificato qualsiasi errore.",
             syncing: 'Sincronizzazione dipendenti',
+        },
+        emptyDomain: {
+            title: 'Migliora la tua sicurezza con i domini',
+            subtitle: 'Richiedi ai membri del tuo dominio di accedere tramite accesso Single Sign-On, limita la creazione di space di lavoro e altro ancora.',
         },
     },
     getAssistancePage: {
