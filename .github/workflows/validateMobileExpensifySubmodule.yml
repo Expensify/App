@@ -15,6 +15,7 @@ jobs:
       - name: Checkout App (sparse — gitlink + script only)
         uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
+          fetch-depth: 2
           sparse-checkout: |
             scripts/validateMobileExpensifySubmodule.sh
 

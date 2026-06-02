@@ -2,7 +2,7 @@
 # Validates that a PR did not regress the Mobile-Expensify submodule gitlink on E/App.
 #
 # Inputs:
-#   - Run from the App repo root (CI: PR merge commit). Compares origin/main vs HEAD gitlinks for Mobile-Expensify.
+#   - Run from the App repo root (CI: PR merge commit with fetch-depth >= 2). Compares main vs HEAD gitlinks for Mobile-Expensify.
 #   - MOBILE_EXPENSIFY_GIT_DIR: path to a Mobile-Expensify clone for ancestry checks (default: Mobile-Expensify submodule; CI sets .github/mobile-expensify-repo).
 #
 # Outputs:
@@ -12,14 +12,20 @@ set -euo pipefail
 
 MOBILE_EXPENSIFY_GIT_DIR="${MOBILE_EXPENSIFY_GIT_DIR:-Mobile-Expensify}"
 
-git fetch origin main --no-tags --depth=1
+# CI checks out the PR merge commit (fetch-depth 2 includes main as HEAD^1). Local runs fetch main instead.
+if git rev-parse --verify -q 'HEAD^2^{commit}' >/dev/null; then
+    MAIN_REF='HEAD^1'
+else
+    git fetch origin main --no-tags --depth=1
+    MAIN_REF='origin/main'
+fi
 
-if git diff --quiet origin/main...HEAD -- Mobile-Expensify; then
+if git diff --quiet "${MAIN_REF}"...HEAD -- Mobile-Expensify; then
     echo "✅  Mobile-Expensify submodule unchanged."
     exit 0
 fi
 
-MAIN_SHA=$(git rev-parse origin/main:Mobile-Expensify)
+MAIN_SHA=$(git rev-parse "${MAIN_REF}:Mobile-Expensify")
 PR_SHA=$(git rev-parse HEAD:Mobile-Expensify)
 
 echo "App main submodule: $MAIN_SHA"
