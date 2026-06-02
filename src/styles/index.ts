@@ -2091,7 +2091,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         emptyDomainListStaticIllustrationStyle: {
             width: 274,
-            height: 164,
+            height: 178,
         },
 
         appContent: {
