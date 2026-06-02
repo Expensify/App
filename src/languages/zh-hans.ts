@@ -2186,8 +2186,8 @@ const translations: TranslationDeepObject<typeof en> = {
         stepCodes: '恢复代码',
         keepCodesSafe: '妥善保管这些验证码！',
         codesLoseAccess: dedent(`
-            如果你无法使用验证器应用，它们就是你的备用方式。如果两者都丢失，你将无法再登录你的账户。<br><br>
-            <strong>注意</strong>：启用双重验证后，你将在所有其他会话中被登出。
+            如果你无法使用验证器应用且没有这些代码，你将无法登录你的账户。<br><br>
+            <strong>注意</strong>：启用双重验证会将你登出所有其他会话。
         `),
         errorStepCodes: '请在继续之前复制或下载这些代码',
         stepVerify: '验证',

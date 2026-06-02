@@ -2139,8 +2139,8 @@ const translations: TranslationDeepObject<typeof en> = {
         stepCodes: 'Códigos de recuperación',
         keepCodesSafe: '¡Guarda estos códigos en un lugar seguro!',
         codesLoseAccess: dedent(`
-            Son tu copia de seguridad si pierdes el acceso a tu aplicación de autenticación. Si pierdes ambas, quedarás bloqueado de tu cuenta.<br><br>
-            <strong>Nota</strong>: Al habilitar la autenticación en dos pasos se cerrará tu sesión en todos los demás dispositivos.
+            Si pierdes el acceso a tu aplicación de autenticación y no tienes estos códigos, quedarás bloqueado fuera de tu cuenta.<br><br>
+            <strong>Nota</strong>: Al habilitar la autenticación de dos factores, se cerrará tu sesión en todas las demás sesiones.
         `),
         errorStepCodes: 'Copia o descarga los códigos antes de continuar',
         stepVerify: 'Verificar',

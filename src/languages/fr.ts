@@ -2259,8 +2259,8 @@ const translations: TranslationDeepObject<typeof en> = {
         stepCodes: 'Codes de récupération',
         keepCodesSafe: 'Conservez ces codes en lieu sûr !',
         codesLoseAccess: dedent(`
-            Ils servent de secours si vous perdez l'accès à votre application d'authentification. Perdez les deux et vous serez bloqué hors de votre compte.<br><br>
-            <strong>Remarque</strong> : Activer l'A2F vous déconnecte de toutes les autres sessions.
+            Si vous perdez l’accès à votre application d’authentification et que vous n’avez pas ces codes, vous serez bloqué hors de votre compte.<br><br>
+            <strong>Remarque</strong> : L’activation de la 2FA vous déconnecte de toutes les autres sessions.
         `),
         errorStepCodes: 'Veuillez copier ou télécharger les codes avant de continuer',
         stepVerify: 'Vérifier',

@@ -2252,8 +2252,8 @@ const translations: TranslationDeepObject<typeof en> = {
         stepCodes: 'Wiederherstellungscodes',
         keepCodesSafe: 'Bewahren Sie diese Codes sicher auf!',
         codesLoseAccess: dedent(`
-            Sie sind Ihre Sicherung, falls Sie den Zugriff auf Ihre Authentifizierungs-App verlieren. Verlieren Sie beides, werden Sie aus Ihrem Konto ausgesperrt.<br><br>
-            <strong>Hinweis</strong>: Wenn Sie 2FA aktivieren, werden Sie von allen anderen Sitzungen abgemeldet.
+            Wenn Sie den Zugriff auf Ihre Authentifizierungs-App verlieren und diese Codes nicht haben, wird Ihr Konto gesperrt.<br><br>
+            <strong>Hinweis</strong>: Durch das Aktivieren der 2FA werden Sie aus allen anderen Sitzungen abgemeldet.
         `),
         errorStepCodes: 'Bitte kopiere oder lade die Codes herunter, bevor du fortfährst',
         stepVerify: 'Bestätigen',
