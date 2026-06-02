@@ -618,6 +618,11 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         if (stickToBottomTimeoutRef.current) {
             clearTimeout(stickToBottomTimeoutRef.current);
         }
+        // Safety net: stop pinning after deferred content has had time to settle, so a much later
+        // unrelated layout change doesn't yank the user back down.
+        stickToBottomTimeoutRef.current = setTimeout(() => {
+            stickToBottomRef.current = false;
+        }, 2000);
 
         if (!hasNewestReportAction) {
             openReport({reportID, introSelected, betas});
