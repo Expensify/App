@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - 'Mobile-Expensify'
+  workflow_dispatch:
 
 jobs:
   validate-mobile-expensify-submodule:
