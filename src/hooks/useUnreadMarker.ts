@@ -1,6 +1,5 @@
 import {useEffect, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {wasMessageReceivedWhileOffline} from '@libs/ReportActionsUtils';
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -16,7 +15,7 @@ type UseUnreadMarkerParams = {
     reportID: string;
     sortedVisibleReportActions: OnyxTypes.ReportAction[];
     sortedReportActions: OnyxTypes.ReportAction[];
-    oldestUnreadReportAction: OnyxEntry<OnyxTypes.ReportAction>;
+    oldestUnreadReportActionID: string | undefined;
     isScrolledOverThreshold: boolean;
     hasOnceLoadedReportActions: boolean;
 };
@@ -32,7 +31,7 @@ function useUnreadMarker({
     reportID,
     sortedVisibleReportActions,
     sortedReportActions,
-    oldestUnreadReportAction,
+    oldestUnreadReportActionID,
     isScrolledOverThreshold,
     hasOnceLoadedReportActions,
 }: UseUnreadMarkerParams): UseUnreadMarkerResult {
@@ -94,10 +93,10 @@ function useUnreadMarker({
 
     // Index must be in the same domain as FlatList `data` (sortedVisibleReportActions), not the paginated full chain.
     let oldestUnreadReportActionMarker: [string, number] | undefined;
-    if (oldestUnreadReportAction && !hasOnceLoadedReportActions) {
-        const visibleIndex = sortedVisibleReportActions.findIndex((action) => action.reportActionID === oldestUnreadReportAction.reportActionID);
+    if (oldestUnreadReportActionID && !hasOnceLoadedReportActions) {
+        const visibleIndex = sortedVisibleReportActions.findIndex((action) => action.reportActionID === oldestUnreadReportActionID);
         if (visibleIndex >= 0) {
-            oldestUnreadReportActionMarker = [oldestUnreadReportAction.reportActionID, visibleIndex];
+            oldestUnreadReportActionMarker = [oldestUnreadReportActionID, visibleIndex];
         }
     }
 

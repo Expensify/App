@@ -224,13 +224,13 @@ function ReportActionsList({
     );
     const prevSortedVisibleReportActionsObjects = usePrevious(sortedVisibleReportActionsObjects);
 
-    const [hasScrolledOverThreshold, setHasScrolledOverThreshold] = useState(() => scrollOffsetRef.current > CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
+    const [hasScrolledOverThreshold, setHasScrolledOverThreshold] = useState(() => scrollOffsetRef.current >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
 
     const {unreadMarkerReportActionID, unreadMarkerReportActionIndex} = useUnreadMarker({
         reportID: report.reportID,
         sortedVisibleReportActions,
         sortedReportActions,
-        oldestUnreadReportAction,
+        oldestUnreadReportActionID: oldestUnreadReportAction?.reportActionID,
         isScrolledOverThreshold: hasScrolledOverThreshold,
         hasOnceLoadedReportActions: !!reportLoadingState?.hasOnceLoadedReportActions,
     });
@@ -240,7 +240,7 @@ function ReportActionsList({
         report,
         transactionThreadReport,
         sortedVisibleReportActions,
-        scrollingVerticalOffset: scrollOffsetRef,
+        isScrolledToEnd: !hasScrolledOverThreshold,
         hasNewerActions,
     });
 
@@ -326,7 +326,7 @@ function ReportActionsList({
             onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
                 const offset = event.nativeEvent.contentOffset.y;
                 scrollOffsetRef.current = offset;
-                setHasScrolledOverThreshold(offset > CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
+                setHasScrolledOverThreshold(offset >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
                 onScroll?.(event);
             },
             hasOnceLoadedReportActions: !!reportLoadingState?.hasOnceLoadedReportActions,

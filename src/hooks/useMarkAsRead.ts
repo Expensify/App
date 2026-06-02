@@ -16,6 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useIsAnonymousUser from './useIsAnonymousUser';
 import useOnyx from './useOnyx';
 import useReportIsArchived from './useReportIsArchived';
 
@@ -28,7 +29,7 @@ type UseMarkAsReadParams = {
     report: OnyxEntry<OnyxTypes.Report>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     sortedVisibleReportActions: OnyxTypes.ReportAction[];
-    scrollingVerticalOffset: RefObject<number>;
+    isScrolledToEnd: boolean;
     hasNewerActions: boolean;
 };
 
@@ -36,8 +37,9 @@ type UseMarkAsReadResult = {
     readActionSkippedRef: RefObject<boolean>;
 };
 
-function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisibleReportActions, scrollingVerticalOffset, hasNewerActions}: UseMarkAsReadParams): UseMarkAsReadResult {
+function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisibleReportActions, isScrolledToEnd, hasNewerActions}: UseMarkAsReadParams): UseMarkAsReadResult {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const isAnonymousUser = useIsAnonymousUser();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const isFocused = useIsFocused();
     const isReportArchived = useReportIsArchived(reportID);
@@ -67,11 +69,15 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
     }, [reportID]);
 
     useEffect(() => {
+        if (isAnonymousUser) {
+            return;
+        }
+
         const subscription = DeviceEventEmitter.addListener(`unreadAction_${reportID}`, () => {
             userActiveSince.current = DateUtils.getDBTime();
         });
         return () => subscription.remove();
-    }, [reportID]);
+    }, [reportID, isAnonymousUser]);
 
     useEffect(() => {
         if (!isReportUnreadValue || didMarkReportAsReadInitially.current) {
@@ -96,7 +102,6 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
             return;
         }
         const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
-        const isScrolledToEnd = scrollingVerticalOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
 
         if ((isVisible || isFromNotification) && !hasNewerActions && isScrolledToEnd) {
             readNewestAction(reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
@@ -131,7 +136,7 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
         lastMessageTime.current = null;
 
         const isArchivedReport = isArchivedNonExpenseReport(report, isReportArchived);
-        const hasNewMessagesInView = scrollingVerticalOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
+        const hasNewMessagesInView = isScrolledToEnd;
         const hasUnreadReportAction = sortedVisibleReportActions.some(
             (reportAction) =>
                 newMessageTimeReference &&
