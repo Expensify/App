@@ -2,7 +2,6 @@ import React, {memo, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isChatThread} from '@libs/ReportUtils';
-import {useConciergeDraft} from '@pages/inbox/ConciergeDraftContext';
 import CONST from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
 import ReportActionItem from './ReportActionItem';
@@ -51,8 +50,8 @@ type ReportActionsListItemRendererProps = {
     /** Whether the action is the "Created" action of a harvest-created expense report */
     isHarvestCreatedExpenseReport?: boolean;
 
-    /** Whether context menu should be displayed */
-    shouldDisplayContextMenu?: boolean;
+    /** Whether context menu should be disabled for the active Concierge draft */
+    shouldDisableContextMenuForConciergeDraft?: boolean;
 };
 
 function ReportActionsListItemRenderer({
@@ -70,11 +69,9 @@ function ReportActionsListItemRenderer({
     shouldHighlight = false,
     parentReportActionForTransactionThread,
     isHarvestCreatedExpenseReport = false,
-    shouldDisplayContextMenu = true,
+    shouldDisableContextMenuForConciergeDraft = false,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
-    const {draftReportAction} = useConciergeDraft();
-    const shouldDisableContextMenuForConciergeDraft = draftReportAction?.reportActionID === reportAction.reportActionID;
 
     /**
      * Create a lightweight ReportAction so as to keep the re-rendering as light as possible by
@@ -180,7 +177,7 @@ function ReportActionsListItemRenderer({
             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
             shouldHighlight={shouldHighlight}
             isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReport}
-            shouldDisplayContextMenu={shouldDisplayContextMenu && !shouldDisableContextMenuForConciergeDraft}
+            shouldDisplayContextMenu={!shouldDisableContextMenuForConciergeDraft}
         />
     );
 }
