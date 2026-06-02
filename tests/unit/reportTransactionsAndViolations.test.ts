@@ -23,15 +23,12 @@ describe('reportTransactionsAndViolations derived value', () => {
         } as TransactionViolation;
 
         const currentValue = reportTransactionsAndViolationsConfig.compute([{[transactionKey]: transaction}, {}], {currentValue: undefined, sourceValues: undefined});
-        const result = reportTransactionsAndViolationsConfig.compute(
-            [{}, {[violationKey]: [violation]}],
-            {
-                currentValue,
-                sourceValues: {
-                    [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS]: {[violationKey]: [violation]},
-                },
+        const result = reportTransactionsAndViolationsConfig.compute([{}, {[violationKey]: [violation]}], {
+            currentValue,
+            sourceValues: {
+                [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS]: {[violationKey]: [violation]},
             },
-        );
+        });
 
         expect(result[reportID]?.transactions[transactionKey]).toBe(transaction);
         expect(result[reportID]?.violations[violationKey]).toEqual([violation]);
@@ -50,15 +47,12 @@ describe('reportTransactionsAndViolations derived value', () => {
         } as Transaction;
 
         const currentValue = reportTransactionsAndViolationsConfig.compute([{[transactionKey]: transaction}, {}], {currentValue: undefined, sourceValues: undefined});
-        const result = reportTransactionsAndViolationsConfig.compute(
-            [{[transactionKey]: null}, {}],
-            {
-                currentValue,
-                sourceValues: {
-                    [ONYXKEYS.COLLECTION.TRANSACTION]: {[transactionKey]: null},
-                },
+        const result = reportTransactionsAndViolationsConfig.compute([{[transactionKey]: null}, {}], {
+            currentValue,
+            sourceValues: {
+                [ONYXKEYS.COLLECTION.TRANSACTION]: {[transactionKey]: null},
             },
-        );
+        });
 
         expect(result[reportID]?.transactions[transactionKey]).toBeUndefined();
     });

@@ -12,6 +12,11 @@ export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS,
     dependencies: [ONYXKEYS.COLLECTION.TRANSACTION, ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS],
     compute: ([transactions, violations], {sourceValues, currentValue}) => {
+        const reportTransactionsAndViolations = currentValue ? {...currentValue} : {};
+        if (!transactions) {
+            return reportTransactionsAndViolations;
+        }
+
         // If there is a source value for transactions or transaction violations, we need to process only the transactions that have been updated or added
         // If not, we need to process all transactions
         const transactionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION];
@@ -23,11 +28,6 @@ export default createOnyxDerivedValueConfig({
             transactionsToProcess = Object.keys(transactionViolationsUpdates).map((transactionViolation) =>
                 transactionViolation.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, ONYXKEYS.COLLECTION.TRANSACTION),
             );
-        }
-
-        const reportTransactionsAndViolations = currentValue ? {...currentValue} : {};
-        if (!transactions) {
-            return reportTransactionsAndViolations;
         }
 
         // Track which reportID entries have been cloned so we only clone once per reportID.
@@ -47,16 +47,16 @@ export default createOnyxDerivedValueConfig({
 
         for (const transactionKey of transactionsToProcess) {
             // If the reportID of the transaction has changed (e.g. the transaction was split into multiple reports), we need to delete the transaction from the previous reportID and the violations from the previous reportID
-            const previousReportID = transactionReportIDMapping[transactionKey];
-            const previousReportTransactionsAndViolations = previousReportID ? reportTransactionsAndViolations[previousReportID] : undefined;
-            const previousTransaction = transactionViolationsUpdates ? previousReportTransactionsAndViolations?.transactions[transactionKey] : undefined;
-
-            // A transaction-violation update should never make the report lose its transaction. If the transaction
-            // collection is briefly unavailable for this key, keep the last derived transaction while updating violations.
+            const previousReportID =
+                transactionReportIDMapping[transactionKey] ??
+                Object.keys(reportTransactionsAndViolations).find((reportID) => !!reportTransactionsAndViolations[reportID].transactions[transactionKey]);
+            const transactionWasUpdated = !!transactionsUpdates;
+            // A violation-only update must not remove report membership when this tab has an incomplete transaction collection.
+            const previousTransaction = !transactionWasUpdated && previousReportID ? reportTransactionsAndViolations[previousReportID]?.transactions[transactionKey] : undefined;
             const transaction = transactions[transactionKey] ?? previousTransaction;
             const reportID = transaction?.reportID;
 
-            if (previousReportID && previousReportID !== reportID && reportTransactionsAndViolations[previousReportID]) {
+            if (transactionWasUpdated && previousReportID && previousReportID !== reportID && reportTransactionsAndViolations[previousReportID]) {
                 ensureCloned(previousReportID);
                 delete reportTransactionsAndViolations[previousReportID].transactions[transactionKey];
                 const transactionID = transactionKey.replace(ONYXKEYS.COLLECTION.TRANSACTION, '');
@@ -65,12 +65,14 @@ export default createOnyxDerivedValueConfig({
                 }
             }
 
-            if (!transaction && transactionReportIDMapping[transactionKey]) {
+            if (transactionWasUpdated && !transaction && transactionReportIDMapping[transactionKey]) {
                 delete transactionReportIDMapping[transactionKey];
             }
 
             if (!reportID) {
-                delete transactionToReportIDMap[transactionKey];
+                if (transactionWasUpdated) {
+                    delete transactionToReportIDMap[transactionKey];
+                }
                 continue;
             }
 
