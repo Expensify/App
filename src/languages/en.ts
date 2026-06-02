@@ -7397,6 +7397,12 @@ const translations = {
                     [CONST.SPEND_RULES.CATEGORIES.TRAVEL_AGENCIES]: 'Travel agencies',
                 },
             },
+            aiRules: {
+                title: 'AI rules',
+                subtitle: 'Describe flexible runs that runs when you need',
+                addRule: 'Add AI rule',
+                findRule: 'Find AI rule',
+            },
         },
         planTypePage: {
             planTypes: {

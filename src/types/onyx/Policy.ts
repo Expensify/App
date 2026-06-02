@@ -2022,6 +2022,24 @@ type CodingRule = {
     errors?: OnyxCommon.Errors;
 };
 
+/** Policy AI rule data model */
+type AIRule = {
+    /** Unique identifier for the rule */
+    ruleID: string;
+
+    /** The AI prompt (i.e. the rule defined with natural language) */
+    prompt: string;
+
+    /** When this rule was created */
+    created: string;
+
+    /** The type of action that's pending  */
+    pendingAction?: OnyxCommon.PendingAction;
+
+    /** Error objects keyed by field name containing errors keyed by microtime */
+    errors?: OnyxCommon.Errors;
+};
+
 /** Model of policy data */
 type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
@@ -2232,6 +2250,15 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
             /** A set of coding rules for automatic expense field population based on merchant matching */
             codingRules?: Record<string, CodingRule>;
+        };
+
+        /** A set of AI rules that is run by the "RuleBot" */
+        aiRules?: {
+            /** The "RuleBot" agent account ID */
+            agentAccountID?: number;
+
+            /** A set of AI rules defined with natural language */
+            rules?: Record<string, AIRule>;
         };
 
         /** A set of custom rules defined with natural language */
@@ -2463,4 +2490,5 @@ export type {
     GustoConnectionConfig,
     ZenefitsConnectionConfig,
     Vendor,
+    AIRule,
 };
