@@ -1,6 +1,7 @@
 import {deepEqual} from 'fast-equals';
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyxState} from 'react-native-onyx';
+import type {OnyxEntry, OnyxKey, OnyxStateView} from 'react-native-onyx';
 import Log from '@libs/Log';
 import {getTransactionThreadReportID} from '@libs/MergeTransactionUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
@@ -61,6 +62,54 @@ const policyMapper = (policy: OnyxEntry<OnyxTypes.Policy>): PartialPolicyForSide
         employeeList: policy.employeeList,
     }) as PartialPolicyForSidebar;
 
+/**
+ * Returns the subset of `current` whose members differ by reference from `previous`,
+ * plus any keys present in `previous` but missing from `current` (mapped to `undefined`).
+ * Returns `undefined` if nothing changed. Cheap thanks to Onyx's structural sharing —
+ * unchanged collection members keep the same reference across renders.
+ */
+function collectionDelta<TValue>(current: Record<string, TValue> | undefined, previous: Record<string, TValue> | undefined): Record<string, TValue | undefined> | undefined {
+    if (current === previous) {
+        return undefined;
+    }
+    const delta: Record<string, TValue | undefined> = {};
+    if (current) {
+        for (const key of Object.keys(current)) {
+            if (current[key] !== previous?.[key]) {
+                delta[key] = current[key];
+            }
+        }
+    }
+    if (previous) {
+        for (const key of Object.keys(previous)) {
+            if (!current || !(key in current)) {
+                delta[key] = undefined;
+            }
+        }
+    }
+    return Object.keys(delta).length > 0 ? delta : undefined;
+}
+
+// `useOnyxState` delta selectors. `previousState` holds each collection's value as of the
+// last committed render, so a single `useOnyxState` call replaces the old
+// `useOnyx` + `usePrevious` + `useCollectionDelta` triple. Defined at module scope so their
+// identity is stable across renders.
+//
+// On the very first run `previousState` is `undefined` — we return no delta in that case so
+// initial population is handled by the full-scan path (not reported as an incremental change).
+// This matches the prior `usePrevious` behavior, whose ref starts at the current value.
+const makeCollectionDeltaSelector =
+    (collectionKey: OnyxKey) =>
+    (state: OnyxStateView, previousState: OnyxStateView | undefined) =>
+        previousState === undefined ? undefined : collectionDelta(state[collectionKey], previousState[collectionKey]);
+
+const selectReportUpdates = makeCollectionDeltaSelector(ONYXKEYS.COLLECTION.REPORT);
+const selectPolicyUpdates = makeCollectionDeltaSelector(ONYXKEYS.COLLECTION.POLICY);
+const selectTransactionUpdates = makeCollectionDeltaSelector(ONYXKEYS.COLLECTION.TRANSACTION);
+const selectTransactionViolationUpdates = makeCollectionDeltaSelector(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+const selectReportNameValuePairsUpdates = makeCollectionDeltaSelector(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+const selectReportDraftCommentUpdates = makeCollectionDeltaSelector(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
+
 function SidebarOrderedReportsContextProvider({
     children,
     /**
@@ -83,23 +132,17 @@ function SidebarOrderedReportsContextProvider({
     const [reportsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
 
-    // Previous-render snapshots for incremental delta computation. With Onyx's structural
-    // sharing, unchanged collection members keep the same reference across renders, so
-    // walking these against current values gives the "what changed" signal that
-    // useOnyx's removed `sourceValue` metadata used to provide.
-    const prevChatReports = usePrevious(chatReports);
-    const prevPolicies = usePrevious(policies);
-    const prevTransactions = usePrevious(transactions);
-    const prevTransactionViolations = usePrevious(transactionViolations);
-    const prevReportNameValuePairs = usePrevious(reportNameValuePairs);
-    const prevReportsDrafts = usePrevious(reportsDrafts);
-
-    const reportUpdates = useCollectionDelta(chatReports, prevChatReports);
-    const policiesUpdates = useCollectionDelta(policies, prevPolicies);
-    const transactionsUpdates = useCollectionDelta(transactions, prevTransactions);
-    const transactionViolationsUpdates = useCollectionDelta(transactionViolations, prevTransactionViolations);
-    const reportNameValuePairsUpdates = useCollectionDelta(reportNameValuePairs, prevReportNameValuePairs);
-    const reportsDraftsUpdates = useCollectionDelta(reportsDrafts, prevReportsDrafts);
+    // Incremental "what changed" deltas. Each `useOnyxState` diffs a collection's current
+    // value against its value at the last committed render (`previousState`), replacing the
+    // old `usePrevious` + `useCollectionDelta` pair. Cheap thanks to Onyx's structural sharing
+    // (unchanged members keep the same reference), and it supersedes useOnyx's removed
+    // `sourceValue` metadata.
+    const reportUpdates = useOnyxState(selectReportUpdates, {dependencies: [ONYXKEYS.COLLECTION.REPORT]});
+    const policiesUpdates = useOnyxState(selectPolicyUpdates, {dependencies: [ONYXKEYS.COLLECTION.POLICY]});
+    const transactionsUpdates = useOnyxState(selectTransactionUpdates, {dependencies: [ONYXKEYS.COLLECTION.TRANSACTION]});
+    const transactionViolationsUpdates = useOnyxState(selectTransactionViolationUpdates, {dependencies: [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS]});
+    const reportNameValuePairsUpdates = useOnyxState(selectReportNameValuePairsUpdates, {dependencies: [ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS]});
+    const reportsDraftsUpdates = useOnyxState(selectReportDraftCommentUpdates, {dependencies: [ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT]});
     const reportAttributes = useReportAttributes();
     const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -506,35 +549,3 @@ function parseDepsForLogging<T extends Record<string, unknown>>(deps: T) {
     return Object.fromEntries(Object.entries(deps).map(([key, value]) => [key, typeof value === 'object' && value !== null ? Object.keys(value).length : value]));
 }
 
-/**
- * Returns the subset of `current` whose members differ by reference from `previous`,
- * plus any keys that were present in `previous` but are missing from `current` (mapped
- * to `undefined`). Returns `undefined` if nothing changed or both inputs are nullish.
- *
- * Replaces the old `useOnyx({sourceValue})` API by walking the previous-render
- * snapshot — cheap thanks to Onyx's structural sharing (unchanged members keep the
- * same reference across renders).
- */
-function useCollectionDelta<TValue>(current: Record<string, TValue> | undefined, previous: Record<string, TValue> | undefined): Record<string, TValue | undefined> | undefined {
-    return useMemo(() => {
-        if (current === previous) {
-            return undefined;
-        }
-        const delta: Record<string, TValue | undefined> = {};
-        if (current) {
-            for (const key of Object.keys(current)) {
-                if (current[key] !== previous?.[key]) {
-                    delta[key] = current[key];
-                }
-            }
-        }
-        if (previous) {
-            for (const key of Object.keys(previous)) {
-                if (!current || !(key in current)) {
-                    delta[key] = undefined;
-                }
-            }
-        }
-        return Object.keys(delta).length > 0 ? delta : undefined;
-    }, [current, previous]);
-}
