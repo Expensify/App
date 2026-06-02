@@ -3,7 +3,6 @@ import {openAuthSessionAsync} from 'expo-web-browser';
 import throttle from 'lodash/throttle';
 import type {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/options';
 import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
-// eslint-disable-next-line no-restricted-imports
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {buildOldDotURL, openExternalLink} from '@libs/actions/Link';
@@ -1415,8 +1414,8 @@ function waitForUserSignIn(): Promise<boolean> {
 function handleExitToNavigation(exitTo: Route) {
     waitForUserSignIn().then(() => {
         Navigation.waitForProtectedRoutes().then(() => {
-            Navigation.goBack(ROUTES.HOME);
-            Navigation.navigate(exitTo, {waitForTransition: true});
+            Navigation.goBack(ROUTES.HOME, {waitForTransition: true});
+            Navigation.navigate(exitTo);
         });
     });
 }
