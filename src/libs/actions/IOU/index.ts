@@ -126,6 +126,14 @@ Onyx.connect({
     },
 });
 
+let searchQueryByHash: Record<string, string> = {};
+Onyx.connect({
+    key: ONYXKEYS.SEARCH_QUERY_BY_HASH,
+    callback: (value) => {
+        searchQueryByHash = value ?? {};
+    },
+});
+
 function getAllPersonalDetails(): OnyxTypes.PersonalDetailsList {
     return allPersonalDetails;
 }
@@ -168,6 +176,10 @@ function getRecentAttendees(): OnyxEntry<Attendee[]> {
 
 function getAllSnapshots(): OnyxCollection<OnyxTypes.SearchResults> {
     return allSnapshots;
+}
+
+function getSearchQueryByHash(): Record<string, string> {
+    return searchQueryByHash;
 }
 
 /**
@@ -241,6 +253,7 @@ export {
     getCurrentUserPersonalDetails,
     getRecentAttendees,
     getAllSnapshots,
+    getSearchQueryByHash,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     buildParticipantsPolicyTags,
     // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook

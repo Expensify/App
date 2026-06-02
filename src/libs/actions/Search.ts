@@ -319,6 +319,13 @@ function getOnyxLoadingData(
         },
     ];
 
+    // Persist this query string under a dedicated Onyx key so IOU optimistic updates can fan to
+    // every loaded snapshot whose query matches. Written directly because the SEARCH API's
+    // optimisticData type only allows snapshot entries.
+    if (queryJSON?.inputQuery) {
+        Onyx.merge(ONYXKEYS.SEARCH_QUERY_BY_HASH, {[hash]: queryJSON.inputQuery});
+    }
+
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
