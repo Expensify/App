@@ -1174,7 +1174,7 @@ function Search({
     const rangeApi = useShiftRangeSelection<SearchListItem>({
         items: flattenedShiftRangeItems,
         onApplyRange: onApplyShiftRange,
-        isHeaderItem: validGroupBy ? isTransactionGroupListItemType : undefined,
+        isHeaderItem: (item) => isTransactionGroupListItemType(item) && (!!validGroupBy || (Array.isArray(item.transactions) && item.transactions.length > 0)),
         getSelectedKeys: () => selectedTransactionKeySet,
     });
 
