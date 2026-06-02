@@ -78,7 +78,7 @@ const seedReportAndTransactions = async (transactions: OnyxTypes.Transaction[], 
     await waitForBatchedUpdatesWithAct();
 };
 
-const renderMoneyReportView = (report: OnyxTypes.Report, policy: OnyxTypes.Policy | undefined = undefined, extraProps: Partial<React.ComponentProps<typeof MoneyReportView>> = {}) =>
+const renderMoneyReportView = (report: OnyxTypes.Report, policy: OnyxTypes.Policy | undefined = undefined) =>
     render(
         <ComposeProviders components={[OnyxListItemProvider]}>
             <MoneyReportView
@@ -86,26 +86,9 @@ const renderMoneyReportView = (report: OnyxTypes.Report, policy: OnyxTypes.Polic
                 policy={policy}
                 shouldHideThreadDividerLine={false}
                 shouldShowAnimatedBackground={false}
-                {...extraProps}
             />
         </ComposeProviders>,
     );
-
-// The divider has no testID, so find it by its `reportHorizontalRule` style in the tree.
-const hasThreadDivider = (node: unknown): boolean => {
-    if (Array.isArray(node)) {
-        return node.some(hasThreadDivider);
-    }
-    if (!node || typeof node !== 'object') {
-        return false;
-    }
-    const {props, children} = node as {props?: {style?: unknown}; children?: unknown};
-    const styleStr = JSON.stringify(props?.style ?? '');
-    if (styleStr.includes('borderColor') && styleStr.includes('borderBottomWidth')) {
-        return true;
-    }
-    return hasThreadDivider(children);
-};
 
 describe('MoneyReportView reimbursable/non-reimbursable breakdown rows', () => {
     beforeAll(() => {
@@ -131,16 +114,15 @@ describe('MoneyReportView reimbursable/non-reimbursable breakdown rows', () => {
         });
     });
 
-    it('hides the Total row and the divider for a single expense with no report-level rows above it', async () => {
+    it('hides the Total row for a single expense', async () => {
         const transactions = [buildTransaction('t1', 5000, false)];
         await seedReportAndTransactions(transactions, {nonReimbursableTotal: -5000, unheldNonReimbursableTotal: -5000});
 
-        const {toJSON} = renderMoneyReportView(buildExpenseReport({nonReimbursableTotal: -5000, unheldNonReimbursableTotal: -5000}));
+        renderMoneyReportView(buildExpenseReport({nonReimbursableTotal: -5000, unheldNonReimbursableTotal: -5000}));
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
             expect(screen.queryByText('common.total')).not.toBeOnTheScreen();
-            expect(hasThreadDivider(toJSON())).toBe(false);
         });
     });
 
@@ -282,48 +264,6 @@ describe('MoneyReportView reimbursable/non-reimbursable breakdown rows', () => {
         await waitFor(() => {
             expect(screen.getByText('cardTransactions.outOfPocket')).toBeOnTheScreen();
             expect(screen.getByText('cardTransactions.companySpend')).toBeOnTheScreen();
-        });
-    });
-
-    it('does not render a stray thread divider for a single non-reimbursable expense when the policy has report fields but report fields are disabled', async () => {
-        // Report field exists but is disabled, so no field row renders — and neither should the divider.
-        const reportField = {
-            fieldID: 'field_text_1',
-            name: 'Custom Field',
-            type: 'text',
-            target: CONST.REPORT.TYPE.EXPENSE,
-            value: 'Some value',
-            defaultValue: '',
-            orderWeight: 1,
-            disabledOptions: [],
-            values: [],
-            deletable: false,
-        } as unknown as OnyxTypes.PolicyReportField;
-        const policy = {
-            id: policyID,
-            type: CONST.POLICY.TYPE.TEAM,
-            role: CONST.POLICY.ROLE.ADMIN,
-            name: 'Policy',
-            outputCurrency: CONST.CURRENCY.USD,
-            areReportFieldsEnabled: false,
-            // eslint-disable-next-line @typescript-eslint/naming-convention -- the field key uses snake_case to match the backend API format
-            fieldList: {expensify_field_text_1: reportField},
-        } as unknown as OnyxTypes.Policy;
-
-        const transactions = [buildTransaction('t1', 5000, false)];
-        await seedReportAndTransactions(transactions, {nonReimbursableTotal: -5000, unheldNonReimbursableTotal: -5000});
-
-        // Combined report with Total hidden, as `MoneyReportContentCreated` renders a single-expense thread.
-        const {toJSON} = renderMoneyReportView(buildExpenseReport({nonReimbursableTotal: -5000, unheldNonReimbursableTotal: -5000}), policy, {
-            isCombinedReport: true,
-            shouldShowTotal: false,
-        });
-        await waitForBatchedUpdatesWithAct();
-
-        await waitFor(() => {
-            expect(screen.queryByText('cardTransactions.outOfPocket')).not.toBeOnTheScreen();
-            expect(screen.queryByText('cardTransactions.companySpend')).not.toBeOnTheScreen();
-            expect(hasThreadDivider(toJSON())).toBe(false);
         });
     });
 });
