@@ -150,8 +150,7 @@ function WorkspacePageWithSections({
         selector: emailSelector,
     });
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const isLoading = (reimbursementAccount?.isLoading || isPageLoading) ?? true;
+    const isLoading = (!shouldSkipVBBACall && reimbursementAccount?.isLoading) || isPageLoading;
     const isUsingECard = account?.isUsingExpensifyCard ?? false;
     const content = typeof children === 'function' ? children(policyID, isUsingECard) : children;
     const {shouldUseNarrowLayout} = useResponsiveLayout();
