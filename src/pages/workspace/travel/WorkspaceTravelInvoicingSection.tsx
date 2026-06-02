@@ -13,6 +13,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {
@@ -30,7 +31,7 @@ import {getCardSettings, getEligibleBankAccountsForCard} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {areTravelPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
-import {hasInProgressUSDVBBA, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
+import {hasInProgressUSDVBBA} from '@libs/ReimbursementAccountUtils';
 import {
     getIsTravelInvoicingEnabled,
     getTravelInvoicingCardSettingsKey,
@@ -47,8 +48,8 @@ import {updateGeneralSettings as updatePolicyGeneralSettings} from '@userActions
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import CentralInvoicingLearnHow from './CentralInvoicingLearnHow';
-import CentralInvoicingSubtitleWrapper from './CentralInvoicingSubtitleWrapper';
+import TravelInvoicingLearnHow from './TravelInvoicingLearnHow';
+import TravelInvoicingSubtitleWrapper from './TravelInvoicingSubtitleWrapper';
 
 type WorkspaceTravelInvoicingSectionProps = {
     /** The ID of the policy */
@@ -82,6 +83,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const {canWrite: canWriteMoreFeatures, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
@@ -175,7 +177,6 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
             Navigation.navigate(
                 ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({
                     policyID,
-                    stepToOpen: REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW,
                     backTo: ROUTES.WORKSPACE_TRAVEL.getRoute(policyID),
                 }),
             );
@@ -199,7 +200,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const promptCurrencyChangeAndStartFlow = async () => {
         isCurrencyModalOpen.current = true;
         const result = await showConfirmModal({
-            title: translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.title'),
+            title: translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.title'),
             prompt: translate('workspace.bankAccount.updateCurrencyPrompt'),
             confirmText: translate('workspace.bankAccount.updateToUSD'),
             cancelText: translate('common.cancel'),
@@ -214,7 +215,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     };
 
     /**
-     * Handle toggle change for Central Invoicing.
+     * Handle toggle change for Travel Invoicing.
      * When turning ON:
      *   - If has settlement account: call configureTravelInvoicingForPolicy
      *   - If no settlement account: navigate to selection (enable happens after selection)
@@ -276,19 +277,29 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want to trigger this effect when privatePersonalDetails changes
     }, [privatePersonalDetails]);
 
-    const getCentralInvoicingSubtitle = () => {
+    const getTravelInvoicingSubtitle = () => {
         if (!isTravelInvoicingEnabled) {
-            return <CentralInvoicingSubtitleWrapper htmlComponent={<CentralInvoicingLearnHow />} />;
+            return <TravelInvoicingSubtitleWrapper htmlComponent={<TravelInvoicingLearnHow />} />;
         }
-        return <CentralInvoicingSubtitleWrapper />;
+        return <TravelInvoicingSubtitleWrapper />;
     };
 
-    const centralInvoicingSubMenuItems = (
+    const getToggleDisabledAction = () => {
+        if (!canWriteMoreFeatures) {
+            return showReadOnlyModal;
+        }
+        if (isOnWaitlist) {
+            return () => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID));
+        }
+        return undefined;
+    };
+
+    const travelInvoicingSubMenuItems = (
         <>
             {hasTravelProvisioningErrors && (
                 <View style={styles.mt4}>
                     <FormHelpMessageRowWithRetryButton
-                        message={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.provisioningError')}
+                        message={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.provisioningError')}
                         isButtonSmall
                         onRetry={() => retryTravelCardsProvisioning(policyID, workspaceAccountID, domainMemberData?.settings?.travelInvoicing?.errors ?? [])}
                         danger
@@ -299,7 +310,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
             <View style={[styles.dFlex, styles.flexRow, styles.mt6, styles.gap4, styles.alignItemsCenter]}>
                 <View style={styles.flex1}>
                     <MenuItemWithTopDescription
-                        description={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.currentTravelSpendLabel')}
+                        description={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelSpendLabel')}
                         title={formattedSpend}
                         wrapperStyle={[styles.sectionMenuItemTopDescription, hasPendingSettlement && styles.pb1]}
                         titleStyle={[styles.textNormalThemeText, styles.headerAnonymousFooter]}
@@ -308,13 +319,13 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                     />
                     {hasPendingSettlement && (
                         <Text style={[styles.textLabelSupporting, styles.pb3]}>
-                            {translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.currentTravelSpendPaymentQueued', formattedQueuedAmount)}
+                            {translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelSpendPaymentQueued', formattedQueuedAmount)}
                         </Text>
                     )}
                 </View>
-                {shouldShowPayButton && (
+                {shouldShowPayButton && canWriteMoreFeatures && (
                     <Button
-                        text={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.currentTravelSpendCta')}
+                        text={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelSpendCta')}
                         onPress={handlePayBalance}
                         isDisabled={isOffline}
                         success
@@ -322,7 +333,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                 )}
             </View>
             <MenuItemWithTopDescription
-                description={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.currentTravelLimitLabel')}
+                description={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelLimitLabel')}
                 title={formattedLimit}
                 wrapperStyle={[styles.sectionMenuItemTopDescription]}
                 titleStyle={styles.textNormalThemeText}
@@ -337,13 +348,14 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                 errorRowTextStyles={styles.mr3}
             >
                 <MenuItemWithTopDescription
-                    description={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.settlementAccountLabel')}
+                    description={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.settlementAccountLabel')}
                     title={settlementAccountNumber}
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID))}
+                    interactive={canWriteMoreFeatures}
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
                     titleStyle={settlementAccountNumber ? styles.textNormalThemeText : styles.colorMuted}
                     descriptionTextStyle={styles.textLabelSupportingNormal}
-                    shouldShowRightIcon
+                    shouldShowRightIcon={canWriteMoreFeatures}
                     brickRoadIndicator={hasSettlementAccountError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 />
             </OfflineWithFeedback>
@@ -355,13 +367,14 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                 errorRowTextStyles={styles.mr3}
             >
                 <MenuItemWithTopDescription
-                    description={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.settlementFrequencyLabel')}
+                    description={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.settlementFrequencyLabel')}
                     title={localizedFrequency}
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_FREQUENCY.getRoute(policyID))}
+                    interactive={canWriteMoreFeatures}
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
                     titleStyle={styles.textNormalThemeText}
                     descriptionTextStyle={styles.textLabelSupportingNormal}
-                    shouldShowRightIcon
+                    shouldShowRightIcon={canWriteMoreFeatures}
                     brickRoadIndicator={hasSettlementFrequencyError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 />
             </OfflineWithFeedback>
@@ -373,13 +386,14 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                 errorRowTextStyles={styles.mr3}
             >
                 <MenuItemWithTopDescription
-                    description={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.monthlySpendLimitLabel')}
+                    description={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.monthlySpendLimitLabel')}
                     title={formattedMonthlyLimit}
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_MONTHLY_LIMIT.getRoute(policyID))}
+                    interactive={canWriteMoreFeatures}
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
                     titleStyle={styles.textNormalThemeText}
                     descriptionTextStyle={styles.textLabelSupportingNormal}
-                    shouldShowRightIcon
+                    shouldShowRightIcon={canWriteMoreFeatures}
                     brickRoadIndicator={hasMonthlyLimitError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 />
             </OfflineWithFeedback>
@@ -390,18 +404,19 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
         <>
             <Section isCentralPane>
                 <ToggleSettingOptionRow
-                    title={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.title')}
+                    title={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.title')}
                     titleStyle={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle]}
-                    subtitle={getCentralInvoicingSubtitle()}
-                    switchAccessibilityLabel={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subtitle')}
+                    subtitle={getTravelInvoicingSubtitle()}
+                    switchAccessibilityLabel={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subtitle')}
                     onToggle={handleToggle}
                     isActive={isTravelInvoicingEnabled}
-                    disabled={isLoading || isOnWaitlist}
-                    disabledAction={isOnWaitlist ? () => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID)) : undefined}
+                    disabled={!canWriteMoreFeatures || isLoading || isOnWaitlist}
+                    disabledAction={getToggleDisabledAction()}
+                    showLockIcon={!canWriteMoreFeatures || isOnWaitlist}
                     pendingAction={togglePendingAction}
                     errors={toggleErrors}
                     onCloseError={() => clearTravelInvoicingErrors(workspaceAccountID)}
-                    subMenuItems={centralInvoicingSubMenuItems}
+                    subMenuItems={travelInvoicingSubMenuItems}
                 />
             </Section>
 
@@ -432,7 +447,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                 onConfirm={handleConfirmPayBalance}
                 onCancel={() => setIsPayBalanceModalVisible(false)}
                 prompt={translate('workspace.moreFeatures.travel.travelInvoicing.payBalanceModal.body')}
-                confirmText={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.currentTravelSpendCta')}
+                confirmText={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelSpendCta')}
                 cancelText={translate('common.cancel')}
                 success
             />

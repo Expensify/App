@@ -52,11 +52,7 @@ Purpose: Shows the new Wallet entry point for business bank accounts
 
 If your business bank account already exists in Expensify, an admin with access can share it with you instead. Learn how to [share a business bank account](/articles/new-expensify/wallet-and-payments/Share-a-Business-Bank-Account).
 
-<!-- SCREENSHOT:
-Suggestion: Update current screenshots
--->
-
-![Workflows screen with Connect Bank Account button]({{site.url}}/assets/images/Help-ConnectBusinessBankAccount-2.png){:width="100%"}
+![Workflows screen with Connect Bank Account button]({{site.url}}/assets/images/ExpensifyHelp-BetterBusinessBankAccount_01.png){:width="100%"}
 
 ---
 

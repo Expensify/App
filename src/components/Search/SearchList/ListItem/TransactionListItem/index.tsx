@@ -8,10 +8,12 @@ import type {OnyxEntry} from 'react-native-onyx';
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import type {TransactionListItemProps, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {ListItem} from '@components/SelectionList/types';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import type {TransactionPreviewData} from '@libs/actions/Search';
@@ -20,7 +22,13 @@ import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {isInvoiceReport} from '@libs/ReportUtils';
-import {isDeletedTransaction as isDeletedTransactionUtil, isViolationDismissed, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
+import {
+    isDeletedTransaction as isDeletedTransactionUtil,
+    isViolationDismissed,
+    mergeProhibitedViolations,
+    shouldShowViolation,
+    showPendingCardTransactionsBlockModal,
+} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
@@ -56,7 +64,8 @@ function TransactionListItem<TItem extends ListItem>({
     const isDeletedTransaction = isDeletedTransactionUtil(transactionItem);
 
     const {isLargeScreenWidth} = useResponsiveLayout();
-    const {currentSearchHash, currentSearchKey, currentSearchResults} = useSearchStateContext();
+    const {currentSearchHash, currentSearchKey} = useSearchQueryContext();
+    const {currentSearchResults} = useSearchResultsContext();
     const snapshotReport = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] ?? {}) as Report;
 
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${transactionItem.reportID}`, {selector: isActionLoadingSelector});
@@ -127,12 +136,14 @@ function TransactionListItem<TItem extends ListItem>({
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
 
-    const handleActionButtonPress = () => {
+    const handleActionButtonPress = (event?: Parameters<typeof onSelectRow>[2]) => {
         handleActionButtonPressUtil({
             hash: currentSearchHash,
             item: transactionItem,
-            goToItem: () => onSelectRow(item, transactionPreviewData),
+            goToItem: () => onSelectRow(item, transactionPreviewData, event),
             snapshotReport,
             snapshotPolicy,
             policy: parentPolicy,
@@ -145,12 +156,12 @@ function TransactionListItem<TItem extends ListItem>({
             ownerBillingGracePeriodEnd,
             amountOwed,
             onUndelete: () => onUndelete?.(transactionItem),
+            onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
         });
     };
 
     const sharedProps = {
         item,
-        transactionItem,
         isDeletedTransaction,
         isFocused,
         showTooltip,
@@ -186,6 +197,7 @@ function TransactionListItem<TItem extends ListItem>({
         <TransactionListItemWide
             {...sharedProps}
             isLastItem={isLastItem}
+            currentSearchHash={currentSearchHash}
         />
     );
 }

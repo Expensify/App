@@ -12,8 +12,8 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
-import useEnvironment from '@hooks/useEnvironment';
 import useFetchRoute from '@hooks/useFetchRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -28,7 +28,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useWaypointItems from '@hooks/useWaypointItems';
-import {setMoneyRequestDistance} from '@libs/actions/IOU';
+import {setMoneyRequestDistance} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestDistance} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {init, stop} from '@libs/actions/MapboxToken';
@@ -81,7 +81,6 @@ function IOURequestStepDistance({
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
-    const {isProduction} = useEnvironment();
     const isArchived = useReportIsArchived(report?.reportID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
@@ -147,6 +146,7 @@ function IOURequestStepDistance({
     const [shouldShowAtLeastTwoDifferentWaypointsError, setShouldShowAtLeastTwoDifferentWaypointsError] = useState(false);
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const delegateAccountID = useDelegateAccountID();
     const {nonEmptyWaypointsCount, isWaypointsNullIslandError, duplicateWaypointsError, atLeastTwoDifferentWaypointsError} = useWaypointValidation({waypoints, validatedWaypoints});
     const isCreatingNewRequest = !(backTo || isEditing);
     const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
@@ -166,6 +166,7 @@ function IOURequestStepDistance({
         transaction: currentTransaction,
         policy,
         useTransactionDistanceUnit: false,
+        personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
     });
     const distanceUnit = mileageRate.unit;
     const distanceRate = mileageRate.rate ?? 0;
@@ -227,7 +228,15 @@ function IOURequestStepDistance({
         lastSyncedRouteDistance.current = routeDistance;
     }, [routeDistance, distanceUnit, customUnitQuantity]);
 
-    const setDistanceRequestData = useDistanceRequestData({policy, personalPolicy, transaction, customUnitRateID, transactionID, isSplitRequest});
+    const setDistanceRequestData = useDistanceRequestData({
+        policy,
+        personalPolicy,
+        transaction,
+        customUnitRateID,
+        transactionID,
+        isSplitRequest,
+        currentUserAccountID: currentUserAccountIDParam,
+    });
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
@@ -340,6 +349,7 @@ function IOURequestStepDistance({
 
     const navigateToNextStep = useDistanceNavigation({
         iouType,
+        action,
         report,
         policy,
         transaction,
@@ -470,6 +480,7 @@ function IOURequestStepDistance({
                     currentUserEmailParam,
                     isASAPSubmitBetaEnabled,
                     parentReportNextStep,
+                    delegateAccountID,
                     distanceOriginalPolicy,
                 });
             }
@@ -511,6 +522,7 @@ function IOURequestStepDistance({
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
         parentReportNextStep,
+        delegateAccountID,
         distanceOriginalPolicy,
     ]);
 
@@ -576,7 +588,9 @@ function IOURequestStepDistance({
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
             parentReportNextStep,
+            delegateAccountID,
             recentWaypoints,
+            distanceOriginalPolicy,
         });
         transactionWasSaved.current = true;
         // Remove the backup eagerly so the parent report view reads the optimistic transaction
@@ -611,6 +625,8 @@ function IOURequestStepDistance({
         duplicateWaypointsError,
         atLeastTwoDifferentWaypointsError,
         hasRouteError,
+        delegateAccountID,
+        distanceOriginalPolicy,
     ]);
 
     const renderItem = useCallback(
@@ -683,7 +699,7 @@ function IOURequestStepDistance({
         [currentDistance, distanceUnit, submitManualDistance, manualFormError, handleManualInputChange],
     );
 
-    if (isEditing && !isProduction) {
+    if (isEditing) {
         return (
             <StepScreenWrapper
                 headerTitle={translate('common.distance')}
