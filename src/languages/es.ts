@@ -449,6 +449,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expensifyLogo: 'Logo de Expensify',
         approver: 'Aprobador',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `introducir dígito ${digitIndex} de ${totalDigits}`,
+        restrictions: 'Restricciones',
     },
     socials: {
         podcast: 'Síguenos en Podcast',
@@ -460,10 +461,6 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Contraer razonamiento',
         expandReasoning: 'Expandir razonamiento',
-        enableNotifications: {
-            prompt: '¿Quieres que te avisemos cuando Concierge responda?',
-            cta: 'Notificar',
-        },
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -883,7 +880,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Arreglar la conexión de la tarjeta personal de ${cardName}` : 'Arreglar la conexión de la tarjeta personal'),
                 subtitle: 'Billetera',
             },
-            fixAccountingConnection: {
+            fixPolicyConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Reconectar con ${integrationName}`,
                 defaultSubtitle: 'Espacio de trabajo',
                 subtitle: ({policyName}: {policyName: string}) => policyName,
@@ -1224,7 +1221,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Problemas encontrados',
         }),
         fieldPending: 'Pendiente...',
-        automaticallyEnterExpenseDetails: 'Concierge introducirá automáticamente los detalles del gasto por ti, o puedes añadirlos manualmente.',
+        automaticallyEnterExpenseDetails: 'Concierge completará los detalles por ti.',
         receiptScanning: () => ({
             one: 'Escaneando recibo...',
             other: 'Escaneando recibos...',
@@ -2461,6 +2458,8 @@ ${amount} para ${merchant} - ${date}`,
         addApprovalsTitle: 'Aprobaciones',
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `gastos de ${members}, y el aprobador es ${approvers}`,
         addApprovalButton: 'Añadir flujo de aprobación',
+        editWorkflowAction: 'Editar',
+        addAgentAction: 'Añadir agente',
         findWorkflow: 'Buscar flujo de trabajo',
         addApprovalTip: 'Este flujo de trabajo por defecto se aplica a todos los miembros, a menos que exista un flujo de trabajo más específico.',
         approver: 'Aprobador',
@@ -4300,6 +4299,7 @@ ${amount} para ${merchant} - ${date}`,
             travelInvoicing: 'Exportar gastos de facturación de viajes como',
             travelInvoicingVendor: 'Proveedor de viajes',
             travelInvoicingPayableAccount: 'Cuenta por pagar de viajes',
+            findDomain: 'Buscar dominio',
             cardAdminAlternateText: 'Gestiona tarjetas del espacio de trabajo.',
             peopleAdminAlternateText: 'Gestiona miembros y flujos de aprobación.',
             paymentsAdminAlternateText: 'Gestiona los pagos del flujo de trabajo.',
@@ -5904,17 +5904,28 @@ ${amount} para ${merchant} - ${date}`,
             error: 'Se produjo un error al duplicar tu nuevo espacio de trabajo. Inténtalo de nuevo.',
         },
         copyPolicySettings: {
-            error: 'Se produjo un error al copiar la configuración del espacio de trabajo. Por favor, inténtalo de nuevo.',
             title: 'Copiar configuración',
-            selectWorkspaces: 'Selecciona espacios de trabajo',
-            description: 'Elige los espacios de trabajo a los que quieres copiar la configuración y luego selecciona los ajustes que quieras copiar.',
-            searchPlaceholder: 'Buscar espacios de trabajo',
-            selectFeatures: 'Selecciona las funciones que quieres copiar',
-            whichFeatures: 'Selecciona los ajustes que se sobrescribirán en tus espacios de trabajo existentes.',
-            workflowsWithoutMembersConfirm: 'Continuar sin miembros',
-            workflowsWithoutMembersPrompt: 'Copiar flujos de trabajo sin miembros no copiará los flujos de trabajo de aprobación. La configuración de envío y pago sí se copiará.',
-            accountingMismatch: ({part}: {part: string}) =>
-                `Solo puedes copiar ${part} si todos los espacios de trabajo usan el mismo sistema de contabilidad y la misma conexión de empresa.`,
+            error: 'Se produjo un error al copiar la configuración del espacio de trabajo. Por favor, inténtalo de nuevo.',
+            selectWorkspaces: {
+                title: 'Selecciona espacios de trabajo',
+                description: 'Elige los espacios de trabajo a los que quieres copiar la configuración y luego selecciona los ajustes que quieras copiar.',
+                searchPlaceholder: 'Buscar espacios de trabajo',
+            },
+            selectSettings: {
+                title: 'Selecciona las funciones que quieres copiar',
+                description: 'Selecciona los ajustes que se sobrescribirán en tus espacios de trabajo existentes.',
+                accountingMismatch: ({part}: {part: string}) =>
+                    `Solo puedes copiar ${part} si todos los espacios de trabajo usan el mismo sistema de contabilidad y la misma conexión de empresa.`,
+            },
+            confirmSettings: {
+                title: 'Vamos a asegurarnos de que todo se vea bien.',
+                description: ({workspaceName}: {workspaceName: string}) =>
+                    `Copiaríamos los siguientes ajustes de <strong>${workspaceName}</strong> a los espacios de trabajo que has especificado`,
+            },
+            confirmWorkflows: {
+                continue: 'Continuar sin miembros',
+                description: 'Copiar flujos de trabajo sin miembros no copiará los flujos de aprobación. La configuración de envío y pago sí se copiará.',
+            },
         },
         emptyWorkspace: {
             title: 'Aún no hay espacios de trabajo',
@@ -7097,6 +7108,10 @@ ${amount} para ${merchant} - ${date}`,
                 },
             },
         },
+        emptyDomain: {
+            title: 'Mejora tu seguridad con dominios',
+            subtitle: 'Exige que los miembros de tu dominio inicien sesión mediante inicio de sesión único, restrinjan la creación de espacios de trabajo y más.',
+        },
     },
     getAssistancePage: {
         title: 'Obtener ayuda',
@@ -7320,6 +7335,51 @@ ${amount} para ${merchant} - ${date}`,
             `${enabled ? 'habilitó' : 'deshabilitó'} que los titulares de tarjetas eliminen transacciones de la fuente de tarjetas "${feedName}"`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `cambió el día de cierre del período de estado de cuenta de la fuente de tarjetas "${feedName}"${newValue ? ` a "${newValue}"` : ''}${previousValue ? ` (previamente "${previousValue}")` : ''}`,
+        expensifyCardRule: {
+            actionVerb: {block: 'bloqueado', allow: 'permitido'},
+            amountOperator: {over: 'más de', under: 'debajo'},
+            amountFilter: ({operator, amount}: {operator: string; amount: string}) => `cantidades ${operator} ${amount}`,
+            theCard: 'la tarjeta',
+            multipleCards: ({count}: {count: number}) => ({
+                one: '1 tarjeta',
+                other: `${count} tarjetas`,
+            }),
+            addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
+                let text = verb;
+                if (filters !== '') {
+                    text += ` ${filters}`;
+                }
+                text += ` en ${cards}`;
+                return text;
+            },
+            removeRule: ({cards}: {cards: string}) => `eliminó la regla de gasto de ${cards}`,
+            restrictionVerb: {block: 'bloquear', allow: 'permitir solo'},
+            update: {
+                modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) => `cambió la regla de gasto de ${fromAction} a ${toAction} en ${cards}`,
+                appliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: 'aplicó la regla de gasto a 1 tarjeta adicional',
+                    other: `aplicó la regla de gasto a ${count} tarjetas adicionales`,
+                }),
+                phraseVerb: {added: 'añadido', removed: 'eliminado', changed: 'cambió', set: 'establecer', applied: 'aplicado'},
+                bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} comercio «${value}»` : `comercio «${value}»`),
+                bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `${adjective} del comerciante de '${oldValue}' a '${newValue}'` : `comercio de '${oldValue}' a '${newValue}'`,
+                bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) =>
+                    adjective !== '' ? `Categoría de gasto ${adjective} «${value}»` : `categoría de gasto «${value}»`,
+                bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `Categoría de gasto ${adjective} de '${oldValue}' a '${newValue}'` : `categoría de gasto de '${oldValue}' a '${newValue}'`,
+                bodyMaxAmount: 'importe máximo',
+                bodyMaxAmountSet: ({value}: {value: string}) => `importe máximo hasta ${value}`,
+                bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `importe máximo de ${oldValue} a ${newValue}`,
+                bodyAppliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: 'regla de gasto para 1 tarjeta adicional',
+                    other: `regla de gasto para ${count} tarjetas adicionales`,
+                }),
+                bodyRemovedFromCards: ({cards}: {cards: string}) => `regla de gasto de ${cards}`,
+                composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} en ${cards}`,
+                composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} de ${cards}`,
+            },
+        },
         preventSelfApproval: (oldValue, newValue) =>
             `actualizó "Evitar la autoaprobación" a "${newValue === 'true' ? 'Habilitada' : 'Deshabilitada'}" (previamente "${oldValue === 'true' ? 'Habilitada' : 'Deshabilitada'}")`,
         setReceiptRequiredAmount: (newValue) => `estableció el importe requerido del recibo en "${newValue}"`,
@@ -7771,7 +7831,7 @@ ${amount} para ${merchant} - ${date}`,
         },
         has: 'Tiene',
         view: {label: 'Ver', table: 'Tabla', bar: 'Barra', line: 'Línea', pie: 'Circular'},
-        saveSearch: 'Guardar búsqueda',
+        saveView: 'Guardar vista',
         savedSearchesMenuItemTitle: 'Guardadas',
         urlCopied: 'URL copiada',
         spendOverTime: 'Evolución de gastos',
@@ -7921,6 +7981,7 @@ ${amount} para ${merchant} - ${date}`,
         exportAll: {
             selectAllMatchingItems: 'Seleccionar todos los elementos coincidentes',
             allMatchingItemsSelected: 'Todos los elementos coincidentes seleccionados',
+            selectAllOnThisPage: 'Seleccionar todo en esta página',
         },
         errors: {
             pleaseSelectDatesForBothFromAndTo: 'Por favor, selecciona fechas para Desde y Hasta',
@@ -8603,6 +8664,7 @@ ${amount} para ${merchant} - ${date}`,
         workspaceName: 'Nombre del espacio de trabajo',
         chatUserDisplayNames: 'Nombres de los miembros del chat',
         scrollToNewestMessages: 'Desplázate a los mensajes más recientes',
+        scrollToActionBadgeTarget: 'Desplázate a la acción que requiere atención',
         preStyledText: 'texto preestilizado',
         viewAttachment: 'Ver archivo adjunto',
         contextMenuAvailable: 'Menú contextual disponible. Pulsa Shift+F10 para abrirlo.',

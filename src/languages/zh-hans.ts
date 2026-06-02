@@ -492,6 +492,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: '上一年',
         nextYear: '明年',
         avatar: '头像',
+        restrictions: '限制',
     },
     socials: {
         podcast: '在播客上关注我们',
@@ -503,10 +504,6 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: '收起推理',
         expandReasoning: '展开推理',
-        enableNotifications: {
-            prompt: '希望在Concierge回复时收到通知吗？',
-            cta: '通知',
-        },
     },
     supportalNoAccess: {
         title: '先别急',
@@ -917,7 +914,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 公司卡片`,
             },
             fixPersonalCardConnection: {title: ({cardName}: {cardName?: string}) => (cardName ? `修复 ${cardName} 个人卡连接` : '修复个人银行卡连接'), subtitle: '钱包'},
-            fixAccountingConnection: {
+            fixPolicyConnection: {
                 title: ({integrationName}: {integrationName: string}) => `修复 ${integrationName} 连接`,
                 defaultSubtitle: '工作区',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会计`,
@@ -1217,7 +1214,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchSubmitTitle: '提交报告',
         pendingMatchSubmitDescription: '部分费用正在等待与信用卡交易匹配。您要将它们标记为现金吗？',
         routePending: '路由处理中…',
-        automaticallyEnterExpenseDetails: 'Concierge 将自动为您输入费用详情，或者您可以手动添加。',
+        automaticallyEnterExpenseDetails: 'Concierge 会帮你填写详细信息。',
         receiptScanning: () => ({
             one: '正在扫描收据…',
             other: '正在扫描收据…',
@@ -2508,6 +2505,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         addApprovalsTitle: '审批',
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `来自${members}的报销，审批人是${approvers}`,
         addApprovalButton: '添加审批工作流',
+        editWorkflowAction: '编辑',
+        addAgentAction: '添加代理',
         findWorkflow: '查找工作流',
         addApprovalTip: '除非存在更具体的工作流程，否则此默认工作流程适用于所有成员。',
         approver: '审批人',
@@ -4287,6 +4286,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             travelInvoicingPayableAccount: '差旅应付账户',
             hr: '人力资源',
             rooms: '房间',
+            findDomain: '查找域名',
             cardAdminAlternateText: '管理工作区卡片。',
             peopleAdminAlternateText: '管理成员和审批流程。',
             paymentsAdminAlternateText: '管理工作流付款。',
@@ -5879,16 +5879,26 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             error: '复制您的新工作区时发生错误。请重试。',
         },
         copyPolicySettings: {
-            error: '复制工作区设置时发生错误。请重试。',
             title: '复制设置',
-            selectWorkspaces: '选择工作区',
-            description: '选择要复制设置到的工作区，然后选择你想要复制的设置。',
-            searchPlaceholder: '搜索工作区',
-            selectFeatures: '选择要复制的功能',
-            whichFeatures: '选择要覆盖现有工作区的设置。',
-            workflowsWithoutMembersConfirm: '继续，无成员',
-            workflowsWithoutMembersPrompt: '在没有成员的情况下复制工作流程时，将不会复制审批流程。但提交和付款设置仍会被复制。',
-            accountingMismatch: ({part}: {part: string}) => `仅当所有工作区使用相同的会计系统和公司连接时，您才能复制 ${part}。`,
+            error: '复制工作区设置时发生错误。请重试。',
+            selectWorkspaces: {
+                title: '选择工作区',
+                description: '选择要复制设置到的工作区，然后选择你想复制的设置。',
+                searchPlaceholder: '搜索工作区',
+            },
+            selectSettings: {
+                title: '选择要复制的功能',
+                description: '选择要在现有工作区中覆盖的设置。',
+                accountingMismatch: ({part}: {part: string}) => `仅当所有工作区使用相同的会计系统和公司连接时，您才能复制 ${part}。`,
+            },
+            confirmSettings: {
+                title: '让我们确认一切都正确无误。',
+                description: ({workspaceName}: {workspaceName: string}) => `我们会将以下设置从 <strong>${workspaceName}</strong> 复制到你指定的工作区`,
+            },
+            confirmWorkflows: {
+                continue: '继续且无成员',
+                description: '在不包含成员的情况下复制工作流时，将不会复制审批工作流。但提交和付款设置仍会被复制。',
+            },
         },
         emptyWorkspace: {
             title: '你还没有工作区',
@@ -7073,6 +7083,7 @@ ${reportName}
             syncingModalDescription: '首次连接可能需要一些时间。若发生任何错误，我们会通知你。',
             syncing: '正在同步员工',
         },
+        emptyDomain: {title: '通过域名提升安全性', subtitle: '要求您域中的成员通过单点登录登录、限制工作区创建等。'},
     },
     getAssistancePage: {
         title: '获取帮助',
@@ -7573,6 +7584,50 @@ ${reportName}
             `已更改卡片流水“${feedName}”的账单周期截止日${newValue ? ` 为“${newValue}”` : ''}${previousValue ? ` （先前为“${previousValue}”）` : ''}`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) => `已添加 ${fieldType} 报告字段“${fieldName}”${defaultValue ? ` 默认值为“${defaultValue}”` : ''}`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 公司商务卡消费要求`,
+        expensifyCardRule: {
+            actionVerb: {block: '已阻止', allow: '允许'},
+            amountOperator: {over: '结束', under: '在……之下'},
+            amountFilter: ({operator, amount}: {operator: string; amount: string}) => `金额 ${operator} ${amount}`,
+            theCard: '该卡',
+            multipleCards: ({count}: {count: number}) => ({
+                one: '1 张卡片',
+                other: `${count} 张卡片`,
+            }),
+            addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
+                let text = verb;
+                if (filters !== '') {
+                    text += ` ${filters}`;
+                }
+                text += ` 在 ${cards}`;
+                return text;
+            },
+            removeRule: ({cards}: {cards: string}) => `已从 ${cards} 中移除消费规则`,
+            restrictionVerb: {block: '阻止', allow: '仅允许'},
+            update: {
+                modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) => `已将 ${cards} 的消费规则从 ${fromAction} 更改为 ${toAction}`,
+                appliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: '已将支出规则应用于另外 1 张卡片',
+                    other: `已将支出规则应用于另外 ${count} 张卡片`,
+                }),
+                phraseVerb: {added: '已添加', removed: '已移除', changed: '已更改', set: '设置', applied: '已应用'},
+                bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} 商家“${value}”` : `商户“${value}”`),
+                bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `将商家 ${adjective} 从“${oldValue}”更改为“${newValue}”` : `商户从“${oldValue}”变更为“${newValue}”`,
+                bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective}支出类别“${value}”` : `支出类别「${value}」`),
+                bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `将${adjective}支出类别从“${oldValue}”修改为“${newValue}”` : `支出类别从“${oldValue}”更改为“${newValue}”`,
+                bodyMaxAmount: '最大金额',
+                bodyMaxAmountSet: ({value}: {value: string}) => `最大金额至 ${value}`,
+                bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `最大金额从 ${oldValue} 变为 ${newValue}`,
+                bodyAppliedToAdditionalCards: ({count}: {count: number}) => ({
+                    one: '将消费规则应用到另外 1 张卡片',
+                    other: `将消费规则应用到另外 ${count} 张卡片`,
+                }),
+                bodyRemovedFromCards: ({cards}: {cards: string}) => `来自 ${cards} 的消费规则`,
+                composeOnCards: ({content, cards}: {content: string; cards: string}) => `${cards} 上的 ${content}`,
+                composeFromCards: ({content, cards}: {content: string; cards: string}) => `来自 ${cards} 的 ${content}`,
+            },
+        },
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
@@ -7688,7 +7743,7 @@ ${reportName}
         resetColumns: '重置列',
         groupColumns: '分组列',
         expenseColumns: '报销列',
-        saveSearch: '保存搜索',
+        saveView: '保存视图',
         deleteSavedSearch: '删除已保存的搜索',
         deleteSavedSearchConfirm: '确定要删除此搜索吗？',
         searchName: '搜索名称',
@@ -7844,10 +7899,7 @@ ${reportName}
             description: '哇，项目真不少！我们会把它们打包好，Concierge 很快就会给你发送一个文件。',
         },
         exportedTo: '已导出到',
-        exportAll: {
-            selectAllMatchingItems: '选择所有匹配的项目',
-            allMatchingItemsSelected: '已选择所有匹配的项目',
-        },
+        exportAll: {selectAllMatchingItems: '选择所有匹配的项目', allMatchingItemsSelected: '已选择所有匹配的项目', selectAllOnThisPage: '选择本页全部内容'},
         errors: {
             pleaseSelectDatesForBothFromAndTo: '请选择起始和结束日期',
         },
@@ -8082,6 +8134,7 @@ ${reportName}
         workspaceName: '工作区名称',
         chatUserDisplayNames: '聊天成员显示名称',
         scrollToNewestMessages: '滚动到最新消息',
+        scrollToActionBadgeTarget: '滚动到需要关注的操作',
         preStyledText: '预设样式文本',
         viewAttachment: '查看附件',
         contextMenuAvailable: '上下文菜单可用。按 Shift+F10 打开。',

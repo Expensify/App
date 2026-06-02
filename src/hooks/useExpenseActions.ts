@@ -246,7 +246,6 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 targetPolicyCategories: activePolicyCategories,
                 targetReport: activePolicyExpenseChat,
                 existingTransactionDraft,
-                draftTransactionIDs,
                 betas,
                 personalDetails,
                 recentWaypoints,
@@ -406,7 +405,6 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                         personalDetails,
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                        draftTransactionIDs,
                         isSelfTourViewed,
                         transactionViolations: allTransactionViolations,
                         translate,
@@ -550,19 +548,18 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 setDeleteTransactionNavigateBackUrl(deleteNavigateBackUrl);
 
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
-                    Navigation.goBack(backToRoute, {
-                        afterTransition: () => {
-                            deleteAppReport({
-                                report: moneyRequestReport,
-                                selfDMReport,
-                                currentUserEmailParam: email ?? '',
-                                currentUserAccountIDParam: accountID,
-                                reportTransactions,
-                                allTransactionViolations,
-                                bankAccountList,
-                                hash: currentSearchHash,
-                            });
-                        },
+                    Navigation.goBack(backToRoute);
+                    InteractionManager.runAfterInteractions(() => {
+                        deleteAppReport({
+                            report: moneyRequestReport,
+                            selfDMReport,
+                            currentUserEmailParam: email ?? '',
+                            currentUserAccountIDParam: accountID,
+                            reportTransactions,
+                            allTransactionViolations,
+                            bankAccountList,
+                            hash: currentSearchHash,
+                        });
                     });
                 });
             },
