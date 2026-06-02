@@ -254,4 +254,3 @@ export {
     timeStateSelector,
     toggleStateSelector,
 };
-export type {AmountSlice, AttendeeSlice, CategoryState, DateState, DescriptionState, InvoiceSenderWorkspace, MerchantState, ReportFieldTransactionState, TaxSlice, TimeState, ToggleState};

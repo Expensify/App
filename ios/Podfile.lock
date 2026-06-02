@@ -3879,7 +3879,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - RNReanimated (4.2.3):
+  - RNReanimated (4.3.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -3906,11 +3906,12 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNReanimated/reanimated (= 4.2.3)
+    - RNReanimated/apple (= 4.3.1)
+    - RNReanimated/common (= 4.3.1)
     - RNWorklets
     - SocketRocket
     - Yoga
-  - RNReanimated/reanimated (4.2.3):
+  - RNReanimated/apple (4.3.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -3937,11 +3938,10 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNReanimated/reanimated/apple (= 4.2.3)
     - RNWorklets
     - SocketRocket
     - Yoga
-  - RNReanimated/reanimated/apple (4.2.3):
+  - RNReanimated/common (4.3.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -4934,7 +4934,7 @@ SPEC CHECKSUMS:
   RNNitroSQLite: a9b5965d511ed6e99ce903380e64934d043a0d2c
   RNPermissions: 518f0a0c439acc74e2b9937e0e7d29e5031ae949
   RNReactNativeHapticFeedback: 5f1542065f0b24c9252bd8cf3e83bc9c548182e4
-  RNReanimated: a0068c25e0b27d5418d66289a915f53eb97380df
+  RNReanimated: 879497d7fcda8c61e52b1f00ebc7ce9fd97e3cc0
   RNScreens: 2b6107925ee4e14a9b2eb0dfb52fe25223aa64d7
   RNSentry: f73f4da92e4c20841ab16e1fa22fc289bc2f9f4e
   RNShare: 1c1fde2c4134b9cf220ffebbd6df9c414036d382

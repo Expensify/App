@@ -1,6 +1,6 @@
 import React from 'react';
-import {View} from 'react-native';
-import TextInput from '@components/TextInput';
+import type {StyleProp, ViewStyle} from 'react-native';
+import SearchBar from '@components/SearchBar';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import {useTableContext} from './TableContext';
 
@@ -34,9 +34,12 @@ import {useTableContext} from './TableContext';
 type TableSearchBarProps = {
     /** Label and accessibility label for the search input. */
     label: string;
+
+    /** Optional style for the search bar container. */
+    style?: StyleProp<ViewStyle>;
 };
 
-function TableSearchBar({label}: TableSearchBarProps) {
+function TableSearchBar({label, style}: TableSearchBarProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
     const {
         activeSearchString,
@@ -44,22 +47,13 @@ function TableSearchBar({label}: TableSearchBarProps) {
     } = useTableContext();
 
     return (
-        <View>
-            <TextInput
-                label={label}
-                accessibilityLabel={label}
-                value={activeSearchString}
-                onChangeText={(text) => updateSearchString(text)}
-                icon={activeSearchString.length === 0 ? expensifyIcons.MagnifyingGlass : undefined}
-                includeIconPadding={false}
-                shouldShowClearButton
-                shouldHideClearButton={activeSearchString.length === 0}
-                onClearInput={() => updateSearchString('')}
-                autoCapitalize="none"
-                autoCorrect={false}
-                spellCheck={false}
-            />
-        </View>
+        <SearchBar
+            label={label}
+            style={style}
+            inputValue={activeSearchString}
+            icon={activeSearchString.length === 0 ? expensifyIcons.MagnifyingGlass : undefined}
+            onChangeText={(text) => updateSearchString(text)}
+        />
     );
 }
 
