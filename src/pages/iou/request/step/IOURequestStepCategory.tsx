@@ -116,7 +116,7 @@ function IOURequestStepCategory({
         : undefined;
 
     const shouldShowCategory =
-        (isReportInGroupPolicy(report) || isGroupPolicy(policy?.type ?? '')) &&
+        (isReportInGroupPolicy(report, policy) || isGroupPolicy(policy?.type ?? '')) &&
         // The transactionCategory can be an empty string, so to maintain the logic we'd like to keep it in this shape until utils refactor
 
         (!!categoryForDisplay || hasEnabledOptions(Object.values(policyCategories ?? {})));

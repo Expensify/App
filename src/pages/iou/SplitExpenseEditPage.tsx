@@ -118,7 +118,8 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const draftTransactionReport = getReportOrDraftReport(splitExpenseDraftTransaction?.reportID);
     const isSelfDMSplit = isSelfDM(draftTransactionReport);
     const isExpenseUnreported = isSelfDMSplit;
-    const isPolicyExpenseChat = isReportInGroupPolicy(draftTransactionReport);
+    const [draftTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${draftTransactionReport?.policyID}`);
+    const isPolicyExpenseChat = isReportInGroupPolicy(draftTransactionReport, draftTransactionPolicy);
 
     const originalTransactionCategory = transaction?.category ?? '';
     const originalTransactionTag = transaction?.tag ?? '';

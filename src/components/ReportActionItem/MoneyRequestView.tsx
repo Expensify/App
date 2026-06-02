@@ -418,7 +418,8 @@ function MoneyRequestView({
 
     // A flag for verifying that the current report is a sub-report of a expense chat
     // if the policy of the report is either Collect or Control, then this report must be tied to expense chat
-    const isPolicyExpenseChat = isReportInGroupPolicy(moneyRequestReport);
+    const [moneyRequestReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`);
+    const isPolicyExpenseChat = isReportInGroupPolicy(moneyRequestReport, moneyRequestReportPolicy);
     const policyTagLists = getTagLists(policyTagList);
 
     const category = transactionCategory ?? '';
