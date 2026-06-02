@@ -1,6 +1,5 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
 import useOnyx from '@hooks/useOnyx';
 import ReportActionItem from '@pages/inbox/report/ReportActionItem';
@@ -16,7 +15,6 @@ type DebugReportActionPreviewProps = {
 };
 
 function DebugReportActionPreview({reportAction, reportID}: DebugReportActionPreviewProps) {
-    const personalDetails = usePersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction?.childReportID}`);
 
@@ -31,7 +29,6 @@ function DebugReportActionPreview({reportAction, reportID}: DebugReportActionPre
                 shouldDisplayNewMarker={false}
                 isFirstVisibleReportAction={false}
                 shouldDisplayContextMenu={false}
-                personalDetails={personalDetails}
             />
         </ScrollView>
     );
