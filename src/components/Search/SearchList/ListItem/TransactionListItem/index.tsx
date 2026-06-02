@@ -177,6 +177,7 @@ function TransactionListItem<TItem extends ListItem>({
             chatReportPolicy,
             conciergeReportID,
             iouReportCurrentNextStepDeprecated: nextStep,
+            searchData: currentSearchResults?.data,
         });
     };
 

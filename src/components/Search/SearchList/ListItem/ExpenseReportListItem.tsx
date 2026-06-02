@@ -211,11 +211,13 @@ function ExpenseReportListItem<TItem extends ListItem>({
             chatReportPolicy,
             conciergeReportID,
             iouReportCurrentNextStepDeprecated: nextStep,
+            searchData,
         });
     }, [
         currentSearchHash,
         reportItem,
         onSelectRow,
+        searchData,
         snapshotReport,
         snapshotChatReport,
         snapshotPolicy,

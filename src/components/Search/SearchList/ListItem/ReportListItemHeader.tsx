@@ -275,6 +275,7 @@ function ReportListItemHeader<TItem extends ListItem>({
             chatReportPolicy,
             conciergeReportID,
             iouReportCurrentNextStepDeprecated: nextStep,
+            searchData: snapshot?.data,
         });
     };
     return !isLargeScreenWidth ? (

@@ -74,6 +74,7 @@ import type {
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
+import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
 import SafeString from '@src/utils/SafeString';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
@@ -99,6 +100,21 @@ type TransactionPreviewData = {
     hasTransaction: boolean;
     hasTransactionThreadReport: boolean;
 };
+
+function getChatReportForSearchPay(chatReport: OnyxEntry<Report>, snapshotReport: Report, searchData?: SearchResultDataType): OnyxEntry<Report> {
+    const chatReportID = snapshotReport.chatReportID ?? snapshotReport.parentReportID;
+    const snapshotChatReport = chatReportID ? searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
+
+    return chatReport ?? snapshotChatReport ?? (chatReportID ? getReportOrDraftReport(chatReportID) : undefined);
+}
+
+function getPolicyFromSearchSnapshot(policyID: string | undefined, searchData?: SearchResultDataType): OnyxEntry<Policy> {
+    if (!policyID) {
+        return undefined;
+    }
+
+    return searchData?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+}
 
 type HandleActionButtonPressParams = {
     hash: number;
@@ -128,6 +144,7 @@ type HandleActionButtonPressParams = {
     chatReportPolicy?: OnyxEntry<Policy>;
     conciergeReportID?: string;
     iouReportCurrentNextStepDeprecated?: OnyxEntry<ReportNextStepDeprecated>;
+    searchData?: SearchResultDataType;
 };
 
 function handleActionButtonPress({
@@ -158,6 +175,7 @@ function handleActionButtonPress({
     chatReportPolicy,
     conciergeReportID,
     iouReportCurrentNextStepDeprecated,
+    searchData,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -207,6 +225,7 @@ function handleActionButtonPress({
                 ownerBillingGracePeriodEnd,
                 amountOwed,
                 policy,
+                searchData,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
@@ -372,6 +391,7 @@ type GetPayActionCallbackParams = {
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     amountOwed: OnyxEntry<number>;
     policy: OnyxEntry<Policy>;
+    searchData?: SearchResultDataType;
 };
 
 function getPayActionCallback({
@@ -397,6 +417,7 @@ function getPayActionCallback({
     ownerBillingGracePeriodEnd,
     amountOwed,
     policy,
+    searchData,
 }: GetPayActionCallbackParams) {
     const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(item.reportID));
 
@@ -417,11 +438,13 @@ function getPayActionCallback({
         }
     }
 
-    const chatReportForPayment = chatReport ?? getReportOrDraftReport(snapshotReport?.chatReportID);
+    const chatReportForPayment = getChatReportForSearchPay(chatReport, snapshotReport, searchData);
     if (!chatReportForPayment) {
         goToItem();
         return;
     }
+
+    const chatReportPolicyForPayment = chatReportPolicy ?? getPolicyFromSearchSnapshot(chatReportForPayment.policyID, searchData);
 
     payMoneyRequest({
         paymentType: lastPolicyPaymentMethod,
@@ -433,7 +456,7 @@ function getPayActionCallback({
         currentUserLogin: currentUserLogin ?? '',
         activePolicy,
         policy: snapshotPolicy ?? policy,
-        chatReportPolicy,
+        chatReportPolicy: chatReportPolicyForPayment,
         betas,
         isSelfTourViewed,
         userBillingGracePeriodEnds,
