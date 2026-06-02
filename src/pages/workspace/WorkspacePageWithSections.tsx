@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import {emailSelector} from '@selectors/Session';
 import type {ReactNode} from 'react';
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -154,14 +154,14 @@ function WorkspacePageWithSections({
     const isUsingECard = account?.isUsingExpensifyCard ?? false;
     const content = typeof children === 'function' ? children(policyID, isUsingECard) : children;
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const firstRender = useRef(showLoadingAsFirstRender);
+    const [isFirstRender, setIsFirstRender] = useState(showLoadingAsFirstRender);
     const isFocused = useIsFocused();
     const isWorkspacesTabFocused = useIsWorkspacesTabFocused();
     const prevPolicy = usePrevious(policy);
 
     useEffect(() => {
-        // Because isLoading is false before merging in Onyx, we need firstRender ref to display loading page as well before isLoading is change to true
-        firstRender.current = false;
+        // Because isLoading is false before merging in Onyx, show the loading page during the first render as well.
+        setIsFirstRender(false);
     }, []);
 
     useEffect(() => {
@@ -247,7 +247,7 @@ function WorkspacePageWithSections({
                 >
                     {headerContent}
                 </HeaderWithBackButton>
-                {!isOffline && (isLoading || firstRender.current) && shouldShowLoading && isFocused ? (
+                {!isOffline && (isLoading || isFirstRender) && shouldShowLoading && isFocused ? (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -255,7 +255,7 @@ function WorkspacePageWithSections({
                                 {
                                     context: 'WorkspacePageWithSections',
                                     isLoading,
-                                    isFirstRender: firstRender.current,
+                                    isFirstRender,
                                 } satisfies SkeletonSpanReasonAttributes
                             }
                         />
