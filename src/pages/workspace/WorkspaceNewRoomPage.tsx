@@ -23,6 +23,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {clearRoomIDToHighlightOnRoomsPage, setRoomIDToHighlightOnRoomsPage} from '@libs/actions/Policy/Room';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActivePolicies} from '@libs/PolicyUtils';
@@ -148,7 +149,12 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
 
         if (isLocked) {
             addPolicyReport(policyReport);
-            Navigation.goBack(ROUTES.WORKSPACE_ROOMS.getRoute(policyID));
+            // Mark the new room so its row highlights on the rooms page, then clear it once the back transition ends so it doesn't replay later.
+            setRoomIDToHighlightOnRoomsPage(policyReport.reportID);
+            Navigation.goBack(ROUTES.WORKSPACE_ROOMS.getRoute(policyID), {
+                afterTransition: () => clearRoomIDToHighlightOnRoomsPage(),
+                waitForTransition: true,
+            });
             return;
         }
 

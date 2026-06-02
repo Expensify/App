@@ -56,6 +56,11 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
         [policyID, archivedReportsIdSet],
     );
 
+    // The newly created room reportID is stored in Onyx right before navigating back here so its row can play the highlight animation.
+    // It is cleared by the create page once the navigation transition ends (see WorkspaceNewRoomPage), so the animation doesn't replay on a later visit.
+    const [roomIDToHighlight] = useOnyx(ONYXKEYS.ROOM_ID_HIGHLIGHT_ON_ROOMS_PAGE);
+    const highlightedReportID = roomIDToHighlight ?? undefined;
+
     const rooms: WorkspaceRoomRowData[] = (policyReports ?? []).map((report) => {
         const ownerDetails = report.ownerAccountID ? personalDetails?.[report.ownerAccountID] : undefined;
         return {
@@ -115,7 +120,10 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                     </View>
                 )}
 
-                <WorkspaceRoomsTable rooms={rooms} />
+                <WorkspaceRoomsTable
+                    rooms={rooms}
+                    highlightedReportID={highlightedReportID}
+                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
