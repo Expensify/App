@@ -118,11 +118,20 @@ Onyx.connectWithoutView({
 });
 
 let allSnapshots: OnyxCollection<OnyxTypes.SearchResults> = {};
+let knownSnapshotHashes = new Set<string>();
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.SNAPSHOT,
     waitForCollectionCallback: true,
     callback: (value) => {
         allSnapshots = value ?? {};
+        // Keep SEARCH_QUERY_BY_HASH bounded by mirroring the snapshot collection's lifecycle:
+        // when a snapshot disappears, drop its query entry so the map can never outgrow it.
+        const currentHashes = new Set(Object.keys(allSnapshots).map((k) => k.replace(ONYXKEYS.COLLECTION.SNAPSHOT, '')));
+        const removed = [...knownSnapshotHashes].filter((h) => !currentHashes.has(h));
+        if (removed.length > 0) {
+            Onyx.merge(ONYXKEYS.SEARCH_QUERY_BY_HASH, Object.fromEntries(removed.map((h) => [h, null])));
+        }
+        knownSnapshotHashes = currentHashes;
     },
 });
 
