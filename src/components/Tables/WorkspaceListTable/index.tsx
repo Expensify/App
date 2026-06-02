@@ -47,10 +47,9 @@ type WorkspaceRowData = {
 type WorkspaceListTableProps = {
     ref?: React.Ref<TableHandle<WorkspaceRowData, WorkspaceTableColumnKey, string>> | undefined;
     workspaces: WorkspaceRowData[];
-    headerComponent: React.JSX.Element;
 };
 
-export default function WorkspaceListTable({ref, headerComponent, workspaces}: WorkspaceListTableProps) {
+export default function WorkspaceListTable({ref, workspaces}: WorkspaceListTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -95,6 +94,13 @@ export default function WorkspaceListTable({ref, headerComponent, workspaces}: W
         );
     };
 
+    const ListHeaderComponent = (
+        <>
+            {workspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.common.findWorkspace')} />}
+            <Table.Header />
+        </>
+    );
+
     return (
         <Table
             ref={ref}
@@ -105,12 +111,10 @@ export default function WorkspaceListTable({ref, headerComponent, workspaces}: W
             isItemInSearch={isTableItemInSearch}
             initialSortColumn="workspaces"
             title={translate('common.workspaces')}
-            ListHeaderComponent={headerComponent}
+            ListHeaderComponent={ListHeaderComponent}
             ListEmptyComponent={WorkspacesEmptyStateComponent}
             keyExtractor={(row, index) => `${row.policyID}-${index}`}
         >
-            {workspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.common.findWorkspace')} />}
-            <Table.Header />
             <Table.Body />
         </Table>
     );
