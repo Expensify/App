@@ -143,7 +143,6 @@ import {
     getPolicyName,
     getReportOrDraftReport,
     getReportStatusTranslation,
-    getSearchReportName,
     hasHeldExpenses,
     hasInvoiceReports,
     hasOnlyNonReimbursableTransactions,
@@ -2612,16 +2611,12 @@ function createAndOpenSearchTransactionThread({
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getReportActionsSections(data: OnyxTypes.SearchResults['data'], visibleReportActionsData?: OnyxTypes.VisibleReportActionsDerivedValue): [ReportActionListItemType[], number] {
+function getReportActionsSections(
+    data: OnyxTypes.SearchResults['data'],
+    visibleReportActionsData?: OnyxTypes.VisibleReportActionsDerivedValue,
+    reportAttributesDerivedValue?: OnyxTypes.ReportAttributesDerivedValue['reports'],
+): [ReportActionListItemType[], number] {
     const reportActionItems: ReportActionListItemType[] = [];
-
-    const transactions = Object.keys(data)
-        .filter(isTransactionEntry)
-        .map((key) => data[key]);
-
-    const reports = Object.keys(data)
-        .filter(isReportEntry)
-        .map((key) => data[key]);
 
     let n = 0;
 
@@ -2640,12 +2635,9 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data'], visible
                     data[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ??
                     data[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.reportID}`] ??
                     {};
-                const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? {};
                 const originalMessage = isMoneyRequestAction(reportAction) ? getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(reportAction) : undefined;
                 const isSendingMoney = isMoneyRequestAction(reportAction) && originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && originalMessage?.IOUDetails;
                 const isReportArchived = isArchivedReport(data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
-                const invoiceReceiverPolicy: OnyxTypes.Policy | undefined =
-                    report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? data[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`] : undefined;
                 if (
                     !reportID ||
                     !isReportActionVisible(reportAction, reportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData) ||
@@ -2663,7 +2655,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data'], visible
                     ...reportAction,
                     reportID,
                     from,
-                    reportName: getSearchReportName({report, policy, personalDetails: data.personalDetailsList, transactions, invoiceReceiverPolicy, reports, isReportArchived}),
+                    reportName: getReportName(report, reportAttributesDerivedValue),
                     formattedFrom: from?.displayName ?? from?.login ?? '',
                     date: reportAction.created,
                     keyForList: reportAction.reportActionID,
@@ -3545,7 +3537,7 @@ function getSections({
     optimisticTransactionID,
 }: GetSectionsParams): GetSectionsResult {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
-        return [...getReportActionsSections(data, visibleReportActionsData), false];
+        return [...getReportActionsSections(data, visibleReportActionsData, reportAttributesDerivedValue), false];
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
         return [...getTaskSections(data, formatPhoneNumber, conciergeReportID, archivedReportsIDList, reportAttributesDerivedValue), false];

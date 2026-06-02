@@ -82,8 +82,8 @@ import type {PendingChatMember} from '@src/types/onyx/ReportMetadata';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Comment, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
-import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {getBankAccountFromID} from './actions/BankAccounts';
 import {unholdRequest} from './actions/IOU/Hold';
@@ -98,12 +98,12 @@ import {
 import {canApproveIOU, canIOUBePaid, canSubmitReport, getBadgeFromIOUReport, getIOUReportActionWithBadge} from './actions/IOU/ReportWorkflow';
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import hasCreditBankAccount from './actions/ReimbursementAccount/hasCreditBankAccount';
-import {openUnreportedExpense} from './actions/Report';
 import type {GuidedSetupData, TaskForParameters} from './actions/Report';
+import {openUnreportedExpense} from './actions/Report';
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
 import {removeDraftTransactionsByIDs} from './actions/TransactionEdit';
-import {getOnboardingMessages} from './actions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingMessage, OnboardingPurpose, OnboardingTaskLinks} from './actions/Welcome/OnboardingFlow';
+import {getOnboardingMessages} from './actions/Welcome/OnboardingFlow';
 import type {AddCommentOrAttachmentParams} from './API/parameters';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -171,6 +171,7 @@ import {
     isSubmitAndClose,
     shouldShowPolicy,
 } from './PolicyUtils';
+import type {LastVisibleMessage} from './ReportActionsUtils';
 import {
     formatLastMessageText,
     getActionableJoinRequestPendingReportAction,
@@ -232,14 +233,12 @@ import {
     isWhisperAction,
     wasActionTakenByCurrentUser,
 } from './ReportActionsUtils';
-import type {LastVisibleMessage} from './ReportActionsUtils';
 // This cycle import is safe because ReportNameUtils was extracted from ReportUtils to separate report name computation logic.
 // The functions imported here are pure utility functions that don't create initialization-time dependencies.
 // ReportNameUtils imports helper functions from ReportUtils, and ReportUtils imports name generation functions from ReportNameUtils.
 // eslint-disable-next-line import/no-cycle
 import {
     buildReportNameFromParticipantNames,
-    // eslint-disable-next-line no-restricted-imports -- We plan to refactor this file to remove dependency on computeReportName
     computeReportName,
     computeReportNameBasedOnReportAction,
     generateArchivedReportName,
@@ -5787,232 +5786,6 @@ function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, repo
     parsedReportActionMessageCache[key] = textMessage;
 
     return textMessage;
-}
-
-/**
- * Get the title for a report.
- * @deprecated Moved to src/libs/ReportNameUtils.ts.
- */
-function getReportName(reportNameInformation: GetReportNameParams): string {
-    const {report, policy, parentReportActionParam, personalDetails, invoiceReceiverPolicy, reportAttributes, transactions, isReportArchived, reports, conciergeReportID} =
-        reportNameInformation;
-    // Check if we can use report name in derived values - only when we have report but no other params
-    const canUseDerivedValue =
-        report && policy === undefined && parentReportActionParam === undefined && personalDetails === undefined && invoiceReceiverPolicy === undefined && isReportArchived === undefined;
-    const attributes = reportAttributes ?? reportAttributesDerivedValue;
-    const derivedNameExists = report && !!attributes?.[report.reportID]?.reportName;
-    if (canUseDerivedValue && derivedNameExists) {
-        return attributes[report.reportID].reportName;
-    }
-
-    let formattedName: string | undefined;
-    let parentReportAction: OnyxEntry<ReportAction>;
-    const parentReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
-    if (parentReportActionParam) {
-        parentReportAction = parentReportActionParam;
-    } else {
-        parentReportAction = isThread(report) ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`]?.[report.parentReportActionID] : undefined;
-    }
-    const parentReportActionMessage = getReportActionMessageReportUtils(parentReportAction);
-    const isArchivedNonExpense = isArchivedNonExpenseReport(report, isReportArchived);
-
-    const reportPolicy = policy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-
-    const parentReportActionBasedName = computeReportNameBasedOnReportAction(
-        translateLocal,
-        formatPhoneNumberPhoneUtils,
-        parentReportAction,
-        report,
-        reportPolicy,
-        parentReport,
-        personalDetails as PersonalDetailsList,
-        attributes,
-    );
-
-    if (parentReportActionBasedName) {
-        return parentReportActionBasedName;
-    }
-
-    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS)) {
-        const {originalID} = getOriginalMessage(parentReportAction) ?? {};
-        const originalReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalID}`];
-        const reportName = getReportName({report: originalReport});
-        return getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, !!parentReportAction.isOriginalReportDeleted, translateLocal);
-    }
-
-    if (isTaskReport(report)) {
-        const taskName = report?.reportName ?? '';
-        return Parser.isHTML(taskName) ? Parser.htmlToText(taskName).trim() : taskName.trim();
-    }
-
-    if (isChatThread(report)) {
-        if (!isEmptyObject(parentReportAction) && isTransactionThread(parentReportAction)) {
-            formattedName = getTransactionReportName({translate: translateLocal, reportAction: parentReportAction, transactions, reports});
-
-            if (isArchivedNonExpense) {
-                formattedName = generateArchivedReportName(formattedName);
-            }
-            return formatReportLastMessageText(formattedName);
-        }
-
-        if (parentReportActionMessage?.isDeletedParentAction) {
-            return translateLocal('parentReportAction.deletedMessage');
-        }
-
-        const isAttachment = isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : undefined);
-        const reportActionMessage = parseReportActionHtmlToText(parentReportAction, report?.parentReportID, conciergeReportID, report?.reportID).replaceAll(/(\n+|\r\n|\n|\r)/gm, ' ');
-        if (isAttachment && reportActionMessage) {
-            return `[${translateLocal('common.attachment')}]`;
-        }
-        if (
-            parentReportActionMessage?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE ||
-            parentReportActionMessage?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN ||
-            parentReportActionMessage?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE
-        ) {
-            return translateLocal('parentReportAction.hiddenMessage');
-        }
-        if (isAdminRoom(report) || isUserCreatedPolicyRoom(report)) {
-            return getAdminRoomInvitedParticipants(translateLocal, parentReportAction, reportActionMessage);
-        }
-
-        if (reportActionMessage && isArchivedNonExpense) {
-            return generateArchivedReportName(reportActionMessage);
-        }
-        if (!isEmptyObject(parentReportAction) && isModifiedExpenseAction(parentReportAction)) {
-            const movedFromReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
-            const movedToReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
-            const modifiedMessageWithHTML = getForReportAction({
-                translate: translateLocal,
-                reportAction: parentReportAction,
-                policy,
-                movedFromReport,
-                movedToReport,
-                // Temporarily retrieves current user email from getCurrentUserEmail, since getReportName is deprecated and no longer requires this parameter to be passed explicitly.
-                currentUserLogin: getCurrentUserEmail() ?? '',
-            });
-            // Strip HTML tags for plain text display in report last message
-            const modifiedMessage = Parser.htmlToText(modifiedMessageWithHTML);
-            return formatReportLastMessageText(modifiedMessage);
-        }
-        if (isTripRoom(report) && report?.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME) {
-            return report?.reportName ?? '';
-        }
-        return reportActionMessage;
-    }
-
-    if (isClosedExpenseReportWithNoExpenses(report, transactions)) {
-        return translateLocal('parentReportAction.deletedReport');
-    }
-
-    if (isGroupChat(report)) {
-        return getGroupChatName(formatPhoneNumberPhoneUtils, undefined, true, report) ?? '';
-    }
-
-    if (isChatRoom(report)) {
-        formattedName = report?.reportName;
-    }
-
-    if (isPolicyExpenseChat(report)) {
-        formattedName = getPolicyExpenseChatName({report, personalDetailsList: personalDetails});
-    }
-
-    if (isMoneyRequestReport(report)) {
-        formattedName = getMoneyRequestReportName({report, policy});
-    }
-
-    if (isInvoiceReport(report)) {
-        formattedName = getInvoiceReportName(report, policy, invoiceReceiverPolicy);
-    }
-
-    if (isInvoiceRoom(report)) {
-        const invoiceReceiverPolicyID = report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? report?.invoiceReceiver?.policyID : undefined;
-        formattedName = getInvoicesChatName({
-            report,
-            // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-            receiverPolicy: invoiceReceiverPolicy ?? getPolicy(invoiceReceiverPolicyID),
-            personalDetails,
-            policy,
-            currentUserAccountID: deprecatedCurrentUserAccountID,
-        });
-    }
-
-    if (isSelfDM(report)) {
-        formattedName = getDisplayNameForParticipant({
-            accountID: deprecatedCurrentUserAccountID,
-            shouldAddCurrentUserPostfix: true,
-            personalDetailsData: personalDetails,
-            formatPhoneNumber: formatPhoneNumberPhoneUtils,
-        });
-    }
-
-    if (isConciergeChatReport(report, conciergeReportID)) {
-        formattedName = CONST.CONCIERGE_DISPLAY_NAME;
-    }
-
-    if (formattedName) {
-        return formatReportLastMessageText(isArchivedNonExpense ? generateArchivedReportName(formattedName) : formattedName);
-    }
-
-    // Not a room or PolicyExpenseChat, generate title from first 5 other participants
-    formattedName = buildReportNameFromParticipantNames({report, personalDetailsList: personalDetails, currentUserAccountID: deprecatedCurrentUserAccountID});
-
-    const finalName = formattedName || (report?.reportName ?? '');
-
-    return isArchivedNonExpense ? generateArchivedReportName(finalName) : finalName;
-}
-
-/**
- * @deprecated Moved to src/libs/ReportNameUtils.ts.
- * Use ReportNameUtils.computeReportName(...) in search contexts instead.
- * @param props
- */
-function getSearchReportName(props: GetReportNameParams): string {
-    const {report, policy} = props;
-    if (isChatThread(report) && policy?.name) {
-        // Traverse up the parent chain to find the first expense report
-        // If found, return the expense report name instead of workspace name
-        let currentParent = getParentReport(report);
-        const visitedReportIDs = new Set<string>();
-
-        while (currentParent) {
-            if (!currentParent.reportID) {
-                break;
-            }
-            if (visitedReportIDs.has(currentParent.reportID)) {
-                break;
-            }
-            visitedReportIDs.add(currentParent.reportID);
-
-            if (isExpenseReport(currentParent)) {
-                return getReportName({
-                    report: currentParent,
-                    policy,
-                    parentReportActionParam: props.parentReportActionParam,
-                    personalDetails: props.personalDetails,
-                    invoiceReceiverPolicy: props.invoiceReceiverPolicy,
-                    transactions: props.transactions,
-                    isReportArchived: props.isReportArchived,
-                    reports: props.reports,
-                });
-            }
-
-            // Continue traversing up the parent chain
-            currentParent = getParentReport(currentParent);
-        }
-
-        return policy.name;
-    }
-    // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-    return getReportName({
-        report,
-        policy,
-        parentReportActionParam: props.parentReportActionParam,
-        personalDetails: props.personalDetails,
-        invoiceReceiverPolicy: props.invoiceReceiverPolicy,
-        transactions: props.transactions,
-        isReportArchived: props.isReportArchived,
-        reports: props.reports,
-    });
 }
 
 /**
@@ -13374,8 +13147,6 @@ export {
     getReportFieldKey,
     getReportFieldMaps,
     getReportIDFromLink,
-    // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-    getSearchReportName,
     getReportTransactions,
     getReportNotificationPreference,
     getReportOfflinePendingActionAndErrors,
