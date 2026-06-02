@@ -97,13 +97,17 @@ function TestDriveDemo() {
     useEffect(() => {
         const handle = TransitionTracker.runAfterTransitions({
             callback: () => setIsVisible(true),
+            waitForUpcomingTransition: true,
         });
         return () => handle.cancel();
     }, []);
 
     const closeModal = useCallback(() => {
         setIsVisible(false);
-        Navigation.goBack(undefined, {waitForTransition: true});
+        TransitionTracker.runAfterTransitions({
+            callback: () => Navigation.goBack(undefined, {waitForTransition: true}),
+            waitForUpcomingTransition: true,
+        });
 
         if (shouldOpenRHPVariant()) {
             Log.hmmm('[AdminTestDriveModal] User was redirected to Workspace Editor, skipping navigation to admin room');
