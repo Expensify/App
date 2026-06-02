@@ -8,7 +8,7 @@ import WorkspaceWorkflowsApprovalsEditPage from '@pages/workspace/workflows/appr
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
-import type {Member} from '@src/types/onyx/ApprovalWorkflow';
+import type {ApprovalWorkflowOnyx, Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import {buildPersonalDetails} from '../utils/TestHelper';
@@ -114,6 +114,45 @@ describe('WorkspaceWorkflowsApprovalsEditPage', () => {
             await Onyx.clear();
             await waitForBatchedUpdatesWithAct();
         });
+    });
+
+    it('preserves pending edits when resuming an EDIT-mode workflow on first mount', async () => {
+        const PENDING_MEMBER: Member = {
+            email: 'pending-edit@example.com',
+            displayName: 'Pending Edit User',
+        };
+        const aliceApprover: Approver = {
+            email: ALICE_EMAIL,
+            displayName: 'alice',
+        };
+        const seededWorkflow: ApprovalWorkflowOnyx = {
+            action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
+            approvers: [aliceApprover],
+            originalApprovers: [aliceApprover],
+            members: [PENDING_MEMBER],
+            availableMembers: [],
+            usedApproverEmails: [],
+            isDefault: false,
+        };
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, seededWorkflow);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        renderEditPage();
+        await waitForBatchedUpdatesWithAct();
+
+        const members = await new Promise<Member[]>((resolve) => {
+            const connection = Onyx.connect({
+                key: ONYXKEYS.APPROVAL_WORKFLOW,
+                callback: (state) => {
+                    resolve(state?.members ?? []);
+                    Onyx.disconnect(connection);
+                },
+            });
+        });
+
+        expect(members.map((m) => m.email)).toContain(PENDING_MEMBER.email);
     });
 
     it('should write deduplicated availableMembers to the approval workflow onyx state for self-approval workflow', async () => {

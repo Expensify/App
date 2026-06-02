@@ -38,6 +38,7 @@ import type SCREENS from '@src/SCREENS';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ApprovalWorkflowEditor from './ApprovalWorkflowEditor';
 
 type WorkspaceWorkflowsApprovalsEditPageProps = WithPolicyAndFullscreenLoadingProps &
@@ -47,7 +48,8 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
+    const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
+    const isLoadingApprovalWorkflow = isLoadingOnyxValue(approvalWorkflowMetadata);
     const [agentPrompts] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT);
     const [optimisticAgentAccountIDMapping] = useOnyx(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -161,6 +163,10 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             return;
         }
 
+        if (isLoadingApprovalWorkflow) {
+            return;
+        }
+
         if (!currentApprovalWorkflow) {
             // Don't clear if we're in the middle of deleting - this prevents the UI from blinking
             if (isDeleting.current) {
@@ -252,6 +258,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         personalDetails,
         approvalWorkflow?.action,
         approvalWorkflow?.originalApprovers,
+        isLoadingApprovalWorkflow,
     ]);
 
     // Reconcile a pending (optimistic) seeded approver with the real personal detail once

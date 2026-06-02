@@ -142,8 +142,9 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
     // Fall back to goBack — plain Navigation.goBack() closes the modal after a refresh.
     const onBackButtonPress = () => {
-        if (route.params.backTo) {
-            Navigation.goBack(route.params.backTo);
+        const {backTo} = route.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM];
+        if (backTo) {
+            Navigation.goBack(backTo);
             return;
         }
         goBack();
