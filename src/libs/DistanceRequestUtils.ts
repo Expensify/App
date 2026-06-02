@@ -290,10 +290,17 @@ function getRateForP2P(currency: string, transaction: OnyxEntry<Transaction>): M
     const defaultRate = getStoredDefaultP2PMileageRate();
     const p2pRate: DefaultP2PMileageRate = defaultRate ?? {rate: 67, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES};
     const rate = getCurrency(transaction) === currency ? (transaction?.comment?.customUnit?.defaultP2PRate ?? p2pRate.rate) : p2pRate.rate;
+
+    // The default P2P rate is fetched asynchronously when a distance request starts, so it may not be
+    // loaded yet. While it's missing, fall back to the existing transaction's own unit and currency
+    // rather than hardcoding USD/miles. Otherwise editing an existing non-USD distance expense before
+    // the rate loads would flip its currency to USD. A brand-new request has no transaction, so
+    // getCurrency returns USD and the unit defaults to miles.
+    const fallbackUnit = transaction?.comment?.customUnit?.distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
     return {
         rate,
-        unit: p2pRate.unit,
-        currency: defaultRate ? currency : CONST.CURRENCY.USD,
+        unit: defaultRate ? p2pRate.unit : fallbackUnit,
+        currency: defaultRate ? currency : getCurrency(transaction),
     };
 }
 
