@@ -45,7 +45,6 @@ function InboxTabSelector() {
                     tabs={tabs}
                     activeTabKey={activeTab}
                     onTabPress={(key) => setActiveTab(key as ValueOf<typeof CONST.INBOX_TAB>)}
-                    size="small"
                     equalWidth
                 />
             </View>

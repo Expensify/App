@@ -4456,11 +4456,6 @@ const staticStyles = (theme: ThemeColors) =>
             scrollMarginInline: variables.tabSelectorScrollMarginInline,
         },
 
-        tabSelectorButtonSmall: {
-            height: variables.componentSizeSmall,
-            paddingHorizontal: 12,
-        },
-
         tabSelector: {
             flexDirection: 'row',
             paddingHorizontal: 20,
@@ -4471,16 +4466,6 @@ const staticStyles = (theme: ThemeColors) =>
             flexGrow: 1,
             paddingBottom: 12,
             paddingHorizontal: 20,
-        },
-
-        tabSelectorContentContainerSmall: {
-            paddingTop: 0,
-            paddingBottom: 0,
-        },
-
-        tabTextSmall: {
-            fontSize: variables.fontSizeSmall,
-            lineHeight: 16,
         },
 
         inboxTabBadge: {
