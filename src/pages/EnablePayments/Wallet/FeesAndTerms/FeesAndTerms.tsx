@@ -29,6 +29,8 @@ function FeesAndTerms() {
         resetWalletAdditionalDetailsDraft();
         Navigation.navigate(ROUTES.SETTINGS_WALLET);
     };
+
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- will be migrated to useSubPage in the EnablePayments navigation refactor PR
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent: termsAndFeesSubsteps, startFrom: 0, onFinished: submit});
 
     const handleBackButtonPress = () => {

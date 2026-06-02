@@ -65,6 +65,7 @@ function PersonalInfoPage() {
         moveTo,
         screenIndex,
         goToTheLastStep,
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- will be migrated to useSubPage in the EnablePayments navigation refactor PR
     } = useSubStep({
         bodyContent,
         startFrom,
