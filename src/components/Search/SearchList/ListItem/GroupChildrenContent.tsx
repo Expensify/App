@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {search} from '@libs/actions/Search';
 import type {TransactionPreviewData} from '@libs/actions/Search';
@@ -27,6 +28,7 @@ import type {GroupChildrenContainerItemType, SearchListItem, TransactionGroupLis
 type GroupChildrenContentProps = {
     item: GroupChildrenContainerItemType;
     isExpanded: boolean;
+    isSelected?: boolean;
     groupBy?: SearchGroupBy;
     searchType?: SearchDataTypes;
     columns?: SearchColumnType[];
@@ -56,6 +58,7 @@ function GroupChildrenContent({
     nonPersonalAndWorkspaceCards,
     onUndelete,
     newTransactionID,
+    isSelected,
     allReportMetadata,
     bankAccountList,
     cardFeeds,
@@ -68,6 +71,7 @@ function GroupChildrenContent({
     const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {isLargeScreenWidth} = useResponsiveLayout();
 
     const groupItem = item as unknown as TransactionGroupListItemType;
@@ -228,7 +232,7 @@ function GroupChildrenContent({
         <>
             {isLargeScreenWidth && !isEmpty && (
                 <View style={styles.ph3}>
-                    <View style={styles.borderBottom} />
+                    <View style={StyleUtils.getSelectedBorderBottomStyle(isSelected)} />
                 </View>
             )}
             <TransactionGroupListExpandedItem
