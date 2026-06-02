@@ -51,7 +51,7 @@ function WorkspaceTravelPage({
 
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const {canWrite: canWriteMoreFeatures} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
+    const {canWrite: canWriteMoreFeatures, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
 
     const fetchTravelData = useCallback(() => {
         openPolicyTravelPage(policyID, workspaceAccountID);
@@ -87,6 +87,7 @@ function WorkspaceTravelPage({
                     <GetStartedTravel
                         policyID={policyID}
                         canWriteMoreFeatures={canWriteMoreFeatures}
+                        showReadOnlyModal={showReadOnlyModal}
                     />
                 );
         }

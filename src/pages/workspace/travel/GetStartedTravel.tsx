@@ -1,5 +1,6 @@
 import React from 'react';
 import BookTravelButton from '@components/BookTravelButton';
+import Button from '@components/Button';
 import FeatureList from '@components/FeatureList';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -10,9 +11,10 @@ import CONST from '@src/CONST';
 type GetStartedTravelProps = {
     policyID: string;
     canWriteMoreFeatures: boolean;
+    showReadOnlyModal: () => void;
 };
 
-function GetStartedTravel({policyID, canWriteMoreFeatures}: GetStartedTravelProps) {
+function GetStartedTravel({policyID, canWriteMoreFeatures, showReadOnlyModal}: GetStartedTravelProps) {
     const handleCtaPress = () => {};
 
     const {translate} = useLocalize();
@@ -39,7 +41,19 @@ function GetStartedTravel({policyID, canWriteMoreFeatures}: GetStartedTravelProp
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.GET_STARTED_BUTTON}
                         large
                     />
-                ) : undefined
+                ) : (
+                    <Button
+                        text={translate('workspace.moreFeatures.travel.getStarted.ctaText')}
+                        onPress={showReadOnlyModal}
+                        accessibilityLabel={translate('travel.bookTravel')}
+                        style={styles.w100}
+                        innerStyles={[styles.buttonOpacityDisabled, styles.buttonDisabled]}
+                        hoverStyles={[styles.buttonOpacityDisabled, styles.buttonDisabled]}
+                        success
+                        large
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.GET_STARTED_BUTTON}
+                    />
+                )
             }
         />
     );

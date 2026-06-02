@@ -50,17 +50,21 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                 subtitleMuted
                 isCentralPane
             >
-                {canWriteMoreFeatures && (
-                    <MenuItem
-                        title={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.ctaText')}
-                        icon={icons.LuggageWithLines}
-                        onPress={handleManageTravel}
-                        shouldShowRightIcon
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.BOOK_TRAVEL_BUTTON}
-                        iconRight={icons.NewWindow}
-                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
-                    />
-                )}
+                <MenuItem
+                    title={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.ctaText')}
+                    icon={icons.LuggageWithLines}
+                    onPress={() => {
+                        if (!canWriteMoreFeatures) {
+                            showReadOnlyModal();
+                            return;
+                        }
+                        handleManageTravel();
+                    }}
+                    shouldShowRightIcon={canWriteMoreFeatures}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.BOOK_TRAVEL_BUTTON}
+                    iconRight={canWriteMoreFeatures ? icons.NewWindow : undefined}
+                    wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, !canWriteMoreFeatures && styles.buttonOpacityDisabled]}
+                />
                 <ToggleSettingOptionRow
                     title={translate('workspace.moreFeatures.travel.settings.autoAddTripName.title')}
                     subtitle={translate('workspace.moreFeatures.travel.settings.autoAddTripName.subtitle')}
