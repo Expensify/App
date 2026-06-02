@@ -17,7 +17,7 @@ function VictoryChartContainer({children}: {children: React.ReactNode}) {
 
     const availableWidth = windowWidth - NATIVE_HORIZONTAL_INSET;
     const scale = hasExplicitDimensions && designWidth && availableWidth > 0 ? Math.min(availableWidth / designWidth, 1) : 1;
-    
+
     const {backgroundColor, borderRadius, width: containerWidth, maxWidth: containerMaxWidth, ...cleanContainerStyles} = chartContainerStyles;
 
     const contentStyle = useMemo(() => {
