@@ -81,7 +81,7 @@ function buildTargetRateIDByName(targetUnit: CustomUnit | undefined): Record<str
 
 function copyCustomUnitPreservingRateIDs(sourceUnit: CustomUnit, targetUnit: CustomUnit | undefined, targetUnitID: string): CustomUnit {
     const targetRateIDByName = buildTargetRateIDByName(targetUnit);
-    const remappedRates: Record<string, Rate> = {};
+    const remappedRates: Record<string, Rate | null> = {};
 
     for (const sourceRate of Object.values(sourceUnit.rates ?? {})) {
         const rateName = sourceRate.name ?? '';
@@ -96,10 +96,25 @@ function copyCustomUnitPreservingRateIDs(sourceUnit: CustomUnit, targetUnit: Cus
         };
     }
 
+    // Null source workspace rate IDs remapped to a target ID (or dropped) so stale keys do not linger.
+    for (const sourceRate of Object.values(sourceUnit.rates ?? {})) {
+        const sourceRateID = sourceRate.customUnitRateID;
+        if (sourceRateID && remappedRates[sourceRateID] === undefined) {
+            remappedRates[sourceRateID] = null;
+        }
+    }
+
+    // Copy replaces target rates entirely. Null IDs the target had but the copy no longer uses.
+    for (const existingTargetRateID of Object.keys(targetUnit?.rates ?? {})) {
+        if (remappedRates[existingTargetRateID] === undefined) {
+            remappedRates[existingTargetRateID] = null;
+        }
+    }
+
     return {
         ...sourceUnit,
         customUnitID: targetUnitID,
-        rates: remappedRates,
+        rates: remappedRates as Record<string, Rate>,
     };
 }
 

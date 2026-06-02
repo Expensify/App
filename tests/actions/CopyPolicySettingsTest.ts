@@ -294,9 +294,9 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 expect(Object.keys(value.customUnits ?? {})).toEqual([targetExistingDistanceID]);
                 expect(value.customUnits?.[targetExistingDistanceID]?.customUnitID).toBe(targetExistingDistanceID);
                 const optimisticRates = value.customUnits?.[targetExistingDistanceID]?.rates ?? {};
-                expect(Object.keys(optimisticRates)).toEqual(['SRC_RATE']);
+                expect(Object.keys(optimisticRates).sort()).toEqual(['OLD', 'SRC_RATE'].sort());
                 expect(optimisticRates.SRC_RATE).toMatchObject({name: 'IRS', rate: 67, customUnitRateID: 'SRC_RATE'});
-                expect(optimisticRates).not.toHaveProperty('OLD');
+                expect(optimisticRates.OLD).toBeNull();
                 expect(value.pendingFields?.customUnits).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
             });
 
@@ -336,13 +336,13 @@ describe('actions/Policy/CopyPolicySettings', () => {
 
                 const value = findPolicyOptimistic(optimisticData)?.value as {customUnits?: Record<string, CustomUnit>};
                 const optimisticRates = value.customUnits?.[targetExistingDistanceID]?.rates ?? {};
-                expect(Object.keys(optimisticRates)).toEqual([targetExistingRateID]);
+                expect(Object.keys(optimisticRates).sort()).toEqual(['SRC_RATE', targetExistingRateID].sort());
                 expect(optimisticRates[targetExistingRateID]).toMatchObject({
                     customUnitRateID: targetExistingRateID,
                     name: 'Default Rate',
                     rate: 0.25,
                 });
-                expect(optimisticRates).not.toHaveProperty('SRC_RATE');
+                expect(optimisticRates.SRC_RATE).toBeNull();
             });
 
             it('reuses target rate IDs for matching names and source rate IDs for new names', () => {
@@ -375,10 +375,10 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['distanceRates'], {}, {});
 
                 const optimisticRates = (findPolicyOptimistic(optimisticData)?.value as {customUnits?: Record<string, CustomUnit>}).customUnits?.['2473AA45B9260']?.rates ?? {};
-                expect(Object.keys(optimisticRates).sort()).toEqual(['A43964868248C', 'C34632101C99C'].sort());
+                expect(Object.keys(optimisticRates).sort()).toEqual(['7CC7FA1043DE4', 'A43964868248C', 'C34632101C99C'].sort());
                 expect(optimisticRates.C34632101C99C).toMatchObject({name: 'Default Rate', rate: 72.5, customUnitRateID: 'C34632101C99C'});
                 expect(optimisticRates.A43964868248C).toMatchObject({name: 'ws', rate: 2200, customUnitRateID: 'A43964868248C'});
-                expect(optimisticRates).not.toHaveProperty('7CC7FA1043DE4');
+                expect(optimisticRates['7CC7FA1043DE4']).toBeNull();
             });
 
             it('generates a new unit ID when target has no distance unit', () => {
@@ -515,13 +515,13 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['distanceRates'], {}, {});
                 const value = findPolicyOptimistic(optimisticData)?.value as Policy;
 
-                // The optimistic unit is keyed by target's existing ID, with source's rates (no old rates)
+                // Copy replaces target rates; stale target IDs are nulled so merge/SET can drop them.
                 const optimisticUnit = value.customUnits?.[targetDistanceUnit.customUnitID];
                 const optimisticRates = optimisticUnit?.rates ?? {};
-                expect(Object.keys(optimisticRates)).toEqual(['NEW_RATE']);
+                expect(Object.keys(optimisticRates).sort()).toEqual(['NEW_RATE', 'OLD_RATE_A', 'OLD_RATE_B'].sort());
                 expect(optimisticRates.NEW_RATE).toMatchObject({name: 'New', rate: 67, customUnitRateID: 'NEW_RATE'});
-                expect(optimisticRates).not.toHaveProperty('OLD_RATE_A');
-                expect(optimisticRates).not.toHaveProperty('OLD_RATE_B');
+                expect(optimisticRates.OLD_RATE_A).toBeNull();
+                expect(optimisticRates.OLD_RATE_B).toBeNull();
             });
 
             it('failure SET fully restores target — newly-added custom unit IDs are removed', () => {
