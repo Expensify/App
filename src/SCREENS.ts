@@ -544,6 +544,7 @@ const SCREENS = {
     },
 
     WORKSPACES_LIST: 'Workspaces_List',
+    DOMAINS_LIST: 'Domains_List',
 
     WORKSPACE: {
         ACCOUNTING: {
@@ -697,7 +698,6 @@ const SCREENS = {
             CERTINIA_DEFAULT_VENDOR: 'Policy_Accounting_Certinia_Default_Vendor',
             CERTINIA_ADVANCED: 'Policy_Accounting_Certinia_Advanced',
             CARD_RECONCILIATION: 'Policy_Accounting_Card_Reconciliation',
-            CARD_RECONCILIATION_QUICKBOOKS_DESKTOP_AUTO_SYNC: 'Policy_Accounting_Card_Reconciliation_Quickbooks_Desktop_Auto_Sync',
             CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC: 'Policy_Accounting_Card_Reconciliation_Sage_Intacct_Auto_Sync',
             DYNAMIC_RECONCILIATION_ACCOUNT_SETTINGS: 'Dynamic_Policy_Accounting_Reconciliation_Account_Settings',
         },
@@ -724,7 +724,7 @@ const SCREENS = {
         COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER: 'Workspace_CompanyCards_AssignCard_Invite_New_Member',
         COMPANY_CARDS_SELECT_FEED: 'Workspace_CompanyCards_Select_Feed',
         COMPANY_CARDS_BANK_CONNECTION: 'Workspace_CompanyCards_BankConnection',
-        COMPANY_CARDS_ADD_NEW: 'Workspace_CompanyCards_New',
+        DYNAMIC_WORKSPACE_COMPANY_CARDS_ADD_NEW: 'Dynamic_Workspace_CompanyCards_New',
         COMPANY_CARDS_IMPORT_SPREADSHEET: 'Workspace_CompanyCards_Import_Spreadsheet',
         COMPANY_CARDS_IMPORTED: 'Workspace_CompanyCards_Imported',
         COMPANY_CARDS_TYPE: 'Workspace_CompanyCards_Type',
@@ -798,6 +798,7 @@ const SCREENS = {
         TAXES_SETTINGS_WORKSPACE_CURRENCY_DEFAULT: 'Workspace_Taxes_Settings_WorkspaceCurrency',
         TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT: 'Workspace_Taxes_Settings_ForeignCurrency',
         TAX_CREATE: 'Workspace_Tax_Create',
+        TAX_CREATE_VALUE: 'Workspace_Tax_Create_Value',
         TAG_CREATE: 'Tag_Create',
         TAG_SETTINGS: 'Tag_Settings',
         TAG_APPROVER: 'Tag_Approver',
@@ -815,6 +816,7 @@ const SCREENS = {
         WORKFLOWS_APPROVALS_APPROVER_CHANGE: 'Workspace_Workflows_Approvals_Approver_Change',
         WORKFLOWS_APPROVALS_APPROVAL_LIMIT: 'Workspace_Workflows_Approvals_Approval_Limit',
         WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER: 'Workspace_Workflows_Approvals_Over_Limit_Approver',
+        WORKFLOWS_ADD_AGENT: 'Workspace_Workflows_Add_Agent',
         WORKFLOWS_AUTO_REPORTING_FREQUENCY: 'Workspace_Workflows_Auto_Reporting_Frequency',
         WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET: 'Workspace_Workflows_Auto_Reporting_Monthly_Offset',
         DESCRIPTION: 'Workspace_Overview_Description',
@@ -866,6 +868,8 @@ const SCREENS = {
         DISTANCE_RATE_NAME_EDIT: 'Distance_Rate_Name_Edit',
         DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT: 'Distance_Rate_Tax_Reclaimable_On_Edit',
         DISTANCE_RATE_TAX_RATE_EDIT: 'Distance_Rate_Tax_Rate_Edit',
+        DISTANCE_RATE_START_DATE_EDIT: 'Distance_Rate_Start_Date_Edit',
+        DISTANCE_RATE_END_DATE_EDIT: 'Distance_Rate_End_Date_Edit',
         UPGRADE: 'Workspace_Upgrade',
         DOWNGRADE: 'Workspace_Downgrade',
         PAY_AND_DOWNGRADE: 'Workspace_Pay_And_Downgrade',
