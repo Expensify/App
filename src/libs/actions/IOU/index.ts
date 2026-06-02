@@ -117,6 +117,15 @@ Onyx.connectWithoutView({
     callback: (value) => (recentAttendees = value),
 });
 
+let allSnapshots: OnyxCollection<OnyxTypes.SearchResults> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.SNAPSHOT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allSnapshots = value ?? {};
+    },
+});
+
 function getAllPersonalDetails(): OnyxTypes.PersonalDetailsList {
     return allPersonalDetails;
 }
@@ -155,6 +164,10 @@ function getCurrentUserPersonalDetails(): OnyxEntry<OnyxTypes.PersonalDetails> {
 
 function getRecentAttendees(): OnyxEntry<Attendee[]> {
     return recentAttendees;
+}
+
+function getAllSnapshots(): OnyxCollection<OnyxTypes.SearchResults> {
+    return allSnapshots;
 }
 
 /**
@@ -227,6 +240,7 @@ export {
     getAllTransactionDrafts,
     getCurrentUserPersonalDetails,
     getRecentAttendees,
+    getAllSnapshots,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     buildParticipantsPolicyTags,
     // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
