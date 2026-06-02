@@ -52,6 +52,7 @@ import {
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
     isSelfDM,
+    shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildSearchQueryString, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import {getSelectedGroupFilterEntry, navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
@@ -1100,6 +1101,33 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         });
     }, [isExpenseReportType, defaultExpensePolicy, selectedReports, accountID]);
 
+    const allReportsShouldMarkAsDone = useMemo(
+        () =>
+            selectedReports.every((report) => {
+                const fullReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
+
+                return shouldShowMarkAsDone({
+                    isTrackIntentUser,
+                    report: fullReport,
+                    policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`],
+                });
+            }),
+        [selectedReports, shouldShowMarkAsDone],
+    );
+    const noReportsShouldMarkAsDone = useMemo(
+        () =>
+            selectedReports.every((report) => {
+                const fullReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
+
+                return !shouldShowMarkAsDone({
+                    isTrackIntentUser,
+                    report: fullReport,
+                    policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`],
+                });
+            }),
+        [selectedReports, shouldShowMarkAsDone],
+    );
+
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
             return CONST.EMPTY_ARRAY as unknown as Array<DropdownOption<SearchHeaderOptionValue>>;
@@ -1436,19 +1464,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             (selectedReports.length
                 ? selectedReports.every((report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.SUBMIT)) &&
                   // Disable for mixed selections: all must be the same submit type
-                  (isTrackIntentUser
-                      ? selectedReports.every((report) => isSubmitAndClose(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`])) ||
-                        selectedReports.every((report) => !isSubmitAndClose(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`]))
-                      : true)
+                  (isTrackIntentUser ? allReportsShouldMarkAsDone || noReportsShouldMarkAsDone : true)
                 : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.SUBMIT));
 
         if (shouldShowSubmitOption) {
             options.push({
                 icon: expensifyIcons.Send,
-                text:
-                    isTrackIntentUser && selectedReports.length > 0 && selectedReports.every((report) => isSubmitAndClose(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`]))
-                        ? translate('common.markAsDone')
-                        : translate('common.submit'),
+                text: selectedReports.length > 0 && allReportsShouldMarkAsDone ? translate('common.markAsDone') : translate('common.submit'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
