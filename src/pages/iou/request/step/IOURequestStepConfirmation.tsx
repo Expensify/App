@@ -869,6 +869,7 @@ function IOURequestStepConfirmation({
                         receiptFiles={receiptFiles}
                         isFromGlobalCreateOnTransaction={!!transaction?.isFromGlobalCreate}
                         isFromFloatingActionButtonOnTransaction={!!transaction?.isFromFloatingActionButton}
+                        hasFormBeenSubmitted={() => formHasBeenSubmitted.current}
                     >
                         {({onConfirm, isConfirming}) => (
                             <MoneyRequestConfirmationList

@@ -1,14 +1,17 @@
+import type {SpanAttributeValue} from '@sentry/core';
 import {flushDeferredWrite} from '@libs/deferredLayoutWrite';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import getTopmostFullScreenRoute from '@libs/Navigation/helpers/getTopmostFullScreenRoute';
 import getTopmostReportParams from '@libs/Navigation/helpers/getTopmostReportParams';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
-import {endSubmitFollowUpActionSpan, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
+import {endSubmitFollowUpActionSpan, hasSubmitSpan, setPendingSubmitFollowUpAction, setSubmitSpanAttributes} from '@libs/telemetry/submitFollowUpAction';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import getTabNavigatorDiagnostics from './getTabNavigatorDiagnostics';
 
 function dismissOnly(runAfterDismiss: () => void) {
     setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
@@ -21,6 +24,19 @@ function dismissOnly(runAfterDismiss: () => void) {
     });
 }
 
+/** Builds root route count and topmost fullscreen route name attributes for the narrow dismiss diagnostic. */
+function buildDismissNarrowDiagnostics(): Record<string, SpanAttributeValue> {
+    const prefix = CONST.TELEMETRY.SUBMIT_SPAN.DISMISS_NARROW_PREFIX;
+    const rootState = navigationRef.getRootState();
+    if (!rootState) {
+        return {};
+    }
+    return {
+        [`${prefix}root_route_count`]: rootState.routes.length,
+        [`${prefix}topmost_fullscreen`]: getTopmostFullScreenRoute()?.name ?? CONST.TELEMETRY.ATTRIBUTE_VALUE_UNAVAILABLE,
+    };
+}
+
 // Flush ordering: The DISMISS_MODAL deferred-write channel is flushed by
 // ReportScreen.useFlushDeferredWriteOnFocus (on focus gain) or TransitionTracker (wide layout
 // fallback). createTransaction (via runAfterDismiss) calls deferOrExecuteWrite
@@ -30,9 +46,14 @@ function dismissOnly(runAfterDismiss: () => void) {
 // Both orderings are correct. The 5s safety timeout in deferredLayoutWrite covers
 // edge cases where neither trigger fires (e.g. ReportScreen never mounts).
 function dismissNarrowWithReport(reportID: string, runAfterDismiss: () => void) {
+    if (hasSubmitSpan()) {
+        setSubmitSpanAttributes(buildDismissNarrowDiagnostics());
+    }
+
     setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, reportID);
     Navigation.dismissModalWithReport({reportID}, undefined, {
         onBeforeNavigate: (willOpenReport) => {
+            setSubmitSpanAttributes({[`${CONST.TELEMETRY.SUBMIT_SPAN.DISMISS_NARROW_PREFIX}will_open_report`]: willOpenReport});
             setPendingSubmitFollowUpAction(
                 willOpenReport ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY,
                 reportID,
@@ -140,4 +161,35 @@ function executeDismissModalStrategy(destinationReportID: string | undefined, ru
     dismissWideToNewReport(destinationReportID, runAfterDismiss);
 }
 
-export {dismissOnly, dismissSuperWideRHP, dismissRHPToReport, dismissWideToNewSearchType, executeDismissModalStrategy};
+/** Captures split navigator and tab state at dismiss time for the report_pre_insert diagnostic. */
+function buildAtDismissAttributes(formSubmitted: boolean): Record<string, SpanAttributeValue> {
+    const prefix = CONST.TELEMETRY.SUBMIT_SPAN.AT_DISMISS_PREFIX;
+    const {tabNavigatorStateAvailable, tabActiveName, activeTabState} = getTabNavigatorDiagnostics();
+    const attrs: Record<string, SpanAttributeValue> = {
+        [`${prefix}form_has_been_submitted`]: formSubmitted,
+        [`${prefix}tab_active_name`]: tabActiveName ?? CONST.TELEMETRY.ATTRIBUTE_VALUE_UNAVAILABLE,
+    };
+
+    if (!tabNavigatorStateAvailable || !activeTabState) {
+        return attrs;
+    }
+
+    attrs[`${prefix}split_route_count`] = activeTabState.routes.length;
+    const lastSplitRoute = activeTabState.routes.at(-1);
+    if (!lastSplitRoute) {
+        return attrs;
+    }
+
+    attrs[`${prefix}split_last_route`] = lastSplitRoute.name;
+    // Route params are typed per-navigator, but the split route is resolved dynamically
+    // from nested state — the type system can't narrow it. Runtime typeof check below.
+    const params = lastSplitRoute.params as Record<string, unknown> | undefined;
+    const reportID = typeof params?.reportID === 'string' ? params.reportID : undefined;
+    if (reportID) {
+        attrs[`${prefix}split_last_report_id`] = reportID;
+    }
+
+    return attrs;
+}
+
+export {buildAtDismissAttributes, dismissOnly, dismissSuperWideRHP, dismissRHPToReport, dismissWideToNewSearchType, executeDismissModalStrategy};

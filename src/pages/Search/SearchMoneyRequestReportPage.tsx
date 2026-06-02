@@ -79,6 +79,19 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         CONST.TELEMETRY.SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER.LAYOUT,
     );
 
+    // FOCUS trigger covers the case where the component is revealed (not freshly mounted)
+    // after RHP screens are popped on top of it - onLayout won't re-fire in that scenario.
+    // Timing is safe: useFocusEffect fires after the transition animation completes per
+    // React Navigation's contract. Double-ending is also safe: the pendingSubmitFollowUpAction
+    // guard in endSubmitFollowUpActionSpan ensures only the first trigger ends the span.
+    // Return value is unused because the FOCUS trigger fires via useFocusEffect internally,
+    // not via an onLayout callback.
+    useSubmitToDestinationVisible(
+        [CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY],
+        reportIDFromRoute,
+        CONST.TELEMETRY.SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER.FOCUS,
+    );
+
     const [parentReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report?.parentReportID}`);
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isFocused = useIsFocused();

@@ -2178,6 +2178,27 @@ const CONST = {
         /** Sentry span attribute: follow-up action taken after submit (e.g. dismiss_modal_and_open_report, navigate_to_search). */
         ATTRIBUTE_SUBMIT_FOLLOW_UP_ACTION: 'submit_follow_up_action',
         ATTRIBUTE_FAST_PATH_HANDLER: 'fast_path_handler',
+
+        /** Sentinel value for span attributes when the expected data is not available. */
+        ATTRIBUTE_VALUE_UNAVAILABLE: 'unavailable',
+
+        /** Diagnostic attribute prefixes for the submit-to-destination-visible span. */
+        SUBMIT_SPAN: {
+            /** Replays the full getSubmitHandler decision tree from production spans. */
+            SNAPSHOT_PREFIX: 'snapshot.',
+
+            /** Detects the cleanup race where a pre-inserted route is removed before dismiss completes. */
+            AT_DISMISS_PREFIX: 'at_dismiss.',
+
+            /** Confirms whether the user landed on the expected destination or had to navigate manually. */
+            AT_END_PREFIX: 'at_end.',
+
+            /** Reveals why dismissModalWithReport decided willOpenReport=false on narrow layout. */
+            DISMISS_NARROW_PREFIX: 'dismiss_narrow.',
+
+            /** Distinguishes "dismiss was slow" from "dismiss succeeded but create flow stayed open". */
+            SEARCH_DISMISS_PREFIX: 'search_dismiss.',
+        },
         ATTRIBUTE_COMMAND: 'command',
         ATTRIBUTE_JSON_CODE: 'json_code',
         ATTRIBUTE_COLD_START: 'cold_start',

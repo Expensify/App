@@ -1,3 +1,4 @@
+import type {SpanAttributeValue} from '@sentry/core';
 import React, {useEffect, useRef, useState} from 'react';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import DateUtils from '@libs/DateUtils';
@@ -13,7 +14,7 @@ import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
-import {setFastPath, setPendingSubmitFollowUpAction, startTracking} from '@libs/telemetry/submitFollowUpAction';
+import {getTrackingElapsedMs, hasSubmitSpan, setFastPath, setPendingSubmitFollowUpAction, setSubmitSpanAttributes, startTracking} from '@libs/telemetry/submitFollowUpAction';
 import {updateLastLocationPermissionPrompt} from '@userActions/IOU/MoneyRequest';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -21,9 +22,10 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';
-import {getSubmitHandler, SUBMIT_HANDLER} from './getSubmitHandler';
+import {buildSnapshotAttributes, getSubmitHandler, SUBMIT_HANDLER} from './getSubmitHandler';
 import type {SubmitHandler, SubmitNavigationSnapshot} from './getSubmitHandler';
-import {dismissOnly, dismissRHPToReport, dismissSuperWideRHP, dismissWideToNewSearchType, executeDismissModalStrategy} from './submitDismissStrategies';
+import getTabNavigatorDiagnostics from './getTabNavigatorDiagnostics';
+import {buildAtDismissAttributes, dismissOnly, dismissRHPToReport, dismissSuperWideRHP, dismissWideToNewSearchType, executeDismissModalStrategy} from './submitDismissStrategies';
 
 type SubmitExpenseOrchestratorRenderProps = {
     onConfirm: (participants: Participant[]) => void;
@@ -82,6 +84,14 @@ type SubmitExpenseOrchestratorProps = {
     /** Persisted flag on the transaction: flow originated from the floating action button. */
     isFromFloatingActionButtonOnTransaction: boolean;
 
+    /**
+     *  Returns whether the form has already been submitted. Recorded as `at_dismiss.form_has_been_submitted`
+     *  to diagnose whether the pre-insert cleanup runs before or after the actual submit call.
+     *  Callback (not a boolean prop) because it must read the latest ref value at handler
+     *  invocation time, not the value captured at the last render.
+     */
+    hasFormBeenSubmitted: () => boolean;
+
     /** Render prop receiving onConfirm and isConfirming. */
     children: (props: SubmitExpenseOrchestratorRenderProps) => React.ReactNode;
 };
@@ -120,6 +130,7 @@ function SubmitExpenseOrchestrator({
     receiptFiles,
     isFromGlobalCreateOnTransaction,
     isFromFloatingActionButtonOnTransaction,
+    hasFormBeenSubmitted,
     children,
 }: SubmitExpenseOrchestratorProps) {
     const [isConfirming, setIsConfirming] = useState(false);
@@ -208,6 +219,11 @@ function SubmitExpenseOrchestrator({
         Navigation.clearFullscreenPreInsertedFlag();
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, destinationReportID);
         reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID});
+
+        if (hasSubmitSpan()) {
+            setSubmitSpanAttributes(buildAtDismissAttributes(hasFormBeenSubmitted()));
+        }
+
         Navigation.dismissModal({
             afterTransition: () => {
                 createTransaction(listOfParticipants, false, false);
@@ -244,15 +260,31 @@ function SubmitExpenseOrchestrator({
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.SEARCH_DISMISS, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         const searchType = iouType === CONST.IOU.TYPE.INVOICE ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
         const isSameType = getCurrentSearchQueryJSON()?.type === searchType;
-        setPendingSubmitFollowUpAction(isSameType ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH);
+        const isNarrow = getIsNarrowLayout();
+        const followUpAction = isSameType ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH;
+        setPendingSubmitFollowUpAction(followUpAction);
         reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
 
+        const searchDismissPrefix = CONST.TELEMETRY.SUBMIT_SPAN.SEARCH_DISMISS_PREFIX;
+        setSubmitSpanAttributes({
+            [`${searchDismissPrefix}is_same_type`]: isSameType,
+            [`${searchDismissPrefix}is_narrow`]: isNarrow,
+        });
+
         const runAfterDismiss = () => {
+            const elapsed = getTrackingElapsedMs();
+            const afterTransitionAttrs: Record<string, SpanAttributeValue> = {
+                [`${searchDismissPrefix}after_transition_called`]: true,
+            };
+            if (elapsed !== undefined) {
+                afterTransitionAttrs[`${searchDismissPrefix}after_transition_elapsed_ms`] = elapsed;
+            }
+            setSubmitSpanAttributes(afterTransitionAttrs);
             createTransaction(listOfParticipants, false, false);
             setIsConfirming(false);
         };
 
-        if (!isSameType && !getIsNarrowLayout()) {
+        if (!isSameType && !isNarrow) {
             dismissWideToNewSearchType(searchType, runAfterDismiss);
             return;
         }
@@ -384,7 +416,16 @@ function SubmitExpenseOrchestrator({
         startSubmitSpans();
 
         const rootState = navigationRef.getRootState();
-        const handler = getSubmitHandler(buildNavigationSnapshot(rootState));
+        const snapshot = buildNavigationSnapshot(rootState);
+        const handler = getSubmitHandler(snapshot);
+
+        const {tabNavigatorStateAvailable, tabActiveName} = getTabNavigatorDiagnostics(rootState);
+        const snapshotPrefix = CONST.TELEMETRY.SUBMIT_SPAN.SNAPSHOT_PREFIX;
+        setSubmitSpanAttributes({
+            ...buildSnapshotAttributes(snapshot),
+            [`${snapshotPrefix}tab_navigator_state_available`]: tabNavigatorStateAvailable,
+            [`${snapshotPrefix}tab_active_name`]: tabActiveName ?? CONST.TELEMETRY.ATTRIBUTE_VALUE_UNAVAILABLE,
+        });
 
         const handlers: Record<SubmitHandler, () => void> = {
             [SUBMIT_HANDLER.SEARCH_PRE_INSERT]: () => handleSearchPreInsert(listOfParticipants),

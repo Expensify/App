@@ -13,6 +13,7 @@ import type {SpanAttributeValue} from '@sentry/core';
 import type {ValueOf} from 'type-fest';
 import Log from '@libs/Log';
 import getActiveTabName from '@libs/Navigation/helpers/getActiveTabName';
+import getTopmostReportParams from '@libs/Navigation/helpers/getTopmostReportParams';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import navigationRef from '@libs/Navigation/navigationRef';
 import CONST from '@src/CONST';
@@ -156,6 +157,56 @@ function getPendingSubmitFollowUpAction(): PendingSubmitFollowUpAction {
     return pendingSubmitFollowUpAction;
 }
 
+/** Returns true if the submit-to-destination-visible span is currently active. */
+function hasSubmitSpan(): boolean {
+    return !!getSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE);
+}
+
+/**
+ * Set arbitrary attributes on the submit-to-destination-visible span. Used by handlers in
+ * SubmitExpenseOrchestrator and submitDismissStrategies to record diagnostic state.
+ */
+function setSubmitSpanAttributes(attrs: Record<string, SpanAttributeValue>) {
+    const span = getSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE);
+    if (!span) {
+        if (__DEV__) {
+            Log.warn('[SubmitExpense] setSubmitSpanAttributes called but span does not exist');
+        }
+        return;
+    }
+    span.setAttributes(attrs);
+}
+
+/**
+ * Collects diagnostic attributes about navigation and timing state at span-end.
+ * Intentionally reads live navigation state (via getRootState) rather than using
+ * cached state from submit time - this captures where the user actually landed.
+ */
+function buildAtEndAttributes(reportID: string | undefined, elapsedMs: number | undefined): Record<string, SpanAttributeValue> {
+    const prefix = CONST.TELEMETRY.SUBMIT_SPAN.AT_END_PREFIX;
+    const attrs: Record<string, SpanAttributeValue> = {};
+
+    if (elapsedMs !== undefined) {
+        attrs[`${prefix}time_since_start_ms`] = elapsedMs;
+    }
+
+    const rootState = navigationRef.getRootState();
+    if (rootState) {
+        const topmostReportID = getTopmostReportParams(rootState)?.reportID;
+        if (topmostReportID) {
+            attrs[`${prefix}topmost_report_id`] = topmostReportID;
+        }
+        attrs[`${prefix}report_id_matches`] = reportID !== undefined && topmostReportID === reportID;
+
+        const lastRoute = rootState.routes.at(-1);
+        if (lastRoute) {
+            attrs[`${prefix}topmost_root_route`] = lastRoute.name;
+        }
+    }
+
+    return attrs;
+}
+
 /**
  * End the submit-to-visible span and clear the pending action. Call from each screen when its main content is visible (e.g. onLayout).
  * Only ends the span if the passed followUpAction matches the current pending action (avoids races and wrong attribution).
@@ -178,8 +229,9 @@ function endSubmitFollowUpActionSpan(followUpAction: SubmitFollowUpAction, repor
     // Uses performance.now() for the dev log duration because the Sentry span's internal
     // start time is not accessible via the public API. The Sentry span tracks its own
     // duration independently for production metrics; this timer is only for the dev log.
+    let elapsedMs: number | undefined;
     if (trackingState) {
-        const durationMs = Math.round(performance.now() - trackingState.startTime);
+        elapsedMs = Math.round(performance.now() - trackingState.startTime);
         const fp = trackingState.fastPath ?? 'unset';
         const pathLabel = fp === CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT || fp === 'unset' ? 'slow path' : 'fast path';
         const opts = trackingState.optimizations.size > 0 ? [...trackingState.optimizations].join(', ') : 'none';
@@ -187,13 +239,14 @@ function endSubmitFollowUpActionSpan(followUpAction: SubmitFollowUpAction, repor
             if (fp === 'unset') {
                 Log.warn('[SubmitExpense] endSubmitFollowUpActionSpan called before setFastPath - missing setFastPath() in the submit flow');
             }
-            Log.info(`[SubmitExpense] ${trackingState.context.scenario} -> ${followUpAction} (${opts}) ${durationMs}ms [${pathLabel}]`);
+            Log.info(`[SubmitExpense] ${trackingState.context.scenario} -> ${followUpAction} (${opts}) ${elapsedMs}ms [${pathLabel}]`);
         }
         trackingState = null;
     }
 
     const attributes: Record<string, SpanAttributeValue> = {
         [CONST.TELEMETRY.ATTRIBUTE_SUBMIT_FOLLOW_UP_ACTION]: followUpAction,
+        ...buildAtEndAttributes(reportID, elapsedMs),
         ...extraAttributes,
     };
     if (reportID !== undefined) {
@@ -323,6 +376,17 @@ function isTracking(): boolean {
 }
 
 /**
+ * Returns milliseconds elapsed since the current tracking session started,
+ * or undefined if no session is active.
+ */
+function getTrackingElapsedMs(): number | undefined {
+    if (!trackingState) {
+        return undefined;
+    }
+    return Math.round(performance.now() - trackingState.startTime);
+}
+
+/**
  * Check whether the pending span is still valid given the current navigation
  * state. Call this on every navigation state change to cancel spans that can
  * no longer complete (user navigated away from the expected destination).
@@ -381,5 +445,17 @@ function cancelIfStaleForNavState() {
     }
 }
 
-export {endSubmitFollowUpActionSpan, setPendingSubmitFollowUpAction, getPendingSubmitFollowUpAction, cancelSubmitFollowUpActionSpan, startTracking, setFastPath, addOptimization, isTracking};
+export {
+    endSubmitFollowUpActionSpan,
+    setPendingSubmitFollowUpAction,
+    getPendingSubmitFollowUpAction,
+    cancelSubmitFollowUpActionSpan,
+    startTracking,
+    setFastPath,
+    hasSubmitSpan,
+    setSubmitSpanAttributes,
+    addOptimization,
+    isTracking,
+    getTrackingElapsedMs,
+};
 export type {SubmitExpenseContext, SubmitFollowUpAction};

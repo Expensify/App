@@ -1,3 +1,6 @@
+import type {SpanAttributeValue} from '@sentry/core';
+import CONST from '@src/CONST';
+
 const SUBMIT_HANDLER = {
     SEARCH_PRE_INSERT: 'searchPreInsert',
     REPORT_PRE_INSERT: 'reportPreInsert',
@@ -101,5 +104,26 @@ function getSubmitHandler(snapshot: SubmitNavigationSnapshot): SubmitHandler {
     return SUBMIT_HANDLER.DEFAULT;
 }
 
-export {SUBMIT_HANDLER, getSubmitHandler, canUseDismissModalFastPath};
+/**
+ *  Maps the snapshot fields to prefixed Sentry span attributes for the submit-to-destination span.
+ *  These are investigatory attributes for diagnosing production routing issues and may be
+ *  removed once the related Sentry dashboards confirm the root causes.
+ */
+function buildSnapshotAttributes(snapshot: SubmitNavigationSnapshot): Record<string, SpanAttributeValue> {
+    const p = CONST.TELEMETRY.SUBMIT_SPAN.SNAPSHOT_PREFIX;
+    return {
+        [`${p}is_pre_inserted`]: snapshot.isPreInserted,
+        [`${p}is_report_pre_inserted`]: snapshot.isReportPreInserted,
+        [`${p}is_from_global_create`]: snapshot.isFromGlobalCreate,
+        [`${p}can_dismiss_from_search`]: snapshot.canDismissFromSearch,
+        [`${p}navigates_to_destination_report`]: snapshot.navigatesToDestinationReport,
+        [`${p}is_report_topmost_split`]: snapshot.isReportTopmostSplit,
+        [`${p}is_search_topmost_fullscreen`]: snapshot.isSearchTopmostFullScreen,
+        [`${p}is_report_in_rhp`]: snapshot.isReportInRHP,
+        [`${p}destination_report_loaded`]: snapshot.isDestinationReportLoaded,
+        [`${p}has_destination_report_id`]: !!snapshot.destinationReportID,
+    };
+}
+
+export {SUBMIT_HANDLER, getSubmitHandler, canUseDismissModalFastPath, buildSnapshotAttributes};
 export type {SubmitHandler, SubmitNavigationSnapshot};
