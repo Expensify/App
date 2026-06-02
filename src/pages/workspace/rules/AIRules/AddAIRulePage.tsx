@@ -123,6 +123,4 @@ function AddAIRulePage({route}: AddAIRulePageProps) {
     );
 }
 
-AddAIRulePage.displayName = 'AddAIRulePage';
-
 export default AddAIRulePage;
