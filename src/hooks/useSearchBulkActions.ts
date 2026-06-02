@@ -530,7 +530,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
             const serializedQuery = queryJSON ? serializeQueryJSONForBackend(queryJSON) : JSON.stringify(queryJSON);
 
-            const selectedPolicyID = selectedPolicyIDs.length === 1 ? selectedPolicyIDs.at(0) : undefined;
+            // Only fall back to the selection's policyID when every selected transaction belongs to the same real workspace.
+            // selectedPolicyIDs filters out falsy policyIDs, so a mix of one workspace expense and policy-less (personal/unreported)
+            // expenses would otherwise collapse to a single ID and incorrectly resolve GL codes against that workspace.
+            const allSelectedHavePolicy = Object.values(selectedTransactions).every((transaction) => !!transaction.policyID);
+            const selectedPolicyID = allSelectedHavePolicy && selectedPolicyIDs.length === 1 ? selectedPolicyIDs.at(0) : undefined;
             const queryPolicyID = queryJSON?.policyID?.length === 1 ? queryJSON.policyID.at(0) : undefined;
             const exportPolicyID = policyID ?? (areAllMatchingItemsSelected ? queryPolicyID : selectedPolicyID);
 
