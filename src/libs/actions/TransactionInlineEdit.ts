@@ -175,6 +175,8 @@ type GetIouParamsInput = {
     policyRecentlyUsedCategories: OnyxEntry<RecentlyUsedCategories>;
     policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
     parentReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
+    isSelfTourViewed: boolean | undefined;
+    hasCompletedGuidedSetupFlow: boolean | undefined;
 };
 
 type TransactionInlineEditParams = GetIouParamsInput & {
@@ -199,6 +201,8 @@ function getIouParamsForTransaction({
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
     parentReportNextStep,
+    isSelfTourViewed,
+    hasCompletedGuidedSetupFlow,
 }: GetIouParamsInput) {
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
@@ -244,6 +248,8 @@ function getIouParamsForTransaction({
             iouReportAction: resolvedParentReportAction,
             transaction,
             transactionViolations: transactionViolations ?? undefined,
+            isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
         });
     }
 
@@ -257,6 +263,8 @@ function getIouParamsForTransaction({
         currentUserAccountIDParam: currentUserAccountID,
         currentUserEmailParam: currentUserEmail,
         isASAPSubmitBetaEnabled: Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas),
+        // delegateAccountID: will be threaded in PR 11; updateMoneyRequest* falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+        delegateAccountID: undefined,
         // Field-specific extras
         transaction,
         policyTagList: policyTags,

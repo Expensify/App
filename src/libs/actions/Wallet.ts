@@ -62,7 +62,7 @@ function setKYCWallSource(source?: ValueOf<typeof CONST.KYC_WALL_SOURCE>, chatRe
  * Validates a user's provided details against a series of checks
  */
 function updatePersonalDetails(personalDetails: UpdatePersonalDetailsForWalletParams) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS | typeof ONYXKEYS.WALLET_ADDITIONAL_DETAILS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,
@@ -70,6 +70,14 @@ function updatePersonalDetails(personalDetails: UpdatePersonalDetailsForWalletPa
                 isLoading: true,
                 errors: null,
                 errorFields: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+            value: {
+                errorCode: null,
+                errors: null,
             },
         },
     ];
