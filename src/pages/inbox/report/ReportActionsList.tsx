@@ -575,7 +575,7 @@ function ReportActionsList({
         const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
         const isScrolledToEnd = scrollOffsetRef.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
 
-        if ((isVisible || isFromNotification) && !hasNewerActions && isScrolledToEnd) {
+        if (((isVisible && isFocused) || isFromNotification) && !hasNewerActions && isScrolledToEnd) {
             readNewestAction(report.reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
             if (isFromNotification) {
                 Navigation.setParams({referrer: undefined});
@@ -585,7 +585,7 @@ function ReportActionsList({
 
         readActionSkipped.current = true;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [report.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report.reportID, isVisible, reportLoadingState?.hasOnceLoadedReportActions]);
+    }, [report.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report.reportID, isVisible, isFocused, reportLoadingState?.hasOnceLoadedReportActions]);
 
     const handleAppVisibilityMarkAsRead = useCallback(() => {
         if (report.reportID !== prevReportID) {
