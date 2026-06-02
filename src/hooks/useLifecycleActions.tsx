@@ -126,7 +126,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             (moneyRequestReport?.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport.policyID}`] : undefined) ??
             policy;
         return isSubmitPolicy(transactionPolicy);
-    })
+    });
 
     const isBlockSubmitDueToSelectedTransactionsOnSubmitPolicy = hasSelectedTransactionsOnSubmitPolicy && selectedTransactions.length > 1;
 
