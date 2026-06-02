@@ -10,6 +10,7 @@ import InvertedFlashList from '@components/FlashList/InvertedFlashList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/FlatList/hooks/useFlatListScrollKey';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEnvironment from '@hooks/useEnvironment';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useLocalize from '@hooks/useLocalize';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
@@ -182,6 +183,7 @@ function ReportActionsList({
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isProduction} = useEnvironment();
 
     const {getLocalDateFromDatetime} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
@@ -204,6 +206,23 @@ function ReportActionsList({
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report.reportID}`);
     const prevIsLoadingInitialReportActions = usePrevious(reportLoadingState?.isLoadingInitialReportActions);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
+    const reportAttributesSelector = useCallback(
+        (value: OnyxEntry<OnyxTypes.ReportAttributesDerivedValue>) => {
+            const attrs = value?.reports?.[report.reportID];
+            if (!attrs) {
+                return undefined;
+            }
+            return {
+                actionBadge: attrs.actionBadge,
+                actionTargetReportActionID: attrs.actionTargetReportActionID,
+                brickRoadStatus: attrs.brickRoadStatus,
+            };
+        },
+        [report.reportID],
+    );
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+        selector: reportAttributesSelector,
+    });
     const isHarvestCreatedExpenseReportAction = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
 
     const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {selector: getStableReportSelector});
@@ -451,21 +470,32 @@ function ReportActionsList({
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
     const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated || isReportPreviewAction(lastAction);
 
-    const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
-        reportID: report.reportID,
-        currentVerticalScrollingOffsetRef: scrollOffsetRef,
-        readActionSkippedRef: readActionSkipped,
-        hasNewerActions,
-        unreadMarkerReportActionIndex,
-        isInverted: true,
-        onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-            const offset = event.nativeEvent.contentOffset.y;
-            scrollOffsetRef.current = offset;
-            setHasScrolledOverThreshold(offset > CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
-            onScroll?.(event);
-        },
-        hasOnceLoadedReportActions: !!reportLoadingState?.hasOnceLoadedReportActions,
-    });
+    // Find the index of the action badge target in the rendered actions list (which is what the FlatList uses as data)
+    const actionBadgeTargetIndex = useMemo(() => {
+        const targetID = reportAttributes?.actionTargetReportActionID;
+        if (!targetID) {
+            return -1;
+        }
+        return renderedVisibleReportActions.findIndex((action) => action.reportActionID === targetID);
+    }, [reportAttributes?.actionTargetReportActionID, renderedVisibleReportActions]);
+
+    const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, isActionBadgeAboveViewport, trackVerticalScrolling, onViewableItemsChanged} =
+        useReportUnreadMessageScrollTracking({
+            reportID: report.reportID,
+            currentVerticalScrollingOffsetRef: scrollOffsetRef,
+            readActionSkippedRef: readActionSkipped,
+            hasNewerActions,
+            unreadMarkerReportActionIndex,
+            isInverted: true,
+            onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+                const offset = event.nativeEvent.contentOffset.y;
+                scrollOffsetRef.current = offset;
+                setHasScrolledOverThreshold(offset > CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
+                onScroll?.(event);
+            },
+            hasOnceLoadedReportActions: !!reportLoadingState?.hasOnceLoadedReportActions,
+            actionBadgeTargetIndex,
+        });
 
     const {isScrollToBottomEnabled, setIsScrollToBottomEnabled, completeLiveTailPruneAfterScrollToBottom} = useReportActionsNewActionLiveTail({
         reportID: report.reportID,
@@ -702,6 +732,13 @@ function ReportActionsList({
         readNewestAction(report.reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
     }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, backTo, introSelected, reportLoadingState?.hasOnceLoadedReportActions, betas]);
 
+    const scrollToActionBadgeTarget = useCallback(() => {
+        if (actionBadgeTargetIndex < 0) {
+            return;
+        }
+        reportScrollManager.scrollToIndex(actionBadgeTargetIndex);
+    }, [actionBadgeTargetIndex, reportScrollManager]);
+
     /**
      * Thread's divider line should hide when the first chat in the thread is marked as unread.
      * This is so that it will not be conflicting with header's separator line.
@@ -897,6 +934,9 @@ function ReportActionsList({
                 hasNewMessages={!!unreadMarkerReportActionID}
                 isActive={isFloatingMessageCounterVisible}
                 onClick={scrollToBottomAndMarkReportAsRead}
+                actionBadge={!isProduction && isActionBadgeAboveViewport ? reportAttributes?.actionBadge : undefined}
+                actionBadgeBrickRoadStatus={!isProduction && isActionBadgeAboveViewport ? reportAttributes?.brickRoadStatus : undefined}
+                onActionBadgePress={scrollToActionBadgeTarget}
             />
             <ReportActionsListPaddingView
                 report={report}
