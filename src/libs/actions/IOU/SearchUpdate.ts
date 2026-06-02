@@ -233,7 +233,7 @@ function getSearchOnyxUpdate({
                 filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: fromAccountID}],
             });
 
-            const groupTransactionsQuery = buildSearchQueryJSON(
+            const groupTransactionsQueryJSON = buildSearchQueryJSON(
                 buildSearchQueryString({
                     ...queryJSON,
                     groupBy: undefined,
@@ -241,14 +241,14 @@ function getSearchOnyxUpdate({
                 }),
             );
 
-            if (groupTransactionsQuery?.hash && !writtenHashes.has(groupTransactionsQuery.hash)) {
+            if (groupTransactionsQueryJSON?.hash && !writtenHashes.has(groupTransactionsQueryJSON.hash)) {
                 optimisticData.push({
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${groupTransactionsQuery.hash}` as const,
+                    key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${groupTransactionsQueryJSON.hash}` as const,
                     value: {
                         search: {
-                            type: groupTransactionsQuery.type,
-                            status: groupTransactionsQuery.status,
+                            type: groupTransactionsQueryJSON.type,
+                            status: groupTransactionsQueryJSON.status,
                             offset: 0,
                             hasMoreResults: false,
                             hasResults: true,
@@ -257,7 +257,7 @@ function getSearchOnyxUpdate({
                         data: baseSnapshotData,
                     },
                 });
-                writtenHashes.add(groupTransactionsQuery.hash);
+                writtenHashes.add(groupTransactionsQueryJSON.hash);
             }
         }
     };

@@ -319,9 +319,10 @@ function getOnyxLoadingData(
         },
     ];
 
-    // Persist this query string under a dedicated Onyx key so IOU optimistic updates can fan to
-    // every loaded snapshot whose query matches. Written directly because the SEARCH API's
-    // optimisticData type only allows snapshot entries.
+    // Side effect: record this query string under SEARCH_QUERY_BY_HASH so IOU optimistic updates
+    // can later fan to every loaded snapshot whose query matches. Done here (not via optimisticData)
+    // because this function's return type only allows snapshot keys; the matching eviction lives
+    // in the SNAPSHOT subscription in IOU/index.ts.
     if (queryJSON?.inputQuery) {
         Onyx.merge(ONYXKEYS.SEARCH_QUERY_BY_HASH, {[hash]: queryJSON.inputQuery});
     }

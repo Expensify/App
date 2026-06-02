@@ -126,10 +126,15 @@ Onyx.connect({
         allSnapshots = value ?? {};
         // Keep SEARCH_QUERY_BY_HASH bounded by mirroring the snapshot collection's lifecycle:
         // when a snapshot disappears, drop its query entry so the map can never outgrow it.
-        const currentHashes = new Set(Object.keys(allSnapshots).map((k) => k.replace(ONYXKEYS.COLLECTION.SNAPSHOT, '')));
+        const snapshotPrefixLength = ONYXKEYS.COLLECTION.SNAPSHOT.length;
+        const currentHashes = new Set(Object.keys(allSnapshots).map((k) => k.slice(snapshotPrefixLength)));
         const removed = [...knownSnapshotHashes].filter((h) => !currentHashes.has(h));
         if (removed.length > 0) {
-            Onyx.merge(ONYXKEYS.SEARCH_QUERY_BY_HASH, Object.fromEntries(removed.map((h) => [h, null])));
+            const evictions: Record<string, string | null> = {};
+            for (const h of removed) {
+                evictions[h] = null;
+            }
+            Onyx.merge(ONYXKEYS.SEARCH_QUERY_BY_HASH, evictions);
         }
         knownSnapshotHashes = currentHashes;
     },
