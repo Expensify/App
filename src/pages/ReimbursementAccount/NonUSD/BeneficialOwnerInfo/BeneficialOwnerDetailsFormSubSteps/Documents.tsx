@@ -57,8 +57,8 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
     );
 
     const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> =>
-            getFieldRequiredErrors(values, STEP_FIELDS, translate),
+        (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> =>
+            getFieldRequiredErrors(formValues, STEP_FIELDS, translate),
         [STEP_FIELDS, translate],
     );
 
