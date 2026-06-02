@@ -2105,9 +2105,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 modifiedMerchant: undefined,
             };
 
-            await Onyx.set(ONYXKEYS.COLLECTION.REPORT, {
-                [`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`]: fakeReport,
-            });
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, fakeReport);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction1.transactionID}`, fakeTransaction1);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction2.transactionID}`, fakeTransaction2);
@@ -2242,8 +2239,8 @@ describe('actions/IOU/ReportWorkflow', () => {
                 ...createRandomTransaction(1),
             };
             Onyx.multiSet({
-                [ONYXKEYS.COLLECTION.REPORT]: fakeReport,
-                [ONYXKEYS.COLLECTION.TRANSACTION]: fakeTransaction,
+                [`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`]: fakeReport,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`]: fakeTransaction,
             });
             await waitForBatchedUpdates();
             // Then, canApproveIOU should return false since the report is closed

@@ -7723,13 +7723,15 @@ describe('ReportUtils', () => {
                             created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
                             reportID: expenseReport.reportID,
                         };
-                        Onyx.multiSet({
-                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
-                            [ONYXKEYS.COLLECTION.TRANSACTION]: {
-                                [transaction1.transactionID]: transaction1,
-                                [transaction2.transactionID]: transaction2,
-                            },
-                        }).then(() => {
+                        Promise.all([
+                            Onyx.multiSet({
+                                [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
+                            }),
+                            Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, {
+                                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+                            }),
+                        ]).then(() => {
                             const result = ['owner@test.com'];
                             expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
                         });

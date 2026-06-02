@@ -59,15 +59,15 @@ describe('ReportActionItemSingle', () => {
                     await Onyx.multiSet({
                         [ONYXKEYS.PERSONAL_DETAILS_LIST]: fakePersonalDetails,
                         [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
-                        [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: {
-                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`]: {
-                                [fakeReportAction.reportActionID]: fakeReportAction,
-                            },
-                        },
-                        [ONYXKEYS.COLLECTION.REPORT]: {
-                            [fakeReport.reportID]: fakeReport,
-                        },
                         ...policyCollectionDataSet,
+                    });
+                    await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`]: {
+                            [fakeReportAction.reportActionID]: fakeReportAction,
+                        },
+                    });
+                    await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, {
+                        [`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`]: fakeReport,
                     });
                     await waitForBatchedUpdatesWithAct();
                 });
@@ -117,9 +117,9 @@ describe('ReportActionItemSingle', () => {
                 await Onyx.multiSet({
                     [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
                     [ONYXKEYS.PERSONAL_DETAILS_LIST]: {},
-                    [ONYXKEYS.COLLECTION.REPORT]: {
-                        [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
-                    },
+                });
+                await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                 });
                 await waitForBatchedUpdatesWithAct();
             });

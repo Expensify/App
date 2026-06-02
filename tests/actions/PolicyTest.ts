@@ -4317,10 +4317,6 @@ describe('actions/Policy', () => {
     });
 
     describe('generateDefaultWorkspaceName', () => {
-        beforeAll(() => {
-            Onyx.set(ONYXKEYS.COLLECTION.POLICY, {});
-        });
-
         it('should generate a workspace name based on the email domain when the domain is not public', () => {
             const domain = 'example.com';
             const displayNameForWorkspace = Str.UCFirst(domain.split('.').at(0) ?? '');
@@ -4375,7 +4371,7 @@ describe('actions/Policy', () => {
                 accountID: TEST_ACCOUNT_ID,
             });
 
-            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, existingPolicies);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${existingPolicies.id}`, existingPolicies);
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL, 1, TestHelper.translateLocal);
             expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', TEST_DISPLAY_NAME, 2));
@@ -4393,7 +4389,6 @@ describe('actions/Policy', () => {
         });
 
         it('should generate a workspace name with an incremented number even if previous workspaces were created in english lang', async () => {
-            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, {});
             await IntlStore.load(CONST.LOCALES.ES);
             const existingPolicies = {
                 ...createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL, `${TEST_DISPLAY_NAME}'s Workspace`),
@@ -4408,7 +4403,7 @@ describe('actions/Policy', () => {
 
             jest.spyOn(Str, 'UCFirst').mockReturnValue(TEST_DISPLAY_NAME);
 
-            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, existingPolicies);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${existingPolicies.id}`, existingPolicies);
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL, 1, TestHelper.translateLocal);
             expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', TEST_DISPLAY_NAME, 2));

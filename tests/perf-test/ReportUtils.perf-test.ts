@@ -85,10 +85,8 @@ describe('ReportUtils', () => {
         const policies = getMockedPolicies(2000);
         const openOnAdminRoom = true;
 
-        await Onyx.multiSet({
-            [ONYXKEYS.COLLECTION.REPORT]: reports,
-            [ONYXKEYS.COLLECTION.POLICY]: policies,
-        });
+        await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reports);
+        await Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, policies);
 
         await waitForBatchedUpdates();
         await measureFunction(() => findLastAccessedReport(ignoreDomainRooms, openOnAdminRoom));
