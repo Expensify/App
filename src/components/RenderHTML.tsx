@@ -42,7 +42,7 @@ function RenderHTML({html: htmlParam, onLinkPress, isSelectable}: RenderHTMLProp
     const {windowWidth} = useWindowDimensions();
     const html = useMemo(() => {
         return (
-            Parser.replace(htmlParam, {shouldEscapeText: false, filterRules: ['emoji']})
+            Parser.replace(htmlParam ?? '', {shouldEscapeText: false, filterRules: ['emoji']})
                 // Escape brackets when pasting a link, since unescaped [] can break Markdown link syntax
                 .replaceAll(RE_BRACKET_ESCAPE, (m) => (m.at(7) === '1' ? '[' : ']'))
                 // Remove double <emoji> tag if exists and keep the outermost tag (always the original tag).

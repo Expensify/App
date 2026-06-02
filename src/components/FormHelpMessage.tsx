@@ -90,7 +90,7 @@ function FormHelpMessage({
     });
 
     const HTMLMessage = useMemo(() => {
-        if (typeof message !== 'string' || !shouldRenderMessageAsHTML) {
+        if (typeof message !== 'string' || !shouldRenderMessageAsHTML || !message) {
             return '';
         }
 
