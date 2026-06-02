@@ -1,22 +1,27 @@
 import React from 'react';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
-import type {PaymentMethodType} from '@components/KYCWall/types';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import SettlementButton from '@components/SettlementButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePolicy from '@hooks/usePolicy';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {canIOUBePaid} from '@libs/actions/IOU/ReportWorkflow';
-import {getPayMoneyOnSearchInvoiceParams, payFromSearch} from '@libs/actions/Search';
+import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
+import {getSearchPayOnyxData} from '@libs/actions/Search';
 import {isInvoiceReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {hasSeenTourSelector} from '@src/selectors/Onboarding';
 
 type PayActionCellProps = {
     isLoading: boolean;
@@ -31,6 +36,7 @@ type PayActionCellProps = {
 function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall, shouldDisablePointerEvents}: PayActionCellProps) {
     const styles = useThemeStyles();
     const {convertToDisplayString} = useCurrencyListActions();
+    const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -40,7 +46,20 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`);
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
-    const {login: currentUserLogin, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin, accountID: currentUserAccountID, email, localCurrencyCode} = useCurrentUserPersonalDetails();
+    const lastWorkspaceNumber = useLastWorkspaceNumber();
+    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const activePolicy = usePolicy(activePolicyID);
+    const chatReportPolicy = usePolicy(chatReport?.policyID);
+    const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
 
     const canBePaid = canIOUBePaid(iouReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', currentUserAccountID, transactions, false, undefined, invoiceReceiverPolicy);
     const shouldOnlyShowElsewhere =
@@ -49,7 +68,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
     const {currency} = iouReport ?? {};
 
     const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
-        if (!type || !reportID || !hash || !amount) {
+        if (!type || !reportID || !hash || !amount || !chatReport) {
             return;
         }
 
@@ -58,20 +77,51 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
             return;
         }
 
-        const isItemInvoice = isInvoiceReport(iouReport);
-        const invoiceParams = isItemInvoice ? getPayMoneyOnSearchInvoiceParams(policyID, payAsBusiness, methodID, paymentMethod) : undefined;
-        const bankAccountIDForPayment = type === CONST.IOU.PAYMENT_TYPE.VBBA && methodID != null ? methodID : undefined;
-        payFromSearch(
-            hash,
-            reportID,
-            iouReport?.chatReportID ?? '',
-            amount,
-            type as PaymentMethodType,
-            isItemInvoice,
-            isItemInvoice ? invoiceParams : undefined,
-            bankAccountIDForPayment,
-            undefined,
-        );
+        const additionalOnyxData = getSearchPayOnyxData(hash, reportID);
+
+        if (isInvoiceReport(iouReport)) {
+            payInvoice({
+                paymentMethodType: type,
+                chatReport,
+                invoiceReport: iouReport,
+                invoiceReportCurrentNextStepDeprecated: nextStep,
+                introSelected,
+                currentUserAccountIDParam: currentUserAccountID,
+                currentUserEmailParam: email ?? '',
+                currentUserLocalCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,
+                payAsBusiness,
+                existingB2BInvoiceReport,
+                methodID,
+                paymentMethod,
+                activePolicy,
+                betas,
+                isSelfTourViewed,
+                defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate),
+                additionalOnyxData,
+            });
+            return;
+        }
+
+        payMoneyRequest({
+            paymentType: type,
+            chatReport,
+            iouReport,
+            introSelected,
+            iouReportCurrentNextStepDeprecated: nextStep,
+            currentUserAccountID,
+            currentUserLogin: currentUserLogin ?? '',
+            activePolicy,
+            policy,
+            chatReportPolicy,
+            betas,
+            isSelfTourViewed,
+            userBillingGracePeriodEnds,
+            amountOwed,
+            ownerBillingGracePeriodEnd,
+            methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+            conciergeReportID,
+            additionalOnyxData,
+        });
     };
 
     return (

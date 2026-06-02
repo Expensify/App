@@ -59,6 +59,7 @@ type PayInvoiceArgs = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean | undefined;
     defaultWorkspaceName: string;
+    additionalOnyxData?: AdditionalPayOnyxData;
 };
 
 type PayMoneyRequestData = {
@@ -73,6 +74,17 @@ type PayMoneyRequestData = {
         | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
         | BuildPolicyDataKeys
     >;
+};
+
+type SearchPayOnyxKey =
+    | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
+    | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+    | typeof ONYXKEYS.COLLECTION.REPORT;
+
+type AdditionalPayOnyxData = {
+    optimisticData?: Array<OnyxUpdate<SearchPayOnyxKey>>;
+    successData?: Array<OnyxUpdate<SearchPayOnyxKey>>;
+    failureData?: Array<OnyxUpdate<SearchPayOnyxKey>>;
 };
 
 type PayMoneyRequestFunctionParams = {
@@ -96,7 +108,27 @@ type PayMoneyRequestFunctionParams = {
     methodID?: number;
     conciergeReportID: string | undefined;
     onPaid?: () => void;
+    additionalOnyxData?: AdditionalPayOnyxData;
 };
+
+function mergeAdditionalPayOnyxData<
+    T extends {
+        optimisticData?: ReadonlyArray<unknown>;
+        successData?: ReadonlyArray<unknown>;
+        failureData?: ReadonlyArray<unknown>;
+    },
+>(onyxData: T, additionalOnyxData?: AdditionalPayOnyxData): T {
+    if (!additionalOnyxData) {
+        return onyxData;
+    }
+
+    return {
+        ...onyxData,
+        optimisticData: [...(onyxData.optimisticData ?? []), ...(additionalOnyxData.optimisticData ?? [])],
+        successData: [...(onyxData.successData ?? []), ...(additionalOnyxData.successData ?? [])],
+        failureData: [...(onyxData.failureData ?? []), ...(additionalOnyxData.failureData ?? [])],
+    };
+}
 
 function getPayMoneyRequestParams({
     initialChatReport,
@@ -763,6 +795,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         methodID,
         conciergeReportID,
         onPaid,
+        additionalOnyxData,
     } = params;
     const policyForBillingRestriction = chatReportPolicy ?? (policy?.id === chatReport.policyID ? policy : undefined);
     if (
@@ -804,7 +837,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
 
     onPaid?.();
     playSound(SOUNDS.SUCCESS);
-    API.write(apiCommand, payMoneyRequestParams, onyxData);
+    API.write(apiCommand, payMoneyRequestParams, mergeAdditionalPayOnyxData(onyxData, additionalOnyxData));
     notifyNewAction(!full ? (Navigation.getTopmostReportId() ?? iouReport?.reportID) : iouReport?.reportID, undefined, true);
     return payMoneyRequestParams.optimisticHoldReportID;
 }
@@ -996,6 +1029,7 @@ function payInvoice({
     betas,
     isSelfTourViewed,
     defaultWorkspaceName,
+    additionalOnyxData,
 }: PayInvoiceArgs) {
     const recipient = {accountID: invoiceReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {
@@ -1066,7 +1100,7 @@ function payInvoice({
     }
 
     playSound(SOUNDS.SUCCESS);
-    API.write(WRITE_COMMANDS.PAY_INVOICE, params, onyxData);
+    API.write(WRITE_COMMANDS.PAY_INVOICE, params, mergeAdditionalPayOnyxData(onyxData, additionalOnyxData));
 }
 
 /** Save the preferred payment method for a policy or personal DM */
@@ -1092,3 +1126,4 @@ function savePreferredPaymentMethod(
 }
 
 export {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
+export type {AdditionalPayOnyxData};

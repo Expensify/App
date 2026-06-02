@@ -12,7 +12,9 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {BulkPaySelectionData, PaymentData, SearchColumnType, SearchFilterKey, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
+import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
+import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {deleteAppReport, exportReportToPDF, markAsManuallyExported, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
@@ -24,9 +26,9 @@ import {
     getPayMoneyOnSearchInvoiceParams,
     getPayOption,
     getReportType,
+    getSearchPayOnyxData,
     getTotalFormattedAmount,
     isCurrencySupportWalletBulkPay,
-    payFromSearch,
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
     submitMoneyRequestOnSearch,
@@ -75,6 +77,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
+import {hasSeenTourSelector} from '@src/selectors/Onboarding';
 import type {BillingGraceEndPeriod, Policy, Report, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -88,11 +91,13 @@ import useDefaultExpensePolicy from './useDefaultExpensePolicy';
 import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
 import useEnvironment from './useEnvironment';
+import useLastWorkspaceNumber from './useLastWorkspaceNumber';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
+import usePolicy from './usePolicy';
 import useSelfDMReport from './useSelfDMReport';
 import useTheme from './useTheme';
 import useThemeStyles from './useThemeStyles';
@@ -312,9 +317,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {currentSearchKey} = useSearchQueryContext();
     const {clearSelectedTransactions, selectAllMatchingItems} = useSearchSelectionActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {accountID} = currentUserPersonalDetails;
+    const {accountID, email, login: currentUserLogin, localCurrencyCode} = currentUserPersonalDetails;
+    const lastWorkspaceNumber = useLastWorkspaceNumber();
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const policyExpenseChatReportActions = useAllPolicyExpenseChatReportActions();
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
@@ -333,6 +340,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {isBetaEnabled} = usePermissions();
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const activePolicy = usePolicy(activePolicyID);
 
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const undeleteTransactions = useUndeleteTransactions();
@@ -1014,19 +1027,59 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             for (const item of paymentData) {
                 const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`];
-                const chatReportID = iouReport?.chatReportID ?? '';
+                const chatReport = getReportOrDraftReport(iouReport?.chatReportID);
+                if (!chatReport || !iouReport) {
+                    continue;
+                }
+
+                const chatReportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${chatReport.policyID}`];
+                const reportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
+                const nextStep = allNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${item.reportID}`];
+                const additionalOnyxData = getSearchPayOnyxData(hash, item.reportID, currentSearchKey);
                 const isItemInvoice = isInvoiceReport(item.reportID);
-                payFromSearch(
-                    hash,
-                    item.reportID,
-                    chatReportID,
-                    item.amount,
-                    item.paymentType as PaymentMethodType,
-                    isItemInvoice,
-                    isItemInvoice ? {policyID: item.policyID, payAsBusiness: item.payAsBusiness, bankAccountID: item.bankAccountID, fundID: item.fundID} : undefined,
-                    item.bankAccountID,
-                    undefined,
-                );
+
+                if (isItemInvoice) {
+                    payInvoice({
+                        paymentMethodType: item.paymentType as PaymentMethodType,
+                        chatReport,
+                        invoiceReport: iouReport,
+                        invoiceReportCurrentNextStepDeprecated: nextStep,
+                        introSelected,
+                        currentUserAccountIDParam: accountID,
+                        currentUserEmailParam: email ?? '',
+                        currentUserLocalCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,
+                        payAsBusiness: item.payAsBusiness,
+                        methodID: item.bankAccountID ?? item.fundID,
+                        paymentMethod: item.fundID ? CONST.PAYMENT_METHODS.DEBIT_CARD : CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+                        activePolicy,
+                        betas,
+                        isSelfTourViewed,
+                        defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate),
+                        additionalOnyxData,
+                    });
+                    continue;
+                }
+
+                payMoneyRequest({
+                    paymentType: item.paymentType as PaymentMethodType,
+                    chatReport,
+                    iouReport,
+                    introSelected,
+                    iouReportCurrentNextStepDeprecated: nextStep,
+                    currentUserAccountID: accountID,
+                    currentUserLogin: currentUserLogin ?? '',
+                    activePolicy,
+                    policy: reportPolicy,
+                    chatReportPolicy,
+                    betas,
+                    isSelfTourViewed,
+                    userBillingGracePeriodEnds,
+                    amountOwed,
+                    ownerBillingGracePeriodEnd,
+                    methodID: item.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? item.bankAccountID : undefined,
+                    conciergeReportID,
+                    additionalOnyxData,
+                });
             }
 
             InteractionManager.runAfterInteractions(() => {
@@ -1045,6 +1098,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             policies,
             showDelegateNoAccessModal,
             allReports,
+            allNextSteps,
             personalPolicyID,
             lastPaymentMethods,
             allTransactions,
@@ -1053,7 +1107,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             formatPhoneNumber,
             clearSelectedTransactions,
             accountID,
+            email,
+            currentUserLogin,
+            localCurrencyCode,
+            lastWorkspaceNumber,
+            translate,
             personalDetails,
+            introSelected,
+            betas,
+            isSelfTourViewed,
+            activePolicy,
+            conciergeReportID,
+            currentSearchKey,
         ],
     );
 

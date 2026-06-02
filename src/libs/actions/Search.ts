@@ -38,6 +38,7 @@ import {
     buildOptimisticIOUReportAction,
     generateReportID,
     getParsedComment,
+    getReportOrDraftReport,
     getReportTransactions,
     hasHeldExpenses,
     isExpenseReport,
@@ -62,12 +63,14 @@ import type {
     Beta,
     BillingGraceEndPeriod,
     ExportTemplate,
+    IntroSelected,
     LastPaymentMethod,
     LastPaymentMethodType,
     Policy,
     Report,
     ReportAction,
     ReportNameValuePairs,
+    ReportNextStepDeprecated,
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
@@ -78,6 +81,8 @@ import type Nullable from '@src/types/utils/Nullable';
 import SafeString from '@src/utils/SafeString';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
 import {deleteMoneyRequest} from './IOU/DeleteMoneyRequest';
+import type {AdditionalPayOnyxData} from './IOU/PayMoneyRequest';
+import {payMoneyRequest} from './IOU/PayMoneyRequest';
 import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU/RejectMoneyRequest';
 import type {RejectMoneyRequestData} from './IOU/RejectMoneyRequest';
 import {isCurrencySupportedForGlobalReimbursement} from './Policy/Policy';
@@ -118,6 +123,15 @@ type HandleActionButtonPressParams = {
     onUndelete?: () => void;
     onPendingCardTransactionsBlock?: () => void;
     currentUserAccountID?: number;
+    currentUserLogin?: string;
+    introSelected?: OnyxEntry<IntroSelected>;
+    betas?: OnyxEntry<Beta[]>;
+    isSelfTourViewed?: boolean;
+    activePolicy?: OnyxEntry<Policy>;
+    chatReport?: OnyxEntry<Report>;
+    chatReportPolicy?: OnyxEntry<Policy>;
+    conciergeReportID?: string;
+    iouReportCurrentNextStepDeprecated?: OnyxEntry<ReportNextStepDeprecated>;
 };
 
 type BulkDeleteReportsParams = {
@@ -152,6 +166,15 @@ function handleActionButtonPress({
     amountOwed,
     onUndelete,
     currentUserAccountID,
+    currentUserLogin,
+    introSelected,
+    betas,
+    isSelfTourViewed,
+    activePolicy,
+    chatReport,
+    chatReportPolicy,
+    conciergeReportID,
+    iouReportCurrentNextStepDeprecated,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -178,7 +201,30 @@ function handleActionButtonPress({
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
                 return;
             }
-            getPayActionCallback(hash, item, goToItem, snapshotReport, snapshotPolicy, lastPaymentMethod, currentSearchKey, personalPolicyID);
+            getPayActionCallback({
+                hash,
+                item,
+                goToItem,
+                snapshotReport,
+                snapshotPolicy,
+                lastPaymentMethod,
+                currentSearchKey,
+                personalPolicyID,
+                currentUserAccountID,
+                currentUserLogin,
+                introSelected,
+                betas,
+                isSelfTourViewed,
+                activePolicy,
+                chatReport,
+                chatReportPolicy,
+                conciergeReportID,
+                iouReportCurrentNextStepDeprecated,
+                userBillingGracePeriodEnds,
+                ownerBillingGracePeriodEnd,
+                amountOwed,
+                policy,
+            });
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
             if (isDelegateAccessRestricted) {
@@ -279,16 +325,96 @@ function getReportType(reportID?: string) {
     return undefined;
 }
 
-function getPayActionCallback(
-    hash: number,
-    item: TransactionListItemType | TransactionReportGroupListItemType,
-    goToItem: () => void,
-    snapshotReport: Report,
-    snapshotPolicy: Policy,
-    lastPaymentMethod: OnyxEntry<LastPaymentMethod>,
-    currentSearchKey: SearchKey | undefined,
-    personalPolicyID: string | undefined,
-) {
+function getSearchPayOnyxData(hash: number, reportID: string, currentSearchKey?: SearchKey): AdditionalPayOnyxData {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.REPORT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`,
+            value: {isActionLoading: true},
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.REPORT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`,
+            value: {isActionLoading: false},
+        },
+    ];
+
+    if (currentSearchKey === CONST.SEARCH.SEARCH_KEYS.PAY) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {data: {[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: null}},
+        });
+    }
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.REPORT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`,
+            value: {isActionLoading: false},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+        },
+    ];
+
+    return {optimisticData, successData, failureData};
+}
+
+type GetPayActionCallbackParams = {
+    hash: number;
+    item: TransactionListItemType | TransactionReportGroupListItemType;
+    goToItem: () => void;
+    snapshotReport: Report;
+    snapshotPolicy: Policy;
+    lastPaymentMethod: OnyxEntry<LastPaymentMethod>;
+    currentSearchKey: SearchKey | undefined;
+    personalPolicyID: string | undefined;
+    currentUserAccountID?: number;
+    currentUserLogin?: string;
+    introSelected?: OnyxEntry<IntroSelected>;
+    betas?: OnyxEntry<Beta[]>;
+    isSelfTourViewed?: boolean;
+    activePolicy?: OnyxEntry<Policy>;
+    chatReport?: OnyxEntry<Report>;
+    chatReportPolicy?: OnyxEntry<Policy>;
+    conciergeReportID?: string;
+    iouReportCurrentNextStepDeprecated?: OnyxEntry<ReportNextStepDeprecated>;
+    userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
+    ownerBillingGracePeriodEnd: OnyxEntry<number>;
+    amountOwed: OnyxEntry<number>;
+    policy: OnyxEntry<Policy>;
+};
+
+function getPayActionCallback({
+    hash,
+    item,
+    goToItem,
+    snapshotReport,
+    snapshotPolicy,
+    lastPaymentMethod,
+    currentSearchKey,
+    personalPolicyID,
+    currentUserAccountID,
+    currentUserLogin,
+    introSelected,
+    betas,
+    isSelfTourViewed,
+    activePolicy,
+    chatReport,
+    chatReportPolicy,
+    conciergeReportID,
+    iouReportCurrentNextStepDeprecated,
+    userBillingGracePeriodEnds,
+    ownerBillingGracePeriodEnd,
+    amountOwed,
+    policy,
+}: GetPayActionCallbackParams) {
     const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(item.reportID));
 
     if (!item.reportID) {
@@ -300,20 +426,40 @@ function getPayActionCallback(
         return;
     }
 
-    const amount = Math.abs((snapshotReport?.total ?? 0) - (snapshotReport?.nonReimbursableTotal ?? 0));
+    if (lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+        const hasVBBA = !!snapshotPolicy?.achAccount?.bankAccountID;
+        if (!hasVBBA) {
+            goToItem();
+            return;
+        }
+    }
 
-    if (lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-        payFromSearch(hash, item.reportID, snapshotReport?.chatReportID ?? '', amount, lastPolicyPaymentMethod, false, undefined, undefined, currentSearchKey);
+    const chatReportForPayment = chatReport ?? getReportOrDraftReport(snapshotReport?.chatReportID);
+    if (!chatReportForPayment) {
+        goToItem();
         return;
     }
 
-    const hasVBBA = !!snapshotPolicy?.achAccount?.bankAccountID;
-    if (hasVBBA) {
-        payFromSearch(hash, item.reportID, snapshotReport?.chatReportID ?? '', amount, lastPolicyPaymentMethod, false, undefined, undefined, currentSearchKey);
-        return;
-    }
-
-    goToItem();
+    payMoneyRequest({
+        paymentType: lastPolicyPaymentMethod,
+        chatReport: chatReportForPayment,
+        iouReport: snapshotReport,
+        introSelected,
+        iouReportCurrentNextStepDeprecated,
+        currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+        currentUserLogin: currentUserLogin ?? '',
+        activePolicy,
+        policy: snapshotPolicy ?? policy,
+        chatReportPolicy,
+        betas,
+        isSelfTourViewed,
+        userBillingGracePeriodEnds,
+        amountOwed,
+        ownerBillingGracePeriodEnd,
+        methodID: lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? snapshotPolicy?.achAccount?.bankAccountID : undefined,
+        conciergeReportID,
+        additionalOnyxData: getSearchPayOnyxData(hash, item.reportID, currentSearchKey),
+    });
 }
 
 function getOnyxLoadingData(
@@ -854,88 +1000,6 @@ function exportToIntegrationOnSearch(hash: number, reportIDs: string[], connecti
     } satisfies ReportExportParams;
 
     API.write(WRITE_COMMANDS.REPORT_EXPORT, params, {optimisticData, successData, failureData, finallyData});
-}
-
-function payFromSearch(
-    hash: number,
-    reportID: string,
-    chatReportID: string,
-    amount: number,
-    paymentType: PaymentMethodType,
-    isInvoice: boolean,
-    invoiceParams: {policyID?: string; payAsBusiness?: boolean; bankAccountID?: number; fundID?: number} | undefined,
-    bankAccountID: number | undefined,
-    currentSearchKey: SearchKey | undefined,
-) {
-    const reportActionID = rand64();
-
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`,
-            value: {isActionLoading: true},
-        },
-    ];
-
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`,
-            value: {isActionLoading: false},
-        },
-    ];
-
-    // If we are on the 'Pay' suggested search, remove the report from the view once the action is taken, don't wait for the view to be re-fetched via Search
-    if (currentSearchKey === CONST.SEARCH.SEARCH_KEYS.PAY) {
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-            value: {data: {[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: null}},
-        });
-    }
-
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.REPORT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`,
-            value: {isActionLoading: false},
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
-        },
-    ];
-
-    if (isInvoice) {
-        API.write(
-            WRITE_COMMANDS.PAY_INVOICE,
-            {
-                reportID,
-                reportActionID,
-                paymentMethodType: paymentType,
-                payAsBusiness: invoiceParams?.payAsBusiness ?? false,
-                bankAccountID: invoiceParams?.bankAccountID,
-                fundID: invoiceParams?.fundID,
-                policyID: invoiceParams?.policyID,
-            },
-            {optimisticData, successData, failureData},
-        );
-    } else if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-        API.write(
-            WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET,
-            {iouReportID: reportID, chatReportID, reportActionID, paymentMethodType: paymentType, full: true, amount},
-            {optimisticData, successData, failureData},
-        );
-    } else {
-        API.write(
-            WRITE_COMMANDS.PAY_MONEY_REQUEST,
-            {iouReportID: reportID, chatReportID, reportActionID, paymentMethodType: paymentType, full: true, amount, bankAccountID},
-            {optimisticData, successData, failureData},
-        );
-    }
-
-    playSound(SOUNDS.SUCCESS);
 }
 
 function bulkDeleteReports({
@@ -1614,7 +1678,7 @@ export {
     clearAdvancedFilters,
     setSearchContext,
     deleteSavedSearch,
-    payFromSearch,
+    getSearchPayOnyxData,
     approveMoneyRequestOnSearch,
     handleActionButtonPress,
     submitMoneyRequestOnSearch,
