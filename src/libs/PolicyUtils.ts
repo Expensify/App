@@ -1514,6 +1514,10 @@ function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
     return reimburserEmail ? (getAccountIDsByLogins([reimburserEmail]).at(0) ?? -1) : -1;
 }
 
+function hasConnectedWorkspaceBankAccount(policy: OnyxEntry<Policy>): boolean {
+    return !!policy?.achAccount?.bankAccountID && policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
+}
+
 function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
     if (!policy?.employeeList) {
         return [];
@@ -2471,6 +2475,7 @@ export {
     getDefaultApprover,
     getApprovalWorkflow,
     getReimburserAccountID,
+    hasConnectedWorkspaceBankAccount,
     isControlPolicy,
     isAttendeeTrackingEnabled,
     isCollectPolicy,

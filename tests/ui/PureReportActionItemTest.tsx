@@ -1490,6 +1490,57 @@ describe('PureReportActionItem', () => {
             expect(screen.getByText(translateLocal('bankAccount.addBankAccount'))).toBeOnTheScreen();
         });
 
+        it('REIMBURSEMENT_QUEUED with a connected workspace bank account hides the add bank account button', async () => {
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACTOR_ACCOUNT_ID});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}testReport`, {
+                    reportID: 'testReport',
+                    ownerAccountID: ACTOR_ACCOUNT_ID,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {
+                    id: 'policy1',
+                    name: 'Test Workspace',
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    achAccount: {
+                        bankAccountID: 1,
+                        accountNumber: '123456789',
+                        routingNumber: '011000015',
+                        addressName: 'Test User',
+                        bankName: 'Test Bank',
+                        reimburser: actorEmail,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                    },
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED, {paymentType: CONST.IOU.PAYMENT_TYPE.VBBA});
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <PureReportActionItem
+                                    report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
+                                    transactionThreadReport={undefined}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    shouldDisplayNewMarker={false}
+                                    isFirstVisibleReportAction={false}
+                                    iouReport={{reportID: 'expenseReport', policyID: 'policy1'}}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(translateLocal('bankAccount.addBankAccount'))).toBeNull();
+        });
+
         it('REIMBURSEMENT_QUEUED with missing wallet shows enable wallet button', async () => {
             await act(async () => {
                 await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACTOR_ACCOUNT_ID});

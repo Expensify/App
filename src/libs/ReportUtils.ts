@@ -157,6 +157,7 @@ import {
     getPolicyRole,
     getRuleApprovers,
     getSubmitToAccountID,
+    hasConnectedWorkspaceBankAccount,
     hasDependentTags as hasDependentTagsPolicyUtils,
     hasDynamicExternalWorkflow,
     isExpensifyTeam,
@@ -11140,6 +11141,7 @@ function getIndicatedMissingPaymentMethod(
     reportId: string | undefined,
     reportAction: ReportAction,
     bankAccountList: OnyxEntry<BankAccountList>,
+    policy?: OnyxEntry<Policy>,
 ): MissingPaymentMethod | undefined {
     const isSubmitterOfUnsettledReport = reportId && isCurrentUserSubmitter(getReport(reportId, deprecatedAllReports)) && !isSettled(reportId);
     if (!reportId || !isSubmitterOfUnsettledReport || !isReimbursementQueuedAction(reportAction)) {
@@ -11148,6 +11150,10 @@ function getIndicatedMissingPaymentMethod(
     const paymentType = getOriginalMessage(reportAction)?.paymentType;
     if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
         return !userWalletTierName || userWalletTierName === CONST.WALLET.TIER_NAME.SILVER ? 'wallet' : undefined;
+    }
+
+    if (hasConnectedWorkspaceBankAccount(policy)) {
+        return undefined;
     }
 
     return !hasCreditBankAccount(bankAccountList) ? 'bankAccount' : undefined;

@@ -15170,6 +15170,134 @@ describe('ReportUtils', () => {
 
             await Onyx.clear();
         });
+
+        it('should NOT show bank account indicator for VBBA payment when the workspace has a connected bank account', async () => {
+            await Onyx.clear();
+
+            const iouReportID = '10004';
+
+            const chatReport: Report = {
+                ...LHNTestUtils.getFakeReport([currentUserAccountID, friendAccountID]),
+                hasOutstandingChildRequest: true,
+                iouReportID,
+            };
+
+            const iouReport: Report = {
+                ...LHNTestUtils.getFakeReport([currentUserAccountID, friendAccountID]),
+                reportID: iouReportID,
+                chatReportID: chatReport.reportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: currentUserAccountID,
+                managerID: friendAccountID,
+                policyID: 'policyID',
+                currency: CONST.CURRENCY.USD,
+                total: 10000,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                isWaitingOnBankAccount: true,
+            };
+
+            const reimbursementQueuedAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
+                originalMessage: {
+                    paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                },
+            };
+
+            const workspacePolicy: Policy = {
+                ...policy,
+                id: 'policyID',
+                achAccount: {
+                    bankAccountID: 1,
+                    accountNumber: '123456789',
+                    routingNumber: '011000015',
+                    addressName: 'Test User',
+                    bankName: 'Test Bank',
+                    reimburser: friendEmail,
+                    state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                },
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+            await Promise.all([
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
+                    [reimbursementQueuedAction.reportActionID]: reimbursementQueuedAction,
+                }),
+            ]);
+            await waitForBatchedUpdates();
+
+            const missingPaymentMethod = getIndicatedMissingPaymentMethod(CONST.WALLET.TIER_NAME.SILVER, iouReportID, reimbursementQueuedAction, {}, workspacePolicy);
+            expect(missingPaymentMethod).toBeUndefined();
+
+            await Onyx.clear();
+        });
+
+        it('should still show bank account indicator for VBBA payment when the workspace has no connected bank account', async () => {
+            await Onyx.clear();
+
+            const iouReportID = '10005';
+
+            const chatReport: Report = {
+                ...LHNTestUtils.getFakeReport([currentUserAccountID, friendAccountID]),
+                hasOutstandingChildRequest: true,
+                iouReportID,
+            };
+
+            const iouReport: Report = {
+                ...LHNTestUtils.getFakeReport([currentUserAccountID, friendAccountID]),
+                reportID: iouReportID,
+                chatReportID: chatReport.reportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: currentUserAccountID,
+                managerID: friendAccountID,
+                policyID: 'policyID',
+                currency: CONST.CURRENCY.USD,
+                total: 10000,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                isWaitingOnBankAccount: true,
+            };
+
+            const reimbursementQueuedAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
+                originalMessage: {
+                    paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                },
+            };
+
+            const workspacePolicy: Policy = {
+                ...policy,
+                id: 'policyID',
+                achAccount: {
+                    bankAccountID: 1,
+                    accountNumber: '123456789',
+                    routingNumber: '011000015',
+                    addressName: 'Test User',
+                    bankName: 'Test Bank',
+                    reimburser: friendEmail,
+                    state: CONST.BANK_ACCOUNT.STATE.SETUP,
+                },
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+            await Promise.all([
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
+                    [reimbursementQueuedAction.reportActionID]: reimbursementQueuedAction,
+                }),
+            ]);
+            await waitForBatchedUpdates();
+
+            const missingPaymentMethod = getIndicatedMissingPaymentMethod(CONST.WALLET.TIER_NAME.SILVER, iouReportID, reimbursementQueuedAction, {}, workspacePolicy);
+            expect(missingPaymentMethod).toBe('bankAccount');
+
+            await Onyx.clear();
+        });
     });
 
     describe('getChildReportNotificationPreference', () => {
