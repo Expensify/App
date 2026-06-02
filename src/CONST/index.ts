@@ -2100,6 +2100,8 @@ const CONST = {
         SPAN_APP_STARTUP: 'ManualAppStartup',
         SPAN_APP_STARTUP_NETWORK_REQUEST: 'ManualAppStartupNetworkRequest',
         SPAN_NAVIGATE_TO_REPORTS: 'ManualNavigateToReports',
+        SPAN_NAVIGATE_TO_REPORTS_FIRST_PAINT: 'ManualNavigateToReportsFirstPaint',
+        SPAN_NAVIGATE_TO_REPORTS_CONTENT_LOAD: 'ManualNavigateToReportsContentLoad',
         SPAN_NAVIGATE_TO_INBOX_TAB: 'ManualNavigateToInboxTab',
         SPAN_OD_ND_TRANSITION: 'ManualOdNdTransition',
         SPAN_OD_ND_TRANSITION_LOGGED_OUT: 'ManualOdNdTransitionLoggedOut',
@@ -2173,6 +2175,10 @@ const CONST = {
         ATTRIBUTE_WAS_LIST_EMPTY: 'was_list_empty',
         ATTRIBUTE_SKELETON_PREFIX: 'skeleton.',
         ATTRIBUTE_SCENARIO: 'scenario',
+        // Search query descriptors parsed from the route, stamped on the navigate-to-reports spans.
+        ATTRIBUTE_SEARCH_TYPE: 'search_type',
+        ATTRIBUTE_SEARCH_VIEW: 'search_view',
+        ATTRIBUTE_SEARCH_GROUP_BY: 'search_group_by',
         ATTRIBUTE_HAS_RECEIPT: 'has_receipt',
         ATTRIBUTE_IS_FROM_GLOBAL_CREATE: 'is_from_global_create',
         /** Sentry span attribute: follow-up action taken after submit (e.g. dismiss_modal_and_open_report, navigate_to_search). */
@@ -2223,6 +2229,13 @@ const CONST = {
             INVOICE: 'invoice',
             PER_DIEM: 'per_diem',
             SEND_MONEY: 'send_money',
+        },
+        // Start type for the navigate-to-reports first-paint span. Splits the warm start into
+        // first render (warm_first) vs cached tab-navigator re-visit (warm_subsequent).
+        NAVIGATE_TO_REPORTS_SCENARIO: {
+            COLD: 'cold',
+            WARM_FIRST: 'warm_first',
+            WARM_SUBSEQUENT: 'warm_subsequent',
         },
         // Event names
         EVENT_SKELETON_ATTRIBUTES_UPDATE: 'skeleton_attributes_updated',
