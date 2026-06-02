@@ -335,6 +335,7 @@ const translations = {
         tag: 'Tag',
         receipt: 'Receipt',
         verified: 'Verified',
+        suggestted: 'Suggested',
         replace: 'Replace',
         distance: 'Distance',
         mile: 'mile',
@@ -7402,6 +7403,9 @@ const translations = {
                 subtitle: 'Describe flexible runs that runs when you need',
                 addRule: 'Add AI rule',
                 findRule: 'Find AI rule',
+                addRuleTitle: 'Add rule',
+                describeRuleTitle: 'Describe your rule',
+                describeRuleSubtitle: 'Describe your rule and Concierge will build it',
             },
         },
         planTypePage: {
