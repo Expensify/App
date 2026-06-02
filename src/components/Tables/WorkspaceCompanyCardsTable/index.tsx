@@ -51,9 +51,6 @@ type WorkspaceCompanyCardsTableProps = {
     /** Whether to disable assign card button */
     isAssigningCardDisabled: boolean;
 
-    /** Whether the current member can edit company cards */
-    canWriteCompanyCards: boolean;
-
     /** On assign card callback */
     onAssignCard: (cardID: string, encryptedCardNumber: string) => void;
 
@@ -71,7 +68,6 @@ function WorkspaceCompanyCardsTable({
     companyCards,
     onAssignCard,
     isAssigningCardDisabled,
-    canWriteCompanyCards,
     onReloadPage,
     onReloadFeed,
 }: WorkspaceCompanyCardsTableProps) {
@@ -152,18 +148,22 @@ function WorkspaceCompanyCardsTable({
         {
             key: 'member',
             label: translate('common.member'),
+            sortable: true,
         },
         {
             key: 'card',
             label: translate('workspace.companyCards.card'),
+            sortable: true,
         },
         {
             key: 'customCardName',
             label: translate('workspace.companyCards.cardName'),
+            sortable: true,
         },
         {
             key: 'actions',
             label: '',
+            sortable: false,
             styling: {
                 containerStyles: [styles.justifyContentEnd, styles.pr3],
             },
@@ -190,12 +190,6 @@ function WorkspaceCompanyCardsTable({
           });
 
     const keyExtractor = (item: WorkspaceCompanyCardTableItemData, index: number) => `${item.cardName}_${index}`;
-
-    const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
-        addBottomSafeAreaPadding: true,
-        addOfflineIndicatorBottomSafeAreaPadding: true,
-        style: styles.pb4,
-    });
 
     const compareItems: CompareItemsCallback<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey> = (a, b, activeSorting) => {
         const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
@@ -298,7 +292,6 @@ function WorkspaceCompanyCardsTable({
             CardFeedIcon={cardFeedIcon}
             onAssignCard={onAssignCard}
             isAssigningCardDisabled={isAssigningCardDisabled}
-            canWriteCompanyCards={canWriteCompanyCards}
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
         />
     );
@@ -342,7 +335,6 @@ function WorkspaceCompanyCardsTable({
                 policyID={policyID}
                 feedName={feedName}
                 showTableControls={showTableControls}
-                canWriteCompanyCards={canWriteCompanyCards}
                 CardFeedIcon={cardFeedIcon}
             />
         </View>
@@ -403,7 +395,6 @@ function WorkspaceCompanyCardsTable({
                             <WorkspaceCompanyCardPageEmptyState
                                 policyID={policyID}
                                 shouldShowGBDisclaimer={shouldShowGBDisclaimer}
-                                canWriteCompanyCards={canWriteCompanyCards}
                             />
                         </View>
                     )}
@@ -432,7 +423,7 @@ function WorkspaceCompanyCardsTable({
                 </ScrollView>
             )}
 
-            {showCards && <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />}
+            {showCards && <Table.Body />}
         </Table>
     );
 }
