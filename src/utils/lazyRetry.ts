@@ -1,4 +1,5 @@
 import type {ComponentType} from 'react';
+import clearWorkboxRecoveryCaches from '@libs/clearWorkboxRecoveryCaches';
 import CONST from '@src/CONST';
 
 type Import<T> = Promise<{default: T}>;
@@ -27,9 +28,8 @@ const lazyRetry = function <T extends ComponentType<any>>(componentImport: Compo
             .catch((component: ComponentImport<T>) => {
                 if (!hasRefreshed) {
                     console.error('Failed to lazily import a React component, refreshing the page in order to retry the operation.', component);
-                    // Set the retry status to 'true' and refresh the page
                     sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.RETRY_LAZY_REFRESHED, 'true');
-                    window.location.reload(); // Refresh the page to retry the import
+                    clearWorkboxRecoveryCaches().then(() => window.location.reload());
                 } else {
                     console.error('Failed to lazily import a React component after the retry operation!', component);
                     // If the import fails again reject with the error to trigger default error handling
