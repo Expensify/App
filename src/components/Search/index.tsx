@@ -1047,6 +1047,20 @@ function Search({
     const onApplyShiftRange = useCallback(
         ({toSelect, toDeselect}: {toSelect: SearchListItem[]; toDeselect: SearchListItem[]}) => {
             const updated: SelectedTransactions = {...selectedTransactions};
+            const parentGroupKeyByTransactionKey = new Map<string, string>();
+            if (areItemsGrouped) {
+                for (const group of filteredData as TransactionGroupListItemType[]) {
+                    const groupKey = group.keyForList;
+                    if (!groupKey) {
+                        continue;
+                    }
+                    for (const child of group.transactions ?? []) {
+                        if (child.keyForList) {
+                            parentGroupKeyByTransactionKey.set(child.keyForList, groupKey);
+                        }
+                    }
+                }
+            }
             const addTransaction = (tx: TransactionListItemType) => {
                 if (!tx.keyForList || isTransactionPendingDelete(tx)) {
                     return;
@@ -1068,7 +1082,8 @@ function Search({
                     selfDMReport,
                     isProduction,
                 );
-                updated[k] = info;
+                const parentGroupKey = parentGroupKeyByTransactionKey.get(tx.keyForList);
+                updated[k] = parentGroupKey ? {...info, groupKey: parentGroupKey} : info;
             };
             const removeRow = (row: SearchListItem) => {
                 if (isTransactionListItemType(row) || (isTransactionReportGroupListItemType(row) && row.transactions.length === 0)) {
@@ -1118,6 +1133,7 @@ function Search({
             searchResults?.data,
             selfDMReport,
             isProduction,
+            areItemsGrouped,
         ],
     );
 
