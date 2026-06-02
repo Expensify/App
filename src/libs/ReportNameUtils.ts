@@ -791,13 +791,13 @@ function computeReportNameBasedOnReportAction(
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EXPENSIFY_CARD_RULE)) {
-        return getAddExpensifyCardRuleMessage(translate, parentReportAction) || undefined;
+        return getAddExpensifyCardRuleMessage(translate, parentReportAction);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EXPENSIFY_CARD_RULE)) {
-        return getUpdateExpensifyCardRuleMessage(translate, parentReportAction) || undefined;
+        return getUpdateExpensifyCardRuleMessage(translate, parentReportAction);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_EXPENSIFY_CARD_RULE)) {
-        return getRemoveExpensifyCardRuleMessage(translate, parentReportAction) || undefined;
+        return getRemoveExpensifyCardRuleMessage(translate, parentReportAction);
     }
 
     return undefined;
