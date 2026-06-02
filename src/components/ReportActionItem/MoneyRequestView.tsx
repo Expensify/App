@@ -321,6 +321,7 @@ function MoneyRequestView({
         updatedTransaction?.taxAmount !== undefined
             ? convertToDisplayString(Math.abs(updatedTransaction?.taxAmount), actualCurrency)
             : convertToDisplayString(Math.abs(transactionTaxAmount ?? 0), actualCurrency);
+    const formattedConvertedTaxAmount = transaction?.convertedTaxAmount !== undefined ? convertToDisplayString(Math.abs(transaction.convertedTaxAmount), moneyRequestReport?.currency) : '';
 
     const taxRatesDescription = taxRates?.name;
 
@@ -580,6 +581,12 @@ function MoneyRequestView({
     const isCurrentTransactionReimbursable = updatedTransaction?.reimbursable ?? !!transactionReimbursable;
     if (!isCurrentTransactionReimbursable && isSingleTransactionReport(moneyRequestReport, visibleParentReportTransactions)) {
         amountDescription += ` ${CONST.DOT_SEPARATOR} ${Str.UCFirst(translate('iou.nonReimbursable'))}`;
+    }
+
+    // Show the converted tax here since the redundant report-level Tax total is hidden for a single-expense report.
+    let taxAmountDescription = translate('iou.taxAmount');
+    if (shouldShowConvertedAmount && formattedConvertedTaxAmount) {
+        taxAmountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('common.converted')} ${formattedConvertedTaxAmount}`;
     }
 
     if (isFromMergeTransaction && !rateName) {
@@ -1170,7 +1177,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('taxAmount')}>
                         <MenuItemWithTopDescription
                             title={taxAmountTitle}
-                            description={translate('iou.taxAmount')}
+                            description={taxAmountDescription}
                             numberOfLinesTitle={2}
                             interactive={canEditTaxFields}
                             shouldShowRightIcon={canEditTaxFields}

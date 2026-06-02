@@ -111,11 +111,13 @@ function MoneyReportView({
     // instead of waiting for the optimistic delete to be removed from Onyx.
     // While offline the deleted expense is still rendered, so keep counting it to stay consistent with the visible transaction list.
     const visibleTransactions = transactions.filter((transaction) => isOffline || !isTransactionPendingDelete(transaction));
-    const isSingleNonReimbursableExpense = isSingleTransactionReport(report, visibleTransactions) && visibleTransactions.at(0)?.reimbursable === false;
+    const isSingleExpenseReport = isSingleTransactionReport(report, visibleTransactions);
+    const isSingleNonReimbursableExpense = isSingleExpenseReport && visibleTransactions.at(0)?.reimbursable === false;
     // The reimbursable/non-reimbursable rows duplicate the Total for a single non-reimbursable expense, so suppress only those rows.
-    // Billable and tax rows convey distinct information and must still show.
     const shouldShowReimbursabilityBreakdown = !isSingleNonReimbursableExpense && !!nonReimbursableSpend;
-    const shouldShowBreakdown = shouldShowReimbursabilityBreakdown || !!billableTotal || (!!taxTotal && isTaxEnabled);
+    // For a single expense the report-level Tax total is shown as a "Converted" dot separator on the expense's Tax amount field, so hide it here.
+    const shouldShowTaxRow = !!taxTotal && isTaxEnabled && !isSingleExpenseReport;
+    const shouldShowBreakdown = shouldShowReimbursabilityBreakdown || !!billableTotal || shouldShowTaxRow;
     const formattedTotalAmount = convertToDisplayString(totalDisplaySpend, report?.currency);
     const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
@@ -275,7 +277,7 @@ function MoneyReportView({
                                     {label: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount, show: shouldShowReimbursabilityBreakdown},
                                     {label: 'cardTransactions.companySpend', value: formattedCompanySpendAmount, show: shouldShowReimbursabilityBreakdown},
                                     {label: 'common.billable', value: formattedBillableAmount, show: !!billableTotal},
-                                    {label: 'common.tax', value: formattedTaxAmount, show: !!taxTotal && isTaxEnabled},
+                                    {label: 'common.tax', value: formattedTaxAmount, show: shouldShowTaxRow},
                                 ]
                                     .filter(({show}) => show)
                                     .map(({label, value}) => (
