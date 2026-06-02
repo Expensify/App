@@ -83,6 +83,7 @@ import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import {createFile, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import getWorkspaceCreatedAnalyticsEvent from '@libs/getWorkspaceCreatedAnalyticsEvent';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
@@ -3108,7 +3109,8 @@ function createWorkspace(options: CreateWorkspaceDataOptions): CreateWorkspacePa
 
     // Publish a workspace created event if this is their first policy
     if (!options.hasActiveAdminPolicies) {
-        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED.NAME, options.currentUserAccountIDParam ?? CONST.DEFAULT_NUMBER_ID, options.currentUserEmailParam);
+        const workspaceCreatedEvent = getWorkspaceCreatedAnalyticsEvent(optionsWithDefaults.engagementChoice, optionsWithDefaults.companySize, options.currentUserEmailParam);
+        GoogleTagManager.publishEvent(workspaceCreatedEvent, options.currentUserAccountIDParam ?? CONST.DEFAULT_NUMBER_ID, options.currentUserEmailParam);
     }
 
     return params;
