@@ -11,7 +11,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import EmailUtils from './EmailUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
-import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
+import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID, hasConnectedWorkspaceBankAccount} from './PolicyUtils';
 import {
     getDisplayNameForParticipant,
     getMoneyRequestSpendBreakdown,
@@ -101,7 +101,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
     const hasTransactions = doesReportContainTransactions(report);
     const approverAccountID = bypassNextApproverID ?? getNextApproverAccountID(report, isUnapprove);
     const reimburserAccountID = getReimburserAccountID(policy);
-    const hasValidAccount = !!policy?.achAccount?.accountNumber || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+    const hasValidAccount = hasConnectedWorkspaceBankAccount(policy) || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
     const nextStepFixOrPayExpense: ReportNextStep = {

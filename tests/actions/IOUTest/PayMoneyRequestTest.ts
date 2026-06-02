@@ -1693,7 +1693,15 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 type: CONST.POLICY.TYPE.CORPORATE,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
-                achAccount: {bankAccountID: 1, accountNumber: '123456789', routingNumber: '011000015', addressName: 'Test User', bankName: 'Test Bank', reimburser: 'admin@expensifail.com'},
+                achAccount: {
+                    bankAccountID: 1,
+                    accountNumber: '123456789',
+                    routingNumber: '011000015',
+                    addressName: 'Test User',
+                    bankName: 'Test Bank',
+                    reimburser: 'admin@expensifail.com',
+                    state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                },
             };
 
             const expenseReport = {

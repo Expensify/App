@@ -114,6 +114,7 @@ import {
     getCleanedTagName,
     getCommaSeparatedTagNameWithSanitizedColons,
     getSubmitToAccountID,
+    hasConnectedWorkspaceBankAccount,
     isPaidGroupPolicy,
     isPolicyAdmin,
     isPolicyApprover,
@@ -1081,7 +1082,7 @@ function getSuggestedSearchesVisibility(
             return hasSynchronizationErrorMessage(policy, connection, false);
         });
         const isPaymentEnabled = arePaymentsEnabled(policy);
-        const hasVBBA = !!policy.achAccount?.bankAccountID && policy.achAccount.state === CONST.BANK_ACCOUNT.STATE.OPEN;
+        const hasVBBA = hasConnectedWorkspaceBankAccount(policy);
         const hasReimburser = !!policy.achAccount?.reimburser;
         const isECardEnabled = !!policy.areExpensifyCardsEnabled;
 

@@ -10,7 +10,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
-import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {hasConnectedWorkspaceBankAccount, isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getAllReportActions, getReportActionHtml, getReportActionText, isCreatedAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticCancelPaymentReportAction,
@@ -513,7 +513,7 @@ function cancelPayment(
     // For OPTIONAL approval mode with a connected bank account, the report status is CLOSED but the next step
     // should show "waiting to pay", so we use SUBMITTED as the predictedNextStatus which routes through the
     // correct next step path. Without a bank account, keep CLOSED which shows "no further action required".
-    const hasConnectedBankAccount = !!policy?.achAccount?.accountNumber;
+    const hasConnectedBankAccount = hasConnectedWorkspaceBankAccount(policy);
     const predictedNextStatus = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL && hasConnectedBankAccount ? CONST.REPORT.STATUS_NUM.SUBMITTED : statusNum;
 
     // buildOptimisticNextStep is used in parallel
