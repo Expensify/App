@@ -225,7 +225,16 @@ function AccessOrNotFoundWrapper({
         if (isLoadingReportData || !isPolicyNotAccessible) {
             return;
         }
-        Navigation.removeScreenFromNavigationState(SCREENS.WORKSPACE.INITIAL);
+
+        // A policy can momentarily look inaccessible while it is being rewritten (e.g. a connection sync that replaces the
+        // whole policy and reconciles the employee list, briefly leaving the current user without a resolvable role). Defer
+        // the teardown so a transient state doesn't eject the user from the workspace; if the policy becomes accessible
+        // again before the timeout fires, the effect cleanup cancels it. A genuine removal stays inaccessible and proceeds.
+        const removalTimeoutID = setTimeout(() => {
+            Navigation.removeScreenFromNavigationState(SCREENS.WORKSPACE.INITIAL);
+        }, CONST.WORKSPACE_INACCESSIBLE_SCREEN_REMOVAL_DELAY);
+
+        return () => clearTimeout(removalTimeoutID);
     }, [isLoadingReportData, isPolicyNotAccessible]);
 
     if (shouldShowFullScreenLoadingIndicator) {

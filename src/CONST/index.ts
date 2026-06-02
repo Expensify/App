@@ -227,6 +227,11 @@ const CONST = {
     CUSTOM_FIELD_KEYS: {customField1: 'employeeUserID', customField2: 'employeePayrollID'},
     ANDROID_PACKAGE_NAME,
     WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY: 100,
+
+    // A policy can momentarily look inaccessible while it is being rewritten (e.g. a connection sync that replaces the
+    // whole policy and reconciles the employee list, briefly leaving the current user without a resolvable role). We wait
+    // this long before tearing the workspace screen out of the navigation stack so a transient state doesn't eject the user.
+    WORKSPACE_INACCESSIBLE_SCREEN_REMOVAL_DELAY: 1000,
     ANIMATED_HIGHLIGHT_ENTRY_DELAY: 50,
     ANIMATED_HIGHLIGHT_ENTRY_DURATION: 300,
     ANIMATED_HIGHLIGHT_START_DELAY: 10,
