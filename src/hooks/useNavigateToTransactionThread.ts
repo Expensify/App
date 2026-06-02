@@ -1,4 +1,3 @@
-import {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
@@ -46,46 +45,43 @@ function useNavigateToTransactionThread() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
 
-    return useCallback(
-        ({transactionID, reportActions, report, transaction, siblingTransactionIDs, backTo}: NavigateToTransactionThreadParams) => {
-            const iouAction = getIOUActionForTransactionID(reportActions, transactionID);
-            const resolvedBackTo = backTo ?? Navigation.getActiveRoute();
-            let reportIDToNavigate = iouAction?.childReportID;
+    return ({transactionID, reportActions, report, transaction, siblingTransactionIDs, backTo}: NavigateToTransactionThreadParams) => {
+        const iouAction = getIOUActionForTransactionID(reportActions, transactionID);
+        const resolvedBackTo = backTo ?? Navigation.getActiveRoute();
+        let reportIDToNavigate = iouAction?.childReportID;
 
-            const routeParams: {reportID: string | undefined; reportActionID?: string; backTo?: string} = {
-                reportID: reportIDToNavigate,
-                backTo: resolvedBackTo,
-            };
+        const routeParams: {reportID: string | undefined; reportActionID?: string; backTo?: string} = {
+            reportID: reportIDToNavigate,
+            backTo: resolvedBackTo,
+        };
 
-            if (!reportIDToNavigate) {
-                const transactionThreadReport = createTransactionThreadReport({
-                    introSelected,
-                    currentUserLogin: currentUserDetails.email ?? '',
-                    currentUserAccountID: currentUserDetails.accountID,
-                    betas,
-                    iouReport: report,
-                    iouReportAction: iouAction,
-                    transaction,
-                });
-                if (transactionThreadReport) {
-                    reportIDToNavigate = transactionThreadReport.reportID;
-                    routeParams.reportID = reportIDToNavigate;
-                }
-            } else {
-                setOptimisticTransactionThread(reportIDToNavigate, report?.reportID, iouAction?.reportActionID, report?.policyID);
-            }
-
-            // Single transaction report opens in RHP. We seed every sibling transaction ID so the RHP can
-            // display prev/next arrows for navigation between expenses.
-            setActiveTransactionIDs(siblingTransactionIDs).then(() => {
-                if (reportIDToNavigate) {
-                    markReportIDAsExpense(reportIDToNavigate);
-                }
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(routeParams));
+        if (!reportIDToNavigate) {
+            const transactionThreadReport = createTransactionThreadReport({
+                introSelected,
+                currentUserLogin: currentUserDetails.email ?? '',
+                currentUserAccountID: currentUserDetails.accountID,
+                betas,
+                iouReport: report,
+                iouReportAction: iouAction,
+                transaction,
             });
-        },
-        [markReportIDAsExpense, introSelected, betas, currentUserDetails.email, currentUserDetails.accountID],
-    );
+            if (transactionThreadReport) {
+                reportIDToNavigate = transactionThreadReport.reportID;
+                routeParams.reportID = reportIDToNavigate;
+            }
+        } else {
+            setOptimisticTransactionThread(reportIDToNavigate, report?.reportID, iouAction?.reportActionID, report?.policyID);
+        }
+
+        // Single transaction report opens in RHP. We seed every sibling transaction ID so the RHP can
+        // display prev/next arrows for navigation between expenses.
+        setActiveTransactionIDs(siblingTransactionIDs).then(() => {
+            if (reportIDToNavigate) {
+                markReportIDAsExpense(reportIDToNavigate);
+            }
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(routeParams));
+        });
+    };
 }
 
 export default useNavigateToTransactionThread;
