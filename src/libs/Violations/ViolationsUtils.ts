@@ -96,15 +96,16 @@ function getTagViolationsForSingleLevelTags(
     const hasEnabledTagsInList = hasEnabledTags(policyTags);
     let newTransactionViolations = [...transactionViolations];
 
-    // Add 'tagOutOfPolicy' violation if tag is not in policy and there are enabled tags
-    if (!hasTagOutOfPolicyViolation && updatedTransaction.tag && !isTagInPolicy && hasEnabledTagsInList) {
+    // Add 'tagOutOfPolicy' if the tag is not in policy. Not gated on enabled tags remaining, so deleting the
+    // last tag still flags a transaction that holds the deleted tag. Mirrors 'categoryOutOfPolicy'.
+    if (!hasTagOutOfPolicyViolation && updatedTransaction.tag && !isTagInPolicy) {
         const tagName = policyTagList[policyTagListName]?.name;
         const tagNameToShow = isDefaultTagName(tagName) ? undefined : tagName;
         newTransactionViolations.push({name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION, data: {tagName: tagNameToShow}, showInReview: true});
     }
 
-    // Remove 'tagOutOfPolicy' violation if tag is empty, in policy, or there are no enabled tags
-    if (hasTagOutOfPolicyViolation && (!updatedTransaction.tag || isTagInPolicy || !hasEnabledTagsInList)) {
+    // Remove 'tagOutOfPolicy' violation if tag is empty or in policy
+    if (hasTagOutOfPolicyViolation && (!updatedTransaction.tag || isTagInPolicy)) {
         newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY});
     }
 
@@ -414,8 +415,9 @@ const ViolationsUtils = {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.SMARTSCAN_FAILED});
         }
 
-        // Calculate client-side category violations
-        const policyRequiresCategories = !!policy.requiresCategory;
+        // Calculate client-side category violations. Also run when the transaction has a category (not just
+        // when the policy requires one) so disabling that category flags it optimistically. Mirrors tags below.
+        const policyRequiresCategories = !!policy.requiresCategory || !!updatedTransaction.category;
         if (policyRequiresCategories) {
             const hasCategoryOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === 'categoryOutOfPolicy');
             const hasMissingCategoryViolation = transactionViolations.some((violation) => violation.name === 'missingCategory');

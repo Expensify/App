@@ -939,6 +939,23 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).not.toContainEqual(categoryOutOfPolicyViolation);
             expect(result.value).not.toContainEqual(missingCategoryViolation);
         });
+
+        it('should add categoryOutOfPolicy when the transaction has a category that is not in policy', () => {
+            transaction.category = 'Office Supplies';
+            policyCategories = {Food: {name: 'Food', enabled: true}};
+
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+
+            expect(result.value).toContainEqual(categoryOutOfPolicyViolation);
+        });
     });
 
     describe('policyRequiresTags', () => {
@@ -1135,7 +1152,7 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).not.toContainEqual(missingTagViolation);
         });
 
-        it('should not add tagOutOfPolicy when transaction has a stale tag and no tags are enabled', () => {
+        it('should add tagOutOfPolicy when transaction has a stale tag and no tags are enabled', () => {
             policyTags = {
                 Meals: {
                     name: 'Meals',
@@ -1159,10 +1176,10 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
             });
 
-            expect(result.value).not.toContainEqual(tagOutOfPolicyViolation);
+            expect(result.value).toContainEqual({...tagOutOfPolicyViolation, data: {tagName: 'Meals'}});
         });
 
-        it('should remove existing tagOutOfPolicy when transaction has a stale tag and no tags are enabled', () => {
+        it('should keep existing tagOutOfPolicy when transaction has a stale tag and no tags are enabled', () => {
             policyTags = {
                 Meals: {
                     name: 'Meals',
@@ -1187,7 +1204,7 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
             });
 
-            expect(result.value).not.toContainEqual(tagOutOfPolicyViolation);
+            expect(result.value).toContainEqual(tagOutOfPolicyViolation);
             expect(result.value).toContainEqual(duplicatedTransactionViolation);
         });
     });

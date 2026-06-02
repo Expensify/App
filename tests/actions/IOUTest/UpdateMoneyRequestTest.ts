@@ -597,6 +597,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 reportID: expenseReportID,
                 amount: 10000,
                 currency: CONST.CURRENCY.USD,
+                // No category so the test stays focused on the rejected-expense violation
+                category: undefined,
             };
 
             const policy: Policy = {
