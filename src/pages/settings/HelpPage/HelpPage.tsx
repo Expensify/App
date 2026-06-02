@@ -155,11 +155,11 @@ function HelpPage() {
                                 <View style={[styles.flex1, styles.mt8, styles.gap5]}>
                                     {hasActiveItem && (
                                         <View>
-                                        <Text style={[styles.textLabelSupportingNormal]}>{translate('initialSettingsPage.helpPage.conciergeChatDescription')}</Text>
-                                        <MenuItemList
-                                        menuItems={[conciergeItem]}
-                                        shouldUseSingleExecution
-                                        />
+                                            <Text style={[styles.textLabelSupportingNormal]}>{translate('initialSettingsPage.helpPage.conciergeChatDescription')}</Text>
+                                            <MenuItemList
+                                                menuItems={[conciergeItem]}
+                                                shouldUseSingleExecution
+                                            />
                                         </View>
                                     )}
                                     {!!partnerManagerItem && (
