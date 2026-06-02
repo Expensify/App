@@ -41,12 +41,12 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
             return;
         }
 
-        const interactionTask = TransitionTracker.runAfterTransitions({
+        const handle = TransitionTracker.runAfterTransitions({
             callback: () => setIsInteractionComplete(true),
         });
 
         return () => {
-            interactionTask.cancel();
+            handle.cancel();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
