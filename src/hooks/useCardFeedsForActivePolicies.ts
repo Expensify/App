@@ -27,9 +27,7 @@ const useCardFeedsForActivePolicies = () => {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const eligiblePoliciesSelector = useEligiblePoliciesSelector();
-    const [eligiblePoliciesIDsArray] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: eligiblePoliciesSelector,
-    });
+    const eligiblePoliciesIDsArray = eligiblePoliciesSelector(allPolicies);
 
     const allCardFeedsByPolicy = getCardFeedsForDisplayPerPolicy(allFeeds, translate, feedKeysWithCards, allPolicies);
     const eligiblePolicyIdsSet = new Set(eligiblePoliciesIDsArray ?? []);
