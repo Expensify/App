@@ -34,12 +34,12 @@ function AddAIRulePage({route}: AddAIRulePageProps) {
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const policyID = route.params.policyID;
     const [activeTabKey, setActiveTabKey] = useState<TabKey>(CONST.AI_RULES.TAB_SELECTOR.SUGGESTED);
-    const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Pencil']);
+    const icons = useMemoizedLazyExpensifyIcons(['Feed', 'Pencil']);
     const tabs = [
         {
             key: CONST.AI_RULES.TAB_SELECTOR.SUGGESTED,
             title: translate('common.suggestted'),
-            icon: icons.Copy,
+            icon: icons.Feed,
         },
         {
             key: CONST.AI_RULES.TAB_SELECTOR.EDIT,
