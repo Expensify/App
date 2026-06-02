@@ -4,7 +4,7 @@ import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRendere
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-const NATIVE_HORIZONTAL_INSET = 64;
+const NATIVE_HORIZONTAL_INSET = 92;
 
 function VictoryChartContainer({children}: {children: React.ReactNode}) {
     const styles = useThemeStyles();
@@ -17,7 +17,7 @@ function VictoryChartContainer({children}: {children: React.ReactNode}) {
 
     const availableWidth = windowWidth - NATIVE_HORIZONTAL_INSET;
     const scale = hasExplicitDimensions && designWidth && availableWidth > 0 ? Math.min(availableWidth / designWidth, 1) : 1;
-
+    
     const {backgroundColor, borderRadius, width: containerWidth, maxWidth: containerMaxWidth, ...cleanContainerStyles} = chartContainerStyles;
 
     const contentStyle = useMemo(() => {
@@ -31,7 +31,7 @@ function VictoryChartContainer({children}: {children: React.ReactNode}) {
         if (hasExplicitDimensions && designHeight && designWidth) {
             return [
                 cleanContainerStyles,
-                {backgroundColor, borderRadius, width: designWidth * scale - 18, height: designHeight * scale, alignSelf: 'flex-start' as const, overflow: 'hidden' as const},
+                {backgroundColor, borderRadius, width: designWidth * scale, height: designHeight * scale, alignSelf: 'flex-start' as const, overflow: 'hidden' as const},
             ];
         }
         return [styles.chartContainer, styles.mw100, chartContainerStyles];
