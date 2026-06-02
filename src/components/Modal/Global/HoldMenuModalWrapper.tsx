@@ -2,7 +2,6 @@ import React, {useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import DecisionModal from '@components/DecisionModal';
 import useHoldMenuSubmit from '@hooks/useHoldMenuSubmit';
-import type {ActionHandledType} from '@hooks/useHoldMenuSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
