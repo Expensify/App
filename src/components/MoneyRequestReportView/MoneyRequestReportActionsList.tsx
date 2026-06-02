@@ -708,9 +708,9 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                         />
                     </ScrollView>
                 )}
-                {!isReportEmpty && (
+                {!isReportEmpty && !!reportStable && (
                     <MoneyRequestReportTransactionList
-                        report={report}
+                        report={reportStable}
                         onLayout={onLayout}
                         transactions={transactions}
                         newTransactions={newTransactions}
