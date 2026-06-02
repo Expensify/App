@@ -12,6 +12,8 @@ import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateQuickbooksOnlineSyncClasses, updateQuickbooksOnlineSyncCustomers, updateQuickbooksOnlineSyncLocations} from '@libs/actions/connections/QuickbooksOnline';
 import {updateXeroMappings} from '@libs/actions/connections/Xero';
+import {enablePolicyTravel} from '@libs/actions/Policy/Travel';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -22,17 +24,22 @@ import CONST from '@src/CONST';
 import {
     enableAutoApprovalOptions,
     enableCompanyCards,
+    enableExpensifyCard,
     enablePolicyAutoReimbursementLimit,
+    enablePolicyConnections,
     enablePolicyHR,
+    enablePolicyInvoicing,
     enablePolicyReportFields,
     enablePolicyRules,
+    isCurrencySupportedForDirectReimbursement,
     setPolicyPreventMemberCreatedTitle,
     setPolicyPreventSelfApproval,
     setWorkspaceApprovalMode,
+    setWorkspaceReimbursement,
     upgradeToCorporate,
 } from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {ownerPoliciesSelector} from '@src/selectors/Policy';
 import type {Policy} from '@src/types/onyx';
@@ -117,10 +124,13 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                     }
                 }
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
-                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(policyID, ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID)));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.path, ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID)));
                 return;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id:
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoicing.id:
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.id:
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.id:
                 return Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
             default:
@@ -191,6 +201,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 enablePolicyRules(policy, true, false, policyDataRef.current);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.id:
                 enableCompanyCards(policyID, true, false);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id:
@@ -200,9 +211,46 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 enablePolicyHR(policyID, true);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id:
                 setWorkspaceApprovalMode(policy, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED, accountID, email);
                 break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.id:
+                enableExpensifyCard(policyID, true);
+                break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.payments.id: {
+                let newReimbursementChoice;
+                if (!!policy?.achAccount && !isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
+                    newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+                } else {
+                    newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+                }
+
+                const newReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner;
+                setWorkspaceReimbursement({
+                    policyID,
+                    currentAchAccount: policy?.achAccount,
+                    currentReimbursementChoice: policy?.reimbursementChoice,
+                    reimbursementChoice: newReimbursementChoice,
+                    reimburserEmail: newReimburserEmail ?? '',
+                    bankAccountID: policy?.achAccount?.bankAccountID,
+                    accountNumber: policy?.achAccount?.accountNumber,
+                    addressName: policy?.achAccount?.addressName,
+                    bankName: policy?.achAccount?.bankName,
+                    state: policy?.achAccount?.state,
+                });
+                break;
+            }
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.id:
+                enablePolicyConnections(policyID, true, false);
+                break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.id:
+                enablePolicyTravel(policyID, true);
+                break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoicing.id:
+                enablePolicyInvoicing(policyID, true);
+                break;
             default:
+                break;
         }
     }, [
         policyID,
@@ -231,10 +279,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }, [isUpgraded, canPerformUpgrade, confirmUpgrade]),
     );
 
-    // Gate the page to users who can edit workspace settings (admins on any policy,
-    // or editors on Submit policies). `canPerformUpgrade` (strict admin) still controls
-    // whether the upgrade button is active, so editors see the intro but can't upgrade.
-    if (!canEditWorkspaceSettings(policy)) {
+    // Editors can view the intro but only admins can upgrade, so we separate
+    // access (canEditWorkspaceSettings) from the upgrade action (canPerformUpgrade).
+    if (policy ? !canEditWorkspaceSettings(policy) : !canPerformUpgrade) {
         return <NotFoundPage />;
     }
 

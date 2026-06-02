@@ -8,7 +8,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
 import ScreenWrapper from '@components/ScreenWrapper';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchResultsContext} from '@components/Search/SearchContext';
 import useShowSuperWideRHPVersion from '@components/WideRHPContextProvider/useShowSuperWideRHPVersion';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useActionListContextValue from '@hooks/useActionListContextValue';
@@ -18,7 +18,6 @@ import useDocumentTitle from '@hooks/useDocumentTitle';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -26,25 +25,21 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubmitToDestinationVisible from '@hooks/useSubmitToDestinationVisible';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+import useTransactionThreadReportID from '@hooks/useTransactionThreadReportID';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
-import {
-    getFilteredReportActionsForReportView,
-    getIOUActionForTransactionID,
-    getOneTransactionThreadReportID,
-    getOriginalMessage,
-    getReportAction,
-    isMoneyRequestAction,
-} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID, getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isMoneyRequestReportPendingDeletion, isValidReportIDFromPath} from '@libs/ReportUtils';
 import {cancelSpansByPrefix} from '@libs/telemetry/activeSpans';
 import {doesDeleteNavigateBackUrlIncludeDuplicatesReview, getParentReportActionDeletionStatus, hasLoadedReportActions, isThreadReportDeleted} from '@libs/TransactionNavigationUtils';
 import Navigation from '@navigation/Navigation';
 import ReactionListWrapper from '@pages/inbox/ReactionListWrapper';
+import {ReportActionEditMessageContextProvider} from '@pages/inbox/report/ReportActionEditMessageContext';
+import useClearReportActionDraftsOnReportChange from '@pages/inbox/report/useClearReportActionDraftsOnReportChange';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import {clearDeleteTransactionNavigateBackUrl, createTransactionThreadReport, openReport, updateLastVisitTime} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -71,7 +66,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
-    const {currentSearchResults: snapshot} = useSearchStateContext();
+    const {currentSearchResults: snapshot} = useSearchResultsContext();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
@@ -122,19 +117,15 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const actionListValue = useActionListContextValue();
 
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(reportIDFromRoute);
     const {transactions: allReportTransactions, violations: allReportViolations} = useTransactionsAndViolationsForReport(reportIDFromRoute);
-    const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
+    const {transactionThreadReportID, effectiveTransactionThreadReportID, reportActions} = useTransactionThreadReportID(reportIDFromRoute);
     const reportTransactions = useMemo(() => getAllNonDeletedTransactions(allReportTransactions, reportActions), [allReportTransactions, reportActions]);
     const visibleTransactions = useMemo(
         () => reportTransactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
         [reportTransactions, isOffline],
     );
-    const reportTransactionIDs = useMemo(() => visibleTransactions?.map((transaction) => transaction.transactionID), [visibleTransactions]);
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
     const oneTransactionID = reportTransactions.at(0)?.transactionID;
 
     const reportID = report?.reportID;
@@ -171,11 +162,15 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
         const snapshotData = snapshot.data as Record<string, unknown>;
         const transaction = snapshotData[transactionKey] as Transaction;
+        if (transaction.reportID !== reportIDFromRoute) {
+            return {snapshotTransaction: undefined, snapshotViolations: undefined};
+        }
+
         const violationKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`;
         const violations = snapshotData[violationKey] as TransactionViolations | undefined;
 
         return {snapshotTransaction: transaction, snapshotViolations: violations};
-    }, [snapshot?.data, allReportTransactions]);
+    }, [snapshot?.data, allReportTransactions, reportIDFromRoute]);
 
     // If there is more than one transaction, display the report in Super Wide RHP, otherwise it will be shown in Wide RHP
     const shouldShowSuperWideRHP = visibleTransactions.length > 1;
@@ -376,39 +371,46 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         shouldUseSnapshotTransaction,
     ]);
 
+    useClearReportActionDraftsOnReportChange(reportIDFromRoute);
+
     return (
-        <WideRHPOverlayWrapper>
-            <ActionListContext.Provider value={actionListValue}>
-                <ReactionListWrapper>
-                    <ScreenWrapper
-                        testID="SearchMoneyRequestReportPage"
-                        shouldEnableMaxHeight
-                        offlineIndicatorStyle={styles.mtAuto}
-                    >
-                        <FullPageNotFoundView
-                            shouldShow={shouldShowAccessErrorPage}
-                            subtitleKey="notFound.noAccess"
-                            subtitleStyle={[styles.textSupporting]}
-                            shouldDisplaySearchRouter
-                            shouldShowBackButton={shouldUseNarrowLayout}
-                            onBackButtonPress={Navigation.goBack}
+        <ReportActionEditMessageContextProvider
+            reportID={reportIDFromRoute}
+            effectiveTransactionThreadReportID={effectiveTransactionThreadReportID}
+        >
+            <WideRHPOverlayWrapper>
+                <ActionListContext.Provider value={actionListValue}>
+                    <ReactionListWrapper>
+                        <ScreenWrapper
+                            testID="SearchMoneyRequestReportPage"
+                            shouldEnableMaxHeight
+                            offlineIndicatorStyle={styles.mtAuto}
                         >
-                            <DragAndDropProvider isDisabled={isEditingDisabled}>
-                                <MoneyRequestReportView
-                                    report={report}
-                                    reportLoadingState={reportLoadingState}
-                                    shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
-                                    key={report?.reportID}
-                                    onLayout={handleSubmitToDestinationVisibleLayout}
-                                    backToRoute={route.params.backTo}
-                                />
-                                <PortalHost name="suggestions" />
-                            </DragAndDropProvider>
-                        </FullPageNotFoundView>
-                    </ScreenWrapper>
-                </ReactionListWrapper>
-            </ActionListContext.Provider>
-        </WideRHPOverlayWrapper>
+                            <FullPageNotFoundView
+                                shouldShow={shouldShowAccessErrorPage}
+                                subtitleKey="notFound.noAccess"
+                                subtitleStyle={[styles.textSupporting]}
+                                shouldDisplaySearchRouter
+                                shouldShowBackButton={shouldUseNarrowLayout}
+                                onBackButtonPress={Navigation.goBack}
+                            >
+                                <DragAndDropProvider isDisabled={isEditingDisabled}>
+                                    <MoneyRequestReportView
+                                        report={report}
+                                        reportLoadingState={reportLoadingState}
+                                        shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
+                                        key={report?.reportID}
+                                        onLayout={handleSubmitToDestinationVisibleLayout}
+                                        backToRoute={route.params.backTo}
+                                    />
+                                    <PortalHost name="suggestions" />
+                                </DragAndDropProvider>
+                            </FullPageNotFoundView>
+                        </ScreenWrapper>
+                    </ReactionListWrapper>
+                </ActionListContext.Provider>
+            </WideRHPOverlayWrapper>
+        </ReportActionEditMessageContextProvider>
     );
 }
 

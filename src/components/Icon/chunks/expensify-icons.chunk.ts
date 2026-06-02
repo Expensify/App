@@ -58,6 +58,7 @@ import CircularArrowBackwards from '@assets/images/circular-arrow-backwards.svg'
 import Clock from '@assets/images/clock.svg';
 import Close from '@assets/images/close.svg';
 import ClosedSign from '@assets/images/closed-sign.svg';
+import CoinsButton from '@assets/images/coins-button.svg';
 import Coins from '@assets/images/coins.svg';
 import Collapse from '@assets/images/collapse.svg';
 import Columns from '@assets/images/columns.svg';
@@ -237,6 +238,7 @@ import Task from '@assets/images/task.svg';
 import Thread from '@assets/images/thread.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
 import ThumbsDown from '@assets/images/thumbs-down.svg';
+import ThumbsUpHourglass from '@assets/images/thumbs-up-hourglass.svg';
 import ThumbsUp from '@assets/images/thumbs-up.svg';
 import TrainCircleSlash from '@assets/images/train-circle-slash.svg';
 import Train from '@assets/images/train.svg';
@@ -263,6 +265,12 @@ import Workflows from '@assets/images/workflows.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Clear from '@assets/images/x-circle.svg';
 import Zoom from '@assets/images/zoom.svg';
+// These icons are React components because they have
+// drop shadow that is NOT handled by babel-plugin-transform-react-native-svg
+import MapCurrentLocation from '@components/MapView/Icons/MapCurrentLocation';
+import MapStartWaypoint from '@components/MapView/Icons/MapStartWaypoint';
+import MapStopWaypoint from '@components/MapView/Icons/MapStopWaypoint';
+import MapWaypoint from '@components/MapView/Icons/MapWaypoint';
 
 const Expensicons = {
     ReceiptBody,
@@ -364,6 +372,7 @@ const Expensicons = {
     Tag,
     MultiTag,
     Coins,
+    CoinsButton,
     Thread,
     Gallery,
     GalleryPlus,
@@ -393,6 +402,10 @@ const Expensicons = {
     Mail,
     MakeAdmin,
     Map,
+    MapCurrentLocation,
+    MapStartWaypoint,
+    MapStopWaypoint,
+    MapWaypoint,
     Menu,
     Meter,
     Megaphone,
@@ -447,6 +460,7 @@ const Expensicons = {
     Sync,
     Task,
     ThumbsUp,
+    ThumbsUpHourglass,
     ThreeDots,
     Transfer,
     Trashcan,

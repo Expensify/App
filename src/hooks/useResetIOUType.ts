@@ -4,8 +4,9 @@ import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import {useRef} from 'react';
 import {Keyboard} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {IOURequestType} from '@userActions/IOU';
+import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
 import {initMoneyRequest} from '@userActions/IOU/MoneyRequest';
+import type {IOURequestType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
@@ -92,7 +93,7 @@ function useResetIOUType({
             personalPolicy,
             isFromGlobalCreate,
             isTrackDistanceExpense,
-            isFromFloatingActionButton: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate ?? isFromGlobalCreate,
+            isFromFloatingActionButton: getIsFromGlobalCreate(transaction) ?? isFromGlobalCreate,
             currentIouRequestType: transaction?.iouRequestType,
             newIouRequestType: newIOUType,
             report,

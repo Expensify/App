@@ -5,12 +5,13 @@ import type {GestureResponderEvent, NativeSyntheticEvent} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
-import {useEditingCellState} from '@components/Table/EditableCell';
+import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useStableIndexedHandler from '@hooks/useStableIndexedHandler';
 import {isMobileChrome} from '@libs/Browser';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
+import {isFocusRestoreInProgress} from '@libs/NavigationFocusReturn';
 import CONST from '@src/CONST';
 import type BaseSearchListProps from './types';
 
@@ -57,12 +58,19 @@ function BaseSearchList({
         onFocusedIndexChange: (index: number) => {
             scrollToIndex?.(index);
         },
+        onArrowUpDownCallback: () => {
+            ref?.current?.announceProgrammaticScroll();
+        },
         setHasKeyBeenPressed,
         isFocused,
         captureOnInputs: false,
     });
 
     const handleFocusByIndex = (index: number, event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
+        // The focus-return restore shouldn't move the keyboard cursor here, or the row gets highlighted and scrolled into view on back nav. The .focus() still restores DOM focus for screen readers.
+        if (isFocusRestoreInProgress()) {
+            return;
+        }
         // Prevent unexpected scrolling on mobile Chrome after the context menu closes by ignoring programmatic focus not triggered by direct user interaction.
         if (isMobileChrome() && event.nativeEvent) {
             if (!event.nativeEvent.sourceCapabilities) {
