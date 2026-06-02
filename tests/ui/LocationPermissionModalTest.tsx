@@ -128,7 +128,7 @@ describe('LocationPermissionModal', () => {
         jest.restoreAllMocks();
     });
 
-    it('updates the prompt timestamp when the user explicitly skips the prompt', async () => {
+    it('reports user-initiated denial when the user explicitly skips the prompt', async () => {
         const props = createDefaultProps();
         mockGetLocationPermission.mockResolvedValue(RESULTS.DENIED);
 
@@ -140,8 +140,8 @@ describe('LocationPermissionModal', () => {
             getConfirmModalProp<() => void>('onCancel')?.();
         });
 
-        expect(mockUpdateLastLocationPermissionPrompt).toHaveBeenCalledTimes(1);
-        expect(props.onDeny).toHaveBeenCalledWith();
+        expect(mockUpdateLastLocationPermissionPrompt).not.toHaveBeenCalled();
+        expect(props.onDeny).toHaveBeenCalledWith(true);
     });
 
     it('does not update the prompt timestamp when blocked browser permission is still blocked after confirm', async () => {
@@ -160,7 +160,7 @@ describe('LocationPermissionModal', () => {
             getConfirmModalProp<() => void>('onConfirm')?.();
         });
 
-        await waitFor(() => expect(props.onDeny).toHaveBeenCalledWith());
+        await waitFor(() => expect(props.onDeny).toHaveBeenCalledWith(false));
         expect(mockUpdateLastLocationPermissionPrompt).not.toHaveBeenCalled();
         expect(mockRequestLocationPermission).not.toHaveBeenCalled();
     });
@@ -178,7 +178,7 @@ describe('LocationPermissionModal', () => {
             getConfirmModalProp<() => void>('onConfirm')?.();
         });
 
-        await waitFor(() => expect(props.onDeny).toHaveBeenCalledWith());
+        await waitFor(() => expect(props.onDeny).toHaveBeenCalledWith(false));
         expect(mockUpdateLastLocationPermissionPrompt).not.toHaveBeenCalled();
         expect(mockRequestLocationPermission).toHaveBeenCalledTimes(1);
     });
@@ -196,11 +196,11 @@ describe('LocationPermissionModal', () => {
             getConfirmModalProp<() => void>('onConfirm')?.();
         });
 
-        await waitFor(() => expect(props.onDeny).toHaveBeenCalledWith());
+        await waitFor(() => expect(props.onDeny).toHaveBeenCalledWith(false));
         expect(mockUpdateLastLocationPermissionPrompt).not.toHaveBeenCalled();
     });
 
-    it('updates the prompt timestamp from Android when the user explicitly skips the prompt', async () => {
+    it('reports user-initiated denial from Android when the user explicitly skips the prompt', async () => {
         const props = createDefaultProps();
         mockGetLocationPermission.mockResolvedValue(RESULTS.BLOCKED);
 
@@ -212,7 +212,7 @@ describe('LocationPermissionModal', () => {
             getConfirmModalProp<() => void>('onCancel')?.();
         });
 
-        expect(mockUpdateLastLocationPermissionPrompt).toHaveBeenCalledTimes(1);
-        expect(props.onDeny).toHaveBeenCalledWith();
+        expect(mockUpdateLastLocationPermissionPrompt).not.toHaveBeenCalled();
+        expect(props.onDeny).toHaveBeenCalledWith(true);
     });
 });

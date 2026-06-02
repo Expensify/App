@@ -1,6 +1,7 @@
 import React from 'react';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
+import {updateLastLocationPermissionPrompt} from '@userActions/IOU/MoneyRequest';
 
 type GpsPermissionGateProps = {
     /** Whether the GPS permission flow is active */
@@ -30,7 +31,12 @@ function GpsPermissionGate({startLocationPermissionFlow, receiptFiles, resetPerm
             startPermissionFlow={startLocationPermissionFlow}
             resetPermissionFlow={resetPermissionFlow}
             onGrant={() => onComplete(receiptFiles, true)}
-            onDeny={() => onComplete(receiptFiles, false)}
+            onDeny={(wasUserInitiated) => {
+                if (wasUserInitiated) {
+                    updateLastLocationPermissionPrompt();
+                }
+                onComplete(receiptFiles, false);
+            }}
         />
     );
 }

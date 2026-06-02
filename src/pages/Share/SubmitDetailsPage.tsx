@@ -28,6 +28,7 @@ import {
     setMoneyRequestBillable,
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestReimbursable,
+    updateLastLocationPermissionPrompt,
 } from '@libs/actions/IOU/MoneyRequest';
 import {setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
@@ -418,8 +419,11 @@ function SubmitDetailsPage({
                         }
                         navigateAfterInteraction(() => performUpload(participant, true));
                     }}
-                    onDeny={() => {
+                    onDeny={(wasUserInitiated) => {
                         setStartLocationPermissionFlow(false);
+                        if (wasUserInitiated) {
+                            updateLastLocationPermissionPrompt();
+                        }
                         const participant = selectedParticipantList.at(0) ?? selectedParticipants.at(0);
                         if (!participant) {
                             setIsConfirming(false);

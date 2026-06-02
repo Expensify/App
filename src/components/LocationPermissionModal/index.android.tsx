@@ -7,7 +7,6 @@ import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLocationPermission, requestLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
-import {updateLastLocationPermissionPrompt} from '@userActions/IOU/MoneyRequest';
 import type LocationPermissionModalProps from './types';
 
 function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant, onInitialGetLocationCompleted}: LocationPermissionModalProps) {
@@ -57,7 +56,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                     setHasError(true);
                     return;
                 } else {
-                    onDeny();
+                    onDeny(false);
                 }
                 setShowModal(false);
                 setHasError(false);
@@ -68,8 +67,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     });
 
     const skipLocationPermission = () => {
-        updateLastLocationPermissionPrompt();
-        onDeny();
+        onDeny(true);
         setShowModal(false);
         setHasError(false);
     };
