@@ -194,6 +194,8 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const readActionSkipped = useRef(false);
     const stickToBottomRef = useRef(false);
     const stickToBottomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    // Set when the user taps "Latest messages"; the report is marked as read only once the scroll actually reaches the bottom.
+    const pendingMarkAsReadRef = useRef(false);
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
     const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated;
     const userActiveSince = useRef<string>(DateUtils.getDBTime());
@@ -438,6 +440,14 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
             // We additionally track the top offset to be able to scroll to the new transaction when it's added
             scrollingVerticalTopOffset.current = contentOffset.y;
+
+            // Mark the report as read only once the scroll has actually reached the bottom. The jump fired by
+            // "Latest messages" settles over several frames as deferred items hydrate, so we wait for the real end.
+            if (pendingMarkAsReadRef.current && scrollingVerticalBottomOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD) {
+                pendingMarkAsReadRef.current = false;
+                readActionSkipped.current = false;
+                readNewestAction(reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
+            }
         },
         hasOnceLoadedReportActions: !!reportLoadingState?.hasOnceLoadedReportActions,
     });
@@ -583,7 +593,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         ],
     );
 
-    const scrollToBottomAndMarkReportAsRead = useCallback(() => {
+    const scrollToLatestMessages = useCallback(() => {
         setIsFloatingMessageCounterVisible(false);
 
         stickToBottomRef.current = true;
@@ -602,10 +612,10 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             return;
         }
 
+        // Defer marking the report as read until the scroll actually reaches the bottom (handled in onTrackScrolling).
+        pendingMarkAsReadRef.current = true;
         reportScrollManager.scrollToEnd();
-        readActionSkipped.current = false;
-        readNewestAction(reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
-    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, reportID, reportLoadingState?.hasOnceLoadedReportActions, introSelected, betas]);
+    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, reportID, introSelected, betas]);
 
     useEffect(() => {
         return () => {
@@ -625,6 +635,8 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
     const onListScrollBeginDrag = () => {
         stickToBottomRef.current = false;
+        // The user scrolled away before reaching the bottom, so cancel the pending read.
+        pendingMarkAsReadRef.current = false;
         if (stickToBottomTimeoutRef.current) {
             clearTimeout(stickToBottomTimeoutRef.current);
             stickToBottomTimeoutRef.current = null;
@@ -678,7 +690,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                 <FloatingMessageCounter
                     hasNewMessages={!!unreadMarkerReportActionID}
                     isActive={isFloatingMessageCounterVisible}
-                    onClick={scrollToBottomAndMarkReportAsRead}
+                    onClick={scrollToLatestMessages}
                 />
                 {/* Exactly one of these two branches is active at a time:
                     1. showEmptyState — genuinely empty report
