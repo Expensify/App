@@ -12,6 +12,28 @@ type RawChartData = {
     y: number;
 };
 
+type BarTooltipEntry = {
+    /** Primary lookup key: `${yKey}:${xValue}` */
+    key: string;
+
+    /** Alternate keys that resolve to the same tooltip (e.g. category index on horizontal charts) */
+    keyAliases?: string[];
+
+    /** Tooltip label text */
+    label: string;
+
+    /** Bar value in display units (dollars) */
+    total: number;
+
+    /** When true, the tooltip shows only the label without a separate amount */
+    isLabelOnly: boolean;
+};
+
+type BarSeriesConfig = {
+    /** Bar width in pixels, when specified on the `<victorybar>` node */
+    barWidth?: number;
+};
+
 type RawLegendData = {
     name: string;
     symbol?: {
@@ -145,6 +167,9 @@ type ProcessNodeResult = {
     categories: string[] | undefined;
     labelItems: LabelItem[];
     legendItems: LegendItem[];
+    barTooltipEntries: BarTooltipEntry[];
+    barYKeys: YKey[];
+    barSeriesConfig: Partial<Record<YKey, BarSeriesConfig>>;
 };
 
 /** Partial slice produced by a single per-tag parser before merging. */
@@ -157,6 +182,8 @@ type ChartType = ValueOf<typeof CHART_TYPE>;
 export type {
     VictoryChartRendererProps,
     RawChartData,
+    BarTooltipEntry,
+    BarSeriesConfig,
     RawLegendData,
     RawAxisStyle,
     RawLabelStyle,

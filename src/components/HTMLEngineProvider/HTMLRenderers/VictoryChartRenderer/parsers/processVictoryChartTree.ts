@@ -2,7 +2,7 @@ import type {SkTypeface} from '@shopify/react-native-skia';
 import lodashMerge from 'lodash/merge';
 import type {TNode} from 'react-native-render-html';
 import {X_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
-import type {ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import type {BarSeriesConfig, BarTooltipEntry, ProcessNodeResult, YKey} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import PARSER_REGISTRY from './parserRegistry';
 
 /**
@@ -21,6 +21,9 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
     let categories: ProcessNodeResult['categories'];
     const labelItems: ProcessNodeResult['labelItems'] = [];
     const legendItems: ProcessNodeResult['legendItems'] = [];
+    const barTooltipEntries: BarTooltipEntry[] = [];
+    const barYKeys: YKey[] = [];
+    const barSeriesConfig: Partial<Record<YKey, BarSeriesConfig>> = {};
 
     const parser = PARSER_REGISTRY[tnode.tagName ?? ''];
     if (parser) {
@@ -58,10 +61,37 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
         if (result.legendItems) {
             legendItems.push(...result.legendItems);
         }
+        if (result.barTooltipEntries) {
+            barTooltipEntries.push(...result.barTooltipEntries);
+        }
+        if (result.barYKeys) {
+            barYKeys.push(...result.barYKeys);
+        }
+        if (result.barSeriesConfig) {
+            lodashMerge(barSeriesConfig, result.barSeriesConfig);
+        }
     }
 
     // If we have `rootProcessedResult` then forward it as is, otherwise we must be the root so pass the data that we just built
-    const rootProcessedNodeResult = rootProcessedResult ?? {data, xKey: X_KEY, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, categories, labelItems, legendItems};
+    const rootProcessedNodeResult =
+        rootProcessedResult ??
+        ({
+            data,
+            xKey: X_KEY,
+            yKeys,
+            xAxis,
+            yAxis,
+            domain,
+            domainPadding,
+            padding,
+            isHorizontal,
+            categories,
+            labelItems,
+            legendItems,
+            barTooltipEntries,
+            barYKeys,
+            barSeriesConfig,
+        } satisfies ProcessNodeResult);
 
     for (const child of tnode.children) {
         const childResult = processVictoryChartTree(child, typeface, rootProcessedNodeResult);
@@ -90,9 +120,28 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
         }
         labelItems.push(...childResult.labelItems);
         legendItems.push(...childResult.legendItems);
+        barTooltipEntries.push(...childResult.barTooltipEntries);
+        barYKeys.push(...childResult.barYKeys);
+        lodashMerge(barSeriesConfig, childResult.barSeriesConfig);
     }
 
-    return {data, xKey: X_KEY, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, categories, labelItems, legendItems};
+    return {
+        data,
+        xKey: X_KEY,
+        yKeys,
+        xAxis,
+        yAxis,
+        domain,
+        domainPadding,
+        padding,
+        isHorizontal,
+        categories,
+        labelItems,
+        legendItems,
+        barTooltipEntries,
+        barYKeys,
+        barSeriesConfig,
+    };
 }
 
 export default processVictoryChartTree;

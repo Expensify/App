@@ -20,6 +20,15 @@ function useTooltipData(activeDataIndex: number, data: ChartDataPoint[], formatA
     if (!dataPoint) {
         return null;
     }
+
+    if (dataPoint.isLabelOnly) {
+        return {
+            label: dataPoint.label,
+            amount: '',
+            percentage: undefined,
+        };
+    }
+
     const percent = totalSum > 0 ? Math.round((Math.abs(dataPoint.total) / totalSum) * 100) : 0;
     return {
         label: dataPoint.label,
