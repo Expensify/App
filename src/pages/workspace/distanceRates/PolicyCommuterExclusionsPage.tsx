@@ -1,12 +1,11 @@
-import {Str} from 'expensify-common';
-import React, {useMemo, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import TextInput from '@components/TextInput';
@@ -35,6 +34,7 @@ type ExclusionOption = {
     alternateText: string;
     keyForList: ExclusionOptionKey;
     isSelected: boolean;
+    footerContent?: React.ReactNode;
 };
 
 function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps) {
@@ -55,30 +55,23 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
     const [fixedDistanceInput, setFixedDistanceInput] = useState<string>(existingCommuterExclusions?.fixedDistance != null ? String(existingCommuterExclusions.fixedDistance) : '');
     const [inlineError, setInlineError] = useState<string>('');
 
-    const unitLabel = useMemo(() => Str.recapitalize(translate(getUnitTranslationKey(workspaceUnit))), [translate, workspaceUnit]);
+    // Lowercased to match design copy ("miles" / "kilometers"); the existing translation keys are already lowercase.
+    const unitLabel = translate(getUnitTranslationKey(workspaceUnit));
 
-    const options: ExclusionOption[] = [
-        {
-            text: translate('workspace.distanceRates.commuterExclusions.optionDisabledTitle'),
-            alternateText: translate('workspace.distanceRates.commuterExclusions.optionDisabledHelp'),
-            keyForList: 'disabled',
-            isSelected: selectedKey === 'disabled',
-        },
-        {
-            text: translate('workspace.distanceRates.commuterExclusions.optionFixedDistanceTitle'),
-            alternateText: translate('workspace.distanceRates.commuterExclusions.optionFixedDistanceHelp'),
-            keyForList: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
-            isSelected: selectedKey === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
-        },
-    ];
+    const goBackToSettings = useCallback(() => {
+        Navigation.goBack(ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(policyID));
+    }, [policyID]);
 
     const onSelectRow = (item: ExclusionOption) => {
+        if (item.keyForList === selectedKey) {
+            return;
+        }
         setSelectedKey(item.keyForList);
         setInlineError('');
 
         if (item.keyForList === 'disabled' && existingMethod) {
             disablePolicyCommuterExclusions(policyID, existingCommuterExclusions);
-            Navigation.goBack(ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(policyID));
+            goBackToSettings();
         }
     };
 
@@ -93,15 +86,55 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
 
         // No-op when nothing changed - matches the server-side idempotency check.
         if (existingMethod === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE && existingCommuterExclusions?.fixedDistance === numeric) {
-            Navigation.goBack(ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(policyID));
+            goBackToSettings();
             return;
         }
 
         setPolicyCommuterExclusions(policyID, CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE, numeric, workspaceUnit, existingCommuterExclusions);
-        Navigation.goBack(ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(policyID));
+        goBackToSettings();
     };
 
-    const showFixedDistanceForm = selectedKey === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE;
+    const isFixedDistanceSelected = selectedKey === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE;
+
+    // Renders the distance input right below the fixed-distance option so the form reads naturally
+    // (matches the existing footerContent pattern used by WorkspaceAutoReportingFrequencyPage).
+    const fixedDistanceFooter = (
+        <View style={[styles.ph5, styles.pt3, styles.pb3]}>
+            <TextInput
+                label={translate('workspace.distanceRates.commuterExclusions.distanceLabel')}
+                accessibilityLabel={translate('workspace.distanceRates.commuterExclusions.distanceLabel')}
+                value={fixedDistanceInput}
+                onChangeText={(value) => {
+                    setFixedDistanceInput(value);
+                    if (inlineError) {
+                        setInlineError('');
+                    }
+                }}
+                keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
+                suffixCharacter={unitLabel}
+                suffixStyle={styles.colorMuted}
+                role={CONST.ROLE.PRESENTATION}
+                autoFocus={existingMethod !== CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE}
+            />
+            {!!inlineError && <FormHelpMessage message={inlineError} />}
+        </View>
+    );
+
+    const options: ExclusionOption[] = [
+        {
+            text: translate('workspace.distanceRates.commuterExclusions.optionDisabledTitle'),
+            alternateText: translate('workspace.distanceRates.commuterExclusions.optionDisabledHelp'),
+            keyForList: 'disabled',
+            isSelected: selectedKey === 'disabled',
+        },
+        {
+            text: translate('workspace.distanceRates.commuterExclusions.optionFixedDistanceTitle'),
+            alternateText: translate('workspace.distanceRates.commuterExclusions.optionFixedDistanceHelp'),
+            keyForList: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+            isSelected: isFixedDistanceSelected,
+            footerContent: isFixedDistanceSelected ? fixedDistanceFooter : null,
+        },
+    ];
 
     return (
         <AccessOrNotFoundWrapper
@@ -113,10 +146,11 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID="PolicyCommuterExclusionsPage"
+                shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
                     title={translate('workspace.distanceRates.commuterExclusions.title')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(policyID))}
+                    onBackButtonPress={goBackToSettings}
                 />
                 <OfflineWithFeedback
                     errors={getLatestErrorField(policy ?? {}, 'commuterExclusions')}
@@ -126,48 +160,25 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
                     style={styles.flex1}
                     contentContainerStyle={styles.flex1}
                 >
-                    <ScrollView
-                        contentContainerStyle={styles.flexGrow1}
-                        keyboardShouldPersistTaps="always"
-                        addBottomSafeAreaPadding
-                    >
-                        <SelectionList
-                            ListItem={SingleSelectListItem}
-                            data={options}
-                            onSelectRow={onSelectRow}
-                            initiallyFocusedItemKey={selectedKey}
-                            shouldSingleExecuteRowSelect
-                            shouldUpdateFocusedIndex
-                        />
-                        {showFixedDistanceForm && (
-                            <View style={[styles.mh5, styles.mt3]}>
-                                <TextInput
-                                    label={translate('workspace.distanceRates.commuterExclusions.distanceLabel')}
-                                    accessibilityLabel={translate('workspace.distanceRates.commuterExclusions.distanceLabel')}
-                                    value={fixedDistanceInput}
-                                    onChangeText={(value) => {
-                                        setFixedDistanceInput(value);
-                                        if (inlineError) {
-                                            setInlineError('');
-                                        }
-                                    }}
-                                    keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
-                                    suffixCharacter={unitLabel}
-                                    role={CONST.ROLE.PRESENTATION}
-                                    autoFocus={existingMethod !== CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE}
-                                />
-                                {!!inlineError && <FormHelpMessage message={inlineError} />}
-                                <Button
-                                    success
-                                    large
-                                    style={styles.mt3}
-                                    text={translate('common.save')}
-                                    onPress={onSave}
-                                />
-                            </View>
-                        )}
-                    </ScrollView>
+                    <SelectionList
+                        ListItem={SingleSelectListItem}
+                        data={options}
+                        onSelectRow={onSelectRow}
+                        initiallyFocusedItemKey={selectedKey}
+                        shouldSingleExecuteRowSelect
+                        shouldUpdateFocusedIndex
+                    />
                 </OfflineWithFeedback>
+                {isFixedDistanceSelected && (
+                    <FixedFooter addBottomSafeAreaPadding>
+                        <Button
+                            success
+                            large
+                            text={translate('common.save')}
+                            onPress={onSave}
+                        />
+                    </FixedFooter>
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

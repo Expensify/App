@@ -578,7 +578,7 @@ function setPolicyCommuterExclusions(
         ],
     };
 
-    const parameters: SetPolicyCommuterExclusionsParams = {policyID, method, distance: fixedDistance};
+    const parameters: SetPolicyCommuterExclusionsParams = {policyID, commuterExclusionMethod: method, distance: fixedDistance};
     API.write(WRITE_COMMANDS.SET_POLICY_COMMUTER_EXCLUSIONS, parameters, onyxData);
 }
 
