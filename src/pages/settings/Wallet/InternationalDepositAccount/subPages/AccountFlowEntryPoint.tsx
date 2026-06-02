@@ -39,9 +39,11 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bank', 'Connect', 'Lightbulb', 'Lock']);
 
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
+    const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
+    const onSuccessFallbackRoute = personalBankAccount?.onSuccessFallbackRoute;
 
     useEffect(() => {
-        clearPersonalBankAccount(true);
+        clearPersonalBankAccount(onSuccessFallbackRoute ? {onSuccessFallbackRoute} : undefined);
     }, []);
 
     const handleConnectManually = () => {

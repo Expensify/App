@@ -292,22 +292,12 @@ function setPersonalBankAccountContinueKYCOnSuccess(onSuccessFallbackRoute: Rout
 }
 
 /**
- * Clears personal bank account state. Pass `shouldPreserveAccountData=true` to only clear UI/error
- * fields while keeping routing and context fields intact.
+ * Clears personal bank account state. Pass routing metadata to preserve when resetting the flow
+ * without losing navigation context.
  */
-function clearPersonalBankAccount(shouldPreserveAccountData = false) {
+function clearPersonalBankAccount(preservedData?: Partial<PersonalBankAccount>) {
     clearPlaid();
-    if (shouldPreserveAccountData) {
-        Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
-            shouldShowSuccess: null,
-            isLoading: null,
-            errors: null,
-            errorFields: null,
-            updateError: null,
-        });
-    } else {
-        Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, null);
-    }
+    Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, preservedData ?? null);
     Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, null);
     clearPersonalBankAccountSetupType();
 }
