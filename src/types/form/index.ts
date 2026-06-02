@@ -128,3 +128,4 @@ export type {SpendRuleMerchantEditForm} from './SpendRuleMerchantEditForm';
 export type {AddAgentForm} from './AddAgentForm';
 export type {EditAgentNameForm} from './EditAgentNameForm';
 export type {EditAgentPromptForm} from './EditAgentPromptForm';
+export type {AddAIRuleForm} from './AddAIRuleForm';

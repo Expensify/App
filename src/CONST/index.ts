@@ -4684,6 +4684,12 @@ const CONST = {
             BLOCK: 'block',
         },
     },
+    AI_RULES: {
+        TAB_SELECTOR: {
+            SUGGESTED: 'suggested',
+            EDIT: 'edit',
+        },
+    },
 
     get SUBSCRIPTION_PRICES() {
         return {
@@ -9843,6 +9849,7 @@ const CONST = {
                 SPEND_RULE_RESTRICTION_TYPE: 'WorkspaceRules-SpendRuleRestrictionType',
                 AI_RULE_ITEM: 'WorkspaceRules-AIRuleItem',
                 ADD_AI_RULE: 'WorkspaceRules-AddAIRule',
+                AI_RULE_SAVE: 'WorkspaceRules-AIRuleSave',
             },
             EXPENSIFY_CARD: {
                 ISSUE_CARD_BUTTON: 'WorkspaceExpensifyCard-IssueCardButton',

@@ -1512,6 +1512,9 @@ type SettingsNavigatorParamList = {
         ruleID: string;
         merchantIndex: string;
     };
+    [SCREENS.WORKSPACE.RULES_AI_NEW]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.RULES_MERCHANT_MERCHANT_TO_MATCH]: {
         policyID: string;
         ruleID: string;
