@@ -1,4 +1,5 @@
-import React, {useEffect, useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useEffect, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ExpiredValidateCodeModal from '@components/ValidateCode/ExpiredValidateCodeModal';
@@ -46,23 +47,19 @@ function ValidateLoginPage({
     // Fresh-session magic-link sign-in. Not gated on `isSignedIn` because `autoAuthState` lands
     // before `authToken` (separate Onyx broadcasts); that gap would otherwise flash a blank page.
     // Keeps the loader up across SIGNING_IN → JUST_SIGNED_IN until the redirect unmounts the page.
+    // Excludes 2FA: it can't complete from here, so the 2FA modal (below) handles it instead of an
+    // indefinite loader.
     const isCompletingDirectSignIn =
-        !exitTo && !login && (autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN);
+        !exitTo && !login && !is2FARequired && (autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN);
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
 
     useEffect(() => {
         setHasInitialized(true);
 
         if (isUserClickedSignIn) {
-            // Just signed in via the magic link with no cached `login` (separate-session
-            // sign-in). goBack() left a blank page, so go Home: wait for protected
-            // routes (HOME mounts async) and forceReplace so Home doesn't stack on the
-            // consumed `/v/...` route.
-            // NOTE: this branch only fires on the AuthScreens re-mount of this page (after the
-            // auth swap), where isSignedIn is finally true; the original PublicScreens mount isn't.
-            Navigation.waitForProtectedRoutes().then(() => {
-                Navigation.navigate(ROUTES.HOME, {forceReplace: true});
-            });
+            // Just signed in via the magic link with no cached `login` (separate-session sign-in).
+            // The redirect Home lives in the focus effect below (not here) so returning to the
+            // consumed `/v/...` via browser Back re-fires it instead of getting stuck on the loader.
             return;
         }
         initAutoAuthState(autoAuthStateWithDefault);
@@ -79,6 +76,22 @@ function ValidateLoginPage({
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // Redirect Home after a separate-session magic-link sign-in. On a focus effect (not mount-only)
+    // so that returning to the consumed `/v/...` via browser Back re-fires it — the route can linger
+    // in the stack when forceReplace is downgraded to a push, and a mount-only effect wouldn't re-run.
+    useFocusEffect(
+        useCallback(() => {
+            if (!isUserClickedSignIn) {
+                return;
+            }
+            // Wait for protected routes (HOME mounts async); forceReplace so Home doesn't stack on the
+            // consumed `/v/...` route.
+            Navigation.waitForProtectedRoutes().then(() => {
+                Navigation.navigate(ROUTES.HOME, {forceReplace: true});
+            });
+        }, [isUserClickedSignIn]),
+    );
 
     useEffect(() => {
         if (!!login || !cachedAccountID || !is2FARequired) {
@@ -111,7 +124,7 @@ function ValidateLoginPage({
     return (
         <>
             {autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.FAILED && !is2FARequired && <ExpiredValidateCodeModal />}
-            {(autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN || autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.FAILED) && is2FARequired && !isSignedIn && !!login && (
+            {(autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN || autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.FAILED) && is2FARequired && !isSignedIn && (
                 <JustSignedInModal is2FARequired />
             )}
             {autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && isSignedIn && !exitTo && !!login && <JustSignedInModal is2FARequired={false} />}

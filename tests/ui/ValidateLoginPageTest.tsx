@@ -163,4 +163,22 @@ describe('ValidateLoginPage', () => {
         // Not signed in yet, so we must not redirect prematurely.
         expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.HOME, {forceReplace: true});
     });
+
+    it('Should show the 2FA-required prompt (not an infinite loader) for a separate-session sign-in needing 2FA', async () => {
+        // Separate session: no cached `login`, signed in via the link but 2FA is required so authToken
+        // never lands. Without the fix isCompletingDirectSignIn keeps the loader up forever; instead we
+        // must surface the "2FA required" prompt and never redirect Home.
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true});
+            await Onyx.set(ONYXKEYS.SESSION, {
+                autoAuthState: CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN,
+            });
+        });
+
+        renderPage({accountID: '1', validateCode: '123456'});
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByTestId('validate-login-loading')).toBeNull();
+        expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.HOME, {forceReplace: true});
+    });
 });
