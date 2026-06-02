@@ -105,7 +105,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     return (
         <ReportScreenEditMessageProvider reportID={reportIDFromRoute}>
-            <WideRHPOverlayWrapper shouldWrap={route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT}>
+            <WideRHPOverlayWrapper shouldWrap={route.name === SCREENS.DYNAMIC_SEARCH_REPORT}>
                 <ActionListContext.Provider value={actionListValue}>
                     <ReactionListWrapper>
                         <ScreenWrapper

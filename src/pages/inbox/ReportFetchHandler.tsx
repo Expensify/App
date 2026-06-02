@@ -325,7 +325,7 @@ function ReportFetchHandler() {
         // Skip if already created, coming from Search page, or thread already exists
         if (
             hasCreatedLegacyThreadRef.current ||
-            route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ||
+            route.name === SCREENS.DYNAMIC_SEARCH_REPORT ||
             transactionThreadReport ||
             (transactionThreadReportID && transactionThreadReportID !== '0') ||
             !reportLoadingState?.hasOnceLoadedReportActions ||

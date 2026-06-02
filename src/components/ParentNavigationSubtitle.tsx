@@ -10,6 +10,7 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
@@ -19,7 +20,7 @@ import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import StatusBadge from './StatusBadge';
 import Text from './Text';
@@ -104,7 +105,7 @@ function ParentNavigationSubtitle({
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
-    const isReportInRHP = currentRoute.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
+    const isReportInRHP = currentRoute.name === SCREENS.DYNAMIC_SEARCH_REPORT;
     const hasAccessToParentReport = currentReport?.hasParentAccess !== false;
     const {currentFullScreenRoute, currentFocusedNavigator} = useRootNavigationState((state) => {
         // Find the tab navigator, which wraps all full-screen navigators
@@ -178,7 +179,7 @@ function ParentNavigationSubtitle({
         if (openParentReportInCurrentTab && currentFocusedNavigator?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
             const lastRoute = currentFocusedNavigator?.state?.routes.at(-1);
             if (lastRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT) {
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID, reportActionID: parentReportActionID}));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SEARCH_REPORT_VIEW.getRoute(parentReportID, parentReportActionID)));
                 return;
             }
 
@@ -186,7 +187,7 @@ function ParentNavigationSubtitle({
             // avoid stacking RHPs by going back to the search report if it's already there
             const previousRoute = currentFocusedNavigator?.state?.routes.at(-2);
 
-            if (previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && previousRoute.params && 'reportID' in previousRoute.params) {
+            if (previousRoute?.name === SCREENS.DYNAMIC_SEARCH_REPORT && previousRoute.params && 'reportID' in previousRoute.params) {
                 const reportIDFromParams = previousRoute.params.reportID;
 
                 if (reportIDFromParams === parentReportID) {
@@ -216,7 +217,7 @@ function ParentNavigationSubtitle({
             // and the parent isn't already in the stack — otherwise the REPORT_WITH_ID fallback
             // would yank the user to Inbox.
             if (isReportInRHP) {
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID, reportActionID: isVisibleAction ? parentReportActionID : undefined}));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SEARCH_REPORT_VIEW.getRoute(parentReportID, isVisibleAction ? parentReportActionID : undefined)));
                 return;
             }
         }

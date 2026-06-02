@@ -2581,12 +2581,7 @@ type RightModalNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
-    [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {
-        reportID: string;
-        reportActionID?: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-    };
+    [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.DOMAIN]: NavigatorScreenParams<WorkspacesDomainModalNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_COLUMNS]: NavigatorScreenParams<SearchColumnsParamList>;
     [SCREENS.RIGHT_MODAL.MULTIFACTOR_AUTHENTICATION]: NavigatorScreenParams<MultifactorAuthenticationParamList>;
@@ -3140,6 +3135,13 @@ type AuthScreensParamList = SharedScreensParamList &
         [NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR]: NavigatorScreenParams<TestToolsModalModalNavigatorParamList>;
     };
 
+type SearchReportNavigatorParamList = {
+    [SCREENS.DYNAMIC_SEARCH_REPORT]: {
+        reportID: string;
+        reportActionID?: string;
+    };
+};
+
 type SearchReportActionsParamList = {
     [SCREENS.SEARCH.REPORT_VERIFY_ACCOUNT]: {
         reportID: string;
@@ -3388,6 +3390,7 @@ export type {
     RootNavigatorParamList,
     SearchAdvancedFiltersParamList,
     SearchReportActionsParamList,
+    SearchReportNavigatorParamList,
     SearchSavedSearchParamList,
     SearchFullscreenNavigatorParamList,
     SettingsNavigatorParamList,

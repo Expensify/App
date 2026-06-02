@@ -34,12 +34,12 @@ describe('handleUnvalidatedUserNavigation', () => {
         },
         {
             description: 'navigate to ROUTES.SEARCH_REPORT_VERIFY_ACCOUNT.getRoute(reportID) when active route is ROUTES.SEARCH_REPORT.getRoute(reportID)',
-            mockActiveRoute: ROUTES.SEARCH_REPORT.getRoute({reportID: mockReportID}),
+            mockActiveRoute: `search/view/${mockReportID}`,
             expectedRouteToNavigate: ROUTES.SEARCH_REPORT_VERIFY_ACCOUNT.getRoute(mockReportID),
         },
         {
             description: 'navigate to ROUTES.SEARCH_REPORT_VERIFY_ACCOUNT.getRoute(chatReportID) when active route is ROUTES.SEARCH_REPORT.getRoute({reportID: chatReportID})',
-            mockActiveRoute: ROUTES.SEARCH_REPORT.getRoute({reportID: mockChatReportID}),
+            mockActiveRoute: `search/view/${mockChatReportID}`,
             expectedRouteToNavigate: ROUTES.SEARCH_REPORT_VERIFY_ACCOUNT.getRoute(mockChatReportID),
         },
         {
@@ -82,7 +82,7 @@ describe('handleUnvalidatedUserNavigation', () => {
         },
         {
             description: 'do not navigate to ROUTES.SEARCH_REPORT_VERIFY_ACCOUNT when reportID is undefined',
-            mockActiveRoute: ROUTES.SEARCH_REPORT.getRoute({reportID: mockReportID}),
+            mockActiveRoute: `search/view/${mockReportID}`,
         },
         {
             description: 'do not navigate when active route is ROUTES.REPORT_WITH_ID.getRoute(reportID) and reportID is undefined',

@@ -9,7 +9,7 @@ describe('useActiveRoute', () => {
         // Given an active route
         const navigation = jest.spyOn(Navigation, 'getReportRHPActiveRoute');
         const {result} = renderHook(() => useActiveRoute());
-        const expectedActiveRoute = ROUTES.SEARCH_REPORT.getRoute({reportID: '1'});
+        const expectedActiveRoute = `search/view/1`;
         navigation.mockReturnValueOnce(expectedActiveRoute);
 
         const actualActiveRoute = result.current.getReportRHPActiveRoute();

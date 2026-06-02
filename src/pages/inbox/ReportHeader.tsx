@@ -51,7 +51,7 @@ function ReportHeader() {
             closeSidePanel();
             return;
         }
-        if (backTo === SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
+        if (backTo === SCREENS.DYNAMIC_SEARCH_REPORT) {
             Navigation.goBack();
             return;
         }

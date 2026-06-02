@@ -46,7 +46,7 @@ const getRouteMappings = (chatReportID: string, reportID?: string): RouteMapping
             navigate: () => Navigation.navigate(ROUTES.REPORT_VERIFY_ACCOUNT.getRoute(chatReportID)),
         },
         {
-            check: (activeRoute: string) => activeRoute.includes(ROUTES.SEARCH_REPORT.getRoute({reportID: chatReportID})),
+            check: (activeRoute: string) => activeRoute.includes(`search/view/${chatReportID}`),
             navigate: () => Navigation.navigate(ROUTES.SEARCH_REPORT_VERIFY_ACCOUNT.getRoute(chatReportID)),
         },
         {
@@ -65,7 +65,7 @@ const getRouteMappings = (chatReportID: string, reportID?: string): RouteMapping
             navigate: () => Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_VERIFY_ACCOUNT.getRoute(reportID)),
         },
         {
-            check: (activeRoute: string) => activeRoute.includes(ROUTES.SEARCH_REPORT.getRoute({reportID})),
+            check: (activeRoute: string) => activeRoute.includes(`search/view/${reportID}`),
             navigate: () => Navigation.navigate(ROUTES.SEARCH_REPORT_VERIFY_ACCOUNT.getRoute(reportID)),
         },
         {

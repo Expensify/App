@@ -1,6 +1,7 @@
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import isSearchTopmostFullScreenRoute from './isSearchTopmostFullScreenRoute';
 
 type GetReportRouteForCurrentContextParams = {
@@ -14,7 +15,7 @@ function getReportRouteForCurrentContext({reportID}: GetReportRouteForCurrentCon
 
     const backTo = Navigation.getActiveRoute();
     if (isSearchTopmostFullScreenRoute()) {
-        return ROUTES.SEARCH_REPORT.getRoute({reportID, backTo});
+        return createDynamicRoute(DYNAMIC_ROUTES.SEARCH_REPORT_VIEW.getRoute(reportID));
     }
 
     return ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, backTo);

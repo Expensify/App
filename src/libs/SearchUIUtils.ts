@@ -63,7 +63,7 @@ import type {ThemeColors} from '@styles/theme/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS, {AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
@@ -104,6 +104,7 @@ import {getCardDescriptionForSearchTable, getFeedNameForDisplay} from './CardUti
 import {getDecodedCategoryName} from './CategoryUtils';
 import DateUtils from './DateUtils';
 import interceptAnonymousUser from './interceptAnonymousUser';
+import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
@@ -2508,8 +2509,8 @@ type CreateAndOpenSearchTransactionThreadParams = {
     /** The intro selected by the user */
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
 
-    /** The route to go back to after navigation */
-    backTo: string;
+    /** @deprecated No longer used with dynamic routes. Kept for backward compatibility. */
+    backTo?: string;
 
     /** The current user's login */
     currentUserLogin: string;
@@ -2540,7 +2541,6 @@ type CreateAndOpenSearchTransactionThreadParams = {
 function createAndOpenSearchTransactionThread({
     item,
     introSelected,
-    backTo,
     currentUserLogin,
     currentUserAccountID,
     betas,
@@ -2600,7 +2600,7 @@ function createAndOpenSearchTransactionThread({
         : item.reportID;
 
     if (shouldNavigate && targetReportID) {
-        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo})));
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SEARCH_REPORT_VIEW.getRoute(targetReportID))));
     }
 
     return targetReportID;

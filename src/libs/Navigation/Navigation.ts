@@ -1167,7 +1167,7 @@ function removePreInsertedFullscreenIfNeeded() {
     });
 }
 
-function getTopmostSearchReportRouteParams(state = navigationRef.getRootState()): RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT] | undefined {
+function getTopmostSearchReportRouteParams(state = navigationRef.getRootState()): {reportID: string; reportActionID?: string} | undefined {
     if (!state) {
         return undefined;
     }
@@ -1179,8 +1179,12 @@ function getTopmostSearchReportRouteParams(state = navigationRef.getRootState())
 
     const nestedRoutes = lastRoute.state?.routes ?? [];
     const lastSearchReport = [...nestedRoutes].reverse().find((route) => route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT);
+    if (!lastSearchReport?.state?.routes) {
+        return undefined;
+    }
 
-    return lastSearchReport?.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT] | undefined;
+    const innerRoute = lastSearchReport.state.routes.at(-1);
+    return innerRoute?.params as {reportID: string; reportActionID?: string} | undefined;
 }
 
 function getTopmostSearchReportID(state = navigationRef.getRootState()): string | undefined {

@@ -187,7 +187,7 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
         if (
             parentReportID &&
             isParentOneTransactionReport &&
-            (activeRoute.includes(ROUTES.REPORT_WITH_ID.getRoute(parentReportID)) || activeRoute.includes(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID})))
+            (activeRoute.includes(ROUTES.REPORT_WITH_ID.getRoute(parentReportID)) || activeRoute.includes(`search/view/${parentReportID}`))
         ) {
             if (draftReportComment) {
                 // Draft must be saved first because the callback will clear the optimistic report and its associated draft

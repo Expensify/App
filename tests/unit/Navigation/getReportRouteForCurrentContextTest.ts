@@ -1,7 +1,8 @@
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportRouteForCurrentContext';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRoute: jest.fn(),
@@ -26,11 +27,6 @@ describe('getReportRouteForCurrentContext', () => {
     it('returns the search report route when Search is the topmost fullscreen route', () => {
         mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
 
-        expect(getReportRouteForCurrentContext({reportID: '42'})).toBe(
-            ROUTES.SEARCH_REPORT.getRoute({
-                reportID: '42',
-                backTo: 'search?q=type:chat',
-            }),
-        );
+        expect(getReportRouteForCurrentContext({reportID: '42'})).toBe(createDynamicRoute(DYNAMIC_ROUTES.SEARCH_REPORT_VIEW.getRoute('42')));
     });
 });

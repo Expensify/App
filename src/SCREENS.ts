@@ -331,7 +331,6 @@ const SCREENS = {
         REFERRAL: 'Referral',
         TRANSACTION_DUPLICATE: 'TransactionDuplicate',
         TRAVEL: 'Travel',
-        SEARCH_REPORT: 'SearchReport',
         SEARCH_REPORT_ACTIONS: 'SearchReportActions',
         SEARCH_MONEY_REQUEST_REPORT: 'SearchMoneyRequestReport',
 
@@ -1004,6 +1003,7 @@ const SCREENS = {
         DETAILS: 'RoomMember_Details',
     },
     DYNAMIC_FLAG_COMMENT: 'Dynamic_Flag_Comment',
+    DYNAMIC_SEARCH_REPORT: 'Dynamic_Search_Report',
     DYNAMIC_TASK_TITLE: 'Dynamic_Task_Title',
     DYNAMIC_TASK_ASSIGNEE: 'Dynamic_Task_Assignee',
     DYNAMIC_REPORT_DESCRIPTION: 'Dynamic_Report_Description',

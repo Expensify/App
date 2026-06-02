@@ -426,7 +426,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 />
                                 <Stack.Screen
                                     name={SCREENS.RIGHT_MODAL.SEARCH_REPORT}
-                                    getComponent={loadRHPReportScreen}
+                                    component={ModalStackNavigators.SearchReportModalStackNavigator}
                                     options={(props) => {
                                         const options = modalStackScreenOptions(props);
                                         return {...options, animation: animationEnabledOnSearchReport ? Animations.SLIDE_FROM_RIGHT : Animations.NONE};

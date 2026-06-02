@@ -88,7 +88,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.HOME,
             SCREENS.SEARCH.ROOT,
             SCREENS.REPORT,
-            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.DYNAMIC_SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
         ],
@@ -113,7 +113,7 @@ const DYNAMIC_ROUTES = {
         path: 'add-bank-account/verify-account',
         entryScreens: [
             SCREENS.SETTINGS.WALLET.ROOT,
-            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.DYNAMIC_SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
@@ -148,7 +148,7 @@ const DYNAMIC_ROUTES = {
         path: 'change-workspace-educational',
         entryScreens: [
             SCREENS.REPORT,
-            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.DYNAMIC_SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
             SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
@@ -159,7 +159,7 @@ const DYNAMIC_ROUTES = {
         path: 'edit/policyField/:policyID/:fieldID',
         entryScreens: [
             SCREENS.REPORT,
-            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.DYNAMIC_SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
             SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
@@ -539,7 +539,7 @@ const DYNAMIC_ROUTES = {
     },
     EXPENSIFY_CARD_DETAILS: {
         path: 'expensify-card-details/:cardID/:policyID',
-        entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD, SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.DYNAMIC_PROFILE],
+        entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD, SCREENS.REPORT, SCREENS.DYNAMIC_SEARCH_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.DYNAMIC_PROFILE],
         getRoute: (cardID: string, policyID: string) => `expensify-card-details/${cardID}/${policyID}` as const,
     },
     EXPENSIFY_CARD_LIMIT_TYPE: {
@@ -669,12 +669,12 @@ const DYNAMIC_ROUTES = {
     },
     REPORT_DETAILS: {
         path: 'details',
-        entryScreens: [SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.SEARCH.ROOT],
+        entryScreens: [SCREENS.DYNAMIC_SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.SEARCH.ROOT],
     },
     REPORT_DETAILS_SHARE_CODE: {
         path: 'share-code',
         entryScreens: [
-            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.DYNAMIC_SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
@@ -689,12 +689,12 @@ const DYNAMIC_ROUTES = {
     },
     REPORT_DETAILS_EXPORT: {
         path: 'details/export/:connectionName',
-        entryScreens: [SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.SEARCH.ROOT],
+        entryScreens: [SCREENS.DYNAMIC_SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.SEARCH.ROOT],
         getRoute: (connectionName: ConnectionName) => `details/export/${connectionName as string}` as const,
     },
     REPORT_CHANGE_WORKSPACE: {
         path: 'change-workspace',
-        entryScreens: [SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.SEARCH.ROOT],
+        entryScreens: [SCREENS.DYNAMIC_SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.SEARCH.ROOT],
     },
     TRAVEL_PUBLIC_DOMAIN_ERROR: {
         path: 'public-domain-error',
@@ -730,17 +730,17 @@ const DYNAMIC_ROUTES = {
     },
     REPORT_CHANGE_APPROVER: {
         path: 'change-approver',
-        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+        entryScreens: [SCREENS.REPORT, SCREENS.DYNAMIC_SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
     },
     TASK_TITLE: {
         path: 'title',
-        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+        entryScreens: [SCREENS.REPORT, SCREENS.DYNAMIC_SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
     },
     REPORT_DESCRIPTION: {
         path: 'description',
         entryScreens: [
             SCREENS.REPORT,
-            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.DYNAMIC_SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
             SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
@@ -748,13 +748,13 @@ const DYNAMIC_ROUTES = {
     },
     TASK_ASSIGNEE: {
         path: 'assignee',
-        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+        entryScreens: [SCREENS.REPORT, SCREENS.DYNAMIC_SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
     },
     PRIVATE_NOTES_LIST: {
         path: 'notes',
         entryScreens: [
             SCREENS.REPORT,
-            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.DYNAMIC_SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
             SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
@@ -767,7 +767,7 @@ const DYNAMIC_ROUTES = {
         path: 'notes-edit/:accountID',
         entryScreens: [
             SCREENS.REPORT,
-            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.DYNAMIC_SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
             SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
@@ -782,8 +782,13 @@ const DYNAMIC_ROUTES = {
     },
     FLAG_COMMENT: {
         path: 'flag/:reportID/:reportActionID',
-        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+        entryScreens: [SCREENS.REPORT, SCREENS.DYNAMIC_SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
         getRoute: (reportID: string, reportActionID: string) => `flag/${reportID}/${reportActionID}`,
+    },
+    SEARCH_REPORT_VIEW: {
+        path: 'view/:reportID/:reportActionID?',
+        entryScreens: [SCREENS.SEARCH.ROOT, SCREENS.DYNAMIC_SEARCH_REPORT],
+        getRoute: (reportID: string, reportActionID?: string) => (reportActionID ? `view/${reportID}/${reportActionID}` : `view/${reportID}`),
     },
 } as const satisfies DynamicRoutes;
 
@@ -824,18 +829,6 @@ const ROUTES = {
                 return baseRoute;
             }
             return `${baseRoute}/${subPage}` as const;
-        },
-    },
-    SEARCH_REPORT: {
-        route: 'search/view/:reportID/:reportActionID?',
-        getRoute: ({reportID, reportActionID, backTo}: {reportID: string | undefined; reportActionID?: string; backTo?: string}) => {
-            if (!reportID) {
-                Log.warn('Invalid reportID is used to build the SEARCH_REPORT route');
-            }
-
-            const baseRoute = reportActionID ? (`search/view/${reportID}/${reportActionID}` as const) : (`search/view/${reportID}` as const);
-
-            return getUrlWithBackToParam(baseRoute, backTo);
         },
     },
 

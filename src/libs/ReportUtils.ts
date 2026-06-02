@@ -10310,13 +10310,7 @@ function navigateToLinkedReportAction(
             return;
         }
 
-        Navigation.navigate(
-            ROUTES.SEARCH_REPORT.getRoute({
-                reportID: ancestor.report.reportID,
-                reportActionID: ancestor.reportAction.reportActionID,
-                backTo: SCREENS.RIGHT_MODAL.SEARCH_REPORT,
-            }),
-        );
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SEARCH_REPORT_VIEW.getRoute(ancestor.report.reportID, ancestor.reportAction.reportActionID)));
         return;
     }
 

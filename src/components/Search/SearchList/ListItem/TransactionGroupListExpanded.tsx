@@ -21,6 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import openInternalRouteInNewTab, {isModifiedMousePress} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import Navigation from '@libs/Navigation/Navigation';
@@ -33,7 +34,7 @@ import type {TransactionPreviewData} from '@userActions/Search';
 import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -178,7 +179,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         shouldNavigate: false,
                     });
                     if (targetReportID) {
-                        openInternalRouteInNewTab(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo}), event);
+                        openInternalRouteInNewTab(createDynamicRoute(DYNAMIC_ROUTES.SEARCH_REPORT_VIEW.getRoute(targetReportID)), event);
                     }
                     return;
                 }
@@ -196,7 +197,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                 return;
             }
             markReportIDAsExpense(reportID);
-            const route = ROUTES.SEARCH_REPORT.getRoute({reportID, backTo});
+            const route = createDynamicRoute(DYNAMIC_ROUTES.SEARCH_REPORT_VIEW.getRoute(reportID));
             if (openInternalRouteInNewTab(route, event)) {
                 return;
             }

@@ -8,12 +8,13 @@ import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getReportMentionDetails} from '@libs/MentionUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import MentionReportContext from './MentionReportContext';
 
@@ -44,9 +45,8 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, ...defaultRender
     const {reportID, mentionDisplayText} = mentionDetails;
 
     let navigationRoute: Route | undefined = reportID ? ROUTES.REPORT_WITH_ID.getRoute(reportID) : undefined;
-    const backTo = Navigation.getActiveRoute();
     if (isSearchTopmostFullScreenRoute()) {
-        navigationRoute = reportID ? ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}) : undefined;
+        navigationRoute = reportID ? createDynamicRoute(DYNAMIC_ROUTES.SEARCH_REPORT_VIEW.getRoute(reportID)) : undefined;
     }
     const isCurrentRoomMention = reportID === currentReportIDValue;
 

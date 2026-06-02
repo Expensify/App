@@ -37,6 +37,7 @@ import type {TransactionPreviewData} from '@libs/actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
 import {flushDeferredWrite, hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import Log from '@libs/Log';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import openInternalRouteInNewTab, {isModifiedMousePress} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
@@ -77,7 +78,7 @@ import EmptySearchView from '@pages/Search/EmptySearchView';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
@@ -1211,7 +1212,7 @@ function Search({
                     shouldNavigate: shouldOpenTransactionThread && !shouldOpenTransactionThreadInNewTab,
                 });
                 if (shouldOpenTransactionThreadInNewTab && targetReportID) {
-                    openInternalRouteInNewTab(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo}), event);
+                    openInternalRouteInNewTab(createDynamicRoute(DYNAMIC_ROUTES.SEARCH_REPORT_VIEW.getRoute(targetReportID)), event);
                 }
                 if (shouldOpenTransactionThread) {
                     return;
@@ -1308,7 +1309,7 @@ function Search({
                     isCreatedTaskReportAction(reportActionItem) && (isOptimisticCreatedTaskAction || reportActionItem.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
                 const reportActionID = shouldSkipReportActionID ? undefined : reportActionItem.reportActionID;
-                const route = ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo});
+                const route = createDynamicRoute(DYNAMIC_ROUTES.SEARCH_REPORT_VIEW.getRoute(reportID, reportActionID));
                 if (openInternalRouteInNewTab(route, event)) {
                     return;
                 }
@@ -1317,7 +1318,7 @@ function Search({
             }
 
             if (isTaskListItemType(item)) {
-                const route = ROUTES.SEARCH_REPORT.getRoute({reportID, backTo});
+                const route = createDynamicRoute(DYNAMIC_ROUTES.SEARCH_REPORT_VIEW.getRoute(reportID));
                 if (openInternalRouteInNewTab(route, event)) {
                     return;
                 }
@@ -1331,7 +1332,7 @@ function Search({
                 setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, transactionItem?.reportAction?.childReportID);
             }
 
-            const route = ROUTES.SEARCH_REPORT.getRoute({reportID, backTo});
+            const route = createDynamicRoute(DYNAMIC_ROUTES.SEARCH_REPORT_VIEW.getRoute(reportID));
             if (openInternalRouteInNewTab(route, event)) {
                 return;
             }

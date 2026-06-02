@@ -41,6 +41,7 @@ import type {
     SearchAdvancedFiltersParamList,
     SearchColumnsParamList,
     SearchReportActionsParamList,
+    SearchReportNavigatorParamList,
     SearchSavedSearchParamList,
     SettingsNavigatorParamList,
     ShareNavigatorParamList,
@@ -1158,6 +1159,10 @@ const FlagCommentStackNavigator = createModalStackNavigator<FlagCommentNavigator
     [SCREENS.DYNAMIC_FLAG_COMMENT]: () => require<ReactComponentModule>('../../../../pages/DynamicFlagCommentPage').default,
 });
 
+const SearchReportModalStackNavigator = createModalStackNavigator<SearchReportNavigatorParamList>({
+    [SCREENS.DYNAMIC_SEARCH_REPORT]: () => require<ReactComponentModule>('../../../../pages/inbox/DynamicSearchReportPage').default,
+});
+
 const EditRequestStackNavigator = createModalStackNavigator<EditRequestNavigatorParamList>({
     [SCREENS.EDIT_REQUEST.DYNAMIC_REPORT_FIELD]: () => require<ReactComponentModule>('../../../../pages/DynamicEditReportFieldPage').default,
 });
@@ -1359,6 +1364,7 @@ export {
     SearchAdvancedFiltersModalStackNavigator,
     SearchColumnsModalStackNavigator,
     SearchReportActionsModalStackNavigator,
+    SearchReportModalStackNavigator,
     SearchSavedSearchModalStackNavigator,
     SettingsModalStackNavigator,
     ShareModalStackNavigator,

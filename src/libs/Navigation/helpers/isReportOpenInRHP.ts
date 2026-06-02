@@ -9,7 +9,7 @@ const isReportOpenInRHP = (state: NavigationState | undefined): boolean => {
         return false;
     }
     const params = lastRoute.params;
-    if (params && 'screen' in params && typeof params.screen === 'string' && params.screen === SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
+    if (params && 'screen' in params && typeof params.screen === 'string' && (params.screen === SCREENS.RIGHT_MODAL.SEARCH_REPORT || params.screen === SCREENS.DYNAMIC_SEARCH_REPORT)) {
         return true;
     }
     return !!(lastRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && lastRoute.state?.routes?.some((route) => ALL_WIDE_RIGHT_MODALS.has(route.name)));

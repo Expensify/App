@@ -32,7 +32,7 @@ function MoneyRequestHeaderActions({reportID, onBackButtonPress}: MoneyRequestHe
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const shouldDisplayNarrowButtons = !shouldDisplayButtonsInSeparateLine || (wideRHPRouteKeys.length > 0 && !isSmallScreenWidth);
-    const shouldDisplayTransactionNavigation = !!(reportID && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT);
+    const shouldDisplayTransactionNavigation = !!(reportID && route.name === SCREENS.DYNAMIC_SEARCH_REPORT);
 
     return (
         <View
