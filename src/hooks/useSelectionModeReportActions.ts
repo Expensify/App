@@ -39,12 +39,7 @@ import {
     isReportOwner,
     shouldBlockSubmitDueToStrictPolicyRules,
 } from '@libs/ReportUtils';
-import {
-    hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils,
-    hasOnlyPendingCardTransactions,
-    isPending,
-    showPendingCardTransactionsBlockModal,
-} from '@libs/TransactionUtils';
+import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
