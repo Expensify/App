@@ -2480,7 +2480,6 @@ export type {
     ProhibitedExpenses,
     NetSuiteConnectionData,
     MergeHRConnectionConfig,
-    MergeHRConnectionData,
     MergeHRGroup,
     GustoConnectionConfig,
     ZenefitsConnectionConfig,
