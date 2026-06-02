@@ -236,7 +236,10 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                     />
                     <MenuItemWithTopDescription
                         description={translate('workspace.rules.spendRules.permittedCurrencies')}
-                        onPress={() => {}}
+                        onPress={() => {
+                            clearError();
+                            navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_CURRENCIES, {policyID, ruleID: currentRuleID});
+                        }}
                         shouldShowRightIcon
                         title={maxAmountMenuTitle}
                         titleStyle={styles.flex1}
