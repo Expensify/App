@@ -22,6 +22,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
     const error = getLatestErrorMessage(walletAdditionalDetails ?? {});
     const values = useMemo(() => getSubstepValues(PERSONAL_INFO_STEP_KEYS, walletAdditionalDetailsDraft, walletAdditionalDetails), [walletAdditionalDetails, walletAdditionalDetailsDraft]);
     const shouldAskForFullSSN = walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN;
+    const shouldShowSSNRowError = shouldAskForFullSSN && values[PERSONAL_INFO_STEP_KEYS.SSN_LAST_4].length < CONST.BANK_ACCOUNT.MAX_LENGTH.FULL_SSN;
 
     const summaryItems = [
         {
@@ -60,6 +61,8 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
             description: translate(shouldAskForFullSSN ? 'common.ssnFull9' : 'personalInfoStep.last4SSN'),
             title: values[PERSONAL_INFO_STEP_KEYS.SSN_LAST_4],
             shouldShowRightIcon: true,
+            brickRoadIndicator: shouldShowSSNRowError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            errorText: shouldShowSSNRowError ? error : undefined,
             onPress: () => {
                 onMove(PERSONAL_INFO_STEP_INDEXES.SSN);
             },
@@ -76,7 +79,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
             showOnfidoLinks
             onfidoLinksTitle={`${translate('personalInfoStep.byAddingThisBankAccount')} `}
             isLoading={isLoading}
-            error={error}
+            error={shouldShowSSNRowError ? undefined : error}
             forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         />
     );

@@ -1751,6 +1751,21 @@ describe('ReportActionsUtils', () => {
             expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
         });
 
+        it('should return false for CARD_ISSUED_VIRTUAL action with empty message array', () => {
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
+                reportActionID: 'card-issued-virtual-123',
+                actorAccountID: 21052128,
+                created: '2026-05-19 01:00:00.000',
+                message: [],
+                originalMessage: {
+                    assigneeAccountID: 21052128,
+                    cardID: 12345,
+                },
+            };
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
+        });
+
         it('should return false for CARDFROZEN action with a backend-provided message fragment', () => {
             const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN> = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN,
@@ -3960,6 +3975,23 @@ describe('ReportActionsUtils', () => {
             };
             const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
             expect(actual).toBe('disabled the Distance rate "Default Rate"');
+        });
+
+        it('should return the correct message when a rate is renamed', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'name',
+                    oldValue: 'Default Rate',
+                    newValue: 'Custom Rate',
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            expect(actual).toBe('renamed the Distance rate "Default Rate" to "Custom Rate"');
         });
     });
 
