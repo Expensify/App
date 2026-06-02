@@ -63,7 +63,10 @@ function TypeSelectorPage({
                 style={styles.defaultModalContainer}
                 testID="TypeSelectorPage"
             >
-                <HeaderWithBackButton title={translate('common.type')} />
+                <HeaderWithBackButton
+                    title={translate('common.type')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID))}
+                />
                 <View style={[styles.ph5, styles.pb4]}>
                     <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.typeInputSubtitle')}</Text>
                 </View>

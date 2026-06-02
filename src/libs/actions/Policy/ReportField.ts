@@ -103,6 +103,7 @@ function openPolicyReportFieldsPage(policyID: string) {
  */
 function setInitialCreateReportFieldsForm() {
     Onyx.set(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {
+        [INPUT_IDS.NAME]: '',
         [INPUT_IDS.TYPE]: '',
         [INPUT_IDS.INITIAL_VALUE]: '',
     });

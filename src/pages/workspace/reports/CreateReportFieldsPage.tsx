@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -71,6 +71,7 @@ function WorkspaceCreateReportFieldsPage({
                 disabledListValues: formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? [],
                 policyExpenseReportIDs,
             });
+            setInitialCreateReportFieldsForm();
             Navigation.goBack();
         },
         [availableListValuesLength, formDraft, policy, policyExpenseReportIDs],
@@ -156,10 +157,6 @@ function WorkspaceCreateReportFieldsPage({
         [],
     );
 
-    useEffect(() => {
-        setInitialCreateReportFieldsForm();
-    }, []);
-
     const listValues = [...(formDraft?.[INPUT_IDS.LIST_VALUES] ?? [])].sort(localeCompare).join(', ');
 
     return (
@@ -219,6 +216,7 @@ function WorkspaceCreateReportFieldsPage({
                                 required
                                 customValidate={validateName}
                                 shouldUseStrictHtmlTagValidation
+                                shouldSaveDraft
                             />
                             <InputWrapper
                                 InputComponent={TypeSelector}
@@ -250,6 +248,7 @@ function WorkspaceCreateReportFieldsPage({
                                     multiline={false}
                                     role={CONST.ROLE.PRESENTATION}
                                     onValueCommitted={handleOnValueCommitted(inputValues)}
+                                    shouldSaveDraft
                                 />
                             )}
 
@@ -268,6 +267,7 @@ function WorkspaceCreateReportFieldsPage({
                                     inputID={INPUT_IDS.INITIAL_VALUE}
                                     label={translate('common.initialValue')}
                                     subtitle={translate('workspace.reportFields.listValuesInputSubtitle')}
+                                    shouldSaveDraft
                                 />
                             )}
                         </View>
