@@ -44,6 +44,23 @@ import getSectionSubtitle from './CardSectionSubtitle';
 import type {BillingStatusResult} from './utils';
 import CardSectionUtils from './utils';
 
+function buildPaymentHistoryQuery(accountID?: number): string {
+    return buildQueryStringFromFilterFormValues({
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        status: [
+            CONST.SEARCH.STATUS.EXPENSE.UNREPORTED,
+            CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
+            CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
+            CONST.SEARCH.STATUS.EXPENSE.APPROVED,
+            CONST.SEARCH.STATUS.EXPENSE.DONE,
+            CONST.SEARCH.STATUS.EXPENSE.PAID,
+            CONST.SEARCH.STATUS.EXPENSE.DELETED,
+        ],
+        merchant: CONST.EXPENSIFY_MERCHANT,
+        from: accountID ? [String(accountID)] : [],
+    });
+}
+
 function CardSection() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -98,20 +115,7 @@ function CardSection() {
     };
 
     const viewPurchases = () => {
-        const query = buildQueryStringFromFilterFormValues({
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            status: [
-                CONST.SEARCH.STATUS.EXPENSE.UNREPORTED,
-                CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
-                CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
-                CONST.SEARCH.STATUS.EXPENSE.APPROVED,
-                CONST.SEARCH.STATUS.EXPENSE.DONE,
-                CONST.SEARCH.STATUS.EXPENSE.PAID,
-                CONST.SEARCH.STATUS.EXPENSE.DELETED,
-            ],
-            merchant: CONST.EXPENSIFY_MERCHANT,
-            from: [CONST.SEARCH.ME],
-        });
+        const query = buildPaymentHistoryQuery(session?.accountID);
 
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query}));
     };
@@ -301,4 +305,5 @@ function CardSection() {
     );
 }
 
+export {buildPaymentHistoryQuery};
 export default CardSection;
