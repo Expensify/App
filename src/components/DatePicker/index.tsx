@@ -9,7 +9,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import DatePickerModal from './DatePickerModal';
@@ -106,10 +105,7 @@ function DatePicker({
     };
 
     useEffect(() => {
-        const handle = TransitionTracker.runAfterTransitions({
-            callback: calculatePopoverPosition,
-        });
-        return () => handle.cancel();
+         calculatePopoverPosition();
     }, [calculatePopoverPosition, windowWidth]);
 
     // Combined ref: updates textInputRef (needed for blur() in showDatePickerModal) and connects
