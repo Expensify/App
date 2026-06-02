@@ -289,7 +289,6 @@
 "../../src/libs/PersonalDetailsUtils.ts"	"rulesdir/no-onyx-connect"	2
 "../../src/libs/Pusher/index.native.ts"	"no-restricted-imports"	1
 "../../src/libs/Pusher/index.ts"	"no-restricted-imports"	1
-"../../src/libs/ReceiptUploadRetryHandler/handleFileRetry.ts"	"no-restricted-syntax"	1
 "../../src/libs/ReportActionItemEventHandler/index.android.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/libs/ReportActionsUtils.ts"	"@typescript-eslint/no-deprecated/reportAction.sequenceNumber"	1
 "../../src/libs/ReportActionsUtils.ts"	"@typescript-eslint/no-deprecated/reportAction?.originalMessage"	2
@@ -301,7 +300,6 @@
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	43
 "../../src/libs/ReportUtils.ts"	"rulesdir/no-onyx-connect"	16
 "../../src/libs/SearchUIUtils.ts"	"@typescript-eslint/no-deprecated/getSearchReportName"	1
-"../../src/libs/SubscriptionUtils.ts"	"rulesdir/no-onyx-connect"	1
 "../../src/libs/TransactionUtils/index.ts"	"@typescript-eslint/no-deprecated/translateLocal"	5
 "../../src/libs/UnreadIndicatorUpdater/index.ts"	"no-restricted-syntax"	1
 "../../src/libs/Violations/ViolationsUtils.ts"	"no-restricted-syntax"	1
@@ -345,7 +343,6 @@
 "../../src/libs/actions/IOU/SplitTransactionUpdate.ts"	"@typescript-eslint/no-deprecated/getMoneyRequestPolicyTags"	1
 "../../src/libs/actions/IOU/SplitTransactionUpdate.ts"	"@typescript-eslint/no-deprecated/getPolicyTagsData"	1
 "../../src/libs/actions/IOU/TrackExpense.ts"	"@typescript-eslint/no-deprecated/getMoneyRequestPolicyTags"	2
-"../../src/libs/actions/IOU/TrackExpense.ts"	"no-restricted-imports"	1
 "../../src/libs/actions/IOU/TrackExpense.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/IOU/UpdateMoneyRequest.ts"	"@typescript-eslint/no-deprecated/buildNextStepNew"	1
 "../../src/libs/actions/IOU/UpdateMoneyRequest.ts"	"@typescript-eslint/no-deprecated/getPolicyTagsData"	13
@@ -691,7 +688,6 @@
 "../../src/types/onyx/ReportNameValuePairs.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/SaveSearch.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/SearchResults.ts"	"no-restricted-syntax"	1
-"../../src/types/onyx/Session.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/ShareBankAccount.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/Transaction.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/UnshareBankAccount.ts"	"no-restricted-syntax"	1
