@@ -118,6 +118,10 @@
       return;
     }
 
+    if (field === "type" && value === "expense-report" && !userProvidedSortOrder) {
+      defaultValues.sortOrder = "asc";
+    }
+
     // Track if user explicitly provided a custom (non-default) sortBy
     if (field === "sortBy" && !isDefaultSortValue(value)) {
       userProvidedSortBy = true;
