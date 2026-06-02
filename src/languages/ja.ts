@@ -496,6 +496,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: '前年',
         nextYear: '来年',
         avatar: 'アバター',
+        restrictions: '制限',
     },
     socials: {
         podcast: 'ポッドキャストでフォロー',
@@ -929,7 +930,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 defaultSubtitle: 'ワークスペース',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会社カード`,
             },
-            fixAccountingConnection: {
+            fixPolicyConnection: {
                 title: ({integrationName}: {integrationName: string}) => `${integrationName} 接続を修正`,
                 defaultSubtitle: 'ワークスペース',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会計`,
@@ -4363,6 +4364,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             travelInvoicingPayableAccount: '旅費未払金勘定',
             hr: '人事',
             rooms: 'ルーム',
+            findDomain: 'ドメインを検索',
             cardAdminAlternateText: 'ワークスペースカードを管理します。',
             peopleAdminAlternateText: 'メンバーと承認ワークフローを管理します。',
             paymentsAdminAlternateText: 'ワークフローの支払いを管理します。',
@@ -5986,16 +5988,26 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             error: '新しいワークスペースの複製中にエラーが発生しました。もう一度お試しください。',
         },
         copyPolicySettings: {
-            error: 'ワークスペース設定のコピー中にエラーが発生しました。もう一度お試しください。',
             title: '設定をコピー',
-            selectWorkspaces: 'ワークスペースを選択',
-            description: '設定をコピーしたいワークスペースを選択し、その後、コピーしたい設定を選びます。',
-            searchPlaceholder: 'ワークスペースを検索',
-            selectFeatures: 'コピーする機能を選択します',
-            whichFeatures: '既存のワークスペースで上書きする設定を選択します。',
-            workflowsWithoutMembersConfirm: 'メンバーなしで続行',
-            workflowsWithoutMembersPrompt: 'メンバーのいないワークフローをコピーしても、承認ワークフローはコピーされません。申請および支払い設定は引き続きコピーされます。',
-            accountingMismatch: ({part}: {part: string}) => `すべてのワークスペースが同じ会計システムと会社接続を使用している場合にのみ、${part} をコピーできます。`,
+            error: 'ワークスペース設定のコピー中にエラーが発生しました。もう一度お試しください。',
+            selectWorkspaces: {
+                title: 'ワークスペースを選択',
+                description: '設定をコピーしたいワークスペースを選択し、その後、コピーしたい設定を選びます。',
+                searchPlaceholder: 'ワークスペースを検索',
+            },
+            selectSettings: {
+                title: 'コピーする機能を選択します',
+                description: '既存のワークスペースで上書きする設定を選択します。',
+                accountingMismatch: ({part}: {part: string}) => `すべてのワークスペースが同じ会計システムと会社接続を使用している場合にのみ、${part} をコピーできます。`,
+            },
+            confirmSettings: {
+                title: 'すべて正しく表示されているか確認しましょう。',
+                description: ({workspaceName}: {workspaceName: string}) => `次の設定を<strong>${workspaceName}</strong>から指定したワークスペースにコピーします`,
+            },
+            confirmWorkflows: {
+                continue: 'メンバーなしで続行',
+                description: 'メンバーなしでワークフローをコピーすると、承認ワークフローはコピーされません。提出と支払いの設定は引き続きコピーされます。',
+            },
         },
         emptyWorkspace: {
             title: 'ワークスペースがありません',
@@ -7205,6 +7217,10 @@ ${reportName}
             syncingModalDescription: '最初の接続には時間がかかる場合があります。エラーが発生した場合は通知されます。',
             syncing: '従業員を同期しています',
         },
+        emptyDomain: {
+            title: 'ドメインでセキュリティを強化しましょう',
+            subtitle: 'ドメインのメンバーにシングルサインオンでのログインを必須にし、ワークスペースの作成を制限するなどの管理ができます。',
+        },
     },
     getAssistancePage: {
         title: 'サポートを受ける',
@@ -8283,6 +8299,7 @@ ${reportName}
         workspaceName: 'ワークスペース名',
         chatUserDisplayNames: 'チャットメンバー表示名',
         scrollToNewestMessages: '最新のメッセージまでスクロール',
+        scrollToActionBadgeTarget: '注意が必要なアクションまでスクロール',
         preStyledText: '事前にスタイル設定されたテキスト',
         viewAttachment: '添付ファイルを表示',
         contextMenuAvailable: 'コンテキストメニューが利用可能です。Shift+F10 を押して開きます。',
@@ -9235,7 +9252,6 @@ ${reportName}
         expenseLevelExport: 'すべてのデータ - 経費レベル',
         exportInProgress: 'エクスポート処理中',
         conciergeWillSend: 'Conciergeがまもなくファイルを送信します。',
-        currentView: '現在の表示をエクスポート',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',
