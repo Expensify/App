@@ -1,3 +1,4 @@
+import type * as ReactNavigationNative from '@react-navigation/native';
 import {act, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import {View} from 'react-native';
@@ -23,7 +24,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@react-navigation/native', () => ({
-    ...jest.requireActual<typeof import('@react-navigation/native')>('@react-navigation/native'),
+    ...jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native'),
     useIsFocused: () => false,
 }));
 
