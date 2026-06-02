@@ -40,7 +40,7 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
                 shouldUseScrollView
                 headerText={translate('workspace.common.invoices')}
                 shouldShowOfflineIndicatorInWideScreen
-                shouldSkipVBBACall={false}
+                shouldSkipVBBACall={!canWriteMoreFeatures}
                 route={route}
                 icon={illustrations.InvoiceBlue}
                 addBottomSafeAreaPadding
