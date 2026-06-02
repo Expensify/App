@@ -113,11 +113,13 @@ function MoneyReportView({
     const visibleTransactions = transactions.filter((transaction) => isOffline || !isTransactionPendingDelete(transaction));
     const isSingleExpenseReport = isSingleTransactionReport(report, visibleTransactions);
     const isSingleNonReimbursableExpense = isSingleExpenseReport && visibleTransactions.at(0)?.reimbursable === false;
-    // The reimbursable/non-reimbursable rows duplicate the Total for a single non-reimbursable expense, so suppress only those rows.
+    // For a one-expense report the Total/Billable/Tax rows just repeat the expense's own amount (shown on its Amount field,
+    // including the converted value), so hide the whole report-level header block and let the expense be the source of truth.
     const shouldShowReimbursabilityBreakdown = !isSingleNonReimbursableExpense && !!nonReimbursableSpend;
-    // For a single expense the report-level Tax total is shown as a "Converted" dot separator on the expense's Tax amount field, so hide it here.
+    const shouldShowBillableRow = !!billableTotal && !isSingleExpenseReport;
     const shouldShowTaxRow = !!taxTotal && isTaxEnabled && !isSingleExpenseReport;
-    const shouldShowBreakdown = shouldShowReimbursabilityBreakdown || !!billableTotal || shouldShowTaxRow;
+    const shouldShowBreakdown = shouldShowReimbursabilityBreakdown || shouldShowBillableRow || shouldShowTaxRow;
+    const shouldShowTotalRow = shouldShowTotal && !isSingleExpenseReport;
     const formattedTotalAmount = convertToDisplayString(totalDisplaySpend, report?.currency);
     const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
@@ -234,7 +236,7 @@ function MoneyReportView({
                                     </OfflineWithFeedback>
                                 );
                             })}
-                        {shouldShowTotal && (
+                        {shouldShowTotalRow && (
                             <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
                                 <View style={[styles.flex1, styles.justifyContentCenter]}>
                                     <Text
@@ -276,7 +278,7 @@ function MoneyReportView({
                                 {[
                                     {label: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount, show: shouldShowReimbursabilityBreakdown},
                                     {label: 'cardTransactions.companySpend', value: formattedCompanySpendAmount, show: shouldShowReimbursabilityBreakdown},
-                                    {label: 'common.billable', value: formattedBillableAmount, show: !!billableTotal},
+                                    {label: 'common.billable', value: formattedBillableAmount, show: shouldShowBillableRow},
                                     {label: 'common.tax', value: formattedTaxAmount, show: shouldShowTaxRow},
                                 ]
                                     .filter(({show}) => show)
@@ -308,7 +310,7 @@ function MoneyReportView({
                     </>
                 )}
             </View>
-            {(shouldShowReportField || shouldShowBreakdown || shouldShowTotal) && renderThreadDivider}
+            {(shouldShowReportField || shouldShowBreakdown || shouldShowTotalRow) && renderThreadDivider}
         </>
     );
 }
