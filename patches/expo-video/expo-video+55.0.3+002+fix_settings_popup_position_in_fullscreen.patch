@@ -16,14 +16,15 @@ index 721a944..e581d2a 100644
          }
 +
 +        // When the player reaches STATE_ENDED, the controller layout changes
-+        // (play button → replay, progress bar stays visible). The cached settings
-+        // popup (Speed / Audio) position is computed against the old layout and
-+        // can overlap controls on re-open. Force a controller rebuild so the
-+        // popup position is recalculated against the new layout.
++        // (play button → replay, progress bar stays visible). The ExoPlayer
++        // PopupWindow for Speed/Audio settings is anchored to the settings button
++        // and its position depends on the controller layout being settled. Force
++        // a fresh layout pass so that showAsDropDown() anchors against up-to-date
++        // view positions the next time the user opens the popup.
 +        playerView.player?.addListener(object : Player.Listener {
 +            override fun onPlaybackStateChanged(playbackState: Int) {
 +                if (playbackState == Player.STATE_ENDED) {
-+                    playerView.post { playerView.useController = true }
++                    playerView.post { playerView.requestLayout() }
 +                }
 +            }
 +        })
