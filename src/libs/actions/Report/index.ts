@@ -6881,24 +6881,6 @@ function convertIOUReportToExpenseReport(iouReport: Report, policy: Policy, poli
         },
     });
 
-    // Attach the moved report to the destination policy expense chat so the expense detail view
-    // can resolve the report via iouReportID when navigated to offline.
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticPolicyExpenseChatReportID}`,
-        value: {
-            iouReportID: reportID,
-            hasOutstandingChildRequest: !isReportManuallyReimbursed(iouReport),
-        },
-    });
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticPolicyExpenseChatReportID}`,
-        value: {
-            iouReportID: null,
-        },
-    });
-
     // Create the MOVED report action and add it to the DM chat which indicates to the user where the report has been moved
     const movedReportAction = buildOptimisticMovedReportAction(iouReport.policyID, policyID, optimisticPolicyExpenseChatReportID, reportID, policy.name);
     optimisticData.push({
