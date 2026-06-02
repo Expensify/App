@@ -123,7 +123,7 @@ describe('SequentialQueue', () => {
         }
     });
 
-    it('should replace request request in queue while a similar one is ongoing', async () => {
+    it('should replace request in queue while a similar one is ongoing', async () => {
         const mockedFetch = global.fetch as ReturnType<typeof TestHelper.getGlobalFetchMock> & {pause: () => void; resume: () => Promise<void>};
         mockedFetch.pause();
         try {
@@ -163,7 +163,7 @@ describe('SequentialQueue', () => {
         }
     });
 
-    it('should replace request request in queue while a similar one is ongoing and keep the same index', async () => {
+    it('should replace request in queue while a similar one is ongoing and keep the same index', async () => {
         const mockedFetch = global.fetch as ReturnType<typeof TestHelper.getGlobalFetchMock> & {pause: () => void; resume: () => Promise<void>};
         mockedFetch.pause();
         try {
@@ -199,7 +199,7 @@ describe('SequentialQueue', () => {
         }
     });
 
-    // need to test a rance condition between processing the next request and then pushing a new request with conflict resolver
+    // need to test a race condition between processing the next request and then pushing a new request with conflict resolver
     it('should resolve the conflict and replace the correct request in the queue while a new request is picked up after unpausing', async () => {
         SequentialQueue.pause();
         for (let i = 0; i < 5; i++) {

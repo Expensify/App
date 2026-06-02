@@ -357,6 +357,10 @@ function flush(shouldResetPromise = true) {
             persistedRequestsLength,
             hasOngoingRequest: !!currentOngoingRequest,
         });
+        // push() may have marked isReadyPromise pending in its sync prelude. Followers never
+        // process the queue, so resolve here — otherwise READs parked on waitForIdle() would
+        // hang forever on this tab after any write.
+        resolveIsReadyPromise?.();
         return;
     }
 
