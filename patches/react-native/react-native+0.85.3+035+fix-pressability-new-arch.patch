@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native/Libraries/Pressability/Pressability.js b/node_modules/react-native/Libraries/Pressability/Pressability.js
-index ff70d67..2c5d3b1 100644
+index e2a0665..92fd988 100644
 --- a/node_modules/react-native/Libraries/Pressability/Pressability.js
 +++ b/node_modules/react-native/Libraries/Pressability/Pressability.js
 @@ -805,7 +805,11 @@ export default class Pressability {
@@ -14,9 +14,37 @@ index ff70d67..2c5d3b1 100644
 +      }
      }
    }
-
+ 
+diff --git a/node_modules/react-native/React/FBReactNativeSpec/FBReactNativeSpecJSI.h b/node_modules/react-native/React/FBReactNativeSpec/FBReactNativeSpecJSI.h
+index c98356f..31ba767 100644
+--- a/node_modules/react-native/React/FBReactNativeSpec/FBReactNativeSpecJSI.h
++++ b/node_modules/react-native/React/FBReactNativeSpec/FBReactNativeSpecJSI.h
+@@ -5871,6 +5871,7 @@ protected:
+     methodMap_["measure"] = MethodMetadata {.argCount = 2, .invoker = __measure};
+     methodMap_["measureInWindow"] = MethodMetadata {.argCount = 2, .invoker = __measureInWindow};
+     methodMap_["measureLayout"] = MethodMetadata {.argCount = 4, .invoker = __measureLayout};
++    methodMap_["measureAsyncOnUI"] = MethodMetadata {.argCount = 2, .invoker = __measureAsyncOnUI};
+     methodMap_["setNativeProps"] = MethodMetadata {.argCount = 2, .invoker = __setNativeProps};
+   }
+ 
+@@ -6047,6 +6048,15 @@ private:
+       count <= 3 ? throw jsi::JSError(rt, "Expected argument in position 3 to be passed") : args[3].asObject(rt).asFunction(rt));return jsi::Value::undefined();
+   }
+ 
++  static jsi::Value __measureAsyncOnUI(jsi::Runtime &rt, TurboModule &turboModule, const jsi::Value* args, size_t count) {
++    static_assert(
++      bridging::getParameterCount(&T::measureAsyncOnUI) == 3,
++      "Expected measureAsyncOnUI(...) to have 3 parameters");
++    bridging::callFromJs<void>(rt, &T::measureAsyncOnUI,  static_cast<NativeDOMCxxSpec*>(&turboModule)->jsInvoker_, static_cast<T*>(&turboModule),
++      count <= 0 ? throw jsi::JSError(rt, "Expected argument in position 0 to be passed") : jsi::Value(rt, args[0]),
++      count <= 1 ? throw jsi::JSError(rt, "Expected argument in position 1 to be passed") : args[1].asObject(rt).asFunction(rt));return jsi::Value::undefined();
++  }
++
+   static jsi::Value __setNativeProps(jsi::Runtime &rt, TurboModule &turboModule, const jsi::Value* args, size_t count) {
+     static_assert(
+       bridging::getParameterCount(&T::setNativeProps) == 3,
 diff --git a/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.h b/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.h
-index ceac3ee..15dbff9 100644
+index 70a5643..774b0a8 100644
 --- a/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.h
 +++ b/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.h
 @@ -69,6 +69,10 @@ NS_ASSUME_NONNULL_BEGIN
@@ -28,16 +56,16 @@ index ceac3ee..15dbff9 100644
 +                rootView:(UIView *)rootView
 +                callback:(const std::function<void(folly::dynamic)> &)callback;
  @end
-
+ 
  NS_ASSUME_NONNULL_END
 diff --git a/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.mm b/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.mm
-index 1dbf9c5..f0e0a00 100644
+index 71e9085..bc01c67 100644
 --- a/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.mm
 +++ b/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.mm
-@@ -347,4 +347,30 @@ - (void)synchronouslyDispatchAccessbilityEventOnUIThread:(ReactTag)reactTag even
+@@ -352,4 +352,30 @@ static void RCTPerformMountInstructions(
    }
  }
-
+ 
 +- (void)measureAsyncOnUI:(ReactTag)reactTag rootView:(UIView*)rootView callback:(const std::function<void (folly::dynamic)> &)callback {
 +  RCTAssertMainQueue();
 +
@@ -66,27 +94,27 @@ index 1dbf9c5..f0e0a00 100644
 +
  @end
 diff --git a/node_modules/react-native/React/Fabric/RCTScheduler.h b/node_modules/react-native/React/Fabric/RCTScheduler.h
-index ed58539..8c549b3 100644
+index 8b80958..2d925e7 100644
 --- a/node_modules/react-native/React/Fabric/RCTScheduler.h
 +++ b/node_modules/react-native/React/Fabric/RCTScheduler.h
-@@ -43,6 +43,9 @@ NS_ASSUME_NONNULL_BEGIN
+@@ -45,6 +45,9 @@ NS_ASSUME_NONNULL_BEGIN
                         forShadowView:(const facebook::react::ShadowView &)shadowView;
-
+ 
  - (void)schedulerDidSynchronouslyUpdateViewOnUIThread:(facebook::react::Tag)reactTag props:(folly::dynamic)props;
 +
 +- (void)schedulerMeasureAsyncOnUI:(const facebook::react::ShadowView &)shadowView
 +                         callback:(const std::function<void(folly::dynamic)> &)callback;
  @end
-
+ 
  /**
 diff --git a/node_modules/react-native/React/Fabric/RCTScheduler.mm b/node_modules/react-native/React/Fabric/RCTScheduler.mm
-index 6cc4e5b..d5139ee 100644
+index 408ed95..095fa55 100644
 --- a/node_modules/react-native/React/Fabric/RCTScheduler.mm
 +++ b/node_modules/react-native/React/Fabric/RCTScheduler.mm
-@@ -78,6 +78,11 @@ void schedulerDidUpdateShadowTree(const std::unordered_map<Tag, folly::dynamic>
+@@ -85,6 +85,11 @@ class SchedulerDelegateProxy : public SchedulerDelegate {
      // This delegate method is not currently used on iOS.
    }
-
+ 
 +  void schedulerMeasureAsyncOnUI(const ShadowView& shadowView, const std::function<void(folly::dynamic)> &callback) override {
 +    RCTScheduler *scheduler = (__bridge RCTScheduler *)scheduler_;
 +    [scheduler.delegate schedulerMeasureAsyncOnUI:shadowView callback:callback];
@@ -96,13 +124,13 @@ index 6cc4e5b..d5139ee 100644
    void *scheduler_;
  };
 diff --git a/node_modules/react-native/React/Fabric/RCTSurfacePresenter.mm b/node_modules/react-native/React/Fabric/RCTSurfacePresenter.mm
-index 1e67509..cd57d32 100644
+index 5da1d1b..cdcb420 100644
 --- a/node_modules/react-native/React/Fabric/RCTSurfacePresenter.mm
 +++ b/node_modules/react-native/React/Fabric/RCTSurfacePresenter.mm
-@@ -332,6 +332,19 @@ - (void)schedulerDidSetIsJSResponder:(BOOL)isJSResponder
+@@ -343,6 +343,19 @@ using namespace facebook::react;
    [_mountingManager setIsJSResponder:isJSResponder blockNativeResponder:blockNativeResponder forShadowView:shadowView];
  }
-
+ 
 +- (void)schedulerMeasureAsyncOnUI:(const facebook::react::ShadowView &)shadowView callback:(const std::function<void (folly::dynamic)> &)callback {
 +  ReactTag tag = shadowView.tag;
 +  SurfaceId surfaceId = shadowView.surfaceId;
@@ -120,7 +148,7 @@ index 1e67509..cd57d32 100644
  {
    std::unique_lock lock(_observerListMutex);
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/FabricUIManager.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/FabricUIManager.java
-index 6199a2c..18e848f 100644
+index c0cacbb..392f282 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/FabricUIManager.java
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/FabricUIManager.java
 @@ -25,6 +25,7 @@ import android.os.SystemClock;
@@ -139,10 +167,10 @@ index 6199a2c..18e848f 100644
  import com.facebook.react.bridge.ColorPropConverter;
  import com.facebook.react.bridge.GuardedRunnable;
  import com.facebook.react.bridge.LifecycleEventListener;
-@@ -1275,6 +1277,44 @@ public class FabricUIManager
+@@ -1320,6 +1322,44 @@ public class FabricUIManager
          });
    }
-
+ 
 +  public void measureAsyncOnUI(int surfaceId, int reactTag, final Callback callback) {
 +    mMountItemDispatcher.addMountItem(
 +      new MountItem() {
@@ -254,10 +282,10 @@ index 0000000..9680cf5
 +  }
 +}
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/MountingManager.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/MountingManager.kt
-index 4b52ade..3fca2c6 100644
+index a6ff8f1..b7170e8 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/MountingManager.kt
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/MountingManager.kt
-@@ -24,6 +24,7 @@ import com.facebook.react.common.mapbuffer.MapBuffer
+@@ -22,6 +22,7 @@ import com.facebook.react.bridge.WritableMap
  import com.facebook.react.fabric.events.EventEmitterWrapper
  import com.facebook.react.fabric.mounting.mountitems.MountItem
  import com.facebook.react.touch.JSResponderHandler
@@ -265,10 +293,10 @@ index 4b52ade..3fca2c6 100644
  import com.facebook.react.uimanager.RootViewManager
  import com.facebook.react.uimanager.ThemedReactContext
  import com.facebook.react.uimanager.ViewManagerRegistry
-@@ -333,6 +334,32 @@ internal class MountingManager(
+@@ -327,6 +328,32 @@ internal class MountingManager(
                attachmentsPositions,
            )
-
+ 
 +  @UiThread
 +  @ThreadConfined(ThreadConfined.UI)
 +  fun measureAsyncOnUI(
@@ -299,7 +327,7 @@ index 4b52ade..3fca2c6 100644
        surfaceId: Int,
        reactTag: Int,
 diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.cpp b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.cpp
-index 16ab55a..bc3e7ba 100644
+index 95ddd80..6c1f49c 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.cpp
 +++ b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.cpp
 @@ -14,6 +14,7 @@
@@ -310,10 +338,10 @@ index 16ab55a..bc3e7ba 100644
  #include <react/renderer/components/scrollview/ScrollViewProps.h>
  #include <react/renderer/core/DynamicPropsUtilities.h>
  #include <react/renderer/core/conversions.h>
-@@ -1111,4 +1112,16 @@ void FabricMountingManager::synchronouslyUpdateViewOnUIThread(
-   synchronouslyUpdateViewOnUIThreadJNI(javaUIManager_, viewTag, propsMap);
+@@ -1213,4 +1214,16 @@ void FabricMountingManager::scheduleReactRevisionMerge(SurfaceId surfaceId) {
+   scheduleReactRevisionMerge(javaUIManager_, surfaceId);
  }
-
+ 
 +void FabricMountingManager::measureAsyncOnUI(
 +    const ShadowView& shadowView,
 +    const std::function<void(folly::dynamic)>& callback) {
@@ -328,27 +356,28 @@ index 16ab55a..bc3e7ba 100644
 +
  } // namespace facebook::react
 diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.h b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.h
-index 6197831..8357c25 100644
+index 98a6677..36384a1 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.h
 +++ b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.h
-@@ -55,5 +55,9 @@ class FabricMountingManager final {
-   void synchronouslyUpdateViewOnUIThread(Tag viewTag, const folly::dynamic &props);
-
+@@ -56,6 +56,10 @@ class FabricMountingManager final {
+ 
+   void scheduleReactRevisionMerge(SurfaceId surfaceId);
+ 
 +  void measureAsyncOnUI(
 +      const ShadowView& shadowView,
 +      const std::function<void(folly::dynamic)>& callback);
 +
   private:
    bool isOnMainThread();
-
+ 
 diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp
-index 3cc20c3..62b07a6 100644
+index 7eb0b66..7620828 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp
 +++ b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp
-@@ -724,6 +724,17 @@ void FabricUIManagerBinding::schedulerDidUpdateShadowTree(
+@@ -797,6 +797,17 @@ void FabricUIManagerBinding::schedulerDidUpdateShadowTree(
    // no-op
  }
-
+ 
 +void FabricUIManagerBinding::schedulerMeasureAsyncOnUI(
 +    const facebook::react::ShadowView& shadowView,
 +    const std::function<void(folly::dynamic)>& callback) {
@@ -364,27 +393,28 @@ index 3cc20c3..62b07a6 100644
    auto mountingManager = getMountingManager("onAnimationStarted");
    if (!mountingManager) {
 diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.h b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.h
-index 39e7240..22a717b 100644
+index 6d129e7..81956ed 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.h
 +++ b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.h
-@@ -113,5 +113,9 @@ class FabricUIManagerBinding : public jni::HybridClass<FabricUIManagerBinding>,
+@@ -117,6 +117,10 @@ class FabricUIManagerBinding : public jni::HybridClass<FabricUIManagerBinding>,
+ 
    void schedulerDidUpdateShadowTree(const std::unordered_map<Tag, folly::dynamic> &tagToProps) override;
-
+ 
 +  void schedulerMeasureAsyncOnUI(
 +      const ShadowView& shadowView,
 +      const std::function<void(folly::dynamic)>& callback) override;
 +
    void setPixelDensity(float pointScaleFactor);
-
+ 
    void driveCxxAnimations();
 diff --git a/node_modules/react-native/ReactCommon/react/nativemodule/dom/NativeDOM.cpp b/node_modules/react-native/ReactCommon/react/nativemodule/dom/NativeDOM.cpp
-index 75cbcff..43b0582 100644
+index da40ea3..8aebe84 100644
 --- a/node_modules/react-native/ReactCommon/react/nativemodule/dom/NativeDOM.cpp
 +++ b/node_modules/react-native/ReactCommon/react/nativemodule/dom/NativeDOM.cpp
 @@ -466,6 +466,34 @@ void NativeDOM::measureLayout(
    onSuccess(rect.x, rect.y, rect.width, rect.height);
  }
-
+ 
 +void NativeDOM::measureAsyncOnUI(
 +    jsi::Runtime& rt,
 +    std::shared_ptr<const ShadowNode> shadowNode,
@@ -414,16 +444,16 @@ index 75cbcff..43b0582 100644
 +}
 +
  #pragma mark - Legacy direct manipulation APIs (for `ReactNativeElement`).
-
+ 
  void NativeDOM::setNativeProps(
 diff --git a/node_modules/react-native/ReactCommon/react/nativemodule/dom/NativeDOM.h b/node_modules/react-native/ReactCommon/react/nativemodule/dom/NativeDOM.h
-index d902259..44813ac 100644
+index 19157a9..9fded72 100644
 --- a/node_modules/react-native/ReactCommon/react/nativemodule/dom/NativeDOM.h
 +++ b/node_modules/react-native/ReactCommon/react/nativemodule/dom/NativeDOM.h
 @@ -108,6 +108,14 @@ class NativeDOM : public NativeDOMCxxSpec<NativeDOM> {
        jsi::Function onFail,
        const MeasureLayoutOnSuccessCallback &onSuccess);
-
+ 
 +  using MeasureAsyncOnUICallback =
 +      AsyncCallback<double, double, double, double, double, double>;
 +
@@ -433,16 +463,16 @@ index d902259..44813ac 100644
 +      const MeasureAsyncOnUICallback& callback);
 +
  #pragma mark - Legacy direct manipulation APIs (for `ReactNativeElement`).
-
+ 
    void setNativeProps(jsi::Runtime &rt, std::shared_ptr<const ShadowNode> shadowNode, jsi::Value updatePayload);
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.cpp b/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.cpp
-index 49cd7d5..0b60cf0 100644
+index dccc147..ca4bebf 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.cpp
 +++ b/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.cpp
-@@ -344,6 +344,15 @@ void Scheduler::uiManagerDidStartSurface(const ShadowTree& shadowTree) {
+@@ -389,6 +389,15 @@ void Scheduler::uiManagerDidStartSurface(const ShadowTree& shadowTree) {
    }
  }
-
+ 
 +void Scheduler::uiManagerMeasureAsyncOnUI(
 +    const std::shared_ptr<const ShadowNode>& shadowNode,
 +    const std::function<void(folly::dynamic)>& callback) {
@@ -456,39 +486,42 @@ index 49cd7d5..0b60cf0 100644
    uiManager_->reportMount(surfaceId);
  }
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.h b/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.h
-index e25f755..754e7fa 100644
+index 080c540..db782cd 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.h
 +++ b/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.h
-@@ -99,5 +99,8 @@ class Scheduler final : public UIManagerDelegate {
-   void uiManagerShouldRemoveEventListener(const std::shared_ptr<const EventListener> &listener) final;
+@@ -98,6 +98,9 @@ class Scheduler final : public UIManagerDelegate {
+   void uiManagerDidFinishReactCommit(const ShadowTree &shadowTree) override;
+   void uiManagerDidPromoteReactRevision(const ShadowTree &shadowTree) override;
    void uiManagerDidStartSurface(const ShadowTree &shadowTree) override;
 +  void uiManagerMeasureAsyncOnUI(
 +      const std::shared_ptr<const ShadowNode>& shadowNode,
 +      const std::function<void(folly::dynamic)>& callback) override;
-
+ 
  #pragma mark - ContextContainer
    std::shared_ptr<const ContextContainer> getContextContainer() const;
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/scheduler/SchedulerDelegate.h b/node_modules/react-native/ReactCommon/react/renderer/scheduler/SchedulerDelegate.h
-index 0a88e24..fdae7f7 100644
+index fafb5f9..30ae9ee 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/scheduler/SchedulerDelegate.h
 +++ b/node_modules/react-native/ReactCommon/react/renderer/scheduler/SchedulerDelegate.h
-@@ -61,5 +61,9 @@ class SchedulerDelegate {
+@@ -66,6 +66,10 @@ class SchedulerDelegate {
+ 
    virtual void schedulerDidUpdateShadowTree(const std::unordered_map<Tag, folly::dynamic> &tagToProps) = 0;
-
+ 
 +  virtual void schedulerMeasureAsyncOnUI(
 +      const ShadowView& shadowView,
 +      const std::function<void(folly::dynamic)>& callback) = 0;
 +
    virtual ~SchedulerDelegate() noexcept = default;
  };
-
+ 
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIManagerDelegate.h b/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIManagerDelegate.h
-index e649a27..2d9424a 100644
+index 92ee339..bbd65c6 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIManagerDelegate.h
 +++ b/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIManagerDelegate.h
-@@ -80,5 +80,13 @@ class UIManagerDelegate {
+@@ -79,6 +79,14 @@ class UIManagerDelegate {
+    */
    virtual void uiManagerShouldRemoveEventListener(const std::shared_ptr<const EventListener> &listener) = 0;
-
+ 
 +  /*
 +   * Measures the layout of the shadow node async on the UI thread using the native layout hierarchy.
 +   * As this has to schedule a call on the UI thread its async.
@@ -501,10 +534,10 @@ index e649a27..2d9424a 100644
     * Start surface.
     */
 diff --git a/node_modules/react-native/src/private/types/HostInstance.js b/node_modules/react-native/src/private/types/HostInstance.js
-index 6776545..94c4f14 100644
+index cb7dff7..ff01e4b 100644
 --- a/node_modules/react-native/src/private/types/HostInstance.js
 +++ b/node_modules/react-native/src/private/types/HostInstance.js
-@@ -69,6 +69,11 @@ export interface LegacyHostInstanceMethods {
+@@ -72,6 +72,11 @@ export interface LegacyHostInstanceMethods {
     * prop](docs/view.html#onlayout) instead.
     */
    measure(callback: MeasureOnSuccessCallback): void;
@@ -517,13 +550,13 @@ index 6776545..94c4f14 100644
     * Determines the location of the given view in the window and returns the
     * values via an async callback. If the React root view is embedded in
 diff --git a/node_modules/react-native/src/private/webapis/dom/nodes/ReactNativeElement.js b/node_modules/react-native/src/private/webapis/dom/nodes/ReactNativeElement.js
-index abf3c73..4e51bec 100644
+index 78ab569..71da9c9 100644
 --- a/node_modules/react-native/src/private/webapis/dom/nodes/ReactNativeElement.js
 +++ b/node_modules/react-native/src/private/webapis/dom/nodes/ReactNativeElement.js
-@@ -154,6 +154,18 @@ class ReactNativeElement extends ReadOnlyElement implements NativeMethods {
+@@ -164,6 +164,18 @@ class ReactNativeElement extends ReadOnlyElement implements NativeMethods {
      }
    }
-
+ 
 +  measureAsyncOnUI(callback: MeasureOnSuccessCallback) {
 +    const node = getNativeElementReference(this);
 +    if (node != null) {
@@ -539,41 +572,14 @@ index abf3c73..4e51bec 100644
    measureInWindow(callback: MeasureInWindowOnSuccessCallback) {
      const node = getNativeElementReference(this);
      if (node != null) {
-diff --git a/node_modules/react-native/React/FBReactNativeSpec/FBReactNativeSpecJSI.h b/node_modules/react-native/React/FBReactNativeSpec/FBReactNativeSpecJSI.h
-index 1234567..abcdefg 100644
---- a/node_modules/react-native/React/FBReactNativeSpec/FBReactNativeSpecJSI.h
-+++ b/node_modules/react-native/React/FBReactNativeSpec/FBReactNativeSpecJSI.h
-@@ -5809,6 +5809,7 @@
-     methodMap_["measure"] = MethodMetadata {.argCount = 2, .invoker = __measure};
-     methodMap_["measureInWindow"] = MethodMetadata {.argCount = 2, .invoker = __measureInWindow};
-     methodMap_["measureLayout"] = MethodMetadata {.argCount = 4, .invoker = __measureLayout};
-+    methodMap_["measureAsyncOnUI"] = MethodMetadata {.argCount = 2, .invoker = __measureAsyncOnUI};
-     methodMap_["setNativeProps"] = MethodMetadata {.argCount = 2, .invoker = __setNativeProps};
-   }
-
-@@ -5984,5 +5985,14 @@
-       count <= 2 ? throw jsi::JSError(rt, "Expected argument in position 2 to be passed") : args[2].asObject(rt).asFunction(rt),
-       count <= 3 ? throw jsi::JSError(rt, "Expected argument in position 3 to be passed") : args[3].asObject(rt).asFunction(rt));return jsi::Value::undefined();
-   }
-+
-+  static jsi::Value __measureAsyncOnUI(jsi::Runtime &rt, TurboModule &turboModule, const jsi::Value* args, size_t count) {
-+    static_assert(
-+      bridging::getParameterCount(&T::measureAsyncOnUI) == 3,
-+      "Expected measureAsyncOnUI(...) to have 3 parameters");
-+    bridging::callFromJs<void>(rt, &T::measureAsyncOnUI,  static_cast<NativeDOMCxxSpec*>(&turboModule)->jsInvoker_, static_cast<T*>(&turboModule),
-+      count <= 0 ? throw jsi::JSError(rt, "Expected argument in position 0 to be passed") : jsi::Value(rt, args[0]),
-+      count <= 1 ? throw jsi::JSError(rt, "Expected argument in position 1 to be passed") : args[1].asObject(rt).asFunction(rt));return jsi::Value::undefined();
-+  }
-
-   static jsi::Value __setNativeProps(jsi::Runtime &rt, TurboModule &turboModule, const jsi::Value* args, size_t count) {
 diff --git a/node_modules/react-native/src/private/webapis/dom/nodes/specs/NativeDOM.js b/node_modules/react-native/src/private/webapis/dom/nodes/specs/NativeDOM.js
-index 60e23b2..6c63789 100644
+index 28f9e44..56a2044 100644
 --- a/node_modules/react-native/src/private/webapis/dom/nodes/specs/NativeDOM.js
 +++ b/node_modules/react-native/src/private/webapis/dom/nodes/specs/NativeDOM.js
-@@ -156,6 +156,11 @@ export interface Spec extends TurboModule {
+@@ -159,6 +159,11 @@ export interface Spec extends TurboModule {
      onSuccess: MeasureLayoutOnSuccessCallback,
    ) => void;
-
+ 
 +  +measureAsyncOnUI: (
 +    nativeElementReference: mixed,
 +    callback: MeasureOnSuccessCallback,
@@ -582,10 +588,10 @@ index 60e23b2..6c63789 100644
    /**
     * Legacy direct manipulation APIs (for `ReactNativeElement`).
     */
-@@ -423,6 +428,11 @@ export interface RefinedSpec {
+@@ -429,6 +434,11 @@ export interface RefinedSpec {
      onSuccess: MeasureLayoutOnSuccessCallback,
    ) => void;
-
+ 
 +  +measureAsyncOnUI: (
 +    nativeElementReference: NativeElementReference,
 +    callback: MeasureOnSuccessCallback,
