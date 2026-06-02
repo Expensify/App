@@ -6066,18 +6066,28 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             error: 'Beim Duplizieren deines neuen Workspace ist ein Fehler aufgetreten. Bitte versuche es erneut.',
         },
         copyPolicySettings: {
-            error: 'Beim Kopieren der Arbeitsbereichseinstellungen ist ein Fehler aufgetreten. Bitte versuche es erneut.',
             title: 'Einstellungen kopieren',
-            selectWorkspaces: 'Arbeitsbereiche auswählen',
-            description: 'Wählen Sie die Arbeitsbereiche, in die Sie Einstellungen kopieren möchten, und wählen Sie dann die Einstellungen aus, die Sie kopieren möchten.',
-            searchPlaceholder: 'Arbeitsbereiche suchen',
-            selectFeatures: 'Zu kopierende Funktionen auswählen',
-            whichFeatures: 'Wählen Sie die Einstellungen aus, die in Ihren bestehenden Arbeitsbereichen überschrieben werden sollen.',
-            workflowsWithoutMembersConfirm: 'Ohne Mitglieder fortfahren',
-            workflowsWithoutMembersPrompt:
-                'Beim Kopieren von Workflows ohne Mitglieder werden Genehmigungs-Workflows nicht kopiert. Einstellungen für Einreichung und Zahlung werden weiterhin kopiert.',
-            accountingMismatch: ({part}: {part: string}) =>
-                `Sie können ${part} nur kopieren, wenn alle Arbeitsbereiche dasselbe Buchhaltungssystem und dieselbe Unternehmensverbindung verwenden.`,
+            error: 'Beim Kopieren der Arbeitsbereichseinstellungen ist ein Fehler aufgetreten. Bitte versuche es erneut.',
+            selectWorkspaces: {
+                title: 'Arbeitsbereiche auswählen',
+                description: 'Wählen Sie die Arbeitsbereiche aus, in die Sie Einstellungen kopieren möchten, und wählen Sie dann die Einstellungen aus, die Sie kopieren möchten.',
+                searchPlaceholder: 'Workspaces durchsuchen',
+            },
+            selectSettings: {
+                title: 'Zu kopierende Funktionen auswählen',
+                description: 'Wählen Sie die Einstellungen aus, die in Ihren bestehenden Arbeitsbereichen überschrieben werden sollen.',
+                accountingMismatch: ({part}: {part: string}) =>
+                    `Sie können ${part} nur kopieren, wenn alle Arbeitsbereiche dasselbe Buchhaltungssystem und dieselbe Unternehmensverbindung verwenden.`,
+            },
+            confirmSettings: {
+                title: 'Stellen wir sicher, dass alles richtig aussieht.',
+                description: ({workspaceName}: {workspaceName: string}) =>
+                    `Wir kopieren die folgenden Einstellungen von <strong>${workspaceName}</strong> in die von Ihnen angegebenen Arbeitsbereiche`,
+            },
+            confirmWorkflows: {
+                continue: 'Ohne Mitglieder fortfahren',
+                description: 'Das Kopieren von Workflows ohne Mitglieder kopiert keine Genehmigungs-Workflows. Einreichungs- und Zahlungseinstellungen werden trotzdem kopiert.',
+            },
         },
         emptyWorkspace: {
             title: 'Du hast keine Arbeitsbereiche',
@@ -9373,7 +9383,6 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         expenseLevelExport: 'Alle Daten – Ausgabenebene',
         exportInProgress: 'Export wird ausgeführt',
         conciergeWillSend: 'Concierge wird dir die Datei in Kürze senden.',
-        currentView: 'Aktuelle Ansicht exportieren',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',

@@ -6034,16 +6034,27 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             error: 'Ocorreu um erro ao duplicar seu novo espaço de trabalho. Tente novamente.',
         },
         copyPolicySettings: {
-            error: 'Ocorreu um erro ao copiar as configurações do workspace. Tente novamente.',
             title: 'Copiar configurações',
-            selectWorkspaces: 'Selecionar espaços de trabalho',
-            description: 'Escolha os espaços de trabalho para os quais você quer copiar as configurações e, em seguida, selecione quais configurações deseja copiar.',
-            searchPlaceholder: 'Buscar espaços de trabalho',
-            selectFeatures: 'Selecione os recursos para copiar',
-            whichFeatures: 'Selecione as configurações que deseja sobrescrever nos seus espaços de trabalho existentes.',
-            workflowsWithoutMembersConfirm: 'Continuar sem membros',
-            workflowsWithoutMembersPrompt: 'Copiar fluxos de trabalho sem membros não copiará os fluxos de aprovação. As configurações de envio e pagamento ainda serão copiadas.',
-            accountingMismatch: ({part}: {part: string}) => `Você só pode copiar ${part} se todos os espaços de trabalho usarem o mesmo sistema contábil e a mesma conexão da empresa.`,
+            error: 'Ocorreu um erro ao copiar as configurações do workspace. Tente novamente.',
+            selectWorkspaces: {
+                title: 'Selecionar espaços de trabalho',
+                description: 'Escolha os espaços de trabalho para os quais você quer copiar as configurações e, em seguida, selecione quais configurações deseja copiar.',
+                searchPlaceholder: 'Buscar espaços de trabalho',
+            },
+            selectSettings: {
+                title: 'Selecione os recursos para copiar',
+                description: 'Selecione as configurações que deseja sobrescrever nos seus espaços de trabalho existentes.',
+                accountingMismatch: ({part}: {part: string}) => `Você só pode copiar ${part} se todos os espaços de trabalho usarem o mesmo sistema contábil e a mesma conexão da empresa.`,
+            },
+            confirmSettings: {
+                title: 'Vamos garantir que está tudo certo.',
+                description: ({workspaceName}: {workspaceName: string}) =>
+                    `Vamos copiar as seguintes configurações de <strong>${workspaceName}</strong> para os espaços de trabalho que você especificou`,
+            },
+            confirmWorkflows: {
+                continue: 'Continuar sem membros',
+                description: 'Copiar fluxos de trabalho sem membros não copiará os fluxos de aprovação. As configurações de envio e pagamento ainda serão copiadas.',
+            },
         },
         emptyWorkspace: {
             title: 'Você não tem nenhum workspace',
@@ -9319,7 +9330,6 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         expenseLevelExport: 'Todos os dados - nível de despesa',
         exportInProgress: 'Exportação em andamento',
         conciergeWillSend: 'O Concierge enviará o arquivo para você em breve.',
-        currentView: 'Exportar visualização atual',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',
