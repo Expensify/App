@@ -90,6 +90,11 @@ function shouldOptimisticallyUpdateSearch(
 
     const hasNoFlatFilters = currentSearchQueryJSON.flatFilters.length === 0;
 
+    const onlyFromFilter = currentSearchQueryJSON.flatFilters.length === 1 ? currentSearchQueryJSON.flatFilters.at(0) : undefined;
+    const matchesFromQuery: boolean =
+        onlyFromFilter?.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM &&
+        onlyFromFilter.filters.some((f) => f.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && String(f.value) === String(currentUserAccountID));
+
     const matchesSubmitQuery =
         submitQueryJSON?.similarSearchHash === currentSearchQueryJSON.similarSearchHash && expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.DRAFTS](iouReport);
 
@@ -102,7 +107,7 @@ function shouldOptimisticallyUpdateSearch(
         (expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.DRAFTS](iouReport) || expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING](iouReport)) &&
         transaction?.reimbursable;
 
-    const matchesFilterQuery = hasNoFlatFilters || matchesSubmitQuery || matchesApproveQuery || matchesUnapprovedCashQuery;
+    const matchesFilterQuery = hasNoFlatFilters || matchesFromQuery || matchesSubmitQuery || matchesApproveQuery || matchesUnapprovedCashQuery;
 
     return shouldOptimisticallyUpdateByStatus && validSearchTypes && matchesFilterQuery;
 }
