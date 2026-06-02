@@ -9,7 +9,7 @@ import {search} from '@libs/actions/Search';
 import {getDisplayableExpensifyCards} from '@libs/CardUtils';
 import {arePaymentsEnabled, hasApprovalFlow, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {getSuggestedSearches, TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
+import {getSuggestedSearches, getSuggestedSearchesVisibility, TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -80,11 +80,9 @@ function getYourSpendRowState({isApplicable, isOffline, searchResults}: GetYourS
 }
 
 function useYourSpendData(): UseYourSpendDataReturn {
-    const {accountID} = useCurrentUserPersonalDetails();
+    const {accountID, email} = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
-
-    const suggestedSearches = getSuggestedSearches(accountID);
 
     const awaitingApprovalQuery = buildAwaitingApprovalQuery(accountID);
     const repaidLast30DaysQuery = buildRepaidLast30DaysQuery(accountID);
@@ -268,6 +266,11 @@ function useYourSpendData(): UseYourSpendDataReturn {
     // the search-firing effect re-runs.
     const applicabilityKey = `${isApprovalApplicable ? 1 : 0}${isPaymentApplicable ? 1 : 0}`;
 
+    // The `cardFeedsByPolicy` and `defaultExpensifyCard` params are not passed
+    // because they have no effect on the `TODO_SEARCH_KEYS` (and we are only interested in `TODO_SEARCH_KEYS`)
+    const {visibility: suggestedSearchesVisibility} = getSuggestedSearchesVisibility(email, {}, policies, undefined);
+    const suggestedSearches = getSuggestedSearches(accountID);
+
     const fireSearches = useEffectEvent(() => {
         if (isOffline) {
             return;
@@ -310,6 +313,10 @@ function useYourSpendData(): UseYourSpendDataReturn {
             });
         }
         for (const searchKey of TODO_SEARCH_KEYS) {
+            const isVisible = suggestedSearchesVisibility[searchKey];
+            if (!isVisible) {
+                continue;
+            }
             const queryJSON = suggestedSearches[searchKey].searchQueryJSON;
             if (!queryJSON) {
                 continue;
