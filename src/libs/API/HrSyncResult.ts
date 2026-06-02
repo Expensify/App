@@ -20,4 +20,4 @@ type HrSyncResult = {
     skippedEmployees?: HrSyncSkippedEmployee[];
 };
 
-export type {HrSyncResult, HrSyncSkippedEmployee};
+export default HrSyncResult;
