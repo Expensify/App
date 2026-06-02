@@ -8,7 +8,7 @@ import {generateHexadecimalValue} from '@libs/NumberUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CopyPolicySettings as CopyPolicySettingsState, Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
-import type {CustomUnit} from '@src/types/onyx/Policy';
+import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 
 type Part = 'overview' | 'members' | 'reports' | 'accounting' | 'categories' | 'tags' | 'taxes' | 'workflows' | 'rules' | 'codingRules' | 'distanceRates' | 'perDiem' | 'invoices' | 'travel';
 
@@ -65,10 +65,46 @@ function findCustomUnitByName(policy: Policy | undefined, unitName: string): Cus
     return Object.values(policy.customUnits).find((unit) => unit.name === unitName);
 }
 
+function buildTargetRateIDByName(targetUnit: CustomUnit | undefined): Record<string, string> {
+    if (!targetUnit?.rates) {
+        return {};
+    }
+
+    const targetRateIDByName: Record<string, string> = {};
+    for (const rate of Object.values(targetUnit.rates)) {
+        if (rate.name && rate.customUnitRateID) {
+            targetRateIDByName[rate.name] = rate.customUnitRateID;
+        }
+    }
+    return targetRateIDByName;
+}
+
+function copyCustomUnitPreservingRateIDs(sourceUnit: CustomUnit, targetUnit: CustomUnit | undefined, targetUnitID: string): CustomUnit {
+    const targetRateIDByName = buildTargetRateIDByName(targetUnit);
+    const remappedRates: Record<string, Rate> = {};
+
+    for (const sourceRate of Object.values(sourceUnit.rates ?? {})) {
+        const rateName = sourceRate.name ?? '';
+        const existingTargetRateID = rateName ? targetRateIDByName[rateName] : undefined;
+        const rateID = existingTargetRateID ?? generateHexadecimalValue(13);
+        remappedRates[rateID] = {
+            ...sourceRate,
+            customUnitRateID: rateID,
+        };
+    }
+
+    return {
+        ...sourceUnit,
+        customUnitID: targetUnitID,
+        rates: remappedRates,
+    };
+}
+
 /**
  * Returns the customUnits patch to merge into the target policy when distanceRates and/or perDiem are
  * being copied. The source unit data is written under the target's existing unit ID — a new ID is
- * generated only when the target has no unit of that type yet.
+ * generated only when the target has no unit of that type yet. Rate IDs are remapped by name to match
+ * the target's existing IDs so optimistic state stays aligned with the backend copy.
  */
 function buildCustomUnitsPatch(sourcePolicy: Policy, targetPolicy: Policy, isDistanceSelected: boolean, isPerDiemSelected: boolean): {customUnits: Record<string, CustomUnit>} | undefined {
     if (!isDistanceSelected && !isPerDiemSelected) {
@@ -82,7 +118,7 @@ function buildCustomUnitsPatch(sourcePolicy: Policy, targetPolicy: Policy, isDis
         if (sourceDistance) {
             const targetDistance = findCustomUnitByName(targetPolicy, CONST.CUSTOM_UNITS.NAME_DISTANCE);
             const targetUnitID = targetDistance?.customUnitID ?? generateHexadecimalValue(13);
-            patch[targetUnitID] = {...sourceDistance, customUnitID: targetUnitID};
+            patch[targetUnitID] = copyCustomUnitPreservingRateIDs(sourceDistance, targetDistance, targetUnitID);
         }
     }
 
@@ -91,7 +127,7 @@ function buildCustomUnitsPatch(sourcePolicy: Policy, targetPolicy: Policy, isDis
         if (sourcePerDiem) {
             const targetPerDiem = findCustomUnitByName(targetPolicy, CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
             const targetUnitID = targetPerDiem?.customUnitID ?? generateHexadecimalValue(13);
-            patch[targetUnitID] = {...sourcePerDiem, customUnitID: targetUnitID};
+            patch[targetUnitID] = copyCustomUnitPreservingRateIDs(sourcePerDiem, targetPerDiem, targetUnitID);
         }
     }
 

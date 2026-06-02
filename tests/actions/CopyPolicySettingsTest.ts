@@ -293,8 +293,57 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 expect(value.customUnits).toBeDefined();
                 expect(Object.keys(value.customUnits ?? {})).toEqual([targetExistingDistanceID]);
                 expect(value.customUnits?.[targetExistingDistanceID]?.customUnitID).toBe(targetExistingDistanceID);
-                expect(value.customUnits?.[targetExistingDistanceID]?.rates).toEqual(sourceDistanceUnit.rates);
+                const optimisticRates = value.customUnits?.[targetExistingDistanceID]?.rates ?? {};
+                expect(Object.keys(optimisticRates)).toHaveLength(1);
+                expect(optimisticRates[Object.keys(optimisticRates).at(0) ?? '']).toMatchObject({name: 'IRS', rate: 67, customUnitRateID: Object.keys(optimisticRates).at(0)});
+                expect(optimisticRates).not.toHaveProperty('SRC_RATE');
+                expect(optimisticRates).not.toHaveProperty('OLD');
                 expect(value.pendingFields?.customUnits).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            });
+
+            it('remaps distance rate IDs by name to match the target when names overlap', () => {
+                const targetExistingRateID = 'TARGET_RATE_ID01';
+                const sourcePolicy = makeSourcePolicy({
+                    customUnits: {
+                        [sourceDistanceUnit.customUnitID]: {
+                            ...sourceDistanceUnit,
+                            rates: {
+                                SRC_RATE: {customUnitRateID: 'SRC_RATE', name: 'Default Rate', rate: 0.25, enabled: true, currency: 'USD'},
+                            },
+                        },
+                    },
+                });
+                const targetExistingDistanceID = '2000000000001';
+                const targetPolicy = makeTargetPolicy({
+                    customUnits: {
+                        [targetExistingDistanceID]: {
+                            customUnitID: targetExistingDistanceID,
+                            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                            attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS},
+                            rates: {
+                                [targetExistingRateID]: {
+                                    customUnitRateID: targetExistingRateID,
+                                    name: 'Default Rate',
+                                    rate: 0.25,
+                                    enabled: true,
+                                    currency: 'USD',
+                                },
+                            },
+                        },
+                    },
+                });
+
+                const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['distanceRates'], {}, {});
+
+                const value = findPolicyOptimistic(optimisticData)?.value as {customUnits?: Record<string, CustomUnit>};
+                const optimisticRates = value.customUnits?.[targetExistingDistanceID]?.rates ?? {};
+                expect(Object.keys(optimisticRates)).toEqual([targetExistingRateID]);
+                expect(optimisticRates[targetExistingRateID]).toMatchObject({
+                    customUnitRateID: targetExistingRateID,
+                    name: 'Default Rate',
+                    rate: 0.25,
+                });
+                expect(optimisticRates).not.toHaveProperty('SRC_RATE');
             });
 
             it('generates a new unit ID when target has no distance unit', () => {
@@ -339,8 +388,12 @@ describe('actions/Policy/CopyPolicySettings', () => {
 
                 const value = findPolicyOptimistic(optimisticData)?.value as {customUnits?: Record<string, CustomUnit>};
                 expect(Object.keys(value.customUnits ?? {}).sort()).toEqual([targetExistingDistanceID, targetExistingPerDiemID].sort());
-                expect(value.customUnits?.[targetExistingDistanceID]?.rates).toEqual(sourceDistanceUnit.rates);
-                expect(value.customUnits?.[targetExistingPerDiemID]?.rates).toEqual(sourcePerDiemUnit.rates);
+                const distanceRates = value.customUnits?.[targetExistingDistanceID]?.rates ?? {};
+                const perDiemRates = value.customUnits?.[targetExistingPerDiemID]?.rates ?? {};
+                expect(Object.keys(distanceRates)).toHaveLength(1);
+                expect(distanceRates[Object.keys(distanceRates).at(0) ?? '']).toMatchObject({name: 'IRS', rate: 67});
+                expect(Object.keys(perDiemRates)).toHaveLength(1);
+                expect(perDiemRates[Object.keys(perDiemRates).at(0) ?? '']).toMatchObject({name: 'NYC', rate: 100});
             });
         });
 
@@ -429,9 +482,12 @@ describe('actions/Policy/CopyPolicySettings', () => {
 
                 // The optimistic unit is keyed by target's existing ID, with source's rates (no old rates)
                 const optimisticUnit = value.customUnits?.[targetDistanceUnit.customUnitID];
-                expect(optimisticUnit?.rates).toEqual(sourceDistanceUnit.rates);
-                expect(optimisticUnit?.rates).not.toHaveProperty('OLD_RATE_A');
-                expect(optimisticUnit?.rates).not.toHaveProperty('OLD_RATE_B');
+                const optimisticRates = optimisticUnit?.rates ?? {};
+                expect(Object.keys(optimisticRates)).toHaveLength(1);
+                expect(optimisticRates[Object.keys(optimisticRates).at(0) ?? '']).toMatchObject({name: 'New', rate: 67});
+                expect(optimisticRates).not.toHaveProperty('OLD_RATE_A');
+                expect(optimisticRates).not.toHaveProperty('OLD_RATE_B');
+                expect(optimisticRates).not.toHaveProperty('NEW_RATE');
             });
 
             it('failure SET fully restores target — newly-added custom unit IDs are removed', () => {
