@@ -36,10 +36,10 @@ function CardRow({cardRow, wrapperStyle}: CardRowProps) {
 
     // Pick the artwork branch up front so the JSX below stays readable.
     // - Expensify Card: keep the existing illustrated feed icon.
-    // - Third-party with `fundID`: employer-feed company card → `feed|domainID` key.
-    // - Third-party without `fundID`: personal Plaid card → pass the bare `bank`
-    //   (`plaid.ins_…`) directly. `CardFeedIcon` resolves the Plaid institution icon
-    //   internally via `getPlaidInstitutionId(selectedFeed)`.
+    // - Personal Plaid/CSV card (`isPersonal`): pass the bare `bank` (`plaid.ins_…`)
+    //   directly. `CardFeedIcon` resolves the Plaid institution icon internally via
+    //   `getPlaidInstitutionId(selectedFeed)`.
+    // - Employer-feed company card: key the icon by `feed|domainID`.
     const iconProps = {
         width: variables.cardIconWidth,
         height: variables.cardIconHeight,
@@ -53,17 +53,17 @@ function CardRow({cardRow, wrapperStyle}: CardRowProps) {
                 iconProps={iconProps}
             />
         );
-    } else if (cardRow.fundID !== undefined) {
+    } else if (cardRow.isPersonal || cardRow.fundID === undefined) {
         leftIcon = (
             <CardFeedIcon
-                selectedFeed={getCardFeedWithDomainID(cardRow.bank, cardRow.fundID)}
+                selectedFeed={cardRow.bank}
                 iconProps={iconProps}
             />
         );
     } else {
         leftIcon = (
             <CardFeedIcon
-                selectedFeed={cardRow.bank}
+                selectedFeed={getCardFeedWithDomainID(cardRow.bank, cardRow.fundID)}
                 iconProps={iconProps}
             />
         );

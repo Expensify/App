@@ -7,7 +7,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {search} from '@libs/actions/Search';
-import {getDisplayableExpensifyCards, getDisplayableThirdPartyCards, lastFourNumbersFromCardName} from '@libs/CardUtils';
+import {getDisplayableExpensifyCards, getDisplayableThirdPartyCards, isPersonalCard, lastFourNumbersFromCardName} from '@libs/CardUtils';
 import {arePaymentsEnabled, hasApprovalFlow, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,6 +42,10 @@ type YourSpendCardRow = {
 
     // Set for employer-feed third-party cards; `undefined` for personal Plaid cards.
     fundID: string | undefined;
+
+    // `isPersonalCard` semantics (no `fundID`, `fundID === '0'`, or CSV bank). Personal
+    // cards render the bare bank artwork; employer-feed cards key the icon by `feed|domainID`.
+    isPersonal: boolean;
 };
 
 type TaggedCard = {card: Card; kind: YourSpendCardKind};
@@ -244,6 +248,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
                     kind,
                     bank: card.bank,
                     fundID: card.fundID,
+                    isPersonal: isPersonalCard(card),
                 });
                 return acc;
             }, []),
