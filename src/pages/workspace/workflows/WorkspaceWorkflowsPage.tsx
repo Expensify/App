@@ -522,7 +522,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                                       return;
                                                   }
                                                   selectApprovalWorkflowForEdit({workflow: rawWorkflow, defaultWorkflowMembers: availableMembers, usedApproverEmails});
-                                                  Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID));
+                                                  Navigation.navigate(
+                                                      ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID)),
+                                                  );
                                               }
                                     }
                                     onAddAgentPress={() => handleAddAgentPress(workflow)}
