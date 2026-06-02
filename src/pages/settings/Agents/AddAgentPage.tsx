@@ -152,9 +152,12 @@ function AddAgentPage({route}: AddAgentPageProps) {
             // The EDIT route is keyed by the workflow's original first approver email (the saved
             // state); read it from the in-memory workflow rather than the URL param, which may
             // carry the picker's in-progress selection instead of the workflow identifier.
+            // Pass the optimistic accountID as a seed so that if the Edit page unmounted while the
+            // SETTINGS navigator was on top, its re-mount seeds the optimistic agent back into
+            // approver[0] instead of wiping the Onyx write above with the saved policy state.
             const originalFirstApproverEmail = approvalWorkflow.originalApprovers?.at(0)?.email;
             if (approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT && originalFirstApproverEmail) {
-                Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, originalFirstApproverEmail));
+                Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, originalFirstApproverEmail, undefined, Number(optimisticAccountID)));
             } else {
                 Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID));
             }
