@@ -401,6 +401,30 @@ describe('OnboardingWorkEmail Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should navigate to Onboarding interested features page when skip is pressed and user is routed app via vsb', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB,
+            });
+        });
+
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByTestId('onboardingPrivateEmailSkipButton'));
+
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute(), {forceReplace: true});
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should still navigate to Onboarding work email validation page when caller is on a public domain', async () => {
         await TestHelper.signInWithTestUser();
 
@@ -700,6 +724,36 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should navigate to Onboarding interested features page when validate code step is successful and user is routed app via vsb', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                shouldValidate: true,
+                signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB,
+            });
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
+                onboardingWorkEmail: workEmail,
+            });
+        });
+
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        MergeIntoAccountAndLoginSuccessful();
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute(), {forceReplace: true});
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should display specific error message when ONBOARDING_ERROR_MESSAGE is set', async () => {
         await TestHelper.signInWithTestUser();
 
@@ -823,7 +877,7 @@ describe('OnboardingPrivateDomain Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should redirect a public-domain VSB user away to the accounting step', async () => {
+    it('should redirect a public-domain VSB user away to the interested features step', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -839,7 +893,7 @@ describe('OnboardingPrivateDomain Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_ACCOUNTING.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute(undefined, ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
         });
 
         unmount();

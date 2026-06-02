@@ -1,4 +1,3 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
@@ -10,30 +9,24 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
-import isSidePanelReportSupported from '@components/SidePanel/isSidePanelReportSupported';
 import Text from '@components/Text';
-import useActivePolicy from '@hooks/useActivePolicy';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
-import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
+import useCompleteOnboarding from '@hooks/useCompleteOnboarding';
+import type {OnboardingFeatureMapItem} from '@hooks/useCompleteOnboarding';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from '@libs/actions/Policy/Policy';
-import {completeOnboarding} from '@libs/actions/Report';
-import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/actions/Welcome';
-import Log from '@libs/Log';
-import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
+import {
+    setOnboardingAccountingEnabled,
+    setOnboardingAdminsChatReportID,
+    setOnboardingInterestedFeaturesMap,
+    setOnboardingPolicyID,
+    setOnboardingUserReportedIntegration,
+} from '@libs/actions/Welcome';
 import Navigation from '@libs/Navigation/Navigation';
-// eslint-disable-next-line no-restricted-imports
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -42,38 +35,23 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {BaseOnboardingInterestedFeaturesProps, Feature, SectionObject} from './types';
 
-function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardingInterestedFeaturesProps) {
+function BaseOnboardingInterestedFeatures({shouldUseNativeStyles, route}: BaseOnboardingInterestedFeaturesProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {onboardingMessages} = useOnboardingMessages();
     const illustrations = useMemoizedLazyIllustrations(['FolderOpen', 'Accounting', 'CompanyCard', 'Workflows', 'Rules', 'Car', 'Tag', 'PerDiem', 'HandCard', 'Luggage', 'Clock']);
 
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
-    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
-    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.INTERESTED_FEATURES);
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
-    const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
-    const [userReportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-
-    const {isBetaEnabled} = usePermissions();
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const archivedReportsIdSet = useArchivedReportsIdSet();
-    const activePolicy = useActivePolicy();
-    const hasActiveAdminPolicies = useHasActiveAdminPolicies();
-    const lastWorkspaceNumber = useLastWorkspaceNumber();
+    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
 
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
     const {isOffline} = useNetwork();
-    const [isLoading, setIsLoading] = useState(false);
+    const {completeOnboardingFlow, isLoading} = useCompleteOnboarding();
+    const isVsb = onboarding?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
 
     const features: Feature[] = useMemo(() => {
         return [
@@ -87,7 +65,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 id: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
                 title: translate('workspace.moreFeatures.connections.title'),
                 icon: illustrations.Accounting,
-                enabledByDefault: !!userReportedIntegration,
+                enabledByDefault: true,
             },
             {
                 id: CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED,
@@ -152,7 +130,6 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         illustrations.Luggage,
         illustrations.Clock,
         translate,
-        userReportedIntegration,
     ]);
 
     const [userToggledFeatures, setUserToggledFeatures] = useState<Set<string>>(new Set());
@@ -167,6 +144,8 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             })
             .map((feature) => feature.id);
     }, [features, userToggledFeatures]);
+    const isAccountingEnabled = selectedFeatures.includes(CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED);
+    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.INTERESTED_FEATURES, {isAccountingEnabled});
 
     // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signup
     useEffect(() => {
@@ -178,121 +157,25 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     }, [paidGroupPolicy, onboardingPolicyID]);
 
     const handleContinue = useCallback(async () => {
-        if (!onboardingPurposeSelected || !onboardingCompanySize) {
+        const featuresMap: OnboardingFeatureMapItem[] = features.map((feature) => ({
+            id: feature.id,
+            enabled: selectedFeatures.includes(feature.id),
+            enabledByDefault: feature.enabledByDefault,
+            requiresUpdate: feature.requiresUpdate,
+        }));
+
+        setOnboardingAccountingEnabled(isAccountingEnabled);
+        setOnboardingInterestedFeaturesMap(featuresMap);
+
+        if (isAccountingEnabled) {
+            setOnboardingUserReportedIntegration(null);
+            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
             return;
         }
 
-        try {
-            setIsLoading(true);
-
-            const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
-            const newUserReportedIntegration = selectedFeatures.some((feature) => feature === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED) ? userReportedIntegration : undefined;
-            const featuresMap = features.map((feature) => ({
-                ...feature,
-                enabled: selectedFeatures.includes(feature.id),
-            }));
-
-            const email = currentUserPersonalDetails.email ?? '';
-            // We need `adminsChatReportID` for `completeOnboarding`, but at the same time, we don't want to call `createWorkspace` more than once.
-            // If we have already created a workspace, we want to reuse the `onboardingAdminsChatReportID` and `onboardingPolicyID`.
-            const {adminsChatReportID, policyID} = shouldCreateWorkspace
-                ? createWorkspace({
-                      policyOwnerEmail: undefined,
-                      makeMeAdmin: true,
-                      policyName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
-                      policyID: generatePolicyID(),
-                      engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
-                      currency: currentUserPersonalDetails?.localCurrencyCode ?? '',
-                      file: undefined,
-                      shouldAddOnboardingTasks: false,
-                      companySize: onboardingCompanySize,
-                      userReportedIntegration: newUserReportedIntegration,
-                      featuresMap,
-                      introSelected,
-                      activePolicy,
-                      currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                      currentUserEmailParam: email,
-                      shouldAddGuideWelcomeMessage: false,
-                      betas,
-                      isSelfTourViewed,
-                      hasActiveAdminPolicies,
-                  })
-                : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
-
-            if (shouldCreateWorkspace) {
-                setOnboardingAdminsChatReportID(adminsChatReportID);
-                setOnboardingPolicyID(policyID);
-            }
-
-            await completeOnboarding({
-                engagementChoice: onboardingPurposeSelected,
-                onboardingMessage: onboardingMessages[onboardingPurposeSelected],
-                adminsChatReportID,
-                onboardingPolicyID: policyID,
-                companySize: onboardingCompanySize,
-                userReportedIntegration: newUserReportedIntegration,
-                firstName: currentUserPersonalDetails?.firstName,
-                lastName: currentUserPersonalDetails?.lastName,
-                selectedInterestedFeatures: featuresMap.filter((feature) => feature.enabled).map((feature) => feature.id),
-                shouldWaitForRHPVariantInitialization: isSidePanelReportSupported,
-                introSelected,
-                isSelfTourViewed,
-            });
-
-            // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
-            TransitionTracker.runAfterTransitions({
-                callback: () => {
-                    setOnboardingAdminsChatReportID();
-                    setOnboardingPolicyID();
-                },
-                waitForUpcomingTransition: true,
-            });
-
-            // We need to wait the policy is created before navigating out the onboarding flow
-            navigateAfterOnboardingWithMicrotaskQueue(
-                isSmallScreenWidth,
-                isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
-                conciergeReportID,
-                archivedReportsIdSet,
-                policyID,
-                adminsChatReportID,
-                // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
-                // See https://github.com/Expensify/App/issues/57167 for more details
-                (session?.email ?? '').includes('+'),
-            );
-        } catch (error) {
-            Log.warn('[BaseOnboardingInterestedFeatures] Error completing onboarding', {error});
-        } finally {
-            setIsLoading(false);
-        }
-    }, [
-        isBetaEnabled,
-        isSmallScreenWidth,
-        archivedReportsIdSet,
-        onboardingAdminsChatReportID,
-        onboardingCompanySize,
-        onboardingMessages,
-        onboardingPolicyID,
-        onboardingPurposeSelected,
-        paidGroupPolicy,
-        session?.email,
-        userReportedIntegration,
-        features,
-        selectedFeatures,
-        currentUserPersonalDetails?.firstName,
-        currentUserPersonalDetails?.lastName,
-        currentUserPersonalDetails?.localCurrencyCode,
-        activePolicy,
-        currentUserPersonalDetails.accountID,
-        currentUserPersonalDetails.email,
-        introSelected,
-        isSelfTourViewed,
-        conciergeReportID,
-        betas,
-        hasActiveAdminPolicies,
-        lastWorkspaceNumber,
-        translate,
-    ]);
+        setOnboardingUserReportedIntegration(null);
+        await completeOnboardingFlow({featuresMap});
+    }, [completeOnboardingFlow, features, isAccountingEnabled, route.params?.backTo, selectedFeatures]);
 
     // Create items for enabled features
     const enabledFeatures: Feature[] = features
@@ -394,10 +277,10 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                shouldShowBackButton
+                shouldShowBackButton={!isVsb}
                 stepCounter={onboardingStep?.stepCounter}
                 progressBarPercentage={onboardingStep?.progressBarPercentage}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_ACCOUNTING.getRoute())}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo))}
                 shouldDisplayHelpButton={false}
             />
             <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
