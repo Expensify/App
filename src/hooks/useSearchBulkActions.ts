@@ -1075,7 +1075,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     userBillingGracePeriodEnds,
                     amountOwed,
                     ownerBillingGracePeriodEnd,
-                    methodID: paymentItem.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? paymentItem.bankAccountID : undefined,
+                    methodID: paymentItem.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? (paymentItem.bankAccountID ?? reportPolicy?.achAccount?.bankAccountID) : undefined,
                     conciergeReportID,
                     additionalOnyxData,
                 });
