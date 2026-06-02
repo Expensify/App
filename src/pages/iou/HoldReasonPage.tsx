@@ -13,7 +13,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList, SearchReportActionsParamList} from '@libs/Navigation/types';
 import {getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canEditMoneyRequest, isReportInGroupPolicy} from '@libs/ReportUtils';
+import {canEditMoneyRequest, isGroupPolicy} from '@libs/ReportUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import {clearErrorFields, clearErrors, setErrors} from '@userActions/FormActions';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,12 +36,14 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
     const {isOffline} = useNetwork();
     const ancestors = useAncestors(report);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const [policyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {
+        selector: (policyValue) => policyValue?.type,
+    });
     const [parentReportOwnerAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {selector: getReportOwnerAccountID});
 
     // We first check if the report is part of a policy - if not, then it's a personal request (1:1 request)
     // For personal requests, we need to allow both users to put the request on hold
-    const isWorkspaceRequest = isReportInGroupPolicy(report, policy);
+    const isWorkspaceRequest = isGroupPolicy(policyType ?? '');
     const isSubmitter = parentReportOwnerAccountID === currentUserAccountID;
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
 
