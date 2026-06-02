@@ -79,6 +79,7 @@ function HeaderWithBackButton({
     subTitleLink = '',
     shouldMinimizeMenuButton = false,
     openParentReportInCurrentTab = false,
+    skipDialogContainerFocus = false,
 }: HeaderWithBackButtonProps) {
     // Avatar-header routes skip Header, so register the dialog label here.
     useDialogLabelRegistration(shouldShowReportAvatarWithDisplay ? (report?.reportName ?? '') : '');
@@ -153,6 +154,7 @@ function HeaderWithBackButton({
                 subTitleLink={subTitleLink}
                 numberOfTitleLines={1}
                 isScreenHeader
+                skipDialogContainerFocus={skipDialogContainerFocus}
             />
         );
     }, [
@@ -176,6 +178,7 @@ function HeaderWithBackButton({
         translate,
         openParentReportInCurrentTab,
         shouldDisplayStatus,
+        skipDialogContainerFocus,
     ]);
     const ThreeDotMenuButton = useMemo(() => {
         if (shouldShowThreeDotsButton) {

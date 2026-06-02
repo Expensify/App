@@ -1,9 +1,8 @@
 import {useEffect} from 'react';
-// eslint-disable-next-line no-restricted-imports -- idiomatic defer primitive past navigation transitions.
-import {InteractionManager} from 'react-native';
 import FOCUSABLE_SELECTOR from '@libs/focusableSelector';
 import hasFocusableAttributes from '@libs/focusGuards';
 import getHadTabNavigation from '@libs/hadTabNavigation';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {Priorities, tryClaim} from '@libs/ScreenFocusArbiter';
 import type UseDialogContainerFocus from './types';
 
@@ -25,32 +24,34 @@ function focusFirstInteractiveElement(container: HTMLElement | null): boolean {
 }
 
 /** Focuses the first interactive element inside the dialog after the RHP transition for screen reader announcement. */
-const useDialogContainerFocus: UseDialogContainerFocus = (ref, isReady, claimInitialFocus) => {
+const useDialogContainerFocus: UseDialogContainerFocus = (ref, isReady, claimInitialFocus, skipDialogContainerFocus = false) => {
     useEffect(() => {
-        if (!isReady || !claimInitialFocus?.()) {
+        if (!isReady || !claimInitialFocus?.() || skipDialogContainerFocus) {
             return;
         }
         let cancelled = false;
         let frameId: number;
         // Deferred past useAutoFocusInput's InteractionManager + Promise chain.
-        const interactionHandle = InteractionManager.runAfterInteractions(() => {
-            if (cancelled) {
-                return;
-            }
-            frameId = requestAnimationFrame(() => {
+        const interactionHandle = TransitionTracker.runAfterTransitions({
+            callback: () => {
                 if (cancelled) {
                     return;
                 }
-                const container = ref.current as unknown as HTMLElement | null;
-                focusFirstInteractiveElement(container);
-            });
+                frameId = requestAnimationFrame(() => {
+                    if (cancelled) {
+                        return;
+                    }
+                    const container = ref.current as unknown as HTMLElement | null;
+                    focusFirstInteractiveElement(container);
+                });
+            },
         });
         return () => {
             cancelled = true;
             interactionHandle.cancel();
             cancelAnimationFrame(frameId);
         };
-    }, [isReady, ref, claimInitialFocus]);
+    }, [isReady, ref, claimInitialFocus, skipDialogContainerFocus]);
 };
 
 export default useDialogContainerFocus;
