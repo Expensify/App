@@ -1892,14 +1892,6 @@ function clearDraftSpendRule() {
     Onyx.set(ONYXKEYS.FORMS.SPEND_RULE_FORM, null);
 }
 
-function updateSpendRuleFormDraft(draftData: Partial<SpendRuleForm>) {
-    Onyx.merge(ONYXKEYS.FORMS.SPEND_RULE_FORM_DRAFT, draftData);
-}
-
-function clearSpendRuleFormDraft() {
-    Onyx.set(ONYXKEYS.FORMS.SPEND_RULE_FORM_DRAFT, null);
-}
-
 export {
     revokeDevice,
     clearRevokeError,
@@ -1958,8 +1950,6 @@ export {
     setDraftSpendRule,
     updateDraftSpendRule,
     clearDraftSpendRule,
-    updateSpendRuleFormDraft,
-    clearSpendRuleFormDraft,
     openTroubleshootSettingsPage,
     openMultifactorAuthenticationRevokePage,
 };
