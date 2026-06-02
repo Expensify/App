@@ -1,4 +1,13 @@
 #!/bin/bash
+# Validates that a PR did not regress the Mobile-Expensify submodule gitlink on E/App.
+#
+# Inputs:
+#   - Run from the App repo root (CI: PR merge commit). Compares origin/main vs HEAD gitlinks for Mobile-Expensify.
+#   - MOBILE_EXPENSIFY_GIT_DIR: path to a Mobile-Expensify clone used for ancestry checks (default: .github/mobile-expensify-repo).
+#
+# Outputs:
+#   - Exit 0 if the gitlink is unchanged or the PR SHA is not older than main's SHA (logs a success line).
+#   - Exit 1 if the PR SHA regressed; writes GitHub Actions ::error:: messages with remediation steps.
 set -euo pipefail
 
 MOBILE_EXPENSIFY_GIT_DIR="${MOBILE_EXPENSIFY_GIT_DIR:-.github/mobile-expensify-repo}"
