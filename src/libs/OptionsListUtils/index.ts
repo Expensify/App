@@ -1002,7 +1002,6 @@ function getLastMessageTextForReport({
             const latestVisibleMoneyRequestAction = getLatestVisibleMoneyRequestAction(
                 reportID,
                 canUserPerformWrite,
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 sortedActions[reportID],
                 visibleReportActionsDataParam,
             );
@@ -1288,6 +1287,7 @@ function getReportDisplayOption(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     privateIsArchived: boolean | undefined,
     policy: OnyxEntry<Policy>,
+    sortedActions: Record<string, ReportAction[]> | undefined,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     policyTags?: OnyxEntry<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
@@ -1307,6 +1307,7 @@ function getReportDisplayOption(
         reportAttributesDerived,
         policyTags,
         visibleReportActionsData,
+        sortedActions,
     });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
