@@ -211,8 +211,8 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                         icon={icons.Plus}
                         text={translate('workspace.expensifyCard.issueCard')}
                         style={shouldDisplayButtonsInSeparateLine && styles.flex1}
-                        innerStyles={!canWriteExpensifyCard ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
-                        hoverStyles={!canWriteExpensifyCard ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
+                        innerStyles={!canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined}
+                        hoverStyles={!canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_BUTTON}
                     />
                 )}
@@ -363,17 +363,15 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 <EmptyCardView
                     isBankAccountVerified={isBankAccountVerified}
                     policyID={policyID}
-                    buttons={
-                        [
-                            {
-                                buttonText: translate('workspace.expensifyCard.issueCard'),
-                                buttonAction: handleIssueCardPress,
-                                success: true,
-                                innerStyles: !canWriteExpensifyCard ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined,
-                                hoverStyles: !canWriteExpensifyCard ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined,
-                            },
-                        ]
-                    }
+                    buttons={[
+                        {
+                            buttonText: translate('workspace.expensifyCard.issueCard'),
+                            buttonAction: handleIssueCardPress,
+                            success: true,
+                            innerStyles: !canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined,
+                            hoverStyles: !canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined,
+                        },
+                    ]}
                 />
             ) : (
                 <ScrollView

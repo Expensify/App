@@ -33,9 +33,10 @@ import ROUTES from '@src/ROUTES';
 type SpendRulesSectionProps = {
     policyID: string;
     canWriteRules: boolean;
+    showReadOnlyModal: () => void;
 };
 
-function SpendRulesSection({policyID, canWriteRules}: SpendRulesSectionProps) {
+function SpendRulesSection({policyID, canWriteRules, showReadOnlyModal}: SpendRulesSectionProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -221,15 +222,21 @@ function SpendRulesSection({policyID, canWriteRules}: SpendRulesSectionProps) {
                     </OfflineWithFeedback>
                 ))
             )}
-            {!isProduction && canWriteRules && (
+            {!isProduction && (
                 <MenuItem
                     title={translate('workspace.rules.spendRules.addSpendRule')}
                     titleStyle={styles.textStrong}
                     icon={expensifyIcons.Plus}
                     iconHeight={20}
                     iconWidth={20}
-                    style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
-                    onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_NEW.getRoute(policyID))}
+                    style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3, !canWriteRules && styles.buttonOpacityDisabled]}
+                    onPress={() => {
+                        if (!canWriteRules) {
+                            showReadOnlyModal();
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.RULES_SPEND_NEW.getRoute(policyID));
+                    }}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ADD_SPEND_RULE}
                 />
             )}

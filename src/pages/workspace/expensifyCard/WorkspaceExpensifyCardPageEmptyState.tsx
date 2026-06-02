@@ -155,8 +155,8 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                     illustration={illustrations.ExpensifyCardIllustration}
                     illustrationStyle={styles.expensifyCardIllustrationContainer}
                     titleStyles={styles.textHeadlineH1}
-                    buttonInnerStyles={!canWriteExpensifyCard ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
-                    buttonHoverStyles={!canWriteExpensifyCard ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
+                    buttonInnerStyles={!canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined}
+                    buttonHoverStyles={!canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined}
                 />
             </View>
             <View style={[shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>

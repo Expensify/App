@@ -200,15 +200,23 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                 />
                             </View>
                         );
-                    } else if (canWriteMoreFeatures) {
+                    } else {
                         rightComponent = (
                             <Button
-                                onPress={() => startIntegrationFlow({name: integration})}
+                                onPress={() => {
+                                    if (!canWriteMoreFeatures) {
+                                        showReadOnlyModal();
+                                        return;
+                                    }
+                                    startIntegrationFlow({name: integration});
+                                }}
                                 text={translate('workspace.accounting.setup')}
                                 style={styles.justifyContentCenter}
+                                innerStyles={!canWriteMoreFeatures ? styles.buttonOpacityDisabled : undefined}
+                                hoverStyles={!canWriteMoreFeatures ? styles.buttonOpacityDisabled : undefined}
                                 small
                                 isLoading={!policy?.receiptPartners?.uber && !isOffline && !!policy?.isLoadingReceiptPartners}
-                                isDisabled={isOffline}
+                                isDisabled={canWriteMoreFeatures && isOffline}
                             />
                         );
                     }
@@ -258,6 +266,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
         policy?.isLoadingReceiptPartners,
         isOffline,
         startIntegrationFlow,
+        showReadOnlyModal,
     ]);
 
     return (

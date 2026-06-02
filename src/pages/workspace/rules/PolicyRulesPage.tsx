@@ -92,11 +92,13 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                     <MerchantRulesSection
                         policyID={policyID}
                         canWriteRules={canWriteRules}
+                        showReadOnlyModal={showReadOnlyModal}
                     />
                     {!!policy?.areExpensifyCardsEnabled && (
                         <SpendRulesSection
                             policyID={policyID}
                             canWriteRules={canWriteRules}
+                            showReadOnlyModal={showReadOnlyModal}
                         />
                     )}
                 </View>

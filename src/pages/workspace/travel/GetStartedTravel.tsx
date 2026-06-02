@@ -47,8 +47,8 @@ function GetStartedTravel({policyID, canWriteMoreFeatures, showReadOnlyModal}: G
                         onPress={showReadOnlyModal}
                         accessibilityLabel={translate('travel.bookTravel')}
                         style={styles.w100}
-                        innerStyles={[styles.buttonOpacityDisabled, styles.buttonDisabled]}
-                        hoverStyles={[styles.buttonOpacityDisabled, styles.buttonDisabled]}
+                        innerStyles={styles.buttonOpacityDisabled}
+                        hoverStyles={styles.buttonOpacityDisabled}
                         success
                         large
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.GET_STARTED_BUTTON}
