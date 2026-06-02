@@ -23,7 +23,6 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePolicyData from '@hooks/usePolicyData';
-import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
@@ -83,7 +82,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
     const isMultiLevelTags = isMultiLevelTagsPolicyUtils(policyTags);
     const currentPolicyTag = policyTags?.[currentTagListName];
-    const {canWrite: canWriteTags, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAGS);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_LIST_VIEW;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_TAG_LIST_VIEW.path);
     const fetchTags = useCallback(() => {
@@ -96,14 +94,11 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
 
     const {isOffline} = useNetwork({onReconnect: fetchTags});
     const canSelectMultiple = useMemo(() => {
-        if (!canWriteTags) {
-            return false;
-        }
         if (hasDependentTags) {
             return false;
         }
         return isSmallScreenWidth ? isMobileSelectionModeEnabled : true;
-    }, [canWriteTags, hasDependentTags, isSmallScreenWidth, isMobileSelectionModeEnabled]);
+    }, [hasDependentTags, isSmallScreenWidth, isMobileSelectionModeEnabled]);
 
     useEffect(() => {
         if (isFocused) {
@@ -124,60 +119,47 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
 
     const updateWorkspaceTagEnabled = useCallback(
         (value: boolean, tagName: string) => {
-            if (!canWriteTags) {
-                showReadOnlyModal();
-                return;
-            }
-
             setWorkspaceTagEnabled(policyData, {[tagName]: {name: tagName, enabled: value}}, orderWeight);
         },
-        [canWriteTags, policyData, orderWeight, showReadOnlyModal],
+        [policyData, orderWeight],
     );
 
     const tagList = useMemo<TagListItem[]>(
         () =>
-            Object.values(currentPolicyTag?.tags ?? {}).map((tag) => {
-                let rightElement;
-                if (hasDependentTags && canWriteTags) {
-                    rightElement = <ListItemRightCaretWithLabel />;
-                } else if (!hasDependentTags) {
-                    rightElement = (
-                        <Switch
-                            isOn={tag.enabled}
-                            disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !canWriteTags}
-                            disabledAction={!canWriteTags ? showReadOnlyModal : undefined}
-                            accessibilityLabel={translate('workspace.tags.enableTag')}
-                            onToggle={(newValue: boolean) => {
-                                if (isDisablingOrDeletingLastEnabledTag(currentPolicyTag, [tag])) {
-                                    showConfirmModal({
-                                        title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
-                                        prompt: translate('workspace.tags.cannotDeleteOrDisableAllTags.description'),
-                                        confirmText: translate('common.buttonConfirm'),
-                                        shouldShowCancelButton: false,
-                                    });
-                                    return;
-                                }
-                                updateWorkspaceTagEnabled(newValue, tag.name);
-                            }}
-                            showLockIcon={!canWriteTags || isDisablingOrDeletingLastEnabledTag(currentPolicyTag, [tag])}
-                        />
-                    );
-                }
-
-                return {
-                    value: tag.name,
-                    text: hasDependentTags ? tag.name : getCleanedTagName(tag.name),
-                    keyForList: hasDependentTags ? `${tag.name}-${tag.rules?.parentTagsFilter ?? ''}` : tag.name,
-                    isSelected: selectedTags.includes(tag.name) && canSelectMultiple,
-                    pendingAction: tag.pendingAction,
-                    rules: tag.rules,
-                    errors: tag.errors ?? undefined,
-                    enabled: tag.enabled,
-                    isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    rightElement,
-                };
-            }),
-        [currentPolicyTag, hasDependentTags, canWriteTags, selectedTags, canSelectMultiple, translate, updateWorkspaceTagEnabled, showConfirmModal, showReadOnlyModal],
+            Object.values(currentPolicyTag?.tags ?? {}).map((tag) => ({
+                value: tag.name,
+                text: hasDependentTags ? tag.name : getCleanedTagName(tag.name),
+                keyForList: hasDependentTags ? `${tag.name}-${tag.rules?.parentTagsFilter ?? ''}` : tag.name,
+                isSelected: selectedTags.includes(tag.name) && canSelectMultiple,
+                pendingAction: tag.pendingAction,
+                rules: tag.rules,
+                errors: tag.errors ?? undefined,
+                enabled: tag.enabled,
+                isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                rightElement: hasDependentTags ? (
+                    <ListItemRightCaretWithLabel />
+                ) : (
+                    <Switch
+                        isOn={tag.enabled}
+                        disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                        accessibilityLabel={translate('workspace.tags.enableTag')}
+                        onToggle={(newValue: boolean) => {
+                            if (isDisablingOrDeletingLastEnabledTag(currentPolicyTag, [tag])) {
+                                showConfirmModal({
+                                    title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
+                                    prompt: translate('workspace.tags.cannotDeleteOrDisableAllTags.description'),
+                                    confirmText: translate('common.buttonConfirm'),
+                                    shouldShowCancelButton: false,
+                                });
+                                return;
+                            }
+                            updateWorkspaceTagEnabled(newValue, tag.name);
+                        }}
+                        showLockIcon={isDisablingOrDeletingLastEnabledTag(currentPolicyTag, [tag])}
+                    />
+                ),
+            })),
+        [currentPolicyTag, hasDependentTags, selectedTags, canSelectMultiple, translate, updateWorkspaceTagEnabled, showConfirmModal],
     );
 
     const filterTag = useCallback((tag: TagListItem, searchInput: string) => {
@@ -227,16 +209,12 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.name')}
                 rightHeaderText={hasDependentTags ? undefined : translate('common.enabled')}
-                shouldShowRightCaret={canWriteTags}
+                shouldShowRightCaret
             />
         );
     };
 
     const navigateToTagSettings = (tag: TagListItem) => {
-        if (!canWriteTags) {
-            return;
-        }
-
         Navigation.navigate(
             isQuickSettingsFlow
                 ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.getRoute(orderWeight, tag.value))
@@ -258,7 +236,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         ) : undefined;
 
     const getHeaderButtons = () => {
-        if (!canWriteTags || (!isSmallScreenWidth && selectedTags.length === 0) || (isSmallScreenWidth && !isMobileSelectionModeEnabled)) {
+        if ((!isSmallScreenWidth && selectedTags.length === 0) || (isSmallScreenWidth && !isMobileSelectionModeEnabled)) {
             return null;
         }
 
@@ -356,15 +334,11 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         );
     };
 
-    if (canWriteTags && !!currentPolicyTag?.required && !Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled)) {
+    if (!!currentPolicyTag?.required && !Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled)) {
         setPolicyTagsRequired(policyData, false, orderWeight);
     }
 
     const navigateToEditTag = () => {
-        if (!canWriteTags) {
-            return;
-        }
-
         Navigation.navigate(
             isQuickSettingsFlow
                 ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAGS_EDIT.getRoute(currentPolicyTag?.orderWeight ?? 0))
@@ -379,7 +353,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
-            policyFeature={CONST.POLICY.POLICY_FEATURE.TAGS}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -399,7 +372,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 >
                     {!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
                 </HeaderWithBackButton>
-                {shouldDisplayButtonsInSeparateLine && !!getHeaderButtons() && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 {!hasDependentTags && (
                     <View style={[styles.pv4, styles.ph5]}>
                         <ToggleSettingOptionRow
@@ -407,11 +380,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                             switchAccessibilityLabel={translate('common.required')}
                             isActive={!!currentPolicyTag?.required}
                             onToggle={(on) => {
-                                if (!canWriteTags) {
-                                    showReadOnlyModal();
-                                    return;
-                                }
-
                                 if (!isMultiLevelTags) {
                                     showConfirmModal({
                                         title: translate('workspace.tags.cannotMakeTagListRequired.title'),
@@ -435,9 +403,8 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                             pendingAction={currentPolicyTag.pendingFields?.required}
                             errors={currentPolicyTag?.errorFields?.required ?? undefined}
                             onCloseError={() => clearPolicyTagListErrorField({policyID, tagListIndex: orderWeight, errorField: 'required', policyTags})}
-                            disabled={!canWriteTags || (!currentPolicyTag?.required && !Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled))}
-                            disabledAction={!canWriteTags ? showReadOnlyModal : undefined}
-                            showLockIcon={!canWriteTags || !isMultiLevelTags || isMakingLastRequiredTagListOptional(policy, policyTags, [currentPolicyTag])}
+                            disabled={!currentPolicyTag?.required && !Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled)}
+                            showLockIcon={!isMultiLevelTags || isMakingLastRequiredTagListOptional(policy, policyTags, [currentPolicyTag])}
                         />
                     </View>
                 )}
@@ -451,8 +418,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         title={getCleanedTagName(currentPolicyTag.name)}
                         description={translate(`workspace.tags.customTagName`)}
                         onPress={navigateToEditTag}
-                        shouldShowRightIcon={canWriteTags}
-                        interactive={canWriteTags}
+                        shouldShowRightIcon
                     />
                 </OfflineWithFeedback>
                 {isLoading && (
@@ -468,11 +434,11 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         ListItem={TableListItem}
                         selectedItems={selectedTags}
                         customListHeader={getCustomListHeader()}
-                        onSelectAll={canWriteTags && filteredTagList.length > 0 ? toggleAllTags : undefined}
+                        onSelectAll={filteredTagList.length > 0 ? toggleAllTags : undefined}
                         onDismissError={(item) => clearPolicyTagErrors({policyID, tagName: item.value, tagListIndex: orderWeight, policyTags})}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                        onTurnOnSelectionMode={(item) => item && canWriteTags && toggleTag(item)}
-                        turnOnSelectionModeOnLongPress={canWriteTags && !hasDependentTags}
+                        onTurnOnSelectionMode={(item) => item && toggleTag(item)}
+                        turnOnSelectionModeOnLongPress={!hasDependentTags}
                         customListHeaderContent={listHeaderContent}
                         canSelectMultiple={canSelectMultiple}
                         selectAllAccessibilityLabel={translate('accessibilityHints.selectAllTags')}
@@ -480,7 +446,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         shouldShowListEmptyContent={false}
                         onSelectionButtonPress={toggleTag}
                         shouldHeaderBeInsideList
-                        shouldShowRightCaret={canWriteTags}
+                        shouldShowRightCaret
                         showScrollIndicator
                     />
                 )}
