@@ -74,8 +74,8 @@ type ParticipantSearchResultsProps = {
     /** Whether the platform is native (iOS/Android) */
     isNative: boolean;
 
-    /** Whether this is a corporate card transaction */
-    isCorporateCardTransaction: boolean;
+    /** Whether this is a transaction from a credit card import */
+    isTransactionFromCreditCardImport: boolean;
 
     /** Forwarded ref for the SelectionList — used by the parent's useImperativeHandle */
     selectionListRef: Ref<SelectionListWithSectionsHandle | null>;
@@ -110,7 +110,7 @@ function ParticipantSearchResults({
     isPerDiemRequest,
     isTimeRequest,
     isNative,
-    isCorporateCardTransaction,
+    isTransactionFromCreditCardImport,
     selectionListRef,
     textInputAutoFocus,
     setTextInputAutoFocus,
@@ -165,7 +165,7 @@ function ParticipantSearchResults({
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK,
         excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
-        includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isCorporateCardTransaction,
+        includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isTransactionFromCreditCardImport,
         includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
         action,
         shouldSeparateSelfDMChat: iouType !== CONST.IOU.TYPE.INVOICE,
@@ -216,7 +216,7 @@ function ParticipantSearchResults({
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached, contactState} = useSearchSelector({
         selectionMode: isIOUSplit ? CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI : CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
-        includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isCorporateCardTransaction,
+        includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isTransactionFromCreditCardImport,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         includeRecentReports: true,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
