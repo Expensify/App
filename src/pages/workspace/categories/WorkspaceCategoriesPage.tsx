@@ -33,7 +33,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyData from '@hooks/usePolicyData';
-import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
@@ -94,10 +93,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const currentConnectionName = getCurrentConnectionName(policy);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT;
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {canWrite: canWriteCategories, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
 
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-    const canSelectMultiple = canWriteCategories && (isSmallScreenWidth ? isMobileSelectionModeEnabled : true);
+    const canSelectMultiple = isSmallScreenWidth ? isMobileSelectionModeEnabled : true;
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
     const shouldShowApproverColumn = isControlPolicyWithWideLayout && !!policy?.areRulesEnabled;
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Download', 'Gear', 'Plus', 'Table', 'Trashcan']);
@@ -183,10 +181,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const updateWorkspaceCategoryEnabled = useCallback(
         (value: boolean, categoryName: string) => {
-            if (!canWriteCategories) {
-                showReadOnlyModal();
-                return;
-            }
             setWorkspaceCategoryEnabled({
                 policyData,
                 categoriesToUpdate: {[categoryName]: {name: categoryName, enabled: value}},
@@ -218,8 +212,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             setupCategoriesAndTagsHasOutstandingChildTask,
             setupCategoriesAndTagsParentReportAction,
             policyHasTags,
-            canWriteCategories,
-            showReadOnlyModal,
         ],
     );
 
@@ -282,8 +274,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         <View style={switchContainerStyle}>
                             <Switch
                                 isOn={value.enabled}
-                                disabled={isDisabled || !canWriteCategories}
-                                disabledAction={!canWriteCategories ? showReadOnlyModal : undefined}
+                                disabled={isDisabled}
                                 accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${getDecodedCategoryName(value.name)}`}
                                 onToggle={(newValue: boolean) => {
                                     if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])) {
@@ -292,15 +283,14 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                                     }
                                     updateWorkspaceCategoryEnabled(newValue, value.name);
                                 }}
-                                showLockIcon={!canWriteCategories || isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])}
+                                showLockIcon={isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])}
                             />
                         </View>
                     </>
                 ) : (
                     <Switch
                         isOn={value.enabled}
-                        disabled={isDisabled || !canWriteCategories}
-                        disabledAction={!canWriteCategories ? showReadOnlyModal : undefined}
+                        disabled={isDisabled}
                         accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${getDecodedCategoryName(value.name)}`}
                         onToggle={(newValue: boolean) => {
                             if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])) {
@@ -309,7 +299,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             }
                             updateWorkspaceCategoryEnabled(newValue, value.name);
                         }}
-                        showLockIcon={!canWriteCategories || isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])}
+                        showLockIcon={isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])}
                     />
                 ),
             });
@@ -328,8 +318,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         glCodeTextStyle,
         switchContainerStyle,
         shouldShowApproverColumn,
-        canWriteCategories,
-        showReadOnlyModal,
         styles.alignItemsCenter,
         styles.flexRow,
         styles.mr3,
@@ -374,8 +362,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
         // Show GL Code column only on wide screens for control policies. Approver column additionally requires rules to be enabled
         if (isControlPolicyWithWideLayout) {
-            const header = (
-                <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, canSelectMultiple && styles.pl3]}>
+            return (
+                <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3]}>
                     <View style={[styles.flex1, StyleUtils.getPaddingRight(variables.w52 + variables.w12)]}>
                         <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.name')}</Text>
                     </View>
@@ -387,17 +375,11 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.approver')}</Text>
                         </View>
                     )}
-                    <View style={[StyleUtils.getMinimumWidth(variables.w72), canWriteCategories && styles.mr5]}>
+                    <View style={[StyleUtils.getMinimumWidth(variables.w72), styles.mr5]}>
                         <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.enabled')}</Text>
                     </View>
                 </View>
             );
-
-            if (canSelectMultiple) {
-                return header;
-            }
-
-            return <View style={[styles.flexRow, styles.baseListHeaderWrapperStyle]}>{header}</View>;
         }
 
         return (
@@ -405,15 +387,12 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.name')}
                 rightHeaderText={translate('common.enabled')}
-                shouldShowRightCaret={canWriteCategories}
+                shouldShowRightCaret
             />
         );
     };
 
     const navigateToCategorySettings = (category: ListItem) => {
-        if (!canWriteCategories) {
-            return;
-        }
         if (isSmallScreenWidth && isMobileSelectionModeEnabled) {
             toggleCategory(category);
             return;
@@ -482,15 +461,13 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const secondaryActions = useMemo(() => {
         const menuItems = [];
-        if (canWriteCategories) {
-            menuItems.push({
-                icon: icons.Gear,
-                text: translate('common.settings'),
-                onSelected: navigateToCategoriesSettings,
-                value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
-            });
-        }
-        if (canWriteCategories && !policyHasAccountingConnections) {
+        menuItems.push({
+            icon: icons.Gear,
+            text: translate('common.settings'),
+            onSelected: navigateToCategoriesSettings,
+            value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
+        });
+        if (!policyHasAccountingConnections) {
             menuItems.push({
                 icon: icons.Table,
                 text: translate('spreadsheet.importSpreadsheet'),
@@ -529,7 +506,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         icons.Table,
         translate,
         navigateToCategoriesSettings,
-        canWriteCategories,
         policyHasAccountingConnections,
         hasVisibleCategories,
         navigateToImportSpreadsheet,
@@ -540,15 +516,11 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
     const getHeaderButtons = () => {
-        if (!canWriteCategories && secondaryActions.length === 0) {
-            return null;
-        }
-
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
         const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
         const selectedCategoriesObject = selectedCategories.map((key) => policyCategories?.[key]);
 
-        if (canWriteCategories && (isSmallScreenWidth ? canSelectMultiple : selectedCategories.length > 0)) {
+        if (isSmallScreenWidth ? canSelectMultiple : selectedCategories.length > 0) {
             if (!isThereAnyAccountingConnection) {
                 options.push({
                     icon: icons.Trashcan,
@@ -667,7 +639,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 />
             );
         }
-        const shouldShowAddCategory = canWriteCategories && !policyHasAccountingConnections && hasVisibleCategories;
+        const shouldShowAddCategory = !policyHasAccountingConnections && hasVisibleCategories;
         return (
             <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
                 {shouldShowAddCategory && (
@@ -680,18 +652,16 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
                     />
                 )}
-                {secondaryActions.length > 0 && (
-                    <ButtonWithDropdownMenu
-                        success={false}
-                        onPress={() => {}}
-                        shouldAlwaysShowDropdownMenu
-                        customText={translate('common.more')}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.MORE_DROPDOWN}
-                        options={secondaryActions}
-                        isSplitButton={false}
-                        wrapperStyle={shouldShowAddCategory || !shouldDisplayButtonsInSeparateLine ? styles.flexGrow0 : styles.flexGrow1}
-                    />
-                )}
+                <ButtonWithDropdownMenu
+                    success={false}
+                    onPress={() => {}}
+                    shouldAlwaysShowDropdownMenu
+                    customText={translate('common.more')}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.MORE_DROPDOWN}
+                    options={secondaryActions}
+                    isSplitButton={false}
+                    wrapperStyle={shouldShowAddCategory || !shouldDisplayButtonsInSeparateLine ? styles.flexGrow0 : styles.flexGrow1}
+                />
             </View>
         );
     };
@@ -748,7 +718,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyId}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
-            policyFeature={CONST.POLICY.POLICY_FEATURE.CATEGORIES}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -781,7 +750,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 >
                     {!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
                 </HeaderWithBackButton>
-                {shouldDisplayButtonsInSeparateLine && !!getHeaderButtons() && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 {(!hasVisibleCategories || isLoading) && headerContent}
                 {isLoading && (
                     <ActivityIndicator
@@ -798,10 +767,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         onShiftRangeApply={(batch) => setSelectedCategories((prev) => applyShiftRangeBatchToKeySet(batch, prev, (c) => c.keyForList))}
                         selectedItems={selectedCategories}
                         onSelectRow={navigateToCategorySettings}
-                        onTurnOnSelectionMode={(item) => item && canWriteCategories && toggleCategory(item)}
-                        onSelectAll={canWriteCategories && filteredCategoryList.length > 0 ? toggleAllCategories : undefined}
+                        onTurnOnSelectionMode={(item) => item && toggleCategory(item)}
+                        onSelectAll={filteredCategoryList.length > 0 ? toggleAllCategories : undefined}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                        turnOnSelectionModeOnLongPress={canWriteCategories && isSmallScreenWidth}
+                        turnOnSelectionModeOnLongPress={isSmallScreenWidth}
                         customListHeader={getCustomListHeader()}
                         customListHeaderContent={headerContent}
                         canSelectMultiple={canSelectMultiple}
@@ -810,7 +779,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         onDismissError={dismissError}
                         showScrollIndicator={false}
                         shouldHeaderBeInsideList
-                        shouldShowRightCaret={canWriteCategories}
+                        shouldShowRightCaret
                     />
                 )}
                 {!hasVisibleCategories && !isLoading && inputValue.length === 0 && (
