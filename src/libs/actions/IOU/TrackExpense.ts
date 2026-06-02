@@ -21,9 +21,7 @@ import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpen
 import isFileUploadable from '@libs/isFileUploadable';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
-import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
@@ -89,7 +87,6 @@ import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
 import type {GuidedSetupData} from '@userActions/Report';
 import {buildInviteToRoomOnyxData, notifyNewAction} from '@userActions/Report';
 import {stringifyWaypointsForAPI} from '@userActions/Transaction';
-import {removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -107,7 +104,7 @@ import {deleteMoneyRequest, getCleanUpTransactionThreadReportOnyxData, getNaviga
 import {getAllReports, getAllTransactionDrafts, getAllTransactions, getAllTransactionViolations, getMoneyRequestPolicyTags} from './index';
 import {buildMinimalTransactionForFormula, getMoneyRequestInformation, getReceiptError, getReportPreviewAction, getTransactionWithPreservedLocalReceiptSource} from './MoneyRequestBuilder';
 import type {BuildOnyxDataForMoneyRequestKeys, RequestMoneyInformation} from './MoneyRequestBuilder';
-import {handleNavigateAfterExpenseCreate, highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
+import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
 import type {ReplaceReceipt} from './Receipt';
 import {getSearchOnyxUpdate} from './SearchUpdate';
 import type {StartSplitBilActionParams} from './Split';
@@ -171,6 +168,7 @@ type GetTrackExpenseInformationParams = {
     moneyRequestReportID?: string;
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     existingTransactionID?: string;
+    optimisticTransactionID?: string;
     participantParams: GetTrackExpenseInformationParticipantParams;
     policyParams: BasePolicyParams;
     transactionParams: GetTrackExpenseInformationTransactionParams;
@@ -184,6 +182,7 @@ type GetTrackExpenseInformationParams = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean;
     defaultWorkspaceName?: string;
+    optimisticChatReportID?: string;
     // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
 };
@@ -814,6 +813,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         moneyRequestReportID = '',
         existingTransaction,
         existingTransactionID,
+        optimisticTransactionID: providedOptimisticTransactionID,
         participantParams,
         policyParams,
         transactionParams,
@@ -827,6 +827,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         betas,
         isSelfTourViewed,
         defaultWorkspaceName,
+        optimisticChatReportID,
         delegateAccountID,
     } = params;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
@@ -874,7 +875,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     let optimisticReportActionID: string | undefined;
     if (!chatReport) {
         const currentTime = DateUtils.getDBTime();
-        const selfDMReport = buildOptimisticSelfDMReport(currentTime);
+        const selfDMReport = buildOptimisticSelfDMReport(currentTime, optimisticChatReportID);
         const selfDMCreatedReportAction = buildOptimisticCreatedReportAction({emailCreatingAction: currentUserEmailParam, created: currentTime});
         optimisticReportID = selfDMReport.reportID;
         optimisticReportActionID = selfDMCreatedReportAction.reportActionID;
@@ -991,7 +992,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     let shouldCreateNewMoneyRequestReport = false;
 
     // Generate IDs upfront so we can pass them to buildOptimisticExpenseReport for formula computation
-    const optimisticTransactionID = existingTransactionID ?? NumberUtils.rand64();
+    const optimisticTransactionID = existingTransactionID ?? providedOptimisticTransactionID ?? NumberUtils.rand64();
     const optimisticExpenseReportID = generateReportID();
 
     if (shouldUseMoneyReport) {
@@ -1592,8 +1593,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         transactionParams,
         gpsPoint,
         action,
-        shouldHandleNavigation = true,
-        backToReport,
         shouldPlaySound = true,
         optimisticChatReportID,
         optimisticCreatedReportActionID,
@@ -1608,12 +1607,10 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         policyRecentlyUsedCurrencies,
         existingTransactionDraft,
         existingTransaction: explicitExistingTransaction,
-        draftTransactionIDs = [],
         isSelfTourViewed,
         betas,
         personalDetails,
         shouldDeferAutoSubmit,
-        shouldDeferForSearch: shouldDeferForSearchParam,
         delegateAccountID,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
@@ -1713,6 +1710,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         transactionParams,
         moneyRequestReportID,
         existingTransactionID,
+        optimisticTransactionID: requestMoneyInformation.optimisticTransactionID,
         existingTransaction,
         retryParams,
         testDriveCommentReportActionID,
@@ -1738,13 +1736,11 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         playSound(SOUNDS.DONE);
     }
 
-    // API.write is deferred until the Search screen's actual content (not skeleton)
-    // lays out, so that Onyx optimistic updates don't block the JS thread while
-    // the skeleton→content transition is in progress. The Search component flushes
-    // the registered write from its content onLayout callback.
-    // Only the SUBMIT and default (REQUEST_MONEY) branches wrap the write; the actual
-    // deferral only activates when we navigate to Search (shouldHandleNavigation && !isRetry).
-    // CATEGORIZE and SHARE navigate elsewhere and don't benefit from this deferral.
+    // API.write is deferred until the Search screen's actual content (not skeleton) lays out, so Onyx
+    // optimistic updates don't block the JS thread during the skeleton→content transition. The Search
+    // component flushes the registered write from its content onLayout callback. Wrapped in a closure
+    // so `deferOrExecuteWrite` can register it against a SEARCH/DISMISS_MODAL channel when the UI
+    // reserved one; otherwise it runs synchronously below.
     let deferredAPIWrite: (() => void) | undefined;
 
     switch (action) {
@@ -1876,27 +1872,9 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         }
     }
 
-    // queueMicrotask defers past the synchronous multi-scan batch loop so that
-    // every iteration can read its draft before any cleanup runs.  Without it,
-    // TransitionTracker.runAfterTransitions fires synchronously when no transition
-    // is active (the dismiss already completed), removing drafts mid-loop.
-    queueMicrotask(() => {
-        TransitionTracker.runAfterTransitions({callback: () => removeDraftTransactionsByIDs(draftTransactionIDs)});
-    });
-
-    if (shouldHandleNavigation) {
-        const trackReport = Navigation.getReportRouteByID(linkedTrackedExpenseReportAction?.childReportID);
-        if (trackReport?.key) {
-            Navigation.removeScreenByKey(trackReport.key);
-        }
-    }
-
-    // Register the deferred write BEFORE navigation so the Search component's
-    // hasDeferredWrite() check on mount always sees the pending channel.
     if (deferredAPIWrite) {
         deferOrExecuteWrite(deferredAPIWrite, {
-            shouldDeferForSearch:
-                (shouldDeferForSearchParam ?? false) || (shouldHandleNavigation && !requestMoneyInformation.isRetry && isFromGlobalCreate && !isReportTopmostSplitNavigator()),
+            shouldDeferForSearch: false,
             isRetry: requestMoneyInformation.isRetry,
             optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
@@ -1905,15 +1883,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
 
     if (!requestMoneyInformation.isRetry) {
         highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
-        if (shouldHandleNavigation) {
-            const navigationReportID = backToReport ?? activeReportID;
-            handleNavigateAfterExpenseCreate({
-                activeReportID: navigationReportID,
-                transactionID: transaction.transactionID,
-                isFromGlobalCreate,
-                shouldAddPendingNewTransactionIDs: navigationReportID === chatReport.reportID,
-            });
-        }
     }
 
     if (activeReportID && !isMoneyRequestReport) {
@@ -2338,8 +2307,9 @@ function trackExpense(params: CreateTrackExpenseParams) {
         existingTransaction,
         transactionParams: transactionData,
         accountantParams,
-        shouldHandleNavigation = true,
         shouldPlaySound = true,
+        optimisticChatReportID,
+        optimisticTransactionID,
         isASAPSubmitBetaEnabled,
         currentUser,
         introSelected,
@@ -2347,7 +2317,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
         quickAction,
         recentWaypoints = [],
         betas,
-        draftTransactionIDs = [],
         isSelfTourViewed,
         defaultWorkspaceName,
         previousOdometerDraft,
@@ -2463,6 +2432,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         parentChatReport: currentChatReport,
         moneyRequestReportID,
         existingTransaction,
+        optimisticTransactionID,
         existingTransactionID:
             isMovingTransactionFromTrackExpense && linkedTrackedExpenseReportAction && isMoneyRequestAction(linkedTrackedExpenseReportAction)
                 ? getOriginalMessage(linkedTrackedExpenseReportAction)?.IOUTransactionID
@@ -2508,6 +2478,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         betas,
         isSelfTourViewed,
         defaultWorkspaceName,
+        optimisticChatReportID,
         delegateAccountID,
     }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
@@ -2720,7 +2691,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             };
 
             deferOrExecuteWrite(apiWrite, {
-                shouldDeferForSearch: (params.shouldDeferForSearch ?? false) || (shouldHandleNavigation && !params.isRetry && isFromGlobalCreate && !isReportTopmostSplitNavigator()),
+                shouldDeferForSearch: false,
                 isRetry: params.isRetry,
                 optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,
                 onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
@@ -2728,22 +2699,8 @@ function trackExpense(params: CreateTrackExpenseParams) {
         }
     }
 
-    // See comment in requestMoney above.
-    queueMicrotask(() => {
-        TransitionTracker.runAfterTransitions({callback: () => removeDraftTransactionsByIDs(draftTransactionIDs)});
-    });
-
     if (!params.isRetry) {
         highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction?.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
-
-        if (shouldHandleNavigation) {
-            handleNavigateAfterExpenseCreate({
-                activeReportID,
-                transactionID: transaction?.transactionID,
-                isFromGlobalCreate,
-                shouldAddPendingNewTransactionIDs: action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE,
-            });
-        }
     }
 
     notifyNewAction(activeReportID, undefined, payeeAccountID === currentUserAccountIDParam);

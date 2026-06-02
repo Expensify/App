@@ -2312,6 +2312,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.WORKSPACES_LIST.route,
                             exact: true,
                         },
+                        [SCREENS.DOMAINS_LIST]: {
+                            path: ROUTES.DOMAINS_LIST.route,
+                            exact: true,
+                        },
                         [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: {
                             screens: {
                                 [SCREENS.WORKSPACE.INITIAL]: {
