@@ -95,6 +95,8 @@ type PayMoneyRequestFunctionParams = {
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     methodID?: number;
     onPaid?: () => void;
+    // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountID?: number | undefined;
 };
 
 function getPayMoneyRequestParams({
@@ -118,6 +120,7 @@ function getPayMoneyRequestParams({
     isSelfTourViewed,
     defaultWorkspaceName,
     currentUserLocalCurrency,
+    delegateAccountID,
 }: {
     initialChatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -139,7 +142,11 @@ function getPayMoneyRequestParams({
     isSelfTourViewed: boolean | undefined;
     defaultWorkspaceName?: string;
     currentUserLocalCurrency: string | undefined;
+    // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountID?: number | undefined;
 }): PayMoneyRequestData {
+    // TODO: https://github.com/Expensify/App/issues/66512
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const allTransactionViolations = getAllTransactionViolations();
 
     const isInvoiceReport = isInvoiceReportReportUtils(iouReport);
@@ -226,6 +233,7 @@ function getPayMoneyRequestParams({
         isSettlingUp: true,
         payAsBusiness,
         bankAccountID,
+        delegateAccountIDParam: delegateAccountID,
     });
 
     // In some instances, the report preview action might not be available to the payer (only whispered to the requestor)
@@ -446,7 +454,7 @@ function getPayMoneyRequestParams({
     let optimisticHoldActionID;
     let optimisticHoldReportExpenseActionIDs;
     if (!full) {
-        const holdReportOnyxData = getReportFromHoldRequestsOnyxData({chatReport, iouReport, recipient, policy: reportPolicy, betas});
+        const holdReportOnyxData = getReportFromHoldRequestsOnyxData({chatReport, iouReport, recipient, policy: reportPolicy, betas, delegateAccountID});
 
         onyxData.optimisticData?.push(...holdReportOnyxData.optimisticData);
         onyxData.successData?.push(...holdReportOnyxData.successData);
@@ -756,12 +764,13 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         ownerBillingGracePeriodEnd,
         methodID,
         onPaid,
+        delegateAccountID,
     } = params;
     const policyForBillingRestriction = chatReportPolicy ?? (policy?.id === chatReport.policyID ? policy : undefined);
     if (
         chatReport.policyID &&
         policyForBillingRestriction &&
-        shouldRestrictUserBillableActions(policyForBillingRestriction, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)
+        shouldRestrictUserBillableActions(policyForBillingRestriction, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)
     ) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
         return;
@@ -788,6 +797,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         betas,
         isSelfTourViewed,
         bankAccountID: paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+        delegateAccountID,
     });
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
@@ -811,7 +821,8 @@ function markReportPaymentReceived(
     if (!chatReport || !iouReport) {
         return;
     }
-
+    // TODO: https://github.com/Expensify/App/issues/66512
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const allTransactionViolations = getAllTransactionViolations();
     const recipient = {accountID: iouReport.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const total = (iouReport.total ?? 0) - (iouReport.nonReimbursableTotal ?? 0);

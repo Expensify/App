@@ -12,6 +12,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
+import useEnvironment from '@hooks/useEnvironment';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useHasMultipleSplitChildren from '@hooks/useHasMultipleSplitChildren';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -198,7 +199,6 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
     const shouldShowEditSplitOnDeleteAction = !!transaction?.transactionID && shouldOpenSplitExpenseEditFlowOnDelete([transaction.transactionID]);
     const isReportSubmitter = isCurrentUserSubmitter(chatIOUReport);
-    const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
     const targetPolicyTags = defaultPolicyTags ?? {};
 
     // Duplicate action throttle
@@ -237,7 +237,6 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 targetPolicyCategories: activePolicyCategoriesMap,
                 targetReport: activePolicyExpenseChat,
                 existingTransactionDraft,
-                draftTransactionIDs,
                 betas,
                 personalDetails,
                 recentWaypoints,
@@ -270,6 +269,8 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         setRejectModalAction(null);
     };
 
+    const {isProduction} = useEnvironment();
+
     // Secondary actions
     const secondaryActions = (() => {
         if (!transaction || !parentReportAction || !parentReport) {
@@ -287,6 +288,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             outstandingReportsByPolicyID,
             isChatReportArchived: isChatIOUReportArchived,
             grandParentReport,
+            isProduction,
         });
     })();
 
@@ -339,7 +341,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             icon: expensifyIcons.ArrowSplit,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT,
             onSelected: () => {
-                initSplitExpense(transaction, policy, report);
+                initSplitExpense(transaction, policy, report, accountID, {isProduction});
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE]: {
@@ -360,7 +362,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             iconFill: isDuplicateActive ? undefined : theme.icon,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DUPLICATE,
             onSelected: () => {
-                if (defaultExpensePolicy && shouldRestrictUserBillableActions(defaultExpensePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+                if (defaultExpensePolicy && shouldRestrictUserBillableActions(defaultExpensePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
                     dropdownMenuRef.current?.setIsMenuVisible(false);
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(defaultExpensePolicy.id));
                     return;

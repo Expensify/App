@@ -118,7 +118,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
             return;
         }
 
-        Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
+        Navigation.goBack(ROUTES.DOMAINS_LIST.route);
     }, [domain, isAdmin, shouldShowFullScreenLoadingIndicator]);
 
     return (
@@ -138,7 +138,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
             >
                 <HeaderWithBackButton
                     title={domainName}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.route)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAINS_LIST.route)}
                     shouldDisplayHelpButton={shouldUseNarrowLayout}
                 />
 

@@ -186,6 +186,7 @@ import {
     shouldDisableThread,
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesReportUtils,
 } from '@libs/ReportUtils';
+import {getAddExpensifyCardRuleMessage, getRemoveExpensifyCardRuleMessage, getUpdateExpensifyCardRuleMessage} from '@libs/SpendRuleChangeLogUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
 import {isExpenseSplit, isPerDiemRequest} from '@libs/TransactionUtils';
 import {setDownload} from '@userActions/Download';
@@ -1135,6 +1136,12 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getDeletedApprovalRuleMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVER_RULE)) {
                     setClipboardMessage(getUpdatedApprovalRuleMessage(translate, reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EXPENSIFY_CARD_RULE)) {
+                    setClipboardMessage(getAddExpensifyCardRuleMessage(translate, reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EXPENSIFY_CARD_RULE)) {
+                    setClipboardMessage(getUpdateExpensifyCardRuleMessage(translate, reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_EXPENSIFY_CARD_RULE)) {
+                    setClipboardMessage(getRemoveExpensifyCardRuleMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD)) {
                     setClipboardMessage(getUpdatedManualApprovalThresholdMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_BUDGET)) {
@@ -1375,7 +1382,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'common.delete',
         icon: 'Trashcan',
-        shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, reportID: reportIDParam, moneyRequestAction, iouTransaction, transactions, childReportActions}) => {
+        shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, reportID: reportIDParam, moneyRequestAction, iouTransaction, transactions, childReportActions, isProduction}) => {
             // Until deleting parent threads is supported in FE, we will prevent the user from deleting a thread parent
             let reportID = reportIDParam;
 
@@ -1386,12 +1393,14 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
 
             // Hide Delete for per-diem expense split children in selfDM — users must edit the
-            // splits instead (matches the secondary "More" menu behavior).
-            const chatReport = getReportOrDraftReport(reportIDParam);
-            if (isSelfDM(chatReport) && iouTransaction) {
-                const originalTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${iouTransaction.comment?.originalTransactionID}`];
-                if (isExpenseSplit(iouTransaction, originalTransaction) && isPerDiemRequest(originalTransaction ?? iouTransaction)) {
-                    return false;
+            // splits instead (matches the secondary "More" menu behavior)
+            if (!isProduction) {
+                const chatReport = getReportOrDraftReport(reportIDParam);
+                if (isSelfDM(chatReport) && iouTransaction) {
+                    const originalTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${iouTransaction.comment?.originalTransactionID}`];
+                    if (isExpenseSplit(iouTransaction, originalTransaction) && isPerDiemRequest(originalTransaction ?? iouTransaction)) {
+                        return false;
+                    }
                 }
             }
 

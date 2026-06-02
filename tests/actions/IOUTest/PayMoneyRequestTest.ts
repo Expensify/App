@@ -155,7 +155,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 transactionViolations: {},
                 policyRecentlyUsedCurrencies: [],
                 existingTransactionDraft: undefined,
-                draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
@@ -426,7 +425,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             transactionViolations: {},
                             policyRecentlyUsedCurrencies: [],
                             existingTransactionDraft: undefined,
-                            draftTransactionIDs: [],
                             isSelfTourViewed: false,
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
@@ -592,7 +590,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             transactionViolations: {},
                             policyRecentlyUsedCurrencies: [],
                             existingTransactionDraft: undefined,
-                            draftTransactionIDs: [],
                             isSelfTourViewed: false,
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
@@ -785,7 +782,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
-                    putOnHold(transaction1.transactionID, 'comment', iouReport.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID);
+                    putOnHold(transaction1.transactionID, 'comment', iouReport.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, []);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -1400,7 +1397,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             transactionViolations: {},
                             policyRecentlyUsedCurrencies: [],
                             existingTransactionDraft: undefined,
-                            draftTransactionIDs: [],
                             isSelfTourViewed: false,
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
@@ -1526,7 +1522,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
                     existingTransactionDraft: undefined,
-                    draftTransactionIDs: [],
                     isSelfTourViewed: false,
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
@@ -1777,7 +1772,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
                     existingTransactionDraft: undefined,
-                    draftTransactionIDs: [],
                     isSelfTourViewed: false,
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
