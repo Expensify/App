@@ -544,6 +544,7 @@ const SCREENS = {
     },
 
     WORKSPACES_LIST: 'Workspaces_List',
+    DOMAINS_LIST: 'Domains_List',
 
     WORKSPACE: {
         ACCOUNTING: {
@@ -797,6 +798,7 @@ const SCREENS = {
         TAXES_SETTINGS_WORKSPACE_CURRENCY_DEFAULT: 'Workspace_Taxes_Settings_WorkspaceCurrency',
         TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT: 'Workspace_Taxes_Settings_ForeignCurrency',
         TAX_CREATE: 'Workspace_Tax_Create',
+        TAX_CREATE_VALUE: 'Workspace_Tax_Create_Value',
         TAG_CREATE: 'Tag_Create',
         TAG_SETTINGS: 'Tag_Settings',
         TAG_APPROVER: 'Tag_Approver',
@@ -1084,11 +1086,9 @@ const SCREENS = {
     },
     MULTIFACTOR_AUTHENTICATION: {
         MAGIC_CODE: 'Multifactor_Authentication_Magic_Code',
-        BIOMETRICS_TEST: 'Multifactor_Authentication_Biometrics_Test',
         OUTCOME_SUCCESS: 'Multifactor_Authentication_Outcome_Success',
         OUTCOME_FAILURE: 'Multifactor_Authentication_Outcome_Failure',
         PROMPT: 'Multifactor_Authentication_Prompt',
-        NOT_FOUND: 'Multifactor_Authentication_Not_Found',
         REVOKE: 'Multifactor_Authentication_Revoke',
         AUTHORIZE_TRANSACTION: 'Multifactor_Authentication_Authorize_Transaction',
     },

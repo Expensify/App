@@ -58,7 +58,7 @@ function DomainResetDomainPage({route}: DomainResetDomainPageProps) {
             return;
         }
         resetDomain(route.params.domainAccountID, domainName);
-        Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
+        Navigation.goBack(ROUTES.DOMAINS_LIST.route);
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RESET_DOMAIN_FORM>) => {

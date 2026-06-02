@@ -509,6 +509,7 @@ const translations = {
         week: 'Week',
         year: 'Year',
         quarter: 'Quarter',
+        restrictions: 'Restrictions',
         concierge: {
             sidePanelGreeting: 'Hi there, how can I help?',
             showHistory: 'Show history',
@@ -967,7 +968,7 @@ const translations = {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Fix ${cardName} personal card connection` : 'Fix personal card connection'),
                 subtitle: 'Wallet',
             },
-            fixAccountingConnection: {
+            fixPolicyConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Fix ${integrationName} connection`,
                 defaultSubtitle: 'Workspace',
                 subtitle: ({policyName}: {policyName: string}) => policyName,
@@ -4346,6 +4347,7 @@ const translations = {
             workflows: 'Workflows',
             workspace: 'Workspace',
             findWorkspace: 'Find workspace',
+            findDomain: 'Find domain',
             findRoom: 'Find room',
             edit: 'Edit workspace',
             enabled: 'Enabled',
@@ -6096,17 +6098,31 @@ const translations = {
                 `You’re about to create and share ${newWorkspaceName ?? ''} with ${totalMembers ?? 0} members from the original workspace.`,
             error: 'An error occurred while duplicating your new workspace. Please try again.',
         },
+        emptyDomain: {
+            title: 'Enhance your security with domains',
+            subtitle: 'Require members on your domain to log in via single sign-on, restrict workspace creation, and more.',
+        },
         copyPolicySettings: {
-            error: 'An error occurred while copying workspace settings. Please try again.',
             title: 'Copy settings',
-            selectWorkspaces: 'Select workspaces',
-            description: 'Choose the workspaces you want to copy settings to, then select the settings you’d like to copy.',
-            searchPlaceholder: 'Search workspaces',
-            selectFeatures: 'Select features to copy',
-            whichFeatures: 'Select the settings to overwrite on your existing workspaces.',
-            workflowsWithoutMembersConfirm: 'Continue without members',
-            workflowsWithoutMembersPrompt: 'Copying Workflows without Members will not copy approval workflows. Submission and payment settings will still be copied.',
-            accountingMismatch: ({part}: {part: string}) => `You can only copy ${part} if all workspaces use the same accounting system and company connection.`,
+            error: 'An error occurred while copying workspace settings. Please try again.',
+            selectWorkspaces: {
+                title: 'Select workspaces',
+                description: 'Choose the workspaces you want to copy settings to, then select the settings you’d like to copy.',
+                searchPlaceholder: 'Search workspaces',
+            },
+            selectSettings: {
+                title: 'Select settings',
+                description: 'Select the settings to overwrite on your existing workspaces.',
+                accountingMismatch: ({part}: {part: string}) => `You can only copy ${part} if all workspaces use the same accounting system and company connection.`,
+            },
+            confirmSettings: {
+                title: 'Let’s make sure everything looks right.',
+                description: ({workspaceName}: {workspaceName: string}) => `We’ll copy the following settings from <strong>${workspaceName}</strong> to the workspaces you’ve specified.`,
+            },
+            confirmWorkflows: {
+                continue: 'Continue without members',
+                description: 'Copying Workflows without Members will not copy approval workflows. Submission and payment settings will still be copied.',
+            },
         },
         emptyWorkspace: {
             title: 'No workspaces yet',
@@ -8421,6 +8437,7 @@ const translations = {
         workspaceName: 'Workspace name',
         chatUserDisplayNames: 'Chat member display names',
         scrollToNewestMessages: 'Scroll to newest messages',
+        scrollToActionBadgeTarget: 'Scroll to action requiring attention',
         preStyledText: 'Pre-styled text',
         viewAttachment: 'View attachment',
         contextMenuAvailable: 'Context menu available. Press Shift+F10 to open.',
@@ -9391,7 +9408,6 @@ const translations = {
     },
     export: {
         basicExport: 'Basic export',
-        currentView: 'Export current view',
         reportLevelExport: 'All Data - report level',
         expenseLevelExport: 'All Data - expense level',
         exportInProgress: 'Export in progress',
