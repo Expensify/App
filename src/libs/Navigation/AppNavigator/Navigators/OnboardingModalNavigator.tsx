@@ -48,6 +48,7 @@ function OnboardingModalNavigator() {
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const outerViewRef = React.useRef<View>(null);
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [, betasMetadata] = useOnyx(ONYXKEYS.BETAS);
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
     const {isBetaEnabled} = usePermissions();
@@ -110,8 +111,7 @@ function OnboardingModalNavigator() {
         };
     }, [customInterpolator]);
 
-    // If the account data is not loaded yet, we don't want to show the onboarding modal
-    if (isLoadingOnyxValue(accountMetadata)) {
+    if (isLoadingOnyxValue(accountMetadata) || isLoadingOnyxValue(betasMetadata)) {
         return null;
     }
 
