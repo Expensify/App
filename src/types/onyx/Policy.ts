@@ -1557,8 +1557,23 @@ type GustoConnectionConfig = HRConnectionConfigBase & {
     approvalMode: ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | null;
 };
 
+/** A group of employees the admin can choose to import from (e.g. a company, cost center, department). */
+type MergeHRGroup = {
+    /** Group ID */
+    id: string;
+
+    /** Human-readable name of the group */
+    name: string;
+
+    /** Group type (department/division etc.) */
+    type: string;
+};
+
 /** Merge HR connection data */
-type MergeHRConnectionData = Record<string, never>;
+type MergeHRConnectionData = {
+    /** Groups available to import employees from. Distinct from `config.groups`, which is the admin's selection. */
+    groups?: MergeHRGroup[];
+};
 
 /** Merge HR connection config */
 type MergeHRConnectionConfig = HRConnectionConfigBase &
@@ -1568,6 +1583,14 @@ type MergeHRConnectionConfig = HRConnectionConfigBase &
 
         /** Approval mode controlling how reports are routed for approval */
         approvalMode: ValueOf<typeof CONST.MERGE_HR.APPROVAL_MODE> | null;
+
+        /**
+         * Groups the admin chose to import employees from.
+         * - `string[]` — one or more Merge group ids.
+         * - `'all'`  — sync all employees regardless of group.
+         * - `null`   — the admin hasn't finished setup yet.
+         */
+        groups: string[] | typeof CONST.MERGE_HR.GROUPS_ALL | null;
     }>;
 
 /** TriNet (Zenefits) connection data */
@@ -2457,6 +2480,8 @@ export type {
     ProhibitedExpenses,
     NetSuiteConnectionData,
     MergeHRConnectionConfig,
+    MergeHRConnectionData,
+    MergeHRGroup,
     GustoConnectionConfig,
     ZenefitsConnectionConfig,
     Vendor,

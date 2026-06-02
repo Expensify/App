@@ -4,6 +4,7 @@ import CONST from '@src/CONST';
 import MERGE_HR_PROVIDERS from '@src/CONST/MERGE_HR_PROVIDERS';
 import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
 import type {Policy} from '@src/types/onyx';
+import type {MergeHRGroup} from '@src/types/onyx/Policy';
 
 type HRConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES>;
 
@@ -33,6 +34,23 @@ function isZenefitsConnected(policy?: OnyxEntry<Policy>) {
 /** Returns true if the policy has a Merge HR integration connected. */
 function isMergeHRConnected(policy?: OnyxEntry<Policy>): boolean {
     return !!policy?.connections?.merge_hris;
+}
+
+/** Groups the admin can choose from when picking which employees to import. */
+function getAvailableMergeHRGroups(policy?: OnyxEntry<Policy>): MergeHRGroup[] {
+    return policy?.connections?.merge_hris?.data?.groups ?? [];
+}
+
+/** True once the admin has chosen which groups to import employees from. */
+function isMergeHRSetupComplete(policy?: OnyxEntry<Policy>): boolean {
+    if (!isMergeHRConnected(policy)) {
+        return false;
+    }
+    const groups = policy?.connections?.merge_hris?.config?.groups;
+    if (groups === CONST.MERGE_HR.GROUPS_ALL) {
+        return true;
+    }
+    return Array.isArray(groups) && groups.length > 0;
 }
 
 /** Returns display info for the HR provider currently connected to the policy (Gusto, Zenefits, or Merge HR), or null if none are connected. */
@@ -160,11 +178,13 @@ export {
     getHRAdvancedModeFinalApprover,
     getHRFinalApprover,
     getMergeHRFinalApprover,
+    getAvailableMergeHRGroups,
     isAnyHRConnected,
     isAnyHRReadOnlyWorkflowMode,
     isGustoConnected,
     isHRAdvancedMode,
     isMergeHRConnected,
+    isMergeHRSetupComplete,
     isZenefitsConnected,
 };
 

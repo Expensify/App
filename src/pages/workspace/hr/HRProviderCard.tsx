@@ -6,9 +6,11 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -35,8 +37,9 @@ type HRProviderCardProps = {
 function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
     const {translate, datetimeToRelative} = useLocalize();
     const styles = useThemeStyles();
+    const {environmentURL} = useEnvironment();
     const {isOffline} = useNetwork();
-    const icons = useMemoizedLazyExpensifyIcons(['Sync', 'Trashcan', 'Building']);
+    const icons = useMemoizedLazyExpensifyIcons(['Sync', 'Trashcan', 'Building', 'CheckCircle']);
     const {showConfirmModal} = useConfirmModal();
 
     const fallbackIcon = icons.Building;
@@ -56,13 +59,27 @@ function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
         lastSyncErrorMessage = card.lastSyncErrorMessage ? `${genericError} ("${card.lastSyncErrorMessage}")` : genericError;
     }
 
+    const completeSetupRoute = card.completeSetupRoute;
+    const isAwaitingSetup = !!card.isSetupIncomplete && !!completeSetupRoute;
+    const setupIncompleteHtml = isAwaitingSetup && completeSetupRoute ? translate('workspace.hr.mergeHR.setupIncomplete', `${environmentURL}/${completeSetupRoute}`) : undefined;
+
+    const primaryMenuItem: ThreeDotsMenuProps['menuItems'][number] =
+        isAwaitingSetup && completeSetupRoute
+            ? {
+                  icon: icons.CheckCircle,
+                  text: translate('workspace.hr.mergeHR.completeSetup'),
+                  onSelected: () => Navigation.navigate(completeSetupRoute),
+                  disabled: isOffline,
+              }
+            : {
+                  icon: icons.Sync,
+                  text: translate('workspace.hr.syncNow'),
+                  onSelected: () => syncConnection(policy, card.connectionName),
+                  disabled: isOffline,
+              };
+
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = [
-        {
-            icon: icons.Sync,
-            text: translate('workspace.hr.syncNow'),
-            onSelected: () => syncConnection(policy, card.connectionName),
-            disabled: isOffline,
-        },
+        primaryMenuItem,
         {
             icon: icons.Trashcan,
             text: translate('workspace.hr.disconnect'),
@@ -125,15 +142,17 @@ function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
                 iconType={CONST.ICON_TYPE_AVATAR}
                 wrapperStyle={[styles.ph0, styles.pv2, !!lastSyncErrorMessage && styles.pb0]}
                 interactive={false}
-                description={connectionDescription}
+                description={setupIncompleteHtml ? undefined : connectionDescription}
+                descriptionAddon={setupIncompleteHtml ? <RenderHTML html={setupIncompleteHtml} /> : undefined}
                 errorText={lastSyncErrorMessage}
                 errorTextStyle={styles.mt5}
                 shouldShowRedDotIndicator
                 shouldShowRightComponent
+                brickRoadIndicator={card.isSetupIncomplete ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined}
                 rightComponent={rightComponent}
                 fallbackIcon={fallbackIcon}
             />
-            {card.isConnected && !card.isInitialSyncInProgress && !!approvalModeRoute && (
+            {card.isConnected && !card.isInitialSyncInProgress && !card.isSetupIncomplete && !!approvalModeRoute && (
                 <OfflineWithFeedback
                     pendingAction={card.config?.pendingFields?.approvalMode}
                     errors={card.config?.errorFields?.approvalMode}
@@ -149,7 +168,7 @@ function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
                     />
                 </OfflineWithFeedback>
             )}
-            {card.isConnected && !card.isInitialSyncInProgress && !!finalApproverRoute && (
+            {card.isConnected && !card.isInitialSyncInProgress && !card.isSetupIncomplete && !!finalApproverRoute && (
                 <OfflineWithFeedback
                     pendingAction={card.config?.pendingFields?.finalApprover}
                     errors={card.config?.errorFields?.finalApprover}

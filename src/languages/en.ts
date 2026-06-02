@@ -6612,6 +6612,15 @@ const translations = {
             zenefits: {
                 title: 'TriNet',
             },
+            mergeHR: {
+                completeSetup: 'Complete setup',
+                setupIncomplete: (setupLink: string) => `<muted-text-label>Connected. <a href="${setupLink}">Complete setup</a> to import employees.</muted-text-label>`,
+                groups: {
+                    title: 'Groups',
+                    description: 'Choose the groups of employees you would like to sync with this workspace',
+                    searchPlaceholder: 'Search',
+                },
+            },
         },
         export: {
             notReadyHeading: 'Not ready to export',

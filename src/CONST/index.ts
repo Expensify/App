@@ -3022,6 +3022,7 @@ const CONST = {
             AUTO: 'auto',
             WEBHOOK: 'webhook',
         },
+        GROUPS_ALL: 'all',
     },
 
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {
