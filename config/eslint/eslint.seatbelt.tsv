@@ -449,7 +449,6 @@
 "../../src/pages/EnablePayments/PersonalInfo/PersonalInfo.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
 "../../src/pages/MissingPersonalDetails/subPages/Address.tsx"	"react-hooks/refs"	4
 "../../src/pages/MultifactorAuthentication/RevokePage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
-"../../src/pages/MultifactorAuthentication/ValidateCodePage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/OnboardingInterestedFeatures/BaseOnboardingInterestedFeatures.tsx"	"react-hooks/preserve-manual-memoization"	2
 "../../src/pages/ReimbursementAccount/EnterSignerInfo/index.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
 "../../src/pages/ReimbursementAccount/ReimbursementAccountPage.tsx"	"react-hooks/refs"	3
