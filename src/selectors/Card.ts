@@ -1,6 +1,6 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getExpensifyCardFeedsForDisplay} from '@libs/CardFeedUtils';
-import {isCard, isCardHiddenFromSearch, isCSVFeedOrExpensifyCard, isExpensifyCard, isPersonalCard, supportsPINManagementFeatures} from '@libs/CardUtils';
+import {isCard, isCardHiddenFromSearch, isCSVFeedOrExpensifyCard, isExpensifyCard, isPersonalCard, isUkEuExpensifyCard} from '@libs/CardUtils';
 import {filterObject} from '@libs/ObjectUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -95,7 +95,7 @@ const areAllExpensifyCardsShipped = (cardList: OnyxEntry<CardList>): boolean =>
 
 /** Checks whether the Expensify card matching the given cardID supports UK/EU features (e.g. PIN management). */
 const isExpensifyCardUkEuSupportedSelector = (cardList: OnyxEntry<CardList>, cardID: string): boolean =>
-    !!cardID && Object.values(cardList ?? {}).some((card) => isCard(card) && card.cardID === Number(cardID) && supportsPINManagementFeatures(card ?? undefined));
+    !!cardID && Object.values(cardList ?? {}).some((card) => isCard(card) && card.cardID === Number(cardID) && isUkEuExpensifyCard(card ?? undefined));
 
 const isExpensifyCardContinuousReconciliationEnabledSelector = (value: boolean | string | undefined): boolean | undefined => {
     return typeof value === 'string' ? value === '1' : value;

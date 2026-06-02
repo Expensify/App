@@ -193,6 +193,7 @@ type IsValidReportsConfig = Pick<
     | 'isTimeRequest'
 > & {
     currentUserAccountID: number;
+    currentUserLogin: string;
 };
 
 type GetOptionsConfig = {
@@ -203,7 +204,6 @@ type GetOptionsConfig = {
     includeSelectedOptions?: boolean;
     recentAttendees?: Option[];
     excludeHidden?: boolean;
-    canShowManagerMcTest?: boolean;
     searchString?: string;
     searchInputValue?: string;
     maxElements?: number;
@@ -296,6 +296,11 @@ type OrderReportOptionsConfig = {
 
 type ReportAndPersonalDetailOptions = Pick<Options, 'recentReports' | 'personalDetails' | 'workspaceChats'>;
 
+type OptionsResult = {
+    options: Options;
+    hasMore?: boolean;
+};
+
 export type {
     FilterUserToInviteConfig,
     GetOptionsConfig,
@@ -317,4 +322,5 @@ export type {
     SelectionListSections,
     SectionForSearchTerm,
     IsValidReportsConfig,
+    OptionsResult,
 };

@@ -1,100 +1,71 @@
-import type * as TransactionModuleType from '@libs/actions/Transaction';
-import type * as APIModuleType from '@libs/API';
-import type DistanceRequestUtilsType from '@libs/DistanceRequestUtils';
+import Onyx from 'react-native-onyx';
+import {getDefaultP2PMileageRate} from '@libs/actions/Transaction';
+import * as API from '@libs/API';
+import {READ_COMMANDS} from '@libs/API/types';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import getStoredDefaultP2PMileageRate from '@libs/getStoredDefaultP2PMileageRate';
 import CONST from '@src/CONST';
-
-type DistanceRequestUtilsModule = typeof DistanceRequestUtilsType;
-type TransactionModule = typeof TransactionModuleType;
-type APIModule = typeof APIModuleType;
-
-/**
- * Load fresh copies of the modules so the in-memory `storedDefaultP2PMileageRate`
- * starts undefined for every test.
- */
-function loadFreshModules() {
-    let api!: APIModule;
-    let transaction!: TransactionModule;
-    let distanceRequestUtils!: DistanceRequestUtilsModule;
-    jest.isolateModules(() => {
-        api = require('@libs/API') as APIModule;
-        transaction = require('@libs/actions/Transaction') as TransactionModule;
-        distanceRequestUtils = (require('@libs/DistanceRequestUtils') as {default: DistanceRequestUtilsModule}).default;
-    });
-    return {api, transaction, distanceRequestUtils};
-}
+import ONYXKEYS from '@src/ONYXKEYS';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('Default P2P mileage rate', () => {
+    beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+        });
+    });
+
+    beforeEach(() => {
+        return Onyx.clear().then(waitForBatchedUpdates);
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     describe('getDefaultP2PMileageRate', () => {
-        it('parses the {rate, unit} response and exposes it via getStoredDefaultP2PMileageRate', async () => {
-            const {api, transaction} = loadFreshModules();
-            const response = {onyxData: [{key: 'defaultP2PMileageRate', value: {rate: 7000, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS}}]};
-            jest.spyOn(api, 'makeRequestWithSideEffects').mockResolvedValueOnce(response as never);
+        it('calls API.read with GetDefaultP2PMileageRate', () => {
+            const readSpy = jest.spyOn(API, 'read').mockImplementation(() => {});
 
-            transaction.getDefaultP2PMileageRate();
-            await Promise.resolve();
+            getDefaultP2PMileageRate();
 
-            expect(transaction.getStoredDefaultP2PMileageRate()).toEqual({rate: 7000, unit: 'km'});
-        });
-
-        it('leaves the stored rate undefined when the response has no defaultP2PMileageRate entry', async () => {
-            const {api, transaction} = loadFreshModules();
-            jest.spyOn(api, 'makeRequestWithSideEffects').mockResolvedValueOnce({onyxData: []} as never);
-
-            transaction.getDefaultP2PMileageRate();
-            await Promise.resolve();
-
-            expect(transaction.getStoredDefaultP2PMileageRate()).toBeUndefined();
-        });
-
-        it('leaves the stored rate undefined when the value is missing required keys', async () => {
-            const {api, transaction} = loadFreshModules();
-            const response = {onyxData: [{key: 'defaultP2PMileageRate', value: {rate: 5000}}]};
-            jest.spyOn(api, 'makeRequestWithSideEffects').mockResolvedValueOnce(response as never);
-
-            transaction.getDefaultP2PMileageRate();
-            await Promise.resolve();
-
-            expect(transaction.getStoredDefaultP2PMileageRate()).toBeUndefined();
-        });
-
-        it('clears a previously stored rate before refetching, so a failed/empty refetch cannot leak the old value', async () => {
-            const {api, transaction} = loadFreshModules();
-            const validResponse = {onyxData: [{key: 'defaultP2PMileageRate', value: {rate: 5500, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS}}]};
-            const spy = jest.spyOn(api, 'makeRequestWithSideEffects').mockResolvedValueOnce(validResponse as never);
-
-            transaction.getDefaultP2PMileageRate();
-            await Promise.resolve();
-            expect(transaction.getStoredDefaultP2PMileageRate()).toEqual({rate: 5500, unit: 'km'});
-
-            // Simulate an account switch where the second fetch returns nothing usable.
-            spy.mockResolvedValueOnce({onyxData: []} as never);
-            transaction.getDefaultP2PMileageRate();
-
-            // The stored rate must be cleared synchronously when the fetch starts, before any response.
-            expect(transaction.getStoredDefaultP2PMileageRate()).toBeUndefined();
+            expect(readSpy).toHaveBeenCalledWith(READ_COMMANDS.GET_DEFAULT_P2P_MILEAGE_RATE, null);
         });
     });
 
     describe('getRateForP2P', () => {
-        it('falls back to USD 67¢/mile when no rate has been fetched yet', () => {
-            const {distanceRequestUtils} = loadFreshModules();
+        it('falls back to USD 67¢/mile when no rate has been stored in Onyx', () => {
+            const result = DistanceRequestUtils.getRateForP2P('EUR', undefined);
 
-            const result = distanceRequestUtils.getRateForP2P('EUR', undefined);
-
-            // Rate is in cents per unit (no offset), so 67 = $0.67/mile.
             expect(result).toEqual({rate: 67, unit: 'mi', currency: CONST.CURRENCY.USD});
         });
 
-        it("uses the stored rate with the caller's currency once a rate is available", async () => {
-            const {api, transaction, distanceRequestUtils} = loadFreshModules();
-            const response = {onyxData: [{key: 'defaultP2PMileageRate', value: {rate: 5500, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS}}]};
-            jest.spyOn(api, 'makeRequestWithSideEffects').mockResolvedValueOnce(response as never);
-            transaction.getDefaultP2PMileageRate();
-            await Promise.resolve();
+        it('uses the stored Onyx rate with the caller currency once a rate is available', async () => {
+            await Onyx.set(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE, {rate: 5500, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS});
+            await waitForBatchedUpdates();
 
-            const result = distanceRequestUtils.getRateForP2P('EUR', undefined);
+            expect(getStoredDefaultP2PMileageRate()).toEqual({rate: 5500, unit: 'km'});
+
+            const result = DistanceRequestUtils.getRateForP2P('EUR', undefined);
 
             expect(result).toEqual({rate: 5500, unit: 'km', currency: 'EUR'});
+        });
+
+        it('uses the transaction defaultP2PRate when the transaction currency matches', async () => {
+            await Onyx.set(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE, {rate: 5500, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES});
+            await waitForBatchedUpdates();
+
+            const transaction = {
+                amount: 100,
+                merchant: 'Test',
+                created: new Date().toISOString(),
+                currency: CONST.CURRENCY.USD,
+                comment: {customUnit: {defaultP2PRate: 99}},
+            };
+
+            const result = DistanceRequestUtils.getRateForP2P(CONST.CURRENCY.USD, transaction);
+
+            expect(result).toEqual({rate: 99, unit: 'mi', currency: CONST.CURRENCY.USD});
         });
     });
 });

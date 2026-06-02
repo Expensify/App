@@ -22,6 +22,7 @@ type TransactionItemRowNarrowProps = Pick<
     TransactionItemRowProps,
     | 'transactionItem'
     | 'report'
+    | 'policy'
     | 'isSelected'
     | 'shouldShowTooltip'
     | 'onCheckboxPress'
@@ -30,8 +31,6 @@ type TransactionItemRowNarrowProps = Pick<
     | 'isInSingleTransactionReport'
     | 'shouldShowRadioButton'
     | 'onRadioButtonPress'
-    | 'radioButtonContainerStyle'
-    | 'radioButtonWrapperStyle'
     | 'shouldShowErrors'
     | 'isDisabled'
     | 'violations'
@@ -45,6 +44,7 @@ type TransactionItemRowNarrowProps = Pick<
 function TransactionItemRowNarrow({
     transactionItem,
     report,
+    policy,
     isSelected,
     shouldShowTooltip,
     onCheckboxPress = () => {},
@@ -53,8 +53,6 @@ function TransactionItemRowNarrow({
     isInSingleTransactionReport = false,
     shouldShowRadioButton = false,
     onRadioButtonPress = () => {},
-    radioButtonContainerStyle,
-    radioButtonWrapperStyle,
     shouldShowErrors = true,
     isDisabled = false,
     violations,
@@ -123,6 +121,8 @@ function TransactionItemRowNarrow({
                                 <TotalCell
                                     transactionItem={transactionItem}
                                     shouldShowTooltip={shouldShowTooltip}
+                                    report={report}
+                                    policy={policy}
                                     shouldUseNarrowLayout
                                 />
                             </View>
@@ -153,13 +153,12 @@ function TransactionItemRowNarrow({
                         </View>
                     )}
                     {shouldShowRadioButton && (
-                        <View style={[styles.ml3, styles.justifyContentCenter, radioButtonContainerStyle]}>
+                        <View style={[styles.ml3, styles.justifyContentCenter]}>
                             <RadioButton
                                 isChecked={isSelected}
                                 disabled={isDisabled}
                                 onPress={() => onRadioButtonPress?.(transactionItem.transactionID)}
                                 accessibilityLabel={CONST.ROLE.RADIO}
-                                style={radioButtonWrapperStyle}
                             />
                         </View>
                     )}
