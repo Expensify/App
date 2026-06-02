@@ -22,7 +22,7 @@ function FeesAndTerms() {
     const submit = () => {
         acceptWalletTerms({
             hasAcceptedTerms: true,
-            // eslint-disable-next-line rulesdir/no-default-id-values
+            // eslint-disable-next-line rulesdir/no-default-id-values -- empty string is the expected fallback for acceptWalletTerms
             reportID: walletTerms?.chatReportID ?? '',
         });
         clearPersonalBankAccount();
