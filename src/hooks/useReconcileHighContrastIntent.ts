@@ -6,7 +6,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import useOnyx from './useOnyx';
 
 /**
- * When a logged-out user enabled high contrast on the sign-in page, apply it to whatever base theme the server returns once they sign in.
+ * Reconcile a logged-out user's high contrast choice from the sign-in page with the base theme the server returns once they sign in.
+ * The intent is `true` when they enabled it, `false` when they disabled it, and cleared when there is nothing to reconcile.
  */
 function useReconcileHighContrastIntent() {
     const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
@@ -18,11 +19,12 @@ function useReconcileHighContrastIntent() {
     useEffect(() => {
         const hasFinishedLoading = !!wasLoadingApp.current && !isLoadingApp;
         wasLoadingApp.current = isLoadingApp;
-        if (!hasFinishedLoading || !highContrastIntent || !session?.authToken) {
+        if (!hasFinishedLoading || highContrastIntent === undefined || !session?.authToken) {
             return;
         }
         const currentTheme = preferredTheme ?? CONST.THEME.DEFAULT;
-        const targetTheme = getContrastTheme(getBaseTheme(currentTheme));
+        const baseTheme = getBaseTheme(currentTheme);
+        const targetTheme = highContrastIntent ? getContrastTheme(baseTheme) : baseTheme;
         if (currentTheme !== targetTheme) {
             updateTheme(targetTheme, false);
         }
