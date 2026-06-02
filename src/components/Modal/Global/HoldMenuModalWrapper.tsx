@@ -83,4 +83,4 @@ function HoldMenuModalWrapper({
 }
 
 export default HoldMenuModalWrapper;
-export type {ActionHandledType, HoldMenuModalWrapperProps};
+export type {HoldMenuModalWrapperProps};
