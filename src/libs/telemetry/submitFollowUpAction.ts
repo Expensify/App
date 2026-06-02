@@ -459,7 +459,4 @@ export {
     getTrackingElapsedMs,
 };
 
-// Re-exported so consumer files import from this module instead of @sentry/core
-// directly, which Knip flags as an unlisted transitive dependency.
-export type {SpanAttributeValue} from '@sentry/core';
 export type {SubmitExpenseContext, SubmitFollowUpAction};
