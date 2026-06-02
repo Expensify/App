@@ -90,10 +90,7 @@ function ReportFooter() {
     if (!shouldHideComposer) {
         return (
             <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
-                <SwipeableView
-                    onSwipeDown={Keyboard.dismiss}
-                    style={isComposerFullSize ? styles.flex1 : undefined}
-                >
+                <SwipeableView onSwipeDown={Keyboard.dismiss}>
                     <ReportActionCompose reportID={reportIDFromRoute} />
                 </SwipeableView>
             </View>
@@ -164,10 +161,7 @@ function ReportFooter() {
             <View style={[styles.chatFooter, !isEditingWithComposer && styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
                 {isEditingWithComposer && (
                     <View style={[isComposerFullSize ? styles.chatFooterFullCompose : undefined, styles.mb2]}>
-                        <SwipeableView
-                            onSwipeDown={Keyboard.dismiss}
-                            style={isComposerFullSize ? styles.flex1 : undefined}
-                        >
+                        <SwipeableView onSwipeDown={Keyboard.dismiss}>
                             <ReportActionCompose.EditOnly reportID={reportIDFromRoute} />
                         </SwipeableView>
                     </View>
