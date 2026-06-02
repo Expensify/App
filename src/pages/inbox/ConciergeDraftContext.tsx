@@ -70,7 +70,7 @@ function ConciergeDraftGate({reportID, children}: React.PropsWithChildren<{repor
     const stateValue: ConciergeDraftState = {
         draftReportAction: draft?.reportAction ?? null,
         hasActiveDraft: !!draft?.reportAction,
-        isDraftPendingCompletion: !!draft?.pusherPendingCompletionEvent,
+        isDraftPendingCompletion: !!draft?.reportAction && (draft.status !== 'completed' || !!draft.pusherPendingCompletionEvent),
     };
     const actionsValue: ConciergeDraftActions = {
         clearDraft,

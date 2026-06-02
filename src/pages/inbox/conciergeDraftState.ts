@@ -9,6 +9,8 @@ type ConciergeDraft = {
     bodyMarkdown?: string;
     /** Latest server markdown snapshot held by the Pusher pacer so remounts can resume revealing banked text. */
     pusherTargetBodyMarkdown?: string;
+    /** Latest server-rendered HTML snapshot held by the Pusher pacer so remounts can resume revealing banked text. */
+    pusherTargetFinalRenderedHTML?: string;
     /** Server event sequence for the latest Pusher target snapshot. */
     pusherTargetSequence?: number;
     /** Completion event held while the Pusher pacer is still revealing banked text. */
