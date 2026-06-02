@@ -45,32 +45,6 @@ function HelpPage() {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {openConciergeAnywhere} = useOpenConciergeAnywhere();
 
-    const conciergeItem = {
-        key: 'initialSettingsPage.helpPage.conciergeChat',
-        title: translate('initialSettingsPage.helpPage.conciergeChat'),
-        description: isApprovedAccountant ? translate('initialSettingsPage.helpPage.conciergeChatDescription') : undefined,
-        icon: icons.ConciergeAvatar,
-        iconType: CONST.ICON_TYPE_AVATAR,
-        onPress: openConciergeAnywhere,
-        shouldShowRightIcon: true,
-        wrapperStyle: [styles.sectionMenuItemTopDescription],
-        sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.CONCIERGE_CHAT,
-    };
-
-    const helpSiteItem = {
-        key: 'initialSettingsPage.helpPage.helpSite',
-        title: translate('initialSettingsPage.helpPage.helpSite'),
-        description: translate('initialSettingsPage.helpPage.helpSiteDescription'),
-        icon: illustrations.Chalkboard,
-        iconType: CONST.ICON_TYPE_AVATAR,
-        iconRight: icons.NewWindow,
-        onPress: () => openExternalLink(CONST.NEWHELP_URL),
-        shouldShowRightIcon: true,
-        wrapperStyle: [styles.sectionMenuItemTopDescription],
-        link: CONST.NEWHELP_URL,
-        sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.HELP_DOCS,
-    };
-
     const partnerManagerItem = partnerManagerDetails
         ? {
               key: partnerManagerDetails.login,
@@ -113,6 +87,34 @@ function HelpPage() {
           }
         : null;
 
+    const hasActiveItem = !!partnerManagerItem || !!guideItem || !!accountManagerItem;
+
+    const conciergeItem = {
+        key: 'initialSettingsPage.helpPage.conciergeChat',
+        title: translate('initialSettingsPage.helpPage.conciergeChat'),
+        description: isApprovedAccountant || !hasActiveItem ? translate('initialSettingsPage.helpPage.conciergeChatDescription') : undefined,
+        icon: icons.ConciergeAvatar,
+        iconType: CONST.ICON_TYPE_AVATAR,
+        onPress: openConciergeAnywhere,
+        shouldShowRightIcon: true,
+        wrapperStyle: [styles.sectionMenuItemTopDescription],
+        sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.CONCIERGE_CHAT,
+    };
+
+    const helpSiteItem = {
+        key: 'initialSettingsPage.helpPage.helpSite',
+        title: translate('initialSettingsPage.helpPage.helpSite'),
+        description: translate('initialSettingsPage.helpPage.helpSiteDescription'),
+        icon: illustrations.Chalkboard,
+        iconType: CONST.ICON_TYPE_AVATAR,
+        iconRight: icons.NewWindow,
+        onPress: () => openExternalLink(CONST.NEWHELP_URL),
+        shouldShowRightIcon: true,
+        wrapperStyle: [styles.sectionMenuItemTopDescription],
+        link: CONST.NEWHELP_URL,
+        sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.HELP_DOCS,
+    };
+
     const moreResourcesItems = [conciergeItem, helpSiteItem];
 
     useEffect(() => {
@@ -153,7 +155,7 @@ function HelpPage() {
                                 <View style={[styles.flex1, styles.mt8, styles.gap5]}>
                                     {!!partnerManagerItem && (
                                         <View>
-                                            <Text style={[styles.textLabelSupportingNormal]}>{translate('initialSettingsPage.helpPage.partnerManager')}</Text>
+                                            <Text style={[styles.textLabelSupportingNormal, styles.mb2]}>{translate('initialSettingsPage.helpPage.partnerManager')}</Text>
                                             <MenuItemList
                                                 menuItems={[partnerManagerItem]}
                                                 shouldUseSingleExecution
@@ -162,7 +164,7 @@ function HelpPage() {
                                     )}
                                     {!!guideItem && (
                                         <View>
-                                            <Text style={[styles.textLabelSupportingNormal]}>{translate('initialSettingsPage.helpPage.accountExecutive')}</Text>
+                                            <Text style={[styles.textLabelSupportingNormal, styles.mb2]}>{translate('initialSettingsPage.helpPage.accountExecutive')}</Text>
                                             <MenuItemList
                                                 menuItems={[guideItem]}
                                                 shouldUseSingleExecution
@@ -171,7 +173,7 @@ function HelpPage() {
                                     )}
                                     {!!accountManagerItem && (
                                         <View>
-                                            <Text style={[styles.textLabelSupportingNormal]}>{translate('initialSettingsPage.helpPage.accountManager')}</Text>
+                                            <Text style={[styles.textLabelSupportingNormal, styles.mb2]}>{translate('initialSettingsPage.helpPage.accountManager')}</Text>
                                             <MenuItemList
                                                 menuItems={[accountManagerItem]}
                                                 shouldUseSingleExecution
@@ -179,7 +181,7 @@ function HelpPage() {
                                         </View>
                                     )}
                                 </View>
-                                <Text style={[styles.textLabelSupportingNormal, styles.mt5, styles.mb2]}>{translate('initialSettingsPage.helpPage.moreResources')}</Text>
+                                {hasActiveItem && <Text style={[styles.textLabelSupportingNormal, styles.mt5, styles.mb2]}>{translate('initialSettingsPage.helpPage.moreResources')}</Text>}
                                 <MenuItemList
                                     menuItems={moreResourcesItems}
                                     shouldUseSingleExecution
@@ -188,13 +190,15 @@ function HelpPage() {
                         ) : (
                             <>
                                 <View style={[styles.flex1, styles.mt8, styles.gap5]}>
-                                    <View>
-                                        <Text style={[styles.textLabelSupportingNormal]}>{translate('initialSettingsPage.helpPage.conciergeChatDescription')}</Text>
-                                        <MenuItemList
-                                            menuItems={[conciergeItem]}
-                                            shouldUseSingleExecution
-                                        />
-                                    </View>
+                                    {hasActiveItem && (
+                                        <View>
+                                            <Text style={[styles.textLabelSupportingNormal]}>{translate('initialSettingsPage.helpPage.conciergeChatDescription')}</Text>
+                                            <MenuItemList
+                                                menuItems={[conciergeItem]}
+                                                shouldUseSingleExecution
+                                            />
+                                        </View>
+                                    )}
                                     {!!partnerManagerItem && isPaidPolicyAdmin && (
                                         <View>
                                             <Text style={[styles.textLabelSupportingNormal]}>{translate('initialSettingsPage.helpPage.yourPartnerManager')}</Text>
@@ -223,9 +227,9 @@ function HelpPage() {
                                         </View>
                                     )}
                                 </View>
-                                <Text style={[styles.textLabelSupportingNormal, styles.mt5, styles.mb2]}>{translate('initialSettingsPage.helpPage.moreResources')}</Text>
+                                {hasActiveItem && <Text style={[styles.textLabelSupportingNormal, styles.mt5, styles.mb2]}>{translate('initialSettingsPage.helpPage.moreResources')}</Text>}
                                 <MenuItemList
-                                    menuItems={[helpSiteItem]}
+                                    menuItems={hasActiveItem ? [helpSiteItem] : moreResourcesItems}
                                     shouldUseSingleExecution
                                 />
                             </>
