@@ -47,10 +47,10 @@ describe('reportTransactionsAndViolations derived value', () => {
         } as Transaction;
 
         const currentValue = reportTransactionsAndViolationsConfig.compute([{[transactionKey]: transaction}, {}], {currentValue: undefined, sourceValues: undefined});
-        const result = reportTransactionsAndViolationsConfig.compute([{[transactionKey]: null}, {}], {
+        const result = reportTransactionsAndViolationsConfig.compute([{[transactionKey]: undefined}, {}], {
             currentValue,
             sourceValues: {
-                [ONYXKEYS.COLLECTION.TRANSACTION]: {[transactionKey]: null},
+                [ONYXKEYS.COLLECTION.TRANSACTION]: {[transactionKey]: undefined},
             },
         });
 
