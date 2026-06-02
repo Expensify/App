@@ -12,7 +12,7 @@ set -euo pipefail
 
 MOBILE_EXPENSIFY_GIT_DIR="${MOBILE_EXPENSIFY_GIT_DIR:-Mobile-Expensify}"
 
-git fetch origin main --no-tags
+git fetch origin main --no-tags --depth=1
 
 if git diff --quiet origin/main...HEAD -- Mobile-Expensify; then
     echo "✅  Mobile-Expensify submodule unchanged."
