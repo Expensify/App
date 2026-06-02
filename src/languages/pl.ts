@@ -4383,9 +4383,12 @@ ${amount} dla ${merchant} - ${date}`,
             travelInvoicingPayableAccount: 'Konto zobowiązań z tytułu podróży',
             hr: 'HR',
             rooms: 'Pokoje',
+            findDomain: 'Znajdź domenę',
             cardAdminAlternateText: 'Zarządzaj kartami przestrzeni roboczej.',
             peopleAdminAlternateText: 'Zarządzaj członkami i procesami akceptacji.',
             paymentsAdminAlternateText: 'Zarządzaj płatnościami w przepływie pracy.',
+            readOnlyActionTitle: 'Nie tak szybko…',
+            readOnlyActionPrompt: 'Twoja rola w przestrzeni roboczej może wyświetlać te ustawienia, ale nie może ich edytować.',
         },
         createdForClient: {
             title: 'Utworzyłeś przestrzeń roboczą dla swojego klienta!',
@@ -6027,17 +6030,28 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             error: 'Wystąpił błąd podczas duplikowania Twojego nowego obszaru roboczego. Spróbuj ponownie.',
         },
         copyPolicySettings: {
-            error: 'Wystąpił błąd podczas kopiowania ustawień przestrzeni roboczej. Spróbuj ponownie.',
             title: 'Skopiuj ustawienia',
-            selectWorkspaces: 'Wybierz przestrzenie robocze',
-            description: 'Wybierz przestrzenie robocze, do których chcesz skopiować ustawienia, a potem zaznacz ustawienia, które chcesz skopiować.',
-            searchPlaceholder: 'Szukaj przestrzeni roboczych',
-            selectFeatures: 'Wybierz funkcje do skopiowania',
-            whichFeatures: 'Wybierz ustawienia, które chcesz nadpisać w swoich istniejących przestrzeniach roboczych.',
-            workflowsWithoutMembersConfirm: 'Kontynuuj bez członków',
-            workflowsWithoutMembersPrompt: 'Kopiowanie obiegów zadań bez członków nie skopiuje obiegów akceptacji. Ustawienia przesyłania i płatności nadal zostaną skopiowane.',
-            accountingMismatch: ({part}: {part: string}) =>
-                `Możesz skopiować ${part} tylko wtedy, gdy wszystkie przestrzenie robocze używają tego samego systemu księgowego i połączenia z firmą.`,
+            error: 'Wystąpił błąd podczas kopiowania ustawień przestrzeni roboczej. Spróbuj ponownie.',
+            selectWorkspaces: {
+                title: 'Wybierz przestrzenie robocze',
+                description: 'Wybierz przestrzenie robocze, do których chcesz skopiować ustawienia, a potem zaznacz ustawienia, które chcesz skopiować.',
+                searchPlaceholder: 'Szukaj przestrzeni roboczych',
+            },
+            selectSettings: {
+                title: 'Wybierz funkcje do skopiowania',
+                description: 'Wybierz ustawienia, które chcesz nadpisać w swoich istniejących przestrzeniach roboczych.',
+                accountingMismatch: ({part}: {part: string}) =>
+                    `Możesz skopiować ${part} tylko wtedy, gdy wszystkie przestrzenie robocze używają tego samego systemu księgowego i połączenia z firmą.`,
+            },
+            confirmSettings: {
+                title: 'Upewnijmy się, że wszystko wygląda poprawnie.',
+                description: ({workspaceName}: {workspaceName: string}) =>
+                    `Skopiujemy następujące ustawienia z <strong>${workspaceName}</strong> do wskazanych przez ciebie przestrzeni roboczych`,
+            },
+            confirmWorkflows: {
+                continue: 'Kontynuuj bez członków',
+                description: 'Kopiowanie przepływów pracy bez członków nie skopiuje przepływów zatwierdzania. Ustawienia przesyłania i płatności nadal zostaną skopiowane.',
+            },
         },
         emptyWorkspace: {
             title: 'Nie masz żadnych przestrzeni roboczych',
@@ -7253,6 +7267,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             syncingModalTitle: 'Twoje połączenie jest synchronizowane',
             syncingModalDescription: 'Pierwsze połączenie może chwilę potrwać. Zostaniesz powiadomiony o wszelkich błędach.',
             syncing: 'Synchronizowanie pracowników',
+        },
+        emptyDomain: {
+            title: 'Zwiększ swoje bezpieczeństwo dzięki domenom',
+            subtitle: 'Wymagaj od członków swojej domeny logowania jednokrotnym logowaniem (SSO), ograniczaj tworzenie przestrzeni roboczych i nie tylko.',
         },
     },
     getAssistancePage: {
@@ -9305,7 +9323,6 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         expenseLevelExport: 'Wszystkie dane – poziom wydatku',
         exportInProgress: 'Trwa eksport',
         conciergeWillSend: 'Concierge wkrótce wyśle Ci plik.',
-        currentView: 'Eksportuj bieżący widok',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',
