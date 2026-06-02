@@ -1,3 +1,4 @@
+import React from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Animated from 'react-native-reanimated';
