@@ -57,4 +57,3 @@ function useTimeSensitiveSignerInfo() {
 }
 
 export default useTimeSensitiveSignerInfo;
-export type {PendingSignerInfo};
