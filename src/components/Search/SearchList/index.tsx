@@ -441,16 +441,21 @@ function SearchList({
                 return;
             }
 
-            // Don't scroll while a cell is being edited
-            // as it can cause unwanted scrolling when the edit is dismissed
-            // See: https://github.com/Expensify/App/pull/83127#issuecomment-4064533155
             if (isEditingCell || wasRecentlyEditingCell) {
                 return;
             }
 
-            listRef.current.scrollToIndex({index, animated, viewOffset: -variables.contentHeaderHeight});
+            let targetIndex = index;
+            if (shouldSplitGroups && item.keyForList) {
+                const splitIndex = listData.findIndex((li) => li.keyForList === `header_${item.keyForList}` || li.keyForList === item.keyForList);
+                if (splitIndex !== -1) {
+                    targetIndex = splitIndex;
+                }
+            }
+
+            listRef.current.scrollToIndex({index: targetIndex, animated, viewOffset: -variables.contentHeaderHeight});
         },
-        [data, isEditingCell, wasRecentlyEditingCell],
+        [data, isEditingCell, wasRecentlyEditingCell, shouldSplitGroups, listData],
     );
 
     useFocusEffect(
@@ -487,9 +492,16 @@ function SearchList({
                         canSelectMultiple={canSelectMultiple}
                         isExpanded={expandedGroups.has(originalKey)}
                         onToggle={() => onToggleGroup(originalKey)}
-                        onSelectRow={onSelectRow}
-                        onCheckboxPress={(val, itemTransactions) => onCheckboxPress(val as SearchListItem, itemTransactions)}
-                        onLongPressRow={isMobileSelectionModeEnabled ? handleLongPressRowInMobileSelectionMode : handleLongPressRow}
+                        onSelectRow={(rowItem, previewData, event) => onSelectRow({...rowItem, keyForList: originalKey}, previewData, event)}
+                        onCheckboxPress={(val, itemTransactions) => onCheckboxPress({...val, keyForList: originalKey} as SearchListItem, itemTransactions)}
+                        onLongPressRow={(rowItem, itemTransactions) => {
+                            const fixedItem = {...rowItem, keyForList: originalKey} as SearchListItem;
+                            if (isMobileSelectionModeEnabled) {
+                                handleLongPressRowInMobileSelectionMode(fixedItem, itemTransactions);
+                            } else {
+                                handleLongPressRow(fixedItem, itemTransactions);
+                            }
+                        }}
                         onFocus={onFocus}
                         isFocused={isItemFocused}
                         isFirstItem={index === firstVisibleIndex}
