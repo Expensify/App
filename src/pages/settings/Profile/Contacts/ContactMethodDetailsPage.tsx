@@ -36,6 +36,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getEarliestErrorField, getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {close} from '@userActions/Modal';
@@ -311,7 +312,11 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         <ScreenWrapper
             shouldEnableMaxHeight
             onEntryTransitionEnd={() => {
-                validateCodeFormRef.current?.focus?.();
+                TransitionTracker.runAfterTransitions({
+                    callback: () => {
+                        validateCodeFormRef.current?.focus?.();
+                    },
+                });
             }}
             testID="ContactMethodDetailsPage"
             focusTrapSettings={{
