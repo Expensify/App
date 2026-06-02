@@ -4,12 +4,14 @@ import type {SearchFilterCommonProps} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
+import {getExpensifyTeamExclusions} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ListFilterWrapper from './ListFilterViewWrapper';
@@ -24,8 +26,10 @@ function UserSelector({value = [], selectionListTextInputStyle, selectionListSty
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const shouldFocusInputOnScreenFocus = autoFocus && canFocusInputOnScreenFocus();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const initialSelectedAccountIDs = value.reduce<Set<string>>((acc, id) => {
         const participant = personalDetails?.[id];
         if (!participant) {
@@ -36,10 +40,14 @@ function UserSelector({value = [], selectionListTextInputStyle, selectionListSty
         return acc;
     }, new Set<string>());
 
+    const expensifyTeamExclusions = getExpensifyTeamExclusions(personalDetails, policies, currentUserPersonalDetails.email);
+
     const {searchTerm, setSearchTerm, availableOptions, totalOptionsCount, toggleSelection, areOptionsInitialized} = usePersonalDetailSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
         initialSelected: initialSelectedAccountIDs,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+        excludeFromSuggestionsOnly: expensifyTeamExclusions,
+        includeUserToInvite: true,
         includeCurrentUser: false,
         includeRecentReports: false,
         shouldInitialize: ready,

@@ -496,6 +496,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Poprzedni rok',
         nextYear: 'W przyszłym roku',
         avatar: 'Avatar',
+        restrictions: 'Ograniczenia',
     },
     socials: {
         podcast: 'Śledź nas na Podcast',
@@ -507,7 +508,6 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Zwiń rozumowanie',
         expandReasoning: 'Rozwiń rozumowanie',
-        enableNotifications: {prompt: 'Chcesz otrzymywać powiadomienia, gdy Concierge odpowie?', cta: 'Powiadom'},
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -944,7 +944,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 defaultSubtitle: 'Obszar roboczy',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Karty firmowe`,
             },
-            fixAccountingConnection: {
+            fixPolicyConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Napraw połączenie ${integrationName}`,
                 defaultSubtitle: 'Obszar roboczy',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Księgowość`,
@@ -1255,7 +1255,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchSubmitTitle: 'Wyślij raport',
         pendingMatchSubmitDescription: 'Niektóre wydatki oczekują na dopasowanie z transakcją kartą kredytową. Czy chcesz oznaczyć je jako gotówkę?',
         routePending: 'Trasa w toku…',
-        automaticallyEnterExpenseDetails: 'Concierge automatycznie wprowadzi szczegóły wydatku za Ciebie lub możesz dodać je ręcznie.',
+        automaticallyEnterExpenseDetails: 'Concierge uzupełni szczegóły za ciebie.',
         receiptScanning: () => ({
             one: 'Skanowanie paragonu...',
             other: 'Skanowanie paragonów...',
@@ -4383,9 +4383,12 @@ ${amount} dla ${merchant} - ${date}`,
             travelInvoicingPayableAccount: 'Konto zobowiązań z tytułu podróży',
             hr: 'HR',
             rooms: 'Pokoje',
+            findDomain: 'Znajdź domenę',
             cardAdminAlternateText: 'Zarządzaj kartami przestrzeni roboczej.',
             peopleAdminAlternateText: 'Zarządzaj członkami i procesami akceptacji.',
             paymentsAdminAlternateText: 'Zarządzaj płatnościami w przepływie pracy.',
+            readOnlyActionTitle: 'Nie tak szybko…',
+            readOnlyActionPrompt: 'Twoja rola w przestrzeni roboczej może wyświetlać te ustawienia, ale nie może ich edytować.',
         },
         createdForClient: {
             title: 'Utworzyłeś przestrzeń roboczą dla swojego klienta!',
@@ -6027,17 +6030,28 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             error: 'Wystąpił błąd podczas duplikowania Twojego nowego obszaru roboczego. Spróbuj ponownie.',
         },
         copyPolicySettings: {
-            error: 'Wystąpił błąd podczas kopiowania ustawień przestrzeni roboczej. Spróbuj ponownie.',
             title: 'Skopiuj ustawienia',
-            selectWorkspaces: 'Wybierz przestrzenie robocze',
-            description: 'Wybierz przestrzenie robocze, do których chcesz skopiować ustawienia, a potem zaznacz ustawienia, które chcesz skopiować.',
-            searchPlaceholder: 'Szukaj przestrzeni roboczych',
-            selectFeatures: 'Wybierz funkcje do skopiowania',
-            whichFeatures: 'Wybierz ustawienia, które chcesz nadpisać w swoich istniejących przestrzeniach roboczych.',
-            workflowsWithoutMembersConfirm: 'Kontynuuj bez członków',
-            workflowsWithoutMembersPrompt: 'Kopiowanie obiegów zadań bez członków nie skopiuje obiegów akceptacji. Ustawienia przesyłania i płatności nadal zostaną skopiowane.',
-            accountingMismatch: ({part}: {part: string}) =>
-                `Możesz skopiować ${part} tylko wtedy, gdy wszystkie przestrzenie robocze używają tego samego systemu księgowego i połączenia z firmą.`,
+            error: 'Wystąpił błąd podczas kopiowania ustawień przestrzeni roboczej. Spróbuj ponownie.',
+            selectWorkspaces: {
+                title: 'Wybierz przestrzenie robocze',
+                description: 'Wybierz przestrzenie robocze, do których chcesz skopiować ustawienia, a potem zaznacz ustawienia, które chcesz skopiować.',
+                searchPlaceholder: 'Szukaj przestrzeni roboczych',
+            },
+            selectSettings: {
+                title: 'Wybierz funkcje do skopiowania',
+                description: 'Wybierz ustawienia, które chcesz nadpisać w swoich istniejących przestrzeniach roboczych.',
+                accountingMismatch: ({part}: {part: string}) =>
+                    `Możesz skopiować ${part} tylko wtedy, gdy wszystkie przestrzenie robocze używają tego samego systemu księgowego i połączenia z firmą.`,
+            },
+            confirmSettings: {
+                title: 'Upewnijmy się, że wszystko wygląda poprawnie.',
+                description: ({workspaceName}: {workspaceName: string}) =>
+                    `Skopiujemy następujące ustawienia z <strong>${workspaceName}</strong> do wskazanych przez ciebie przestrzeni roboczych`,
+            },
+            confirmWorkflows: {
+                continue: 'Kontynuuj bez członków',
+                description: 'Kopiowanie przepływów pracy bez członków nie skopiuje przepływów zatwierdzania. Ustawienia przesyłania i płatności nadal zostaną skopiowane.',
+            },
         },
         emptyWorkspace: {
             title: 'Nie masz żadnych przestrzeni roboczych',
@@ -7254,6 +7268,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             syncingModalDescription: 'Pierwsze połączenie może chwilę potrwać. Zostaniesz powiadomiony o wszelkich błędach.',
             syncing: 'Synchronizowanie pracowników',
         },
+        emptyDomain: {
+            title: 'Zwiększ swoje bezpieczeństwo dzięki domenom',
+            subtitle: 'Wymagaj od członków swojej domeny logowania jednokrotnym logowaniem (SSO), ograniczaj tworzenie przestrzeni roboczych i nie tylko.',
+        },
     },
     getAssistancePage: {
         title: 'Uzyskaj pomoc',
@@ -7942,7 +7960,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         resetColumns: 'Resetuj kolumny',
         groupColumns: 'Grupuj kolumny',
         expenseColumns: 'Kolumny wydatków',
-        saveSearch: 'Zapisz wyszukiwanie',
+        saveView: 'Zapisz widok',
         deleteSavedSearch: 'Usuń zapisaną wyszukiwanie',
         deleteSavedSearchConfirm: 'Na pewno chcesz usunąć to wyszukiwanie?',
         searchName: 'Wyszukaj nazwę',
@@ -8353,6 +8371,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         workspaceName: 'Nazwa przestrzeni roboczej',
         chatUserDisplayNames: 'Wyświetlane nazwy członków czatu',
         scrollToNewestMessages: 'Przewiń do najnowszych wiadomości',
+        scrollToActionBadgeTarget: 'Przewiń do akcji wymagającej uwagi',
         preStyledText: 'Wstępnie ostylowany tekst',
         viewAttachment: 'Zobacz załącznik',
         contextMenuAvailable: 'Menu kontekstowe jest dostępne. Naciśnij Shift+F10, aby je otworzyć.',

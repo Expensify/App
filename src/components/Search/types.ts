@@ -90,6 +90,9 @@ type SelectedTransactionInfo = {
     reportAction?: ReportAction;
 
     report?: Report;
+
+    /** The group key this transaction belongs to when in a grouped view */
+    groupKey?: string;
 };
 
 /** Model of selected transactions */

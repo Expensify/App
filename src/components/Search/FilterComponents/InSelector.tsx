@@ -96,7 +96,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                   policyCollection: allPolicies,
                   sortedActions,
                   conciergeReportID,
-              });
+              }).options;
 
     const chatOptions = filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, {
         selectedOptions,
