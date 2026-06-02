@@ -45,6 +45,8 @@ function detachReceipt(
         return;
     }
     const allTransactions = getAllTransactions();
+    // TODO: https://github.com/Expensify/App/issues/66512
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
 
@@ -179,6 +181,8 @@ function replaceReceipt({transactionID, file, source, state, transactionPolicy, 
     }
 
     const allTransactions = getAllTransactions();
+    // TODO: https://github.com/Expensify/App/issues/66512
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
 

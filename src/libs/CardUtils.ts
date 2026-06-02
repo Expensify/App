@@ -1842,7 +1842,6 @@ function resolveTransactionCardFields<T extends Transaction>(transactions: T[], 
 export {
     getAssignedCardSortKey,
     getCardFeedBackgroundColor,
-    getCardFeedColors,
     getCardFeedTextColor,
     getDefaultExpensifyCardLimitType,
     isExpensifyCard,
