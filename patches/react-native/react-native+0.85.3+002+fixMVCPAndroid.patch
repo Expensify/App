@@ -133,6 +133,19 @@ index 4a5d3f9..cefaaec 100644
      }
      ReactScrollViewHelper.emitLayoutChangeEvent(this);
    }
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactNestedScrollView.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactNestedScrollView.java
+index 7e78332..a5e228f 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactNestedScrollView.java
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactNestedScrollView.java
+@@ -1464,7 +1464,7 @@ class ReactNestedScrollView extends NestedScrollView
+     }
+ 
+     if (mMaintainVisibleContentPositionHelper != null) {
+-      mMaintainVisibleContentPositionHelper.updateScrollPosition();
++      mMaintainVisibleContentPositionHelper.onLayout();
+     }
+ 
+     if (isShown() && isContentReady()) {
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactScrollView.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactScrollView.java
 index 3efd382..459707f 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactScrollView.java
