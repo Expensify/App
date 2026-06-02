@@ -224,7 +224,7 @@ function getSearchOnyxUpdate({
             });
         }
 
-        // For a group-by:from view, also pre-populate the drilldown (single-member transactions) snapshot
+        // For a group-by:from view, also pre-populate the per-member transactions snapshot
         // so that opening the group row immediately shows the new transaction.
         if (queryJSON.groupBy === CONST.SEARCH.GROUP_BY.FROM) {
             const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
@@ -233,7 +233,7 @@ function getSearchOnyxUpdate({
                 filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: fromAccountID}],
             });
 
-            const drilldown = buildSearchQueryJSON(
+            const groupTransactionsQuery = buildSearchQueryJSON(
                 buildSearchQueryString({
                     ...queryJSON,
                     groupBy: undefined,
@@ -241,14 +241,14 @@ function getSearchOnyxUpdate({
                 }),
             );
 
-            if (drilldown?.hash && !writtenHashes.has(drilldown.hash)) {
+            if (groupTransactionsQuery?.hash && !writtenHashes.has(groupTransactionsQuery.hash)) {
                 optimisticData.push({
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${drilldown.hash}` as const,
+                    key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${groupTransactionsQuery.hash}` as const,
                     value: {
                         search: {
-                            type: drilldown.type,
-                            status: drilldown.status,
+                            type: groupTransactionsQuery.type,
+                            status: groupTransactionsQuery.status,
                             offset: 0,
                             hasMoreResults: false,
                             hasResults: true,
@@ -257,7 +257,7 @@ function getSearchOnyxUpdate({
                         data: baseSnapshotData,
                     },
                 });
-                writtenHashes.add(drilldown.hash);
+                writtenHashes.add(groupTransactionsQuery.hash);
             }
         }
     };
