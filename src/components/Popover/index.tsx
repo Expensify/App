@@ -1,6 +1,7 @@
 import React, {useRef} from 'react';
 import {createPortal} from 'react-dom';
 import Modal from '@components/Modal';
+import {isInternalPopstateInProgress} from '@components/Modal/internalPopstateGuard';
 import {usePopoverActions, usePopoverState} from '@components/PopoverProvider';
 import PopoverWithoutOverlay from '@components/PopoverWithoutOverlay';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -57,6 +58,11 @@ function Popover(props: PopoverProps) {
         }
         const listener = () => {
             if (!isVisible) {
+                return;
+            }
+            // A nested Modal closing itself fires history.back() to drop its guard entry;
+            // that popstate is not a real user navigation, so skip closing.
+            if (isInternalPopstateInProgress()) {
                 return;
             }
             onClose?.();

@@ -85,7 +85,7 @@ function validateCreateDistanceRateForm(
     return errors;
 }
 
-type PolicyDistanceRateUpdateField = keyof Pick<Rate, 'name' | 'rate'> | keyof TaxRateAttributes;
+type PolicyDistanceRateUpdateField = keyof Pick<Rate, 'name' | 'rate' | 'startDate' | 'endDate'> | keyof TaxRateAttributes;
 
 /**
  * Builds optimistic, success, and failure Onyx data for policy distance rate updates
