@@ -5,9 +5,8 @@
 // the default P2P mileage rate is used across many library functions an exception is allowed to prevent having to pass the value through many functions
 // across the codebase.
 // DO NOT use this pattern for other Onyx data unless you get authorization from the internal Expensify team in Slack.
-
-import ONYXKEYS from "@src/ONYXKEYS";
-import Onyx from "react-native-onyx";
+import Onyx from 'react-native-onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type DefaultP2PMileageRate from '@src/types/onyx/DefaultP2PMileageRate';
 
 let defaultP2PMileageRate: DefaultP2PMileageRate | undefined;
