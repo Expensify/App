@@ -30,8 +30,11 @@ function isCurrentUserOpenExpenseReport(report: Report | null | undefined, curre
 
 /**
  * Returns true when the given violation list has at least one entry that should surface in the
- * `Review X expenses` row: a transaction-level violation that the user can act on. Violations
- * marked `showInReview === false` and report-field violations (`fieldRequired`) are excluded.
+ * `Review X expenses` row: a transaction-level violation that the user can act on. Entries marked
+ * `showInReview === false` and report-field violations (`fieldRequired`) are excluded. `notice`/
+ * `warning` types only count when `showInReview` is explicitly true (omitting it is not enough),
+ * mirroring the review-visibility logic in `SearchUIUtils.hasVisibleViolations`; real `violation`
+ * types remain actionable.
  */
 function hasReviewableViolation(violations: TransactionViolations | null | undefined): boolean {
     if (!violations || violations.length === 0) {
@@ -47,6 +50,9 @@ function hasReviewableViolation(violations: TransactionViolations | null | undef
         }
         if (violation.name === CONST.REPORT_VIOLATIONS.FIELD_REQUIRED) {
             return false;
+        }
+        if (violation.type === CONST.VIOLATION_TYPES.NOTICE || violation.type === CONST.VIOLATION_TYPES.WARNING) {
+            return violation.showInReview === true;
         }
         return true;
     });

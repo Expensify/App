@@ -140,6 +140,20 @@ describe('flaggedExpenses derived value', () => {
 
             expect(result.flaggedExpenses).toEqual([]);
         });
+
+        it('excludes warning/notice violations unless showInReview is explicitly true', () => {
+            const report = createExpenseReport('r1');
+            const transactions = [createTransaction('tWarn', 'r1'), createTransaction('tNotice', 'r1'), createTransaction('tShown', 'r1')];
+            const violations = buildViolations({
+                tWarn: [{type: CONST.VIOLATION_TYPES.WARNING, name: CONST.VIOLATIONS.RTER}],
+                tNotice: [{type: CONST.VIOLATION_TYPES.NOTICE, name: CONST.VIOLATIONS.RECEIPT_REQUIRED}],
+                tShown: [{type: CONST.VIOLATION_TYPES.WARNING, name: CONST.VIOLATIONS.RTER, showInReview: true}],
+            });
+
+            const result = compute([buildReports(report), buildTransactions(...transactions), violations, createSession()], emptyContext);
+
+            expect(result.flaggedExpenses).toEqual([{transactionID: 'tShown', reportID: 'r1'}]);
+        });
     });
 
     describe('Draft-report scope and resolution', () => {
