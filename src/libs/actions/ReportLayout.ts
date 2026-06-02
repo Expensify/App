@@ -94,6 +94,24 @@ function getReportLayoutGroupBy(storedValue: string | null | undefined): ReportL
 }
 
 /**
+ * Whether the stored layout option is the flat matrix layout (used as the "None" / ungrouped state in NewDot).
+ */
+function isMatrixLayout(storedValue: string | null | undefined): boolean {
+    return storedValue === CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX;
+}
+
+/**
+ * Get the current report layout selection from the layout-option and group-by NVPs.
+ * Returns matrix when the layout is matrix (None), otherwise the group-by field (category or tag).
+ */
+function getReportLayoutSelection(storedLayoutOption: string | null | undefined, storedGroupBy: string | null | undefined): ReportLayoutSelection {
+    if (isMatrixLayout(storedLayoutOption)) {
+        return CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX;
+    }
+    return getReportLayoutGroupBy(storedGroupBy);
+}
+
+/**
  * Set the user's report details columns preference
  */
 function setReportDetailsColumns(columns: SearchCustomColumnIds[], previousValue?: string[] | null) {
@@ -120,4 +138,4 @@ function setReportDetailsColumns(columns: SearchCustomColumnIds[], previousValue
     API.write(WRITE_COMMANDS.SET_REPORT_DETAILS_COLUMNS, parameters, {optimisticData, failureData});
 }
 
-export {setReportLayout, getReportLayoutGroupBy, setReportDetailsColumns};
+export {setReportLayout, getReportLayoutGroupBy, getReportLayoutSelection, isMatrixLayout, setReportDetailsColumns};
