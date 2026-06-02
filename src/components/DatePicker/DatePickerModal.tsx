@@ -1,5 +1,6 @@
 import {setYear} from 'date-fns';
 import React, {useEffect, useRef, useState} from 'react';
+import {Platform} from 'react-native';
 import type {View} from 'react-native';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -46,6 +47,7 @@ function DatePickerModal({
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHL and narrow layout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const shouldHideInPlace = Platform.OS === 'web' && !isSmallScreenWidth;
 
     useEffect(() => {
         if (shouldSaveDraft && formID) {
@@ -88,7 +90,8 @@ function DatePickerModal({
                 onSelected={handleDateSelection}
                 shouldEnableMonthYearBackdropInNarrowPane={shouldEnableMonthYearBackdropInNarrowPane}
                 pickerContextID={`datePicker-${inputID}`}
-                shouldCloseModalOnYearPickerOpen
+                shouldCloseModalOnYearPickerOpen={!shouldHideInPlace}
+                shouldHideOnYearPickerOpen={shouldHideInPlace}
             />
         </PopoverWithMeasuredContent>
     );

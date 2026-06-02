@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import ScrollView from '@components/ScrollView';
@@ -44,6 +44,7 @@ type DateSelectPopupProps = {
 function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, setPopoverWidth}: DateSelectPopupProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const shouldHideInPlace = Platform.OS === 'web' && !isSmallScreenWidth;
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -154,7 +155,8 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
                         presets={presets}
                         onDateValuesChange={updateRangeText}
                         onRangeValidationErrorChange={setShouldShowRangeError}
-                        shouldCloseModalOnYearPickerOpen
+                        shouldCloseModalOnYearPickerOpen={!shouldHideInPlace}
+                        shouldHideOnYearPickerOpen={shouldHideInPlace}
                     />
                     {shouldShowRangeError && (
                         <FormHelpMessage
