@@ -1662,6 +1662,9 @@ function Search({
         useCallback(() => {
             return () => {
                 cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
+                // Unconditional, like the legacy span above and unlike the unmount cancel: blur fires before the
+                // next Search tab tap starts new spans, so there is no freshly-started span to protect with a
+                // mount-identity guard here (and the mount-captured ref would be stale across re-focus cycles).
                 cancelNavigateToReportsSpans();
             };
         }, []),
