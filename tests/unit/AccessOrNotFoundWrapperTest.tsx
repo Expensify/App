@@ -1,6 +1,6 @@
 import {act, render, screen} from '@testing-library/react-native';
 import React from 'react';
-import {Text} from 'react-native';
+import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import Navigation from '@libs/Navigation/Navigation';
@@ -22,10 +22,10 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     isNavigationReady: jest.fn(() => Promise.resolve()),
 }));
 
-jest.mock('@react-navigation/native', () => {
-    const actual = jest.requireActual('@react-navigation/native');
-    return {...actual, useIsFocused: () => false};
-});
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof import('@react-navigation/native')>('@react-navigation/native'),
+    useIsFocused: () => false,
+}));
 
 jest.mock('@hooks/useIsWorkspacesTabFocused', () => ({__esModule: true, default: () => false}));
 jest.mock('@hooks/useNetwork', () => ({__esModule: true, default: () => ({isOffline: false})}));
@@ -55,7 +55,7 @@ function renderWrapper() {
     return render(
         <OnyxListItemProvider>
             <AccessOrNotFoundWrapper policyID={POLICY_ID}>
-                <Text>CHILDREN</Text>
+                <View testID="wrapper-children" />
             </AccessOrNotFoundWrapper>
         </OnyxListItemProvider>,
     );
@@ -105,7 +105,7 @@ describe('AccessOrNotFoundWrapper', () => {
         renderWrapper();
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByText('CHILDREN')).toBeTruthy();
+        expect(screen.getByTestId('wrapper-children')).toBeTruthy();
         expect(scheduledRemovals).toBe(0);
         expect(Navigation.removeScreenFromNavigationState).not.toHaveBeenCalled();
     });
