@@ -11,6 +11,7 @@ import {updateManyPolicyConnectionConfigs} from '@libs/actions/connections';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
+import {areLocationsImportedAsTags} from '@pages/workspace/accounting/qbo/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {clearQBOErrorField} from '@userActions/Policy/Policy';
@@ -45,6 +46,7 @@ function DynamicQuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
     const styles = useThemeStyles();
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {bankAccounts, accountPayable, journalEntryAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
+    const locationsImportedAsTags = areLocationsImportedAsTags(qboConfig);
     const isTaxesEnabled = !!qboConfig?.syncTax;
     const shouldShowTaxError = isTaxesEnabled && qboConfig?.reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY;
     const hasErrors = !!qboConfig?.errorFields?.reimbursableExpensesExportDestination && shouldShowTaxError;
@@ -59,7 +61,7 @@ function DynamicQuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
                 text: translate('workspace.qbo.accounts.check'),
                 keyForList: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
                 isSelected: qboConfig?.reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
-                isShown: qboConfig?.syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
+                isShown: !locationsImportedAsTags,
                 accounts: bankAccounts ?? [],
             },
             {
@@ -75,11 +77,11 @@ function DynamicQuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
                 text: translate('workspace.qbo.accounts.bill'),
                 keyForList: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
                 isSelected: qboConfig?.reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
-                isShown: qboConfig?.syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
+                isShown: !locationsImportedAsTags,
                 accounts: accountPayable ?? [],
             },
         ],
-        [qboConfig?.reimbursableExpensesExportDestination, qboConfig?.syncLocations, translate, bankAccounts, accountPayable, journalEntryAccounts, isTaxesEnabled],
+        [qboConfig?.reimbursableExpensesExportDestination, locationsImportedAsTags, translate, bankAccounts, accountPayable, journalEntryAccounts, isTaxesEnabled],
     );
 
     const filteredData = useMemo(() => data.filter((item) => item.isShown), [data]);
