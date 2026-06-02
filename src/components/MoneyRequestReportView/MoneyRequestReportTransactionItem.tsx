@@ -81,6 +81,9 @@ type MoneyRequestReportTransactionItemProps = {
 
     /** Whether the list is horizontally scrollable */
     shouldScrollHorizontally?: boolean;
+
+    /** Precomputed transaction-thread report ID, forwarded to the RBR so rows without RBR content can early-return instead of mounting the heavy inner. */
+    transactionThreadReportID?: string;
 };
 
 type MoneyRequestReportTransactionItemBodyProps = MoneyRequestReportTransactionItemProps & {
@@ -114,6 +117,7 @@ function MoneyRequestReportTransactionItemBody({
     nonPersonalAndWorkspaceCards,
     isLastItem = false,
     shouldScrollHorizontally = false,
+    transactionThreadReportID,
     inlineEdit,
     animatedHighlightStyle,
     shouldSkipDeferRBR = false,
@@ -226,6 +230,7 @@ function MoneyRequestReportTransactionItemBody({
                         onEditAmount={inlineEdit?.onEditAmount}
                         onEditTag={inlineEdit?.onEditTag}
                         shouldSkipDeferRBR={shouldSkipDeferRBR}
+                        transactionThreadReportID={transactionThreadReportID}
                     />
                 )}
             </PressableWithFeedback>
