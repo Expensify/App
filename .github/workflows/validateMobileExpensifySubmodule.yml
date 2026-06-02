@@ -6,11 +6,6 @@ on:
     branches: [main]
     paths:
       - 'Mobile-Expensify'
-  workflow_dispatch:
-  # Temporary: new workflows do not run on pull_request until merged to main.
-  push:
-    branches:
-      - rory-91349-validate-mobile-expensify-submodule
 
 jobs:
   validate-mobile-expensify-submodule:
