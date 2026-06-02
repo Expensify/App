@@ -87,6 +87,24 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
     const reportScrollManager = useReportScrollManager();
+    // The unified list writes its last item index here (see lastItemIndexRef prop). We jump to the bottom via
+    // scrollToIndex rather than scrollToEnd: scrollToEnd targets an estimated content-end offset, which on a large
+    // list (hundreds of transactions + chat) leaves the bottom blank until it renders/corrects. scrollToIndex
+    // targets the last item directly and renders around it, so the landing is not blank.
+    const lastItemIndexRef = useRef(0);
+    const updateLastItemIndex = useCallback((index: number) => {
+        lastItemIndexRef.current = index;
+    }, []);
+
+    const scrollToBottom = useCallback(() => {
+        if (lastItemIndexRef.current < 0) {
+            return;
+        }
+
+        const listRef = reportScrollManager.ref as unknown as React.RefObject<FlashListRef<UnifiedListItem>>;
+        listRef.current?.scrollToIndex({index: lastItemIndexRef.current, animated: false});
+    }, [reportScrollManager.ref]);
+
     const lastMessageTime = useRef<string | null>(null);
     const didLayout = useRef(false);
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
@@ -608,14 +626,14 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
         if (!hasNewestReportAction) {
             openReport({reportID, introSelected, betas});
-            reportScrollManager.scrollToEnd();
+            scrollToBottom();
             return;
         }
 
         // Defer marking the report as read until the scroll actually reaches the bottom (handled in onTrackScrolling).
         pendingMarkAsReadRef.current = true;
-        reportScrollManager.scrollToEnd();
-    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, reportID, introSelected, betas]);
+        scrollToBottom();
+    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, scrollToBottom, reportID, introSelected, betas]);
 
     useEffect(() => {
         return () => {
@@ -630,7 +648,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         if (!stickToBottomRef.current) {
             return;
         }
-        reportScrollManager.scrollToEnd();
+        scrollToBottom();
     };
 
     const onListScrollBeginDrag = () => {
@@ -724,6 +742,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                         renderReportAction={renderReportAction}
                         linkedReportActionID={linkedReportActionID}
                         listRef={reportScrollManager.ref as unknown as React.Ref<FlashListRef<UnifiedListItem>>}
+                        onLastItemIndexChange={updateLastItemIndex}
                         accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                         onListLayout={recordTimeToMeasureItemLayout}
                         onScroll={trackVerticalScrolling}

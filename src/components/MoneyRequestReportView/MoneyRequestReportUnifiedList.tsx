@@ -1,6 +1,6 @@
 import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
 import {FlashList} from '@shopify/flash-list';
-import React, {memo} from 'react';
+import React, {memo, useEffect} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -53,6 +53,9 @@ type MoneyRequestReportUnifiedListProps = {
     isOffline: boolean;
     isLoadingInitialActions: boolean;
     skeletonReasonAttributes: SkeletonSpanReasonAttributes;
+    /** Reports the index of the last list item so callers can jump to the bottom via scrollToIndex (which renders the
+     * landing region, unlike scrollToEnd's estimated-offset jump that leaves the bottom blank on large lists). */
+    onLastItemIndexChange?: (index: number) => void;
 };
 
 function MoneyRequestReportUnifiedList({
@@ -75,9 +78,18 @@ function MoneyRequestReportUnifiedList({
     isOffline,
     isLoadingInitialActions,
     skeletonReasonAttributes,
+    onLastItemIndexChange,
 }: MoneyRequestReportUnifiedListProps) {
     const reportActionItems: UnifiedListItem[] = visibleReportActions.map((action) => ({type: 'report-action', action}));
     const data: UnifiedListItem[] = controller.isEmptyTransactions ? reportActionItems : [...controller.transactionListItems, TRANSACTIONS_FOOTER_ITEM, ...reportActionItems];
+
+    // Report the last index so callers can jump to the bottom via scrollToIndex.
+    const lastDataIndex = data.length - 1;
+
+    useEffect(() => {
+        onLastItemIndexChange?.(lastDataIndex);
+    }, [lastDataIndex, onLastItemIndexChange]);
+
     const lastTransactionItemIndex = controller.transactionListItems.length - 1;
     const reportActionIndexOffset = controller.isEmptyTransactions ? 0 : controller.transactionListItems.length + 1;
 

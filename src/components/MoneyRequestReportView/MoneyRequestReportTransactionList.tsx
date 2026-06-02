@@ -196,6 +196,9 @@ type MoneyRequestReportTransactionListProps = {
     /** Ref forwarded to the underlying FlashList. */
     listRef: React.Ref<FlashListRef<UnifiedListItem>>;
 
+    /** Reports the unified list's last item index so the parent can jump to the bottom via scrollToIndex. */
+    onLastItemIndexChange?: (index: number) => void;
+
     /** Accessibility label for the unified list. */
     accessibilityLabel: string;
 
@@ -252,6 +255,7 @@ function MoneyRequestReportTransactionList({
     renderReportAction,
     linkedReportActionID,
     listRef,
+    onLastItemIndexChange,
     accessibilityLabel,
     onListLayout,
     onScroll,
@@ -1068,6 +1072,7 @@ function MoneyRequestReportTransactionList({
                 renderReportAction={renderReportAction}
                 linkedReportActionID={linkedReportActionID}
                 listRef={listRef}
+                onLastItemIndexChange={onLastItemIndexChange}
                 accessibilityLabel={accessibilityLabel}
                 onLayout={onListLayout}
                 onScroll={onScroll}
