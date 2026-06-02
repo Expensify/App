@@ -141,7 +141,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
                 styles.textUnderlinePositionUnder,
                 styles.textDecorationSkipInkNone,
                 isChildOfTaskTitle && styles.taskTitleMenuItem,
-                styles.dInlineFlex,
+                styles.dInline,
                 hoverStyle,
             ]}
             key={key}
@@ -167,7 +167,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
                                     textDecorationLineStyle,
                                     styles.textUnderlinePositionUnder,
                                     styles.textDecorationSkipInkNone,
-                                    styles.dInlineFlex,
+                                    styles.dInline,
                                     hoverStyle,
                                 ]}
                             >
