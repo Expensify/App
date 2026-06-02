@@ -1801,6 +1801,10 @@ const staticStyles = (theme: ThemeColors) =>
             boxShadow: theme.shadow,
         },
 
+        floatingCameraActionButton: {
+            backgroundColor: colors.green600,
+        },
+
         floatingSecondaryActionButton: {
             backgroundColor: theme.buttonDefaultBG,
             height: variables.componentSizeLarge,

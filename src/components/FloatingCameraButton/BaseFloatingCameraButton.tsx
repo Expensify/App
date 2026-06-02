@@ -104,7 +104,7 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.FLOATING_CAMERA_BUTTON}
         >
             <View
-                style={styles.floatingActionButton}
+                style={[styles.floatingActionButton, styles.floatingCameraActionButton]}
                 testID="floating-camera-button-container"
             >
                 <Icon
