@@ -172,7 +172,7 @@ function WorkspacePageWithSections({
     const shouldShowPolicy = useMemo(() => shouldShowPolicyUtil(policy, false, currentUserLogin), [policy, currentUserLogin]);
     let hasAccessToPolicyFeature: boolean | undefined;
     if (policyFeature) {
-        hasAccessToPolicyFeature = currentUserLogin ? canMemberRead(policy, currentUserLogin, policyFeature) : false;
+        hasAccessToPolicyFeature = canMemberRead(policy, currentUserLogin ?? '', policyFeature);
     }
     const isPendingDelete = isPendingDeletePolicy(policy);
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
