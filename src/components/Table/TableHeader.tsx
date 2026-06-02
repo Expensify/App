@@ -80,8 +80,8 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
     // consider all active rows to be selected
     if (isSelectionCheckboxVisible) {
         for (const row of processedData) {
-            isSelectionIndeterminate ||= row.selected;
-            isEverySelectableRowSelected &&= !!(row.selected || row.disabled);
+            isSelectionIndeterminate = row.selected || isSelectionIndeterminate;
+            isEverySelectableRowSelected = !!(row.selected || row.disabled) && isEverySelectableRowSelected;
         }
     }
 
