@@ -1,14 +1,12 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
-import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
-import {scheduleOnRN} from 'react-native-worklets';
+import Animated from 'react-native-reanimated';
 import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
-import {easing} from '@components/Modal/ReanimatedModal/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useSearchSelectionContext} from '@components/Search/SearchContext';
@@ -17,6 +15,7 @@ import type {SearchColumnType, SearchCustomColumnIds, SearchGroupBy} from '@comp
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -178,38 +177,10 @@ function GroupHeader({
         return {isSubHeaderAmountColumnWide: amountWide, isSubHeaderTaxAmountColumnWide: taxWide, shouldSubHeaderShowYear: showYear, isSubHeaderActionColumnWide: actionWide};
     }, [groupItem.transactions]);
 
-    // Animated sub-header (SearchTableHeader) height
-    const subHeaderHeight = useSharedValue(0);
-    const hasExpanded = useSharedValue(isExpanded);
-    const [isSubHeaderRendered, setIsSubHeaderRendered] = useState(isExpanded);
+    const {isRendered: isSubHeaderRendered, animatedStyle: subHeaderAnimatedStyle, onLayout: onSubHeaderLayout} = useExpandCollapseAnimation(isExpanded);
 
-    useEffect(() => {
-        hasExpanded.set(isExpanded);
-    }, [isExpanded, hasExpanded]);
-
-    if (isExpanded && !isSubHeaderRendered) {
-        setIsSubHeaderRendered(true);
-    }
-
-    const animatedSubHeaderHeight = useDerivedValue(() => {
-        if (!subHeaderHeight.get()) {
-            return 0;
-        }
-        const target = hasExpanded.get() ? subHeaderHeight.get() : 0;
-        return withTiming(target, {duration: 300, easing}, (finished) => {
-            if (!finished || target) {
-                return;
-            }
-            scheduleOnRN(setIsSubHeaderRendered, false);
-        });
-    }, []);
-
-    const subHeaderAnimatedStyle = useAnimatedStyle(() => ({
-        height: animatedSubHeaderHeight.get(),
-        overflow: 'hidden' as const,
-    }));
-
-    const isEmpty = groupItem.transactions.length === 0;
+    const hasSnapshotTransactions = !isExpenseReportType && !!snapshotData && Object.keys(snapshotData).some((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
+    const isEmpty = groupItem.transactions.length === 0 && !hasSnapshotTransactions;
     const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const isDisabledOrEmpty = isEmpty || isDisabled;
 
@@ -459,12 +430,7 @@ function GroupHeader({
                                 {(isExpanded || isSubHeaderRendered) && (
                                     <View
                                         style={styles.stickToTop}
-                                        onLayout={(e) => {
-                                            const height = e.nativeEvent.layout.height;
-                                            if (height) {
-                                                subHeaderHeight.set(height);
-                                            }
-                                        }}
+                                        onLayout={onSubHeaderLayout}
                                     >
                                         <View style={[styles.ph3, styles.pb1]}>
                                             <View style={[styles.borderBottom, styles.borderNone]} />
