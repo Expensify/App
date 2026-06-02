@@ -72,6 +72,8 @@ function prepareToCleanUpMoneyRequest(
     selectedTransactionIDs?: string[],
 ) {
     const allTransactions = getAllTransactions();
+    // TODO: https://github.com/Expensify/App/issues/66512
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const allTransactionViolations = getAllTransactionViolations();
     const allReportActions = getAllReportActionsFromIOU();
 

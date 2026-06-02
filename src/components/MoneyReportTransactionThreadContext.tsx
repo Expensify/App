@@ -60,5 +60,4 @@ function useMoneyReportTransactionThread() {
     return useContext(MoneyReportTransactionThreadContext);
 }
 
-export default MoneyReportTransactionThreadContext;
 export {MoneyReportTransactionThreadProvider, useMoneyReportTransactionThread};

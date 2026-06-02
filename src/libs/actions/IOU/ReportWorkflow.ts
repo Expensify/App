@@ -296,6 +296,8 @@ function getBadgeFromIOUReport(
         chatReport,
         policy,
         getReportTransactions(iouReport?.reportID),
+        // TODO: https://github.com/Expensify/App/issues/66512
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         getAllTransactionViolations(),
         currentUserLogin,
         currentUserAccountID,
@@ -409,6 +411,8 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     const reportTransactions = getReportTransactions(expenseReport.reportID);
     let total = expenseReport.total ?? 0;
     const hasHeldExpenses = hasHeldExpensesReportUtils(reportTransactions);
+    // TODO: https://github.com/Expensify/App/issues/66512
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const hasDuplicates = hasDuplicateTransactions(currentUserEmailParam, currentUserAccountIDParam, expenseReport, policy, getAllTransactionViolations());
     if (hasHeldExpenses && !full && !!expenseReport.unheldTotal) {
         total = expenseReport.unheldTotal;
@@ -511,6 +515,8 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
                     updatedExpenseReport,
                     currentUserEmailParam,
                     currentUserAccountIDParam,
+                    // TODO: https://github.com/Expensify/App/issues/66512
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     getAllTransactionViolations(),
                     undefined,
                 ),
@@ -706,6 +712,8 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
                 currentUserAccountIDParam,
                 expenseReport,
                 policy,
+                // TODO: https://github.com/Expensify/App/issues/66512
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 getAllTransactionViolations()?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID],
             ),
         );
@@ -714,6 +722,8 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         }
 
         for (const transaction of transactions) {
+            // TODO: https://github.com/Expensify/App/issues/66512
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const transactionViolations = getAllTransactionViolations()?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
             const newTransactionViolations = transactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
             optimisticData.push({
