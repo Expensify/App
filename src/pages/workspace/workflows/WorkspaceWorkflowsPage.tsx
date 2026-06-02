@@ -474,7 +474,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                             shouldShow={searchFilteredWorkflows.length === 0 && workflowSearchInput.length > 0}
                             searchValue={workflowSearchInput}
                         />
-                        {searchFilteredWorkflows.map((workflow) => (
+                        {searchFilteredWorkflows.slice(0, 10).map((workflow) => (
                             <OfflineWithFeedback
                                 key={workflow.routingFirstApproverEmail}
                                 pendingAction={workflow.pendingAction}
