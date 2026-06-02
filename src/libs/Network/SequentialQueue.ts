@@ -586,6 +586,18 @@ async function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>): Promis
     // a process kill in that window would lose the request on next launch.
     await persistencePromise;
 
+    // The network may have flipped offline while we awaited the disk write. flush() would
+    // early-return on its offline check without resolving isReadyPromise, leaving READs parked
+    // on waitForIdle() until an unrelated reconnect drains the queue. Resolve here so READs
+    // proceed — consistent with flush() resolving isReadyPromise when offline.
+    if (isOfflineNetwork()) {
+        Log.info('[SequentialQueue] Went offline during persist — resolving isReadyPromise without flushing', false, {
+            command: newRequest.command,
+        });
+        resolveIsReadyPromise?.();
+        return;
+    }
+
     if (isSequentialQueueRunning) {
         Log.info('[SequentialQueue] Queue is running. Will flush when the current request is finished.', false, {
             command: newRequest.command,

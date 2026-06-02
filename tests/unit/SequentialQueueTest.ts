@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
+import * as NetworkState from '@libs/NetworkState';
 import {clear as clearPersistedRequests, getAll, getLength, getOngoingRequest, updateOngoingRequest} from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,6 +37,41 @@ describe('SequentialQueue', () => {
         SequentialQueue.push(request);
         SequentialQueue.push(request);
         expect(getLength()).toBe(2);
+    });
+
+    it('should resolve waitForIdle without flushing when the network goes offline during persist', async () => {
+        // push()'s sync prelude marks isReadyPromise pending while online, then awaits the disk
+        // write. If the network flips offline during that await, flush() would early-return on its
+        // offline guard without resolving isReadyPromise — leaving waitForIdle() (READs) hung until
+        // an unrelated reconnect. push() must instead resolve isReadyPromise and skip flushing.
+        const offlineSpy = jest.spyOn(NetworkState, 'getIsOffline').mockReturnValue(false);
+        let timeoutId: ReturnType<typeof setTimeout> | undefined;
+        try {
+            // Kick off the push while "online": the synchronous prelude runs up to `await persistencePromise`.
+            const pushPromise = SequentialQueue.push(request);
+
+            // Flip offline while the awaited disk write is still pending.
+            offlineSpy.mockReturnValue(true);
+
+            await pushPromise;
+
+            // The request is still persisted — not flushed, not dropped.
+            expect(getLength()).toBe(1);
+
+            // waitForIdle() must resolve rather than hang.
+            const idleOrTimeout = await Promise.race([
+                SequentialQueue.waitForIdle().then(() => 'resolved' as const),
+                new Promise<'timeout'>((resolve) => {
+                    timeoutId = setTimeout(() => resolve('timeout'), 1000);
+                }),
+            ]);
+            expect(idleOrTimeout).toBe('resolved');
+        } finally {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+            offlineSpy.mockRestore();
+        }
     });
 
     it('should push two requests with conflict resolution and replace', async () => {
