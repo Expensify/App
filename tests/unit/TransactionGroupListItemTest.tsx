@@ -7,7 +7,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import {SearchContextProvider} from '@components/Search/SearchContext';
+import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import type {TransactionGroupListItemProps, TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import TransactionGroupListItem from '@src/components/Search/SearchList/ListItem/TransactionGroupListItem';
 import CONST from '@src/CONST';
@@ -33,6 +33,7 @@ jest.mock('@react-navigation/native', () => ({
     useNavigation: () => ({
         navigate: jest.fn(),
         addListener: jest.fn(),
+        getState: jest.fn(() => undefined),
     }),
     useFocusEffect: jest.fn((callback: () => void) => callback()),
     useRoute: () => ({

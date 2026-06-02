@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OptionData} from '@libs/ReportUtils';
 import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
@@ -24,6 +25,7 @@ type SearchSingleSelectionPickerProps = {
     backToRoute?: Route;
     shouldAutoSave?: boolean;
     shouldShowTextInput?: boolean;
+    allowNoneOption?: boolean;
 };
 
 function SearchSingleSelectionPicker({
@@ -34,6 +36,7 @@ function SearchSingleSelectionPicker({
     backToRoute,
     shouldAutoSave,
     shouldShowTextInput = true,
+    allowNoneOption = false,
 }: SearchSingleSelectionPickerProps) {
     const {translate, localeCompare} = useLocalize();
 
@@ -45,6 +48,18 @@ function SearchSingleSelectionPicker({
     }, [initiallySelectedItem]);
 
     const searchLower = debouncedSearchTerm?.toLowerCase();
+    const noneItem =
+        allowNoneOption && translate('common.none').toLowerCase().includes(searchLower)
+            ? [
+                  {
+                      text: translate('common.none'),
+                      keyForList: CONST.SEARCH.NONE_OPTION_KEY,
+                      isSelected: !selectedItem?.value,
+                      value: '',
+                  },
+              ]
+            : [];
+
     const initiallySelectedItemSection =
         initiallySelectedItem?.name.toLowerCase().includes(searchLower) || initiallySelectedItem?.searchableText?.toLowerCase().includes(searchLower)
             ? [
@@ -67,14 +82,14 @@ function SearchSingleSelectionPicker({
             value: item.value,
         }));
 
-    const noResultsFound = !initiallySelectedItemSection.length && !remainingItemsSection.length;
+    const noResultsFound = !noneItem.length && !initiallySelectedItemSection.length && !remainingItemsSection.length;
 
     const sections = noResultsFound
         ? []
         : [
               {
                   title: undefined,
-                  data: initiallySelectedItemSection,
+                  data: [...initiallySelectedItemSection, ...noneItem],
                   sectionIndex: 0,
               },
               {
@@ -85,7 +100,7 @@ function SearchSingleSelectionPicker({
           ];
 
     const onSelectItem = (item: Partial<OptionData & SearchSingleSelectionPickerItem>) => {
-        if (!item.text || !item.keyForList || !item.value) {
+        if (!item.text || !item.keyForList || item.value === undefined) {
             return;
         }
         if (shouldAutoSave) {
