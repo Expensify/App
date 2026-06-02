@@ -671,13 +671,15 @@ function ReportActionsList({
             return;
         }
         const prevSorted = lastAction?.reportActionID ? prevSortedVisibleReportActionsObjects[lastAction?.reportActionID] : null;
-        if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER && !prevSorted) {
-            TransitionTracker.runAfterTransitions({
-                callback: () => {
-                    reportScrollManager.scrollToBottom();
-                },
-            });
+        if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER || prevSorted) {
+            return;
         }
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => {
+                reportScrollManager.scrollToBottom();
+            },
+        });
+        return () => handle.cancel();
     }, [lastAction?.reportActionID, lastAction?.actionName, prevSortedVisibleReportActionsObjects, reportScrollManager]);
 
     // Clear the highlighted report action after scrolling and highlighting
@@ -699,11 +701,12 @@ function ReportActionsList({
         if (lastIOUActionWithError?.reportActionID === prevLastIOUActionWithError?.reportActionID) {
             return;
         }
-        TransitionTracker.runAfterTransitions({
+        const handle = TransitionTracker.runAfterTransitions({
             callback: () => {
                 reportScrollManager.scrollToBottom();
             },
         });
+        return () => handle.cancel();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastAction]);
 
