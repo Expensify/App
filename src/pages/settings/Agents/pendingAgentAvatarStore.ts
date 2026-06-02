@@ -48,5 +48,4 @@ function getReturnRoute(): Route | undefined {
     return returnRoute;
 }
 
-export type {PendingAvatar, PendingPresetAvatar, PendingFileAvatar};
 export {setInitialPresetID, getInitialPresetID, setPendingAvatar, getPendingAvatar, clearPendingAvatar, setNavigationToken, consumeNavigationToken, setReturnRoute, getReturnRoute};
