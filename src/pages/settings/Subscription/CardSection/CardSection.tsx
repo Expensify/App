@@ -110,7 +110,7 @@ function CardSection() {
                 CONST.SEARCH.STATUS.EXPENSE.DELETED,
             ],
             merchant: CONST.EXPENSIFY_MERCHANT,
-            from: [CONST.SEARCH.ME],
+            from: session?.accountID ? [session.accountID.toString()] : undefined,
         });
 
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query}));
