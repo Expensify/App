@@ -94,13 +94,6 @@ export default function WorkspaceListTable({ref, workspaces}: WorkspaceListTable
         );
     };
 
-    const ListHeaderComponent = (
-        <>
-            {workspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.common.findWorkspace')} />}
-            <Table.Header />
-        </>
-    );
-
     return (
         <Table
             ref={ref}
@@ -111,9 +104,14 @@ export default function WorkspaceListTable({ref, workspaces}: WorkspaceListTable
             isItemInSearch={isTableItemInSearch}
             initialSortColumn="workspaces"
             title={translate('common.workspaces')}
-            ListHeaderComponent={ListHeaderComponent}
             ListEmptyComponent={WorkspacesEmptyStateComponent}
             keyExtractor={(row, index) => `${row.policyID}-${index}`}
+            ListHeaderComponent={
+                <>
+                    {workspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.common.findWorkspace')} />}
+                    <Table.Header />
+                </>
+            }
         >
             <Table.Body />
         </Table>
