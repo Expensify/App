@@ -39,7 +39,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {setOptimisticTransactionThread} from '@libs/actions/Report';
-import {getReportLayoutGroupBy, setReportLayout} from '@libs/actions/ReportLayout';
+import {getReportLayoutGroupBy, getReportLayoutSelection, isMatrixLayout, setReportLayout} from '@libs/actions/ReportLayout';
 import {clearActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {resolveTransactionCardFields} from '@libs/CardUtils';
 import {hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
@@ -414,9 +414,8 @@ function MoneyRequestReportTransactionList({
     }, [sortedTransactions, shouldScrollHorizontally]);
 
     const currentGroupBy = getReportLayoutGroupBy(reportLayoutGroupBy);
-    const isMatrixLayout = reportLayoutOption === CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX;
-    const shouldGroupTransactions = shouldShowGroupedTransactions && !isMatrixLayout;
-    const currentSelection = isMatrixLayout ? CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX : currentGroupBy;
+    const shouldGroupTransactions = shouldShowGroupedTransactions && !isMatrixLayout(reportLayoutOption);
+    const currentSelection = getReportLayoutSelection(reportLayoutOption, reportLayoutGroupBy);
 
     const groupedTransactions = useMemo(() => {
         if (!shouldGroupTransactions) {
