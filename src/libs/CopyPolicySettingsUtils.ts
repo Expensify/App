@@ -4,6 +4,7 @@ import type {Policy} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import {isAuthenticationError} from './actions/connections';
 import type {Part} from './actions/Policy/CopyPolicySettings';
+import {isTimeTrackingEnabled} from './PolicyUtils';
 
 type FeatureRow = {
     part: Part;
@@ -25,6 +26,7 @@ const FEATURE_ROWS = [
     {part: 'perDiem', labelKey: 'workspace.common.perDiem'},
     {part: 'invoices', labelKey: 'workspace.common.invoices'},
     {part: 'travel', labelKey: 'workspace.common.travel'},
+    {part: 'timeTracking', labelKey: 'workspace.moreFeatures.timeTracking.title'},
 ] as const satisfies readonly FeatureRow[];
 
 type CopyPolicySettingsSourceFeatureContext = {
@@ -225,6 +227,8 @@ function isCopyPolicySettingsPartEnabledOnSource(part: Part, context: CopyPolicy
             return !!policy?.areInvoicesEnabled && context.hasInvoiceConfiguration;
         case 'travel':
             return !!policy?.isTravelEnabled;
+        case 'timeTracking':
+            return isTimeTrackingEnabled(policy) || policy?.units?.time?.rate !== undefined;
         default:
             return false;
     }

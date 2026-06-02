@@ -186,6 +186,18 @@ describe('CopyPolicySettingsUtils', () => {
             expect(isCopyPolicySettingsPartEnabledOnSource('travel', {...baseContext, policy: travelPolicy})).toBe(true);
         });
 
+        it('shows time tracking when enabled or a default rate is configured', () => {
+            expect(isCopyPolicySettingsPartEnabledOnSource('timeTracking', baseContext)).toBe(false);
+
+            const timeTrackingPolicy = createRandomPolicy(5);
+            timeTrackingPolicy.units = {time: {enabled: true, rate: 75}};
+            expect(isCopyPolicySettingsPartEnabledOnSource('timeTracking', {...baseContext, policy: timeTrackingPolicy})).toBe(true);
+
+            const rateOnlyPolicy = createRandomPolicy(6);
+            rateOnlyPolicy.units = {time: {enabled: false, rate: 50}};
+            expect(isCopyPolicySettingsPartEnabledOnSource('timeTracking', {...baseContext, policy: rateOnlyPolicy})).toBe(true);
+        });
+
         it('hides distance rates when the feature flag is off even if rates exist', () => {
             expect(isCopyPolicySettingsPartEnabledOnSource('distanceRates', baseContext)).toBe(false);
 
@@ -280,6 +292,7 @@ describe('CopyPolicySettingsUtils', () => {
             expect(parts).toContain('perDiem');
             expect(parts).toContain('invoices');
             expect(parts).toContain('travel');
+            expect(parts).toContain('timeTracking');
         });
     });
 });

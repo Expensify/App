@@ -9,6 +9,7 @@ import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectL
 import type {ConfirmButtonOptions, ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,7 +20,7 @@ import {areAllTargetsAccountingCompatible, areAllTargetsCompatibleForAccountingP
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PolicyCopySettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getDistanceRateCustomUnit, getMemberAccountIDsForWorkspace, getPerDiemCustomUnit, isCollectPolicy} from '@libs/PolicyUtils';
+import {getDefaultTimeTrackingRate, getDistanceRateCustomUnit, getMemberAccountIDsForWorkspace, getPerDiemCustomUnit, isCollectPolicy, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 import {formatAddressToString} from '@libs/ReportActionsUtils';
 import {getReportFieldsByPolicyID} from '@libs/ReportUtils';
 import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
@@ -45,6 +46,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {showConfirmModal} = useConfirmModal();
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -161,6 +163,14 @@ function CopyPolicySettingsSelectFeaturesPage() {
                 return distanceRatesCount > 0 ? `${distanceRatesCount} ${translate('iou.rates').toLowerCase()}` : undefined;
             case 'perDiem':
                 return perDiemCount > 0 ? `${perDiemCount} ${translate('workspace.common.perDiem').toLowerCase()}` : undefined;
+            case 'timeTracking': {
+                const defaultRate = getDefaultTimeTrackingRate(sourcePolicy);
+                const enabledText = isTimeTrackingEnabled(sourcePolicy) ? translate('common.enabled') : translate('common.disabled');
+                if (defaultRate !== undefined && sourcePolicy?.outputCurrency) {
+                    return `${enabledText}, ${convertToDisplayString(defaultRate, sourcePolicy.outputCurrency)}`;
+                }
+                return enabledText;
+            }
             case 'invoices': {
                 const bankAccountsText = workspaceBankAccountsCount > 0 ? `${workspaceBankAccountsCount} ${translate('common.bankAccounts').toLowerCase()}` : '';
                 if (bankAccountsText && invoiceCompany) {

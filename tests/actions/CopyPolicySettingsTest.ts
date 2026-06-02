@@ -452,6 +452,26 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 expect(value.customUnits).toEqual({});
             });
 
+            it('copies units.time and pending fields for timeTracking', () => {
+                const sourcePolicy = makeSourcePolicy({
+                    units: {time: {enabled: true, rate: 75}},
+                });
+                const targetPolicy = makeTargetPolicy({
+                    units: {time: {enabled: false, rate: 10}},
+                });
+
+                const {optimisticData, successData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['timeTracking'], {}, {});
+
+                const value = findPolicyOptimistic(optimisticData)?.value as Policy;
+                expect(value.units?.time).toEqual({enabled: true, rate: 75});
+                expect(value.pendingFields?.isTimeTrackingEnabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                expect(value.pendingFields?.timeTrackingDefaultRate).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+                const successValue = successData.find((update) => update.key === POLICY_KEY && update.onyxMethod === Onyx.METHOD.MERGE)?.value as Policy;
+                expect(successValue.pendingFields?.isTimeTrackingEnabled).toBeNull();
+                expect(successValue.pendingFields?.timeTrackingDefaultRate).toBeNull();
+            });
+
             it('target with nested keys not in source — after optimistic, selected fields match source', () => {
                 const sourcePolicy = makeSourcePolicy({
                     tax: {trackingEnabled: true},
