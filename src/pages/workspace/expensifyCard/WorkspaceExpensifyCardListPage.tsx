@@ -18,6 +18,7 @@ import SearchBar from '@components/SearchBar';
 import Text from '@components/Text';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useEmptyViewHeaderHeight from '@hooks/useEmptyViewHeaderHeight';
 import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
@@ -39,7 +40,7 @@ import {getExpensifyCardFeedDescription} from '@libs/ExpensifyCardFeedSelectorUt
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
+import {canMemberWrite, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
@@ -72,6 +73,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const illustrations = useMemoizedLazyIllustrations(['HandCard', 'ExpensifyCardImage']);
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const defaultFundID = useDefaultFundID(policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
@@ -89,6 +91,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const isBankAccountVerified = !cardOnWaitlist;
     const {windowHeight} = useWindowDimensions();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
+    const canWriteExpensifyCard = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
     const headerHeight = useEmptyViewHeaderHeight(shouldDisplayButtonsInSeparateLine, isBankAccountVerified);
     const [footerHeight, setFooterHeight] = useState(0);
     const cardFeedIcon = (
@@ -171,14 +174,16 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
         setIssueNewCardStepAndData({policyID, isChangeAssigneeDisabled: false});
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path));
     };
-    const secondaryActions = [
-        {
-            icon: icons.Gear,
-            text: translate('common.settings'),
-            onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID)),
-            value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
-        },
-    ];
+    const secondaryActions = canWriteExpensifyCard
+        ? [
+              {
+                  icon: icons.Gear,
+                  text: translate('common.settings'),
+                  onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID)),
+                  value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
+              },
+          ]
+        : [];
     const getHeaderButtons = () => {
         const headerButtonsRowStyle = [
             styles.flexRow,
@@ -206,7 +211,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
         return (
             <View style={headerButtonsRowStyle}>
-                {!isCardListEmpty && (
+                {!isCardListEmpty && canWriteExpensifyCard && (
                     <Button
                         success
                         onPress={handleIssueCardPress}
@@ -216,16 +221,18 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_BUTTON}
                     />
                 )}
-                <ButtonWithDropdownMenu
-                    success={false}
-                    onPress={() => {}}
-                    customText={translate('common.more')}
-                    options={secondaryActions}
-                    isSplitButton={false}
-                    shouldUseOptionIcon
-                    wrapperStyle={isCardListEmpty && !isInLandscapeMode ? styles.flexGrow1 : styles.flexGrow0}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.MORE_DROPDOWN}
-                />
+                {secondaryActions.length > 0 && (
+                    <ButtonWithDropdownMenu
+                        success={false}
+                        onPress={() => {}}
+                        customText={translate('common.more')}
+                        options={secondaryActions}
+                        isSplitButton={false}
+                        shouldUseOptionIcon
+                        wrapperStyle={isCardListEmpty && !isInLandscapeMode ? styles.flexGrow1 : styles.flexGrow0}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.MORE_DROPDOWN}
+                    />
+                )}
             </View>
         );
     };
@@ -322,6 +329,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
         Navigation.goBack();
         return true;
     };
+    const shouldShowHeaderButtons = selectedCardIDs.length > 0 || canWriteExpensifyCard;
 
     useAndroidBackButtonHandler(handleBackButtonPress);
 
@@ -341,9 +349,9 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 shouldDisplayHelpButton
                 onBackButtonPress={handleBackButtonPress}
             >
-                {!shouldShowSelector && !shouldDisplayButtonsInSeparateLine && isBankAccountVerified && getHeaderButtons()}
+                {!shouldShowSelector && !shouldDisplayButtonsInSeparateLine && isBankAccountVerified && shouldShowHeaderButtons && getHeaderButtons()}
             </HeaderWithBackButton>
-            {!shouldShowSelector && shouldDisplayButtonsInSeparateLine && isBankAccountVerified && <View style={styles.ph5}>{getHeaderButtons()}</View>}
+            {!shouldShowSelector && shouldDisplayButtonsInSeparateLine && isBankAccountVerified && shouldShowHeaderButtons && <View style={styles.ph5}>{getHeaderButtons()}</View>}
             {shouldShowSelector && (
                 <View style={[styles.w100, styles.ph5, styles.pb3, (!shouldChangeLayout || isInLandscapeMode) && [styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]]}>
                     <FeedSelector
@@ -353,20 +361,24 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                         feedName={translate('workspace.common.expensifyCard')}
                         supportingText={getExpensifyCardFeedDescription(cardSettings, allPolicies)}
                     />
-                    {isBankAccountVerified && getHeaderButtons()}
+                    {isBankAccountVerified && (canWriteExpensifyCard || secondaryActions.length > 0) && getHeaderButtons()}
                 </View>
             )}
             {isCardListEmpty ? (
                 <EmptyCardView
                     isBankAccountVerified={isBankAccountVerified}
                     policyID={policyID}
-                    buttons={[
-                        {
-                            buttonText: translate('workspace.expensifyCard.issueCard'),
-                            buttonAction: handleIssueCardPress,
-                            success: true,
-                        },
-                    ]}
+                    buttons={
+                        canWriteExpensifyCard
+                            ? [
+                                  {
+                                      buttonText: translate('workspace.expensifyCard.issueCard'),
+                                      buttonAction: handleIssueCardPress,
+                                      success: true,
+                                  },
+                              ]
+                            : []
+                    }
                 />
             ) : (
                 <ScrollView

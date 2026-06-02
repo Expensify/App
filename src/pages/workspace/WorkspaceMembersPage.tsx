@@ -1037,6 +1037,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             shouldUseHeadlineHeader={!selectionModeHeader}
             shouldShowOfflineIndicatorInWideScreen
             shouldShowNonAdmin
+            policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
             onBackButtonPress={() => {
                 if (isMobileSelectionModeEnabled) {
                     setSelectedEmployees([]);

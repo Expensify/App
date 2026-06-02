@@ -12,6 +12,7 @@ import useSearchSelector from '@hooks/useSearchSelector';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {formatSectionsFromSearchTerm, getFilteredRecentAttendees, getParticipantsOption} from '@libs/OptionsListUtils';
 import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
+import {getExpensifyTeamExclusions} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
@@ -77,6 +78,8 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         [personalDetails, recentAttendees, currentUserEmail, currentUserAccountID, shouldAllowNameOnlyOptions],
     );
 
+    const expensifyTeamExclusions = getExpensifyTeamExclusions(personalDetails, allPolicies, currentUserEmail);
+
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, setSelectedOptions, toggleSelection, areOptionsInitialized, onListEndReached} =
         useSearchSelector({
             selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
@@ -84,6 +87,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             includeUserToInvite: true,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            excludeFromSuggestionsOnly: expensifyTeamExclusions,
             includeRecentReports: true,
             shouldInitialize: didScreenTransitionEnd,
             includeCurrentUser: true,

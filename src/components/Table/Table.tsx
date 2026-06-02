@@ -175,6 +175,10 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
                     return target[property as keyof typeof target];
                 }
 
+                if (property === 'getProcessedData') {
+                    return () => processedData;
+                }
+
                 return listRef.current?.[property as keyof FlashListRef<T>];
             },
         }) as TableHandle<T, ColumnKey, FilterKey>;

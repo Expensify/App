@@ -23,6 +23,7 @@ type TransactionItemRowNarrowProps = Pick<
     TransactionItemRowProps,
     | 'transactionItem'
     | 'report'
+    | 'policy'
     | 'isSelected'
     | 'shouldShowTooltip'
     | 'onCheckboxPress'
@@ -44,6 +45,7 @@ type TransactionItemRowNarrowProps = Pick<
 function TransactionItemRowNarrow({
     transactionItem,
     report,
+    policy,
     isSelected,
     shouldShowTooltip,
     onCheckboxPress = () => {},
@@ -120,6 +122,8 @@ function TransactionItemRowNarrow({
                                 <TotalCell
                                     transactionItem={transactionItem}
                                     shouldShowTooltip={shouldShowTooltip}
+                                    report={report}
+                                    policy={policy}
                                     shouldUseNarrowLayout
                                 />
                             </View>
