@@ -4,9 +4,7 @@
  */
 import {fetch as nitroFetch, Headers as NitroHeaders, Request as NitroRequest, Response as NitroResponse} from 'react-native-nitro-fetch';
 
-// nitro-fetch is a native HTTP client (Cronet on Android, URLSession on iOS) and cannot read
-// local-scheme URLs (file://, blob:, data:). React Native's built-in fetch can, and many callsites
-// rely on `fetch(file://...)`/`fetch(blob:...)` to read local files into blobs (e.g. receipt reading).
+// nitro-fetch is a native HTTP client and cannot read local-scheme URLs (file://, blob:, data:).
 // So we route only http(s) requests through nitro-fetch and fall back to the original fetch for local schemes.
 const originalFetch = globalThis.fetch;
 const LOCAL_SCHEME_REGEX = /^(file|blob|data):/i;
