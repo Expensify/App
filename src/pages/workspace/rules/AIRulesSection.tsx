@@ -24,10 +24,9 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type AIRulesSectionProps = {
     policyID: string;
-    canWriteRules: boolean;
 };
 
-function AIRulesSection({policyID, canWriteRules}: AIRulesSectionProps) {
+function AIRulesSection({policyID}: AIRulesSectionProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -106,9 +105,8 @@ function AIRulesSection({policyID, canWriteRules}: AIRulesSectionProps) {
                                     <MenuItemWithTopDescription
                                         title={rule.prompt}
                                         wrapperStyle={[styles.borderedContentCard, styles.ph4, styles.pv4]}
-                                        shouldShowRightIcon={canWriteRules}
+                                        shouldShowRightIcon
                                         onPress={() => Navigation.navigate(ROUTES.RULES_AI_EDIT.getRoute(policyID, rule.ruleID))}
-                                        interactive={canWriteRules}
                                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.AI_RULE_ITEM}
                                         disabled={rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                                     />
@@ -118,18 +116,16 @@ function AIRulesSection({policyID, canWriteRules}: AIRulesSectionProps) {
                     })}
                 </View>
             )}
-            {canWriteRules && (
-                <MenuItem
-                    title={translate('workspace.rules.aiRules.addRule')}
-                    titleStyle={styles.textStrong}
-                    icon={expensifyIcons.Plus}
-                    iconHeight={20}
-                    iconWidth={20}
-                    style={[styles.sectionMenuItemTopDescription, !hasRules && styles.mt6, styles.mbn3]}
-                    onPress={() => Navigation.navigate(ROUTES.RULES_AI_NEW.getRoute(policyID))}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ADD_AI_RULE}
-                />
-            )}
+            <MenuItem
+                title={translate('workspace.rules.aiRules.addRule')}
+                titleStyle={styles.textStrong}
+                icon={expensifyIcons.Plus}
+                iconHeight={20}
+                iconWidth={20}
+                style={[styles.sectionMenuItemTopDescription, !hasRules && styles.mt6, styles.mbn3]}
+                onPress={() => Navigation.navigate(ROUTES.RULES_AI_NEW.getRoute(policyID))}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ADD_AI_RULE}
+            />
         </Section>
     );
 }
