@@ -2,8 +2,7 @@ import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import truncate from 'lodash/truncate';
 import React, {useContext, useEffect} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import type {ButtonWithDropdownMenuRef} from '@components/ButtonWithDropdownMenu/types';
@@ -43,7 +42,6 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import getPlatform from '@libs/getPlatform';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import type {KYCFlowEvent, TriggerKYCFlow, WorkspacePolicyPaymentOption} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
@@ -150,18 +148,12 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
         } else if (isAnyTransactionOnHold) {
-            const holdMenuParams = {
+            openHoldMenu({
                 requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                 paymentType: type,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
                 onConfirm: () => startAnimation(),
-            };
-            if (getPlatform() === CONST.PLATFORM.IOS) {
-                // InteractionManager delays modal until current interaction completes, preventing visual glitches on iOS
-                InteractionManager.runAfterInteractions(() => openHoldMenu(holdMenuParams));
-            } else {
-                openHoldMenu(holdMenuParams);
-            }
+            });
         } else if (isInvoiceReport) {
             startAnimation();
             payInvoice({

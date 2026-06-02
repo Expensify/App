@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {LinkSuccessMetadata} from 'react-native-plaid-link-sdk';
 import type {PlaidLinkOnSuccessMetadata} from 'react-plaid-link/src/types';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -144,16 +143,14 @@ function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionSte
                                     JSON.stringify(metadata?.accounts),
                                     '',
                                 );
-                                InteractionManager.runAfterInteractions(() => {
-                                    setAssignCardStepAndData({
-                                        cardToAssign: {
-                                            plaidAccessToken: publicToken,
-                                            institutionId: plaidConnectedFeed,
-                                            plaidConnectedFeedName,
-                                            plaidAccounts: metadata?.accounts,
-                                        },
-                                        currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION,
-                                    });
+                                setAssignCardStepAndData({
+                                    cardToAssign: {
+                                        plaidAccessToken: publicToken,
+                                        institutionId: plaidConnectedFeed,
+                                        plaidConnectedFeedName,
+                                        plaidAccounts: metadata?.accounts,
+                                    },
+                                    currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION,
                                 });
                                 return;
                             }

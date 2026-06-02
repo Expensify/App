@@ -1,7 +1,6 @@
 import {format, setYear} from 'date-fns';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
@@ -10,6 +9,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import DatePickerModal from './DatePickerModal';
@@ -106,9 +106,10 @@ function DatePicker({
     };
 
     useEffect(() => {
-        InteractionManager.runAfterInteractions(() => {
-            calculatePopoverPosition();
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: calculatePopoverPosition,
         });
+        return () => handle.cancel();
     }, [calculatePopoverPosition, windowWidth]);
 
     // Combined ref: updates textInputRef (needed for blur() in showDatePickerModal) and connects

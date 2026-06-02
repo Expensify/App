@@ -1,6 +1,4 @@
 import {useCallback, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 
 type Action<T extends unknown[]> = (...params: T) => void | Promise<void>;
 
@@ -24,7 +22,7 @@ export default function useSingleExecution() {
                 isExecutingRef.current = true;
 
                 const execution = action(...params);
-                InteractionManager.runAfterInteractions(() => {
+                requestAnimationFrame(() => {
                     if (!(execution instanceof Promise)) {
                         setIsExecuting(false);
                         return;

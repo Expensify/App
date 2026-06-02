@@ -1,8 +1,7 @@
 import {useIsFocused} from '@react-navigation/core';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {Ref} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
@@ -137,10 +136,8 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
             currentUserAccountID,
         });
 
-        InteractionManager.runAfterInteractions(() => {
-            requestAnimationFrame(() => {
-                addPolicyReport(policyReport);
-            });
+        requestAnimationFrame(() => {
+            addPolicyReport(policyReport);
         });
     };
 

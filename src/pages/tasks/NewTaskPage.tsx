@@ -1,7 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -21,6 +20,7 @@ import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import {createTaskAndNavigate, dismissModalAndClearOutTaskInfo, getAssignee, getShareDestination, setShareDestinationValue} from '@libs/actions/Task';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getDisplayNamesWithTooltips, isAllowedToComment} from '@libs/ReportUtils';
@@ -62,14 +62,9 @@ function NewTaskPage({route}: NewTaskPageProps) {
 
     const backTo = route.params?.backTo;
     const confirmButtonRef = useRef<View>(null);
-    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     useFocusEffect(() => {
-        focusTimeoutRef.current = setTimeout(() => {
-            InteractionManager.runAfterInteractions(() => {
-                blurActiveElement();
-            });
-        }, CONST.ANIMATED_TRANSITION);
-        return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
+        const handle = TransitionTracker.runAfterTransitions({callback: blurActiveElement});
+        return () => handle.cancel();
     });
 
     useEffect(() => {
