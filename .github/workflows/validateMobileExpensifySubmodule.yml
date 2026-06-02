@@ -11,8 +11,6 @@ on:
   push:
     branches:
       - rory-91349-validate-mobile-expensify-submodule
-    paths:
-      - 'Mobile-Expensify'
 
 jobs:
   validate-mobile-expensify-submodule:
