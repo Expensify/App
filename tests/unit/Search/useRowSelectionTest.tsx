@@ -1,5 +1,5 @@
-import {render} from '@testing-library/react-native';
-import React, {useMemo} from 'react';
+import {renderHook} from '@testing-library/react-native';
+import React from 'react';
 import {SearchSelectionActionsContext, SearchSelectionContext} from '@components/Search/SearchContext';
 import {useRowSelection, useSelectionCounts} from '@components/Search/SearchSelectionProvider';
 import type {SearchSelectionActionsValue, SearchSelectionContextValue, SelectedTransactions} from '@components/Search/types';
@@ -45,6 +45,17 @@ function buildSelected(...keys: string[]): SelectedTransactions {
     }, {});
 }
 
+function renderWithSelection<T>(hook: () => T, selectionValue: SearchSelectionContextValue): T {
+    const {result} = renderHook(hook, {
+        wrapper: ({children}: {children: React.ReactNode}) => (
+            <SearchSelectionContext value={selectionValue}>
+                <SearchSelectionActionsContext value={noopSelectionActions}>{children}</SearchSelectionActionsContext>
+            </SearchSelectionContext>
+        ),
+    });
+    return result.current;
+}
+
 function renderRowSelection({
     keyForList,
     selectedTransactions,
@@ -54,50 +65,11 @@ function renderRowSelection({
     selectedTransactions: SelectedTransactions;
     areAllMatchingItemsSelected: boolean;
 }): {isSelected: boolean} {
-    const result: {isSelected: boolean} = {isSelected: false};
-
-    function HookConsumer() {
-        const value = useRowSelection(keyForList);
-        result.isSelected = value.isSelected;
-        return null;
-    }
-
-    function Harness() {
-        const selectionValue = useMemo<SearchSelectionContextValue>(() => ({...baseSelectionContext, areAllMatchingItemsSelected, selectedTransactions}), []);
-        return (
-            <SearchSelectionContext value={selectionValue}>
-                <SearchSelectionActionsContext value={noopSelectionActions}>
-                    <HookConsumer />
-                </SearchSelectionActionsContext>
-            </SearchSelectionContext>
-        );
-    }
-
-    render(<Harness />);
-    return result;
+    return renderWithSelection(() => useRowSelection(keyForList), {...baseSelectionContext, areAllMatchingItemsSelected, selectedTransactions});
 }
 
 function renderSelectionCounts(selectedTransactions: SelectedTransactions): {selected: number} {
-    const result: {selected: number} = {selected: 0};
-
-    function HookConsumer() {
-        result.selected = useSelectionCounts().selected;
-        return null;
-    }
-
-    function Harness() {
-        const selectionValue = useMemo<SearchSelectionContextValue>(() => ({...baseSelectionContext, selectedTransactions}), []);
-        return (
-            <SearchSelectionContext value={selectionValue}>
-                <SearchSelectionActionsContext value={noopSelectionActions}>
-                    <HookConsumer />
-                </SearchSelectionActionsContext>
-            </SearchSelectionContext>
-        );
-    }
-
-    render(<Harness />);
-    return result;
+    return renderWithSelection(() => useSelectionCounts(), {...baseSelectionContext, selectedTransactions});
 }
 
 describe('useRowSelection', () => {
