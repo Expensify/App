@@ -36,7 +36,9 @@ function PersonalCardEditNamePage({route}: PersonalCardEditNamePageProps) {
     const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardSelector});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
-    const defaultValue = customCardNames?.[cardID] ?? card?.cardName ?? getDefaultCardName(cardholder?.firstName);
+    const isCSVImportedPersonalCard = !!card && (card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV));
+    const defaultValue =
+        customCardNames?.[cardID] ?? (isCSVImportedPersonalCard ? card?.nameValuePairs?.cardTitle : undefined) ?? card?.cardName ?? getDefaultCardName(cardholder?.firstName);
 
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();

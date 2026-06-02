@@ -693,6 +693,7 @@ function createExpenseByType({
                 customUnitPolicyID,
                 personalDetails,
                 recentWaypoints,
+                shouldHandleNavigation: false,
             };
             return createDistanceRequest(distanceParams);
         }
@@ -729,7 +730,6 @@ type DuplicateExpenseTransactionParams = {
     targetPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
     targetReport?: OnyxTypes.Report;
     existingTransactionDraft: OnyxEntry<OnyxTypes.Transaction>;
-    draftTransactionIDs: string[];
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
@@ -756,7 +756,6 @@ function duplicateExpenseTransaction({
     targetPolicyCategories,
     targetReport,
     existingTransactionDraft,
-    draftTransactionIDs,
     betas,
     personalDetails,
     recentWaypoints,
@@ -792,7 +791,6 @@ function duplicateExpenseTransaction({
         gpsPoint: undefined,
         action: CONST.IOU.ACTION.CREATE,
         transactionParams,
-        shouldHandleNavigation: false,
         shouldPlaySound,
         shouldGenerateTransactionThreadReport: true,
         isASAPSubmitBetaEnabled,
@@ -811,7 +809,6 @@ function duplicateExpenseTransaction({
             reportID: '1',
             transactionID: '1',
         },
-        draftTransactionIDs,
         isSelfTourViewed,
         betas,
         personalDetails,
@@ -853,7 +850,6 @@ function duplicateExpenseTransaction({
             quickAction,
             recentWaypoints,
             betas,
-            draftTransactionIDs,
             isSelfTourViewed,
         };
         return trackExpense(trackExpenseParams);
@@ -895,7 +891,6 @@ type DuplicateReportParams = {
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
-    draftTransactionIDs: string[];
     isSelfTourViewed: boolean;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     translate: LocalizedTranslate;
@@ -920,7 +915,6 @@ function duplicateReport({
     personalDetails,
     quickAction,
     policyRecentlyUsedCurrencies,
-    draftTransactionIDs,
     isSelfTourViewed,
     transactionViolations,
     translate,
@@ -997,7 +991,6 @@ function duplicateReport({
             gpsPoint: undefined,
             action: CONST.IOU.ACTION.CREATE,
             transactionParams,
-            shouldHandleNavigation: false,
             shouldPlaySound: false,
             shouldGenerateTransactionThreadReport: true,
             isASAPSubmitBetaEnabled,
@@ -1016,7 +1009,6 @@ function duplicateReport({
                 reportID: '1',
                 transactionID: '1',
             },
-            draftTransactionIDs,
             isSelfTourViewed,
             betas,
             personalDetails,
@@ -1063,7 +1055,6 @@ type BulkDuplicateExpensesParams = {
     policyRecentlyUsedCurrencies: string[];
     isSelfTourViewed: boolean;
     transactionDrafts: Record<string, OnyxTypes.Transaction> | undefined;
-    draftTransactionIDs: string[];
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     conciergeReportID: string | undefined;
@@ -1085,7 +1076,6 @@ function bulkDuplicateExpenses({
     policyRecentlyUsedCurrencies,
     isSelfTourViewed,
     transactionDrafts,
-    draftTransactionIDs,
     betas,
     recentWaypoints,
     conciergeReportID,
@@ -1175,7 +1165,6 @@ function bulkDuplicateExpenses({
             targetPolicyCategories: targetPolicyCategories ?? {},
             targetReport: currentTargetReport,
             existingTransactionDraft,
-            draftTransactionIDs,
             betas,
             personalDetails,
             recentWaypoints,
@@ -1215,7 +1204,6 @@ type BulkDuplicateReportsParams = {
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
-    draftTransactionIDs: string[];
     isSelfTourViewed: boolean;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     translate: LocalizedTranslate;
@@ -1240,7 +1228,6 @@ function bulkDuplicateReports({
     personalDetails,
     quickAction,
     policyRecentlyUsedCurrencies,
-    draftTransactionIDs,
     isSelfTourViewed,
     transactionViolations,
     translate,
@@ -1315,7 +1302,6 @@ function bulkDuplicateReports({
             personalDetails,
             quickAction,
             policyRecentlyUsedCurrencies,
-            draftTransactionIDs,
             isSelfTourViewed,
             transactionViolations,
             translate,
