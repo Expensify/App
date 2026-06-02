@@ -384,6 +384,15 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                             titleStyle={styles.walletCardLimit}
                             hintText={remainingLimitHint}
                         />
+                        {shouldShowSpendRulesSummary && (
+                            <MenuItemWithTopDescription
+                                interactive={false}
+                                description={translate('cardPage.spendRules')}
+                                descriptionTextStyle={[styles.fontSizeLabel]}
+                                titleComponent={spendRulesTitleComponent}
+                                accessibilityLabel={spendRulesSummary.join('. ')}
+                            />
+                        )}
                         <MenuItemWithTopDescription
                             description={translate('workspace.card.issueNewCard.limitType')}
                             title={currentCardLimitTypeTranslationKey ? translate(currentCardLimitTypeTranslationKey) : ''}
@@ -601,16 +610,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                     }
                                                     Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(String(currentPhysicalCard?.cardID)));
                                                 }}
-                                            />
-                                        )}
-
-                                        {shouldShowSpendRulesSummary && (
-                                            <MenuItemWithTopDescription
-                                                description={translate('cardPage.spendRules')}
-                                                descriptionTextStyle={[styles.fontSizeLabel]}
-                                                titleComponent={spendRulesTitleComponent}
-                                                onPress={navigateToSpendRulesPage}
-                                                accessibilityLabel={spendRulesSummary.join('. ')}
                                             />
                                         )}
 
