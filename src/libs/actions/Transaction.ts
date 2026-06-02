@@ -11,7 +11,7 @@ import type {
     MarkAsCashParams,
     TransactionThreadInfo,
 } from '@libs/API/parameters';
-import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -78,7 +78,6 @@ import type {
     TransactionViolation,
     TransactionViolations,
 } from '@src/types/onyx';
-import type DefaultP2PMileageRate from '@src/types/onyx/DefaultP2PMileageRate';
 import type {OriginalMessageIOU, OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -1857,7 +1856,6 @@ export {
     changeTransactionsReport,
     setTransactionReport,
     getDefaultP2PMileageRate,
-    getStoredDefaultP2PMileageRate,
     mergeTransactionIdsHighlightOnSearchRoute,
     getDuplicateTransactionDetails,
 };
