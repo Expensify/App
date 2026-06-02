@@ -86,7 +86,10 @@ function copyCustomUnitPreservingRateIDs(sourceUnit: CustomUnit, targetUnit: Cus
     for (const sourceRate of Object.values(sourceUnit.rates ?? {})) {
         const rateName = sourceRate.name ?? '';
         const existingTargetRateID = rateName ? targetRateIDByName[rateName] : undefined;
-        const rateID = existingTargetRateID ?? generateHexadecimalValue(13);
+        // Reuse the target's ID when names match. Otherwise keep the source ID so Auth can mint a
+        // fresh target ID and null the source key in its MERGE response — client-generated IDs
+        // would not be cleared and would duplicate the server rate.
+        const rateID = existingTargetRateID ?? sourceRate.customUnitRateID;
         remappedRates[rateID] = {
             ...sourceRate,
             customUnitRateID: rateID,
@@ -103,8 +106,8 @@ function copyCustomUnitPreservingRateIDs(sourceUnit: CustomUnit, targetUnit: Cus
 /**
  * Returns the customUnits patch to merge into the target policy when distanceRates and/or perDiem are
  * being copied. The source unit data is written under the target's existing unit ID — a new ID is
- * generated only when the target has no unit of that type yet. Rate IDs are remapped by name to match
- * the target's existing IDs so optimistic state stays aligned with the backend copy.
+ * generated only when the target has no unit of that type yet. Existing target rate IDs are reused
+ * when names match; otherwise source rate IDs are kept until Auth replaces them on save.
  */
 function buildCustomUnitsPatch(sourcePolicy: Policy, targetPolicy: Policy, isDistanceSelected: boolean, isPerDiemSelected: boolean): {customUnits: Record<string, CustomUnit>} | undefined {
     if (!isDistanceSelected && !isPerDiemSelected) {
