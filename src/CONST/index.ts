@@ -2792,6 +2792,7 @@ const CONST = {
         NON_REIMBURSABLE: 'nonReimbursable',
         SHOULD_AUTO_CREATE_VENDOR: 'shouldAutoCreateVendor',
         NON_REIMBURSABLE_BILL_DEFAULT_VENDOR: 'nonReimbursableBillDefaultVendor',
+        TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
         AUTO_SYNC: 'autoSync',
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         MAPPINGS: {
