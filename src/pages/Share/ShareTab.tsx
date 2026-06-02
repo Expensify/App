@@ -96,12 +96,12 @@ function ShareTab({ref}: ShareTabProps) {
               personalDetails,
               sortedActions,
               conciergeReportID,
-          })
+          }).options
         : defaultListOptions;
 
     let recentReportsOptions: OptionData[];
     if (textInputValue.trim() === '') {
-        recentReportsOptions = optionsOrderBy(searchOptions.recentReports, recentReportComparator, 20);
+        recentReportsOptions = optionsOrderBy(searchOptions.recentReports, recentReportComparator, 20).options;
     } else {
         const orderedOptions = combineOrderingOfReportsAndPersonalDetails(searchOptions, textInputValue, {
             sortByReportTypeInSearch: true,

@@ -74,4 +74,3 @@ function usePopoverPosition() {
 
 export default usePopoverPosition;
 export {computeAnchorPosition};
-export type {MeasurableRef};

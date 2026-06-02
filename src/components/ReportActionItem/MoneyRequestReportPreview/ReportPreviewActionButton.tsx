@@ -217,6 +217,7 @@ function ReportPreviewActionButton({
                         iouRequestBackToReport: chatReportID,
                         unreportedExpenseBackToReport: iouReport?.parentReportID,
                         lastDistanceExpenseType,
+                        currentUserAccountID: currentUserDetails.accountID,
                     })}
                     isSplitButton={false}
                     anchorAlignment={{
