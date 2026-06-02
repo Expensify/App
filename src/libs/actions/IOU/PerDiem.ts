@@ -205,11 +205,12 @@ function computeDefaultPerDiemExpenseComment(customUnit: TransactionCustomUnit, 
     return subRateComments.join(', ');
 }
 
-type PerDiemExpenseTransactionParams = Omit<BaseTransactionParams, 'amount' | 'merchant' | 'customUnitRateID' | 'taxAmount' | 'taxCode' | 'comment'> & TrackedExpenseSubmitParams & {
-    attendees?: Attendee[];
-    customUnit: TransactionCustomUnit;
-    comment?: string;
-};
+type PerDiemExpenseTransactionParams = Omit<BaseTransactionParams, 'amount' | 'merchant' | 'customUnitRateID' | 'taxAmount' | 'taxCode' | 'comment'> &
+    TrackedExpenseSubmitParams & {
+        attendees?: Attendee[];
+        customUnit: TransactionCustomUnit;
+        comment?: string;
+    };
 
 type RecentlyUsedParams = {
     destinations?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
