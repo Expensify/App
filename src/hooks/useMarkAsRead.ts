@@ -157,4 +157,3 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
 }
 
 export default useMarkAsRead;
-export type {UseMarkAsReadParams, UseMarkAsReadResult};

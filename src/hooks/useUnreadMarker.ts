@@ -131,4 +131,3 @@ function useUnreadMarker({
 }
 
 export default useUnreadMarker;
-export type {UseUnreadMarkerParams, UseUnreadMarkerResult};
