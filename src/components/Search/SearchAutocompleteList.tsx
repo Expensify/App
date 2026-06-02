@@ -221,7 +221,7 @@ function SearchAutocompleteList({
             personalDetails,
             sortedActions,
             conciergeReportID,
-        });
+        }).options;
     }, [
         listOptions,
         draftComments,

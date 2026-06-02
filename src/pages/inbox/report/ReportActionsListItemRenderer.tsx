@@ -3,7 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isChatThread} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
 
@@ -16,9 +16,6 @@ type ReportActionsListItemRendererProps = {
 
     /** The transaction thread report's parentReportAction */
     parentReportActionForTransactionThread: OnyxEntry<ReportAction>;
-
-    /** Position index of the report action in the overall report FlatList view */
-    index: number;
 
     /** Report for this action */
     report: OnyxEntry<Report>;
@@ -50,9 +47,6 @@ type ReportActionsListItemRendererProps = {
     /** Animate highlight action in few seconds */
     shouldHighlight?: boolean;
 
-    /** Personal details list */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-
     /** Whether the action is the "Created" action of a harvest-created expense report */
     isHarvestCreatedExpenseReport?: boolean;
 };
@@ -60,7 +54,6 @@ type ReportActionsListItemRendererProps = {
 function ReportActionsListItemRenderer({
     reportAction,
     parentReportAction,
-    index,
     report,
     transactionThreadReport,
     displayAsGroup,
@@ -72,7 +65,6 @@ function ReportActionsListItemRenderer({
     shouldUseThreadDividerLine = false,
     shouldHighlight = false,
     parentReportActionForTransactionThread,
-    personalDetails,
     isHarvestCreatedExpenseReport = false,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
@@ -160,10 +152,8 @@ function ReportActionsListItemRenderer({
                 report={report}
                 action={action}
                 transactionThreadReport={transactionThreadReport}
-                index={index}
                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-                personalDetails={personalDetails}
             />
         );
     }
@@ -179,11 +169,9 @@ function ReportActionsListItemRenderer({
             linkedReportActionID={linkedReportActionID}
             displayAsGroup={displayAsGroup}
             shouldDisplayNewMarker={shouldDisplayNewMarker}
-            index={index}
             isFirstVisibleReportAction={isFirstVisibleReportAction}
             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
             shouldHighlight={shouldHighlight}
-            personalDetails={personalDetails}
             isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReport}
         />
     );
