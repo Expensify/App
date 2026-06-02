@@ -6,7 +6,7 @@ import useActionLoadingReportIDs from './useActionLoadingReportIDs';
 import useArchivedReportsIdSet from './useArchivedReportsIdSet';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-import useFilterPendingDeleteReports, {selectPendingDeleteReportKeys} from './useFilterPendingDeleteReports';
+import useFilterPendingDeleteReports from './useFilterPendingDeleteReports';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
@@ -63,5 +63,4 @@ function useSearchSections(): UseSearchSectionsResult {
     return {allReports: useFilterPendingDeleteReports(results), isSearchLoading: !!currentSearchResults?.search?.isLoading, lastSearchQuery};
 }
 
-export {selectPendingDeleteReportKeys};
 export default useSearchSections;

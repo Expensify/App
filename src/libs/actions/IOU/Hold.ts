@@ -695,6 +695,7 @@ function getReportFromHoldRequestsOnyxData({
     betas,
     isApprovalFlow = false,
     conciergeReportID,
+    delegateAccountID,
 }: {
     chatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -705,6 +706,8 @@ function getReportFromHoldRequestsOnyxData({
     isApprovalFlow?: boolean;
     // TODO: This will be required eventually. Ref: https://github.com/Expensify/App/issues/66411
     conciergeReportID?: string;
+    // TODO: delegateAccountID will be made required in PR 13 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountID?: number | undefined;
 }): {
     optimisticHoldReportID: string;
     optimisticHoldActionID: string;
@@ -765,6 +768,7 @@ function getReportFromHoldRequestsOnyxData({
         optimisticExpenseReport.reportID,
         newParentReportActionID,
         conciergeReportID,
+        delegateAccountID,
     );
 
     let optimisticCreatedReportForUnapprovedAction: OnyxTypes.ReportAction | null = null;
