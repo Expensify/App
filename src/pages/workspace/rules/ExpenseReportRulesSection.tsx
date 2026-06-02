@@ -16,12 +16,9 @@ import ROUTES from '@src/ROUTES';
 
 type ExpenseReportRulesSectionProps = {
     policyID: string;
-    canWriteApprovals: boolean;
-    canWritePayments: boolean;
-    showReadOnlyModal: () => void;
 };
 
-function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayments, showReadOnlyModal}: ExpenseReportRulesSectionProps) {
+function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
     const {convertToDisplayString} = useCurrencyListActions();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -48,9 +45,8 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
             shouldParseSubtitle: workflowApprovalsUnavailable,
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.preventSelfApprovalsTitle'),
             isActive: policy?.preventSelfApproval,
-            disabled: workflowApprovalsUnavailable || !canWriteApprovals,
-            disabledAction: !canWriteApprovals ? showReadOnlyModal : undefined,
-            showLockIcon: workflowApprovalsUnavailable || !canWriteApprovals,
+            disabled: workflowApprovalsUnavailable,
+            showLockIcon: workflowApprovalsUnavailable,
             pendingAction: policy?.pendingFields?.preventSelfApproval ?? policy?.pendingAction,
             onToggle: (isEnabled: boolean) => {
                 if (isEnabled && !isControlPolicy(policy)) {
@@ -71,9 +67,8 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
             shouldParseSubtitle: workflowApprovalsUnavailable,
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsTitle'),
             isActive: policy?.shouldShowAutoApprovalOptions && !workflowApprovalsUnavailable,
-            disabled: workflowApprovalsUnavailable || !canWriteApprovals,
-            disabledAction: !canWriteApprovals ? showReadOnlyModal : undefined,
-            showLockIcon: workflowApprovalsUnavailable || !canWriteApprovals,
+            disabled: workflowApprovalsUnavailable,
+            showLockIcon: workflowApprovalsUnavailable,
             pendingAction: policy?.pendingFields?.shouldShowAutoApprovalOptions ?? policy?.pendingAction,
             onToggle: (isEnabled: boolean) => {
                 if (isEnabled && !isControlPolicy(policy)) {
@@ -93,10 +88,9 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                     <MenuItemWithTopDescription
                         description={translate('workspace.rules.expenseReportRules.autoApproveReportsUnderTitle')}
                         title={convertToDisplayString(policy?.autoApproval?.limit ?? CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS, policy?.outputCurrency ?? CONST.CURRENCY.USD)}
-                        shouldShowRightIcon={canWriteApprovals}
+                        shouldShowRightIcon
                         style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
                         onPress={() => Navigation.navigate(ROUTES.RULES_AUTO_APPROVE_REPORTS_UNDER.getRoute(policyID))}
-                        interactive={canWriteApprovals}
                     />
                 </OfflineWithFeedback>,
                 <OfflineWithFeedback
@@ -108,10 +102,9 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                     <MenuItemWithTopDescription
                         description={translate('workspace.rules.expenseReportRules.randomReportAuditTitle')}
                         title={`${Math.round((policy?.autoApproval?.auditRate ?? CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE) * 100)}%`}
-                        shouldShowRightIcon={canWriteApprovals}
+                        shouldShowRightIcon
                         style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
                         onPress={() => Navigation.navigate(ROUTES.RULES_RANDOM_REPORT_AUDIT.getRoute(policyID))}
-                        interactive={canWriteApprovals}
                     />
                 </OfflineWithFeedback>,
             ],
@@ -133,9 +126,8 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
 
                 enablePolicyAutoReimbursementLimit(policyID, isEnabled, policy?.shouldShowAutoReimbursementLimitOption, policy?.autoReimbursement?.limit);
             },
-            disabled: autoPayApprovedReportsUnavailable || !canWritePayments,
-            disabledAction: !canWritePayments ? showReadOnlyModal : undefined,
-            showLockIcon: autoPayApprovedReportsUnavailable || !canWritePayments,
+            disabled: autoPayApprovedReportsUnavailable,
+            showLockIcon: autoPayApprovedReportsUnavailable,
             isActive: policy?.shouldShowAutoReimbursementLimitOption && !autoPayApprovedReportsUnavailable,
             pendingAction: policy?.pendingFields?.shouldShowAutoReimbursementLimitOption ?? policy?.pendingAction,
             subMenuItems: [
@@ -150,10 +142,9 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                     <MenuItemWithTopDescription
                         description={translate('workspace.rules.expenseReportRules.autoPayReportsUnderTitle')}
                         title={convertToDisplayString(policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_LIMIT_DEFAULT_CENTS, policy?.outputCurrency ?? CONST.CURRENCY.USD)}
-                        shouldShowRightIcon={canWritePayments}
+                        shouldShowRightIcon
                         style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
                         onPress={() => Navigation.navigate(ROUTES.RULES_AUTO_PAY_REPORTS_UNDER.getRoute(policyID))}
-                        interactive={canWritePayments}
                     />
                 </OfflineWithFeedback>,
             ],
@@ -169,7 +160,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
             subtitleTextStyles={policy?.pendingAction ? styles.opacitySemiTransparent : undefined}
             subtitleMuted
         >
-            {optionItems.map(({title, subtitle, shouldParseSubtitle, isActive, subMenuItems, showLockIcon, disabled, disabledAction, onToggle, pendingAction}, index) => {
+            {optionItems.map(({title, subtitle, shouldParseSubtitle, isActive, subMenuItems, showLockIcon, disabled, onToggle, pendingAction}, index) => {
                 const showBorderBottom = index !== optionItems.length - 1;
 
                 return (
@@ -185,7 +176,6 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                         isActive={!!isActive}
                         showLockIcon={showLockIcon}
                         disabled={disabled}
-                        disabledAction={disabledAction}
                         subMenuItems={subMenuItems}
                         onToggle={onToggle}
                         pendingAction={pendingAction}
