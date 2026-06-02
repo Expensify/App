@@ -5,7 +5,6 @@ import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue, withTiming}
 import {scheduleOnRN} from 'react-native-worklets';
 import {easing} from '@components/Modal/ReanimatedModal/utils';
 import type {SearchColumnType, SearchGroupBy} from '@components/Search/types';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {TransactionPreviewData} from '@libs/actions/Search';
@@ -58,7 +57,6 @@ function GroupChildrenContainer({
 }: GroupChildrenContainerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {isLargeScreenWidth} = useResponsiveLayout();
 
     const contentHeight = useSharedValue(0);
     const hasExpanded = useSharedValue(isExpanded);
@@ -117,7 +115,6 @@ function GroupChildrenContainer({
                         <GroupChildrenContent
                             item={item}
                             isExpanded={isExpanded}
-                            isSelected={isSelected}
                             groupBy={groupBy}
                             searchType={searchType}
                             columns={columns}

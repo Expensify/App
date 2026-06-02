@@ -1,6 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {SearchColumnType, SearchGroupBy} from '@components/Search/types';
@@ -10,9 +9,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
 import {search} from '@libs/actions/Search';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
@@ -28,7 +24,6 @@ import type {GroupChildrenContainerItemType, SearchListItem, TransactionGroupLis
 type GroupChildrenContentProps = {
     item: GroupChildrenContainerItemType;
     isExpanded: boolean;
-    isSelected?: boolean;
     groupBy?: SearchGroupBy;
     searchType?: SearchDataTypes;
     columns?: SearchColumnType[];
@@ -58,7 +53,6 @@ function GroupChildrenContent({
     nonPersonalAndWorkspaceCards,
     onUndelete,
     newTransactionID,
-    isSelected,
     allReportMetadata,
     bankAccountList,
     cardFeeds,
@@ -70,9 +64,6 @@ function GroupChildrenContent({
     const isScreenFocused = useIsFocused();
     const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
-    const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    const {isLargeScreenWidth} = useResponsiveLayout();
 
     const groupItem = item as unknown as TransactionGroupListItemType;
     const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
@@ -229,38 +220,31 @@ function GroupChildrenContent({
     };
 
     return (
-        <>
-            {isLargeScreenWidth && !isEmpty && (
-                <View style={styles.ph3}>
-                    <View style={StyleUtils.getSelectedBorderBottomStyle(isSelected)} />
-                </View>
-            )}
-            <TransactionGroupListExpandedItem
-                showTooltip
-                canSelectMultiple={canSelectMultiple}
-                onSelectionButtonPress={onCheckboxPress}
-                onSelectRow={onSelectRow}
-                columns={columns}
-                groupBy={groupBy}
-                accountID={currentUserDetails.accountID}
-                isOffline={isOffline}
-                violations={filteredViolations}
-                transactions={transactions}
-                transactionsVisibleLimit={transactionsVisibleLimit}
-                setTransactionsVisibleLimit={setTransactionsVisibleLimit}
-                isEmpty={isEmpty}
-                shouldDisplayEmptyView={shouldDisplayEmptyView}
-                isExpenseReportType={isExpenseReportType}
-                transactionsSnapshot={transactionsSnapshot}
-                transactionsQueryJSON={groupItem.transactionsQueryJSON}
-                searchTransactions={searchTransactions}
-                isInSingleTransactionReport={groupItem.transactions.length === 1}
-                onLongPress={onExpandedRowLongPress}
-                nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
-                onUndelete={onUndelete}
-                hideSearchTableHeader
-            />
-        </>
+        <TransactionGroupListExpandedItem
+            showTooltip
+            canSelectMultiple={canSelectMultiple}
+            onSelectionButtonPress={onCheckboxPress}
+            onSelectRow={onSelectRow}
+            columns={columns}
+            groupBy={groupBy}
+            accountID={currentUserDetails.accountID}
+            isOffline={isOffline}
+            violations={filteredViolations}
+            transactions={transactions}
+            transactionsVisibleLimit={transactionsVisibleLimit}
+            setTransactionsVisibleLimit={setTransactionsVisibleLimit}
+            isEmpty={isEmpty}
+            shouldDisplayEmptyView={shouldDisplayEmptyView}
+            isExpenseReportType={isExpenseReportType}
+            transactionsSnapshot={transactionsSnapshot}
+            transactionsQueryJSON={groupItem.transactionsQueryJSON}
+            searchTransactions={searchTransactions}
+            isInSingleTransactionReport={groupItem.transactions.length === 1}
+            onLongPress={onExpandedRowLongPress}
+            nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+            onUndelete={onUndelete}
+            hideSearchTableHeader
+        />
     );
 }
 

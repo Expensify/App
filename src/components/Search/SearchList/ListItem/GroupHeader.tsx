@@ -29,7 +29,6 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getColumnsToShow} from '@libs/SearchUIUtils';
 import {isDeletedTransaction} from '@libs/TransactionUtils';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
@@ -486,6 +485,9 @@ function GroupHeader({
                                                 isExpenseReportView
                                                 isActionColumnWide={isSubHeaderActionColumnWide}
                                             />
+                                        </View>
+                                        <View style={styles.ph3}>
+                                            <View style={StyleUtils.getSelectedBorderBottomStyle(isItemSelected)} />
                                         </View>
                                     </View>
                                 )}
