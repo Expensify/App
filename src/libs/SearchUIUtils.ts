@@ -138,6 +138,7 @@ import {
     findSelfDMReportID,
     generateReportID,
     getIcons,
+    getInvoiceReceiverPolicyID,
     getMoneyRequestSpendBreakdown,
     getPersonalDetailsForAccountID,
     getPolicyName,
@@ -2644,8 +2645,8 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data'], visible
                 const originalMessage = isMoneyRequestAction(reportAction) ? getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(reportAction) : undefined;
                 const isSendingMoney = isMoneyRequestAction(reportAction) && originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && originalMessage?.IOUDetails;
                 const isReportArchived = isArchivedReport(data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
-                const invoiceReceiverPolicy: OnyxTypes.Policy | undefined =
-                    report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? data[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`] : undefined;
+                const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(report);
+                const invoiceReceiverPolicy: OnyxTypes.Policy | undefined = invoiceReceiverPolicyID ? data[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`] : undefined;
                 if (
                     !reportID ||
                     !isReportActionVisible(reportAction, reportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData) ||
