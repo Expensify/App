@@ -70,6 +70,7 @@ function ExpenseReportListItemRowWide({
                     date={item.submitted ?? ''}
                     showTooltip
                     isLargeScreenWidth
+                    shouldUseLocalTimeZone
                 />
             </View>
         ),
@@ -79,6 +80,7 @@ function ExpenseReportListItemRowWide({
                     date={item.approved ?? ''}
                     showTooltip
                     isLargeScreenWidth
+                    shouldUseLocalTimeZone
                 />
             </View>
         ),
@@ -88,6 +90,7 @@ function ExpenseReportListItemRowWide({
                     date={item.exported ?? ''}
                     showTooltip
                     isLargeScreenWidth
+                    shouldUseLocalTimeZone
                 />
             </View>
         ),
