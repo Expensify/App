@@ -1177,18 +1177,6 @@ const CONST = {
                 [PLATFORM_IOS]: {input: keyInputRightArrow},
             },
         },
-        SHIFT_ARROW_UP: {
-            descriptionKey: null,
-            shortcutKey: 'ArrowUp',
-            modifiers: ['SHIFT'],
-            trigger: {DEFAULT: {input: keyInputUpArrow, modifierFlags: keyModifierShift}},
-        },
-        SHIFT_ARROW_DOWN: {
-            descriptionKey: null,
-            shortcutKey: 'ArrowDown',
-            modifiers: ['SHIFT'],
-            trigger: {DEFAULT: {input: keyInputDownArrow, modifierFlags: keyModifierShift}},
-        },
         TAB: {
             descriptionKey: null,
             shortcutKey: 'Tab',

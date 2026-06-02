@@ -20,8 +20,6 @@ type ShiftRangeBatch<TItem> = {
     toDeselect: TItem[];
 };
 
-type KeyboardDirection = 'up' | 'down';
-
 type Params<TItem> = {
     items: TItem[];
     getItemKey?: (item: TItem) => string | null | undefined;
@@ -35,7 +33,6 @@ type Api<TItem> = {
     applyShiftClick: (item: TItem, options?: {shiftKey?: boolean}) => boolean;
     notifyAnchor: (item: TItem) => void;
     clearAnchor: () => void;
-    extendByKeyboard: (direction: KeyboardDirection) => string | null;
     getAnchorKey: () => string | null;
 };
 
@@ -129,28 +126,6 @@ function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
                 sessionRef.current = null;
             },
             getAnchorKey: () => sessionRef.current?.anchor ?? anchorRef.current,
-            extendByKeyboard: (direction) => {
-                const p = paramsRef.current;
-                const session = sessionRef.current;
-                const fromKey = session?.prevEnd ?? anchorRef.current;
-                if (!fromKey) {
-                    return null;
-                }
-                const fromIdx = indexOfKey(p, fromKey);
-                if (fromIdx < 0) {
-                    return null;
-                }
-                const nextIdx = stepFocus(p, fromIdx, direction);
-                if (nextIdx < 0) {
-                    return null;
-                }
-                const nextRow = p.items.at(nextIdx);
-                const nextKey = nextRow ? keyOf(p, nextRow) : null;
-                if (!nextRow || !nextKey || !runRange(nextRow)) {
-                    return null;
-                }
-                return nextKey;
-            },
         };
     }, []);
 }
@@ -222,16 +197,6 @@ function resolveAnchor<TItem>(p: Params<TItem>, source: string | null): string |
         }
     }
     return null;
-}
-
-function stepFocus<TItem>(p: Params<TItem>, from: number, dir: KeyboardDirection): number {
-    const step = dir === 'up' ? -1 : 1;
-    for (let i = from + step; i >= 0 && i < p.items.length; i += step) {
-        if (!isExcluded(p, p.items.at(i))) {
-            return i;
-        }
-    }
-    return -1;
 }
 
 function getShiftKeyFromEvent(e?: ModifierEvent | null): boolean {

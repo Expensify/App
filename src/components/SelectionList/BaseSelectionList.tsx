@@ -379,33 +379,9 @@ function BaseSelectionList<TItem extends ListItem>({
         },
     );
 
-    const skipNextFocusAnchorRef = useRef(false);
-    const extendSelectionByKeyboard = useCallback(
-        (direction: 'up' | 'down') => {
-            if (!canSelectMultiple || !onShiftRangeApply) {
-                return;
-            }
-            const nextKey = rangeApi.extendByKeyboard(direction);
-            if (!nextKey) {
-                return;
-            }
-            const nextIdx = data.findIndex((row) => row.keyForList === nextKey);
-            if (nextIdx >= 0) {
-                // Paired with the focus effect below: skip the anchor-sync for shift-driven focus moves.
-                skipNextFocusAnchorRef.current = true;
-                setFocusedIndex(nextIdx);
-            }
-        },
-        [canSelectMultiple, onShiftRangeApply, rangeApi, data, setFocusedIndex],
-    );
-
-    // Bump the hook's anchor on plain arrow-key focus moves; the ref dedupes across data re-references.
+    // Bump the hook's anchor on arrow-key focus moves; the ref dedupes across data re-references.
     const previousFocusAnchorKeyRef = useRef<string | null>(null);
     useEffect(() => {
-        if (skipNextFocusAnchorRef.current) {
-            skipNextFocusAnchorRef.current = false;
-            return;
-        }
         if (focusedIndex < 0 || focusedIndex >= data.length) {
             return;
         }
@@ -416,16 +392,6 @@ function BaseSelectionList<TItem extends ListItem>({
         previousFocusAnchorKeyRef.current = item.keyForList;
         rangeApi.notifyAnchor(item);
     }, [focusedIndex, data, rangeApi]);
-    const handleShiftArrowDown = useCallback(() => extendSelectionByKeyboard('down'), [extendSelectionByKeyboard]);
-    const handleShiftArrowUp = useCallback(() => extendSelectionByKeyboard('up'), [extendSelectionByKeyboard]);
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SHIFT_ARROW_DOWN, handleShiftArrowDown, {
-        captureOnInputs: false,
-        isActive: !disableKeyboardShortcuts && isFocused && canSelectMultiple && !!onShiftRangeApply,
-    });
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SHIFT_ARROW_UP, handleShiftArrowUp, {
-        captureOnInputs: false,
-        isActive: !disableKeyboardShortcuts && isFocused && canSelectMultiple && !!onShiftRangeApply,
-    });
     const textInputKeyPress = useCallback(
         (event: TextInputKeyPressEvent) => {
             if (event.nativeEvent.key !== CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {

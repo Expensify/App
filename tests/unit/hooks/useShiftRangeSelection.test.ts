@@ -347,75 +347,6 @@ describe('useShiftRangeSelection', () => {
         });
     });
 
-    describe('extendByKeyboard', () => {
-        it('returns null when no anchor and no session', () => {
-            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams()));
-            let key: string | null = 'sentinel';
-            act(() => {
-                key = result.current.extendByKeyboard('down');
-            });
-            expect(key).toBeNull();
-        });
-
-        it('steps down from anchor and applies the range', () => {
-            const onApplyRange = makeApplyMock();
-            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
-            act(() => result.current.notifyAnchor(ROWS[1]));
-            let key: string | null = null;
-            act(() => {
-                key = result.current.extendByKeyboard('down');
-            });
-            expect(key).toBe('c');
-            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['b', 'c'], toDeselect: []});
-        });
-
-        it('steps up from session.prevEnd while continuing the session', () => {
-            const onApplyRange = makeApplyMock();
-            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
-            act(() => result.current.notifyAnchor(ROWS[1]));
-            act(() => {
-                result.current.applyShiftClick(ROWS[4], {shiftKey: true});
-            });
-            let key: string | null = null;
-            act(() => {
-                key = result.current.extendByKeyboard('up');
-            });
-            expect(key).toBe('d');
-            expect(nthBatchKeys(onApplyRange, 1)).toEqual({toSelect: ['b', 'c', 'd'], toDeselect: ['e']});
-        });
-
-        it('skips headers and disabled rows when stepping', () => {
-            const onApplyRange = makeApplyMock();
-            const {result} = renderHook(() =>
-                useShiftRangeSelection<Row>(
-                    makeParams({
-                        items: GROUPED,
-                        isHeaderItem: (r) => !!r.isHeader,
-                        onApplyRange,
-                    }),
-                ),
-            );
-            act(() => result.current.notifyAnchor(GROUPED[2]));
-            let key: string | null = null;
-            act(() => {
-                key = result.current.extendByKeyboard('down');
-            });
-            expect(key).toBe('c');
-        });
-
-        it('returns null when stepping off the end of the list', () => {
-            const onApplyRange = makeApplyMock();
-            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
-            act(() => result.current.notifyAnchor(ROWS[4]));
-            let key: string | null = 'sentinel';
-            act(() => {
-                key = result.current.extendByKeyboard('down');
-            });
-            expect(key).toBeNull();
-            expect(onApplyRange).not.toHaveBeenCalled();
-        });
-    });
-
     describe('defensive bails', () => {
         it('returns false when every item is excluded and no anchor can be resolved', () => {
             const onApplyRange = makeApplyMock();
@@ -529,21 +460,6 @@ describe('useShiftRangeSelection', () => {
                 result.current.applyShiftClick(ROWS[3], {shiftKey: true});
             });
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['c', 'd'], toDeselect: []});
-        });
-
-        it('extendByKeyboard returns null when the focused key no longer exists in items', () => {
-            const onApplyRange = makeApplyMock();
-            const {result, rerender} = renderHook(({items}: {items: Row[]}) => useShiftRangeSelection<Row>(makeParams({items, onApplyRange})), {
-                initialProps: {items: [...ROWS]},
-            });
-            act(() => result.current.notifyAnchor(ROWS[2]));
-            rerender({items: [{keyForList: 'x'}, {keyForList: 'y'}]});
-            let key: string | null = 'sentinel';
-            act(() => {
-                key = result.current.extendByKeyboard('down');
-            });
-            expect(key).toBeNull();
-            expect(onApplyRange).not.toHaveBeenCalled();
         });
     });
 
