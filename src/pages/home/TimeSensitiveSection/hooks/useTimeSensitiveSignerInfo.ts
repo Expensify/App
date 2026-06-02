@@ -15,13 +15,21 @@ type PendingSignerInfo = {
 };
 
 function useTimeSensitiveSignerInfo() {
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
 
     const pendingSignerInfo: PendingSignerInfo[] = [];
     const seenKeys = new Set<string>();
 
-    for (const reportActions of Object.values(allReportActions ?? {})) {
-        for (const action of Object.values(reportActions ?? {})) {
+    for (const policy of Object.values(allPolicies ?? {})) {
+        if (!policy?.achAccount?.bankAccountID || !policy.chatReportIDAdmins) {
+            continue;
+        }
+        const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policy.chatReportIDAdmins}`];
+        if (!reportActions) {
+            continue;
+        }
+        for (const action of Object.values(reportActions)) {
             if (!isReimbursementDirectionInformationRequiredAction(action)) {
                 continue;
             }
