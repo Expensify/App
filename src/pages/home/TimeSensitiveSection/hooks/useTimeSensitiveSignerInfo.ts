@@ -1,5 +1,7 @@
+import {accountIDSelector} from '@selectors/Session';
 import useOnyx from '@hooks/useOnyx';
 import {getOriginalMessage, isReimbursementDirectionInformationRequiredAction} from '@libs/ReportActionsUtils';
+import {isPolicyExpenseChat} from '@libs/ReportUtils';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -15,17 +17,34 @@ type PendingSignerInfo = {
 };
 
 function useTimeSensitiveSignerInfo() {
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
 
     const pendingSignerInfo: PendingSignerInfo[] = [];
     const seenKeys = new Set<string>();
 
-    for (const policy of Object.values(allPolicies ?? {})) {
-        if (!policy?.achAccount?.bankAccountID || !policy.chatReportIDAdmins) {
+    // Build policyID -> current user's policy expense chat reportID map in one pass.
+    // The reimbursement-director-information-required action is posted in the signer's
+    // policy expense chat, so we only need to look at that chat's actions per policy.
+    const expenseChatByPolicyID = new Map<string, string>();
+    for (const report of Object.values(allReports ?? {})) {
+        if (!report?.reportID || !report.policyID || report.ownerAccountID !== accountID || !isPolicyExpenseChat(report)) {
             continue;
         }
-        const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policy.chatReportIDAdmins}`];
+        expenseChatByPolicyID.set(report.policyID, report.reportID);
+    }
+
+    for (const policy of Object.values(allPolicies ?? {})) {
+        if (!policy?.achAccount?.bankAccountID) {
+            continue;
+        }
+        const expenseChatReportID = expenseChatByPolicyID.get(policy.id);
+        if (!expenseChatReportID) {
+            continue;
+        }
+        const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`];
         if (!reportActions) {
             continue;
         }
