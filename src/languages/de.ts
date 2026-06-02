@@ -7870,6 +7870,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} von ${cards}`,
             },
         },
+        updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) => {
+            return `hat den Standardsteuersatz der Kategorie „${categoryName}“ auf „${newTax}“ geändert (zuvor „${oldTax}“)`;
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',

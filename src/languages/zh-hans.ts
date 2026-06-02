@@ -7619,6 +7619,9 @@ ${reportName}
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `来自 ${cards} 的 ${content}`,
             },
         },
+        updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) => {
+            return `将“${categoryName}”类别的默认税率更改为“${newTax}”（之前为“${oldTax}”）`;
+        },
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
