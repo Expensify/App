@@ -18,7 +18,7 @@
 "../../src/Expensify.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/GlobalModals.tsx"	"no-restricted-syntax"	2
 "../../src/ONYXKEYS.ts"	"no-restricted-syntax"	2
-"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	153
+"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	152
 "../../src/components/AccountingConnectionConfirmationModal.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/components/ActionSheetAwareScrollView/useActionSheetAwareScrollViewRef.ts"	"react-hooks/immutability"	1
 "../../src/components/ActionSheetAwareScrollView/useActionSheetKeyboardSpacing.ts"	"@typescript-eslint/no-deprecated/useScrollViewOffset"	1
@@ -289,7 +289,6 @@
 "../../src/libs/PersonalDetailsUtils.ts"	"rulesdir/no-onyx-connect"	2
 "../../src/libs/Pusher/index.native.ts"	"no-restricted-imports"	1
 "../../src/libs/Pusher/index.ts"	"no-restricted-imports"	1
-"../../src/libs/ReceiptUploadRetryHandler/handleFileRetry.ts"	"no-restricted-syntax"	1
 "../../src/libs/ReportActionItemEventHandler/index.android.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/libs/ReportActionsUtils.ts"	"@typescript-eslint/no-deprecated/reportAction.sequenceNumber"	1
 "../../src/libs/ReportActionsUtils.ts"	"@typescript-eslint/no-deprecated/reportAction?.originalMessage"	2
@@ -301,10 +300,9 @@
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	43
 "../../src/libs/ReportUtils.ts"	"rulesdir/no-onyx-connect"	16
 "../../src/libs/SearchUIUtils.ts"	"@typescript-eslint/no-deprecated/getSearchReportName"	1
-"../../src/libs/SubscriptionUtils.ts"	"rulesdir/no-onyx-connect"	1
 "../../src/libs/TransactionUtils/index.ts"	"@typescript-eslint/no-deprecated/translateLocal"	5
 "../../src/libs/UnreadIndicatorUpdater/index.ts"	"no-restricted-syntax"	1
-"../../src/libs/Violations/ViolationsUtils.ts"	"no-restricted-syntax"	2
+"../../src/libs/Violations/ViolationsUtils.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/App.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/BankAccounts.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/CanvasSize.ts"	"no-restricted-syntax"	1
@@ -345,7 +343,6 @@
 "../../src/libs/actions/IOU/SplitTransactionUpdate.ts"	"@typescript-eslint/no-deprecated/getMoneyRequestPolicyTags"	1
 "../../src/libs/actions/IOU/SplitTransactionUpdate.ts"	"@typescript-eslint/no-deprecated/getPolicyTagsData"	1
 "../../src/libs/actions/IOU/TrackExpense.ts"	"@typescript-eslint/no-deprecated/getMoneyRequestPolicyTags"	2
-"../../src/libs/actions/IOU/TrackExpense.ts"	"no-restricted-imports"	1
 "../../src/libs/actions/IOU/TrackExpense.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/IOU/UpdateMoneyRequest.ts"	"@typescript-eslint/no-deprecated/buildNextStepNew"	1
 "../../src/libs/actions/IOU/UpdateMoneyRequest.ts"	"@typescript-eslint/no-deprecated/getPolicyTagsData"	13
@@ -625,7 +622,7 @@
 "../../src/pages/workspace/categories/WorkspaceCategoriesPage.tsx"	"react-hooks/set-state-in-effect"	2
 "../../src/pages/workspace/companyCards/BankConnection/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/companyCards/WorkspaceVerifyWorkAccountPage.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/workspace/companyCards/addNew/AddNewCardPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
+"../../src/pages/workspace/companyCards/addNew/DynamicAddNewCardPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/workspace/companyCards/addNew/PlaidConnectionStep.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/workspace/companyCards/assignCard/ConfirmationStep.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/workspace/distanceRates/PolicyDistanceRatesPage.tsx"	"react-hooks/preserve-manual-memoization"	1
@@ -652,7 +649,6 @@
 "../../src/pages/workspace/taxes/WorkspaceTaxesPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/travel/WorkspaceTravelInvoicingSection.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	3
 "../../src/pages/workspace/workflows/WorkspaceWorkflowsPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
-"../../src/pages/workspace/workflows/WorkspaceWorkflowsPage.tsx"	"react-hooks/preserve-manual-memoization"	3
 "../../src/pages/workspace/workflows/WorkspaceWorkflowsPayerPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	2
 "../../src/stories/ReportActionItemImages.stories.tsx"	"no-restricted-syntax"	1
 "../../src/stories/TextInput.stories.tsx"	"react-hooks/set-state-in-effect"	1
@@ -661,7 +657,6 @@
 "../../src/types/onyx/AccountData.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/BankAccount.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/CancellationDetails.ts"	"no-restricted-syntax"	1
-"../../src/types/onyx/Card.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/CardFeeds.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/Domain.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/DomainErrors.ts"	"no-restricted-syntax"	1
@@ -693,7 +688,6 @@
 "../../src/types/onyx/ReportNameValuePairs.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/SaveSearch.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/SearchResults.ts"	"no-restricted-syntax"	1
-"../../src/types/onyx/Session.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/ShareBankAccount.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/Transaction.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/UnshareBankAccount.ts"	"no-restricted-syntax"	1

@@ -46,10 +46,35 @@ import type {Connections} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
+import {CARD_FEED_COLORS, GENERIC_CARD_COLORS} from './CardArtworkColors';
 import DateUtils from './DateUtils';
 import {filterObject} from './ObjectUtils';
 import {arePersonalDetailsMissing, getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import StringUtils from './StringUtils';
+
+/**
+ * Returns the artwork colors (background fill + WCAG-compliant overlay text) for a given feed.
+ * Uses prefix-matching to handle feed names that include a suffix (e.g. "vcf123").
+ */
+function getCardFeedColors(cardFeed: string | undefined): {background: string; text: string} {
+    if (!cardFeed) {
+        return GENERIC_CARD_COLORS;
+    }
+    const feedKey = Object.keys(CARD_FEED_COLORS)
+        .sort((a, b) => b.length - a.length)
+        .find((key) => cardFeed.startsWith(key));
+    return feedKey !== undefined ? CARD_FEED_COLORS[feedKey] : GENERIC_CARD_COLORS;
+}
+
+/** Returns the background hex color for the card image shown for a given feed. */
+function getCardFeedBackgroundColor(cardFeed: string | undefined): string {
+    return getCardFeedColors(cardFeed).background;
+}
+
+/** Returns the WCAG-compliant overlay text color for a given feed's card artwork. */
+function getCardFeedTextColor(cardFeed: string | undefined): string {
+    return getCardFeedColors(cardFeed).text;
+}
 
 const COMPANY_CARD_FEED_ICON_NAMES = [
     'VisaCompanyCardDetailLarge',
@@ -1816,6 +1841,8 @@ function resolveTransactionCardFields<T extends Transaction>(transactions: T[], 
 
 export {
     getAssignedCardSortKey,
+    getCardFeedBackgroundColor,
+    getCardFeedTextColor,
     getDefaultExpensifyCardLimitType,
     isExpensifyCard,
     isUkEuExpensifyCard,
