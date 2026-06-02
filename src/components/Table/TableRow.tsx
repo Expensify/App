@@ -1,11 +1,14 @@
 import React from 'react';
 import type {PressableStateCallbackType} from 'react-native';
 import {View} from 'react-native';
+import Animated from 'react-native-reanimated';
+import ErrorMessageRow from '@components/ErrorMessageRow';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
+import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -27,6 +30,9 @@ type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible'> & {
     /** Whether or not the table row is loading */
     isLoading?: boolean;
 
+    /** Whether or not the row should animate in highlighted */
+    shouldAnimateInHighlight?: boolean;
+
     /** The loading component to render within the table row when the row is loading */
     LoadingComponent?: React.ComponentType;
 
@@ -44,6 +50,7 @@ export default function TableRow({
     sentryLabel,
     interactive,
     isLoading,
+    shouldAnimateInHighlight,
     skeletonReasonAttributes,
     LoadingComponent,
     onPress,
@@ -56,32 +63,46 @@ export default function TableRow({
     const styles = useThemeStyles();
     const {processedData, columns, shouldUseNarrowTableLayout} = useTableContext();
 
-    const columnCount = columns.length;
     const rowCount = processedData.length;
+    const isFirstRow = rowIndex === 0;
     const isLastRow = rowIndex === rowCount - 1;
     const isInteractive = interactive && !isLoading;
+    const gridTemplateColumns = columns.map((column) => (column.width ? `${column.width}px` : '1fr')).join(' ');
+
+    const animatedHighlightStyle = useAnimatedHighlightStyle({
+        shouldHighlight: !!shouldAnimateInHighlight,
+        highlightColor: theme.messageHighlightBG,
+        backgroundColor: theme.transparent,
+    });
 
     const tableRowPressableStyles = [
         styles.mh5,
-        styles.flexRow,
         styles.highlightBG,
-        styles.alignItemsCenter,
         isInteractive && styles.userSelectNone,
+        !isFirstRow && styles.borderTop,
+        isLastRow && styles.tableBottomRadius,
+        shouldUseNarrowTableLayout ? styles.tableRowHeightCompact : styles.tableRowHeight,
+    ];
+
+    const tableRowContentContainerStyles = [
+        styles.flex1,
+        styles.gap3,
         shouldUseNarrowTableLayout ? styles.ph4 : styles.ph3,
         shouldUseNarrowTableLayout && !isLoading && styles.pv4,
         !shouldUseNarrowTableLayout && !isLoading && styles.pv2,
-        isLastRow ? styles.tableBottomRadius : styles.borderBottom,
-        shouldUseNarrowTableLayout ? styles.tableRowHeightCompact : styles.tableRowHeight,
+        animatedHighlightStyle,
+        isLastRow && styles.tableBottomRadius,
     ];
 
     const tableRowContentStyles = [
         styles.flex1,
         styles.flexRow,
         styles.alignItemsCenter,
+        styles.alignContentCenter,
         styles.gap3,
         styles.dFlex,
         // Use Grid on web when available (will override flex if supported)
-        !shouldUseNarrowTableLayout && [styles.dGrid, {gridTemplateColumns: `repeat(${columnCount}, 1fr)`}],
+        !shouldUseNarrowTableLayout && [styles.dGrid, {gridTemplateColumns}],
     ];
 
     const renderChildren = (state: PressableStateCallbackType) => {
@@ -94,9 +115,8 @@ export default function TableRow({
 
     return (
         <OfflineWithFeedback
-            // We need to spread the props due to how the OfflineWithFeedback component handles child components
-
             {...offlineWithFeedback}
+            shouldShowErrorMessages={false}
         >
             <PressableWithFeedback
                 accessible={accessible}
@@ -110,22 +130,32 @@ export default function TableRow({
                 onPress={onPress}
                 {...props}
             >
-                {(state) =>
-                    !!isLoading && LoadingComponent ? (
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
-                            <SkeletonViewContentLoader
-                                width="100%"
-                                backgroundColor={theme.skeletonLHNIn}
-                                foregroundColor={theme.skeletonLHNOut}
-                                height={variables.tableSkeletonHeight}
-                            >
-                                <LoadingComponent />
-                            </SkeletonViewContentLoader>
-                        </View>
-                    ) : (
-                        <View style={tableRowContentStyles}>{renderChildren(state)}</View>
-                    )
-                }
+                {(state) => (
+                    <Animated.View style={tableRowContentContainerStyles}>
+                        {!!isLoading && LoadingComponent ? (
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
+                                <SkeletonViewContentLoader
+                                    width="100%"
+                                    backgroundColor={theme.skeletonLHNIn}
+                                    foregroundColor={theme.skeletonLHNOut}
+                                    height={variables.tableSkeletonHeight}
+                                >
+                                    <LoadingComponent />
+                                </SkeletonViewContentLoader>
+                            </View>
+                        ) : (
+                            <View style={tableRowContentStyles}>{renderChildren(state)}</View>
+                        )}
+
+                        {!!offlineWithFeedback?.errors && (
+                            <ErrorMessageRow
+                                errors={offlineWithFeedback.errors}
+                                dismissError={offlineWithFeedback.dismissError}
+                                onDismiss={offlineWithFeedback.onClose}
+                            />
+                        )}
+                    </Animated.View>
+                )}
             </PressableWithFeedback>
         </OfflineWithFeedback>
     );
