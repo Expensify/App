@@ -297,4 +297,4 @@ function usePersonalDetailSearchSelectorBase({
 }
 
 export default usePersonalDetailSearchSelectorBase;
-export type {ContactState, UseSearchSelectorConfig, UseSearchSelectorReturn, SearchSelectorSelectionMode};
+export type {ContactState, UseSearchSelectorConfig, UseSearchSelectorReturn};

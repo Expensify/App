@@ -1206,6 +1206,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.TAX_CREATE]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.TAX_CREATE_VALUE]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.TAX_EDIT]: {
         policyID: string;
         taxID: string;
@@ -2959,6 +2962,7 @@ type WorkspaceNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
+    [SCREENS.DOMAINS_LIST]: undefined;
     [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: NavigatorScreenParams<WorkspaceSplitNavigatorParamList>;
     [NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR]: NavigatorScreenParams<DomainSplitNavigatorParamList>;
 };

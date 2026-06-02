@@ -821,7 +821,14 @@ const ROUTES = {
     INBOX: 'inbox',
     HOME: 'home',
 
-    WORKSPACES_LIST: {route: 'workspaces', getRoute: (backTo?: string) => getUrlWithBackToParam('workspaces', backTo)},
+    WORKSPACES_LIST: {
+        route: 'workspaces',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('workspaces', backTo),
+    },
+    DOMAINS_LIST: {
+        route: 'domains',
+        getRoute: () => 'domains' as const,
+    },
     SEARCH_ROUTER: 'search-router',
     SEARCH_ROOT: {
         route: 'search',
@@ -2665,6 +2672,10 @@ const ROUTES = {
     WORKSPACE_TAX_CREATE: {
         route: 'workspaces/:policyID/taxes/new',
         getRoute: (policyID: string) => `workspaces/${policyID}/taxes/new` as const,
+    },
+    WORKSPACE_TAX_CREATE_VALUE: {
+        route: 'workspaces/:policyID/taxes/new/value',
+        getRoute: (policyID: string) => `workspaces/${policyID}/taxes/new/value` as const,
     },
     WORKSPACE_TAX_EDIT: {
         route: 'workspaces/:policyID/tax/:taxID',
