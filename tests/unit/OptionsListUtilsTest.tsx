@@ -5763,6 +5763,8 @@ describe('OptionsListUtils', () => {
     });
 
     describe('getReportOption', () => {
+        const mockSortedActions: Record<string, ReportAction[]> = {};
+
         beforeEach(async () => {
             await act(async () => {
                 await Onyx.clear();
@@ -5801,7 +5803,7 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getReportOption(participant, undefined, policy, {}, undefined);
+            const option = getReportOption(participant, undefined, policy, {}, undefined, mockSortedActions);
 
             expect(option.text).toBe('Test Workspace');
             expect(option.alternateText).toBe(translateLocal('workspace.common.workspace'));
@@ -5856,7 +5858,7 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getReportOption(participant, undefined, policy, {}, undefined);
+            const option = getReportOption(participant, undefined, policy, {}, undefined, mockSortedActions);
 
             expect(option.text).toBe('Test Workspace with Submit');
             // The submitsTo logic may or may not apply depending on complex approval rules
@@ -5879,7 +5881,7 @@ describe('OptionsListUtils', () => {
                 reportID,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, report);
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, mockSortedActions, undefined, report);
 
             expect(option.isDisabled).toBe(true);
         });
@@ -5915,7 +5917,7 @@ describe('OptionsListUtils', () => {
                 isSelfDM: true,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, personalDetails, undefined);
+            const option = getReportOption(participant, undefined, POLICY, personalDetails, undefined, mockSortedActions);
 
             // The option.isSelfDM is set by createOption based on the report type
             // Just verify the alternateText is correct for self DM
@@ -5950,7 +5952,7 @@ describe('OptionsListUtils', () => {
                 isInvoiceRoom: true,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined);
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, mockSortedActions);
 
             expect(option.isInvoiceRoom).toBe(true);
             expect(option.alternateText).toBe(translateLocal('workspace.common.invoices'));
@@ -5991,7 +5993,7 @@ describe('OptionsListUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            const option = getReportOption(participant, !!reportNameValuePair?.private_isArchived, POLICY, {}, undefined);
+            const option = getReportOption(participant, !!reportNameValuePair?.private_isArchived, POLICY, {}, undefined, mockSortedActions);
 
             expect(option.text).toBe(POLICY.name);
             expect(option.alternateText).toBeTruthy();
@@ -6031,7 +6033,7 @@ describe('OptionsListUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            const option = getReportOption(participant, !!reportNameValuePair?.private_isArchived, POLICY, {}, undefined, {}, draftReport);
+            const option = getReportOption(participant, !!reportNameValuePair?.private_isArchived, POLICY, {}, undefined, mockSortedActions, {}, draftReport);
 
             expect(option.isDisabled).toBe(true);
         });
@@ -6167,7 +6169,7 @@ describe('OptionsListUtils', () => {
                 selected: true,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined);
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, mockSortedActions);
 
             expect(option.isSelected).toBe(true);
             expect(option.selected).toBe(true);
@@ -6188,7 +6190,7 @@ describe('OptionsListUtils', () => {
                 reportID,
             };
 
-            const option = getReportOption(participant, undefined, undefined, {}, undefined);
+            const option = getReportOption(participant, undefined, undefined, {}, undefined, mockSortedActions);
 
             expect(option).toBeDefined();
             expect(option.text).toBeDefined();
@@ -6210,7 +6212,7 @@ describe('OptionsListUtils', () => {
             };
 
             // Test that the function works with reportAttributesDerived parameter (optional)
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined);
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, mockSortedActions);
 
             expect(option).toBeDefined();
         });
@@ -6244,7 +6246,7 @@ describe('OptionsListUtils', () => {
                 reportID,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, testPersonalDetails, undefined);
+            const option = getReportOption(participant, undefined, POLICY, testPersonalDetails, undefined, mockSortedActions);
 
             expect(option).toBeDefined();
             // The createOption function uses personalDetails to build display names
@@ -6305,7 +6307,7 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getReportOption(participant, undefined, policy, testPersonalDetails, undefined);
+            const option = getReportOption(participant, undefined, policy, testPersonalDetails, undefined, mockSortedActions);
 
             expect(option).toBeDefined();
             expect(option.text).toBe('Test Workspace with Approver');
@@ -6330,7 +6332,7 @@ describe('OptionsListUtils', () => {
             };
 
             // Pass empty personalDetails
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined);
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, mockSortedActions);
 
             expect(option).toBeDefined();
             expect(option.text).toBeDefined();
@@ -6352,7 +6354,7 @@ describe('OptionsListUtils', () => {
             };
 
             // Pass undefined personalDetails
-            const option = getReportOption(participant, undefined, POLICY, undefined, undefined);
+            const option = getReportOption(participant, undefined, POLICY, undefined, undefined, mockSortedActions);
 
             expect(option).toBeDefined();
             expect(option.text).toBeDefined();
@@ -6398,7 +6400,7 @@ describe('OptionsListUtils', () => {
                 isInvoiceRoom: true,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, testPersonalDetails, undefined);
+            const option = getReportOption(participant, undefined, POLICY, testPersonalDetails, undefined, mockSortedActions);
 
             expect(option).toBeDefined();
             expect(option.isInvoiceRoom).toBe(true);
@@ -6420,7 +6422,7 @@ describe('OptionsListUtils', () => {
 
             const participant = {reportID};
 
-            const option = getReportOption(participant, undefined, POLICY, {}, conciergeReportID);
+            const option = getReportOption(participant, undefined, POLICY, {}, conciergeReportID, mockSortedActions);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -6439,7 +6441,7 @@ describe('OptionsListUtils', () => {
 
             const participant = {reportID};
 
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined);
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, mockSortedActions);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -6474,7 +6476,7 @@ describe('OptionsListUtils', () => {
 
             // Passing conciergeReportID matching the reportID identifies this as the Concierge chat,
             // which affects getMovedTransactionMessage to use CONST.CONCIERGE_DISPLAY_NAME ('Concierge')
-            const option = getReportOption(participant, undefined, POLICY, testPersonalDetails, conciergeReportID);
+            const option = getReportOption(participant, undefined, POLICY, testPersonalDetails, conciergeReportID, mockSortedActions);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -6494,8 +6496,8 @@ describe('OptionsListUtils', () => {
 
             const participant = {reportID};
 
-            const optionWithConcierge = getReportOption(participant, undefined, POLICY, {}, differentConciergeReportID);
-            const optionWithoutConcierge = getReportOption(participant, undefined, POLICY, {}, undefined);
+            const optionWithConcierge = getReportOption(participant, undefined, POLICY, {}, differentConciergeReportID, mockSortedActions);
+            const optionWithoutConcierge = getReportOption(participant, undefined, POLICY, {}, undefined, mockSortedActions);
 
             // Both should produce the same result since the IDs don't match
             expect(optionWithConcierge.reportID).toBe(optionWithoutConcierge.reportID);

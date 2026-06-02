@@ -1003,7 +1003,7 @@ function getLastMessageTextForReport({
                 reportID,
                 canUserPerformWrite,
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                deprecatedAllSortedReportActions[reportID],
+                sortedActions[reportID],
                 visibleReportActionsDataParam,
             );
             if (isExpenseReport(report) && latestVisibleMoneyRequestAction) {
@@ -1053,6 +1053,8 @@ type CreateOptionParams = {
     translate?: LocalizedTranslate;
     // TODO: conciergeReportID will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66411
     conciergeReportID?: string;
+    // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66414
+    sortedActions?: Record<string, ReportAction[]>;
 };
 
 /**
@@ -1070,6 +1072,7 @@ function createOption({
     visibleReportActionsData = {},
     translate,
     conciergeReportID,
+    sortedActions,
 }: CreateOptionParams): SearchOptionData {
     const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false, selected, isSelected, isDisabled} = config ?? {};
 
@@ -1152,6 +1155,7 @@ function createOption({
             reportAttributesDerived,
             policyTags,
             conciergeReportID,
+            sortedActions,
         });
         result.alternateText =
             showPersonalDetails && personalDetail?.login
@@ -1168,6 +1172,7 @@ function createOption({
                           reportAttributesDerived,
                           policyTags,
                           conciergeReportID,
+                          sortedActions,
                       },
                   );
 
@@ -1219,6 +1224,7 @@ function getReportOption(
     policy: OnyxEntry<Policy>,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     conciergeReportID: string | undefined,
+    sortedActions: Record<string, ReportAction[]> | undefined,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66414
     reportDraft?: OnyxEntry<Report>,
@@ -1243,6 +1249,7 @@ function getReportOption(
         policyTags: reportPolicyTags,
         visibleReportActionsData,
         conciergeReportID,
+        sortedActions,
     });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
