@@ -1716,6 +1716,7 @@ const CONST = {
                     UPDATE_OWNERSHIP: 'POLICYCHANGELOG_UPDATE_OWNERSHIP',
                     UPDATE_REIMBURSER: 'POLICYCHANGELOG_UPDATE_REIMBURSER',
                     UPDATE_PROHIBITED_EXPENSES: 'POLICYCHANGELOG_UPDATE_PROHIBITED_EXPENSES',
+                    UPDATE_COMMUTER_EXCLUSIONS: 'POLICYCHANGELOG_UPDATE_COMMUTER_EXCLUSIONS',
                     UPDATE_REIMBURSEMENT_CHOICE: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_CHOICE',
                     UPDATE_REIMBURSEMENT_ENABLED: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_ENABLED',
                     UPDATE_REPORT_FIELD: 'POLICYCHANGELOG_UPDATE_REPORT_FIELD',
@@ -3956,6 +3957,15 @@ const CONST = {
             ADULT_ENTERTAINMENT: 'adultEntertainment',
             GIFT_CARD: 'giftCard',
             HANDWRITTEN_RECEIPT: 'handwrittenReceipt',
+        },
+        COMMUTER_EXCLUSION_METHOD: {
+            FIXED_DISTANCE: 'fixedDistance',
+            // R2 will add HOME_AND_OFFICE: 'homeAndOffice'
+        },
+        COMMUTER_EXCLUSION_TYPE: {
+            METHOD: 'method',
+            FIXED_DISTANCE: 'fixedDistance',
+            DISABLED: 'disabled',
         },
         RECEIPT_PARTNERS: {
             NAME: {UBER: 'uber'},

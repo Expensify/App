@@ -6491,6 +6491,20 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
         distanceRates: {
             oopsNotSoFast: 'Ups! Nie tak szybko...',
             workspaceNeeds: 'Miejsce pracy musi mieć włączoną co najmniej jedną stawkę za dystans.',
+
+            commuterExclusions: {
+                title: 'Exclude commutes',
+                summaryDisabled: 'No commute exclusion',
+                summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Exclude ${distance} ${unit} per claim`,
+                optionDisabledTitle: 'Do not exclude commutes',
+                optionDisabledHelp: 'No commute exclusion is applied.',
+                optionFixedDistanceTitle: 'Exclude a fixed distance per claim',
+                optionFixedDistanceHelp: 'Remove the same commute distance from each claim. Best for members who submit one claim per workday.',
+                distanceLabel: 'Distance',
+                errors: {
+                    distanceMustBePositive: 'Distance must be greater than 0.',
+                },
+            },
             distance: 'Dystans',
             centrallyManage: 'Centralnie zarządzaj stawkami, śledź w milach lub kilometrach i ustaw domyślną kategorię.',
             rate: 'Oceń',
@@ -7725,6 +7739,14 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `dodano „${prohibitedExpense}” do zabronionych wydatków`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `usunięto „${prohibitedExpense}” z wydatków zabronionych`,
+
+        commuterExclusions: {
+            changedToFixedDistance: 'changed exclude commutes to a fixed distance per claim',
+            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `set fixed distance exclusion to ${distance} ${unit === 'mi' ? (distance === 1 ? 'mile' : 'miles') : distance === 1 ? 'kilometer' : 'kilometers'} per claim`,
+            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
+                `changed fixed distance exclusion to ${newDistance} ${unit} per claim (previously ${oldDistance} ${unit})`,
+            disabled: 'disabled exclude commutes for distance rates',
+        },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>
             `zmieniono metodę zwrotu kosztów na „${newReimbursementChoice}” (wcześniej „${oldReimbursementChoice}”)`,
         setAutoJoin: ({enabled}: {enabled: boolean}) => `${enabled ? 'włączone' : 'wyłączone'} wstępna akceptacja próśb o dołączenie do przestrzeni workspace`,

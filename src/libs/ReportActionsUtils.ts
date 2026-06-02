@@ -4094,6 +4094,36 @@ function getUpdatedTimeRateMessage(translate: LocalizedTranslate, reportAction: 
     return getReportActionText(reportAction);
 }
 
+function getUpdatedCommuterExclusionsMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>) {
+    const originalMessage = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_COMMUTER_EXCLUSIONS>);
+    const updatedField = originalMessage?.updatedField;
+
+    if (updatedField === CONST.POLICY.COMMUTER_EXCLUSION_TYPE.METHOD) {
+        const newMethod = originalMessage?.newValue;
+        if (newMethod === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE) {
+            return translate('workspaceActions.commuterExclusions.changedToFixedDistance');
+        }
+    }
+
+    if (updatedField === CONST.POLICY.COMMUTER_EXCLUSION_TYPE.FIXED_DISTANCE) {
+        const newValue = typeof originalMessage?.newValue === 'number' ? originalMessage.newValue : Number(originalMessage?.newValue ?? 0);
+        const unit = originalMessage?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+
+        if (originalMessage?.oldValue == null) {
+            return translate('workspaceActions.commuterExclusions.setFixedDistance', {distance: newValue, unit});
+        }
+
+        const oldValue = typeof originalMessage.oldValue === 'number' ? originalMessage.oldValue : Number(originalMessage.oldValue);
+        return translate('workspaceActions.commuterExclusions.changedFixedDistance', {newDistance: newValue, oldDistance: oldValue, unit});
+    }
+
+    if (updatedField === CONST.POLICY.COMMUTER_EXCLUSION_TYPE.DISABLED) {
+        return translate('workspaceActions.commuterExclusions.disabled');
+    }
+
+    return getReportActionText(reportAction);
+}
+
 function getUpdatedProhibitedExpensesMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>) {
     const {newProhibitedExpenses, oldProhibitedExpenses} =
         getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_PROHIBITED_EXPENSES>) ?? {};
@@ -4762,6 +4792,7 @@ export {
     getWorkspaceCustomUnitRateAddedMessage,
     getSendMoneyFlowAction,
     getUpdatedProhibitedExpensesMessage,
+    getUpdatedCommuterExclusionsMessage,
     getWorkspaceTagUpdateMessage,
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceReportFieldDeleteMessage,

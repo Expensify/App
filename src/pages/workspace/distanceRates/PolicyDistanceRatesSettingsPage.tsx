@@ -22,7 +22,7 @@ import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {clearPolicyDistanceRatesErrorFields} from '@userActions/Policy/DistanceRate';
+import {clearPolicyCommuterExclusionsErrors, clearPolicyDistanceRatesErrorFields} from '@userActions/Policy/DistanceRate';
 import {enableDistanceRequestTax} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -101,6 +101,27 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                     />
                                 </OfflineWithFeedback>
                             )}
+                            <OfflineWithFeedback
+                                errors={getLatestErrorField(policy ?? {}, 'commuterExclusions')}
+                                pendingAction={policy?.pendingFields?.commuterExclusions}
+                                errorRowStyles={styles.mh5}
+                                onClose={() => clearPolicyCommuterExclusionsErrors(policyID)}
+                            >
+                                <MenuItemWithTopDescription
+                                    shouldShowRightIcon
+                                    title={
+                                        policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE && policy?.commuterExclusions?.fixedDistance != null
+                                            ? translate('workspace.distanceRates.commuterExclusions.summaryFixedDistance', {
+                                                  distance: policy.commuterExclusions.fixedDistance,
+                                                  unit: policy.commuterExclusions.fixedDistanceUnit ?? defaultUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                                              })
+                                            : translate('workspace.distanceRates.commuterExclusions.summaryDisabled')
+                                    }
+                                    description={translate('workspace.distanceRates.commuterExclusions.title')}
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_COMMUTER_EXCLUSIONS.getRoute(policyID))}
+                                    wrapperStyle={[styles.ph5, styles.mt3]}
+                                />
+                            </OfflineWithFeedback>
                             {!!policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {}) && !!customUnit?.customUnitID && (
                                 <OfflineWithFeedback
                                     errors={getLatestErrorField(customUnit ?? {}, 'defaultCategory')}

@@ -6449,6 +6449,19 @@ ${amount} para ${merchant} - ${date}`,
         distanceRates: {
             oopsNotSoFast: 'Ups! No tan rápido...',
             workspaceNeeds: 'Un espacio de trabajo necesita al menos una tasa de distancia activa.',
+            commuterExclusions: {
+                title: 'Excluir trayectos',
+                summaryDisabled: 'Sin exclusión de trayectos',
+                summaryFixedDistance: ({distance, unit}) => `Excluir ${distance} ${unit} por solicitud`,
+                optionDisabledTitle: 'No excluir trayectos',
+                optionDisabledHelp: 'No se aplica ninguna exclusión de trayecto.',
+                optionFixedDistanceTitle: 'Excluir una distancia fija por solicitud',
+                optionFixedDistanceHelp: 'Resta la misma distancia de trayecto a cada solicitud. Ideal para miembros que envían una solicitud por día laboral.',
+                distanceLabel: 'Distancia',
+                errors: {
+                    distanceMustBePositive: 'La distancia debe ser mayor que 0.',
+                },
+            },
             distance: 'Distancia',
             centrallyManage: 'Gestiona centralizadamente las tasas, elige si contabilizar en millas o kilómetros, y define una categoría por defecto',
             rate: 'Tasa',
@@ -7506,6 +7519,14 @@ ${amount} para ${merchant} - ${date}`,
         updatedTimeRate: (newRate, oldRate) => `cambió la tarifa por hora a "${newRate}" (anteriormente "${oldRate}")`,
         addedProhibitedExpense: ({prohibitedExpense}) => `añadió "${prohibitedExpense}" a los gastos prohibidos`,
         removedProhibitedExpense: ({prohibitedExpense}) => `eliminó "${prohibitedExpense}" de los gastos prohibidos`,
+        commuterExclusions: {
+            changedToFixedDistance: 'cambió la exclusión de trayectos a una distancia fija por solicitud',
+            setFixedDistance: ({distance, unit}) =>
+                `estableció la exclusión de distancia fija en ${distance} ${unit === 'mi' ? (distance === 1 ? 'milla' : 'millas') : distance === 1 ? 'kilómetro' : 'kilómetros'} por solicitud`,
+            changedFixedDistance: ({newDistance, oldDistance, unit}) =>
+                `cambió la exclusión de distancia fija a ${newDistance} ${unit} por solicitud (anteriormente ${oldDistance} ${unit})`,
+            disabled: 'desactivó la exclusión de trayectos para tarifas de distancia',
+        },
         updatedReimbursementChoice: (newReimbursementChoice, oldReimbursementChoice) =>
             `cambió el método de reembolso a "${newReimbursementChoice}" (previamente "${oldReimbursementChoice}")`,
         setAutoJoin: (enabled) => `${enabled ? 'habilitó' : 'deshabilitó'} la aprobación previa de solicitudes para unirse al espacio de trabajo`,

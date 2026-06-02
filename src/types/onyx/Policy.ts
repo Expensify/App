@@ -1775,6 +1775,18 @@ type ACHAccount = {
     sharees?: string[];
 };
 
+/** Commuter exclusion configuration for a policy */
+type CommuterExclusions = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** How commuter mileage is excluded - R2 will add 'homeAndOffice' */
+    method: ValueOf<typeof CONST.POLICY.COMMUTER_EXCLUSION_METHOD>;
+
+    /** Distance subtracted from each claim when method is 'fixedDistance' */
+    fixedDistance?: number;
+
+    /** Distance unit stored alongside fixedDistance ('mi' or 'km'). Mirrors the policy distance custom unit at the time it was set. */
+    fixedDistanceUnit?: string;
+}>;
+
 /** Prohibited expense types */
 type ProhibitedExpenses = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether the policy prohibits alcohol expenses */
@@ -2300,6 +2312,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Settings for the Policy's prohibited expenses */
         prohibitedExpenses?: ProhibitedExpenses;
 
+        /** Commuter exclusion configuration applied to distance expenses on this workspace */
+        commuterExclusions?: CommuterExclusions;
+
         /** Indicates if the Policy is in loading state */
         isLoading?: boolean;
 
@@ -2457,6 +2472,7 @@ export type {
     MccGroup,
     Subrate,
     ProhibitedExpenses,
+    CommuterExclusions,
     NetSuiteConnectionData,
     HRConnectionConfigBase,
     MergeHRConnectionConfig,

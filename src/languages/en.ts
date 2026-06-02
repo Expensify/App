@@ -6644,6 +6644,19 @@ const translations = {
         distanceRates: {
             oopsNotSoFast: 'Oops! Not so fast...',
             workspaceNeeds: 'A workspace needs at least one enabled distance rate.',
+            commuterExclusions: {
+                title: 'Exclude commutes',
+                summaryDisabled: 'No commute exclusion',
+                summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Exclude ${distance} ${unit} per claim`,
+                optionDisabledTitle: 'Do not exclude commutes',
+                optionDisabledHelp: 'No commute exclusion is applied.',
+                optionFixedDistanceTitle: 'Exclude a fixed distance per claim',
+                optionFixedDistanceHelp: 'Remove the same commute distance from each claim. Best for members who submit one claim per workday.',
+                distanceLabel: 'Distance',
+                errors: {
+                    distanceMustBePositive: 'Distance must be greater than 0.',
+                },
+            },
             distance: 'Distance',
             centrallyManage: 'Centrally manage rates, track in miles or kilometers, and set a default category.',
             rate: 'Rate',
@@ -7720,6 +7733,13 @@ const translations = {
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `added "${prohibitedExpense}" to prohibited expenses`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `removed "${prohibitedExpense}" from prohibited expenses`,
+        commuterExclusions: {
+            changedToFixedDistance: 'changed exclude commutes to a fixed distance per claim',
+            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `set fixed distance exclusion to ${distance} ${unit === 'mi' ? (distance === 1 ? 'mile' : 'miles') : distance === 1 ? 'kilometer' : 'kilometers'} per claim`,
+            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
+                `changed fixed distance exclusion to ${newDistance} ${unit} per claim (previously ${oldDistance} ${unit})`,
+            disabled: 'disabled exclude commutes for distance rates',
+        },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>
             `changed reimbursement method to "${newReimbursementChoice}" (previously "${oldReimbursementChoice}")`,
 
