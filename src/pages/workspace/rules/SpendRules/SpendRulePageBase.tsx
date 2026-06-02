@@ -218,6 +218,31 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                     />
                     <Text style={[styles.textStrong, styles.ph5, styles.mt5]}>{translate('workspace.rules.spendRules.spendRuleSectionTitle')}</Text>
+
+                    <MenuItemWithTopDescription
+                        description={translate('workspace.rules.spendRules.maxAmount')}
+                        onPress={() => {
+                            clearError();
+                            if (!selectedCurrency) {
+                                openCurrencyMismatchModal();
+                                return;
+                            }
+                            navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_MAX_AMOUNT, {policyID, ruleID: currentRuleID});
+                        }}
+                        shouldShowRightIcon
+                        title={maxAmountMenuTitle}
+                        titleStyle={styles.flex1}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
+                    />
+                    <MenuItemWithTopDescription
+                        description={translate('workspace.rules.spendRules.permittedCurrencies')}
+                        onPress={() => {}}
+                        shouldShowRightIcon
+                        title={maxAmountMenuTitle}
+                        titleStyle={styles.flex1}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.CURRENCY_SELECTOR}
+                    />
+
                     <View style={[styles.ph5, styles.pv3]}>
                         <SpendRuleRestrictionTypeToggle
                             restrictionAction={restrictionAction}
@@ -248,21 +273,6 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                         shouldShowRightIcon
                         title={categoriesMenuTitle}
                         numberOfLinesTitle={2}
-                        titleStyle={styles.flex1}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
-                    />
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.rules.spendRules.maxAmount')}
-                        onPress={() => {
-                            clearError();
-                            if (!selectedCurrency) {
-                                openCurrencyMismatchModal();
-                                return;
-                            }
-                            navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_MAX_AMOUNT, {policyID, ruleID: currentRuleID});
-                        }}
-                        shouldShowRightIcon
-                        title={maxAmountMenuTitle}
                         titleStyle={styles.flex1}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                     />
