@@ -1,0 +1,32 @@
+diff --git a/node_modules/expo-video/android/src/main/java/expo/modules/video/FullscreenPlayerActivity.kt b/node_modules/expo-video/android/src/main/java/expo/modules/video/FullscreenPlayerActivity.kt
+index 721a944..e581d2a 100644
+--- a/node_modules/expo-video/android/src/main/java/expo/modules/video/FullscreenPlayerActivity.kt
++++ b/node_modules/expo-video/android/src/main/java/expo/modules/video/FullscreenPlayerActivity.kt
+@@ -9,6 +9,7 @@ import android.util.Log
+ import android.view.View
+ import android.view.accessibility.CaptioningManager
+ import android.view.WindowInsets
++import androidx.media3.common.Player
+ import android.view.WindowInsetsController
+ import android.widget.ImageButton
+ import androidx.media3.ui.PlayerView
+@@ -82,6 +83,18 @@ class FullscreenPlayerActivity : Activity(), VideoManagerListener {
+         playerView.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+             applyRectHint(this, calculateRectHint(playerView))
+         }
++
++        // When the player reaches STATE_ENDED, the controller layout changes
++        // (play button → replay, progress bar stays visible). The cached settings
++        // popup (Speed / Audio) position is computed against the old layout and
++        // can overlap controls on re-open. Force a controller rebuild so the
++        // popup position is recalculated against the new layout.
++        playerView.player?.addListener(object : Player.Listener {
++            override fun onPlaybackStateChanged(playbackState: Int) {
++                if (playbackState == Player.STATE_ENDED) {
++                    playerView.post { playerView.useController = true }
++                }
++            }
++        })
+     }
+ 
+     override fun finish() {
