@@ -8,7 +8,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getReportLayoutGroupBy, setReportLayout} from '@libs/actions/ReportLayout';
+import {getReportLayoutSelection, setReportLayout} from '@libs/actions/ReportLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,9 +24,7 @@ function ReportLayoutPage() {
     const [reportLayoutGroupByNVP] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY);
     const [reportLayoutOptionNVP] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_OPTION);
 
-    const currentGroupBy = getReportLayoutGroupBy(reportLayoutGroupByNVP);
-    const isMatrixLayout = reportLayoutOptionNVP === CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX;
-    const currentSelection = isMatrixLayout ? CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX : currentGroupBy;
+    const currentSelection = getReportLayoutSelection(reportLayoutOptionNVP, reportLayoutGroupByNVP);
 
     const goBack = useCallback(() => {
         Navigation.goBack();
@@ -61,7 +59,7 @@ function ReportLayoutPage() {
             text: translate('common.none'),
             keyForList: CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX,
             value: CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX,
-            isSelected: isMatrixLayout,
+            isSelected: currentSelection === CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX,
         },
     ];
 
