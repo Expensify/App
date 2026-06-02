@@ -7,6 +7,7 @@ import usePolicyData from '@hooks/usePolicyData';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {
     buildOptimisticPolicyRecentlyUsedTags,
+    cleanPolicyTags,
     clearPolicyTagErrors,
     clearPolicyTagListErrorField,
     clearPolicyTagListErrors,
@@ -198,6 +199,46 @@ describe('actions/Policy', () => {
             });
 
             expect(updatePolicyTags?.[tagListName]?.required).toBeTruthy();
+        });
+    });
+
+    describe('cleanPolicyTags', () => {
+        it('should disable required tags after cleaning all tags succeeds', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.requiresTag = true;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            mockFetch.pause();
+            cleanPolicyTags(fakePolicy.id, true);
+            await waitForBatchedUpdates();
+
+            let policy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            expect(policy?.requiresTag).toBe(true);
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            policy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            expect(policy?.requiresTag).toBe(false);
+        });
+
+        it('should keep required tags enabled when cleaning all tags fails', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.requiresTag = true;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            mockFetch.pause();
+            mockFetch.fail();
+            cleanPolicyTags(fakePolicy.id, true);
+            await waitForBatchedUpdates();
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            const policy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            expect(policy?.requiresTag).toBe(true);
         });
     });
 
