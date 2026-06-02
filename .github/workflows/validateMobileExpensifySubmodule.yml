@@ -12,19 +12,16 @@ jobs:
     if: github.actor != 'OSBotify' && !endsWith(github.actor, '[bot]')
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
-      - name: Checkout App (sparse — gitlink + script only)
+      - name: Checkout App
         uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
-          fetch-depth: 2
-          sparse-checkout: |
-            scripts/validateMobileExpensifySubmodule.sh
+          submodules: true
 
-      - name: Checkout Mobile-Expensify (dedicated repo for ancestry)
+      - name: Checkout Mobile-Expensify
         uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           repository: Expensify/Mobile-Expensify
           path: .github/mobile-expensify-repo
-          ref: main
 
       - name: Validate submodule pointer
         env:

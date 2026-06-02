@@ -2,48 +2,44 @@
 # Validates that a PR did not regress the Mobile-Expensify submodule gitlink on E/App.
 #
 # Inputs:
-#   - Run from the App repo root (CI: PR merge commit with fetch-depth >= 2). Compares main vs HEAD gitlinks for Mobile-Expensify.
-#   - MOBILE_EXPENSIFY_GIT_DIR: path to a Mobile-Expensify clone for ancestry checks (default: Mobile-Expensify submodule; CI sets .github/mobile-expensify-repo).
+#   - Run from the App repo root after checkout (CI: PR merge commit, submodules initialized).
+#   - git fetch origin main --depth=1 must be usable to read main's gitlink (script runs this).
+#   - MOBILE_EXPENSIFY_GIT_DIR: clone of Expensify/Mobile-Expensify at its default branch tip (default: .github/mobile-expensify-repo).
 #
 # Outputs:
-#   - Exit 0 if the gitlink is unchanged or the PR SHA is not older than main's SHA (logs a success line).
-#   - Exit 1 if the PR SHA regressed; writes GitHub Actions ::error:: messages with remediation steps.
+#   - Exit 0 if the PR gitlink matches main's gitlink, or matches Mobile-Expensify main HEAD.
+#   - Exit 1 otherwise; writes GitHub Actions ::error:: messages with remediation steps.
 set -euo pipefail
 
-MOBILE_EXPENSIFY_GIT_DIR="${MOBILE_EXPENSIFY_GIT_DIR:-Mobile-Expensify}"
+MOBILE_EXPENSIFY_GIT_DIR="${MOBILE_EXPENSIFY_GIT_DIR:-.github/mobile-expensify-repo}"
 
-# CI checks out the PR merge commit (fetch-depth 2 includes main as HEAD^1). Local runs fetch main instead.
-if git rev-parse --verify -q 'HEAD^2^{commit}' >/dev/null; then
-    MAIN_REF='HEAD^1'
-else
-    git fetch origin main --no-tags --depth=1
-    MAIN_REF='origin/main'
-fi
+git fetch origin main --no-tags --depth=1
 
-if git diff --quiet "${MAIN_REF}"...HEAD -- Mobile-Expensify; then
-    echo "✅  Mobile-Expensify submodule unchanged."
-    exit 0
-fi
-
-MAIN_SHA=$(git rev-parse "${MAIN_REF}:Mobile-Expensify")
-PR_SHA=$(git rev-parse HEAD:Mobile-Expensify)
-
-echo "App main submodule: $MAIN_SHA"
-echo "PR submodule: $PR_SHA"
+PR_HASH=$(git rev-parse HEAD:Mobile-Expensify)
+MAIN_HASH=$(git rev-parse origin/main:Mobile-Expensify)
 
 if ! git -C "$MOBILE_EXPENSIFY_GIT_DIR" rev-parse --git-dir >/dev/null 2>&1; then
     echo "::error::Mobile-Expensify repo not found at $MOBILE_EXPENSIFY_GIT_DIR (workflow must check out Expensify/Mobile-Expensify first)"
     exit 1
 fi
 
-git -C "$MOBILE_EXPENSIFY_GIT_DIR" fetch --no-tags origin "$MAIN_SHA" "$PR_SHA"
+MOBILE_EXPENSIFY_MAIN_HASH=$(git -C "$MOBILE_EXPENSIFY_GIT_DIR" rev-parse HEAD)
 
-if git -C "$MOBILE_EXPENSIFY_GIT_DIR" merge-base --is-ancestor "$MAIN_SHA" "$PR_SHA"; then
-    echo "✅  PR Mobile-Expensify submodule is not older than main."
+echo "App main submodule: $MAIN_HASH"
+echo "PR submodule: $PR_HASH"
+echo "Mobile-Expensify main: $MOBILE_EXPENSIFY_MAIN_HASH"
+
+if [[ "$PR_HASH" == "$MAIN_HASH" ]]; then
+    echo "✅  Mobile-Expensify submodule matches main."
     exit 0
 fi
 
-echo "::error::Mobile-Expensify submodule was manually set to $PR_SHA, which is older than the commit on main ($MAIN_SHA)."
+if [[ "$PR_HASH" == "$MOBILE_EXPENSIFY_MAIN_HASH" ]]; then
+    echo "✅  Mobile-Expensify submodule matches Mobile-Expensify main."
+    exit 0
+fi
+
+echo "::error::Mobile-Expensify submodule ($PR_HASH) does not match App main ($MAIN_HASH) or Mobile-Expensify main ($MOBILE_EXPENSIFY_MAIN_HASH)."
 echo "::error::OSBotify manages this submodule. Remove the submodule change from this PR."
 echo "::error::If App and Mobile-Expensify are out of sync, run the syncVersions workflow: https://github.com/Expensify/App/actions/workflows/syncVersions.yml"
 exit 1
