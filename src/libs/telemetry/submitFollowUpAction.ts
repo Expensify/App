@@ -167,14 +167,7 @@ function hasSubmitSpan(): boolean {
  * SubmitExpenseOrchestrator and submitDismissStrategies to record diagnostic state.
  */
 function setSubmitSpanAttributes(attrs: Record<string, SpanAttributeValue>) {
-    const span = getSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE);
-    if (!span) {
-        if (__DEV__) {
-            Log.warn('[SubmitExpense] setSubmitSpanAttributes called but span does not exist');
-        }
-        return;
-    }
-    span.setAttributes(attrs);
+    getSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE)?.setAttributes(attrs);
 }
 
 /**
