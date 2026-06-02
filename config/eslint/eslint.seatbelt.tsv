@@ -334,6 +334,7 @@
 "../../src/libs/actions/IOU/RejectMoneyRequest.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/IOU/ReportWorkflow.ts"	"@typescript-eslint/no-deprecated/buildNextStepNew"	7
 "../../src/libs/actions/IOU/ReportWorkflow.ts"	"no-restricted-syntax"	1
+"../../src/libs/actions/IOU/SearchUpdate.ts"	"rulesdir/no-onyx-connect"	1
 "../../src/libs/actions/IOU/SendInvoice.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/libs/actions/IOU/SendInvoice.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/IOU/SendMoney.ts"	"no-restricted-syntax"	1

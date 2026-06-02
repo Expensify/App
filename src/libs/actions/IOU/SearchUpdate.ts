@@ -211,8 +211,8 @@ function getSearchOnyxUpdate({
         ];
 
         if (currentSearchQueryJSON.groupBy === CONST.SEARCH.GROUP_BY.FROM) {
-            const groupKey = `${CONST.SEARCH.GROUP_PREFIX}${fromAccountID}`;
-            const currentSnapshot = allSnapshots[`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`];
+            const groupKey = `${CONST.SEARCH.GROUP_PREFIX}${fromAccountID}` as const;
+            const currentSnapshot = allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`];
             const existingGroup = currentSnapshot?.data?.[groupKey] as SearchMemberGroup | undefined;
             optimisticSnapshotData[groupKey] = {
                 accountID: fromAccountID,
