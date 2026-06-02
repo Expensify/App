@@ -100,7 +100,7 @@ function useAutoCreateTrackWorkspace() {
                     adminsChatReportID: newAdminsChatReportID,
                     onboardingPolicyID: newPolicyID,
                     shouldWaitForRHPVariantInitialization: isSidePanelReportSupported,
-                    personalTrackGoal: onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL ? (personalTrackGoal ?? undefined) : undefined,
+                    personalTrackGoal: onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL && !!personalTrackGoal ? personalTrackGoal : undefined,
                     introSelected,
                     isSelfTourViewed,
                 });

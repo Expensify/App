@@ -3022,7 +3022,7 @@ ${amount} pour ${merchant} - ${date}`,
             [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.HOUSEHOLD_TRACKING]: 'Dépenses ménagères',
             [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SIDEPROJECT_TRACKING]: 'Dépenses de projet annexe',
             [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE]: 'Autre chose',
-            somethingElsePlaceholder: 'Que suivez-vous ?',
+            somethingElsePlaceholder: 'Qu’est-ce que vous suivez ?',
         },
         employees: {
             title: 'Combien d’employés avez-vous ?',

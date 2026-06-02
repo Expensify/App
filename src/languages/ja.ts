@@ -2976,7 +2976,7 @@ ${date} の ${merchant} への ${amount}`,
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'その他',
         },
         personalTrackGoal: {
-            title: '何を記録したいですか？',
+            title: '何を管理したいですか？',
             [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.INVESTMENT_TRACKING]: '投資用不動産の費用',
             [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.HOUSEHOLD_TRACKING]: '家計費',
             [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SIDEPROJECT_TRACKING]: 'サイドプロジェクト経費',
