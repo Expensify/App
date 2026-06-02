@@ -32,7 +32,6 @@ import clearOnyxAndSeedFullReconnect from './clearOnyxAndSeedFullReconnect';
 import {setShouldForceOffline} from './Network';
 import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
 import {createDraftInitialWorkspace, createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from './Policy/Policy';
-import {getDefaultP2PMileageRate} from './Transaction';
 
 type PolicyParamsForOpenOrReconnect = {
     policyIDList: string[];
@@ -441,8 +440,6 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
             parentSpan: bootsplashSpan,
         });
     }
-
-    getDefaultP2PMileageRate();
 
     return getPolicyParamsForOpenOrReconnect()
         .then((policyParams: PolicyParamsForOpenOrReconnect) => {

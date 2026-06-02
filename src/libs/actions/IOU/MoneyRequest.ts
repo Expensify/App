@@ -35,7 +35,7 @@ import {
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
 } from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
-import {setTransactionReport} from '@userActions/Transaction';
+import {getDefaultP2PMileageRate, setTransactionReport} from '@userActions/Transaction';
 import {getRemoveDraftTransactionsByIDsData, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import type {IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -1068,6 +1068,7 @@ function startDistanceRequest(
     backToReport?: string,
     isFromFloatingActionButton?: boolean,
 ) {
+    getDefaultP2PMileageRate();
     clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, draftTransactionIDs, skipConfirmation);
     if (isFromFloatingActionButton) {
         Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {isFromFloatingActionButton});
