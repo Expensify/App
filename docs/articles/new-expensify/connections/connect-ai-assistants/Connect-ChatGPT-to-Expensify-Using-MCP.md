@@ -27,10 +27,12 @@ Requirements:
 
 ## How to enable developer mode in ChatGPT
 
+For the latest requirements and instructions, see the [ChatGPT Developer mode documentation](https://developers.openai.com/api/docs/guides/developer-mode).
+
 1. Open ChatGPT.
 2. Go to **Settings**.
-3. Select **Apps & Connectors**.
-4. Scroll to **Advanced settings**.
+3. Select **Apps**.
+4. Select **Advanced settings**.
 5. Turn on **Developer mode**.
 
 ---
