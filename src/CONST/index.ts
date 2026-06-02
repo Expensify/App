@@ -8327,6 +8327,7 @@ const CONST = {
             BEFORE_PREFIX: 'reportFieldBefore-',
             RANGE_PREFIX: 'reportFieldRange-',
         },
+        NONE_OPTION_KEY: '\x00__none__',
         TAG_EMPTY_VALUE: 'none',
         TAG_UNTAGGED_VALUE: '(untagged)',
         CATEGORY_EMPTY_VALUE: 'none',
