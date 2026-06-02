@@ -286,12 +286,7 @@ function useRowSelection(keyForList: string | undefined): {isSelected: boolean} 
  */
 function useSelectionCounts(): {selected: number} {
     const {selectedTransactions} = useSearchSelectionContext();
-    let selected = 0;
-    for (const key in selectedTransactions) {
-        if (selectedTransactions[key]?.isSelected) {
-            selected += 1;
-        }
-    }
+    const selected = Object.values(selectedTransactions).filter((value) => value?.isSelected).length;
     return {selected};
 }
 

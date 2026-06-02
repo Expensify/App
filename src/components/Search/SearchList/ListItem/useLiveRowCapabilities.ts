@@ -1,16 +1,14 @@
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getActions, getPrimaryAction} from '@libs/SearchUIUtils';
+import {getActions, getPrimaryAction, getViolationsFromSearchData} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, SearchResults} from '@src/types/onyx';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
-import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
 
 type LiveRowItem = {
     action?: SearchTransactionAction;
@@ -36,6 +34,13 @@ type UseLiveRowCapabilitiesParams<T> = {
  * (unchanged reference) or a fresh copy with refreshed action + canPay/Approve/
  * Submit/ChangeApprover. The four booleans stay as primitives at the equality
  * guard so React Compiler keeps downstream consumers memoized.
+ *
+ * Trade-off: each mounted row opens 2 Onyx subscriptions (REPORT_ACTIONS +
+ * REPORT_METADATA for its own reportID). This is intentional — it replaces the
+ * screen-level collection merge that re-fired every visible row on any row tap.
+ * The list is virtualized, so subscriptions track on-screen rows, not the full
+ * result set. If a future very large list shows subscribe/unsubscribe churn,
+ * cap active subscriptions via windowing rather than reintroducing the merge.
  */
 function useLiveRowCapabilities<T extends LiveRowItem>(params: UseLiveRowCapabilitiesParams<T>): T {
     const {item, reportID, itemKey, snapshotData, snapshotActions, enabled} = params;
@@ -52,7 +57,7 @@ function useLiveRowCapabilities<T extends LiveRowItem>(params: UseLiveRowCapabil
     const liveActionsArray = liveReportActions ? (Object.values(liveReportActions) as ReportAction[]) : snapshotActions;
     const liveAllActions = getActions(
         snapshotData,
-        snapshotData as unknown as OnyxCollection<TransactionViolation[]>,
+        getViolationsFromSearchData(snapshotData),
         itemKey,
         currentSearchKey ?? CONST.SEARCH.SEARCH_KEYS.EXPENSES,
         currentUserDetails.email ?? '',

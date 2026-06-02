@@ -9945,3 +9945,25 @@ describe('getWithdrawalStatusDisplayText', () => {
         ).toBe('Pending, Cleared, Failed');
     });
 });
+
+describe('getViolationsFromSearchData', () => {
+    const violation = {name: 'missingCategory', type: 'violation'} as OnyxTypes.TransactionViolation;
+
+    it('returns only the violation keys, narrowed to a typed violations collection', () => {
+        const data = {
+            [`${ONYXKEYS.COLLECTION.REPORT}1`]: {reportID: '1'},
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}tx_1`]: {transactionID: 'tx_1'},
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}tx_1`]: [violation],
+        } as unknown as OnyxTypes.SearchResults['data'];
+
+        const result = SearchUIUtils.getViolationsFromSearchData(data);
+
+        expect(Object.keys(result ?? {})).toEqual([`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}tx_1`]);
+        expect(result?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}tx_1`]).toEqual([violation]);
+    });
+
+    it('returns an empty collection when there are no violation keys', () => {
+        const data = {[`${ONYXKEYS.COLLECTION.REPORT}1`]: {reportID: '1'}} as unknown as OnyxTypes.SearchResults['data'];
+        expect(SearchUIUtils.getViolationsFromSearchData(data)).toEqual({});
+    });
+});

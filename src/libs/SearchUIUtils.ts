@@ -2270,6 +2270,25 @@ function getSearchReportAvatarProps(
 }
 
 /**
+ * Extracts a typed transaction-violations collection from a Search snapshot's `data`.
+ *
+ * `SearchResults['data']` is an intersection whose violation keys hold `TransactionViolation[]`,
+ * but the object as a whole is not assignable to `OnyxCollection<TransactionViolation[]>` (its other
+ * keys hold reports/transactions/policies). Narrowing to violation keys via `isViolationEntry` yields a
+ * collection `getActions` can consume without an `unknown` cast.
+ */
+function getViolationsFromSearchData(data: OnyxTypes.SearchResults['data']): OnyxCollection<OnyxTypes.TransactionViolation[]> {
+    const violations: OnyxCollection<OnyxTypes.TransactionViolation[]> = {};
+    for (const key of Object.keys(data)) {
+        if (!isViolationEntry(key)) {
+            continue;
+        }
+        violations[key] = data[key];
+    }
+    return violations;
+}
+
+/**
  * Returns the action that can be taken on a given transaction or report
  *
  * Do not use directly, use only via `getSections()` facade.
@@ -5951,6 +5970,7 @@ export {
     getSections,
     getSuggestedSearchesVisibility,
     getSortedSections,
+    getViolationsFromSearchData,
     isTransactionGroupListItemType,
     isTransactionReportGroupListItemType,
     isTransactionCategoryGroupListItemType,
