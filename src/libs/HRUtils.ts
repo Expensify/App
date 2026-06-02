@@ -22,10 +22,6 @@ type HRProviderInfo = {
     mergeSlug?: MergeHRProviderSlug;
 };
 
-function getHRConnectionNames(): HRConnectionName[] {
-    return [...CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES];
-}
-
 function isGustoConnected(policy?: OnyxEntry<Policy>) {
     return !!policy?.connections?.gusto;
 }
@@ -161,7 +157,6 @@ function getHRFinalApprover(policy?: OnyxEntry<Policy>): string | null {
 export {
     getConnectedHRProvider,
     getHRApprovalMode,
-    getHRConnectionNames,
     getHRAdvancedModeFinalApprover,
     getHRFinalApprover,
     getMergeHRFinalApprover,
@@ -173,4 +168,4 @@ export {
     isZenefitsConnected,
 };
 
-export type {HRConnectionName, HRProviderInfo};
+export type {HRConnectionName};
