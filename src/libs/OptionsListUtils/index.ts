@@ -999,12 +999,7 @@ function getLastMessageTextForReport({
         if (scanningTransactions.length > 0) {
             lastMessageTextFromReport = translate('iou.receiptScanning', {count: scanningTransactions.length});
         } else if (report?.transactionCount && report?.transactionCount > 0 && report?.currency) {
-            const latestVisibleMoneyRequestAction = getLatestVisibleMoneyRequestAction(
-                reportID,
-                canUserPerformWrite,
-                sortedActions[reportID],
-                visibleReportActionsDataParam,
-            );
+            const latestVisibleMoneyRequestAction = getLatestVisibleMoneyRequestAction(reportID, canUserPerformWrite, sortedActions[reportID], visibleReportActionsDataParam);
             if (isExpenseReport(report) && latestVisibleMoneyRequestAction) {
                 lastMessageTextFromReport = getExpenseReportPreviewText(report, latestVisibleMoneyRequestAction, translate, transactions);
             } else if (!isExpenseReport(report)) {
