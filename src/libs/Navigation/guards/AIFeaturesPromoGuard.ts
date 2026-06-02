@@ -67,7 +67,7 @@ function navigateToAIFeaturesPromoModalIfReady() {
 
     Log.info('[AIFeaturesPromoGuard] Proactively navigating to AI features promo modal');
     hasRedirectedToAIFeaturesPromoModal = true;
-    Navigation.navigate(ROUTES.AI_FEATURES_PROMO_MODAL.getRoute());
+    Navigation.navigate(ROUTES.AI_FEATURES_PROMO_MODAL);
 }
 
 /**
