@@ -965,7 +965,8 @@ type GetPolicyNameBaseParams = {
     reports?: Report[];
 };
 
-type GetPolicyNameParams = GetPolicyNameBaseParams & ({returnEmptyIfNotFound: true} | {returnEmptyIfNotFound?: false; unavailableTranslation: string});
+// TODO: We'll remove the optional (?) modifier from the unavailableTranslation parameter once https://github.com/Expensify/App/issues/66430 is completed.
+type GetPolicyNameParams = GetPolicyNameBaseParams & ({returnEmptyIfNotFound: true} | {returnEmptyIfNotFound?: false; unavailableTranslation?: string});
 
 type GetReportNameParams = {
     report: OnyxEntry<Report>;
