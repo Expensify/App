@@ -649,6 +649,14 @@ jobs:
       environment: ${{ needs.prep.outputs.DEPLOY_ENV }}
     secrets: inherit
 
+  victoryChartRendererBuild:
+    name: Build victory-chart-renderer (Linux x64)
+    needs: [prep]
+    uses: ./.github/workflows/buildVictoryChartRenderer.yml
+    with:
+      ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
+    secrets: inherit
+
   webDeploy:
     name: Deploy Web to S3
     needs: [prep, webBuild, buildStorybook]
@@ -944,6 +952,7 @@ jobs:
             ./web-sourcemaps-artifact/web-merged-source-map.js.map#web-sourcemap.js.map
             ./web-build-tar-gz-artifact/webBuild.tar.gz#web.tar.gz
             ./web-build-zip-artifact/webBuild.zip#web.zip
+            ./victory-chart-renderer-linux-x64-artifact/victory-chart-renderer-linux-x64#victory-chart-renderer-linux-x64
           "
 
           # Loop through each file and upload individually (so if one fails, we still have other platforms uploaded)
