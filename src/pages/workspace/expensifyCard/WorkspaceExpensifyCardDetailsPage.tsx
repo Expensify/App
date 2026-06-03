@@ -348,6 +348,15 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                         interactive={false}
                         titleStyle={styles.walletCardNumber}
                     />
+                    {!isProduction && spendRulesSummary.length > 0 && (
+                        <MenuItemWithTopDescription
+                            interactive={false}
+                            description={translate('cardPage.spendRules')}
+                            descriptionTextStyle={[styles.fontSizeLabel]}
+                            titleComponent={spendRulesTitleComponent}
+                            accessibilityLabel={spendRulesSummary.join('. ')}
+                        />
+                    )}
                     <OfflineWithFeedback pendingAction={card?.pendingFields?.availableSpend}>
                         <MenuItemWithTopDescription
                             description={translate('cardPage.availableSpend')}
@@ -376,17 +385,8 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             interactive={canWriteExpensifyCard}
                         />
                     </OfflineWithFeedback>
+
                     <View style={styles.mt6}>
-                        {!isProduction && spendRulesSummary.length > 0 && (
-                            <MenuItemWithTopDescription
-                                description={translate('cardPage.spendRules')}
-                                descriptionTextStyle={[styles.fontSizeLabel]}
-                                titleComponent={spendRulesTitleComponent}
-                                onPress={navigateToSpendRules}
-                                interactive={canWriteExpensifyCard}
-                                accessibilityLabel={spendRulesSummary.join('. ')}
-                            />
-                        )}
                         {!isProduction && canWriteExpensifyCard && (
                             <MenuItem
                                 icon={expensifyIcons.CreditCardLock}

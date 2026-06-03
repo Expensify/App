@@ -927,6 +927,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: '钱包',
             },
+            enterSignerInfo: {title: '需要签署人信息', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `银行账户 ${bankAccountLastFour}`},
         },
         announcements: '公告',
         discoverSection: {
@@ -1918,11 +1919,7 @@ const translations: TranslationDeepObject<typeof en> = {
             saved: '已保存',
         },
     },
-    securityPage: {
-        title: '安全选项',
-        subtitle: '启用双重身份验证以保护您的账户安全。',
-        goToSecurity: '返回安全页面',
-    },
+    securityPage: {title: '安全', subtitle: '保障您的账户安全。', goToSecurity: '返回安全页面'},
     shareCodePage: {
         title: '你的代码',
         subtitle: '通过分享你的个人二维码或推荐链接邀请成员加入 Expensify。',
@@ -3900,7 +3897,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         findCountry: '查找国家',
         selectCountry: '选择国家',
         error: {
-            connectToWorkspace: (workspaceRoute: string) => `请将此银行账户连接到<a href="${workspaceRoute}">工作区</a>，以便您在后续步骤中邀请董事签名。`,
+            connectToWorkspace: (workspaceRoute: string) =>
+                `此银行账户必须关联到工作区。请前往<a href="${workspaceRoute}">工作区</a>，选择您的工作区，然后导航至工作流 > 付款 > 添加银行账户。`,
         },
     },
     bankInfoStep: {
@@ -3949,7 +3947,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             `正在连接一 个以 ${bankAccountLastFour} 结尾的 ${currency} 企业银行账户到 Expensify，以便以 ${currency} 支付员工。下一步需要一位董事的签署人信息。`,
         error: {
             emailsMustBeDifferent: '电子邮箱地址必须不同',
-            connectToWorkspace: (workspaceRoute: string) => `请将此银行账户关联到<a href="${workspaceRoute}">工作区</a>以邀请董事签署。`,
         },
     },
     agreementsStep: {
@@ -7582,6 +7579,8 @@ ${reportName}
         updatedCardFeedLiability: (feedName: string, enabled: boolean) => `允许 ${enabled ? '已启用' : '已禁用'} 持卡人删除卡片交易（卡片流水来源：“${feedName}”）`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `已更改卡片流水“${feedName}”的账单周期截止日${newValue ? ` 为“${newValue}”` : ''}${previousValue ? ` （先前为“${previousValue}”）` : ''}`,
+        updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
+            `已将“${mccGroupName}”的默认支出类别更改为“${newCategory}”（此前为“${oldCategory}”）`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) => `已添加 ${fieldType} 报告字段“${fieldName}”${defaultValue ? ` 默认值为“${defaultValue}”` : ''}`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 公司商务卡消费要求`,
         expensifyCardRule: {
