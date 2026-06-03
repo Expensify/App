@@ -30,6 +30,17 @@ If you try to make a purchase that exceeds this limit, the transaction will be d
 
 ---
 
+# View Spend Rules on Your Card
+
+Your workspace admin may set a Spend Rule on your card that approves or declines transactions in real time based on the merchant, spend category, or amount. You can view the rule on your card, but only your admin can change it.
+
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), select **Account > Wallet > Expensify Card**.
+2. Click your Expensify Card to view its Spend Rule summary.
+
+For a full explanation of how these rules work, [learn more about Expensify Card Spend Rules](https://help.expensify.com/articles/new-expensify/expensify-card/Expensify-Card-Spend-Rules).
+
+---
+
 # Enable Notifications
 
 Get real-time alerts for purchases and declines by enabling push notifications.
@@ -134,6 +145,7 @@ Common reasons for Expensify card declines include:
 - **Incorrect details**: Double-check the CVC, ZIP code, and expiration date.
 - **Suspicious activity**: You may need to manually approve flagged transactions from your Home page.
 - **Restricted country**: Transactions are blocked in specific regions due to US sanctions.
+- **Spend Rule restriction**: Your workspace admin may have set a Spend Rule on your card that blocks certain merchants, spend categories, or amounts. When a Spend Rule declines a transaction, you'll receive a notification from Concierge in your workspace chat explaining the reason. To learn more, [learn about Expensify Card Spend Rules](https://help.expensify.com/articles/new-expensify/expensify-card/Expensify-Card-Spend-Rules).
 
 ## How do I deactivate my card and request a replacement?
 
