@@ -1547,7 +1547,7 @@ function Search({
         hasHadFirstLayout.current = true;
         onDestinationVisible?.(isSearchResultsEmptyRef.current, 'layout');
         endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
-        endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_SCENARIO.WARM_FIRST);
+        endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.WARM_FIRST);
         endNavigateToReportsContentLoad();
         TransitionTracker.runAfterTransitions({
             callback: () => flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH),
@@ -1593,7 +1593,7 @@ function Search({
     const onLayoutChart = useCallback(() => {
         hasHadFirstLayout.current = true;
         endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
-        endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_SCENARIO.WARM_FIRST);
+        endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.WARM_FIRST);
         endNavigateToReportsContentLoad();
     }, []);
 
@@ -1623,7 +1623,7 @@ function Search({
             endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {
                 [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: !shouldShowLoadingState,
             });
-            endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_SCENARIO.WARM_SUBSEQUENT);
+            endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.WARM_SUBSEQUENT);
             endNavigateToReportsContentLoad();
             // On re-focus (e.g. DISMISS_MODAL_ONLY) onLayout won't re-fire — flush here.
             flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);

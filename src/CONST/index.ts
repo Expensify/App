@@ -2175,6 +2175,8 @@ const CONST = {
         ATTRIBUTE_WAS_LIST_EMPTY: 'was_list_empty',
         ATTRIBUTE_SKELETON_PREFIX: 'skeleton.',
         ATTRIBUTE_SCENARIO: 'scenario',
+        // Start type stamped on the navigate-to-reports spans: cold, warm_first, or warm_subsequent.
+        ATTRIBUTE_START_TYPE: 'start_type',
         // Search query fields parsed from the route, stamped on the navigate-to-reports spans.
         ATTRIBUTE_SEARCH_TYPE: 'search_type',
         ATTRIBUTE_SEARCH_VIEW: 'search_view',
@@ -2232,7 +2234,7 @@ const CONST = {
         },
         // Start type stamped on the navigate-to-reports spans: cold, warm on the first render (warm_first),
         // or warm on a cached re-visit (warm_subsequent). UNKNOWN is a fallback that signals a bug.
-        NAVIGATE_TO_REPORTS_SCENARIO: {
+        NAVIGATE_TO_REPORTS_START_TYPE: {
             COLD: 'cold',
             WARM_FIRST: 'warm_first',
             WARM_SUBSEQUENT: 'warm_subsequent',

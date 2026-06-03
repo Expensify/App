@@ -6,7 +6,7 @@ import navigationRef from '@navigation/navigationRef';
 import CONST from '@src/CONST';
 import {cancelSpan, endSpanWithAttributes, getSpan, startSpan} from './activeSpans';
 
-type NavigateToReportsScenario = ValueOf<typeof CONST.TELEMETRY.NAVIGATE_TO_REPORTS_SCENARIO>;
+type NavigateToReportsStartType = ValueOf<typeof CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE>;
 
 const SPAN_IDS = [CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_FIRST_PAINT, CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_CONTENT_LOAD] as const;
 
@@ -45,15 +45,15 @@ function startNavigateToReportsSpans() {
     }
 }
 
-function endNavigateToReportsFirstPaint(scenario: NavigateToReportsScenario) {
-    // If FirstPaint already ended (e.g. the content painted after the skeleton), bail so ContentLoad keeps its COLD scenario.
+function endNavigateToReportsFirstPaint(startType: NavigateToReportsStartType) {
+    // If FirstPaint already ended (e.g. the content painted after the skeleton), bail so ContentLoad keeps its COLD start type.
     if (!getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_FIRST_PAINT)) {
         return;
     }
-    // ContentLoad ends later and cannot tell cold from warm itself, so tag it with the scenario now.
-    getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_CONTENT_LOAD)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_SCENARIO, scenario);
+    // ContentLoad ends later and cannot tell cold from warm itself, so tag it with the start type now.
+    getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_CONTENT_LOAD)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_START_TYPE, startType);
     endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_FIRST_PAINT, {
-        [CONST.TELEMETRY.ATTRIBUTE_SCENARIO]: scenario,
+        [CONST.TELEMETRY.ATTRIBUTE_START_TYPE]: startType,
         ...readSearchQueryAttributes(),
     });
 }
@@ -63,9 +63,9 @@ function endNavigateToReportsContentLoad() {
     if (!span) {
         return;
     }
-    // FirstPaint should set the scenario on this span. UNKNOWN is a fallback: if we see it, FirstPaint did not run and there is a bug.
-    if (spanToJSON(span).data?.[CONST.TELEMETRY.ATTRIBUTE_SCENARIO] === undefined) {
-        span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_SCENARIO, CONST.TELEMETRY.NAVIGATE_TO_REPORTS_SCENARIO.UNKNOWN);
+    // FirstPaint should set the start type on this span. UNKNOWN is a fallback: if we see it, FirstPaint did not run and there is a bug.
+    if (spanToJSON(span).data?.[CONST.TELEMETRY.ATTRIBUTE_START_TYPE] === undefined) {
+        span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_START_TYPE, CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.UNKNOWN);
     }
     endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_CONTENT_LOAD, readSearchQueryAttributes());
 }

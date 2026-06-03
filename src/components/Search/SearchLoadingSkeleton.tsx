@@ -24,7 +24,7 @@ function SearchLoadingSkeleton({containerStyle, reasonAttributes}: SearchLoading
             style={[styles.flex1]}
             onLayout={() => {
                 endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: false});
-                endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_SCENARIO.COLD);
+                endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.COLD);
             }}
         >
             <SearchRowSkeleton
