@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import Onyx from 'react-native-onyx';
-import {applySavedColumnMappings} from '@libs/actions/ImportSpreadsheet';
+import {applySavedColumnMappings, getImportFinalModalOnyxData} from '@libs/actions/ImportSpreadsheet';
 import {buildColumnLayout, buildTransactionListFromSpreadsheet, getColumnIndexes} from '@libs/actions/ImportTransactions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -83,6 +83,25 @@ describe('ImportTransactions', () => {
                 merchant: -1,
                 amount: 2,
                 category: -1,
+            });
+        });
+    });
+
+    describe('getImportFinalModalOnyxData', () => {
+        it('should build an imported spreadsheet update with the modal result ID and payload', () => {
+            const importFinalModal = {
+                titleKey: 'spreadsheet.importSuccessfulTitle' as const,
+                promptKey: 'spreadsheet.importTransactionsSuccessfulDescription' as const,
+                promptKeyParams: {transactions: 3},
+            };
+
+            expect(getImportFinalModalOnyxData('import-result-1', importFinalModal)).toEqual({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IMPORTED_SPREADSHEET,
+                value: {
+                    importFinalModalID: 'import-result-1',
+                    importFinalModal,
+                },
             });
         });
     });

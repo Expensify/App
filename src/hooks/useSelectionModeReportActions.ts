@@ -11,7 +11,7 @@ import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidAction, submitReport} from '@libs/actions/IOU/ReportWorkflow';
@@ -43,6 +43,7 @@ import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import useActiveAdminPolicies from './useActiveAdminPolicies';
@@ -50,6 +51,7 @@ import useConfirmModal from './useConfirmModal';
 import useConfirmPendingRTERAndProceed from './useConfirmPendingRTERAndProceed';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useEnvironment from './useEnvironment';
 import useLastWorkspaceNumber from './useLastWorkspaceNumber';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
@@ -95,8 +97,9 @@ function useSelectionModeReportActions({
     const {showLockedAccountModal} = useLockedAccountActions();
     const kycWallRef = useContext(KYCWallContext);
 
-    const {currentSearchQueryJSON, currentSearchKey, currentSearchResults} = useSearchStateContext();
-    const {clearSelectedTransactions} = useSearchActionsContext();
+    const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
+    const {currentSearchResults} = useSearchResultsContext();
+    const {clearSelectedTransactions} = useSearchSelectionActions();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -113,7 +116,9 @@ function useSelectionModeReportActions({
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)}, [report?.ownerAccountID]);
     const {isOffline} = useNetwork();
+    const {isProduction} = useEnvironment();
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -237,6 +242,7 @@ function useSelectionModeReportActions({
         return getSecondaryReportActions({
             currentUserLogin: currentUserEmail ?? '',
             currentUserAccountID,
+            submitterLogin,
             report,
             chatReport,
             reportTransactions: transactions,
@@ -250,6 +256,7 @@ function useSelectionModeReportActions({
             policies,
             outstandingReportsByPolicyID,
             isChatReportArchived,
+            isProduction,
         });
     })();
 
