@@ -167,7 +167,6 @@ export type {
     RawLabelStyle,
     RawLegendStyle,
     RawShiftedLineSegmentStyle,
-    XKey,
     YKey,
     CartesianChartData,
     CartesianChartProps,
