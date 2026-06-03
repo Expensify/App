@@ -80,7 +80,7 @@
 "../../src/components/FilePicker/index.tsx"	"react-hooks/refs"	1
 "../../src/components/FlatList/FlatList/index.tsx"	"react-hooks/refs"	1
 "../../src/components/FocusModeNotification.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
-"../../src/components/Form/FormProvider.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
+"../../src/components/Form/FormProvider.tsx"	"no-restricted-imports"	1
 "../../src/components/Form/FormProvider.tsx"	"react-hooks/immutability"	2
 "../../src/components/Form/FormProvider.tsx"	"react-hooks/refs"	2
 "../../src/components/Form/InputWrapper.tsx"	"react-hooks/refs"	1
@@ -350,7 +350,7 @@
 "../../src/libs/actions/IOU/index.ts"	"@typescript-eslint/no-deprecated/getPolicyTagsData"	2
 "../../src/libs/actions/IOU/index.ts"	"rulesdir/no-onyx-connect"	10
 "../../src/libs/actions/ImportTransactions.ts"	"no-restricted-syntax"	1
-"../../src/libs/actions/InputFocus/index.web.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
+"../../src/libs/actions/InputFocus/index.web.ts"	"no-restricted-imports"	1
 "../../src/libs/actions/InputFocus/index.web.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Link.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/libs/actions/Link.ts"	"no-restricted-syntax"	3
