@@ -258,7 +258,6 @@ function callSAMLSignOut(params: LogOutParams, authToken: string): Promise<void 
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
     const queryString = isWeb ? `referer=ecash&authToken=${authToken}` : `appversion=${pkg.version}&referer=ecash&authToken=${authToken}`;
     const expectedURL = isWeb ? CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL : CONST.SAML_REDIRECT_URL;
-
     return openAuthSessionAsync(`${CONFIG.EXPENSIFY.SAML_URL}/logout?${queryString}`, expectedURL)
         .catch((error) => {
             Log.hmmm('SAML sign out failed', {error});
