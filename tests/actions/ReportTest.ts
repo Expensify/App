@@ -4127,6 +4127,7 @@ describe('actions/Report', () => {
                 reportID: iouReport.reportID,
                 amount: 5000,
                 modifiedAmount: 6000,
+                convertedAmount: 6000,
             };
 
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
@@ -4154,6 +4155,7 @@ describe('actions/Report', () => {
             });
             expect(updatedTransaction?.amount).toBe(-5000);
             expect(updatedTransaction?.modifiedAmount).toBe(-6000);
+            expect(updatedTransaction?.convertedAmount).toBe(-6000);
         });
 
         it('should convert IOU report to expense report with correct policyID when reportTransactions are provided', async () => {
