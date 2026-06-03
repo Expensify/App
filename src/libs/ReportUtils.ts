@@ -11187,7 +11187,7 @@ function getTripIDFromTransactionParentReportID(transactionParentReportID: strin
 }
 
 /**
- * Precomputes report-action error state in a single pass so that per-transaction RBR checks become O(1) lookups
+ * Computes report-action error state in a single pass so that per-transaction RBR checks become O(1) lookups
  * instead of re-scanning every report action for every transaction (O(transactions × actions)).
  *
  * - `hasGlobalActionError`: a non-money-request action (or money-request action without an IOUTransactionID) has
