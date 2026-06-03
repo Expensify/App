@@ -41,7 +41,7 @@ function ReportFieldsValueSettingsPage({
     const {translate} = useLocalize();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
     const {showConfirmModal} = useConfirmModal();
-    const {canWrite: canWriteReportFields, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS);
+    const {canWrite: canWriteReportFields, getReadOnlyDisabledAction} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS);
 
     const [currentValueName, currentValueDisabled] = useMemo(() => {
         let reportFieldValue: string;
@@ -140,7 +140,7 @@ function ReportFieldsValueSettingsPage({
                                 accessibilityLabel={translate('workspace.reportFields.enableValue')}
                                 onToggle={updateListValueEnabled}
                                 disabled={!canWriteReportFields}
-                                disabledAction={!canWriteReportFields ? showReadOnlyModal : undefined}
+                                disabledAction={getReadOnlyDisabledAction()}
                                 showLockIcon={!canWriteReportFields}
                             />
                         </View>

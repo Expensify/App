@@ -119,7 +119,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         [policy, policyTags],
     );
 
-    const {canWrite: canWriteTags, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAGS);
+    const {canWrite: canWriteTags, showReadOnlyModal, getReadOnlyDisabledAction} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAGS);
     const canSelectMultiple = canWriteTags && !hasDependentTags && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
     const shouldShowApproverColumn = isControlPolicyWithWideLayout && !isMultiLevelTags && !!policy?.areRulesEnabled;
@@ -277,7 +277,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                 updateWorkspaceRequiresTag(newValue, policyTagList.orderWeight);
                             }}
                             disabled={isSwitchDisabled || !canWriteTags}
-                            disabledAction={!canWriteTags ? showReadOnlyModal : undefined}
+                            disabledAction={getReadOnlyDisabledAction()}
                             showLockIcon={!canWriteTags || isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList])}
                         />
                     );
@@ -351,7 +351,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             <Switch
                                 isOn={tag.enabled}
                                 disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !canWriteTags}
-                                disabledAction={!canWriteTags ? showReadOnlyModal : undefined}
+                                disabledAction={getReadOnlyDisabledAction()}
                                 accessibilityLabel={translate('workspace.tags.enableTag')}
                                 onToggle={(newValue: boolean) => {
                                     if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [tag])) {
@@ -373,7 +373,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     <Switch
                         isOn={tag.enabled}
                         disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !canWriteTags}
-                        disabledAction={!canWriteTags ? showReadOnlyModal : undefined}
+                        disabledAction={getReadOnlyDisabledAction()}
                         accessibilityLabel={translate('workspace.tags.enableTag')}
                         onToggle={(newValue: boolean) => {
                             if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [tag])) {

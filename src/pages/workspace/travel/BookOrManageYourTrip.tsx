@@ -21,7 +21,7 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
-    const {canWrite: canWriteMoreFeatures, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
+    const {canWrite: canWriteMoreFeatures, getReadOnlyDisabledAction} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const icons = useMemoizedLazyExpensifyIcons(['LuggageWithLines', 'NewWindow']);
     const {isBetaEnabled} = usePermissions();
     const isPreventSpotnanaTravelEnabled = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
@@ -52,13 +52,7 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                 <MenuItem
                     title={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.ctaText')}
                     icon={icons.LuggageWithLines}
-                    onPress={() => {
-                        if (!canWriteMoreFeatures) {
-                            showReadOnlyModal();
-                            return;
-                        }
-                        handleManageTravel();
-                    }}
+                    onPress={getReadOnlyDisabledAction(handleManageTravel)}
                     shouldShowRightIcon={canWriteMoreFeatures}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.BOOK_TRAVEL_BUTTON}
                     iconRight={canWriteMoreFeatures ? icons.NewWindow : undefined}
@@ -72,7 +66,7 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                     isActive={autoAddTripName}
                     onToggle={toggleAutoAddTripName}
                     disabled={!canWriteMoreFeatures}
-                    disabledAction={showReadOnlyModal}
+                    disabledAction={getReadOnlyDisabledAction()}
                     showLockIcon={!canWriteMoreFeatures}
                     pendingAction={policy?.pendingFields?.travelSettings}
                     wrapperStyle={styles.mt3}

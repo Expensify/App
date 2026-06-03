@@ -198,9 +198,13 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {isOffline} = useNetwork({onReconnect: fetchData});
     const isPolicyAdmin = isPolicyAdminUtil(policy);
     const canReadWorkflows = canMemberRead(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS);
-    const {canWrite: canWriteWorkflows, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.WORKFLOWS);
-    const {canWrite: canWriteApprovals} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS);
-    const {canWrite: canWritePayments} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
+    const {
+        canWrite: canWriteWorkflows,
+        showReadOnlyModal,
+        getReadOnlyDisabledAction: getWorkflowsReadOnlyDisabledAction,
+    } = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.WORKFLOWS);
+    const {canWrite: canWriteApprovals, getReadOnlyDisabledAction: getApprovalsReadOnlyDisabledAction} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS);
+    const {canWrite: canWritePayments, getReadOnlyDisabledAction: getPaymentsReadOnlyDisabledAction} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
 
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
@@ -418,7 +422,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 errors: getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
                 onCloseError: () => clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
                 disabled: !canWriteWorkflows,
-                disabledAction: showReadOnlyModal,
+                disabledAction: getWorkflowsReadOnlyDisabledAction(),
                 showLockIcon: !canWriteWorkflows,
             },
             {
@@ -539,7 +543,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                     </>
                 ),
                 disabled: !canWriteApprovals || isSmartLimitEnabled || isDEWEnabled || isHRConnected || canAccessSubmit2026Features,
-                disabledAction: canWriteApprovals ? getAddApprovalsToggleDisabledAction() : showReadOnlyModal,
+                disabledAction: getApprovalsReadOnlyDisabledAction(getAddApprovalsToggleDisabledAction()),
                 showLockIcon: !canWriteApprovals,
                 isActive:
                     isHRConnected ||
@@ -726,7 +730,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 errors: getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_CHOICE),
                 onCloseError: () => clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_CHOICE),
                 disabled: !canWritePayments,
-                disabledAction: showReadOnlyModal,
+                disabledAction: getPaymentsReadOnlyDisabledAction(),
                 showLockIcon: !canWritePayments,
             },
         ];
@@ -785,6 +789,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         canWriteApprovals,
         canWritePayments,
         canWriteWorkflows,
+        getApprovalsReadOnlyDisabledAction,
+        getPaymentsReadOnlyDisabledAction,
+        getWorkflowsReadOnlyDisabledAction,
         showReadOnlyModal,
         handleAddAgentPress,
     ]);
@@ -842,7 +849,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         policyID={route.params.policyID}
                         canWriteApprovals={canWriteApprovals}
                         canWritePayments={canWritePayments}
-                        showReadOnlyModal={showReadOnlyModal}
+                        getApprovalsReadOnlyDisabledAction={getApprovalsReadOnlyDisabledAction}
+                        getPaymentsReadOnlyDisabledAction={getPaymentsReadOnlyDisabledAction}
                     />
                 </View>
             </WorkspacePageWithSections>

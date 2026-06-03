@@ -39,7 +39,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useMemoizedLazyIllustrations(['Rules']);
-    const {canWrite: canWriteRules, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
+    const {canWrite: canWriteRules, showReadOnlyModal, getReadOnlyDisabledAction} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const [isAgentsRulesBannerDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: agentsRulesBannerDismissedSelector});
@@ -88,6 +88,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                         policyID={policyID}
                         canWriteRules={canWriteRules}
                         showReadOnlyModal={showReadOnlyModal}
+                        getReadOnlyDisabledAction={getReadOnlyDisabledAction}
                     />
                     <MerchantRulesSection
                         policyID={policyID}

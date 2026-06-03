@@ -53,7 +53,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const {showConfirmModal} = useConfirmModal();
     const policyData = usePolicyData(policyID);
     const {policy, tags: policyTags} = policyData;
-    const {canWrite: canWriteTags, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAGS);
+    const {canWrite: canWriteTags, getReadOnlyDisabledAction} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAGS);
     const policyTag = getTagListByOrderWeight(policyTags, orderWeight);
     const {environmentURL} = useEnvironment();
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
@@ -174,7 +174,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                                         accessibilityLabel={translate('workspace.tags.enableTag')}
                                         onToggle={updateWorkspaceTagEnabled}
                                         disabled={!canWriteTags}
-                                        disabledAction={!canWriteTags ? showReadOnlyModal : undefined}
+                                        disabledAction={getReadOnlyDisabledAction()}
                                         showLockIcon={!canWriteTags || shouldPreventDisableOrDelete}
                                     />
                                 </View>
