@@ -1,40 +1,44 @@
 import React from 'react';
+import {useAmbientTRenderEngine} from 'react-native-render-html';
+import type {TNode} from 'react-native-render-html';
 import type {PieSliceData} from 'victory-native';
-import type {LabelItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
+import parseVictoryLabelNode from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/victoryLabelParser';
+import type {PolarChartData} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
+import parseComponent from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseComponent';
 import VictoryChartLabel from './VictoryChartLabel';
 
 type VictoryChartPieLabelProps = {
+    tnode: TNode;
     slice: PieSliceData;
-    labelItemTemplate?: LabelItem;
-    dataLabels: Array<string | number>;
-    labels?: string[];
-    labelRadius?: number;
 };
 
 const RADIAN = Math.PI / 180;
 
-/**
- * Renders a pie slice label inside the Skia canvas. Must not use React context hooks
- * because this runs in victory-native's pie slice render callback.
- */
-function VictoryChartPieLabel({slice, labelItemTemplate, dataLabels, labels, labelRadius}: VictoryChartPieLabelProps) {
-    if (!labelItemTemplate) {
+function VictoryChartPieLabel({tnode, slice}: VictoryChartPieLabelProps) {
+    const {data} = useVictoryChartContext();
+    const renderEngine = useAmbientTRenderEngine();
+    const labelComponentNode = parseComponent(tnode.attributes.labelcomponent, renderEngine, 'victorylabel');
+    const labelItem = labelComponentNode ? parseVictoryLabelNode(labelComponentNode).labelItems?.at(0) : undefined;
+
+    if (!labelItem) {
         return null;
     }
 
+    const dataLabels = Object.values(data).map((entry) => (entry as PolarChartData).label);
+    const labels = parseAttribute<string[]>(tnode.attributes.labels);
     const text = labels?.[dataLabels.indexOf(slice.label)] ?? slice.label;
-    const resolvedLabelRadius = labelRadius ?? slice.radius;
-    const midAngle = (slice.startAngle + slice.endAngle) / 2;
-    const x = slice.center.x + resolvedLabelRadius * Math.cos(-midAngle * RADIAN);
-    const y = slice.center.y + resolvedLabelRadius * Math.sin(midAngle * RADIAN);
 
-    const labelItem: LabelItem = {
-        ...labelItemTemplate,
-        text,
-        x,
-        y,
-        textAnchor: 'middle',
-    };
+    const labelRadius = tnode.attributes.labelradius !== undefined ? Number(parseAttribute(tnode.attributes.labelradius)) : slice.radius;
+    const midAngle = (slice.startAngle + slice.endAngle) / 2;
+    const x = slice.center.x + labelRadius * Math.cos(-midAngle * RADIAN);
+    const y = slice.center.y + labelRadius * Math.sin(midAngle * RADIAN);
+
+    labelItem.text = text;
+    labelItem.x = x;
+    labelItem.y = y;
+    labelItem.textAnchor = 'middle';
 
     return <VictoryChartLabel {...labelItem} />;
 }

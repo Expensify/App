@@ -1,12 +1,7 @@
 import React from 'react';
-import {useAmbientTRenderEngine} from 'react-native-render-html';
 import type {TNode} from 'react-native-render-html';
 import {Pie} from 'victory-native';
-import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
-import parseVictoryLabelNode from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/victoryLabelParser';
-import type {PolarChartData} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
-import parseComponent from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseComponent';
 import VictoryChartPieLabel from './VictoryChartPieLabel';
 
 type VictoryChartPieProps = {tnode: TNode};
@@ -15,18 +10,9 @@ type VictoryChartPieProps = {tnode: TNode};
 const START_ANGLE = 270;
 
 function VictoryChartPie({tnode}: VictoryChartPieProps) {
-    const {data} = useVictoryChartContext();
-    const renderEngine = useAmbientTRenderEngine();
     const innerRadius = tnode.attributes.innerradius !== undefined ? Number(parseAttribute(tnode.attributes.innerradius)) : undefined;
     const radius = tnode.attributes.radius !== undefined ? Number(parseAttribute(tnode.attributes.radius)) : undefined;
     const size = radius ? radius * 2 : undefined;
-    const labelRadius = tnode.attributes.labelradius !== undefined ? Number(parseAttribute(tnode.attributes.labelradius)) : undefined;
-
-    const labelComponentNode = parseComponent(tnode.attributes.labelcomponent, renderEngine, 'victorylabel');
-    const labelItemTemplate = labelComponentNode ? parseVictoryLabelNode(labelComponentNode).labelItems?.at(0) : undefined;
-    const dataLabels = Object.values(data).map((entry) => (entry as PolarChartData).label);
-    const labels = parseAttribute<string[]>(tnode.attributes.labels);
-    const pieLabelConfig = {labelItemTemplate, dataLabels, labels};
 
     return (
         <Pie.Chart
@@ -37,11 +23,8 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
             {({slice}) => (
                 <Pie.Slice>
                     <VictoryChartPieLabel
+                        tnode={tnode}
                         slice={slice}
-                        labelItemTemplate={pieLabelConfig.labelItemTemplate}
-                        dataLabels={pieLabelConfig.dataLabels}
-                        labels={pieLabelConfig.labels}
-                        labelRadius={labelRadius}
                     />
                 </Pie.Slice>
             )}
