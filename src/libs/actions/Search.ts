@@ -8,7 +8,7 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {HoldMenuCallback} from '@components/Search';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
-import type {BankAccountMenuItem, BulkPaySelectionData, PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactionInfo, SelectedTransactions} from '@components/Search/types';
+import type {BankAccountMenuItem, BulkPaySelectionData, PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import * as API from '@libs/API';
 import {waitForWrites} from '@libs/API';
@@ -59,31 +59,17 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {
-    BankAccountList,
-    Beta,
-    BillingGraceEndPeriod,
-    ExportTemplate,
-    LastPaymentMethod,
-    LastPaymentMethodType,
-    Policy,
-    Report,
-    ReportAction,
-    ReportNameValuePairs,
-    Transaction,
-    TransactionViolations,
-} from '@src/types/onyx';
+import type {Beta, BillingGraceEndPeriod, ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {AnyOnyxUpdate, OnyxData} from '@src/types/onyx/Request';
 import type Nullable from '@src/types/utils/Nullable';
 import SafeString from '@src/utils/SafeString';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
-import {deleteMoneyRequest} from './IOU/DeleteMoneyRequest';
 import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU/RejectMoneyRequest';
 import type {RejectMoneyRequestData} from './IOU/RejectMoneyRequest';
 import {isCurrencySupportedForGlobalReimbursement} from './Policy/Policy';
-import {deleteAppReport, setOptimisticTransactionThread} from './Report';
+import {setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
 
 type OnyxSearchResponse = {
@@ -120,19 +106,6 @@ type HandleActionButtonPressParams = {
     onUndelete?: () => void;
     onPendingCardTransactionsBlock?: () => void;
     currentUserAccountID?: number;
-};
-
-type BulkDeleteReportsParams = {
-    reports: OnyxCollection<Report>;
-    selfDMReport: OnyxEntry<Report>;
-    selectedTransactions: Record<string, SelectedTransactionInfo>;
-    currentUserEmailParam: string;
-    currentUserAccountIDParam: number;
-    reportTransactions: Record<string, Transaction>;
-    transactionsViolations: Record<string, TransactionViolations>;
-    bankAccountList: OnyxEntry<BankAccountList>;
-    transactions?: OnyxCollection<Transaction>;
-    allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
 };
 
 function handleActionButtonPress({
@@ -914,97 +887,6 @@ function payMoneyRequestOnSearch(hash: number, paymentData: PaymentData[], curre
     });
 }
 
-function bulkDeleteReports({
-    reports,
-    selfDMReport,
-    selectedTransactions,
-    currentUserEmailParam,
-    currentUserAccountIDParam,
-    reportTransactions,
-    transactionsViolations,
-    bankAccountList,
-    transactions,
-    allReportNameValuePairs,
-}: BulkDeleteReportsParams) {
-    const transactionIDList: string[] = [];
-    const reportIDList: string[] = [];
-
-    // Collect all report IDs that are being deleted
-    for (const key of Object.keys(selectedTransactions)) {
-        const selectedItem = selectedTransactions[key];
-        if (selectedItem.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === selectedItem.reportID) {
-            reportIDList.push(selectedItem.reportID);
-        }
-    }
-
-    // Collect transaction IDs, but exclude any transactions whose reportID is in the list of reports being deleted
-    for (const key of Object.keys(selectedTransactions)) {
-        const selectedItem = selectedTransactions[key];
-        if (selectedItem.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === selectedItem.reportID) {
-            continue;
-        }
-        if (!selectedItem.reportID || !reportIDList.includes(selectedItem.reportID)) {
-            transactionIDList.push(key);
-        }
-    }
-
-    // Group transaction IDs by IOU report so multi-delete totals and last-expense report removal are correct
-    const transactionsByReport = transactionIDList.reduce<Record<string, string[]>>((acc, transactionID) => {
-        const reportID = selectedTransactions[transactionID].report?.reportID;
-        if (!reportID) {
-            return acc;
-        }
-        if (!acc[reportID]) {
-            acc[reportID] = [];
-        }
-        acc[reportID].push(transactionID);
-        return acc;
-    }, {});
-
-    for (const transactionID of transactionIDList) {
-        const reportAction = selectedTransactions[transactionID].reportAction;
-        if (!reportAction) {
-            continue;
-        }
-        const reportID = selectedTransactions[transactionID].report?.reportID;
-        const batchTransactionIDsForReport = reportID ? (transactionsByReport[reportID] ?? []) : [];
-        const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedTransactions[transactionID].report?.chatReportID}`];
-        const transactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction?.childReportID}`];
-        const reportNameValuePair = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`];
-
-        deleteMoneyRequest({
-            transactionID,
-            reportAction,
-            transactionThreadReport,
-            transactions,
-            violations: transactionsViolations,
-            iouReport: selectedTransactions[transactionID].report,
-            chatReport,
-            isChatIOUReportArchived: !!reportNameValuePair?.private_isArchived,
-            transactionIDsPendingDeletion: batchTransactionIDsForReport.filter((id) => id !== transactionID),
-            selectedTransactionIDs: batchTransactionIDsForReport.length > 0 ? batchTransactionIDsForReport : undefined,
-            allTransactionViolationsParam: transactionsViolations,
-            currentUserAccountID: currentUserAccountIDParam,
-            currentUserEmail: currentUserEmailParam,
-        });
-    }
-
-    if (reportIDList.length > 0) {
-        for (const reportID of reportIDList) {
-            const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-            deleteAppReport({
-                report,
-                selfDMReport,
-                currentUserEmailParam,
-                currentUserAccountIDParam,
-                reportTransactions,
-                allTransactionViolations: transactionsViolations,
-                bankAccountList,
-            });
-        }
-    }
-}
-
 function rejectMoneyRequestInBulk(
     reportID: string,
     comment: string,
@@ -1144,11 +1026,9 @@ function rejectMoneyRequestsOnSearch(
     return urlToNavigateBack;
 }
 
-function exportSearchItemsToCSV(
-    {query, jsonQuery, reportIDList, transactionIDList, isBasicExport, exportColumnLabels}: ExportSearchItemsToCSVParams,
-    onDownloadFailed: () => void,
-    translate: LocalizedTranslate,
-) {
+type Params = Record<string, ExportSearchItemsToCSVParams>;
+
+function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList}: ExportSearchItemsToCSVParams, onDownloadFailed: () => void, translate: LocalizedTranslate) {
     const reportIDSet = new Set<string>();
     const transactionIDSet = new Set(transactionIDList);
     for (const reportID of reportIDList) {
@@ -1179,9 +1059,7 @@ function exportSearchItemsToCSV(
         jsonQuery,
         reportIDList: Array.from(reportIDSet),
         transactionIDList,
-        isBasicExport,
-        exportColumnLabels,
-    });
+    }) as Params;
 
     const formData = new FormData();
     for (const [key, value] of Object.entries(finalParameters)) {
@@ -1195,7 +1073,7 @@ function exportSearchItemsToCSV(
     return fileDownload(translate, getCommandURL({command: WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
-function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList, isBasicExport, exportColumnLabels}: ExportSearchItemsToCSVParams): string {
+function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList}: ExportSearchItemsToCSVParams): string {
     const exportID = rand64();
     const onyxKey = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}` as const;
 
@@ -1214,14 +1092,11 @@ function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactio
             value: {state: CONST.EXPORT_DOWNLOAD.STATE.FAILED},
         },
     ];
-
-    const finalParameters = enhanceParameters(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, {
+    const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV, {
         query,
         jsonQuery,
         reportIDList,
         transactionIDList,
-        isBasicExport,
-        exportColumnLabels,
         exportID,
     }) as QueueExportSearchItemsToCSVParams;
 
@@ -1594,6 +1469,8 @@ function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemT
             created,
             reportActionID: moneyRequestReportActionID,
             linkedExpenseReportAction: {childReportID: IOUTransactionID} as ReportAction,
+            // delegateAccountIDParam: will be threaded in PR 15; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+            delegateAccountIDParam: undefined,
         });
         optimisticIOUAction.pendingAction = undefined;
         optimisticIOUAction.actorAccountID = from?.accountID;
@@ -1625,7 +1502,6 @@ function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemT
 export {
     saveSearch,
     search,
-    bulkDeleteReports,
     rejectMoneyRequestsOnSearch,
     exportSearchItemsToCSV,
     queueExportSearchItemsToCSV,
