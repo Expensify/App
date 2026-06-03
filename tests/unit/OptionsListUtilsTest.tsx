@@ -5350,7 +5350,7 @@ describe('OptionsListUtils', () => {
                         mccGroupName: 'Airlines',
                         oldCategory: 'Insurance',
                         newCategory: 'Travel',
-                    currentUserLogin: CURRENT_USER_EMAIL,
+                        currentUserLogin: CURRENT_USER_EMAIL,
                     },
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
