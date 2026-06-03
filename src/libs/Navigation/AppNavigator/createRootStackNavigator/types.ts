@@ -17,6 +17,13 @@ type RootStackNavigatorActionType =
           };
       }
     | {
+          type: typeof CONST.NAVIGATION.ACTION_TYPE.TOGGLE_MODAL_WITH_HISTORY;
+          payload: {
+              isVisible: boolean;
+              modalId: string;
+          };
+      }
+    | {
           type: typeof CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL;
       }
     | {
@@ -68,6 +75,10 @@ type ToggleMfaModalNavigatorWithHistoryActionType = RootStackNavigatorActionType
     type: typeof CONST.NAVIGATION.ACTION_TYPE.TOGGLE_MFA_MODAL_NAVIGATOR_WITH_HISTORY;
 };
 
+type ToggleModalWithHistoryActionType = RootStackNavigatorActionType & {
+    type: typeof CONST.NAVIGATION.ACTION_TYPE.TOGGLE_MODAL_WITH_HISTORY;
+};
+
 type PreloadActionType = RootStackNavigatorAction & {type: typeof CONST.NAVIGATION.ACTION_TYPE.PRELOAD};
 
 type PushActionType = StackActionType & {type: typeof CONST.NAVIGATION.ACTION_TYPE.PUSH};
@@ -105,4 +116,5 @@ export type {
     RootStackNavigatorRouterOptions,
     ToggleSidePanelWithHistoryActionType,
     ToggleMfaModalNavigatorWithHistoryActionType,
+    ToggleModalWithHistoryActionType,
 };

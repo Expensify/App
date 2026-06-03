@@ -1,7 +1,6 @@
 import React, {useRef} from 'react';
 import {createPortal} from 'react-dom';
 import Modal from '@components/Modal';
-import {isInternalPopstateInProgress} from '@components/Modal/internalPopstateGuard';
 import {usePopoverActions, usePopoverState} from '@components/PopoverProvider';
 import PopoverWithoutOverlay from '@components/PopoverWithoutOverlay';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -54,16 +53,15 @@ function Popover(props: PopoverProps) {
     // Not adding this inside the PopoverProvider
     // because this is an issue on smaller screens as well.
     React.useEffect(() => {
-        if (!shouldCloseWhenBrowserNavigationChanged) {
+        // When this Popover manages its own back-guard (`shouldHandleNavigationBack`), the Modal-level
+        // history sync (useSyncModalWithHistory) closes it on browser Back and consumes the entry. This
+        // listener only covers the other case: dismissing the popover when the browser navigation changes
+        // for some other reason, without intercepting that navigation.
+        if (!shouldCloseWhenBrowserNavigationChanged || props.shouldHandleNavigationBack) {
             return;
         }
         const listener = () => {
             if (!isVisible) {
-                return;
-            }
-            // A nested Modal closing itself fires history.back() to drop its guard entry;
-            // that popstate is not a real user navigation, so skip closing.
-            if (isInternalPopstateInProgress()) {
                 return;
             }
             onClose?.();
@@ -72,7 +70,7 @@ function Popover(props: PopoverProps) {
         return () => {
             window.removeEventListener('popstate', listener);
         };
-    }, [onClose, isVisible, shouldCloseWhenBrowserNavigationChanged]);
+    }, [onClose, isVisible, shouldCloseWhenBrowserNavigationChanged, props.shouldHandleNavigationBack]);
 
     const onCloseWithPopoverContext = () => {
         if (popover && 'current' in anchorRef) {

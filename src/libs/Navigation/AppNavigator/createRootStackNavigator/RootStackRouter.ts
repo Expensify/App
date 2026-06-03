@@ -19,6 +19,7 @@ import {
     handleReplaceFullscreenUnderRHP,
     handleReplaceReportsSplitNavigatorAction,
     handleToggleMfaModalNavigatorWithHistoryAction,
+    handleToggleModalWithHistoryAction,
     handleToggleSidePanelWithHistoryAction,
 } from './GetStateForActionHandlers';
 import syncBrowserHistory from './syncBrowserHistory';
@@ -34,6 +35,7 @@ import type {
     RootStackNavigatorAction,
     RootStackNavigatorRouterOptions,
     ToggleMfaModalNavigatorWithHistoryActionType,
+    ToggleModalWithHistoryActionType,
     ToggleSidePanelWithHistoryActionType,
 } from './types';
 
@@ -71,6 +73,10 @@ function isToggleSidePanelWithHistoryAction(action: RootStackNavigatorAction): a
 
 function isToggleMfaModalNavigatorWithHistoryAction(action: RootStackNavigatorAction): action is ToggleMfaModalNavigatorWithHistoryActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.TOGGLE_MFA_MODAL_NAVIGATOR_WITH_HISTORY;
+}
+
+function isToggleModalWithHistoryAction(action: RootStackNavigatorAction): action is ToggleModalWithHistoryActionType {
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.TOGGLE_MODAL_WITH_HISTORY;
 }
 
 function isPreloadAction(action: RootStackNavigatorAction): action is PreloadActionType {
@@ -154,6 +160,10 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
 
             if (isToggleMfaModalNavigatorWithHistoryAction(action)) {
                 return handleToggleMfaModalNavigatorWithHistoryAction(state, action);
+            }
+
+            if (isToggleModalWithHistoryAction(action)) {
+                return handleToggleModalWithHistoryAction(state, action);
             }
 
             if (isOpenWorkspaceSplitAction(action)) {

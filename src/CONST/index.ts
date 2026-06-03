@@ -5859,6 +5859,10 @@ const CONST = {
         // Fake history entry used to keep browser Back behavior correct after revealing a route under an RHP.
         // addRootHistoryRouterExtension owns when this is added, carried forward, and removed.
         CUSTOM_HISTORY_ENTRY_REVEAL_PADDING: 'CUSTOM_HISTORY-REVEAL_PADDING',
+        // Prefix for the back-guard history entry pushed by a `shouldHandleNavigationBack` Modal. Each
+        // modal instance appends `${CUSTOM_HISTORY_ENTRY_MODAL}:${modalId}` to the root state.history so
+        // browser Back closes the modal; the per-instance tag lets nested modals close one at a time.
+        CUSTOM_HISTORY_ENTRY_MODAL: 'CUSTOM_HISTORY-MODAL',
         ACTION_TYPE: {
             REPLACE: 'REPLACE',
             PUSH: 'PUSH',
@@ -5880,6 +5884,7 @@ const CONST = {
             REPLACE_PARAMS: 'REPLACE_PARAMS',
             TOGGLE_SIDE_PANEL_WITH_HISTORY: 'TOGGLE_SIDE_PANEL_WITH_HISTORY',
             TOGGLE_MFA_MODAL_NAVIGATOR_WITH_HISTORY: 'TOGGLE_MFA_MODAL_NAVIGATOR_WITH_HISTORY',
+            TOGGLE_MODAL_WITH_HISTORY: 'TOGGLE_MODAL_WITH_HISTORY',
         },
     },
     TIME_PERIOD: {

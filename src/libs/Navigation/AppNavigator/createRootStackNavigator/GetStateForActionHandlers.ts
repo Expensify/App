@@ -19,6 +19,7 @@ import type {
     ReplaceActionType,
     ReplaceFullscreenUnderRHPActionType,
     ToggleMfaModalNavigatorWithHistoryActionType,
+    ToggleModalWithHistoryActionType,
     ToggleSidePanelWithHistoryActionType,
 } from './types';
 
@@ -704,6 +705,31 @@ function handleToggleMfaModalNavigatorWithHistoryAction(state: StackNavigationSt
     return state;
 }
 
+function handleToggleModalWithHistoryAction(state: StackNavigationState<ParamListBase>, action: ToggleModalWithHistoryActionType) {
+    // This shouldn't ever happen as the history should be always defined. It's for type safety.
+    if (!state?.history) {
+        return state;
+    }
+
+    // Each modal instance owns a uniquely-tagged sentinel so nested modals can be added/removed
+    // independently (LIFO), unlike the singleton side-panel sentinel.
+    const entry = `${CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MODAL}:${action.payload.modalId}`;
+
+    // On open, append this modal's back-guard sentinel. useLinking sees history grow by one and
+    // pushes a browser history entry, so browser Back closes the modal.
+    if (action.payload.isVisible) {
+        return {...state, history: [...state.history, entry]};
+    }
+
+    // On close, remove only this modal's own sentinel (the last matching one). Filtering by exact
+    // tag keeps sibling/nested modal sentinels intact.
+    const indexToRemove = state.history.lastIndexOf(entry);
+    if (indexToRemove === -1) {
+        return state;
+    }
+    return {...state, history: [...state.history.slice(0, indexToRemove), ...state.history.slice(indexToRemove + 1)]};
+}
+
 export {
     handleDismissModalAction,
     handleNavigatingToModalFromModal,
@@ -716,6 +742,7 @@ export {
     screensWithEnteringAnimation,
     handleToggleSidePanelWithHistoryAction,
     handleToggleMfaModalNavigatorWithHistoryAction,
+    handleToggleModalWithHistoryAction,
     getPreInsertedOriginalTabRoute,
     clearPreInsertedOriginalTabRoute,
     // Exported for unit-test access; not used outside of testing.
