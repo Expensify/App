@@ -107,6 +107,11 @@ describe('PersonalDetailsSelector', () => {
             expect(result).toEqual([]);
         });
 
+        it('should return an empty array if accountIDs is undefined', () => {
+            const result = multiPersonalDetailsSelector(undefined)(personalDetailsList);
+            expect(result).toEqual([]);
+        });
+
         it('should return an empty array if the personalDetailsList is undefined', () => {
             const result = multiPersonalDetailsSelector([accountID])(undefined);
             expect(result).toEqual([]);
