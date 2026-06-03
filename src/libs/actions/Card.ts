@@ -868,15 +868,19 @@ function buildOptimisticRemoveWorkspaceFrozenExpensifyCardsUpdates({
     let cardListOptimistic: Record<string, null> | undefined;
     let cardListFailure: Record<string, Card> | undefined;
 
-    const workspaceAccountIDString = workspaceAccountID.toString();
+    const expensifyCardFeedKeys = [
+        `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
+        `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`,
+    ];
 
-    for (const [onyxKey, feed] of Object.entries(allWorkspaceCardsList ?? {})) {
-        if (!onyxKey.includes(workspaceAccountIDString) || !onyxKey.includes(CONST.EXPENSIFY_CARD.BANK)) {
+    for (const onyxKey of expensifyCardFeedKeys) {
+        const feed = allWorkspaceCardsList?.[onyxKey];
+        if (!feed) {
             continue;
         }
 
-        for (const [entryKey, entry] of Object.entries(feed ?? {})) {
-            if (entryKey === 'cardList' || !isCard(entry) || !isCardFrozen(entry)) {
+        for (const [entryKey, entry] of Object.entries(feed)) {
+            if (entryKey === ONYXKEYS.CARD_LIST || !isCard(entry) || !isCardFrozen(entry)) {
                 continue;
             }
 
