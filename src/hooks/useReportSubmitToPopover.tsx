@@ -27,6 +27,8 @@ const DEFAULT_ANCHOR_ALIGNMENT = {
 
 type ReportSubmitToPopoverOpenOptions = {
     onSubmitSuccess?: () => void;
+    /** When set (e.g. Search row submit), called with the selected submit-to email instead of `submitReport`. */
+    onSubmitWithManagerEmail?: (managerEmail: string) => void;
 };
 
 type UseReportSubmitToPopoverParams = {
@@ -47,6 +49,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
     const oneShotOnSubmitSuccessRef = useRef<(() => void) | undefined>(undefined);
     const {calculatePopoverPosition} = usePopoverPosition();
     const [isVisible, setIsVisible] = useState(false);
+    const [onSubmitWithManagerEmail, setOnSubmitWithManagerEmail] = useState<ReportSubmitToPopoverOpenOptions['onSubmitWithManagerEmail']>();
     const [anchorPosition, setAnchorPosition] = useState({
         horizontal: 0,
         vertical: 0,
@@ -58,12 +61,14 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
     const [willAlertModalBecomeVisible] = useOnyx(ONYXKEYS.MODAL, {selector: willAlertModalBecomeVisibleSelector});
 
     const closeReportSubmitToPopover = useCallback(() => {
+        setOnSubmitWithManagerEmail(undefined);
         setIsVisible(false);
     }, []);
 
     const handleCombinedSubmitSuccess = useCallback(() => {
         const oneShot = oneShotOnSubmitSuccessRef.current;
         oneShotOnSubmitSuccessRef.current = undefined;
+        setOnSubmitWithManagerEmail(undefined);
         oneShot?.();
         onSubmitSuccess?.();
     }, [onSubmitSuccess]);
@@ -74,6 +79,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
                 return;
             }
             oneShotOnSubmitSuccessRef.current = options?.onSubmitSuccess;
+            setOnSubmitWithManagerEmail(options?.onSubmitWithManagerEmail);
             const anchorToMeasure = getAnchorRef?.() ?? anchorRef;
             calculatePopoverPosition(anchorToMeasure, anchorAlignment).then((pos) => {
                 setAnchorPosition({
@@ -117,6 +123,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
                         isLoadingReportData={isLoadingReportData}
                         onDismiss={closeReportSubmitToPopover}
                         onSubmitSuccess={handleCombinedSubmitSuccess}
+                        onSubmitWithManagerEmail={onSubmitWithManagerEmail}
                         shouldDismissRHPAfterSubmit={false}
                     />
                 </View>
@@ -137,6 +144,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
             policy,
             isLoadingReportData,
             handleCombinedSubmitSuccess,
+            onSubmitWithManagerEmail,
         ],
     );
 

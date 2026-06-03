@@ -45,9 +45,11 @@ type ReportSubmitToContentProps = {
     onSubmitSuccess?: () => void;
     /** When false, skips closing the RHP stack after submit (e.g. submit-to popover on report screen). */
     shouldDismissRHPAfterSubmit?: boolean;
+    /** When set (e.g. Search row submit), called with the selected submit-to email instead of `submitReport`. */
+    onSubmitWithManagerEmail?: (managerEmail: string) => void;
 };
 
-function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, onSubmitSuccess, shouldDismissRHPAfterSubmit = true}: ReportSubmitToContentProps) {
+function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, onSubmitSuccess, shouldDismissRHPAfterSubmit = true, onSubmitWithManagerEmail}: ReportSubmitToContentProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -195,6 +197,27 @@ function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, 
         }
 
         setHasError(false);
+
+        if (onSubmitWithManagerEmail) {
+            onSubmitWithManagerEmail(trimmed);
+            if (currentSearchQueryJSON && !isOffline) {
+                search({
+                    searchKey: currentSearchKey,
+                    shouldCalculateTotals,
+                    offset: 0,
+                    queryJSON: currentSearchQueryJSON,
+                    isOffline,
+                    isLoading: !!currentSearchResults?.search?.isLoading,
+                });
+            }
+            onSubmitSuccess?.();
+            onDismiss();
+            if (shouldDismissRHPAfterSubmit) {
+                Navigation.dismissToPreviousRHP();
+            }
+            return;
+        }
+
         submitReport({
             expenseReport: report,
             policy,
@@ -247,6 +270,7 @@ function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, 
         currentSearchResults?.search?.isLoading,
         onDismiss,
         onSubmitSuccess,
+        onSubmitWithManagerEmail,
         shouldDismissRHPAfterSubmit,
     ]);
 
