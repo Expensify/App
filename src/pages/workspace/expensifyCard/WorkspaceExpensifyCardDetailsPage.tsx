@@ -344,16 +344,6 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                         interactive={false}
                         titleStyle={styles.walletCardNumber}
                     />
-
-                    <OfflineWithFeedback pendingAction={card?.pendingFields?.availableSpend}>
-                        <MenuItemWithTopDescription
-                            description={translate('cardPage.availableSpend')}
-                            title={formattedAvailableSpendAmount}
-                            interactive={false}
-                            titleStyle={styles.walletCardLimit}
-                            hintText={remainingLimitHint}
-                        />
-                    </OfflineWithFeedback>
                     {!isProduction && spendRulesSummary.length > 0 && (
                         <MenuItemWithTopDescription
                             interactive={false}
@@ -363,6 +353,15 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             accessibilityLabel={spendRulesSummary.join('. ')}
                         />
                     )}
+                    <OfflineWithFeedback pendingAction={card?.pendingFields?.availableSpend}>
+                        <MenuItemWithTopDescription
+                            description={translate('cardPage.availableSpend')}
+                            title={formattedAvailableSpendAmount}
+                            interactive={false}
+                            titleStyle={styles.walletCardLimit}
+                            hintText={remainingLimitHint}
+                        />
+                    </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={card?.nameValuePairs?.pendingFields?.limitType}>
                         <MenuItemWithTopDescription
                             description={translate('workspace.card.issueNewCard.limitType')}

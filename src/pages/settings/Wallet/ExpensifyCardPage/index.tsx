@@ -377,13 +377,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                 />
                             </View>
                         )}
-                        <MenuItemWithTopDescription
-                            description={translate('cardPage.availableSpend')}
-                            title={formattedAvailableSpendAmount}
-                            interactive={false}
-                            titleStyle={styles.walletCardLimit}
-                            hintText={remainingLimitHint}
-                        />
                         {shouldShowSpendRulesSummary && (
                             <MenuItemWithTopDescription
                                 interactive={false}
@@ -393,6 +386,13 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                 accessibilityLabel={spendRulesSummary.join('. ')}
                             />
                         )}
+                        <MenuItemWithTopDescription
+                            description={translate('cardPage.availableSpend')}
+                            title={formattedAvailableSpendAmount}
+                            interactive={false}
+                            titleStyle={styles.walletCardLimit}
+                            hintText={remainingLimitHint}
+                        />
                         <MenuItemWithTopDescription
                             description={translate('workspace.card.issueNewCard.limitType')}
                             title={currentCardLimitTypeTranslationKey ? translate(currentCardLimitTypeTranslationKey) : ''}
