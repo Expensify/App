@@ -37,7 +37,7 @@ import {setNameValuePair} from '@libs/actions/User';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {getConnectedIntegration, isSubmitAndClose} from '@libs/PolicyUtils';
+import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {getSecondaryExportReportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
@@ -1112,7 +1112,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`],
                 });
             }),
-        [selectedReports, shouldShowMarkAsDone],
+        [selectedReports, currentSearchResults?.data, isTrackIntentUser, policies],
     );
     const noReportsShouldMarkAsDone = useMemo(
         () =>
@@ -1125,7 +1125,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`],
                 });
             }),
-        [selectedReports, shouldShowMarkAsDone],
+        [selectedReports, currentSearchResults?.data, isTrackIntentUser, policies],
     );
 
     const headerButtonsOptions = useMemo(() => {
@@ -1470,7 +1470,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         if (shouldShowSubmitOption) {
             options.push({
                 icon: expensifyIcons.Send,
-                text: selectedReports.length > 0 && allReportsShouldMarkAsDone ? translate('common.markAsDone') : translate('common.submit'),
+                text: allReportsShouldMarkAsDone ? translate('common.markAsDone') : translate('common.submit'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
