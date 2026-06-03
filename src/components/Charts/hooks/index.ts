@@ -4,7 +4,6 @@ export {default as useChartParagraphs} from './useChartParagraphs';
 export {default as useYAxisLabelWidth} from './useYAxisLabelWidth';
 export {useChartFontManager} from '@components/Charts/context/ChartFontsContext';
 export {default as ChartFontsProvider} from '@components/Charts/context/ChartFontsProvider';
-export {default as ChartFontsBoundary} from '@components/Charts/context/ChartFontsBoundary';
 export {useChartTypefaces} from '@components/Charts/context/ChartFontsContext';
 export {useChartInteractions, TOOLTIP_BAR_GAP} from './useChartInteractions';
 export type {HitTestArgs} from './useChartInteractions';
