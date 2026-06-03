@@ -126,8 +126,6 @@ function useSearchSidebarToggleButtonStyle() {
 
 export {
     SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS,
-    setSearchSidebarCollapsed,
-    endPeek,
     useSearchSidebarCollapse,
     useSearchSidebarLayoutWidthStyle,
     useSearchSidebarVisualWidthStyle,
