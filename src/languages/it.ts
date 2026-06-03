@@ -2251,9 +2251,8 @@ const translations: TranslationDeepObject<typeof en> = {
         stepCodes: 'Codici di recupero',
         keepCodesSafe: 'Conserva questi codici al sicuro!',
         codesLoseAccess: dedent(`
-            Se perdi l'accesso alla tua app di autenticazione e non hai questi codici, perderai l'accesso al tuo account.
-
-            <strong>Nota</strong>: configurare l'autenticazione a due fattori ti disconnetterà da tutte le altre sessioni attive.
+            Se perdi l’accesso alla tua app di autenticazione e non hai questi codici, verrà bloccato l’accesso al tuo account.<br><br>
+            <strong>Nota</strong>: l’abilitazione della 2FA ti disconnette da tutte le altre sessioni.
         `),
         errorStepCodes: 'Copia o scarica i codici prima di continuare',
         stepVerify: 'Verifica',
@@ -2283,7 +2282,6 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceTitle: 'Configura nuovo dispositivo',
         verifyNewDeviceDescription: 'Scansiona il codice QR con il tuo nuovo dispositivo, poi inserisci il codice per completare la configurazione.',
         downloadCodes: 'Scarica codici',
-        screenshotTip: 'Suggerimento: fai uno screenshot per salvarlo nel rullino fotografico',
         copyCodes: 'Copia codici',
     },
     recoveryCodeForm: {
@@ -4002,7 +4000,7 @@ ${amount} per ${merchant} - ${date}`,
         selectCountry: 'Seleziona paese',
         error: {
             connectToWorkspace: (workspaceRoute: string) =>
-                `Collega questo conto bancario a un <a href="${workspaceRoute}">spazio di lavoro</a> per poter invitare un direttore a firmare in un passaggio successivo.`,
+                `Questo conto bancario deve essere collegato a uno spazio di lavoro. Vai su <a href="${workspaceRoute}">Spazi di lavoro</a>, seleziona il tuo spazio di lavoro, quindi vai su Flussi di lavoro > Pagamenti > Aggiungi conto bancario.`,
         },
     },
     bankInfoStep: {
@@ -4051,7 +4049,6 @@ ${amount} per ${merchant} - ${date}`,
             `sta collegando un conto bancario aziendale in ${currency} che termina con ${bankAccountLastFour} a Expensify per pagare i dipendenti in ${currency}. Il prossimo passaggio richiede le informazioni del firmatario da un direttore.`,
         error: {
             emailsMustBeDifferent: 'Le email devono essere diverse',
-            connectToWorkspace: (workspaceRoute: string) => `Per favore, collega questo conto bancario a un <a href="${workspaceRoute}">workspace</a> per invitare un direttore a firmare.`,
         },
     },
     agreementsStep: {
@@ -7860,6 +7857,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             `ha modificato il giorno di fine periodo dell’estratto conto del flusso carta "${feedName}"${newValue ? ` a "${newValue}"` : ''}${previousValue ? ` (in precedenza "${previousValue}")` : ''}`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `aggiunto campo di report ${fieldType} "${fieldName}"${defaultValue ? ` con valore predefinito "${defaultValue}"` : ''}`,
+        updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
+            `ha modificato la categoria di spesa predefinita per "${mccGroupName}" in "${newCategory}" (precedentemente "${oldCategory}")`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'abilitato' : 'disabilitato'} il requisito per gli acquisti con carta aziendale`,
         expensifyCardRule: {
             actionVerb: {block: 'bloccato', allow: 'consentito'},
