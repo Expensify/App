@@ -18,7 +18,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
-import {isSelfDM} from '@libs/ReportUtils';
+import {isSelfDM, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import {
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     isDuplicate as isDuplicateTransactionUtils,
@@ -83,7 +83,8 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
     const {wideRHPRouteKeys} = useWideRHPState();
 
     const isOnHold = isOnHoldTransactionUtils(transaction);
-    const isDuplicate = isDuplicateTransactionUtils(transaction, email ?? '', accountID, report, policy, transactionViolations);
+    const isParentReportSettled = isSettledReportUtils(parentReport);
+    const isDuplicate = !isParentReportSettled && isDuplicateTransactionUtils(transaction, email ?? '', accountID, report, policy, transactionViolations);
     const hasPendingRTERViolation = hasPendingRTERViolationTransactionUtils(transactionViolations);
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(parentReport, policy, transactionViolations);
 

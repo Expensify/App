@@ -2,16 +2,40 @@ import type {ValueOf} from 'type-fest';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {OnyxValueWithOfflineFeedback, PendingFields} from './OnyxCommon';
+import type {Errors, OnyxValueWithOfflineFeedback, PendingAction, PendingFields} from './OnyxCommon';
 
 /**
  * Approver in the approval workflow
  */
 type Approver = {
     /**
-     * Email of the approver
+     * Email of the approver. May be the empty string when this approver was seeded from an
+     * optimistic agent creation that has not yet received its server-assigned login. In that
+     * case `accountID` carries the identity and `pendingAction` is set so the row renders with
+     * opacity. Once `CREATE_AGENT` resolves we migrate this approver to the real email.
      */
     email: string;
+
+    /**
+     * Account ID of the approver. Tracked so we can identify the approver even when `email`
+     * is missing (optimistic agent creation flow). For approvers added from the workspace
+     * member picker this matches the personal detail's `accountID`.
+     */
+    accountID?: number;
+
+    /**
+     * Pending action that mirrors the underlying personal detail. When set (e.g. `ADD` while
+     * a new agent is being created), the approver row renders with reduced opacity to signal
+     * that the approver is still being confirmed by the server.
+     */
+    pendingAction?: PendingAction;
+
+    /**
+     * Transient errors attached to an optimistic agent approver. Surfaced on the workflows
+     * page so a failed `CREATE_AGENT` shows up as an RBR / dismissible message next to the
+     * pending approver row. Not persisted to the server — set in the page-level overlay only.
+     */
+    errors?: Errors;
 
     /**
      * Email of the user this user forwards all approved reports to

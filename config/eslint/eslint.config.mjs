@@ -736,7 +736,7 @@ const config = defineConfig([
     },
 
     {
-        files: ['server/**/*.ts'],
+        files: ['server/**/*.ts', 'server/**/*.tsx'],
         languageOptions: {
             parserOptions: {
                 project: path.resolve(projectRoot, 'server/tsconfig.json'),

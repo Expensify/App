@@ -181,7 +181,12 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             policyMemberAccountIDs,
             CONST.POLICY.ROLE.USER,
             formatPhoneNumber,
-            currentUserPersonalDetails.accountID,
+            {
+                accountID: currentUserPersonalDetails.accountID,
+                displayName: currentUserPersonalDetails.displayName,
+                email: currentUserPersonalDetails.email,
+                avatar: currentUserPersonalDetails.avatar,
+            },
             undefined,
             filteredReportActions,
         );

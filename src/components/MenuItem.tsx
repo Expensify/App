@@ -3,6 +3,7 @@ import type {ReactElement, ReactNode, Ref} from 'react';
 import React, {useEffect, useMemo, useRef} from 'react';
 import type {GestureResponderEvent, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -107,7 +108,7 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         style?: StyleProp<ViewStyle>;
 
         /** Outer wrapper styles */
-        outerWrapperStyle?: StyleProp<ViewStyle>;
+        outerWrapperStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 
         /** Any additional styles to apply */
         wrapperStyle?: StyleProp<ViewStyle>;

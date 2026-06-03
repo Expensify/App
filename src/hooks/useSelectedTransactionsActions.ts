@@ -43,6 +43,7 @@ import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from './useDefaultExpensePolicy';
 import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
+import useEnvironment from './useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
@@ -116,6 +117,7 @@ function useSelectedTransactionsActions({
     const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({report, reportActions, policy});
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const defaultExpensePolicy = useDefaultExpensePolicy();
+    const {isProduction} = useEnvironment();
 
     const selectedTransactionsList = selectedTransactionIDs.reduce((acc, transactionID) => {
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -481,12 +483,12 @@ function useSelectedTransactionsActions({
 
         const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(firstTransaction, originalTransaction);
         const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
-        const hasMultipleSplits = getChildTransactions(allTransactions, firstTransaction?.comment?.originalTransactionID).length > 1;
+        const hasMultipleSplits = getChildTransactions(allTransactions, firstTransaction?.comment?.originalTransactionID, isProduction).length > 1;
         const canSplitTransaction =
             selectedTransactionsList.length === 1 &&
             report &&
             !(isExpenseSplit && hasMultipleSplits) &&
-            isSplitAction(report, [firstTransaction], originalTransaction, login ?? '', currentUserAccountID, policy, parentReport);
+            isSplitAction(report, [firstTransaction], originalTransaction, login ?? '', currentUserAccountID, policy, parentReport, isProduction);
 
         if (canSplitTransaction) {
             options.push({
@@ -494,7 +496,7 @@ function useSelectedTransactionsActions({
                 icon: expensifyIcons.ArrowSplit,
                 value: SPLIT,
                 onSelected: () => {
-                    initSplitExpense(firstTransaction, policy, report);
+                    initSplitExpense(firstTransaction, policy, report, currentUserAccountID, {isProduction});
                 },
             });
         }
