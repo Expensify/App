@@ -37,7 +37,7 @@ import FILTER_KEYS, {ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS}
 import type {ExpenseTypeValue, ExpenseTypeValues, HasFilterValue, HasFilterValues, IsFilterValue, IsFilterValues, SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes, SearchResultDataType} from '@src/types/onyx/SearchResults';
-import {getBankAccountSearchLabel} from './BankAccountUtils';
+import {getBankAccountSearchLabel, isSearchEligibleBankAccount} from './BankAccountUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescription} from './CardUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
@@ -1139,7 +1139,7 @@ function buildFilterFormValuesFromQuery(
             filtersForm[key as typeof filterKey] = filterValues.filter((card) => cardList?.[card]);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT) {
-            filtersForm[key as typeof filterKey] = filterValues.filter((bankAccountID) => bankAccountList?.[bankAccountID]);
+            filtersForm[key as typeof filterKey] = filterValues.filter((bankAccountID) => isSearchEligibleBankAccount(bankAccountList?.[bankAccountID]));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
             filtersForm[key as typeof filterKey] = filterValues.filter((feed) => feed);
@@ -1482,7 +1482,7 @@ function getFilterDisplayValue({
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT) {
         const bankAccount = bankAccountList?.[filterValue];
-        if (!bankAccount) {
+        if (!bankAccount || !isSearchEligibleBankAccount(bankAccount)) {
             return filterValue;
         }
         return getBankAccountSearchLabel(bankAccount);
