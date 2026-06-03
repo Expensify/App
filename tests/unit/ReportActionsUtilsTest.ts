@@ -29,6 +29,7 @@ import {
     getIntegrationSyncFailedMessage,
     getInvoiceCompanyNameUpdateMessage,
     getInvoiceCompanyWebsiteUpdateMessage,
+    getMccGroupCategoryMessage,
     getModerationFlagState,
     getOneTransactionThreadReportID,
     getOriginalMessage,
@@ -4499,6 +4500,42 @@ describe('ReportActionsUtils', () => {
 
             const result = getAutoReimbursementMessage(translateLocal, action);
             expect(result).toBe('changed the auto-pay approved reports threshold to "$1,000.00" (previously "$500.00")');
+        });
+    });
+
+    describe('getMccGroupCategoryMessage', () => {
+        it('should render the friendly MCC group label that the emitter already resolved', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    mccGroupName: 'Airlines',
+                    oldCategory: 'Insurance',
+                    newCategory: 'Travel',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getMccGroupCategoryMessage(translateLocal, action);
+            expect(result).toBe('changed the default spend category for "Airlines" to "Travel" (previously "Insurance")');
+        });
+
+        it('should pass through a fallback raw groupID when the emitter could not resolve it', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    mccGroupName: 'spaceflight',
+                    oldCategory: 'Travel',
+                    newCategory: 'Equipment',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getMccGroupCategoryMessage(translateLocal, action);
+            expect(result).toBe('changed the default spend category for "spaceflight" to "Equipment" (previously "Travel")');
         });
     });
 

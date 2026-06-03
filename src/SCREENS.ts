@@ -566,6 +566,8 @@ const SCREENS = {
             QUICKBOOKS_ONLINE_TRAVEL_INVOICING_CONFIGURATION: 'Workspace_Accounting_Quickbooks_Online_Travel_Invoicing_Configuration',
             QUICKBOOKS_ONLINE_TRAVEL_INVOICING_VENDOR_SELECT: 'Workspace_Accounting_Quickbooks_Online_Travel_Invoicing_Vendor_Select',
             QUICKBOOKS_ONLINE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT: 'Workspace_Accounting_Quickbooks_Online_Travel_Invoicing_Payable_Account_Select',
+            DYNAMIC_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_CONFIGURATION: 'Dynamic_Workspace_Accounting_Quickbooks_Desktop_Travel_Invoicing_Configuration',
+            DYNAMIC_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT: 'Dynamic_Workspace_Accounting_Quickbooks_Desktop_Travel_Invoicing_Payable_Account_Select',
             NETSUITE_TRAVEL_INVOICING_CONFIGURATION: 'Workspace_Accounting_NetSuite_Travel_Invoicing_Configuration',
             NETSUITE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT: 'Workspace_Accounting_NetSuite_Travel_Invoicing_Payable_Account_Select',
             DYNAMIC_SAGE_INTACCT_TRAVEL_INVOICING_CONFIGURATION: 'Dynamic_Policy_Accounting_Sage_Intacct_Travel_Invoicing_Configuration',
