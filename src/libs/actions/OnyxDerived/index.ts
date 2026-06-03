@@ -61,6 +61,13 @@ function init() {
                 sourceValues: undefined,
             };
 
+            Onyx.connectWithoutView({
+                key,
+                callback: (value) => {
+                    derivedValue = value;
+                },
+            });
+
             const recomputeDerivedValue = (sourceKey?: string, sourceValue?: unknown, triggeredByIndex?: number) => {
                 // If this recompute was triggered by a connection callback, check if it initializes the connection
                 if (!areAllConnectionsSet && triggeredByIndex !== undefined) {
