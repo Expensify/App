@@ -61,7 +61,7 @@ const createTodosReportsAndTransactions = ({
         if (isSubmitAction(report, reportTransactions, reportMetadata, policy, reportNameValuePair, undefined, login, currentUserAccountID) && !hasOnlyHeldExpenses(reportTransactions)) {
             reportsToSubmit.push(report);
         }
-        if (isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy)) {
+        if (isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy) && !hasOnlyHeldExpenses(reportTransactions)) {
             reportsToApprove.push(report);
         }
         if (
