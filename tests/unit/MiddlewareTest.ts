@@ -23,12 +23,6 @@ Onyx.init({
     keys: ONYXKEYS,
 });
 
-afterAll(() => {
-    // Stop the leaked main-queue interval so it can't keep firing requests (or hold the
-    // worker open) after this suite finishes. See clearProcessQueueInterval in beforeEach.
-    Network.clearProcessQueueInterval();
-});
-
 beforeEach(async () => {
     // Network arms a module-level setInterval(processMainQueue) once ActiveClientManager is
     // ready. Left running, it re-fires non-cancellable MainQueue requests (e.g. Log) into the
