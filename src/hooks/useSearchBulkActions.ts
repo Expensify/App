@@ -36,7 +36,7 @@ import {setNameValuePair} from '@libs/actions/User';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {getConnectedIntegration} from '@libs/PolicyUtils';
+import {getConnectedIntegration, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getSecondaryExportReportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
@@ -408,6 +408,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         .map((report) => report.reportID)
         .filter((reportID) => reportID !== undefined);
     const isCurrencySupportedBulkWallet = isCurrencySupportWalletBulkPay(selectedReports, selectedTransactions);
+
+
+    const doSelectedItemsBelongToSubmitPolicy = useMemo(() => {
+        const selectedItems = selectedReports.length > 0 ? selectedReports : Object.values(selectedTransactions);
+        if (selectedItems.length === 0) {
+            return false;
+        }
+
+        return selectedItems.some((item) => {
+            const policy = item.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`] : undefined;
+            return isSubmitPolicy(policy);
+        });
+    }, [selectedReports, selectedTransactions, policies]);
 
     const selectedPolicyIDs = useMemo(
         () => [
@@ -1430,6 +1443,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         const shouldShowSubmitOption =
             !isOffline &&
+            !doSelectedItemsBelongToSubmitPolicy &&
             areSelectedTransactionsIncludedInReports &&
             (selectedReports.length
                 ? selectedReports.every((report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.SUBMIT))
@@ -1803,6 +1817,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         transactions,
         isBetaEnabled,
         defaultExpensePolicy,
+        doSelectedItemsBelongToSubmitPolicy,
     ]);
 
     const handleOfflineModalClose = useCallback(() => {
