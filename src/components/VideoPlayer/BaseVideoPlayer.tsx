@@ -59,7 +59,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
     const {currentlyPlayingURL, sharedElement, originalParent, currentVideoPlayerRef, currentVideoViewRef, mountedVideoPlayersRef, playerStatus, shareVersion} = usePlaybackStateContext();
     const {pauseVideo, playVideo, replayVideo, shareVideoPlayerElements, updateCurrentURLAndReportID, setCurrentlyPlayingURL, updatePlayerStatus, requestDonorReRegistration} =
         usePlaybackActionsContext();
-    const {isFullScreen} = useFullScreenState();
+    const {isFullScreen, isFullScreenRef} = useFullScreenState();
     const {setIsFullScreen} = useFullScreenActions();
     const report = useReportOrReportDraft(reportID);
 
@@ -443,7 +443,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
             videoViewRef.current,
             videoPlayerElementParentRef.current,
             videoPlayerElementRef.current,
-            (isUploading && !isCurrentlyURLSet) || isFullScreen || !isReadyForDisplayRef.current || hasError || isSeeking || !allowSharedAutoPlayRef.current,
+            (isUploading && !isCurrentlyURLSet) || isFullScreenRef.current || !isReadyForDisplayRef.current || hasError || isSeeking || !allowSharedAutoPlayRef.current,
             {shouldUseSharedVideoElement, url, reportID},
         );
     }, [
@@ -455,7 +455,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
         isUploading,
         reportID,
         videoPlayerRef,
-        isFullScreen,
+        isFullScreenRef,
         hasError,
         isCurrentlyURLSet,
         isSeeking,
@@ -465,7 +465,9 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
 
     // append shared video element to new parent (used for example in attachment modal)
     useEffect(() => {
-        if (url !== currentlyPlayingURL || !sharedElement || isFullScreen) {
+        // Read via ref so fullscreen toggle does NOT re-run this effect and trigger cleanup,
+        // which would move the shared element away from the attachment modal mid-fullscreen.
+        if (url !== currentlyPlayingURL || !sharedElement || isFullScreenRef.current) {
             return;
         }
 
@@ -514,7 +516,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
                 child.remove();
             }
         };
-    }, [currentVideoPlayerRef, currentVideoViewRef, currentlyPlayingURL, isFullScreen, mountedVideoPlayersRef, originalParent, reportID, sharedElement, shouldUseSharedVideoElement, url]);
+    }, [currentVideoPlayerRef, currentVideoViewRef, currentlyPlayingURL, isFullScreenRef, mountedVideoPlayersRef, originalParent, reportID, sharedElement, shouldUseSharedVideoElement, url]);
 
     useEffect(() => {
         if (!shouldPlay) {

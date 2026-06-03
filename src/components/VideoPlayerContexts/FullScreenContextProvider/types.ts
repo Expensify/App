@@ -10,6 +10,9 @@ type FullScreenStateContextType = {
     /** Whether the application is currently in fullscreen mode. */
     isFullScreen: boolean;
 
+    /** Ref that always reflects the current fullscreen state without triggering re-renders. */
+    isFullScreenRef: RefObject<boolean>;
+
     /** Window dimensions saved before entering fullscreen mode. */
     lockedWindowDimensionsRef: RefObject<ResponsiveLayoutProperties | null>;
 };

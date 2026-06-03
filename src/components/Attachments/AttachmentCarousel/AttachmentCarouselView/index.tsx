@@ -65,11 +65,7 @@ function AttachmentCarouselView({
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud']);
     const canUseTouchScreen = canUseTouchScreenUtil();
-    const {isFullScreen} = useFullScreenState();
-    // Use a ref so updatePage (passed as onViewableItemsChanged) never gets a new reference.
-    // FlatList throws an invariant if onViewableItemsChanged changes after mount.
-    const isFullScreenRef = useRef(isFullScreen);
-    isFullScreenRef.current = isFullScreen;
+    const {isFullScreen, isFullScreenRef} = useFullScreenState();
     const isPagerScrolling = useSharedValue(false);
     const {handleTap, handleScaleChange, isScrollEnabled} = useCarouselContextEvents(setShouldShowArrows);
 
@@ -114,10 +110,7 @@ function AttachmentCarouselView({
                 onNavigate(item);
             }
         },
-        // isFullScreen intentionally omitted — read via ref to keep this callback stable.
-        // FlatList throws if onViewableItemsChanged reference changes after mount.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [onNavigate, setPage, setActiveAttachmentID],
+        [isFullScreenRef, onNavigate, setPage, setActiveAttachmentID],
     );
 
     /** Increments or decrements the index to get another selected item */
