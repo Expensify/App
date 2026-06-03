@@ -4,7 +4,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import {getSubstitutionMapKey, getSubstitutionMapKeyWithIndex} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import type {SearchFilterKey, UserFriendlyKey} from '@components/Search/types';
-import {getBankAccountSearchLabel} from '@libs/BankAccountUtils';
+import {getBankAccountSearchLabel, getSearchEligibleBankAccounts} from '@libs/BankAccountUtils';
 import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch} from '@libs/CardUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
@@ -418,7 +418,7 @@ function useAutocompleteSuggestions({
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT: {
-            const bankAccounts = Object.values(bankAccountList ?? {});
+            const bankAccounts = Object.values(getSearchEligibleBankAccounts(bankAccountList));
             const bankAccountSuggestions: Array<{id: string; label: string; accountNumber: string}> = [];
             for (const bankAccount of bankAccounts) {
                 const bankAccountID = bankAccount?.accountData?.bankAccountID;
