@@ -688,9 +688,13 @@ function subscribeToReportReasoningEvents(reportID: string) {
     const pusherChannelName = getReportChannelName(reportID);
 
     const handle = Pusher.subscribe(pusherChannelName, Pusher.TYPE.CONCIERGE_REASONING, (data: Record<string, unknown>) => {
-        const eventData = data as {reasoning: string; agentZeroRequestID: string; loopCount: number};
+        const eventData = data as {reasoning: string; agentZeroRequestID: string; loopCount: number; actorAccountID?: number};
 
-        ConciergeReasoningStore.addReasoning(reportID, {
+        // Attribute the reasoning to the agent the server names (Concierge or a custom agent).
+        // Older backends omit actorAccountID; those payloads default to Concierge.
+        const agentAccountID = typeof eventData.actorAccountID === 'number' && eventData.actorAccountID > 0 ? eventData.actorAccountID : CONST.ACCOUNT_ID.CONCIERGE;
+
+        ConciergeReasoningStore.addReasoning(reportID, agentAccountID, {
             reasoning: eventData.reasoning,
             agentZeroRequestID: eventData.agentZeroRequestID,
             loopCount: eventData.loopCount,
@@ -720,18 +724,19 @@ function unsubscribeFromReportReasoningChannel(reportID: string) {
     // Use the per-callback handle for precise cleanup instead of the global
     // Pusher.unsubscribe which removes ALL callbacks for the event on the channel.
     handle.unsubscribe();
-    ConciergeReasoningStore.clearReasoning(reportID);
+    ConciergeReasoningStore.clearReportReasoning(reportID);
     reasoningSubscriptions.delete(reportID);
 }
 
 /**
- * Clear the AgentZero processing indicator for a report.
+ * Clear the AgentZero processing indicator for a single agent in a report.
  * Used by the safety timeout (lease pattern) and network reconnect handler
- * to auto-clear stale indicators when the CLEAR update was missed.
+ * to auto-clear stale indicators when the CLEAR update was missed. Only the given
+ * agent's slot is cleared so a co-resident agent's indicator stays intact.
  */
-function clearAgentZeroProcessingIndicator(reportID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {agentZeroProcessingRequestIndicator: null});
-    ConciergeReasoningStore.clearReasoning(reportID);
+function clearAgentZeroProcessingIndicator(reportID: string, agentAccountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {agentZeroProcessingRequestIndicator: {[agentAccountID]: null}});
+    ConciergeReasoningStore.clearReasoning(reportID, agentAccountID);
 }
 
 // New action subscriber array for report pages
