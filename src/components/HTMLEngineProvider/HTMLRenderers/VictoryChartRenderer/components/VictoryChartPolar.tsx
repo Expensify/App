@@ -1,6 +1,6 @@
 import React from 'react';
 import {PolarChart} from 'victory-native';
-import {ChartFontsProvider} from '@components/Charts/hooks';
+import {ChartFontsBoundary} from '@components/Charts/hooks';
 import {COLOR_KEY, LABEL_KEY, VALUE_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getHierarchyID';
@@ -21,7 +21,7 @@ function VictoryChartPolar() {
             valueKey={VALUE_KEY}
             colorKey={COLOR_KEY}
         >
-            <ChartFontsProvider>
+            <ChartFontsBoundary>
                 {tnode.children.map((child) => (
                     <VictoryChartCategories
                         key={`${child.tagName ?? 'node'}-${getHierarchyID(child)}`}
@@ -40,7 +40,7 @@ function VictoryChartPolar() {
                         {...legendItem}
                     />
                 ))}
-            </ChartFontsProvider>
+            </ChartFontsBoundary>
         </PolarChart>
     );
 }
