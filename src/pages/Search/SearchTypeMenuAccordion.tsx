@@ -60,10 +60,10 @@ function AnimatedBadge({text, isExpanded}: AnimatedBadgeProps) {
     }));
 
     return (
-        <Animated.View style={[badgeAnimatedStyle]}>
+        <Animated.View style={badgeAnimatedStyle}>
             <Badge
                 text={text}
-                badgeStyles={styles.searchSectionBadge}
+                badgeStyles={[styles.searchSectionBadge, styles.ml0]}
                 success
                 isCondensed
             />
@@ -101,18 +101,18 @@ function SearchTypeMenuAccordion({title, isExpanded, badgeText, children, onSect
         <View>
             {isVisuallyCollapsed ? (
                 <View
-                    style={[styles.flexRow, styles.p2, styles.gap2, styles.alignItemsCenter, styles.br2]}
+                    style={[styles.flexRow, styles.searchTypeMenuAccordionPadding, styles.gap2, styles.alignItemsCenter, styles.br2]}
                     accessibilityElementsHidden
                     importantForAccessibility="no-hide-descendants"
                 >
-                    <View style={{flex: 1, height: variables.iconSizeSmall, justifyContent: 'center'}}>
-                        <View style={{height: 1, width: '100%', backgroundColor: theme.border}} />
+                    <View style={styles.searchTypeMenuAccordionCollapsedDividerContainer}>
+                        <View style={styles.searchTypeMenuAccordionCollapsedDivider} />
                     </View>
                 </View>
             ) : (
                 <PressableWithoutFeedback
                     onPress={onSectionHeaderPress}
-                    style={[styles.flexRow, styles.p2, styles.gap2, styles.alignItemsCenter, styles.br2]}
+                    style={[styles.flexRow, styles.searchTypeMenuAccordionPadding, styles.gap2, styles.alignItemsCenter, styles.br2]}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={title}
                     sentryLabel={CONST.SENTRY_LABEL.ACCORDION_SECTION.TOGGLE}
@@ -127,22 +127,28 @@ function SearchTypeMenuAccordion({title, isExpanded, badgeText, children, onSect
                             {title}
                         </Text>
                     </Animated.View>
-                    {!!badgeText && (
-                        <Animated.View style={headerBadgeFadeAnimatedStyle}>
-                            <AnimatedBadge
-                                text={badgeText}
-                                isExpanded={isAccordionExpanded}
-                            />
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+                        {!!badgeText && (
+                            <Animated.View style={headerBadgeFadeAnimatedStyle}>
+                                <AnimatedBadge
+                                    text={badgeText}
+                                    isExpanded={isAccordionExpanded}
+                                />
+                            </Animated.View>
+                        )}
+                        <Animated.View style={headerArrowFadeAnimatedStyle}>
+                            <View style={styles.searchTypeMenuAccessoryBox}>
+                                <Animated.View style={arrowAnimatedStyle}>
+                                    <Icon
+                                        fill={theme.icon}
+                                        src={icons.UpArrow}
+                                        width={variables.iconSizeSmall}
+                                        height={variables.iconSizeSmall}
+                                    />
+                                </Animated.View>
+                            </View>
                         </Animated.View>
-                    )}
-                    <Animated.View style={[arrowAnimatedStyle, headerArrowFadeAnimatedStyle]}>
-                        <Icon
-                            fill={theme.icon}
-                            src={icons.UpArrow}
-                            width={variables.iconSizeSmall}
-                            height={variables.iconSizeSmall}
-                        />
-                    </Animated.View>
+                    </View>
                 </PressableWithoutFeedback>
             )}
             <Accordion

@@ -98,9 +98,9 @@ function SearchSidebar({state}: SearchSidebarProps) {
     );
 
     return (
-        <Animated.View style={[{height: '100%'}, layoutSpacerStyle]}>
+        <Animated.View style={layoutSpacerStyle}>
             <Hoverable onHoverOut={endPeek}>
-                <Animated.View style={[styles.searchSidebar, {position: 'absolute', top: 0, bottom: 0, left: 0, zIndex: 1}, visualSidebarWidthStyle]}>
+                <Animated.View style={[styles.searchSidebar, styles.stickToLeft, styles.zIndex1, visualSidebarWidthStyle]}>
                     <View style={styles.flex1}>
                         <TopBar
                             shouldShowLoadingBar={shouldShowLoadingState || shouldShowLoadingBarForReports}

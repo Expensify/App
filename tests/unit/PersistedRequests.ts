@@ -11,7 +11,7 @@ const request: Request<'reportMetadata_1' | 'reportMetadata_2'> = {
     command: 'OpenReport',
     successData: [{key: 'reportMetadata_1', onyxMethod: 'merge', value: {}}],
     failureData: [{key: 'reportMetadata_2', onyxMethod: 'merge', value: {}}],
-    requestID: 1,
+    requestIndex: 1,
 };
 
 beforeAll(() =>
@@ -55,7 +55,7 @@ describe('PersistedRequests', () => {
             command: 'AddComment',
             successData: [{key: 'reportMetadata_3', onyxMethod: 'merge', value: {}}],
             failureData: [{key: 'reportMetadata_4', onyxMethod: 'merge', value: {}}],
-            requestID: 2,
+            requestIndex: 2,
         };
         PersistedRequests.save(request2);
         PersistedRequests.processNextRequest();
@@ -70,7 +70,7 @@ describe('PersistedRequests', () => {
             command: 'OpenReport',
             successData: [{key: 'reportMetadata_1', onyxMethod: 'set', value: {}}],
             failureData: [{key: 'reportMetadata_2', onyxMethod: 'set', value: {}}],
-            requestID: 3,
+            requestIndex: 3,
         };
         PersistedRequests.update(0, newRequest);
         expect(PersistedRequests.getAll().at(0)).toEqual(newRequest);
@@ -81,7 +81,7 @@ describe('PersistedRequests', () => {
             command: 'OpenReport',
             successData: [{key: 'reportMetadata_1', onyxMethod: 'set', value: {}}],
             failureData: [{key: 'reportMetadata_2', onyxMethod: 'set', value: {}}],
-            requestID: 4,
+            requestIndex: 4,
         };
         PersistedRequests.updateOngoingRequest(newRequest);
         expect(PersistedRequests.getOngoingRequest()).toEqual(newRequest);
@@ -102,7 +102,7 @@ describe('PersistedRequests', () => {
                 command: 'OpenReport',
                 successData: [{key: 'reportMetadata_1', onyxMethod: 'set', value: {}}],
                 failureData: [{key: 'reportMetadata_2', onyxMethod: 'set', value: {}}],
-                requestID: 5,
+                requestIndex: 5,
                 data: {file: mockFile},
             };
 
@@ -169,7 +169,7 @@ describe('PersistedRequests persistence guarantees', () => {
             command: 'AddComment',
             successData: [{key: 'reportMetadata_3', onyxMethod: 'merge', value: {}}],
             failureData: [{key: 'reportMetadata_4', onyxMethod: 'merge', value: {}}],
-            requestID: 2,
+            requestIndex: 2,
         };
 
         PersistedRequests.save(requestB);
@@ -212,7 +212,7 @@ describe('PersistedRequests persistence guarantees', () => {
                 command: 'OpenReport',
                 successData: [{key: 'reportMetadata_1', onyxMethod: 'merge', value: {}}],
                 failureData: [{key: 'reportMetadata_2', onyxMethod: 'merge', value: {}}],
-                requestID: 30,
+                requestIndex: 30,
                 data: {file: mockFile},
             };
 
@@ -263,14 +263,14 @@ describe('PersistedRequests persistence guarantees', () => {
                 command: 'CommandA',
                 successData: [{key: 'reportMetadata_1', onyxMethod: 'merge', value: {}}],
                 failureData: [{key: 'reportMetadata_2', onyxMethod: 'merge', value: {}}],
-                requestID: 10,
+                requestIndex: 10,
             };
 
             const requestB: Request<'reportMetadata_3' | 'reportMetadata_4'> = {
                 command: 'CommandB',
                 successData: [{key: 'reportMetadata_3', onyxMethod: 'merge', value: {}}],
                 failureData: [{key: 'reportMetadata_4', onyxMethod: 'merge', value: {}}],
-                requestID: 11,
+                requestIndex: 11,
             };
 
             // save(requestA): in-memory = [A], Onyx.set([A]) captured but not executed
@@ -314,13 +314,13 @@ describe('PersistedRequests persistence guarantees', () => {
             command: 'CommandA',
             successData: [{key: 'reportMetadata_1', onyxMethod: 'merge', value: {}}],
             failureData: [{key: 'reportMetadata_2', onyxMethod: 'merge', value: {}}],
-            requestID: 20,
+            requestIndex: 20,
         };
         const requestB: Request<'reportMetadata_3' | 'reportMetadata_4'> = {
             command: 'CommandB',
             successData: [{key: 'reportMetadata_3', onyxMethod: 'merge', value: {}}],
             failureData: [{key: 'reportMetadata_4', onyxMethod: 'merge', value: {}}],
-            requestID: 21,
+            requestIndex: 21,
         };
 
         PersistedRequests.save(requestA);
@@ -348,7 +348,7 @@ describe('PersistedRequests persistence guarantees', () => {
             command: 'CommandC',
             successData: [{key: 'reportMetadata_5', onyxMethod: 'merge', value: {}}],
             failureData: [{key: 'reportMetadata_6', onyxMethod: 'merge', value: {}}],
-            requestID: 22,
+            requestIndex: 22,
         };
         PersistedRequests.save(requestC);
         await waitForBatchedUpdates();

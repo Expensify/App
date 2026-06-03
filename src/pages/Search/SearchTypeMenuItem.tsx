@@ -4,7 +4,7 @@ import type {GestureResponderEvent} from 'react-native';
 import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
-import {useSearchSidebarCollapse, useSearchSidebarCollapseFadeStyle} from '@components/Navigation/SearchSidebarCollapseStore';
+import {SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS, useSearchSidebarCollapse, useSearchSidebarCollapseFadeStyle} from '@components/Navigation/SearchSidebarCollapseStore';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
@@ -34,10 +34,7 @@ type SearchTypeMenuItemProps = {
     onPress: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 };
 
-const COLLAPSED_BADGE_BOTTOM_OFFSET = -6;
-const COLLAPSED_BADGE_RIGHT_OFFSET = -8;
 const COLLAPSED_BADGE_INITIAL_SCALE = 0.5;
-const COLLAPSED_BADGE_ENTER_DURATION_MS = 220;
 const COLLAPSED_BADGE_EXIT_DURATION_MS = 90;
 
 /**
@@ -55,7 +52,7 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
     useEffect(() => {
         collapsedBadgeProgress.set(
             withTiming(isVisuallyCollapsed ? 1 : 0, {
-                duration: isVisuallyCollapsed ? COLLAPSED_BADGE_ENTER_DURATION_MS : COLLAPSED_BADGE_EXIT_DURATION_MS,
+                duration: isVisuallyCollapsed ? SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS : COLLAPSED_BADGE_EXIT_DURATION_MS,
                 easing: Easing.out(Easing.cubic),
             }),
         );
@@ -80,6 +77,7 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
             style={({hovered, pressed}) => [
                 styles.flexRow,
                 styles.sectionMenuItem(shouldUseNarrowLayout),
+                styles.searchTypeMenuItemPadding,
                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || hovered, pressed, false, false, true), true),
                 hovered && !focused && !pressed && styles.hoveredComponentBG,
             ]}
@@ -87,7 +85,7 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
             {({hovered, pressed}) => (
                 <>
                     {icon != null && (
-                        <View style={[styles.popoverMenuIcon, styles.wAuto, {position: 'relative'}]}>
+                        <View style={[styles.popoverMenuIcon, styles.wAuto, styles.pRelative]}>
                             <Icon
                                 src={icon}
                                 width={variables.iconSizeNormal}
@@ -96,7 +94,7 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
                             />
                             {!!badgeText && (
                                 <Animated.View
-                                    style={[{position: 'absolute', bottom: COLLAPSED_BADGE_BOTTOM_OFFSET, right: COLLAPSED_BADGE_RIGHT_OFFSET}, collapsedBadgeAnimatedStyle]}
+                                    style={[styles.searchTypeMenuCollapsedBadge, collapsedBadgeAnimatedStyle]}
                                     pointerEvents="none"
                                 >
                                     <Badge
@@ -118,10 +116,10 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
                         </Text>
                     </Animated.View>
                     {!!badgeText && (
-                        <Animated.View style={inlineBadgeAnimatedStyle}>
+                        <Animated.View style={[styles.searchTypeMenuAccessoryBox, inlineBadgeAnimatedStyle]}>
                             <Badge
                                 text={badgeText}
-                                badgeStyles={styles.todoBadge}
+                                badgeStyles={[styles.todoBadge, styles.ml0]}
                                 success
                             />
                         </Animated.View>

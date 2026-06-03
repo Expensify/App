@@ -84,7 +84,7 @@ function useSearchSidebarCollapse() {
 function useSearchSidebarLayoutWidthStyle() {
     const {isCollapsed: collapsed} = useSearchSidebarCollapse();
 
-    return useMemo<ViewStyle>(() => ({...layoutTransitionStyle, width: getSearchSidebarWidth(collapsed ? 1 : 0)}), [collapsed]);
+    return useMemo<ViewStyle>(() => ({...layoutTransitionStyle, height: '100%', width: getSearchSidebarWidth(collapsed ? 1 : 0)}), [collapsed]);
 }
 
 function useSearchSidebarVisualWidthStyle() {
@@ -125,6 +125,7 @@ function useSearchSidebarToggleButtonStyle() {
 }
 
 export {
+    SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS,
     setSearchSidebarCollapsed,
     endPeek,
     useSearchSidebarCollapse,

@@ -1,8 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import type {GestureResponderEvent, NativeSyntheticEvent, StyleProp, ViewProps, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import type {GestureResponderEvent, NativeSyntheticEvent} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
@@ -17,21 +16,6 @@ import CONST from '@src/CONST';
 import type BaseSearchListProps from './types';
 
 const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<SearchListItem>);
-
-type CellRendererComponentProps = ViewProps & {
-    style?: StyleProp<ViewStyle>;
-};
-
-function CellRendererComponent({children, style, ...props}: CellRendererComponentProps) {
-    return (
-        <View
-            {...props}
-            style={[style, {width: '100%'}]}
-        >
-            {children}
-        </View>
-    );
-}
 
 function BaseSearchList({
     data,
@@ -73,6 +57,9 @@ function BaseSearchList({
         isActive: isFocused,
         onFocusedIndexChange: (index: number) => {
             scrollToIndex?.(index);
+        },
+        onArrowUpDownCallback: () => {
+            ref?.current?.announceProgrammaticScroll();
         },
         setHasKeyBeenPressed,
         isFocused,
@@ -164,7 +151,6 @@ function BaseSearchList({
             ListFooterComponent={ListFooterComponent}
             onViewableItemsChanged={onViewableItemsChanged}
             onLayout={onLayout}
-            CellRendererComponent={CellRendererComponent}
             removeClippedSubviews
             drawDistance={250}
             contentContainerStyle={contentContainerStyle}
