@@ -28,6 +28,7 @@ type ScanRouterProps = {
 
 type NonGlobalCreateProps = {
     report: OnyxEntry<Report>;
+    action: IOUAction;
     iouType: IOUType;
     reportID: string;
     transactionID: string;
@@ -43,7 +44,7 @@ const policyRequiresTagOrCategorySelector = (policy: OnyxEntry<Policy>) => !!pol
  * Owns the policy + skip-confirmation subscriptions so the edit and global-create branches don't pay for them.
  * Decides between SkipConfirmation (quick action) and FromReport (report (+) entry).
  */
-function ScanNonGlobalCreate({report, iouType, reportID, transactionID, transaction, backToReport}: NonGlobalCreateProps) {
+function ScanNonGlobalCreate({report, action, iouType, reportID, transactionID, transaction, backToReport}: NonGlobalCreateProps) {
     const [policyRequiresTagOrCategory] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {selector: policyRequiresTagOrCategorySelector});
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const shouldSkipConfirmation = !!skipConfirmation && !!report?.reportID && !(isPolicyExpenseChat(report) && policyRequiresTagOrCategory);
@@ -52,6 +53,7 @@ function ScanNonGlobalCreate({report, iouType, reportID, transactionID, transact
         return (
             <ScanSkipConfirmation
                 report={report}
+                action={action}
                 iouType={iouType}
                 reportID={reportID}
                 transactionID={transactionID}
@@ -79,7 +81,7 @@ ScanNonGlobalCreate.displayName = 'ScanNonGlobalCreate';
  * Splits new-receipt flows: global-create (FAB) vs. report-scoped (FromReport / SkipConfirm).
  * The archived-report check lives here so neither global-create nor non-global-create variants need to subscribe.
  */
-function ScanNewReceipt({report, iouType, reportID, transactionID, transaction, backToReport}: NewReceiptProps) {
+function ScanNewReceipt({report, action, iouType, reportID, transactionID, transaction, backToReport}: NewReceiptProps) {
     const isArchived = useReportIsArchived(report?.reportID);
     const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
 
@@ -87,6 +89,7 @@ function ScanNewReceipt({report, iouType, reportID, transactionID, transaction, 
         return (
             <ScanNonGlobalCreate
                 report={report}
+                action={action}
                 iouType={iouType}
                 reportID={reportID}
                 transactionID={transactionID}
@@ -134,6 +137,7 @@ function ScanRouter({report, action, iouType, reportID, transactionID, transacti
         <MultiScanGate>
             <ScanNewReceipt
                 report={report}
+                action={action}
                 iouType={iouType}
                 reportID={reportID}
                 transactionID={transactionID}
