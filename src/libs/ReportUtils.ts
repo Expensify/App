@@ -11186,6 +11186,15 @@ function getTripIDFromTransactionParentReportID(transactionParentReportID: strin
     return getReportOrDraftReport(transactionParentReportID)?.tripData?.tripID;
 }
 
+/** Precomputed report-action error state used to make per-transaction RBR checks O(1). */
+type ActionErrorsByTransaction = {
+    /** A non-money-request action (or money-request action without an IOUTransactionID) has errors, flagging every transaction. */
+    hasGlobalActionError: boolean;
+
+    /** Transaction IDs of money-request actions whose `IOUTransactionID` has errors. */
+    transactionIDsWithActionError: Set<string>;
+};
+
 /**
  * Computes report-action error state in a single pass so that per-transaction RBR checks become O(1) lookups
  * instead of re-scanning every report action for every transaction (O(transactions × actions)).
@@ -11194,10 +11203,7 @@ function getTripIDFromTransactionParentReportID(transactionParentReportID: strin
  *   errors. This flags every transaction, matching the original `.some()` fall-through behavior.
  * - `transactionIDsWithActionError`: money-request actions whose `IOUTransactionID` has errors, keyed by transaction.
  */
-function getActionErrorsByTransaction(
-    reportID: string | undefined,
-    reportActions: OnyxEntry<ReportActions> | undefined,
-): {hasGlobalActionError: boolean; transactionIDsWithActionError: Set<string>} {
+function getActionErrorsByTransaction(reportID: string | undefined, reportActions: OnyxEntry<ReportActions> | undefined): ActionErrorsByTransaction {
     const transactionIDsWithActionError = new Set<string>();
     if (!reportID) {
         return {hasGlobalActionError: false, transactionIDsWithActionError};
@@ -11224,7 +11230,7 @@ function hasActionWithErrorsForTransaction(
     reportID: string | undefined,
     transaction: Transaction | undefined,
     reportActions: OnyxEntry<ReportActions> | undefined,
-    actionErrors?: {hasGlobalActionError: boolean; transactionIDsWithActionError: Set<string>},
+    actionErrors?: ActionErrorsByTransaction,
 ): boolean {
     if (!reportID) {
         return false;
@@ -13678,4 +13684,5 @@ export type {
     SelfDMParameters,
     OptimisticReportAction,
     CreateDraftTransactionParams,
+    ActionErrorsByTransaction,
 };
