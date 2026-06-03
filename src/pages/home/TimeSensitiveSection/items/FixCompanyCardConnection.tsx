@@ -42,7 +42,7 @@ function FixCompanyCardConnection({card, policyID, policyName}: FixCompanyCardCo
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${card.fundID}`);
 
     const fetchCardFeeds = useCallback(() => {
-        if (cardFeeds !== undefined || !card.fundID || !policy?.workspaceAccountID) {
+        if (cardFeeds !== undefined || !card.fundID || !policy?.policyAccountID) {
             return;
         }
 
@@ -58,7 +58,7 @@ function FixCompanyCardConnection({card, policyID, policyName}: FixCompanyCardCo
 
         const emailList = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList));
         openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID, emailList, translate);
-    }, [cardFeeds, card.fundID, policy?.workspaceAccountID, policy?.employeeList, policyID, translate]);
+    }, [cardFeeds, card.fundID, policy?.policyAccountID, policy?.employeeList, policyID, translate]);
 
     const {isOffline} = useNetwork({
         onReconnect: fetchCardFeeds,
