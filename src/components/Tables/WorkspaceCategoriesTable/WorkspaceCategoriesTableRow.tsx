@@ -63,12 +63,12 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
             {({hovered}) => (
                 <>
                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                        <Text>{item.name}</Text>
+                        <Text numberOfLines={1}> {item.name}</Text>
                     </View>
 
                     {!shouldUseNarrowTableLayout && shouldShowGLCodeColumn && (
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <Text>{item.glCode}</Text>
+                            <Text numberOfLines={1}>{item.glCode}</Text>
                         </View>
                     )}
 
@@ -82,7 +82,10 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
                                         type={CONST.ICON_TYPE_AVATAR}
                                         size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
                                     />
-                                    <TextWithTooltip text={item.approverDisplayName ?? ''} />
+                                    <TextWithTooltip
+                                        text={item.approverDisplayName ?? ''}
+                                        numberOfLines={1}
+                                    />
                                 </>
                             )}
                         </View>
