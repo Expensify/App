@@ -559,9 +559,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             selectedTransactions,
             isOffline,
             areAllMatchingItemsSelected,
-            showConfirmModal,
-            translate,
-            clearSelectedTransactions,
             currentSearchResults?.data,
             queryJSON,
             selectedTransactionReportIDs,
@@ -642,7 +639,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         selectedTransactionsKeys,
         translate,
         clearSelectedTransactions,
-        showConfirmModal,
         hash,
         selectAllMatchingItems,
         currentSearchResults?.data,
@@ -1786,6 +1782,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         transactions,
         isBetaEnabled,
         defaultExpensePolicy,
+        accountID,
+        deleteTransactionsFromHook,
+        duplicateTransactions,
+        duplicateTransactionViolations,
+        firstTransactionReport,
+        isProduction,
+        shouldOpenSplitExpenseEditFlowOnDelete,
+        styles.textWrap,
     ]);
 
     const handleOfflineModalClose = useCallback(() => {
