@@ -292,8 +292,8 @@ function setPersonalBankAccountContinueKYCOnSuccess(onSuccessFallbackRoute: Rout
 }
 
 /**
- * Clears personal bank account state. Pass routing metadata to preserve when resetting the flow
- * without losing navigation context.
+ * Clears personal bank account state, Plaid data, and the form draft.
+ * Pass `preservedData` to retain specific fields (e.g. routing metadata) across the reset.
  */
 function clearPersonalBankAccount(preservedData?: Partial<PersonalBankAccount>) {
     clearPlaid();
