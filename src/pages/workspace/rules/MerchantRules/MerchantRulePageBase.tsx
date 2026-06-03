@@ -464,6 +464,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                                         onPress={canWriteRules ? item.onPress : undefined}
                                         rightLabel={canWriteRules && item.required ? translate('common.required') : undefined}
                                         shouldShowRightIcon={canWriteRules}
+                                        interactive={canWriteRules}
                                         title={item.title}
                                         titleStyle={styles.flex1}
                                         shouldRenderAsHTML={item.shouldRenderAsHTML}

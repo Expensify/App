@@ -231,6 +231,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                                 : undefined
                         }
                         shouldShowRightIcon={canWriteRules}
+                        interactive={canWriteRules}
                         title={cardsMenuTitle}
                         numberOfLinesTitle={2}
                         titleStyle={styles.flex1}
@@ -261,6 +262,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                                 : undefined
                         }
                         shouldShowRightIcon={canWriteRules}
+                        interactive={canWriteRules}
                         title={getMerchantMenuTitle(spendRuleForm?.merchantNames)}
                         numberOfLinesTitle={2}
                         titleStyle={styles.flex1}
@@ -277,6 +279,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                                 : undefined
                         }
                         shouldShowRightIcon={canWriteRules}
+                        interactive={canWriteRules}
                         title={categoriesMenuTitle}
                         numberOfLinesTitle={2}
                         titleStyle={styles.flex1}
@@ -297,6 +300,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                                 : undefined
                         }
                         shouldShowRightIcon={canWriteRules}
+                        interactive={canWriteRules}
                         title={maxAmountMenuTitle}
                         titleStyle={styles.flex1}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
