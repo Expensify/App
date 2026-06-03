@@ -326,7 +326,7 @@ describe('SubscriptionUtils', () => {
         });
 
         it("should return false if the user isn't a workspace's owner or isn't a member of any past due billing workspace", () => {
-            expect(shouldRestrictUserBillableActions(undefined, undefined, undefined, undefined, undefined)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(undefined, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID)).toBeFalsy();
         });
 
         it('should return false if the user is a non-owner of a workspace that is not in the shared NVP collection', () => {
@@ -345,7 +345,7 @@ describe('SubscriptionUtils', () => {
                         },
                     },
                     undefined,
-                    undefined,
+                    CONST.DEFAULT_NUMBER_ID,
                 ),
             ).toBeFalsy();
         });
@@ -366,7 +366,7 @@ describe('SubscriptionUtils', () => {
                         },
                     },
                     undefined,
-                    undefined,
+                    CONST.DEFAULT_NUMBER_ID,
                 ),
             ).toBeFalsy();
         });
@@ -387,7 +387,7 @@ describe('SubscriptionUtils', () => {
                         },
                     },
                     undefined,
-                    undefined,
+                    CONST.DEFAULT_NUMBER_ID,
                 ),
             ).toBeTruthy();
         });
@@ -589,7 +589,7 @@ describe('SubscriptionUtils', () => {
         });
 
         it('should not restrict when policy is passed as undefined', () => {
-            expect(shouldRestrictUserBillableActions(undefined, getUnixTime(subDays(new Date(), 3)), undefined, 500, undefined)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(undefined, getUnixTime(subDays(new Date(), 3)), undefined, 500, CONST.DEFAULT_NUMBER_ID)).toBeFalsy();
         });
 
         it('should restrict for non-owner when policy is passed directly and billing grace period is overdue', async () => {
@@ -611,7 +611,7 @@ describe('SubscriptionUtils', () => {
                         },
                     },
                     undefined,
-                    undefined,
+                    CONST.DEFAULT_NUMBER_ID,
                 ),
             ).toBeTruthy();
         });
@@ -635,7 +635,7 @@ describe('SubscriptionUtils', () => {
                         },
                     },
                     undefined,
-                    undefined,
+                    CONST.DEFAULT_NUMBER_ID,
                 ),
             ).toBeFalsy();
         });
