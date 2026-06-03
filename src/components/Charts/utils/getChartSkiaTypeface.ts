@@ -3,20 +3,13 @@ import type {TextStyle} from 'react-native';
 import type {ChartDefaultTypeface, ChartSkiaTypefaceKey} from '@components/Charts/types/chartSkiaTypefaceTypes';
 // eslint-disable-next-line no-restricted-imports
 import singleFontFamily from '@styles/utils/FontUtils/fontFamily/singleFontFamily';
+import type {ChartLabelFontWeight} from './normalizeChartFontWeight';
+import normalizeChartFontWeight from './normalizeChartFontWeight';
 
 type ChartLabelFontStyle = 'normal' | 'italic';
-type ChartLabelFontWeight = 'normal' | 'bold';
 
 function normalizeFontStyle(fontStyle: string | undefined): ChartLabelFontStyle {
     return fontStyle === 'italic' ? 'italic' : 'normal';
-}
-
-function normalizeFontWeight(fontWeight: string | number | undefined): ChartLabelFontWeight {
-    if (fontWeight === 'bold' || Number(fontWeight) === 700) {
-        return 'bold';
-    }
-
-    return 'normal';
 }
 
 function fontWeightMatches(definitionWeight: TextStyle['fontWeight'], labelWeight: ChartLabelFontWeight): boolean {
@@ -32,6 +25,7 @@ function fontWeightMatches(definitionWeight: TextStyle['fontWeight'], labelWeigh
 function getChartSkiaTypefaceKey(fontFamily: string | undefined, fontStyle: ChartLabelFontStyle, fontWeight: ChartLabelFontWeight): ChartSkiaTypefaceKey {
     const resolvedFontFamily = fontFamily ?? singleFontFamily.EXP_NEUE.fontFamily;
 
+    // Kansas has no bold variant; weight is ignored and Medium is always used.
     if (resolvedFontFamily === singleFontFamily.EXP_NEW_KANSAS_MEDIUM.fontFamily) {
         return fontStyle === 'italic' ? 'EXP_NEW_KANSAS_MEDIUM_ITALIC' : 'EXP_NEW_KANSAS_MEDIUM';
     }
@@ -58,7 +52,7 @@ function getChartSkiaTypeface(
         fontWeight?: string | number;
     },
 ): SkTypeface | null {
-    const typefaceKey = getChartSkiaTypefaceKey(fontFamily, normalizeFontStyle(fontStyle), normalizeFontWeight(fontWeight));
+    const typefaceKey = getChartSkiaTypefaceKey(fontFamily, normalizeFontStyle(fontStyle), normalizeChartFontWeight(fontWeight));
     return typefaces[typefaceKey];
 }
 

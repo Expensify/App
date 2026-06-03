@@ -1,4 +1,5 @@
 import type {TNode} from 'react-native-render-html';
+import normalizeChartFontWeight from '@components/Charts/utils/normalizeChartFontWeight';
 import type {LabelItem, PartialProcessNodeResult, RawLabelStyle, TextAnchor} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 
@@ -39,7 +40,7 @@ function parseVictoryLabelNode(tnode: TNode): PartialProcessNodeResult {
             if (textStyle.fontWeight) {
                 labelItem.fontWeight = {
                     ...labelItem.fontWeight,
-                    [index]: Number(textStyle.fontWeight) === 700 ? 'bold' : 'normal',
+                    [index]: normalizeChartFontWeight(textStyle.fontWeight),
                 };
             }
             if (textStyle.fontFamily) {

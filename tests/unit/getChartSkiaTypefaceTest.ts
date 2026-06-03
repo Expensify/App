@@ -27,6 +27,16 @@ describe('getChartSkiaTypeface', () => {
         expect(typeface).toBe(typefaces.EXP_NEUE);
     });
 
+    it('should resolve semibold numeric weight to the bold typeface', () => {
+        const typeface = getChartSkiaTypeface(typefaces, {fontWeight: 600});
+        expect(typeface).toBe(typefaces.EXP_NEUE_BOLD);
+    });
+
+    it('should resolve medium numeric weight to the regular typeface', () => {
+        const typeface = getChartSkiaTypeface(typefaces, {fontWeight: 500});
+        expect(typeface).toBe(typefaces.EXP_NEUE);
+    });
+
     it('should resolve Expensify New Kansas by font family', () => {
         const typeface = getChartSkiaTypeface(typefaces, {fontFamily: singleFontFamily.EXP_NEW_KANSAS_MEDIUM.fontFamily});
         expect(typeface).toBe(typefaces.EXP_NEW_KANSAS_MEDIUM);
