@@ -1,5 +1,4 @@
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import type {ComponentProps} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
@@ -34,7 +33,7 @@ import useSelfDMReport from '@hooks/useSelfDMReport';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setMoneyRequestBillable, setMoneyRequestReimbursable} from '@libs/actions/IOU/MoneyRequest';
-import {submitWithDismissFirst} from '@libs/actions/IOU/submitWithDismissFirst';
+import {setTransactionReport} from '@libs/actions/Transaction';
 import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
@@ -50,6 +49,7 @@ import {
 import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
@@ -108,6 +108,7 @@ function IOURequestStepConfirmation({
     transaction: initialTransaction,
     isLoadingTransaction,
     shouldHideHeader = false,
+    navigation,
 }: IOURequestStepConfirmationProps) {
     const params = route.params;
     const {iouType, reportID, transactionID: initialTransactionID, action, backToReport, backTo} = params;
@@ -164,7 +165,13 @@ function IOURequestStepConfirmation({
     const reportWithDraftFallback = useMemo(() => reportReal ?? reportDraft, [reportDraft, reportReal]);
     const shouldHideToSection = useMemo(() => isMoneyRequestReport(reportWithDraftFallback), [reportWithDraftFallback]);
     const report = useMemo(
-        () => resolveReportForMoneyRequest({transaction, transactionReport, routeReport: reportWithDraftFallback, policy: policyReal}),
+        () =>
+            resolveReportForMoneyRequest({
+                transaction,
+                transactionReport,
+                routeReport: reportWithDraftFallback,
+                policy: policyReal,
+            }),
         [transaction, transactionReport, reportWithDraftFallback, policyReal],
     );
 
@@ -180,7 +187,9 @@ function IOURequestStepConfirmation({
 
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${draftPolicyID}`);
 
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+        selector: validTransactionDraftIDsSelector,
+    });
 
     const reportAttributesDerived = useReportAttributes();
 
@@ -275,7 +284,14 @@ function IOURequestStepConfirmation({
 
         const isGlobalCreateFlow = transaction?.isFromGlobalCreate ?? transaction?.isFromFloatingActionButton ?? iouType === CONST.IOU.TYPE.CREATE;
         if (!defaultParticipantsOptions.length && isGlobalCreateFlow) {
-            const canUseDefaultPolicy = shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd);
+            const canUseDefaultPolicy = shouldUseDefaultExpensePolicy(
+                iouType,
+                defaultExpensePolicy,
+                amountOwed,
+                userBillingGracePeriodEnds,
+                ownerBillingGracePeriodEnd,
+                currentUserPersonalDetails.accountID,
+            );
 
             if (canUseDefaultPolicy) {
                 const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
@@ -334,14 +350,19 @@ function IOURequestStepConfirmation({
             }
             if (participantsList.at(0)?.isSelfDM) {
                 setMoneyRequestParticipantsFromReport(activeTransactionID, selfDMReport, currentUserPersonalDetails.accountID);
+                setTransactionReport(activeTransactionID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
+                navigation.setParams({iouType: CONST.IOU.TYPE.TRACK});
             } else {
+                if (iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.CREATE) {
+                    navigation.setParams({iouType: CONST.IOU.TYPE.CREATE});
+                }
                 setMoneyRequestParticipants(activeTransactionID, participantsList);
             }
             if (participantsList.length > 0) {
                 closeParticipantPicker();
             }
         },
-        [activeTransactionID, closeParticipantPicker, currentUserPersonalDetails.accountID, selfDMReport],
+        [activeTransactionID, closeParticipantPicker, currentUserPersonalDetails.accountID, navigation, selfDMReport, iouType],
     );
 
     useEffect(() => {
@@ -358,7 +379,11 @@ function IOURequestStepConfirmation({
         }
 
         setMoneyRequestParticipants(transaction.transactionID, defaultParticipants);
-    }, [transaction?.transactionID, transaction?.participants, defaultParticipants, isNewManualExpenseFlowEnabled, isManualRequest]);
+        if (defaultParticipants.at(0)?.isSelfDM) {
+            setTransactionReport(transaction.transactionID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
+            navigation.setParams({iouType: CONST.IOU.TYPE.TRACK});
+        }
+    }, [transaction?.transactionID, transaction?.participants, defaultParticipants, isNewManualExpenseFlowEnabled, isManualRequest, navigation]);
 
     const isPolicyExpenseChat = useMemo(() => {
         const hasPolicyExpenseChat = (participantList: typeof defaultParticipants) =>
@@ -493,7 +518,9 @@ function IOURequestStepConfirmation({
         hasPreInsertFired.current = true;
 
         const preInsertFullscreenRoute: Route = shouldPreInsertSearch
-            ? ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: searchType})})
+            ? ROUTES.SEARCH_ROOT.getRoute({
+                  query: buildCannedSearchQuery({type: searchType}),
+              })
             : ROUTES.REPORT_WITH_ID.getRoute(destinationReportID);
 
         const timer = setTimeout(() => {
@@ -548,10 +575,10 @@ function IOURequestStepConfirmation({
             submitWithDismissFirst({
                 executeWrite: (overrides) =>
                     sendMoney(paymentMethod, {
-                        shouldHandleNavigation: overrides?.shouldHandleNavigation,
+                        shouldHandleNavigation: overrides.shouldHandleNavigation,
                         resolvedReportIDs,
                         shouldStartTracking: false,
-                        shouldDeferForSearch: overrides?.shouldDeferForSearch,
+                        shouldDeferForSearch: false,
                     }),
                 destinationReportID: payDestinationReportID,
                 telemetryContext: {
@@ -746,10 +773,10 @@ function IOURequestStepConfirmation({
                 isCreatingTrackExpense={isCreatingTrackExpense}
             />
             {/*
-             * In this rollout, NEW_MANUAL_EXPENSE_FLOW means this screen is embedded on IOURequestStartPage.
-             * Skip MoneyRequestInitializer here to avoid duplicate initialization and navigation side effects.
+             * When this screen is embedded on IOURequestStartPage (shouldHideHeader=true),
+             * skip MoneyRequestInitializer to avoid duplicate initialization and navigation side effects.
              */}
-            {!isNewManualExpenseFlowEnabled && (
+            {!shouldHideHeader && (
                 <MoneyRequestInitializer
                     isLoadingTransaction={!!isLoadingTransaction}
                     transaction={transaction}
@@ -908,7 +935,4 @@ const IOURequestStepConfirmationWithFullTransactionOrNotFound = withFullTransact
 
 const IOURequestStepConfirmationWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepConfirmationWithFullTransactionOrNotFound);
 
-type IOURequestStepConfirmationPublicProps = ComponentProps<typeof IOURequestStepConfirmationWithWritableReportOrNotFound>;
-
 export default IOURequestStepConfirmationWithWritableReportOrNotFound;
-export type {IOURequestStepConfirmationPublicProps};

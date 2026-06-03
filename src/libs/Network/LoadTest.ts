@@ -28,5 +28,5 @@ function triggerDuplicates<TKey extends OnyxKey>(request: Request<TKey> | Pagina
     }
 }
 
-export {getDuplicateRequestCount, setLoadTestParameters} from './LoadTestState';
+// eslint-disable-next-line import/prefer-default-export
 export {triggerDuplicates};

@@ -77,6 +77,7 @@ import {
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getApprovalChain,
     getAvailableReportFields,
+    getBankAccountRoute,
     getBillableAndTaxTotal,
     getChatByParticipants,
     getChatListItemReportName,
@@ -4833,7 +4834,7 @@ describe('ReportUtils', () => {
                 canUnholdRequest: false,
             });
 
-            putOnHold(expenseTransaction.transactionID, 'hold', transactionThreadReport.reportID, false, currentUserEmail, currentUserAccountID);
+            putOnHold(expenseTransaction.transactionID, 'hold', transactionThreadReport.reportID, false, currentUserEmail, currentUserAccountID, undefined, []);
             await waitForBatchedUpdates();
 
             const expenseReportUpdated = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -5834,6 +5835,111 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${closedReport.reportID}`, closedReport);
 
             expect(canEditReportAction(moneyRequestAction, transaction)).toEqual(false);
+        });
+
+        it('should return false for an optimistic attachment-only action (still uploading)', () => {
+            const transaction = createRandomTransaction(300);
+            const reportAction: ReportAction = {
+                reportActionID: '300',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: '<a href="blob:..." data-expensify-source="blob:...">file.doc</a>',
+                        text: '[Attachment]',
+                    },
+                ],
+                isAttachmentOnly: true,
+                isOptimisticAction: true,
+                created: '2025-03-05 16:34:27',
+            };
+
+            expect(canEditReportAction(reportAction, transaction)).toEqual(false);
+        });
+
+        it('should return false for an optimistic attachment+text action (still uploading)', () => {
+            const transaction = createRandomTransaction(301);
+            const reportAction: ReportAction = {
+                reportActionID: '301',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'Hi<br /><br /><a href="blob:..." data-expensify-source="blob:...">file.doc</a>',
+                        text: 'Hi\n[Attachment]',
+                    },
+                ],
+                isAttachmentWithText: true,
+                isOptimisticAction: true,
+                created: '2025-03-05 16:34:27',
+            };
+
+            expect(canEditReportAction(reportAction, transaction)).toEqual(false);
+        });
+
+        it('should return true for a synced attachment-only action (optimistic flags cleared)', () => {
+            const transaction = createRandomTransaction(302);
+            // Post-sync state: successData clears isOptimisticAction (null in Onyx, undefined here); isAttachmentOnly persists.
+            const reportAction: ReportAction = {
+                reportActionID: '302',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: '<a href="https://www.expensify.com/chat-attachments/123/file.doc" data-expensify-source="https://www.expensify.com/chat-attachments/123/file.doc">file.doc</a>',
+                        text: 'file.doc https://www.expensify.com/chat-attachments/123/file.doc',
+                    },
+                ],
+                isAttachmentOnly: true,
+                isOptimisticAction: undefined,
+                created: '2025-03-05 16:34:27',
+            };
+
+            expect(canEditReportAction(reportAction, transaction)).toEqual(true);
+        });
+
+        it('should return true for a synced attachment+text action', () => {
+            const transaction = createRandomTransaction(303);
+            const reportAction: ReportAction = {
+                reportActionID: '303',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'Hi<br /><br /><a href="https://www.expensify.com/chat-attachments/123/file.doc" data-expensify-source="https://www.expensify.com/chat-attachments/123/file.doc">file.doc</a>',
+                        text: 'Hi\nfile.doc https://www.expensify.com/chat-attachments/123/file.doc',
+                    },
+                ],
+                isAttachmentWithText: true,
+                isOptimisticAction: undefined,
+                created: '2025-03-05 16:34:27',
+            };
+
+            expect(canEditReportAction(reportAction, transaction)).toEqual(true);
+        });
+
+        it('should return true for an optimistic plain-text comment (no attachment)', () => {
+            const transaction = createRandomTransaction(304);
+            const reportAction: ReportAction = {
+                reportActionID: '304',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'hello',
+                        text: 'hello',
+                    },
+                ],
+                isOptimisticAction: true,
+                created: '2025-03-05 16:34:27',
+            };
+
+            expect(canEditReportAction(reportAction, transaction)).toEqual(true);
         });
     });
 
@@ -11501,11 +11607,13 @@ describe('ReportUtils', () => {
             await flushPromises();
         });
 
+        const mockGetActiveRoute = Navigation.getActiveRoute as jest.Mock;
+
         afterAll(() => {
             mockIsSearchTopmostFullScreenRoute.mockRestore();
+            mockGetActiveRoute.mockReset();
+            mockGetActiveRoute.mockReturnValue('mock-route');
         });
-
-        const mockGetActiveRoute = Navigation.getActiveRoute as jest.Mock;
 
         beforeEach(() => {
             mockIsSearchTopmostFullScreenRoute.mockReset();
@@ -16748,6 +16856,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed,
                 ownerBillingGracePeriodEnd: pastGracePeriod,
+                currentUserAccountID,
             });
 
             // Trigger CREATE_NEW_EXPENSE onSelected
@@ -17199,6 +17308,7 @@ describe('ReportUtils', () => {
                     draftTransactionIDs: undefined,
                     amountOwed: 100,
                     ownerBillingGracePeriodEnd: gracePeriodEnd,
+                    currentUserAccountID,
                 });
                 options.at(2)?.onSelected?.();
 
@@ -18057,6 +18167,47 @@ describe('ReportUtils', () => {
                 },
             ] as ReportAction[];
             expect(hasExportError(reportActions, report)).toBe(true);
+        });
+    });
+
+    describe('getBankAccountRoute', () => {
+        it('returns the policy bank account setup route when the report is a policy expense chat', () => {
+            const policyID = 'POLICY_EXP_1';
+            const report = {
+                reportID: '1',
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID,
+            } as Report;
+
+            expect(getBankAccountRoute(report, undefined)).toBe(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, backTo: 'mock-route'}));
+        });
+
+        it('returns the workspace invoices route when the report is a business invoice room and areInvoicesEnabled is true', () => {
+            const invoiceReceiverPolicyID = 'POLICY_INVOICE_1';
+            const report = {
+                reportID: '2',
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                invoiceReceiver: {
+                    type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS,
+                    policyID: invoiceReceiverPolicyID,
+                },
+            } as Report;
+
+            expect(getBankAccountRoute(report, true)).toBe(ROUTES.WORKSPACE_INVOICES.getRoute(invoiceReceiverPolicyID));
+        });
+
+        it('returns the personal add bank account route when the report is a business invoice room and areInvoicesEnabled is false', () => {
+            const invoiceReceiverPolicyID = 'POLICY_INVOICE_2';
+            const report = {
+                reportID: '3',
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                invoiceReceiver: {
+                    type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS,
+                    policyID: invoiceReceiverPolicyID,
+                },
+            } as Report;
+
+            expect(getBankAccountRoute(report, false)).toBe(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route);
         });
     });
 });
