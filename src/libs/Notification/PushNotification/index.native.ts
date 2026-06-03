@@ -18,6 +18,25 @@ type NotificationEventActionMap = Partial<Record<EventType, NotificationEventHan
 
 const notificationEventActionMap: NotificationEventActionMap = {};
 
+// Queue for notification events that arrive before handlers are registered.
+// This fixes the cold start race condition where the native bridge fires
+// notification_response before JS handlers are ready (issue #92138).
+const pendingNotificationQueue: Array<{eventType: EventType; notification: PushPayload}> = [];
+let handlersRegistered = false;
+
+function replayPendingNotifications() {
+    if (!handlersRegistered || pendingNotificationQueue.length === 0) {
+        return;
+    }
+    Log.info(`[PushNotification] Replaying ${pendingNotificationQueue.length} pending notification(s)`, false);
+    while (pendingNotificationQueue.length > 0) {
+        const pending = pendingNotificationQueue.shift();
+        if (pending) {
+            pushNotificationEventCallback(pending.eventType, pending.notification);
+        }
+    }
+}
+
 /**
  * Handle a push notification event, and trigger and bound actions.
  */
@@ -40,10 +59,14 @@ function pushNotificationEventCallback(eventType: EventType, notification: PushP
 
     const action = actionMap[data.type];
     if (!action) {
-        Log.warn('[PushNotification] No callback set up: ', {
+        // No handler registered yet — queue the event for later replay.
+        // This handles the cold start race condition where the native bridge
+        // fires notification_response before JS handlers are ready (issue #92138).
+        Log.info('[PushNotification] No callback set up, queuing notification for later replay', false, {
             event: eventType,
             notificationType: data.type,
         });
+        pendingNotificationQueue.push({eventType, notification});
         return;
     }
 
@@ -146,6 +169,13 @@ function bind<T extends NotificationTypes>(triggerEvent: EventType, notification
 
     actionMap[notificationType] = callback;
     notificationEventActionMap[triggerEvent] = actionMap;
+
+    // Mark handlers as registered and replay any pending notifications
+    // that arrived before this handler was bound (cold start race condition fix)
+    if (!handlersRegistered) {
+        handlersRegistered = true;
+    }
+    replayPendingNotifications();
 }
 
 /**
