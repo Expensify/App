@@ -3,6 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 import Table from '@components/Table';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,6 +23,11 @@ function WorkspaceRoomsTable({rooms}: WorkspaceRoomsTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
+    const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: true,
+        addOfflineIndicatorBottomSafeAreaPadding: true,
+        style: styles.pb5,
+    });
 
     const columns: Array<TableColumn<WorkspaceRoomsTableColumnKey>> = [
         {key: 'name', label: translate('common.name')},
@@ -69,7 +75,7 @@ function WorkspaceRoomsTable({rooms}: WorkspaceRoomsTableProps) {
                 <Table.SearchBar label={translate('workspace.common.findRoom')} />
             </View>
             <Table.Header />
-            <Table.Body />
+            <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />
         </Table>
     );
 }
