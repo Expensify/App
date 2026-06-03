@@ -280,9 +280,12 @@ describe('Unread Indicators', () => {
                 expect(unreadIndicator).toHaveLength(1);
                 const reportActionID = unreadIndicator.at(0)?.props?.['data-action-id'] as string;
                 expect(reportActionID).toBe('4');
-                // Scroll up and verify that the "New messages" badge appears
+                // Scroll up and verify that the "New messages" badge appears.
+                // Use waitForBatchedUpdates instead of waitFor to avoid wrapping in act(),
+                // which can hang under heavy CI load while draining scroll-triggered effects.
                 scrollUpToRevealNewMessagesBadge();
-                return waitFor(() => expect(isNewMessagesBadgeVisible()).toBe(true));
+                await waitForBatchedUpdates();
+                expect(isNewMessagesBadgeVisible()).toBe(true);
             }));
     it('Clear the new line indicator and bold when we navigate away from a chat that is now read', () =>
         signInAndGetAppWithUnreadChat()
