@@ -20,7 +20,7 @@ type ComponentImport<T> = () => Promise<{default: T}>;
 const mockClearWorkboxRecoveryCaches = jest.fn();
 jest.mock('@libs/clearWorkboxRecoveryCaches', () => ({
     __esModule: true,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- mock factory must return `any` to satisfy the dynamic module shape Jest expects
     default: (...args: unknown[]): any => mockClearWorkboxRecoveryCaches(...args),
 }));
 
@@ -28,7 +28,7 @@ jest.mock('@libs/clearWorkboxRecoveryCaches', () => ({
 // clearWorkboxRecoveryCaches). Override the alias to load the web file so this test covers
 // the web-specific reload path that was changed. The web file's own imports (including
 // clearWorkboxRecoveryCaches) still go through the normal mock registry.
-// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+// eslint-disable-next-line @typescript-eslint/no-unsafe-return -- jest.requireActual returns an untyped module; the unsafe return is unavoidable here
 jest.mock('@hooks/usePageRefresh', () => jest.requireActual('../../src/hooks/usePageRefresh/index.ts'));
 
 jest.mock('react-error-boundary', () => ({
