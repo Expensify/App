@@ -39,6 +39,4 @@ function VictoryChartPieLabel({slice, labelItemTemplate, dataLabels, labels, lab
     return <VictoryChartLabel {...labelItem} />;
 }
 
-VictoryChartPieLabel.displayName = 'VictoryChartPieLabel';
-
 export default VictoryChartPieLabel;

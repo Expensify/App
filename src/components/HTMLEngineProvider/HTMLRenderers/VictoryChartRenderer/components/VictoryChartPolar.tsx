@@ -45,6 +45,4 @@ function VictoryChartPolar() {
     );
 }
 
-VictoryChartPolar.displayName = 'VictoryChartPolar';
-
 export default VictoryChartPolar;

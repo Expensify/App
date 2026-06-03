@@ -49,6 +49,4 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
     );
 }
 
-VictoryChartPie.displayName = 'VictoryChartPie';
-
 export default VictoryChartPie;

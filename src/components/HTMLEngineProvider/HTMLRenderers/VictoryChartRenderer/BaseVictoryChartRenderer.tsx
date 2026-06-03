@@ -17,6 +17,4 @@ function BaseVictoryChartRenderer({tnode}: VictoryChartRendererProps) {
     );
 }
 
-BaseVictoryChartRenderer.displayName = 'BaseVictoryChartRenderer';
-
 export default BaseVictoryChartRenderer;

@@ -14,8 +14,6 @@ function ChartFontsLoaderProvider({children}: {children: React.ReactNode}) {
     return <ChartFontsContext.Provider value={fonts}>{children}</ChartFontsContext.Provider>;
 }
 
-ChartFontsLoaderProvider.displayName = 'ChartFontsLoaderProvider';
-
 function ChartFontsProvider({children, value}: ChartFontsProviderProps) {
     if (value) {
         return <ChartFontsContext.Provider value={value}>{children}</ChartFontsContext.Provider>;
@@ -23,7 +21,5 @@ function ChartFontsProvider({children, value}: ChartFontsProviderProps) {
 
     return <ChartFontsLoaderProvider>{children}</ChartFontsLoaderProvider>;
 }
-
-ChartFontsProvider.displayName = 'ChartFontsProvider';
 
 export default ChartFontsProvider;

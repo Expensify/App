@@ -59,6 +59,4 @@ function VictoryChartCartesian() {
     );
 }
 
-VictoryChartCartesian.displayName = 'VictoryChartCartesian';
-
 export default VictoryChartCartesian;

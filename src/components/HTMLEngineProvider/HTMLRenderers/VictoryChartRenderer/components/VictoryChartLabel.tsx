@@ -70,6 +70,4 @@ function VictoryChartLabel({x, y, text, color, fontSize, fontWeight, fontFamily,
     });
 }
 
-VictoryChartLabel.displayName = 'VictoryChartLabel';
-
 export default VictoryChartLabel;

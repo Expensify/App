@@ -75,8 +75,6 @@ function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.
     return <VictoryChartContext.Provider value={contextValue}>{children}</VictoryChartContext.Provider>;
 }
 
-VictoryChartProvider.displayName = 'VictoryChartProvider';
-
 function useVictoryChartContext(): VictoryChartContextValue {
     const context = useContext(VictoryChartContext);
     if (!context) {

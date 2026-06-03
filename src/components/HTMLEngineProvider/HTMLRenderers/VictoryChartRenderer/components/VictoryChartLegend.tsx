@@ -75,6 +75,4 @@ function VictoryChartLegend({x, y, entries, gutter, symbolSpacer}: VictoryChartL
     });
 }
 
-VictoryChartLegend.displayName = 'VictoryChartLegend';
-
 export default VictoryChartLegend;
