@@ -1005,6 +1005,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 f1FlagsTitle: 'Alles erledigt',
                 f1FlagsDescription: 'Sie haben alle offenen Aufgaben abgeschlossen.',
             },
+            reviewExpenses: ({count}: {count: number}) => `Überprüfen Sie ${count} ${count === 1 ? 'Ausgabe' : 'Spesen'}`,
         },
         upcomingTravel: 'Bevorstehende Reisen',
         upcomingTravelSection: {

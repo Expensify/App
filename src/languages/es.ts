@@ -985,6 +985,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 f1FlagsTitle: 'Todo al día',
                 f1FlagsDescription: 'Has completado todas las tareas pendientes.',
             },
+            reviewExpenses: ({count}: {count: number}) => `Revisa ${count} ${count === 1 ? 'gasto' : 'gastos'}`,
         },
         gettingStartedSection: {
             title: 'Primeros pasos',
