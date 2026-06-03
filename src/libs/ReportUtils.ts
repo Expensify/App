@@ -445,6 +445,8 @@ type BuildOptimisticIOUReportActionParams = {
     bankAccountID?: number | undefined;
     isPersonalTrackingExpense?: boolean;
     reportActionID?: string;
+    // TODO: delegateAccountIDParam will be made required when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountIDParam?: number;
 };
 
 type OptimisticIOUReportAction = Pick<
@@ -744,6 +746,8 @@ type BaseOptimisticMoneyRequestEntities = {
     optimisticCreatedReportActionID?: string;
     reportActionID?: string;
     currentUserAccountID: number;
+    // TODO: delegateAccountIDParam will be made required when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountIDParam?: number;
 };
 
 type OptimisticMoneyRequestEntities = BaseOptimisticMoneyRequestEntities & {shouldGenerateTransactionThreadReport?: boolean};
@@ -1718,6 +1722,13 @@ function isBusinessInvoiceRoom(reportOrID: OnyxEntry<Report> | string): boolean 
     return !isEmptyObject(report) && isInvoiceRoom(report) && report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS;
 }
 
+/**
+ * Returns the policyID of the invoice receiver when the receiver is a business, otherwise undefined.
+ */
+function getInvoiceReceiverPolicyID(report: OnyxEntry<Report>): string | undefined {
+    return report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? report.invoiceReceiver.policyID : undefined;
+}
+
 function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>): boolean {
     if (report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
         return deprecatedCurrentUserAccountID === report.invoiceReceiver.accountID;
@@ -1794,14 +1805,13 @@ function isPublicAnnounceRoom(report: OnyxEntry<Report>): boolean {
  * If the report is a policy expense, the route should be for adding bank account for that policy
  * else since the report is a personal IOU, the route should be for personal bank account.
  */
-function getBankAccountRoute(report: OnyxEntry<Report>): Route {
+function getBankAccountRoute(report: OnyxEntry<Report>, areInvoicesEnabled: boolean | undefined): Route {
     if (isPolicyExpenseChat(report)) {
         return ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: report?.policyID, backTo: Navigation.getActiveRoute()});
     }
 
     if (isInvoiceRoom(report) && report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS) {
-        const invoiceReceiverPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver?.policyID}`];
-        if (invoiceReceiverPolicy?.areInvoicesEnabled) {
+        if (areInvoicesEnabled) {
             return ROUTES.WORKSPACE_INVOICES.getRoute(report?.invoiceReceiver?.policyID);
         }
     }
@@ -2159,15 +2169,15 @@ function pushTransactionViolationsOnyxData(
     for (const {transactions, violations} of nonInvoiceReportTransactionsAndViolations) {
         for (const transaction of Object.values(transactions)) {
             const existingViolations = violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
-            const optimisticViolations = ViolationsUtils.getViolationsOnyxData(
-                transaction,
-                existingViolations ?? [],
-                optimisticPolicy,
-                optimisticTagLists,
-                optimisticCategories,
+            const optimisticViolations = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations: existingViolations ?? [],
+                policy: optimisticPolicy,
+                policyTagList: optimisticTagLists,
+                policyCategories: optimisticCategories,
                 hasDependentTags,
-                false,
-            );
+                isInvoiceTransaction: false,
+            });
 
             if (!isEmptyObject(optimisticViolations)) {
                 onyxData.optimisticData?.push(optimisticViolations);
@@ -5930,7 +5940,7 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
     }
 
     if (isInvoiceRoom(report)) {
-        const invoiceReceiverPolicyID = report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? report?.invoiceReceiver?.policyID : undefined;
+        const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(report);
         formattedName = getInvoicesChatName({
             report,
             // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -6147,7 +6157,7 @@ function getParentNavigationSubtitle(
 
     if (isInvoiceReport(report) || isInvoiceRoom(parentReport)) {
         const senderWorkspaceName = getPolicyName({report: parentReport, policy});
-        const invoiceReceiverPolicyID = parentReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? parentReport.invoiceReceiver.policyID : undefined;
+        const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(parentReport);
         const invoiceReceiverPolicy = invoiceReceiverPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`] : undefined;
         const isCurrentUserReceiver = isCurrentUserInvoiceReceiver(parentReport);
         const invoicePayerName = getInvoicePayerName(parentReport, invoiceReceiverPolicy);
@@ -7123,6 +7133,7 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
         payAsBusiness,
         bankAccountID,
         reportActionID,
+        delegateAccountIDParam,
     } = params;
 
     const IOUReportID = isPersonalTrackingExpense ? undefined : iouReportID || generateReportID();
@@ -7138,7 +7149,8 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
         bankAccountID,
     };
 
-    const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
+    // Falls back to module-level delegateEmail (from Onyx.connect) for callers not yet migrated; will be removed in https://github.com/Expensify/App/issues/66425
+    const effectiveDelegateAccountID = delegateAccountIDParam ?? (delegateEmail ? getPersonalDetailByEmail(delegateEmail)?.accountID : undefined);
 
     if (type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
         // In pay someone flow, we store amount, comment, currency in IOUDetails when type = pay
@@ -7190,7 +7202,7 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
         shouldShow: true,
         created,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        delegateAccountID: delegateAccountDetails?.accountID,
+        delegateAccountID: effectiveDelegateAccountID,
         person: [
             {
                 style: 'strong',
@@ -7532,12 +7544,14 @@ function buildOptimisticReportPreview(
     reportActionID?: string,
     // TODO: conciergeReportID will be required eventually. Ref: https://github.com/Expensify/App/issues/66411
     conciergeReportID?: string | undefined,
+    delegateAccountIDParam: number | undefined = undefined,
 ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> {
     const hasReceipt = hasReceiptTransactionUtils(transaction);
     const message = getReportPreviewMessage(iouReport, conciergeReportID);
     const created = DateUtils.getDBTime();
     const reportActorAccountID = (isInvoiceReport(iouReport) || isExpenseReport(iouReport) ? iouReport?.ownerAccountID : iouReport?.managerID) ?? -1;
-    const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
+    // Falls back to module-level delegateEmail (from Onyx.connect) for callers not yet migrated; will be removed in https://github.com/Expensify/App/issues/66425
+    const effectiveDelegateAccountID = delegateAccountIDParam ?? (delegateEmail ? getPersonalDetailByEmail(delegateEmail)?.accountID : undefined);
     const isTestDriveTransaction = !!transaction?.receipt?.isTestDriveReceipt;
     const isScanRequest = transaction ? isScanRequestTransactionUtils(transaction) : false;
     return {
@@ -7556,7 +7570,7 @@ function buildOptimisticReportPreview(
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
             },
         ],
-        delegateAccountID: delegateAccountDetails?.accountID,
+        delegateAccountID: effectiveDelegateAccountID,
         created,
         accountID: iouReport?.managerID,
         // The preview is initially whispered if created with a receipt, so the actor is the current user as well
@@ -8817,6 +8831,7 @@ function buildOptimisticMoneyRequestEntities({
     shouldGenerateTransactionThreadReport = true,
     reportActionID,
     currentUserAccountID,
+    delegateAccountIDParam,
 }: OptimisticMoneyRequestEntities): [
     OptimisticCreatedReportAction,
     OptimisticCreatedReportAction,
@@ -8849,6 +8864,7 @@ function buildOptimisticMoneyRequestEntities({
         created: iouActionCreationTime,
         linkedExpenseReportAction: linkedTrackedExpenseReportAction,
         reportActionID,
+        delegateAccountIDParam,
     });
 
     // Create optimistic transactionThread and the `CREATED` action for it, if existingTransactionThreadReportID is undefined
@@ -13334,6 +13350,7 @@ export {
     getAllWorkspaceReports,
     getAvailableReportFields,
     getBankAccountRoute,
+    getInvoiceReceiverPolicyID,
     getChatByParticipants,
     getChatRoomSubtitle,
     getChildReportNotificationPreference,
@@ -13640,7 +13657,6 @@ export type {
     OptionData,
     TransactionDetails,
     PartialReportAction,
-    ParsingDetails,
     SelfDMParameters,
     OptimisticReportAction,
     CreateDraftTransactionParams,
