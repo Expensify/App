@@ -294,9 +294,6 @@ function PolicyDistanceRatesPage({
     }, [policyID]);
 
     const openRateDetails = (rate: RateForList) => {
-        if (!canWriteDistanceRates) {
-            return;
-        }
         Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_DETAILS.getRoute(policyID, rate.value));
     };
 
@@ -373,7 +370,7 @@ function PolicyDistanceRatesPage({
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('workspace.distanceRates.rate')}
                 rightHeaderText={translate('common.enabled')}
-                shouldShowRightCaret={canWriteDistanceRates}
+                shouldShowRightCaret
             />
         );
     };
@@ -562,7 +559,7 @@ function PolicyDistanceRatesPage({
                         showScrollIndicator={false}
                         turnOnSelectionModeOnLongPress={canWriteDistanceRates}
                         shouldHeaderBeInsideList
-                        shouldShowRightCaret={canWriteDistanceRates}
+                        shouldShowRightCaret
                     />
                 )}
             </ScreenWrapper>
