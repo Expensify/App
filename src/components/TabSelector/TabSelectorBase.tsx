@@ -26,6 +26,7 @@ function TabSelectorBase({
     position,
     shouldShowLabelWhenInactive = true,
     equalWidth = false,
+    contentContainerStyles,
     shouldShowProductTrainingTooltip = false,
     renderProductTrainingTooltip,
 }: TabSelectorBaseProps) {
@@ -63,7 +64,7 @@ function TabSelectorBase({
             }}
             ref={containerRef}
             style={styles.scrollableTabSelector}
-            contentContainerStyle={styles.tabSelectorContentContainer}
+            contentContainerStyle={[styles.tabSelectorContentContainer, contentContainerStyles]}
             horizontal
             showsHorizontalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"

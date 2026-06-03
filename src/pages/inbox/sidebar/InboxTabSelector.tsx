@@ -40,12 +40,13 @@ function InboxTabSelector() {
 
     return (
         <TabSelectorContextProvider activeTabKey={activeTab}>
-            <View style={[styles.pt1, styles.mb1]}>
+            <View style={styles.pt1}>
                 <TabSelectorBase
                     tabs={tabs}
                     activeTabKey={activeTab}
                     onTabPress={(key) => setActiveTab(key as ValueOf<typeof CONST.INBOX_TAB>)}
                     equalWidth
+                    contentContainerStyles={styles.pb1}
                 />
             </View>
         </TabSelectorContextProvider>

@@ -83,6 +83,9 @@ type TabSelectorBaseProps = {
     /** Whether tabs should have equal width. */
     equalWidth?: boolean;
 
+    /** Additional styles for the tabs' scroll content container. */
+    contentContainerStyles?: StyleProp<ViewStyle>;
+
     /** Determines whether the product training tooltip should be displayed to the user. */
     shouldShowProductTrainingTooltip?: boolean;
 
