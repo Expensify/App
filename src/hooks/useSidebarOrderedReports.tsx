@@ -29,7 +29,9 @@ type SidebarOrderedReportsContextProviderProps = {
 };
 
 type SidebarOrderedReportsStateContextValue = {
-    orderedReports: OnyxTypes.Report[];
+    /** The reports rendered in the LHN for the active Inbox tab (a filtered subset of orderedReportIDs). */
+    filteredReports: OnyxTypes.Report[];
+    /** All ordered LHN report IDs, unfiltered by the active Inbox tab. Used for total counts (e.g. focus-mode switch) and brick road. */
     orderedReportIDs: string[];
     currentReportID: string | undefined;
     chatTabBrickRoad: BrickRoad;
@@ -40,12 +42,13 @@ type SidebarOrderedReportsStateContextValue = {
 type SidebarOrderedReportsActionsContextValue = {
     clearLHNCache: () => void;
     setActiveTab: (tab: ValueOf<typeof CONST.INBOX_TAB>) => void;
+    setStickyReportID: (reportID: string) => void;
 };
 
 type ReportsToDisplayInLHN = Record<string, OnyxTypes.Report & {hasErrorsOtherThanFailedReceipt?: boolean; requiresAttention?: boolean; isUnreadReport?: boolean}>;
 
 const SidebarOrderedReportsStateContext = createContext<SidebarOrderedReportsStateContextValue>({
-    orderedReports: [],
+    filteredReports: [],
     orderedReportIDs: [],
     currentReportID: '',
     chatTabBrickRoad: undefined,
@@ -59,6 +62,7 @@ const SidebarOrderedReportsStateContext = createContext<SidebarOrderedReportsSta
 const SidebarOrderedReportsActionsContext = createContext<SidebarOrderedReportsActionsContextValue>({
     clearLHNCache: () => {},
     setActiveTab: () => {},
+    setStickyReportID: () => {},
 });
 
 const policyMapper = (policy: OnyxEntry<OnyxTypes.Policy>): PartialPolicyForSidebar =>
@@ -291,9 +295,31 @@ function SidebarOrderedReportsContextProvider({
 
     const orderedReportIDs = useMemo(() => getOrderedReportIDs(), [getOrderedReportIDs]);
 
-    // Narrow the ordered reports down to the ones belonging to the active Inbox tab. The "All" tab
+    // When a report is opened from the To-do/Unread tab (see setStickyReportID), we remember it so it
+    // stays visible after viewing it removes it from the tab (e.g. it gets read). It's only set on a
+    // non-All tab, so opening a chat from the All tab never makes it appear under Unread/To-do.
+    const [stickyReport, setStickyReport] = useState<{reportID: string; tab: ValueOf<typeof CONST.INBOX_TAB>} | undefined>(undefined);
+
+    // Narrow the ordered reports down to the ones belonging to the active Inbox tab, plus the sticky
+    // report (kept visible while it's the one being viewed on the tab it was opened from). The "All" tab
     // returns everything (still honoring Most Recent / Focus mode from the ordering above).
-    const filteredReportIDs = useMemo(() => SidebarUtils.filterReportsForInboxTab(orderedReportIDs, reportsToDisplayInLHN, activeTab), [orderedReportIDs, reportsToDisplayInLHN, activeTab]);
+    const stickyReportID = stickyReport?.reportID;
+    const stickyReportTab = stickyReport?.tab;
+    const filteredReportIDs = useMemo(() => {
+        const base = SidebarUtils.filterReportsForInboxTab(orderedReportIDs, reportsToDisplayInLHN, activeTab);
+        if (
+            activeTab === CONST.INBOX_TAB.ALL ||
+            !stickyReportID ||
+            stickyReportTab !== activeTab ||
+            stickyReportID !== derivedCurrentReportID ||
+            base.includes(stickyReportID) ||
+            !orderedReportIDs.includes(stickyReportID)
+        ) {
+            return base;
+        }
+        const baseSet = new Set(base);
+        return orderedReportIDs.filter((reportID) => baseSet.has(reportID) || reportID === stickyReportID);
+    }, [orderedReportIDs, reportsToDisplayInLHN, activeTab, stickyReportTab, stickyReportID, derivedCurrentReportID]);
 
     // The count shown in each tab's badge, derived from the full "All" set (not the currently filtered view).
     const inboxTabCounts = useMemo(() => SidebarUtils.getInboxTabCounts(orderedReportIDs, reportsToDisplayInLHN), [orderedReportIDs, reportsToDisplayInLHN]);
@@ -309,7 +335,7 @@ function SidebarOrderedReportsContextProvider({
         [chatReports],
     );
 
-    const orderedReports = useMemo(() => getOrderedReports(filteredReportIDs), [getOrderedReports, filteredReportIDs]);
+    const filteredReports = useMemo(() => getOrderedReports(filteredReportIDs), [getOrderedReports, filteredReportIDs]);
 
     const clearLHNCache = useCallback(() => {
         Log.info('[useSidebarOrderedReports] Clearing sidebar cache manually via debug modal');
@@ -319,7 +345,22 @@ function SidebarOrderedReportsContextProvider({
 
     const setActiveTab = useCallback((tab: ValueOf<typeof CONST.INBOX_TAB>) => {
         setInboxTab(tab);
+
+        // The sticky report is scoped to the tab it was opened from, so reset it when switching tabs.
+        setStickyReport(undefined);
     }, []);
+
+    // Called when a report is opened from the LHN. On the To-do/Unread tabs we remember it so it stays
+    // visible after viewing it removes it from the tab. On the All tab we keep nothing sticky.
+    const setStickyReportID = useCallback(
+        (reportID: string) => {
+            if (activeTab === CONST.INBOX_TAB.ALL) {
+                return;
+            }
+            setStickyReport({reportID, tab: activeTab});
+        },
+        [activeTab],
+    );
 
     const stateValue: SidebarOrderedReportsStateContextValue = useMemo(() => {
         // We need to make sure the current report is in the list of reports, but we do not want
@@ -342,8 +383,8 @@ function SidebarOrderedReportsContextProvider({
             const updatedFilteredIDs = SidebarUtils.filterReportsForInboxTab(updatedReportIDs, reportsToDisplayInLHN, activeTab);
             const updatedReports = getOrderedReports(updatedFilteredIDs);
             return {
-                orderedReports: updatedReports,
-                orderedReportIDs: updatedFilteredIDs,
+                filteredReports: updatedReports,
+                orderedReportIDs: updatedReportIDs,
                 currentReportID: derivedCurrentReportID,
                 chatTabBrickRoad: getChatTabBrickRoad(updatedReportIDs, reportAttributes),
                 activeTab,
@@ -352,8 +393,8 @@ function SidebarOrderedReportsContextProvider({
         }
 
         return {
-            orderedReports,
-            orderedReportIDs: filteredReportIDs,
+            filteredReports,
+            orderedReportIDs,
             currentReportID: derivedCurrentReportID,
             chatTabBrickRoad: getChatTabBrickRoad(orderedReportIDs, reportAttributes),
             activeTab,
@@ -366,14 +407,14 @@ function SidebarOrderedReportsContextProvider({
         derivedCurrentReportID,
         shouldUseNarrowLayout,
         getOrderedReports,
-        orderedReports,
+        filteredReports,
         reportAttributes,
         activeTab,
         inboxTabCounts,
         reportsToDisplayInLHN,
     ]);
 
-    const actionsValue: SidebarOrderedReportsActionsContextValue = useMemo(() => ({clearLHNCache, setActiveTab}), [clearLHNCache, setActiveTab]);
+    const actionsValue: SidebarOrderedReportsActionsContextValue = useMemo(() => ({clearLHNCache, setActiveTab, setStickyReportID}), [clearLHNCache, setActiveTab, setStickyReportID]);
 
     useEffect(() => {
         const hookExecutionDuration = performance.now() - hookStartTime.current;
