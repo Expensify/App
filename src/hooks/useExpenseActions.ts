@@ -101,7 +101,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
 
-    const {iouTransactionID, requestParentReportAction, transactionThreadReportID, reportActions} = useMoneyReportTransactionThread();
+    const {iouTransactionID, requestParentReportAction, transactionThreadReportID, transactionThreadReport, reportActions} = useMoneyReportTransactionThread();
 
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
 
@@ -506,6 +506,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                         const goBackRoute = getNavigationUrlOnMoneyRequestDelete(
                             transaction.transactionID,
                             requestParentReportAction,
+                            transactionThreadReport,
                             iouReport,
                             chatIOUReport,
                             isChatIOUReportArchived,
