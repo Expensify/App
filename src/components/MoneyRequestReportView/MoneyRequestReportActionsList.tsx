@@ -715,18 +715,20 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                                     report={report}
                                     policy={policy}
                                 />
-                                <MoneyRequestReportTransactionList
-                                    report={report}
-                                    onLayout={onLayout}
-                                    transactions={transactions}
-                                    newTransactions={newTransactions}
-                                    hasPendingDeletionTransaction={hasPendingDeletionTransaction}
-                                    reportActions={reportActions}
-                                    scrollToNewTransaction={scrollToNewTransaction}
-                                    policy={policy}
-                                    hasComments={visibleReportActions.length > 0}
-                                    isLoadingInitialReportActions={showReportActionsLoadingState}
-                                />
+                                {!!reportStable && (
+                                    <MoneyRequestReportTransactionList
+                                        report={reportStable}
+                                        onLayout={onLayout}
+                                        transactions={transactions}
+                                        newTransactions={newTransactions}
+                                        hasPendingDeletionTransaction={hasPendingDeletionTransaction}
+                                        reportActions={reportActions}
+                                        scrollToNewTransaction={scrollToNewTransaction}
+                                        policy={policy}
+                                        hasComments={visibleReportActions.length > 0}
+                                        isLoadingInitialReportActions={showReportActionsLoadingState}
+                                    />
+                                )}
                             </>
                         }
                         keyboardShouldPersistTaps="handled"
