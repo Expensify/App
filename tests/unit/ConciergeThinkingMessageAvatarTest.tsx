@@ -19,18 +19,25 @@ jest.mock('@components/ReportActionAvatars', () => {
     };
 });
 
-// Admin and announce rooms surface Concierge as the persona, so the mock returns
-// Concierge's accountID here. `mock` prefix lets jest's hoist plugin reference
-// this from inside the factory below.
+// Admin and announce rooms surface Concierge as the only candidate agent, so the mock returns
+// Concierge's accountID here. `mock` prefix lets jest's hoist plugin reference this from inside
+// the factory below.
 const mockPersonaAccountID = CONST.ACCOUNT_ID.CONCIERGE;
 
-// Mock the AgentZero context to make isProcessing=true so the component renders.
+// Mock the AgentZero context to render one bubble for Concierge.
 jest.mock('@pages/inbox/AgentZeroStatusContext', () => ({
     useAgentZeroStatus: () => ({
+        candidateAgentIDs: [mockPersonaAccountID],
+    }),
+}));
+
+// Mock the per-agent indicator hook so the bubble is in the processing state and renders.
+jest.mock('@hooks/useAgentZeroStatusIndicator', () => ({
+    __esModule: true,
+    default: () => ({
         isProcessing: true,
         reasoningHistory: [],
         statusLabel: 'Thinking...',
-        personaAccountID: mockPersonaAccountID,
     }),
 }));
 
