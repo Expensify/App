@@ -5,7 +5,7 @@ import getBankIcon from '@components/Icon/BankIcons';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getBankAccountSearchLabel} from '@libs/BankAccountUtils';
+import {getBankAccountSearchLabel, getSearchEligibleBankAccounts} from '@libs/BankAccountUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,7 +31,7 @@ function BankAccountSelector({value = [], onChange}: BankAccountSelectorProps) {
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const bankAccountItems: BankAccountItem[] = [];
-    for (const bankAccount of Object.values(bankAccountList ?? {})) {
+    for (const bankAccount of Object.values(getSearchEligibleBankAccounts(bankAccountList))) {
         const bankAccountID = bankAccount?.accountData?.bankAccountID;
         if (!bankAccountID) {
             continue;
