@@ -76,9 +76,6 @@ const shouldDisplayNewMarkerOnReportAction = ({
     const isPreviouslyOptimistic =
         (isPendingAdd(prevSortedVisibleReportActionsObjects[message.reportActionID]) && !isPendingAdd(message)) ||
         (!!prevSortedVisibleReportActionsObjects[message.reportActionID]?.isOptimisticAction && !message.isOptimisticAction);
-    // The marker never lands on the user's own new or just-confirmed message. This intentionally drops the former
-    // `!prevUnreadMarkerReportActionID` gate, which let the marker fall on the user's own message in a rare corner
-    // (a prior marker on someone else's message became read, leaving only the user's own new message unread).
     const shouldIgnoreUnreadForCurrentUserMessage = isNewMessage || isPreviouslyOptimistic;
 
     if (isFromCurrentUser) {
