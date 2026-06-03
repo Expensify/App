@@ -139,7 +139,7 @@ function getPersonalDetailsByIDs({
     return result;
 }
 
-function newGetPersonalDetailsByIDs(accountIDs: Array<number | undefined>, personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetails[] {
+function newGetPersonalDetailsByIDs(accountIDs: number[], personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetails[] {
     const result: PersonalDetails[] = [];
     for (const accountID of accountIDs) {
         const detail = getPersonalDetailsByID(accountID, personalDetails);

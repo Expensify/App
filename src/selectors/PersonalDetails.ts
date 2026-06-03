@@ -6,7 +6,7 @@ import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 
 const personalDetailsSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getPersonalDetailsByID(accountID, personalDetailsList);
 
-const multiPersonalDetailsSelector = (accountIDs: Array<number | undefined>) => (personalDetails: OnyxEntry<PersonalDetailsList>) => newGetPersonalDetailsByIDs(accountIDs, personalDetails);
+const multiPersonalDetailsSelector = (accountIDs: number[]) => (personalDetails: OnyxEntry<PersonalDetailsList>) => newGetPersonalDetailsByIDs(accountIDs, personalDetails);
 
 const personalDetailsListSelector = (accountIDs: Array<number | undefined>) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) =>
     getPersonalDetailsListByIDs(accountIDs, personalDetailsList);
