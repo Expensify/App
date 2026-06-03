@@ -193,9 +193,6 @@ function WorkspaceCreateReportFieldsPage({
                             <FormValueWatcher
                                 values={inputValues}
                                 onValuesChange={(current, previous) => {
-                                    if (previous[INPUT_IDS.TYPE] === undefined) {
-                                        return;
-                                    }
                                     if (current[INPUT_IDS.TYPE] === previous[INPUT_IDS.TYPE]) {
                                         return;
                                     }
