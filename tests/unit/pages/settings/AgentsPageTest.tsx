@@ -102,6 +102,13 @@ jest.mock('@components/SelectionList', () => {
 
 jest.mock('@components/SelectionList/ListItem/UserListItem', () => 'UserListItem');
 
+jest.mock('@components/RenderHTML', () => {
+    function MockRenderHTML({html}: {html: string}) {
+        return html;
+    }
+    return MockRenderHTML;
+});
+
 jest.mock('@pages/ErrorPage/NotFoundPage', () => {
     function MockNotFoundPage() {
         return 'NotFoundPage';
