@@ -4519,9 +4519,30 @@ describe('ReportActionsUtils', () => {
                 },
                 message: [],
             } as ReportAction;
+
             const result = getCategoryTaxRateMessage(translateLocal, action);
             expect(result).toBe('changed the "Office Supplies" category default tax rate to "Tax Rate 1 (5%)" (previously "Tax Exempt (0%)")');
         });
+
+        it('should drop the parens on the side with an empty percentage (e.g. previous tax was deleted)', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    categoryName: 'Office Supplies',
+                    oldTaxName: 'Deleted Tax Rate',
+                    oldTaxPercentage: '',
+                    newTaxName: 'Tax Rate 1',
+                    newTaxPercentage: '5%',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getCategoryTaxRateMessage(translateLocal, action);
+            expect(result).toBe('changed the "Office Supplies" category default tax rate to "Tax Rate 1 (5%)" (previously "Deleted Tax Rate")');
+        });
+    });
 
     describe('getMccGroupCategoryMessage', () => {
         it('should render the friendly MCC group label that the emitter already resolved', () => {
@@ -4536,22 +4557,6 @@ describe('ReportActionsUtils', () => {
                 },
                 message: [],
             } as ReportAction;
-
-            const result = getMccGroupCategoryMessage(translateLocal, action);
-            expect(result).toBe('changed the default spend category for "Airlines" to "Travel" (previously "Insurance")');
-        });
-
-        it('should drop the parens on the side with an empty percentage (e.g. previous tax was deleted)', () => {
-            const action = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE,
-                reportActionID: '1',
-                created: '',
-                originalMessage: {
-                    categoryName: 'Office Supplies',
-                    oldTaxName: 'Deleted Tax Rate',
-                    oldTaxPercentage: '',
-                    newTaxName: 'Tax Rate 1',
-                    newTaxPercentage: '5%',
 
             const result = getMccGroupCategoryMessage(translateLocal, action);
             expect(result).toBe('changed the default spend category for "Airlines" to "Travel" (previously "Insurance")');
