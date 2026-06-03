@@ -8,6 +8,7 @@ import {
     getDisplayNameOrYou,
     getEffectiveDisplayName,
     getPersonalDetailByEmail,
+    getPersonalDetailsListByIDs,
     getPersonalDetailsOnyxDataForOptimisticUsers,
     newGetPersonalDetailsByIDs,
 } from '@libs/PersonalDetailsUtils';
@@ -737,6 +738,43 @@ describe('PersonalDetailsUtils', () => {
         it('should filter out accountIDs that do not have corresponding personal details', () => {
             const result = newGetPersonalDetailsByIDs([accountID1, 999], personalDetails);
             expect(result).toEqual([personalDetails[accountID1]]);
+        });
+    });
+
+    describe('getPersonalDetailsListByIDs', () => {
+        const accountID1 = 1;
+        const accountID2 = 2;
+        const personalDetails: PersonalDetailsList = {
+            [accountID1]: {
+                accountID: accountID1,
+                login: 'user1@example.com',
+                displayName: 'User One',
+            },
+            [accountID2]: {
+                accountID: accountID2,
+                login: 'user2@example.com',
+                displayName: 'User Two',
+            },
+        };
+
+        it('should return an empty object if accountIDs is empty', () => {
+            const result = getPersonalDetailsListByIDs([], personalDetails);
+            expect(result).toEqual({});
+        });
+
+        it('should return personal details list for the given accountIDs', () => {
+            const result = getPersonalDetailsListByIDs([accountID1, accountID2], personalDetails);
+            expect(result).toEqual(personalDetails);
+        });
+
+        it('should filter out accountIDs that do not have corresponding personal details', () => {
+            const result = getPersonalDetailsListByIDs([accountID1, 999], personalDetails);
+            expect(result).toEqual({[accountID1]: personalDetails[accountID1]});
+        });
+
+        it('should ignore undefined in accountIDs array', () => {
+            const result = getPersonalDetailsListByIDs([accountID1, undefined], personalDetails);
+            expect(result).toEqual({[accountID1]: personalDetails[accountID1]});
         });
     });
 
