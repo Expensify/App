@@ -88,8 +88,12 @@ function computeShiftRange<TItem>(params: Params<TItem>, state: SessionState, ta
     let anchor: string;
     let prevEnd: string | null;
     if (state.kind === 'ranging') {
-        anchor = state.anchor;
-        prevEnd = state.prevEnd;
+        const resolved = resolveAnchor(params, state.anchor);
+        if (!resolved) {
+            return null;
+        }
+        anchor = resolved;
+        prevEnd = resolved === state.anchor ? state.prevEnd : null;
     } else {
         const seed = state.kind === 'anchored' ? state.anchor : null;
         const resolved = resolveAnchor(params, seed);

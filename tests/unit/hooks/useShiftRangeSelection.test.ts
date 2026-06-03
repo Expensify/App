@@ -569,6 +569,25 @@ describe('useShiftRangeSelection', () => {
             });
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'b', 'c'], toDeselect: []});
         });
+
+        it('falls back through resolveAnchor when the ranging anchor disappears between shift+clicks', () => {
+            const onApplyRange = makeApplyMock();
+            const {result, rerender} = renderHook(({items}: {items: Row[]}) => useShiftRangeSelection<Row>(makeParams({items, onApplyRange})), {
+                initialProps: {items: [...ROWS]},
+            });
+            act(() => result.current.notifyAnchor(ROWS[0]));
+            act(() => {
+                result.current.applyShiftClick(ROWS[2], {shiftKey: true});
+            });
+            // Anchor 'a' is removed from the items list while the session is ranging.
+            rerender({items: ROWS.slice(1)});
+            onApplyRange.mockClear();
+            act(() => {
+                result.current.applyShiftClick(ROWS[4], {shiftKey: true});
+            });
+            // Falls back to first selectable row ('b') as the new anchor; emits a fresh range from there to the target.
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['b', 'c', 'd', 'e'], toDeselect: []});
+        });
     });
 
     describe('defensive bails', () => {
