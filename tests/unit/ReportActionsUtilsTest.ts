@@ -30,6 +30,7 @@ import {
     getIntegrationSyncFailedMessage,
     getInvoiceCompanyNameUpdateMessage,
     getInvoiceCompanyWebsiteUpdateMessage,
+    getMccGroupCategoryMessage,
     getModerationFlagState,
     getOneTransactionThreadReportID,
     getOriginalMessage,
@@ -4518,9 +4519,26 @@ describe('ReportActionsUtils', () => {
                 },
                 message: [],
             } as ReportAction;
-
             const result = getCategoryTaxRateMessage(translateLocal, action);
             expect(result).toBe('changed the "Office Supplies" category default tax rate to "Tax Rate 1 (5%)" (previously "Tax Exempt (0%)")');
+        });
+
+    describe('getMccGroupCategoryMessage', () => {
+        it('should render the friendly MCC group label that the emitter already resolved', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    mccGroupName: 'Airlines',
+                    oldCategory: 'Insurance',
+                    newCategory: 'Travel',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getMccGroupCategoryMessage(translateLocal, action);
+            expect(result).toBe('changed the default spend category for "Airlines" to "Travel" (previously "Insurance")');
         });
 
         it('should drop the parens on the side with an empty percentage (e.g. previous tax was deleted)', () => {
@@ -4534,12 +4552,26 @@ describe('ReportActionsUtils', () => {
                     oldTaxPercentage: '',
                     newTaxName: 'Tax Rate 1',
                     newTaxPercentage: '5%',
+
+            const result = getMccGroupCategoryMessage(translateLocal, action);
+            expect(result).toBe('changed the default spend category for "Airlines" to "Travel" (previously "Insurance")');
+        });
+
+        it('should pass through a fallback raw groupID when the emitter could not resolve it', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    mccGroupName: 'spaceflight',
+                    oldCategory: 'Travel',
+                    newCategory: 'Equipment',
                 },
                 message: [],
             } as ReportAction;
 
-            const result = getCategoryTaxRateMessage(translateLocal, action);
-            expect(result).toBe('changed the "Office Supplies" category default tax rate to "Tax Rate 1 (5%)" (previously "Deleted Tax Rate")');
+            const result = getMccGroupCategoryMessage(translateLocal, action);
+            expect(result).toBe('changed the default spend category for "spaceflight" to "Equipment" (previously "Travel")');
         });
     });
 

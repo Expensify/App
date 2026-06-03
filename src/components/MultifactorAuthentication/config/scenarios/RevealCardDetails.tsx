@@ -7,10 +7,8 @@ import type {
     MultifactorAuthenticationScenarioCustomConfig,
 } from '@components/MultifactorAuthentication/config/types';
 import {revealCardDetailsWithSCA} from '@libs/actions/MultifactorAuthentication';
-import Navigation from '@libs/Navigation/Navigation';
 import {setRevealedVirtualCardDetails} from '@libs/RevealedCardSecretsStore';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 
 /**
  * Payload type for the REVEAL_CARD_DETAILS scenario.
@@ -61,8 +59,6 @@ export default {
             const expiration = typeof callbackInput.body?.expiration === 'string' ? callbackInput.body.expiration : '';
             const cvv = typeof callbackInput.body?.cvv === 'string' ? callbackInput.body.cvv : '';
             setRevealedVirtualCardDetails(payload.cardID, {pan, expiration, cvv});
-            Navigation.closeRHPFlow();
-            Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(payload.cardID)));
             return CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SKIP_OUTCOME_SCREEN;
         }
 

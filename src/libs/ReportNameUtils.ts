@@ -58,6 +58,7 @@ import {
     getJoinRequestMessage,
     getLinkedTransactionID,
     getMarkedReimbursedMessage,
+    getMccGroupCategoryMessage,
     getMessageOfOldDotReportAction,
     getOriginalMessage,
     getPlaidBalanceFailureMessage,
@@ -585,6 +586,8 @@ function computeReportNameBasedOnReportAction(
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE)) {
         return getCategoryTaxRateMessage(translate, parentReportAction);
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY)) {
+        return getMccGroupCategoryMessage(translate, parentReportAction);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_APPROVER)) {
         return getDefaultApproverUpdateMessage(translate, parentReportAction);

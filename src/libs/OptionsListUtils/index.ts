@@ -56,6 +56,7 @@ import {
     getLastVisibleActionIncludingTransactionThread,
     getLastVisibleMessage,
     getMarkedReimbursedMessage,
+    getMccGroupCategoryMessage,
     getMentionedAccountIDsFromAction,
     getMessageOfOldDotReportAction,
     getOneTransactionThreadReportID,
@@ -201,6 +202,7 @@ import type {
     Option,
     OptionList,
     Options,
+    OptionsResult,
     OrderOptionsConfig,
     OrderReportOptionsConfig,
     PayeePersonalDetails,
@@ -927,6 +929,8 @@ function getLastMessageTextForReport({
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE)) {
         lastMessageTextFromReport = getCategoryTaxRateMessage(translate, lastReportAction);
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY)) {
+        lastMessageTextFromReport = getMccGroupCategoryMessage(translate, lastReportAction);
     }
     if (
         isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAX) ||
@@ -1609,7 +1613,7 @@ function createFilteredOptionList(
 
     // Step 2: Sort by lastVisibleActionCreated (most recent first) and limit to top N
     // In search mode, skip sorting because we return all reports anyway - sorting is unnecessary
-    const sortedReports = isSearching ? reportsArray : optionsOrderBy(reportsArray, (report) => reportSortComparator(report, privateIsArchivedMap), maxRecentReports);
+    const sortedReports = isSearching ? reportsArray : optionsOrderBy(reportsArray, (report) => reportSortComparator(report, privateIsArchivedMap), maxRecentReports).options;
 
     // Step 3: If search term is present, build report map with ONLY 1:1 DM reports
     // This allows personal details to have valid 1:1 DM reportIDs for proper avatar display
@@ -1753,12 +1757,13 @@ function optionsOrderBy<T = SearchOptionData | PersonalDetailOptionData>(
     limit?: number,
     filter?: (option: T) => boolean | undefined,
     reversed = false,
-): T[] {
+): {options: T[]; hasMore: boolean} {
     const heap = reversed ? new MaxHeap<T>(comparator) : new MinHeap<T>(comparator);
+    let hasMore = false;
 
     // If a limit is 0 or negative, return an empty array
     if (limit !== undefined && limit <= 0) {
-        return [];
+        return {options: [], hasMore};
     }
 
     for (const option of options) {
@@ -1766,6 +1771,7 @@ function optionsOrderBy<T = SearchOptionData | PersonalDetailOptionData>(
             continue;
         }
         if (limit !== undefined && heap.size() >= limit) {
+            hasMore = true;
             const peekedValue = heap.peek();
             if (!peekedValue) {
                 throw new Error('Heap is empty, cannot peek value');
@@ -1778,7 +1784,7 @@ function optionsOrderBy<T = SearchOptionData | PersonalDetailOptionData>(
             heap.push(option);
         }
     }
-    return [...heap].reverse();
+    return {options: [...heap].reverse(), hasMore};
 }
 
 /**
@@ -1795,9 +1801,10 @@ function optionsOrderAndGroupBy<T = SearchOptionData>(
     limit?: number,
     filter?: (option: T) => boolean | undefined,
     reversed = false,
-): T[][] {
+): {options: T[][]; hasMore: boolean} {
     // Create a heap for each separator + one default heap (N+1 total)
     const heaps: Array<MinHeap<T> | MaxHeap<T>> = [];
+    let hasMore = false;
     for (let i = 0; i < separators.length; i++) {
         heaps.push(reversed ? new MaxHeap<T>(comparator) : new MinHeap<T>(comparator));
     }
@@ -1805,7 +1812,7 @@ function optionsOrderAndGroupBy<T = SearchOptionData>(
 
     // If limit is 0 or negative, return N+1 empty arrays
     if (limit !== undefined && limit <= 0) {
-        return Array(separators.length + 1).map(() => []);
+        return {options: Array(separators.length + 1).map(() => []), hasMore};
     }
 
     // Process each option
@@ -1833,6 +1840,7 @@ function optionsOrderAndGroupBy<T = SearchOptionData>(
 
         // Add to heap with limit logic (each heap has its own limit)
         if (limit !== undefined && targetHeap.size() >= limit) {
+            hasMore = true;
             const peekedValue = targetHeap.peek();
             if (!peekedValue) {
                 throw new Error('Heap is empty, cannot peek value');
@@ -1854,7 +1862,7 @@ function optionsOrderAndGroupBy<T = SearchOptionData>(
     }
     results.push([...defaultHeap].reverse());
 
-    return results;
+    return {options: results, hasMore};
 }
 
 /**
@@ -2382,7 +2390,7 @@ function getValidOptions(
         sortedActions,
         ...config
     }: GetOptionsConfig = {},
-): Options {
+): OptionsResult {
     // Gather shared configs:
     // Hard exclusions: cannot be selected at all
     const loginsToExclude: Record<string, boolean> = {
@@ -2420,6 +2428,7 @@ function getValidOptions(
     let recentReportOptions: Array<SearchOption<Report>> = [];
     let workspaceChats: Array<SearchOption<Report>> = [];
     let selfDMChat: SearchOptionData | undefined;
+    let hasMore = false;
 
     const searchTerms = processSearchString(searchString);
     if (includeRecentReports) {
@@ -2491,7 +2500,10 @@ function getValidOptions(
         };
 
         let selfDMChats: Array<SearchOption<Report>>;
-        [selfDMChats, workspaceChats, recentReportOptions] = optionsOrderAndGroupBy([isSelfDMChat, isWorkspaceChat], options.reports, recentReportComparator, maxElements, filteringFunction);
+        const groupedOptions = optionsOrderAndGroupBy([isSelfDMChat, isWorkspaceChat], options.reports, recentReportComparator, maxElements, filteringFunction);
+        [selfDMChats, workspaceChats, recentReportOptions] = groupedOptions.options;
+
+        hasMore = hasMore || groupedOptions.hasMore;
 
         if (selfDMChats.length > 0) {
             selfDMChat = prepareReportOptionsForDisplay(
@@ -2622,7 +2634,10 @@ function getValidOptions(
         const maxPersonalDetailsElements = maxElements
             ? Math.max(maxElements - recentReportOptions.length - workspaceChats.length - (!selfDMChat ? 1 : 0), MIN_PERSONAL_DETAILS_SLOTS)
             : undefined;
-        personalDetailsOptions = optionsOrderBy(options.personalDetails, personalDetailsComparator, maxPersonalDetailsElements, filteringFunction, true);
+        const groupedPersonalDetails = optionsOrderBy(options.personalDetails, personalDetailsComparator, maxPersonalDetailsElements, filteringFunction, true);
+        personalDetailsOptions = groupedPersonalDetails.options;
+
+        hasMore = hasMore || groupedPersonalDetails.hasMore;
 
         for (let i = 0; i < personalDetailsOptions.length; i++) {
             const personalDetail = personalDetailsOptions.at(i);
@@ -2657,12 +2672,15 @@ function getValidOptions(
     }
 
     return {
-        personalDetails: personalDetailsOptions,
-        recentReports: recentReportOptions,
-        currentUserOption: currentUserRef.current,
-        userToInvite,
-        workspaceChats,
-        selfDMChat,
+        options: {
+            personalDetails: personalDetailsOptions,
+            recentReports: recentReportOptions,
+            currentUserOption: currentUserRef.current,
+            userToInvite,
+            workspaceChats,
+            selfDMChat,
+        },
+        hasMore,
     };
 }
 
@@ -2690,6 +2708,7 @@ type SearchOptionsConfig = {
     allPolicyTags?: OnyxCollection<PolicyTagLists>;
     sortedActions: Record<string, ReportAction[]> | undefined;
     conciergeReportID: string | undefined;
+    excludeFromSuggestionsOnly?: Record<string, boolean>;
 };
 
 /**
@@ -2719,7 +2738,8 @@ function getSearchOptions({
     allPolicyTags,
     sortedActions,
     conciergeReportID,
-}: SearchOptionsConfig): Options {
+    excludeFromSuggestionsOnly = {},
+}: SearchOptionsConfig): OptionsResult {
     const optionList = getValidOptions(options, policyCollection, draftComments, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
         betas,
         includeRecentReports,
@@ -2746,6 +2766,7 @@ function getSearchOptions({
         reportAttributesDerived,
         allPolicyTags,
         sortedActions,
+        excludeFromSuggestionsOnly,
     });
 
     return optionList;
@@ -3271,12 +3292,15 @@ function sortAlphabetically<T extends Partial<Record<TKey, string | undefined>>,
     return items.sort((a, b) => localeCompare(a[key]?.toLowerCase() ?? '', b[key]?.toLowerCase() ?? ''));
 }
 
-function getEmptyOptions(): Options {
+function getEmptyOptions(): OptionsResult {
     return {
-        recentReports: [],
-        personalDetails: [],
-        userToInvite: null,
-        currentUserOption: null,
+        options: {
+            recentReports: [],
+            personalDetails: [],
+            userToInvite: null,
+            currentUserOption: null,
+        },
+        hasMore: false,
     };
 }
 

@@ -61,6 +61,7 @@ import {
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
     getMarkedReimbursedMessage,
+    getMccGroupCategoryMessage,
     getMemberChangeMessageFragment,
     getMessageOfOldDotReportAction,
     getOriginalMessage,
@@ -979,6 +980,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(getAutoReimbursementMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE) {
                     Clipboard.setString(getCategoryTaxRateMessage(translate, reportAction));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY) {
+                    Clipboard.setString(getMccGroupCategoryMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME) {
                     Clipboard.setString(getInvoiceCompanyNameUpdateMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_WEBSITE) {
