@@ -174,8 +174,8 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Whether to open the parent report link in the current tab if possible */
     openParentReportInCurrentTab?: boolean;
 
-    /** Whether to skip focus of the first interactive element inside the dialog after the RHP transition for screen reader announcement.  */
-    skipDialogContainerFocus?: boolean;
+    /** Whether to skip focus of the first interactive element inside the header after the RHP transition for screen reader announcement.  */
+    shouldSkipFocusAfterTransition?: boolean;
 };
 
 export type {ThreeDotsMenuItem};
