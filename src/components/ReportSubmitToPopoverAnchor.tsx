@@ -3,7 +3,14 @@ import React, {createContext, useCallback, useContext, useEffect, useLayoutEffec
 import {View} from 'react-native';
 import useReportSubmitToPopover from '@hooks/useReportSubmitToPopover';
 import type {ReportSubmitToPopoverOpenOptions} from '@hooks/useReportSubmitToPopover';
+import CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+
+/** Positions the submit-to popover below the Search row Submit button (wide layout). */
+const SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT: AnchorAlignment = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+};
 
 type OpenReportSubmitToPopover = (options?: ReportSubmitToPopoverOpenOptions) => void;
 
@@ -19,6 +26,26 @@ type ReportSubmitToPopoverHostContextValue = {
 };
 
 const ReportSubmitToPopoverHostContext = createContext<ReportSubmitToPopoverHostContextValue | null>(null);
+
+type SearchSubmitPopoverGuardContextValue = {
+    isReportSubmitToPopoverVisible: boolean;
+    consumeIgnoreNextSearchSubmitPress: () => boolean;
+};
+
+const defaultSearchSubmitPopoverGuard: SearchSubmitPopoverGuardContextValue = {
+    isReportSubmitToPopoverVisible: false,
+    consumeIgnoreNextSearchSubmitPress: () => false,
+};
+
+const SearchSubmitPopoverGuardContext = createContext<SearchSubmitPopoverGuardContextValue>(defaultSearchSubmitPopoverGuard);
+
+function useSearchSubmitPopoverGuard(): SearchSubmitPopoverGuardContextValue {
+    return useContext(SearchSubmitPopoverGuardContext);
+}
+
+function SearchSubmitPopoverGuardProvider({guard, children}: {guard: SearchSubmitPopoverGuardContextValue; children: React.ReactNode}) {
+    return <SearchSubmitPopoverGuardContext.Provider value={guard}>{children}</SearchSubmitPopoverGuardContext.Provider>;
+}
 
 function useOpenReportSubmitToPopover(): OpenReportSubmitToPopover {
     return useContext(ReportSubmitToPopoverContext);
@@ -63,11 +90,24 @@ function ReportSubmitToPopoverHost({children, anchorAlignment}: ReportSubmitToPo
         return anchorRegistryRef.current.get(activeReportID) ?? null;
     }, [activeReportID]);
 
-    const {reportSubmitToPopover, openReportSubmitToPopover: openPopoverForActiveReport} = useReportSubmitToPopover({
+    const {
+        reportSubmitToPopover,
+        openReportSubmitToPopover: openPopoverForActiveReport,
+        isReportSubmitToPopoverVisible,
+        consumeIgnoreNextSearchSubmitPress,
+    } = useReportSubmitToPopover({
         reportID: activeReportID,
         anchorAlignment,
         getAnchorRef,
     });
+
+    const searchSubmitPopoverGuard = useMemo(
+        () => ({
+            isReportSubmitToPopoverVisible,
+            consumeIgnoreNextSearchSubmitPress,
+        }),
+        [isReportSubmitToPopoverVisible, consumeIgnoreNextSearchSubmitPress],
+    );
 
     const openReportSubmitToPopoverForHost = useCallback(
         (reportID: string | undefined, options?: ReportSubmitToPopoverOpenOptions) => {
@@ -105,10 +145,12 @@ function ReportSubmitToPopoverHost({children, anchorAlignment}: ReportSubmitToPo
     );
 
     return (
-        <ReportSubmitToPopoverHostContext.Provider value={hostContextValue}>
-            {children}
-            {reportSubmitToPopover}
-        </ReportSubmitToPopoverHostContext.Provider>
+        <SearchSubmitPopoverGuardProvider guard={searchSubmitPopoverGuard}>
+            <ReportSubmitToPopoverHostContext.Provider value={hostContextValue}>
+                {children}
+                {reportSubmitToPopover}
+            </ReportSubmitToPopoverHostContext.Provider>
+        </SearchSubmitPopoverGuardProvider>
     );
 }
 
@@ -158,13 +200,27 @@ function ReportSubmitToPopoverRootWithHost({reportID, host, children}: {reportID
 }
 
 function ReportSubmitToPopoverRootWithLocalPopover({reportID, onSubmitSuccess, anchorAlignment, children}: ReportSubmitToPopoverAnchorProps) {
-    const {anchorRef, openReportSubmitToPopover, reportSubmitToPopover} = useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment});
+    const {anchorRef, openReportSubmitToPopover, reportSubmitToPopover, isReportSubmitToPopoverVisible, consumeIgnoreNextSearchSubmitPress} = useReportSubmitToPopover({
+        reportID,
+        onSubmitSuccess,
+        anchorAlignment,
+    });
+
+    const searchSubmitPopoverGuard = useMemo(
+        () => ({
+            isReportSubmitToPopoverVisible,
+            consumeIgnoreNextSearchSubmitPress,
+        }),
+        [isReportSubmitToPopoverVisible, consumeIgnoreNextSearchSubmitPress],
+    );
 
     return (
-        <ReportSubmitToPopoverAnchorRefContext.Provider value={anchorRef}>
-            <ReportSubmitToPopoverContext.Provider value={openReportSubmitToPopover}>{children}</ReportSubmitToPopoverContext.Provider>
-            {reportSubmitToPopover}
-        </ReportSubmitToPopoverAnchorRefContext.Provider>
+        <SearchSubmitPopoverGuardProvider guard={searchSubmitPopoverGuard}>
+            <ReportSubmitToPopoverAnchorRefContext.Provider value={anchorRef}>
+                <ReportSubmitToPopoverContext.Provider value={openReportSubmitToPopover}>{children}</ReportSubmitToPopoverContext.Provider>
+                {reportSubmitToPopover}
+            </ReportSubmitToPopoverAnchorRefContext.Provider>
+        </SearchSubmitPopoverGuardProvider>
     );
 }
 
@@ -199,4 +255,12 @@ function ReportSubmitToPopoverAnchor({reportID, onSubmitSuccess, anchorAlignment
     );
 }
 
-export {ReportSubmitToPopoverAnchor, ReportSubmitToPopoverHost, ReportSubmitToPopoverMeasurableAnchor, ReportSubmitToPopoverRoot, useOpenReportSubmitToPopover};
+export {
+    ReportSubmitToPopoverAnchor,
+    ReportSubmitToPopoverHost,
+    ReportSubmitToPopoverMeasurableAnchor,
+    ReportSubmitToPopoverRoot,
+    SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT,
+    useOpenReportSubmitToPopover,
+    useSearchSubmitPopoverGuard,
+};

@@ -27,7 +27,7 @@ const DEFAULT_ANCHOR_ALIGNMENT = {
 
 type ReportSubmitToPopoverOpenOptions = {
     onSubmitSuccess?: () => void;
-    /** When set (e.g. Search row submit), called with the selected submit-to email instead of `submitReport`. */
+    /** When provided, called with the selected submit-to email instead of `submitReport`. */
     onSubmitWithManagerEmail?: (managerEmail: string) => void;
 };
 
@@ -47,9 +47,12 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
     const {isSmallScreenWidth} = useResponsiveLayout();
     const anchorRef = useRef<View>(null);
     const oneShotOnSubmitSuccessRef = useRef<(() => void) | undefined>(undefined);
+    const onSubmitWithManagerEmailRef = useRef<ReportSubmitToPopoverOpenOptions['onSubmitWithManagerEmail']>(undefined);
+    const canSubmitRef = useRef(true);
+    const ignoreNextSearchSubmitPressRef = useRef(false);
     const {calculatePopoverPosition} = usePopoverPosition();
     const [isVisible, setIsVisible] = useState(false);
-    const [onSubmitWithManagerEmail, setOnSubmitWithManagerEmail] = useState<ReportSubmitToPopoverOpenOptions['onSubmitWithManagerEmail']>();
+    const [isSearchSubmitFlow, setIsSearchSubmitFlow] = useState(false);
     const [anchorPosition, setAnchorPosition] = useState({
         horizontal: 0,
         vertical: 0,
@@ -60,26 +63,63 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const [willAlertModalBecomeVisible] = useOnyx(ONYXKEYS.MODAL, {selector: willAlertModalBecomeVisibleSelector});
 
+    const consumeIgnoreNextSearchSubmitPress = useCallback(() => {
+        if (!ignoreNextSearchSubmitPressRef.current) {
+            return false;
+        }
+        ignoreNextSearchSubmitPressRef.current = false;
+        return true;
+    }, []);
+
     const closeReportSubmitToPopover = useCallback(() => {
-        setOnSubmitWithManagerEmail(undefined);
+        canSubmitRef.current = false;
+        onSubmitWithManagerEmailRef.current = undefined;
+        oneShotOnSubmitSuccessRef.current = undefined;
+        setIsSearchSubmitFlow(false);
+        // Block only a click-through on the row Submit button in the same turn as dismiss; clear before the next user gesture.
+        ignoreNextSearchSubmitPressRef.current = true;
+        queueMicrotask(() => {
+            ignoreNextSearchSubmitPressRef.current = false;
+        });
         setIsVisible(false);
     }, []);
 
     const handleCombinedSubmitSuccess = useCallback(() => {
+        if (!canSubmitRef.current) {
+            return;
+        }
         const oneShot = oneShotOnSubmitSuccessRef.current;
         oneShotOnSubmitSuccessRef.current = undefined;
-        setOnSubmitWithManagerEmail(undefined);
+        onSubmitWithManagerEmailRef.current = undefined;
+        setIsSearchSubmitFlow(false);
         oneShot?.();
         onSubmitSuccess?.();
     }, [onSubmitSuccess]);
+
+    const handleSearchSubmitWithManagerEmail = useCallback((managerEmail: string) => {
+        if (!canSubmitRef.current) {
+            return;
+        }
+        const onSubmit = onSubmitWithManagerEmailRef.current;
+        if (!onSubmit) {
+            return;
+        }
+        canSubmitRef.current = false;
+        onSubmitWithManagerEmailRef.current = undefined;
+        setIsSearchSubmitFlow(false);
+        onSubmit(managerEmail);
+    }, []);
 
     const openReportSubmitToPopover = useCallback(
         (options?: ReportSubmitToPopoverOpenOptions) => {
             if (!reportID || willAlertModalBecomeVisible) {
                 return;
             }
+            canSubmitRef.current = true;
+            ignoreNextSearchSubmitPressRef.current = false;
             oneShotOnSubmitSuccessRef.current = options?.onSubmitSuccess;
-            setOnSubmitWithManagerEmail(options?.onSubmitWithManagerEmail);
+            onSubmitWithManagerEmailRef.current = options?.onSubmitWithManagerEmail;
+            setIsSearchSubmitFlow(!!options?.onSubmitWithManagerEmail);
             const anchorToMeasure = getAnchorRef?.() ?? anchorRef;
             calculatePopoverPosition(anchorToMeasure, anchorAlignment).then((pos) => {
                 setAnchorPosition({
@@ -123,7 +163,8 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
                         isLoadingReportData={isLoadingReportData}
                         onDismiss={closeReportSubmitToPopover}
                         onSubmitSuccess={handleCombinedSubmitSuccess}
-                        onSubmitWithManagerEmail={onSubmitWithManagerEmail}
+                        onSubmitWithManagerEmail={isSearchSubmitFlow ? handleSearchSubmitWithManagerEmail : undefined}
+                        canSubmitRef={canSubmitRef}
                         shouldDismissRHPAfterSubmit={false}
                     />
                 </View>
@@ -144,7 +185,8 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
             policy,
             isLoadingReportData,
             handleCombinedSubmitSuccess,
-            onSubmitWithManagerEmail,
+            isSearchSubmitFlow,
+            handleSearchSubmitWithManagerEmail,
         ],
     );
 
@@ -153,6 +195,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
         openReportSubmitToPopover,
         closeReportSubmitToPopover,
         isReportSubmitToPopoverVisible: isVisible,
+        consumeIgnoreNextSearchSubmitPress,
         reportSubmitToPopover,
     };
 }

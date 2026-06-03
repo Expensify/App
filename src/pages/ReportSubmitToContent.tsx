@@ -1,4 +1,5 @@
 import {delegateEmailSelector} from '@selectors/Account';
+import type {RefObject} from 'react';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -47,9 +48,20 @@ type ReportSubmitToContentProps = {
     shouldDismissRHPAfterSubmit?: boolean;
     /** When set (e.g. Search row submit), called with the selected submit-to email instead of `submitReport`. */
     onSubmitWithManagerEmail?: (managerEmail: string) => void;
+    /** When set, blocks submit after the popover is dismissed (prevents stale confirm / click-through). */
+    canSubmitRef?: RefObject<boolean>;
 };
 
-function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, onSubmitSuccess, shouldDismissRHPAfterSubmit = true, onSubmitWithManagerEmail}: ReportSubmitToContentProps) {
+function ReportSubmitToContent({
+    report,
+    policy,
+    isLoadingReportData,
+    onDismiss,
+    onSubmitSuccess,
+    shouldDismissRHPAfterSubmit = true,
+    onSubmitWithManagerEmail,
+    canSubmitRef,
+}: ReportSubmitToContentProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -186,6 +198,10 @@ function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, 
     const hasSelectedSubmitToMember = combinedSubmitToMembers.some((item) => item.isSelected);
 
     const handleSubmit = useCallback(() => {
+        if (canSubmitRef && !canSubmitRef.current) {
+            return;
+        }
+
         if (!hasSelectedSubmitToMember) {
             setHasError(true);
             return;
@@ -199,6 +215,9 @@ function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, 
         setHasError(false);
 
         if (onSubmitWithManagerEmail) {
+            if (canSubmitRef && !canSubmitRef.current) {
+                return;
+            }
             onSubmitWithManagerEmail(trimmed);
             if (currentSearchQueryJSON && !isOffline) {
                 search({
@@ -271,6 +290,7 @@ function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, 
         onDismiss,
         onSubmitSuccess,
         onSubmitWithManagerEmail,
+        canSubmitRef,
         shouldDismissRHPAfterSubmit,
     ]);
 

@@ -105,6 +105,9 @@ type HandleActionButtonPressParams = {
     onPendingCardTransactionsBlock?: () => void;
     currentUserAccountID?: number;
     openReportSubmitToPopover?: (options?: ReportSubmitToPopoverOpenOptions) => void;
+    isReportSubmitToPopoverVisible?: boolean;
+    /** Consumes a one-shot flag set when the submit-to popover dismisses (prevents click-through on the row Submit button). */
+    consumeIgnoreNextSearchSubmitPress?: () => boolean;
 };
 
 function handleActionButtonPress({
@@ -127,6 +130,8 @@ function handleActionButtonPress({
     onUndelete,
     currentUserAccountID,
     openReportSubmitToPopover,
+    isReportSubmitToPopoverVisible,
+    consumeIgnoreNextSearchSubmitPress,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -171,6 +176,9 @@ function handleActionButtonPress({
             approveMoneyRequestOnSearch(hash, item.reportID ? [item.reportID] : [], currentSearchKey);
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
+            if (isReportSubmitToPopoverVisible || consumeIgnoreNextSearchSubmitPress?.()) {
+                return;
+            }
             if (snapshotReport.policyID && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
                 return;
@@ -183,12 +191,12 @@ function handleActionButtonPress({
             if (isSubmitPolicy(policyForSubmit) && openReportSubmitToPopover) {
                 openReportSubmitToPopover({
                     onSubmitWithManagerEmail: (managerEmail) => {
-                        submitMoneyRequestOnSearch(hash, [item as Report], [snapshotPolicy], currentSearchKey, managerEmail);
+                        submitMoneyRequestOnSearch(hash, [snapshotReport], [policyForSubmit], currentSearchKey, managerEmail);
                     },
                 });
                 return;
             }
-            submitMoneyRequestOnSearch(hash, [item as Report], [snapshotPolicy], currentSearchKey);
+            submitMoneyRequestOnSearch(hash, [snapshotReport], [policyForSubmit], currentSearchKey);
             return;
         }
         case CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING: {
@@ -623,6 +631,7 @@ function search({
 
 function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: Policy[], currentSearchKey?: SearchKey, managerEmail?: string) {
     const firstReport = (reportList.at(0) ?? {}) as Report;
+    const firstPolicy = policy.at(0);
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
@@ -668,7 +677,7 @@ function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: 
     const trimmedManagerEmail = managerEmail?.trim();
     const parameters: SubmitReportParams = {
         reportID: firstReport.reportID,
-        managerAccountID: getSubmitReportManagerAccountID(policy.at(0), firstReport),
+        managerAccountID: getSubmitReportManagerAccountID(firstPolicy, firstReport),
         reportActionID: rand64(),
         ...(trimmedManagerEmail ? {managerEmail: trimmedManagerEmail} : {}),
     };

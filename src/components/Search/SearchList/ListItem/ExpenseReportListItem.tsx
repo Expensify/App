@@ -7,7 +7,12 @@ import {View} from 'react-native';
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
-import {ReportSubmitToPopoverRoot, useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
+import {
+    ReportSubmitToPopoverRoot,
+    SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT,
+    useOpenReportSubmitToPopover,
+    useSearchSubmitPopoverGuard,
+} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -39,11 +44,6 @@ import ExpenseReportListItemRow from './ExpenseReportListItemRow';
 import type {ExpenseReportListItemProps, ExpenseReportListItemType} from './types';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
-const ANCHOR_ALIGNMENT = {
-    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-};
-
 /**
  * An expense report row in search results, showing status badge, total, and participants.
  */
@@ -52,7 +52,7 @@ function ExpenseReportListItem<TItem extends ListItem>(props: ExpenseReportListI
     return (
         <ReportSubmitToPopoverRoot
             reportID={reportItem.reportID}
-            anchorAlignment={ANCHOR_ALIGNMENT}
+            anchorAlignment={SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT}
         >
             <ExpenseReportListItemInner {...props} />
         </ReportSubmitToPopoverRoot>
@@ -165,6 +165,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const {showConfirmModal} = useConfirmModal();
     const {showHoldMenu} = useHoldMenuModal();
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
+    const {isReportSubmitToPopoverVisible, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(reportItem.reportID);
     const liveReportTransactions = useMemo(() => Object.values(reportTransactions), [reportTransactions]);
 
@@ -210,6 +211,8 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             ownerBillingGracePeriodEnd,
             amountOwed,
             openReportSubmitToPopover,
+            isReportSubmitToPopoverVisible,
+            consumeIgnoreNextSearchSubmitPress,
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
         });
     }, [
@@ -233,6 +236,8 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         ownerBillingGracePeriodEnd,
         amountOwed,
         openReportSubmitToPopover,
+        isReportSubmitToPopoverVisible,
+        consumeIgnoreNextSearchSubmitPress,
         showConfirmModal,
         translate,
     ]);
@@ -388,6 +393,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                         isHovered={hovered}
                         isFocused={isFocused}
                         isPendingDelete={isPendingDelete}
+                        shouldDisableActionPointerEvents={isReportSubmitToPopoverVisible}
                     />
                     {getDescription}
                 </View>

@@ -8,7 +8,12 @@ import type {OnyxEntry} from 'react-native-onyx';
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
-import {ReportSubmitToPopoverAnchor, useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
+import {
+    ReportSubmitToPopoverAnchor,
+    SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT,
+    useOpenReportSubmitToPopover,
+    useSearchSubmitPopoverGuard,
+} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import type {TransactionListItemProps, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {ListItem} from '@components/SelectionList/types';
@@ -38,17 +43,12 @@ import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
 import TransactionListItemNarrow from './TransactionListItemNarrow';
 import TransactionListItemWide from './TransactionListItemWide';
 
-const ANCHOR_ALIGNMENT = {
-    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-};
-
 function TransactionListItem<TItem extends ListItem>(props: TransactionListItemProps<TItem>) {
     const transactionItem = props.item as unknown as TransactionListItemType;
     return (
         <ReportSubmitToPopoverAnchor
             reportID={transactionItem.reportID}
-            anchorAlignment={ANCHOR_ALIGNMENT}
+            anchorAlignment={SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT}
         >
             <TransactionListItemInner {...props} />
         </ReportSubmitToPopoverAnchor>
@@ -157,6 +157,7 @@ function TransactionListItemInner<TItem extends ListItem>({
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
+    const {isReportSubmitToPopoverVisible, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
 
     const handleActionButtonPress = (event?: Parameters<typeof onSelectRow>[2]) => {
         handleActionButtonPressUtil({
@@ -176,6 +177,8 @@ function TransactionListItemInner<TItem extends ListItem>({
             amountOwed,
             onUndelete: () => onUndelete?.(transactionItem),
             openReportSubmitToPopover,
+            isReportSubmitToPopoverVisible,
+            consumeIgnoreNextSearchSubmitPress,
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
         });
     };
@@ -197,6 +200,7 @@ function TransactionListItemInner<TItem extends ListItem>({
         isActionLoading,
         transactionViolations,
         handleActionButtonPress,
+        shouldDisableActionPointerEvents: isReportSubmitToPopoverVisible,
         transactionPreviewData,
         exportedReportActions,
         nonPersonalAndWorkspaceCards,

@@ -37,6 +37,7 @@ function ExpenseReportListItemRowWide({
     isHovered = false,
     isFocused = false,
     isPendingDelete = false,
+    shouldDisableActionPointerEvents = false,
 }: ExpenseReportListItemRowWideProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
@@ -199,7 +200,7 @@ function ExpenseReportListItemRowWide({
                         reportID={item.reportID}
                         hash={item.hash}
                         amount={item.total}
-                        shouldDisablePointerEvents={isPendingDelete}
+                        shouldDisablePointerEvents={isPendingDelete || shouldDisableActionPointerEvents}
                     />
                 </ReportSubmitToPopoverMeasurableAnchor>
             </View>
