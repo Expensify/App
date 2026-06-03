@@ -16,11 +16,13 @@ import usePolicy from '@hooks/usePolicy';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getFormattedCreated, hasReceipt} from '@libs/TransactionUtils';
-import {setMoneyRequestCreated} from '@userActions/IOU/MoneyRequest';
+import {isPolicyExpenseChat as isPolicyExpenseChatReportUtil} from '@libs/ReportUtils';
+import {getFormattedCreated, hasReceipt, isDistanceRequest} from '@libs/TransactionUtils';
+import {setCustomUnitRateID, setMoneyRequestCreated} from '@userActions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 import {updateMoneyRequestDate} from '@userActions/IOU/UpdateMoneyRequest';
 import CONST from '@src/CONST';
@@ -63,6 +65,7 @@ function IOURequestStepDate({
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {isOffline} = useNetwork();
+    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isSplitExpense = iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
@@ -115,6 +118,18 @@ function IOURequestStepDate({
             });
         } else {
             setMoneyRequestCreated(transactionID, newCreated, isTransactionDraft, hasReceipt(transaction));
+
+            if (isDistanceRequest(transaction)) {
+                const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(report);
+                const rateID = DistanceRequestUtils.getCustomUnitRateID({
+                    reportID,
+                    isPolicyExpenseChat,
+                    policy,
+                    lastSelectedDistanceRates,
+                    expenseDate: newCreated,
+                });
+                setCustomUnitRateID(transactionID, rateID, transaction, policy);
+            }
         }
 
         navigateBack();
