@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {useAmbientTRenderEngine} from 'react-native-render-html';
 import type {TNode} from 'react-native-render-html';
 import {Pie} from 'victory-native';
@@ -14,10 +14,8 @@ const START_ANGLE = 270;
 
 function VictoryChartPie({tnode}: VictoryChartPieProps) {
     const renderEngine = useAmbientTRenderEngine();
-    const labelItemTemplate = useMemo(() => {
-        const labelComponentNode = parseComponent(tnode.attributes.labelcomponent, renderEngine, 'victorylabel');
-        return labelComponentNode ? parseVictoryLabelNode(labelComponentNode).labelItems?.at(0) : undefined;
-    }, [tnode.attributes.labelcomponent, renderEngine]);
+    const labelComponentNode = parseComponent(tnode.attributes.labelcomponent, renderEngine, 'victorylabel');
+    const labelItemTemplate = labelComponentNode ? parseVictoryLabelNode(labelComponentNode).labelItems?.at(0) : undefined;
 
     const innerRadius = tnode.attributes.innerradius !== undefined ? Number(parseAttribute(tnode.attributes.innerradius)) : undefined;
     const radius = tnode.attributes.radius !== undefined ? Number(parseAttribute(tnode.attributes.radius)) : undefined;
