@@ -15,7 +15,9 @@ Each agent has its own Expensify account with a profile, display name, and instr
 
 ## Who can use Custom Agents
 
-Anyone with an Expensify account can create a Custom Agent.
+Custom Agents are currently available through an open beta program. If you'd like to try Custom Agents and provide feedback, contact Concierge to request access.
+
+Anyone with an Expensify account can create a Custom Agent once beta access is enabled on their account.
 
 To add a Custom Agent as an approver on a workspace:
 
