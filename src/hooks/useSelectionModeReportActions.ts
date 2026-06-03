@@ -206,6 +206,8 @@ function useSelectionModeReportActions({
     });
 
     // Wrap payment select with InteractionManager for mobile performance
+    // Note: shouldBlockAction is checked synchronously for immediate modal feedback,
+    // and also inside basePaymentSelect (for the desktop path that uses it directly).
     const onSelectionModePaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         if (shouldBlockAction(iouPaymentType)) {
             return;
