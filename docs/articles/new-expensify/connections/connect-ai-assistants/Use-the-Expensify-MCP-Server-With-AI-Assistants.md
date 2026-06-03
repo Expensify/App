@@ -33,10 +33,9 @@ Any member with an Expensify account and access to an MCP-compatible AI client c
 
 Supported AI clients include:
 
- - Claude Desktop
+ - Claude 
  - ChatGPT
  - Cursor
- - OpenClaw
 
 Other MCP-compatible AI clients may also work with the Expensify MCP server.
 
@@ -145,10 +144,9 @@ Any MCP-compatible AI client may work with Expensify’s MCP server.
 
 Official setup guides are available for:
 
- - Claude Desktop
- - ChatGPT
- - Cursor
- - OpenClaw
+ - Claude: [Connect Claude to Expensify](/articles/new-expensify/connections/connect-ai-assistants/Connect-Claude-to-Expensify-Using-MCP)
+ - ChatGPT: [Connect ChatGPT to Expensify](/articles/new-expensify/connections/connect-ai-assistants/Connect-ChatGPT-to-Expensify-Using-MCP)
+ - [Cursor](/articles/new-expensify/connections/connect-ai-assistants/Connect-Cursor-to-Expensify-Using-MCP)
 
 ## What data can Expensify’s MCP server access?
 
