@@ -982,24 +982,10 @@ function Search({
                 return;
             }
 
-            const activeNavigateToReportsSpan = getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
-            if (activeNavigateToReportsSpan !== navigateToReportsSpanOnMount.current) {
-                return;
+            if (getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS) === navigateToReportsSpanOnMount.current) {
+                cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
             }
 
-            cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
-        },
-        [],
-    );
-
-    // ContentLoad outlives the legacy span and FirstPaint in a cold start (it keeps ticking through the
-    // skeleton), so it needs its own unmount cancel. The per-span identity guard skips any new span that
-    // already ended or that a newer navigation restarted, matching the legacy span's mount-identity check.
-    useEffect(
-        () => () => {
-            if (hasHadFirstLayout.current) {
-                return;
-            }
             cancelNavigateToReportsSpansIfSame(newNavigateToReportsSpansOnMount.current);
         },
         [],
