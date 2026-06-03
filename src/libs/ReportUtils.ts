@@ -2357,8 +2357,8 @@ function isArchivedReport(reportNameValuePairs?: OnyxInputOrEntry<ReportNameValu
     return !!reportNameValuePairs?.private_isArchived;
 }
 
-function isReportArchivedByID(archivedReportsIDSet: ArchivedReportsIDSet | undefined, reportID?: string): boolean {
-    if (!archivedReportsIDSet || !reportID) {
+function isReportArchivedByID(archivedReportsIDSet: ArchivedReportsIDSet, reportID?: string): boolean {
+    if (!reportID) {
         return false;
     }
     return archivedReportsIDSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
