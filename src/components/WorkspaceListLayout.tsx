@@ -64,8 +64,8 @@ export default function WorkspaceListLayout({children, activeTabKey, headerButto
         <ScreenWrapper
             testID={testID}
             shouldEnableMaxHeight
-            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
+            enableEdgeToEdgeBottomSafeAreaPadding={false}
             bottomContentStyle={styles.overflowVisible}
             bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.WORKSPACES} />}
         >
