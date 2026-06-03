@@ -112,13 +112,12 @@ function MoneyReportView({
     // While offline the deleted expense is still rendered, so keep counting it to stay consistent with the visible transaction list.
     const visibleTransactions = transactions.filter((transaction) => isOffline || !isTransactionPendingDelete(transaction));
     const isSingleExpenseReport = isSingleTransactionReport(report, visibleTransactions);
-    const isSingleNonReimbursableExpense = isSingleExpenseReport && visibleTransactions.at(0)?.reimbursable === false;
     // For a one-expense report the Total/Billable/Tax rows just repeat the expense's own amount (shown on its Amount field,
-    // including the converted value), so hide the whole report-level header block and let the expense be the source of truth.
-    const shouldShowReimbursabilityBreakdown = !isSingleNonReimbursableExpense && !!nonReimbursableSpend;
-    const shouldShowBillableRow = !!billableTotal && !isSingleExpenseReport;
-    const shouldShowTaxRow = !!taxTotal && isTaxEnabled && !isSingleExpenseReport;
-    const shouldShowBreakdown = shouldShowReimbursabilityBreakdown || shouldShowBillableRow || shouldShowTaxRow;
+    // including the converted value), so hide the whole report-level breakdown block.
+    const shouldShowReimbursabilityRow = !!nonReimbursableSpend;
+    const shouldShowBillableRow = !!billableTotal;
+    const shouldShowTaxRow = !!taxTotal && isTaxEnabled;
+    const shouldShowBreakdown = !isSingleExpenseReport && (shouldShowReimbursabilityRow || shouldShowBillableRow || shouldShowTaxRow);
     const shouldShowTotalRow = shouldShowTotal && !isSingleExpenseReport;
     const formattedTotalAmount = convertToDisplayString(totalDisplaySpend, report?.currency);
     const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);
@@ -276,8 +275,8 @@ function MoneyReportView({
                         {!!shouldShowBreakdown && (
                             <>
                                 {[
-                                    {label: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount, show: shouldShowReimbursabilityBreakdown},
-                                    {label: 'cardTransactions.companySpend', value: formattedCompanySpendAmount, show: shouldShowReimbursabilityBreakdown},
+                                    {label: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount, show: shouldShowReimbursabilityRow},
+                                    {label: 'cardTransactions.companySpend', value: formattedCompanySpendAmount, show: shouldShowReimbursabilityRow},
                                     {label: 'common.billable', value: formattedBillableAmount, show: shouldShowBillableRow},
                                     {label: 'common.tax', value: formattedTaxAmount, show: shouldShowTaxRow},
                                 ]
