@@ -24,7 +24,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {multiPersonalDetailsObjectSelector} from '@src/selectors/PersonalDetails';
+import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 import INPUT_IDS from '@src/types/form/NewTaskForm';
 
 type NewTaskDetailsPageProps = PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.DETAILS>;
@@ -36,7 +36,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
     const ancestors = useAncestors(parentReport);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [taskCreatorAndAssigneeDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: multiPersonalDetailsObjectSelector([currentUserPersonalDetails.accountID, task?.assigneeAccountID]),
+        selector: personalDetailsListSelector([currentUserPersonalDetails.accountID, task?.assigneeAccountID]),
     });
     const styles = useThemeStyles();
     const {translate} = useLocalize();

@@ -28,7 +28,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {multiPersonalDetailsObjectSelector} from '@src/selectors/PersonalDetails';
+import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type NewTaskPageProps = PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.ROOT>;
@@ -41,7 +41,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
     const reportAttributes = useReportAttributes();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [taskCreatorAndAssigneeDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: multiPersonalDetailsObjectSelector([currentUserPersonalDetails.accountID, task?.assigneeAccountID]),
+        selector: personalDetailsListSelector([currentUserPersonalDetails.accountID, task?.assigneeAccountID]),
     });
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();

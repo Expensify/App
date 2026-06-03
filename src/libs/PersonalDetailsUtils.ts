@@ -148,7 +148,7 @@ function newGetPersonalDetailsByIDs(accountIDs: (number | undefined)[], personal
     return result;
 }
 
-function getPersonalDetailsObjectByIDs(accountIDs: (number | undefined)[], personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetailsList {
+function getPersonalDetailsListByIDs(accountIDs: (number | undefined)[], personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetailsList {
     return accountIDs.reduce((acc, accountID) => {
         if (!accountID) {
             return acc;
@@ -486,7 +486,7 @@ export {
     getDisplayNameOrDefault,
     getPersonalDetailsByIDs,
     newGetPersonalDetailsByIDs,
-    getPersonalDetailsObjectByIDs,
+    getPersonalDetailsListByIDs,
     getDisplayNameOrYou,
     getPersonalDetailByEmail,
     getAccountIDsByLogins,
