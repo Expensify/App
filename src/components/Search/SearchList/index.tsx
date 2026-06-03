@@ -320,8 +320,14 @@ function SearchList({
         if (!shouldSplitGroups) {
             return {splitData: data, stickyHeaderIndices: undefined};
         }
-        return splitGroupsIntoPairs(data);
-    }, [data, shouldSplitGroups]);
+        const {splitData, stickyHeaderIndices: allIndices} = splitGroupsIntoPairs(data);
+        const activeIndices = allIndices.filter((idx) => {
+            const item = splitData.at(idx);
+            const originalKey = item?.keyForList?.replace('header_', '') ?? '';
+            return expandedGroups.has(originalKey);
+        });
+        return {splitData, stickyHeaderIndices: activeIndices.length > 0 ? activeIndices : undefined};
+    }, [data, shouldSplitGroups, expandedGroups]);
 
     const getItemType = useMemo(() => {
         if (!shouldSplitGroups) {
