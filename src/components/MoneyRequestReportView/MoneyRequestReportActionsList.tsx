@@ -4,7 +4,6 @@ import type {FlashListRef} from '@shopify/flash-list';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
 import {DeviceEventEmitter, View} from 'react-native';
 import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';

@@ -7,7 +7,6 @@ import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import InvertedFlashList from '@components/FlashList/InvertedFlashList';
-import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/FlatList/hooks/useFlatListScrollKey';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
@@ -519,7 +518,7 @@ function ReportActionsList({
             return;
         }
 
-        if (scrollOffsetRef.current >= AUTOSCROLL_TO_TOP_THRESHOLD || !hasNewestReportAction) {
+        if (scrollOffsetRef.current >= CONST.REPORT.ACTIONS.AUTOSCROLL_TO_TOP_THRESHOLD || !hasNewestReportAction) {
             return;
         }
 
