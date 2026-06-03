@@ -1049,7 +1049,7 @@ function isPaidGroupPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
 }
 
 function isSubmitPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
-    return true//policy?.type === CONST.POLICY.TYPE.SUBMIT;
+    return policy?.type === CONST.POLICY.TYPE.SUBMIT;
 }
 
 /**
@@ -1493,6 +1493,24 @@ function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseRepor
 function getManagerAccountEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string {
     const managerAccountID = getManagerAccountID(policy, expenseReport);
     return getLoginsByAccountIDs([managerAccountID]).at(0) ?? '';
+}
+
+/**
+ * Returns the email the expense report should submit to per workspace approval config
+ * (approval rules, employee submitsTo, or default approver for basic/optional workflows).
+ */
+function getSubmitToEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string {
+    const defaultApprover = getDefaultApprover(policy).trim();
+    if (!expenseReport) {
+        return defaultApprover;
+    }
+
+    const submitToAccountID = getSubmitToAccountID(policy, expenseReport);
+    if (!isValidAccountRoute(submitToAccountID)) {
+        return defaultApprover;
+    }
+
+    return getLoginsByAccountIDs([submitToAccountID]).at(0)?.trim() || defaultApprover;
 }
 
 /**
@@ -2510,6 +2528,7 @@ export {
     hasOtherControlWorkspaces,
     shouldBlockWorkspaceDeletionForInvoicifyUser,
     getManagerAccountEmail,
+    getSubmitToEmail,
     getRuleApprovers,
     canModifyPlan,
     getAdminsPrivateEmailDomains,
