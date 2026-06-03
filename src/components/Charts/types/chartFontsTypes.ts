@@ -6,6 +6,4 @@ type ChartFontsValue = {
     fontMgr: SkTypefaceFontProvider | null;
 };
 
-type ChartFontsContextValue = ChartFontsValue;
-
-export type {ChartFontsContextValue, ChartFontsValue};
+export type {ChartFontsValue};
