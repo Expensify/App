@@ -1,7 +1,7 @@
 import type {DataModule} from '@shopify/react-native-skia';
 import {useTypeface} from '@shopify/react-native-skia';
 import React from 'react';
-import {ChartDefaultTypefaceContext} from '@components/Charts/context/ChartDefaultTypefaceContext';
+import {ChartDefaultTypefaceContext} from './ChartDefaultTypefaceContext';
 
 function ChartDefaultTypefaceProvider({children}: {children: React.ReactNode}) {
     const regular = useTypeface(require('@assets/fonts/native/ExpensifyNeue-Regular.otf') as DataModule);

@@ -1,7 +1,7 @@
 import {useTypeface} from '@shopify/react-native-skia';
 import React from 'react';
-import {ChartDefaultTypefaceContext} from '@components/Charts/context/ChartDefaultTypefaceContext';
-import chartWebFont from '@components/Charts/context/chartWebFont';
+import {ChartDefaultTypefaceContext} from './ChartDefaultTypefaceContext';
+import chartWebFont from './chartWebFont';
 
 function ChartDefaultTypefaceProvider({children}: {children: React.ReactNode}) {
     const regular = useTypeface(chartWebFont(require('@assets/fonts/web/ExpensifyNeue-Regular.woff2') as string));

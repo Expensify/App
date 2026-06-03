@@ -1,5 +1,5 @@
 import type {SkTypeface} from '@shopify/react-native-skia';
-import React, {createContext, useContext} from 'react';
+import {createContext, useContext} from 'react';
 
 type ChartDefaultTypeface = {
     regular: SkTypeface | null;
