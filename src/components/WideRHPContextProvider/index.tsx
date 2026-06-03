@@ -342,4 +342,4 @@ export {
     useWideRHPState,
     useWideRHPActions,
 };
-export type {RHPWidth, RHPWidthHint} from './types';
+export type {RHPWidth} from './types';
