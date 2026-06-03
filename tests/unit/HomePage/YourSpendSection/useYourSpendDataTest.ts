@@ -12,14 +12,14 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useNetwork from '@hooks/useNetwork';
 import {search} from '@libs/actions/Search';
 import {getDisplayableExpensifyCards} from '@libs/CardUtils';
-import {hasApprovalFlow} from '@libs/PolicyUtils';
+import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import YOUR_SPEND_ROW_STATE from '@pages/home/YourSpendSection/const';
 import {buildAwaitingApprovalQuery, buildRecentCardTransactionsQuery, buildRepaidLast30DaysQuery} from '@pages/home/YourSpendSection/queries';
 import {useYourSpendData} from '@pages/home/YourSpendSection/useYourSpendData';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, Policy} from '@src/types/onyx';
+import type {Card, Policy, Report} from '@src/types/onyx';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type SearchResults from '@src/types/onyx/SearchResults';
 
@@ -74,7 +74,7 @@ jest.mock('@libs/CardUtils', () => ({
 
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils'),
-    hasApprovalFlow: jest.fn(() => false),
+    isPaidGroupPolicy: jest.fn(() => false),
 }));
 
 // Typed references to mocked modules
@@ -83,7 +83,7 @@ const mockedUseNetwork = jest.mocked(useNetwork);
 const mockedUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
 const mockedSearch = jest.mocked(search);
 const mockedGetDisplayableExpensifyCards = jest.mocked(getDisplayableExpensifyCards);
-const mockedHasApprovalFlow = jest.mocked(hasApprovalFlow);
+const mockedIsPaidGroupPolicy = jest.mocked(isPaidGroupPolicy);
 const mockedBuildAwaitingApprovalQuery = jest.mocked(buildAwaitingApprovalQuery);
 const mockedBuildRepaidLast30DaysQuery = jest.mocked(buildRepaidLast30DaysQuery);
 const mockedBuildRecentCardTransactionsQuery = jest.mocked(buildRecentCardTransactionsQuery);
@@ -189,7 +189,7 @@ beforeEach(() => {
     mockedUseNetwork.mockReturnValue(networkState(false));
     mockedUseCurrentUserPersonalDetails.mockReturnValue({accountID: ACCOUNT_ID, login: `${ACCOUNT_ID}@test.com`} as CurrentUserPersonalDetails);
     mockedGetDisplayableExpensifyCards.mockReturnValue([]);
-    mockedHasApprovalFlow.mockReturnValue(false);
+    mockedIsPaidGroupPolicy.mockReturnValue(false);
 
     // Default policies: one CORPORATE policy, no approval flow, payments enabled
     setupPolicies([makeCorporatePolicy()]);
@@ -199,34 +199,34 @@ beforeEach(() => {
 
 describe('useYourSpendData — approvalRowState', () => {
     it('returns HIDDEN when no policy has an approval flow', () => {
-        mockedHasApprovalFlow.mockReturnValue(false);
+        mockedIsPaidGroupPolicy.mockReturnValue(false);
         const {result} = renderHook(() => useYourSpendData());
         expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.HIDDEN);
     });
 
     it('returns LOADING when applicable, online, and snapshot not yet populated', () => {
-        mockedHasApprovalFlow.mockReturnValue(true);
+        mockedIsPaidGroupPolicy.mockReturnValue(true);
         // No snapshot entry → undefined
         const {result} = renderHook(() => useYourSpendData());
         expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.LOADING);
     });
 
     it('returns READY when applicable and snapshot has count > 0', () => {
-        mockedHasApprovalFlow.mockReturnValue(true);
+        mockedIsPaidGroupPolicy.mockReturnValue(true);
         setupApprovalSnapshot(makeSearchResultsWithCount(5));
         const {result} = renderHook(() => useYourSpendData());
         expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
     });
 
     it('returns HIDDEN_EMPTY when applicable and snapshot has count === 0', () => {
-        mockedHasApprovalFlow.mockReturnValue(true);
+        mockedIsPaidGroupPolicy.mockReturnValue(true);
         setupApprovalSnapshot(makeSearchResultsWithCount(0));
         const {result} = renderHook(() => useYourSpendData());
         expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY);
     });
 
     it('returns HIDDEN_EMPTY when applicable, offline, and no cached snapshot', () => {
-        mockedHasApprovalFlow.mockReturnValue(true);
+        mockedIsPaidGroupPolicy.mockReturnValue(true);
         mockedUseNetwork.mockReturnValue(networkState(true));
         // No snapshot set
         const {result} = renderHook(() => useYourSpendData());
@@ -234,7 +234,7 @@ describe('useYourSpendData — approvalRowState', () => {
     });
 
     it('returns READY when applicable, offline, and cached snapshot has count > 0', () => {
-        mockedHasApprovalFlow.mockReturnValue(true);
+        mockedIsPaidGroupPolicy.mockReturnValue(true);
         mockedUseNetwork.mockReturnValue(networkState(true));
         setupApprovalSnapshot(makeSearchResultsWithCount(3));
         const {result} = renderHook(() => useYourSpendData());
@@ -252,6 +252,7 @@ describe('useYourSpendData — paymentRowState', () => {
     });
 
     it('returns LOADING when applicable, online, and payment snapshot not yet populated', () => {
+        mockedIsPaidGroupPolicy.mockReturnValue(true);
         setupPolicies([makeCorporatePolicy({reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES})]);
         // No snapshot entry
         const {result} = renderHook(() => useYourSpendData());
@@ -259,6 +260,7 @@ describe('useYourSpendData — paymentRowState', () => {
     });
 
     it('returns READY when applicable and payment snapshot has count > 0', () => {
+        mockedIsPaidGroupPolicy.mockReturnValue(true);
         setupPolicies([makeCorporatePolicy({reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES})]);
         setupPaymentSnapshot(makeSearchResultsWithCount(2));
         const {result} = renderHook(() => useYourSpendData());
@@ -266,6 +268,7 @@ describe('useYourSpendData — paymentRowState', () => {
     });
 
     it('returns HIDDEN_EMPTY when applicable and payment snapshot has count === 0', () => {
+        mockedIsPaidGroupPolicy.mockReturnValue(true);
         setupPolicies([makeCorporatePolicy({reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES})]);
         setupPaymentSnapshot(makeSearchResultsWithCount(0));
         const {result} = renderHook(() => useYourSpendData());
@@ -273,6 +276,7 @@ describe('useYourSpendData — paymentRowState', () => {
     });
 
     it('returns HIDDEN_EMPTY when applicable, offline, and no cached payment snapshot', () => {
+        mockedIsPaidGroupPolicy.mockReturnValue(true);
         setupPolicies([makeCorporatePolicy({reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES})]);
         mockedUseNetwork.mockReturnValue(networkState(true));
         const {result} = renderHook(() => useYourSpendData());
@@ -280,6 +284,7 @@ describe('useYourSpendData — paymentRowState', () => {
     });
 
     it('applies to REIMBURSEMENT_MANUAL (track) as well as REIMBURSEMENT_YES (direct)', () => {
+        mockedIsPaidGroupPolicy.mockReturnValue(true);
         setupPolicies([makeCorporatePolicy({reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL})]);
         setupPaymentSnapshot(makeSearchResultsWithCount(1));
         const {result} = renderHook(() => useYourSpendData());
@@ -355,9 +360,28 @@ describe('useYourSpendData — cardRows', () => {
 // query builder integration
 
 describe('useYourSpendData — query builder integration', () => {
-    it('calls buildAwaitingApprovalQuery with the current user accountID', () => {
+    it('calls buildAwaitingApprovalQuery with the current user accountID and an empty policyIDs list when the user has no paid group policy', () => {
+        mockedIsPaidGroupPolicy.mockReturnValue(false);
         renderHook(() => useYourSpendData());
-        expect(buildAwaitingApprovalQuery).toHaveBeenCalledWith(ACCOUNT_ID);
+        expect(buildAwaitingApprovalQuery).toHaveBeenCalledWith(ACCOUNT_ID, []);
+    });
+
+    it('passes the IDs of paid group policies into buildAwaitingApprovalQuery', () => {
+        const policyA = makeCorporatePolicy({id: 'policy_a'});
+        const policyB = makeCorporatePolicy({id: 'policy_b'});
+        setupPolicies([policyA, policyB]);
+        mockedIsPaidGroupPolicy.mockReturnValue(true);
+        renderHook(() => useYourSpendData());
+        expect(buildAwaitingApprovalQuery).toHaveBeenCalledWith(ACCOUNT_ID, expect.arrayContaining(['policy_a', 'policy_b']));
+    });
+
+    it('excludes policies that do not pass isPaidGroupPolicy from the policyIDs list', () => {
+        const paidGroup = makeCorporatePolicy({id: 'paid_group'});
+        const otherPolicy = makeCorporatePolicy({id: 'other'});
+        setupPolicies([paidGroup, otherPolicy]);
+        mockedIsPaidGroupPolicy.mockImplementation((p) => p?.id === 'paid_group');
+        renderHook(() => useYourSpendData());
+        expect(buildAwaitingApprovalQuery).toHaveBeenCalledWith(ACCOUNT_ID, ['paid_group']);
     });
 
     it('calls buildRepaidLast30DaysQuery with the current user accountID', () => {
@@ -386,7 +410,7 @@ describe('useYourSpendData — query builder integration', () => {
 
 describe('useYourSpendData — search dispatch', () => {
     it('dispatches search() with shouldCalculateTotals:true and shouldUpdateLastSearchParams:false when focused and online', () => {
-        mockedHasApprovalFlow.mockReturnValue(true);
+        mockedIsPaidGroupPolicy.mockReturnValue(true);
         renderHook(() => useYourSpendData());
         expect(search).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -397,14 +421,14 @@ describe('useYourSpendData — search dispatch', () => {
     });
 
     it('does not dispatch search() when offline', () => {
-        mockedHasApprovalFlow.mockReturnValue(true);
+        mockedIsPaidGroupPolicy.mockReturnValue(true);
         mockedUseNetwork.mockReturnValue(networkState(true));
         renderHook(() => useYourSpendData());
         expect(search).not.toHaveBeenCalled();
     });
 
     it('dispatches search() with the approval queryJSON hash', () => {
-        mockedHasApprovalFlow.mockReturnValue(true);
+        mockedIsPaidGroupPolicy.mockReturnValue(true);
         renderHook(() => useYourSpendData());
         const expectedHash = buildSearchQueryJSON(APPROVAL_QUERY)?.hash;
         expect(search).toHaveBeenCalledWith(
@@ -412,5 +436,160 @@ describe('useYourSpendData — search dispatch', () => {
                 queryJSON: expect.objectContaining({hash: expectedHash}),
             }),
         );
+    });
+});
+
+// approval cache scoped by query hash
+
+describe('useYourSpendData — approval cache is keyed by query hash', () => {
+    // Second valid query string with a different hash, simulating the user's paid-workspace
+    // set changing (which changes the policyID filter and therefore the approval query hash).
+    const APPROVAL_QUERY_B = `type:expense status:outstanding from:${ACCOUNT_ID} reimbursable:yes policyID:other_policy`;
+
+    function setupApprovalSnapshotForQuery(query: string, results: SearchResults | undefined) {
+        const hash = buildSearchQueryJSON(query)?.hash;
+        onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`] = results;
+    }
+
+    it('does not reuse a previous-hash cached READY total after the approval query hash changes', () => {
+        mockedIsPaidGroupPolicy.mockReturnValue(true);
+
+        // Render with query A: snapshot READY with count > 0 so the cache fills.
+        mockedBuildAwaitingApprovalQuery.mockReturnValue(APPROVAL_QUERY);
+        setupApprovalSnapshotForQuery(APPROVAL_QUERY, makeSearchResultsWithCount(3));
+        const {result, rerender} = renderHook(() => useYourSpendData());
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+
+        // Switch to query B (different hash), with count missing on B's snapshot — the situation
+        // that would let a stale-cache reuse happen if the cache weren't keyed by hash.
+        mockedBuildAwaitingApprovalQuery.mockReturnValue(APPROVAL_QUERY_B);
+        setupApprovalSnapshotForQuery(APPROVAL_QUERY_B, {search: {count: undefined}, data: {}} as unknown as SearchResults);
+        rerender(undefined);
+
+        // Should NOT be READY — the cache for hash A must not apply to hash B.
+        expect(result.current.approvalRowState).not.toBe(YOUR_SPEND_ROW_STATE.READY);
+    });
+});
+
+// refire on report state change
+
+describe('useYourSpendData — refires search when a relevant report state changes', () => {
+    function makeReport(overrides: Partial<Report> = {}): Report {
+        return {
+            reportID: 'r1',
+            policyID: 'policy_1',
+            ownerAccountID: ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            ...overrides,
+        } as Report;
+    }
+
+    function setupReports(reports: Report[]) {
+        onyxData[ONYXKEYS.COLLECTION.REPORT] = Object.fromEntries(reports.map((r) => [`${ONYXKEYS.COLLECTION.REPORT}${r.reportID}`, r]));
+    }
+
+    /** Counts how many times search() has been dispatched for the approval query. */
+    function approvalSearchCallCount(): number {
+        const approvalHash = buildSearchQueryJSON(APPROVAL_QUERY)?.hash;
+        return mockedSearch.mock.calls.filter((call) => call.at(0)?.queryJSON?.hash === approvalHash).length;
+    }
+
+    beforeEach(() => {
+        mockedIsPaidGroupPolicy.mockReturnValue(true);
+        setupPolicies([makeCorporatePolicy({id: 'policy_1'})]);
+    });
+
+    it('refires the approval search when an owned report leaves the OUTSTANDING state', () => {
+        setupReports([makeReport()]);
+        const {rerender} = renderHook(() => useYourSpendData());
+        const before = approvalSearchCallCount();
+
+        // Approve the report: it leaves the OUTSTANDING set, so the signature changes.
+        setupReports([makeReport({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED})]);
+        rerender(undefined);
+
+        expect(approvalSearchCallCount()).toBeGreaterThan(before);
+    });
+
+    it('does not refire when an unrelated field on the report changes', () => {
+        setupReports([makeReport({reportName: 'Before'})]);
+        const {rerender} = renderHook(() => useYourSpendData());
+        const before = approvalSearchCallCount();
+
+        // Same state/status, only a non-projected field changes — signature is unchanged.
+        setupReports([makeReport({reportName: 'After'})]);
+        rerender(undefined);
+
+        expect(approvalSearchCallCount()).toBe(before);
+    });
+
+    it('does not refire when an OUTSTANDING report on an unrelated policy changes', () => {
+        setupReports([makeReport()]);
+        const {rerender} = renderHook(() => useYourSpendData());
+        const before = approvalSearchCallCount();
+
+        // Add an OUTSTANDING report on a policy that is not in paidGroupPolicyIDs.
+        setupReports([makeReport(), makeReport({reportID: 'r2', policyID: 'policy_other'})]);
+        rerender(undefined);
+
+        expect(approvalSearchCallCount()).toBe(before);
+    });
+});
+
+// approval cache is dropped when no outstanding reports remain
+
+describe('useYourSpendData — drops the approval cache when no outstanding reports remain', () => {
+    function makeReport(overrides: Partial<Report> = {}): Report {
+        return {
+            reportID: 'r1',
+            policyID: 'policy_1',
+            ownerAccountID: ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            ...overrides,
+        } as Report;
+    }
+
+    function setupReports(reports: Report[]) {
+        onyxData[ONYXKEYS.COLLECTION.REPORT] = Object.fromEntries(reports.map((r) => [`${ONYXKEYS.COLLECTION.REPORT}${r.reportID}`, r]));
+    }
+
+    // A zero-result search comes back with `count` missing (undefined), not 0.
+    const WIPED_SNAPSHOT = {search: {count: undefined}, data: {}} as unknown as SearchResults;
+
+    beforeEach(() => {
+        mockedIsPaidGroupPolicy.mockReturnValue(true);
+        setupPolicies([makeCorporatePolicy({id: 'policy_1'})]);
+    });
+
+    it('hides the approval row after the last outstanding report is approved', () => {
+        // Outstanding report owned by the user → snapshot READY so the cache fills.
+        setupReports([makeReport()]);
+        setupApprovalSnapshot(makeSearchResultsWithCount(2));
+        const {result, rerender} = renderHook(() => useYourSpendData());
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+
+        // Approve the last report and let the re-fired search return no count. With no
+        // outstanding reports left, the cached total must be dropped and the row hidden.
+        setupReports([makeReport({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED})]);
+        setupApprovalSnapshot(WIPED_SNAPSHOT);
+        rerender(undefined);
+
+        expect(result.current.approvalRowState).not.toBe(YOUR_SPEND_ROW_STATE.READY);
+    });
+
+    it('keeps the approval row via cache when count is wiped but an outstanding report remains', () => {
+        // Original Search-screen wipe scenario: the report stays OUTSTANDING.
+        setupReports([makeReport()]);
+        setupApprovalSnapshot(makeSearchResultsWithCount(2));
+        const {result, rerender} = renderHook(() => useYourSpendData());
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+
+        // Count wiped, but the user still owns an outstanding report → cache bridges the gap.
+        setupApprovalSnapshot(WIPED_SNAPSHOT);
+        rerender(undefined);
+
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
     });
 });
