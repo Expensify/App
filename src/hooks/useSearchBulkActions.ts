@@ -531,7 +531,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
             const serializedQuery = queryJSON ? serializeQueryJSONForBackend(queryJSON) : JSON.stringify(queryJSON);
-
+            let exportID: string;
             if (areAllMatchingItemsSelected) {
                 exportID = queueExportSearchWithTemplate({
                     templateName,
