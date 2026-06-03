@@ -122,7 +122,10 @@ function CopyPolicySettingsConfirmPage() {
                         />
                     </View>
                 </ScrollView>
-                <FixedFooter style={[styles.mtAuto]}>
+                <FixedFooter
+                    style={[styles.mtAuto]}
+                    addBottomSafeAreaPadding
+                >
                     <Button
                         success
                         large
