@@ -20,6 +20,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollToEndOnNewMessageReceived from '@hooks/useScrollToEndOnNewMessageReceived';
+import useStableListWidth from '@hooks/useStableListWidth';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
@@ -186,6 +187,7 @@ function ReportActionsList({
 
     const {getLocalDateFromDatetime} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
+    const {stableListWidth, onStableListLayout} = useStableListWidth();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportScrollManager = useReportScrollManager();
     const {scrollOffsetRef} = useContext(ActionListContext);
@@ -830,6 +832,7 @@ function ReportActionsList({
 
     const onLayoutInner = useCallback(
         (event: LayoutChangeEvent) => {
+            onStableListLayout(event);
             onLayout(event);
             if (isScrollToBottomEnabled) {
                 reportScrollManager.scrollToBottom();
@@ -837,7 +840,7 @@ function ReportActionsList({
                 completeLiveTailPruneAfterScrollToBottom();
             }
         },
-        [isScrollToBottomEnabled, onLayout, reportScrollManager, completeLiveTailPruneAfterScrollToBottom, setIsScrollToBottomEnabled],
+        [onStableListLayout, isScrollToBottomEnabled, onLayout, reportScrollManager, completeLiveTailPruneAfterScrollToBottom, setIsScrollToBottomEnabled],
     );
 
     const retryLoadNewerChatsError = useCallback(() => {
@@ -935,7 +938,7 @@ function ReportActionsList({
                     keyExtractor={keyExtractor}
                     drawDistance={1500}
                     renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={styles.chatContentScrollView}
+                    contentContainerStyle={[styles.chatContentScrollView, stableListWidth ? {width: stableListWidth} : undefined]}
                     onEndReached={onEndReached}
                     onEndReachedThreshold={0.75}
                     onStartReached={handleStartReached}
