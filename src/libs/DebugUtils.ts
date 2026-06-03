@@ -1052,6 +1052,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     subRates: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     comment: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     hold: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    vendor: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isLoading: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     type: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1179,6 +1180,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 source: 'string',
                 originalTransactionID: 'string',
                 liabilityType: CONST.TRANSACTION.LIABILITY_TYPE,
+                vendor: 'object',
                 splits: 'array',
                 dismissedViolations: 'object',
                 splitExpenses: 'array',
@@ -1328,6 +1330,8 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 rejectedBy: 'string',
                 rejectReason: 'string',
                 formattedLimit: 'string',
+                amount: 'number',
+                currency: 'string',
                 surcharge: 'number',
                 invoiceMarkup: 'number',
                 maxAge: 'number',
@@ -1416,6 +1420,8 @@ function getReasonForShowingRowInLHN({
     isInFocusMode = false,
     betas = undefined,
     draftComment,
+    currentUserLogin,
+    currentUserAccountID,
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
@@ -1425,6 +1431,8 @@ function getReasonForShowingRowInLHN({
     isInFocusMode?: boolean;
     betas?: OnyxEntry<Beta[]>;
     draftComment: string | undefined;
+    currentUserLogin?: string;
+    currentUserAccountID?: number;
 }): TranslationPaths | null {
     if (!report) {
         return null;
@@ -1442,6 +1450,8 @@ function getReasonForShowingRowInLHN({
         includeSelfDM: true,
         isReportArchived,
         draftComment,
+        currentUserLogin,
+        currentUserAccountID,
     });
 
     if (!([CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS, CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS] as Array<typeof reason>).includes(reason) && hasRBR) {

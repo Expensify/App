@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
+import useReportOwnerAsAttendee from '@hooks/useReportOwnerAsAttendee';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {setMoneyRequestAttendees} from '@libs/actions/IOU/MoneyRequest';
@@ -38,7 +39,8 @@ function IOURequestStepAttendees({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const [attendees, setAttendees] = useState<Attendee[]>(() => getOriginalAttendees(transaction, currentUserPersonalDetails));
+    const reportOwnerAsAttendee = useReportOwnerAsAttendee(transaction);
+    const [attendees, setAttendees] = useState<Attendee[]>(() => getOriginalAttendees(transaction, reportOwnerAsAttendee));
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const previousAttendees = usePrevious(attendees);
@@ -56,7 +58,6 @@ function IOURequestStepAttendees({
             return;
         }
         if (!deepEqual(previousAttendees, attendees)) {
-            setMoneyRequestAttendees(transactionID, attendees, !isEditing);
             if (isEditing) {
                 updateMoneyRequestAttendees({
                     transactionID,
@@ -73,6 +74,8 @@ function IOURequestStepAttendees({
                     parentReportNextStep,
                     delegateAccountID,
                 });
+            } else {
+                setMoneyRequestAttendees(transactionID, attendees, !isEditing);
             }
         }
 

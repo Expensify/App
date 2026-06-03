@@ -212,5 +212,3 @@ function useActiveDraftReportAction({reportID, effectiveTransactionThreadReportI
 }
 
 export default useActiveDraftReportAction;
-
-export type {ResolvedActiveDraftEdit};

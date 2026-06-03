@@ -15,11 +15,13 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import ReceiptAudit, {ReceiptAuditMessages} from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
+import ReceiptHoverZoom from '@components/ReceiptHoverZoom';
 import Tooltip from '@components/Tooltip';
 import useActiveRoute from '@hooks/useActiveRoute';
 import useAncestors from '@hooks/useAncestors';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useEnvironment from '@hooks/useEnvironment';
@@ -55,6 +57,8 @@ import {
 import trackExpenseCreationError from '@libs/telemetry/trackExpenseCreationError';
 import {
     didReceiptScanSucceed as didReceiptScanSucceedTransactionUtils,
+    hasEReceipt,
+    hasReceiptSource,
     hasReceipt as hasReceiptTransactionUtils,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isManualDistanceRequest,
@@ -124,6 +128,7 @@ function MoneyRequestReceiptView({
 }: MoneyRequestReceiptViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {environmentURL} = useEnvironment();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const {getReportRHPActiveRoute} = useActiveRoute();
@@ -146,6 +151,8 @@ function MoneyRequestReceiptView({
 
     const [isLoading, setIsLoading] = useState(true);
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
+    const [parentReportActionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReportAction?.childReportID)}`);
+
     const originalReportID = useOriginalReportID(report?.reportID, parentReportAction);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(parentReportAction);
     const isTrackExpense = !mergeTransactionID && isTrackExpenseReportNew(report, parentReport, parentReportAction);
@@ -250,6 +257,9 @@ function MoneyRequestReceiptView({
     if (hasReceipt) {
         receiptURIs = getThumbnailAndImageURIs(updatedTransaction ?? transaction);
     }
+    const transactionForReceipt = updatedTransaction ?? transaction;
+    const isEReceiptTransaction = !!transactionForReceipt && !hasReceiptSource(transactionForReceipt) && hasEReceipt(transactionForReceipt);
+    const canZoomReceipt = hasReceipt && !isLoading && !isTransactionScanning && !isEReceiptTransaction && !!receiptURIs?.image;
     const pendingAction = transaction?.pendingAction;
     // Need to return undefined when we have pendingAction to avoid the duplicate pending action
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => {
@@ -287,6 +297,7 @@ function MoneyRequestReceiptView({
                 const violationMessage = ViolationsUtils.getViolationTranslation({
                     violation,
                     translate,
+                    convertToDisplayString,
                     canEdit: isActionTakenByCurrentUser && isEditable,
                     companyCardPageURL,
                     connectionLink,
@@ -302,7 +313,19 @@ function MoneyRequestReceiptView({
             }
         }
         return [imageViolations, allViolations];
-    }, [transactionViolations, translate, isActionTakenByCurrentUser, isEditable, companyCardPageURL, connectionLink, cardList, isMarkAsCash, routeDistanceMeters, distanceUnit]);
+    }, [
+        transactionViolations,
+        translate,
+        convertToDisplayString,
+        isActionTakenByCurrentUser,
+        isEditable,
+        companyCardPageURL,
+        connectionLink,
+        cardList,
+        isMarkAsCash,
+        routeDistanceMeters,
+        distanceUnit,
+    ]);
 
     const receiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
     const itemizedReceiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
@@ -423,6 +446,7 @@ function MoneyRequestReceiptView({
                     transaction?.transactionID ?? linkedTransactionID,
                     parentReportAction,
                     report.reportID,
+                    parentReportActionChildReport,
                     iouReport,
                     chatIOUReport,
                     isChatIOUReportArchived,
@@ -595,23 +619,28 @@ function MoneyRequestReceiptView({
                             onMouseLeave={hoverBind.onMouseLeave}
                         >
                             <View style={[styles.flex1, isReceiptOfflinePending && styles.offlineFeedbackPending]}>
-                                <ReportActionItemImage
-                                    shouldUseThumbnailImage={!fillSpace}
-                                    shouldUseFullHeight={fillSpace}
-                                    thumbnail={receiptURIs?.thumbnail}
-                                    fileExtension={receiptURIs?.fileExtension}
-                                    isThumbnail={receiptURIs?.isThumbnail}
-                                    image={receiptURIs?.image}
-                                    isLocalFile={receiptURIs?.isLocalFile}
-                                    filename={receiptURIs?.filename}
-                                    transaction={updatedTransaction ?? transaction}
-                                    enablePreviewModal
-                                    readonly={readonly || !canEditReceipt}
-                                    mergeTransactionID={mergeTransactionID}
-                                    report={report}
-                                    onLoad={() => setIsLoading(false)}
-                                    onLoadFailure={() => setIsLoading(false)}
-                                />
+                                <ReceiptHoverZoom
+                                    isEnabled={canZoomReceipt}
+                                    hoverContainerRef={receiptContainerRef}
+                                >
+                                    <ReportActionItemImage
+                                        shouldUseThumbnailImage={!fillSpace}
+                                        shouldUseFullHeight={fillSpace}
+                                        thumbnail={receiptURIs?.thumbnail}
+                                        fileExtension={receiptURIs?.fileExtension}
+                                        isThumbnail={receiptURIs?.isThumbnail}
+                                        image={receiptURIs?.image}
+                                        isLocalFile={receiptURIs?.isLocalFile}
+                                        filename={receiptURIs?.filename}
+                                        transaction={updatedTransaction ?? transaction}
+                                        enablePreviewModal
+                                        readonly={readonly || !canEditReceipt}
+                                        mergeTransactionID={mergeTransactionID}
+                                        report={report}
+                                        onLoad={() => setIsLoading(false)}
+                                        onLoadFailure={() => setIsLoading(false)}
+                                    />
+                                </ReceiptHoverZoom>
                             </View>
                             {canShowReceiptActions && (
                                 <View style={[styles.receiptActionButtonsContainer, styles.pointerEventsBoxNone, !hovered && !isPickerOpen && deviceHasHoverSupport && styles.opacity0]}>

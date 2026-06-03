@@ -15,9 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
-
-const createOutstandingReportsForPolicySelector = (policyID: string | undefined) => (derived: OnyxEntry<OnyxTypes.OutstandingReportsByPolicyIDDerivedValue>) =>
-    derived?.[policyID ?? CONST.DEFAULT_NUMBER_ID];
+import {createOutstandingReportsForPolicySelector, createOutstandingReportsNVPsSelector} from './selectors';
 
 type ReportFieldProps = {
     /** The selected participants */
@@ -54,13 +52,15 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
 
     const reportAttributes = useReportAttributes();
     const policyID = selectedParticipants?.at(0)?.policyID;
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const outstandingReportsForPolicySelector = useCallback(createOutstandingReportsForPolicySelector(policyID), [policyID]);
     const [outstandingReportsForPolicy] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {selector: outstandingReportsForPolicySelector});
+    const reportNameValuePairsSelector = useCallback(createOutstandingReportsNVPsSelector(outstandingReportsForPolicy), [outstandingReportsForPolicy]);
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {selector: reportNameValuePairsSelector});
 
     // Per-key report subscriptions instead of full COLLECTION.REPORT
     const [transactionReportEntry] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
-    const [mainReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const participantReportID = transaction?.participants?.at(0)?.reportID;
+    const [mainReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${participantReportID}`);
     const iouReportIDFromMain = mainReport?.iouReportID;
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportIDFromMain}`);
 

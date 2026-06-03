@@ -29,13 +29,13 @@ import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportRouteForCurrentContext';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import {isCanceledTaskReport, isOpenTaskReport, isReportManager} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -121,7 +121,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
     return (
         <View style={[styles.chatItemMessage, !hasAssignee && styles.mv1]}>
             <PressableWithoutFeedback
-                onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(taskReportID, undefined, undefined, Navigation.getActiveRoute()))}
+                onPress={() => Navigation.navigate(getReportRouteForCurrentContext({reportID: taskReportID}))}
                 onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
                 onLongPress={(event) =>
