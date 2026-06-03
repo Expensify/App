@@ -14,11 +14,13 @@ function parseVictoryLegendNode(tnode: TNode): PartialProcessNodeResult {
     const color = style?.labels?.fill;
     const fontSize = style?.labels?.fontSize !== undefined ? Number(style.labels.fontSize) : undefined;
     const fontWeight = Number(style?.labels?.fontWeight) === 700 ? 'bold' : undefined;
+    const fontFamily = style?.labels?.fontFamily;
+    const fontStyle = style?.labels?.fontStyle;
     const entries: LegendItemEntry[] = (parseAttribute<RawLegendData[]>(tnode.attributes.data) ?? []).map((entry) => {
         const text = entry.name;
         const symbolColor = entry.symbol?.fill;
         const symbolSize = entry.symbol?.size !== undefined ? Number(entry.symbol.size) : undefined;
-        return {text, color, fontSize, fontWeight, symbolColor, symbolSize};
+        return {text, color, fontSize, fontWeight, fontFamily, fontStyle, symbolColor, symbolSize};
     });
     const legendItem: LegendItem = {x, y, entries, gutter, symbolSpacer};
     return {legendItems: [legendItem]};

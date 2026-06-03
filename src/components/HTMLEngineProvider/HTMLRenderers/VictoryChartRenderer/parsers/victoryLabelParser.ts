@@ -14,6 +14,7 @@ function parseVictoryLabelNode(tnode: TNode): PartialProcessNodeResult {
         fontSize: {},
         fontWeight: {},
         fontFamily: {},
+        fontStyle: {},
         lineHeight: parseAttribute<number[]>(tnode.attributes.lineheight),
         textAnchor: parseAttribute<TextAnchor>(tnode.attributes.textanchor),
         verticalAnchor: parseAttribute<TextAnchor>(tnode.attributes.verticalanchor),
@@ -45,6 +46,12 @@ function parseVictoryLabelNode(tnode: TNode): PartialProcessNodeResult {
                 labelItem.fontFamily = {
                     ...labelItem.fontFamily,
                     [index]: textStyle.fontFamily,
+                };
+            }
+            if (textStyle.fontStyle) {
+                labelItem.fontStyle = {
+                    ...labelItem.fontStyle,
+                    [index]: textStyle.fontStyle,
                 };
             }
         }

@@ -32,8 +32,8 @@ const VictoryChartContext = createContext<VictoryChartContextValue | null>(null)
  * Returns null when the chart data is invalid (no data points, or mixed cartesian/polar content).
  */
 function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.ReactNode}) {
-    const {regular: regularTypeface} = useChartDefaultTypeface();
-    const {data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, categories, labelItems, legendItems} = processVictoryChartTree(tnode, regularTypeface, null);
+    const typefaces = useChartDefaultTypeface();
+    const {data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, categories, labelItems, legendItems} = processVictoryChartTree(tnode, typefaces.EXP_NEUE, null);
     const {nodeStyles: chartContentStyles, parentNodeStyles: chartContainerStyles} = parseStyles(tnode);
 
     const hasCartesianData = Object.values(data).some((entry) => X_KEY in entry);

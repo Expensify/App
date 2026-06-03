@@ -1,10 +1,9 @@
 import {Skia, Text as SkText} from '@shopify/react-native-skia';
 import type {Color, SkFont} from '@shopify/react-native-skia';
 import React from 'react';
-import {useChartDefaultTypeface} from '@components/Charts/hooks';
+import {getChartSkiaTypeface, useChartDefaultTypeface} from '@components/Charts/hooks';
 import type {LabelItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import computeTextAnchorPosition from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeTextAnchorPosition';
-import getVictoryChartLabelTypeface from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getVictoryChartLabelTypeface';
 
 type VictoryChartLabelsProps = LabelItem;
 
@@ -21,7 +20,7 @@ type ProcessedLine = {
  * Renders floating Skia text labels (from `<victorylabel>` nodes) over the chart canvas.
  * Intended for use inside CartesianChart's `renderOutside` callback.
  */
-function VictoryChartLabel({x, y, text, color, fontSize, fontWeight, fontFamily, lineHeight, textAnchor = 'start', verticalAnchor = 'start'}: VictoryChartLabelsProps) {
+function VictoryChartLabel({x, y, text, color, fontSize, fontWeight, fontFamily, fontStyle, lineHeight, textAnchor = 'start', verticalAnchor = 'start'}: VictoryChartLabelsProps) {
     const typefaces = useChartDefaultTypeface();
     const processedLines = text.split('\n').reduce(
         (acc, line, index) => {
@@ -29,8 +28,13 @@ function VictoryChartLabel({x, y, text, color, fontSize, fontWeight, fontFamily,
             const lineFontSize = fontSize?.[index];
             const lineFontWeight = fontWeight?.[index];
             const lineFontFamily = fontFamily?.[index];
+            const lineFontStyle = fontStyle?.[index];
             const lineLineHeight = lineHeight?.[index];
-            const typeface = getVictoryChartLabelTypeface(lineFontFamily, lineFontWeight, typefaces);
+            const typeface = getChartSkiaTypeface(typefaces, {
+                fontFamily: lineFontFamily,
+                fontStyle: lineFontStyle,
+                fontWeight: lineFontWeight,
+            });
             const lineFont = typeface && lineFontSize ? Skia.Font(typeface, lineFontSize) : null;
             const fontMetrics = lineFont?.getMetrics();
             const lineWidth = lineFont?.getGlyphWidths(lineFont.getGlyphIDs(line)).reduce((totalWidth, width) => totalWidth + width, 0) ?? 0;
