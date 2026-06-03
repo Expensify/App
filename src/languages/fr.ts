@@ -497,6 +497,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Année précédente',
         nextYear: 'L’an prochain',
         avatar: 'Avatar',
+        restrictions: 'Restrictions',
     },
     socials: {
         podcast: 'Suivez-nous sur Podcast',
@@ -508,7 +509,6 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Réduire le raisonnement',
         expandReasoning: 'Développer le raisonnement',
-        enableNotifications: {prompt: 'Vous souhaitez être averti lorsque Concierge répond ?', cta: 'Notifier'},
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -946,7 +946,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 defaultSubtitle: 'Espace de travail',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Cartes d'entreprise`,
             },
-            fixAccountingConnection: {
+            fixPolicyConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Corriger la connexion ${integrationName}`,
                 defaultSubtitle: 'Espace de travail',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Comptabilité`,
@@ -2259,9 +2259,8 @@ const translations: TranslationDeepObject<typeof en> = {
         stepCodes: 'Codes de récupération',
         keepCodesSafe: 'Conservez ces codes en lieu sûr !',
         codesLoseAccess: dedent(`
-            Si vous perdez l’accès à votre application d’authentification et que vous n’avez pas ces codes, vous perdrez l’accès à votre compte.
-
-            <strong>Remarque</strong> : La configuration de l’authentification à deux facteurs vous déconnectera de toutes les autres sessions actives.
+            Si vous perdez l’accès à votre application d’authentification et que vous n’avez pas ces codes, vous serez bloqué hors de votre compte.<br><br>
+            <strong>Remarque</strong> : L’activation de la 2FA vous déconnecte de toutes les autres sessions.
         `),
         errorStepCodes: 'Veuillez copier ou télécharger les codes avant de continuer',
         stepVerify: 'Vérifier',
@@ -2291,7 +2290,6 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceTitle: 'Configurer un nouvel appareil',
         verifyNewDeviceDescription: 'Scannez le code QR avec votre nouvel appareil, puis saisissez le code pour terminer la configuration.',
         downloadCodes: 'Télécharger les codes',
-        screenshotTip: 'Astuce : faites une capture d’écran pour l’enregistrer dans votre photothèque',
         copyCodes: 'Copier les codes',
     },
     recoveryCodeForm: {
@@ -2998,8 +2996,9 @@ ${amount} pour ${merchant} - ${date}`,
         },
         getStarted: 'Commencer',
         whatsYourName: 'Comment vous appelez-vous ?',
-        peopleYouMayKnow: 'Des personnes que vous connaissez probablement sont déjà ici ! Vérifiez votre adresse e-mail pour les rejoindre.',
-        workspaceYouMayJoin: (domain: string, email: string) => `Quelqu’un de ${domain} a déjà créé un espace de travail. Veuillez saisir le code magique envoyé à ${email}.`,
+        peopleYouMayKnow: 'Vérifier si votre équipe est sur Expensify',
+        workspaceYouMayJoin: (domain: string, email: string) =>
+            `Saisissez le code envoyé à ${email} pour vérifier si quelqu’un de ${domain} a un espace de travail que vous pouvez rejoindre.`,
         joinAWorkspace: 'Rejoindre un espace de travail',
         listOfWorkspaces: 'Voici la liste des espaces de travail auxquels vous pouvez rejoindre.',
         skipForNow: 'Passer pour le moment',
@@ -4421,6 +4420,7 @@ ${amount} pour ${merchant} - ${date}`,
             travelInvoicingPayableAccount: 'Compte fournisseur déplacements',
             hr: 'RH',
             rooms: 'Salons',
+            findDomain: 'Trouver un domaine',
             cardAdminAlternateText: 'Gérer les cartes de l’espace de travail.',
             peopleAdminAlternateText: 'Gérez les membres et les workflows d’approbation.',
             paymentsAdminAlternateText: 'Gérer les paiements de workflow.',
@@ -4655,7 +4655,7 @@ ${amount} pour ${merchant} - ${date}`,
             creditCardAccount: 'Compte de carte de crédit',
             travelInvoicingDescription: 'Les frais de voyage seront exportés comme des débits de carte de crédit vers le compte QuickBooks Online indiqué ci-dessous.',
             companyCardsLocationEnabledDescription:
-                'QuickBooks Online ne prend pas en charge les emplacements pour l’exportation des factures fournisseur. Comme vous avez activé les emplacements sur votre espace de travail, cette option d’exportation n’est pas disponible.',
+                'QuickBooks Online ne prend pas en charge les emplacements dans les exports de factures fournisseur lorsque les emplacements sont importés en tant que tags. Comme vous avez des emplacements importés en tant que tags dans votre espace de travail, cette option d’export n’est pas disponible.',
             outOfPocketTaxEnabledDescription:
                 'QuickBooks Online ne prend pas en charge les taxes sur les exportations d’écritures comptables. Comme les taxes sont activées sur votre espace de travail, cette option d’exportation n’est pas disponible.',
             outOfPocketTaxEnabledError: 'Les écritures comptables ne sont pas disponibles lorsque les taxes sont activées. Veuillez choisir une autre option d’export.',
@@ -6090,18 +6090,28 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             error: 'Une erreur s’est produite lors de la duplication de votre nouvel espace de travail. Veuillez réessayer.',
         },
         copyPolicySettings: {
-            error: 'Une erreur s’est produite lors de la copie des paramètres de l’espace de travail. Veuillez réessayer.',
             title: 'Copier les paramètres',
-            selectWorkspaces: 'Sélectionner des espaces de travail',
-            description: 'Choisissez les espaces de travail vers lesquels vous souhaitez copier les paramètres, puis sélectionnez les paramètres que vous souhaitez copier.',
-            searchPlaceholder: 'Rechercher des espaces de travail',
-            selectFeatures: 'Sélectionner les fonctionnalités à copier',
-            whichFeatures: 'Sélectionnez les paramètres à écraser sur vos espaces de travail existants.',
-            workflowsWithoutMembersConfirm: 'Continuer sans membres',
-            workflowsWithoutMembersPrompt:
-                'La copie d’espaces de travail sans membres ne copiera pas les workflows d’approbation. Les paramètres de soumission et de paiement seront néanmoins copiés.',
-            accountingMismatch: ({part}: {part: string}) =>
-                `Vous ne pouvez copier ${part} que si tous les espaces de travail utilisent le même système de comptabilité et la même connexion d’entreprise.`,
+            error: 'Une erreur s’est produite lors de la copie des paramètres de l’espace de travail. Veuillez réessayer.',
+            selectWorkspaces: {
+                title: 'Sélectionner des espaces de travail',
+                description: 'Choisissez les espaces de travail vers lesquels vous souhaitez copier les paramètres, puis sélectionnez les paramètres que vous souhaitez copier.',
+                searchPlaceholder: 'Rechercher des espaces de travail',
+            },
+            selectSettings: {
+                title: 'Sélectionner les fonctionnalités à copier',
+                description: 'Sélectionnez les paramètres à écraser sur vos espaces de travail existants.',
+                accountingMismatch: ({part}: {part: string}) =>
+                    `Vous ne pouvez copier ${part} que si tous les espaces de travail utilisent le même système de comptabilité et la même connexion d’entreprise.`,
+            },
+            confirmSettings: {
+                title: 'Assurons-nous que tout est correct.',
+                description: ({workspaceName}: {workspaceName: string}) =>
+                    `Nous copierons les paramètres suivants de <strong>${workspaceName}</strong> vers les espaces de travail que vous avez indiqués`,
+            },
+            confirmWorkflows: {
+                continue: 'Continuer sans membres',
+                description: 'La copie d’espaces de travail sans membres ne copiera pas les workflows d’approbation. Les paramètres de soumission et de paiement seront tout de même copiés.',
+            },
         },
         emptyWorkspace: {
             title: 'Vous n’avez aucun espace de travail',
@@ -7336,6 +7346,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             syncingModalDescription: 'La première connexion peut prendre un certain temps. Vous serez informé de toute erreur.',
             syncing: 'Synchronisation des employés',
         },
+        emptyDomain: {
+            title: 'Renforcez votre sécurité avec des domaines',
+            subtitle: 'Obligez les membres de votre domaine à se connecter via l’authentification unique, restreignez la création d’espaces de travail, et plus encore.',
+        },
     },
     getAssistancePage: {
         title: 'Obtenir de l’aide',
@@ -8027,7 +8041,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         resetColumns: 'Réinitialiser les colonnes',
         groupColumns: 'Regrouper les colonnes',
         expenseColumns: 'Colonnes de dépenses',
-        saveSearch: 'Enregistrer la recherche',
+        saveView: 'Enregistrer la vue',
         deleteSavedSearch: 'Supprimer la recherche enregistrée',
         deleteSavedSearchConfirm: 'Voulez-vous vraiment supprimer cette recherche ?',
         searchName: 'Rechercher un nom',
@@ -8434,6 +8448,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         workspaceName: 'Nom de l’espace de travail',
         chatUserDisplayNames: 'Noms d’affichage des membres de discussion',
         scrollToNewestMessages: 'Aller au dernier message',
+        scrollToActionBadgeTarget: "Aller à l'action nécessitant votre attention",
         preStyledText: 'Texte pré-stylé',
         viewAttachment: 'Afficher la pièce jointe',
         contextMenuAvailable: 'Menu contextuel disponible. Appuyez sur Shift+F10 pour l’ouvrir.',
@@ -9398,7 +9413,6 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         expenseLevelExport: 'Toutes les données - niveau dépense',
         exportInProgress: 'Export en cours',
         conciergeWillSend: 'Concierge vous enverra le fichier sous peu.',
-        currentView: 'Exporter la vue actuelle',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',
