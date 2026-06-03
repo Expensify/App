@@ -226,10 +226,12 @@ describe('SearchAutocompleteList', () => {
         beforeEach(() => {
             const OptionsListUtils = jest.requireActual<typeof OptionsListUtilsModule>('@libs/OptionsListUtils');
             getSearchOptionsSpy = jest.spyOn(OptionsListUtils, 'getSearchOptions').mockReturnValue({
-                recentReports: fakeRecentReports,
-                personalDetails: [],
-                currentUserOption: null,
-                userToInvite: null,
+                options: {
+                    recentReports: fakeRecentReports,
+                    personalDetails: [],
+                    currentUserOption: null,
+                    userToInvite: null,
+                },
             });
         });
 
@@ -363,15 +365,17 @@ describe('SearchAutocompleteList', () => {
             // Now simulate server results arriving by updating the mock to return results
             // in a DIFFERENT order, plus a new server-only result.
             getSearchOptionsSpy.mockReturnValue({
-                recentReports: [
-                    {reportID: '103', keyForList: '103', text: 'Charlie Report', alternateText: 'charlie alt', lastMessageText: 'hey'},
-                    {reportID: '101', keyForList: '101', text: 'Alice Report', alternateText: 'alice alt', lastMessageText: 'hello'},
-                    {reportID: '102', keyForList: '102', text: 'Bob Report', alternateText: 'bob alt', lastMessageText: 'hi'},
-                    {reportID: '201', keyForList: '201', text: 'NewServer Report', alternateText: 'server alt', lastMessageText: 'new'},
-                ],
-                personalDetails: [],
-                currentUserOption: null,
-                userToInvite: null,
+                options: {
+                    recentReports: [
+                        {reportID: '103', keyForList: '103', text: 'Charlie Report', alternateText: 'charlie alt', lastMessageText: 'hey'},
+                        {reportID: '101', keyForList: '101', text: 'Alice Report', alternateText: 'alice alt', lastMessageText: 'hello'},
+                        {reportID: '102', keyForList: '102', text: 'Bob Report', alternateText: 'bob alt', lastMessageText: 'hi'},
+                        {reportID: '201', keyForList: '201', text: 'NewServer Report', alternateText: 'server alt', lastMessageText: 'new'},
+                    ],
+                    personalDetails: [],
+                    currentUserOption: null,
+                    userToInvite: null,
+                },
             });
 
             // Trigger a re-render by returning a new options reference from useFilteredOptions
