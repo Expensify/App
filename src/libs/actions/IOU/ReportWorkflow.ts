@@ -1570,10 +1570,9 @@ function submitReport({
         reportActionID: optimisticSubmittedReportAction.reportActionID,
         ...(trimmedManagerEmail
             ? {
-                  ...(managerAccountIDFromEmail !== undefined ? {managerAccountID: managerAccountIDFromEmail} : {}),
                   managerEmail: trimmedManagerEmail,
               }
-            : {managerAccountID: managerID}),
+            : {}),
     };
 
     onSubmitted?.();
