@@ -1376,7 +1376,9 @@ function MoneyRequestView({
                             title={tripRoomName}
                             description={translate('travel.trip')}
                             style={[styles.moneyRequestMenuItem]}
-                            titleStyle={[styles.flex1, styles.textBlue]}
+                            titleStyle={styles.flex1}
+                            numberOfLinesTitle={2}
+                            shouldShowRightIcon
                             onPress={() => {
                                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(tripRoomReportID, undefined, undefined, Navigation.getActiveRoute()));
                             }}
