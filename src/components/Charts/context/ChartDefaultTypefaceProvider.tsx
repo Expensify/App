@@ -1,0 +1,15 @@
+import {useTypeface} from '@shopify/react-native-skia';
+import React from 'react';
+import {ChartDefaultTypefaceContext} from '@components/Charts/context/ChartDefaultTypefaceContext';
+import chartWebFont from '@components/Charts/context/chartWebFont';
+
+function ChartDefaultTypefaceProvider({children}: {children: React.ReactNode}) {
+    const regular = useTypeface(chartWebFont(require('@assets/fonts/web/ExpensifyNeue-Regular.woff2') as string));
+    const bold = useTypeface(chartWebFont(require('@assets/fonts/web/ExpensifyNeue-Bold.woff2') as string));
+
+    return <ChartDefaultTypefaceContext.Provider value={{regular, bold}}>{children}</ChartDefaultTypefaceContext.Provider>;
+}
+
+ChartDefaultTypefaceProvider.displayName = 'ChartDefaultTypefaceProvider';
+
+export default ChartDefaultTypefaceProvider;
