@@ -344,7 +344,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                     <>
                         {(!isCardFrozen(currentCard) || !canManageCardFreeze) && (
                             <CardDetailsActionButtons style={styles.mb0}>
-                                {canManageCardFreeze && !isCardFrozen(currentCard) && (
+                                {canManageCardFreeze && currentCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN && !isCardFrozen(currentCard) && (
                                     <CardDetailsActionButton
                                         text={translate('cardPage.freezeCard')}
                                         icon={expensifyIcons.FreezeCard}
