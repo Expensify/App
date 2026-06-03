@@ -52,7 +52,7 @@ const VictoryTheme = {
         default: getChartColor(DEFAULT_CHART_COLOR_INDEX),
         getColor: getChartColor,
     },
-    fontFamilies: [...CHART_FONT_FAMILY_NAMES],
+    fontFamilies: Array.from(CHART_FONT_FAMILY_NAMES),
     axis: {
         /** Number of Y-axis ticks (including zero) */
         tickCount: 5,
