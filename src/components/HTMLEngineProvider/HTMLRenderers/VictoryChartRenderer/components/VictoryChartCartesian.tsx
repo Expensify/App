@@ -1,15 +1,12 @@
-import React, {useCallback, useState} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
-import Animated from 'react-native-reanimated';
-import type {Scale} from 'victory-native';
+import React, {useCallback, useRef} from 'react';
+import type {CartesianChartRenderArg, Scale} from 'victory-native';
 import {CartesianChart} from 'victory-native';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import {VictoryChartRenderArgsProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartRenderArgsContext';
-import VictoryChartBarHitTargetsUpdater from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/components/VictoryChartBarHitTargetsUpdater';
 import {useVictoryChartBarTooltips} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/hooks/useVictoryChartBarTooltips';
+import buildBarHitTargets from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/buildBarHitTargets';
 import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getHierarchyID';
-import useThemeStyles from '@hooks/useThemeStyles';
 import VictoryChartLabel from './VictoryChartLabel';
 import VictoryChartLegend from './VictoryChartLegend';
 import VictoryChartSeries from './VictoryChartSeries';
@@ -23,7 +20,6 @@ function formatTooltipValue(value: number): string {
  * Labels and legend overlays are handled internally via `renderOutside`.
  */
 function VictoryChartCartesian() {
-    const styles = useThemeStyles();
     const {
         tnode,
         data,
@@ -35,32 +31,45 @@ function VictoryChartCartesian() {
         domainPadding,
         padding,
         isHorizontal,
+        categories,
         labelItems,
         legendItems,
         barYKeys,
+        barSeriesConfig,
         tooltipData,
+        tooltipKeyToIndex,
+        chartContentStyles,
     } = useVictoryChartContext();
-    const [chartWidth, setChartWidth] = useState(0);
-    const [valueAxisZero, setValueAxisZero] = useState(0);
+    const renderArgsRef = useRef<CartesianChartRenderArg | null>(null);
     const hasBarTooltips = barYKeys.length > 0 && tooltipData.length > 0;
+    const chartWidth = typeof chartContentStyles.width === 'number' ? chartContentStyles.width : 0;
     const {plotGestures, updateHitTargets, matchedIndex, isTooltipActive, initialTooltipPosition} = useVictoryChartBarTooltips();
 
-    const handleLayout = useCallback((event: LayoutChangeEvent) => {
-        setChartWidth(event.nativeEvent.layout.width);
-    }, []);
-
-    const handleScaleChange = useCallback(
+    const syncHitTargets = useCallback(
         (xScale: Scale, yScale: Scale) => {
-            setValueAxisZero(isHorizontal ? xScale(0) : yScale(0));
+            const renderArgs = renderArgsRef.current;
+            if (!hasBarTooltips || !renderArgs) {
+                return;
+            }
+
+            const valueAxisZero = isHorizontal ? xScale(0) : yScale(0);
+            updateHitTargets(
+                buildBarHitTargets({
+                    points: renderArgs.points,
+                    barYKeys,
+                    barSeriesConfig,
+                    tooltipKeyToIndex,
+                    isHorizontal: isHorizontal ?? false,
+                    categories,
+                    valueAxisZero,
+                }),
+            );
         },
-        [isHorizontal],
+        [barSeriesConfig, barYKeys, categories, hasBarTooltips, isHorizontal, tooltipKeyToIndex, updateHitTargets],
     );
 
     return (
-        <Animated.View
-            style={styles.chartContent}
-            onLayout={handleLayout}
-        >
+        <>
             <CartesianChart
                 data={Object.values(data)}
                 xKey={xKey}
@@ -71,7 +80,7 @@ function VictoryChartCartesian() {
                 domainPadding={domainPadding}
                 padding={padding}
                 customGestures={hasBarTooltips ? plotGestures : undefined}
-                onScaleChange={hasBarTooltips ? handleScaleChange : undefined}
+                onScaleChange={hasBarTooltips ? syncHitTargets : undefined}
                 renderOutside={(renderArgs) => (
                     <VictoryChartRenderArgsProvider value={renderArgs}>
                         {labelItems.map((labelItem) => (
@@ -89,23 +98,21 @@ function VictoryChartCartesian() {
                     </VictoryChartRenderArgsProvider>
                 )}
             >
-                {(renderArgs) => (
-                    <VictoryChartRenderArgsProvider value={renderArgs}>
-                        {hasBarTooltips && (
-                            <VictoryChartBarHitTargetsUpdater
-                                valueAxisZero={valueAxisZero}
-                                updateHitTargets={updateHitTargets}
-                            />
-                        )}
-                        {tnode.children.map((child) => (
-                            <VictoryChartSeries
-                                key={`${child.tagName ?? 'node'}-${getHierarchyID(child)}`}
-                                tnode={child}
-                                isHorizontal={isHorizontal}
-                            />
-                        ))}
-                    </VictoryChartRenderArgsProvider>
-                )}
+                {(renderArgs) => {
+                    renderArgsRef.current = renderArgs;
+
+                    return (
+                        <VictoryChartRenderArgsProvider value={renderArgs}>
+                            {tnode.children.map((child) => (
+                                <VictoryChartSeries
+                                    key={`${child.tagName ?? 'node'}-${getHierarchyID(child)}`}
+                                    tnode={child}
+                                    isHorizontal={isHorizontal}
+                                />
+                            ))}
+                        </VictoryChartRenderArgsProvider>
+                    );
+                }}
             </CartesianChart>
             {hasBarTooltips && chartWidth > 0 && (
                 <ChartTooltipLayer
@@ -117,7 +124,7 @@ function VictoryChartCartesian() {
                     initialTooltipPosition={initialTooltipPosition}
                 />
             )}
-        </Animated.View>
+        </>
     );
 }
 
