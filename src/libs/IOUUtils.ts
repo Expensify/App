@@ -12,7 +12,7 @@ import {isPaidGroupPolicy} from './PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from './ReportActionsUtils';
 import {generateReportID, getChatByParticipants, isProcessingReport, isReportOutstanding, isSelfDM} from './ReportUtils';
 import {endSpan, getSpan, startSpan} from './telemetry/activeSpans';
-import {getTagArrayFromName} from './TransactionUtils';
+import {getTagArrayFromName, hasRoute, isDistanceRequest} from './TransactionUtils';
 
 function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: IOUType, transactionID: string, reportID: string, iouAction?: IOUAction, backToReport?: string): void {
     if (iouAction === CONST.IOU.ACTION.CATEGORIZE || iouAction === CONST.IOU.ACTION.SUBMIT || iouAction === CONST.IOU.ACTION.SHARE) {
@@ -226,23 +226,16 @@ function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
     // Let us ensure a valid value before updating the total amount.
     iouReportUpdate.total = iouReportUpdate.total ?? 0;
     iouReportUpdate.unheldTotal = iouReportUpdate.unheldTotal ?? 0;
-    // IOU reports have no non-reimbursable transactions, so reimbursableTotal mirrors total optimistically.
-    iouReportUpdate.reimbursableTotal = iouReportUpdate.reimbursableTotal ?? iouReportUpdate.total;
-    iouReportUpdate.unheldReimbursableTotal = iouReportUpdate.unheldReimbursableTotal ?? iouReportUpdate.unheldTotal;
 
     if (actorAccountID === iouReport.ownerAccountID) {
         iouReportUpdate.total += isDeleting ? -amount : amount;
-        iouReportUpdate.reimbursableTotal += isDeleting ? -amount : amount;
         if (!isOnHold) {
             iouReportUpdate.unheldTotal += isDeleting ? -unHeldAmount : unHeldAmount;
-            iouReportUpdate.unheldReimbursableTotal += isDeleting ? -unHeldAmount : unHeldAmount;
         }
     } else {
         iouReportUpdate.total += isDeleting ? amount : -amount;
-        iouReportUpdate.reimbursableTotal += isDeleting ? amount : -amount;
         if (!isOnHold) {
             iouReportUpdate.unheldTotal += isDeleting ? unHeldAmount : -unHeldAmount;
-            iouReportUpdate.unheldReimbursableTotal += isDeleting ? unHeldAmount : -unHeldAmount;
         }
     }
 
@@ -252,8 +245,6 @@ function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
         iouReportUpdate.managerID = iouReport.ownerAccountID;
         iouReportUpdate.total = -iouReportUpdate.total;
         iouReportUpdate.unheldTotal = -iouReportUpdate.unheldTotal;
-        iouReportUpdate.reimbursableTotal = -iouReportUpdate.reimbursableTotal;
-        iouReportUpdate.unheldReimbursableTotal = -iouReportUpdate.unheldReimbursableTotal;
     }
 
     return iouReportUpdate;
@@ -474,6 +465,27 @@ function resolveOptimisticChatReportID(participantAccountIDs: number[], existing
     return {optimisticChatReportID, chatReportID};
 }
 
+/**
+ * Whether the participant picker for this transaction should be restricted to workspaces only.
+ * A negative amount (or a distance request with zero quantity) implies money is owed *to* the
+ * current user, so only a workspace can be the counterparty — not an individual user.
+ * Scan requests are excluded because the amount isn't known until after SmartScan completes.
+ */
+function getIsWorkspacesOnlyForTransaction(transaction: OnyxEntry<Transaction>, iouRequestType: IOURequestType): boolean {
+    if (isDistanceRequest(transaction)) {
+        if (!hasRoute(transaction, true)) {
+            return false;
+        }
+        return transaction?.comment?.customUnit?.quantity === 0;
+    }
+
+    if (iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN) {
+        return false;
+    }
+
+    return transaction?.amount !== undefined && transaction?.amount !== null && transaction?.amount < 0;
+}
+
 /** Resolves which Report should receive a money-request: the picked transaction report when usable, undefined to force a new optimistic IOU, otherwise the route report. */
 function resolveReportForMoneyRequest({
     transaction,
@@ -518,6 +530,7 @@ export {
     navigateToConfirmationPage,
     calculateDefaultReimbursable,
     getInitialPerDiemTargetReport,
+    getIsWorkspacesOnlyForTransaction,
     resolveOptimisticChatReportID,
     resolveReportForMoneyRequest,
 };

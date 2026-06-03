@@ -114,6 +114,7 @@ import {
     getCleanedTagName,
     getCommaSeparatedTagNameWithSanitizedColons,
     getSubmitToAccountID,
+    isGroupPolicy,
     isPaidGroupPolicy,
     isPolicyAdmin,
     isPolicyApprover,
@@ -138,10 +139,10 @@ import {
     findSelfDMReportID,
     generateReportID,
     getIcons,
+    getInvoiceReceiverPolicyID,
     getMoneyRequestSpendBreakdown,
     getPersonalDetailsForAccountID,
     getPolicyName,
-    getReimbursableTotal,
     getReportOrDraftReport,
     getReportStatusTranslation,
     getSearchReportName,
@@ -186,6 +187,8 @@ import {
     getExchangeRate,
     getExpenseTypeTranslationKey,
     getOriginalAmountForDisplay,
+    getReportOwnerAccountIDAsAttendee,
+    getReportOwnerAsAttendee,
     getTag,
     getTaxAmount,
     getTaxName,
@@ -593,6 +596,7 @@ type GetSectionsParams = {
     isActionLoadingSet?: ReadonlySet<string>;
     isOffline?: boolean;
     cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>;
+    cardList?: OnyxEntry<OnyxTypes.CardList>;
     customCardNames?: Record<number, string>;
     allTransactionViolations?: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     visibleReportActionsData?: OnyxTypes.VisibleReportActionsDerivedValue;
@@ -1030,8 +1034,7 @@ function isEligibleForApproveSuggestion(approvalMode: string | undefined, isAppr
 
 function isPolicyEligibleForSpendOverTime(policy: OnyxTypes.Policy, currentUserEmail: string | undefined): boolean {
     return (
-        isPaidGroupPolicy(policy) &&
-        (policy.role === CONST.POLICY.ROLE.ADMIN || policy.role === CONST.POLICY.ROLE.AUDITOR || (!!currentUserEmail && isPolicyApprover(policy, currentUserEmail)))
+        isGroupPolicy(policy) && (policy.role === CONST.POLICY.ROLE.ADMIN || policy.role === CONST.POLICY.ROLE.AUDITOR || (!!currentUserEmail && isPolicyApprover(policy, currentUserEmail)))
     );
 }
 
@@ -1064,6 +1067,8 @@ function getSuggestedSearchesVisibility(
         }
 
         const isPaidPolicy = isPaidGroupPolicy(policy);
+        // Submit workspaces qualify for the same submitter/insights surface as paid group workspaces.
+        const isGroupPolicyEligible = isGroupPolicy(policy);
         const isPayer = isPolicyPayer(policy, currentUserEmail);
         const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
         const isAuditor = policy.role === CONST.POLICY.ROLE.AUDITOR;
@@ -1082,7 +1087,7 @@ function getSuggestedSearchesVisibility(
         const hasReimburser = !!policy.achAccount?.reimburser;
         const isECardEnabled = !!policy.areExpensifyCardsEnabled;
 
-        const isEligibleForSubmitSuggestion = isPaidPolicy;
+        const isEligibleForSubmitSuggestion = isGroupPolicyEligible;
         const isEligibleForPaySuggestion = isPaidPolicy && isPayer;
         const isPolicyEligibleForApproveSuggestion = isPaidPolicy && isEligibleForApproveSuggestion(policy.approvalMode, isUserApprover, isSubmittedTo);
         const isEligibleForExportSuggestion = isExporter && !hasExportError;
@@ -1092,9 +1097,9 @@ function getSuggestedSearchesVisibility(
         const isEligibleForExpensifyCardSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isECardEnabled;
         const isEligibleForReimbursementsSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isPaymentEnabled && hasVBBA && hasReimburser;
         const memberCount = Object.keys(policy.employeeList ?? {}).length;
-        const isEligibleForTopSpendersSuggestion = isPaidPolicy && (isAdmin || isAuditor || isUserApprover) && memberCount >= 2;
-        const isEligibleForTopCategoriesSuggestion = isPaidPolicy && policy.areCategoriesEnabled === true;
-        const isEligibleForTopMerchantsSuggestion = isPaidPolicy;
+        const isEligibleForTopSpendersSuggestion = isGroupPolicyEligible && (isAdmin || isAuditor || isUserApprover) && memberCount >= 2;
+        const isEligibleForTopCategoriesSuggestion = isGroupPolicyEligible && policy.areCategoriesEnabled === true;
+        const isEligibleForTopMerchantsSuggestion = isGroupPolicyEligible;
 
         shouldShowSubmitSuggestion ||= isEligibleForSubmitSuggestion;
         shouldShowPaySuggestion ||= isEligibleForPaySuggestion;
@@ -1109,7 +1114,7 @@ function getSuggestedSearchesVisibility(
         shouldShowTopCategoriesSuggestion ||= isEligibleForTopCategoriesSuggestion;
         shouldShowTopMerchantsSuggestion ||= isEligibleForTopMerchantsSuggestion;
         hasGroupPoliciesWithExpenseChat ||=
-            isPaidPolicy &&
+            isGroupPolicyEligible &&
             !!policy.isPolicyExpenseChatEnabled &&
             !policy.isJoinRequestPending &&
             (policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
@@ -2062,7 +2067,6 @@ function getTransactionsSections({
     } = classifyAndPreprocess(data);
 
     const personalDetailsMap = new Map(Object.entries(data.personalDetailsList ?? {}));
-    const currentUserPersonalDetails = personalDetailsMap.get(currentAccountID.toString()) ?? emptyPersonalDetails;
 
     const transactionsSections: TransactionListItemType[] = [];
 
@@ -2120,7 +2124,9 @@ function getTransactionsSections({
             const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
             const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, actions);
             const transactionPendingAction = getTransactionPendingAction(transactionItem);
-            const transactionAttendees = getAttendees(transactionItem, currentUserPersonalDetails);
+            const reportOwnerAccountIDAsAttendee = getReportOwnerAccountIDAsAttendee(transactionItem, currentAccountID);
+            const reportOwnerAsAttendee = reportOwnerAccountIDAsAttendee ? getReportOwnerAsAttendee(personalDetailsMap.get(reportOwnerAccountIDAsAttendee.toString())) : undefined;
+            const transactionAttendees = getAttendees(transactionItem, reportOwnerAsAttendee);
             const isUnreported = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
             const shouldShowAttendees = shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, isUnreported ? policyForMovingExpenses : policy) && transactionAttendees.length > 0;
 
@@ -2641,8 +2647,8 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data'], visible
                 const originalMessage = isMoneyRequestAction(reportAction) ? getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(reportAction) : undefined;
                 const isSendingMoney = isMoneyRequestAction(reportAction) && originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && originalMessage?.IOUDetails;
                 const isReportArchived = isArchivedReport(data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
-                const invoiceReceiverPolicy: OnyxTypes.Policy | undefined =
-                    report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? data[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`] : undefined;
+                const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(report);
+                const invoiceReceiverPolicy: OnyxTypes.Policy | undefined = invoiceReceiverPolicyID ? data[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`] : undefined;
                 if (
                     !reportID ||
                     !isReportActionVisible(reportAction, reportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData) ||
@@ -2902,11 +2908,66 @@ function getReportSections({
     return [reportIDToTransactionsValues, reportIDToTransactionsValues.length, hasDeletedTransaction];
 }
 
+function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): {key: SearchFilterKey; value: string | number} | undefined {
+    switch (groupBy) {
+        case CONST.SEARCH.GROUP_BY.FROM:
+            return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, value: (groupData as SearchMemberGroup).accountID};
+        case CONST.SEARCH.GROUP_BY.CARD:
+            return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, value: (groupData as SearchCardGroup).cardID};
+        case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
+            return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID, value: (groupData as SearchWithdrawalIDGroup).entryID};
+        case CONST.SEARCH.GROUP_BY.CATEGORY: {
+            const category = (groupData as SearchCategoryGroup).category;
+            return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, value: !category ? CONST.SEARCH.CATEGORY_EMPTY_VALUE : category};
+        }
+        case CONST.SEARCH.GROUP_BY.MERCHANT: {
+            const merchant = (groupData as SearchMerchantGroup).merchant;
+            return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value: merchant === '' ? CONST.SEARCH.MERCHANT_EMPTY_VALUE : merchant};
+        }
+        case CONST.SEARCH.GROUP_BY.TAG: {
+            const tag = (groupData as SearchTagGroup).tag;
+            return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, value: tag === '' || tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : tag};
+        }
+        default:
+            return undefined;
+    }
+}
+
 function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: SearchFilterKey, filterValue: string | number): SearchQueryJSON | undefined {
     const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== filterKey);
     newFlatFilters.push({key: filterKey, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: filterValue}]});
     const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
     return buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
+}
+
+function buildEmptyTagGroupQuery(queryJSON: SearchQueryJSON): SearchQueryJSON | undefined {
+    const newFlatFilters = queryJSON.flatFilters.reduce<QueryFilters>((filters, filter) => {
+        if (filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
+            return filters;
+        }
+
+        if (filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
+            const remainingHasFilters = filter.filters.filter((item) => item.value !== CONST.SEARCH.HAS_VALUES.TAG);
+            if (remainingHasFilters.length > 0) {
+                filters.push({...filter, filters: remainingHasFilters});
+            }
+            return filters;
+        }
+
+        filters.push(filter);
+        return filters;
+    }, []);
+    newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: CONST.SEARCH.HAS_VALUES.TAG}]});
+    const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+    return buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
+}
+
+function buildTagGroupQuery(queryJSON: SearchQueryJSON, tag: string): SearchQueryJSON | undefined {
+    if (!tag || tag === CONST.SEARCH.TAG_EMPTY_VALUE || tag === CONST.SEARCH.TAG_UNTAGGED_VALUE) {
+        return buildEmptyTagGroupQuery(queryJSON);
+    }
+
+    return buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, tag);
 }
 
 function getActiveGroupSearchHashes(data: OnyxTypes.SearchResults['data'] | undefined, queryJSON: Readonly<SearchQueryJSON> | undefined): number[] {
@@ -2970,11 +3031,7 @@ function getActiveGroupSearchHashes(data: OnyxTypes.SearchResults['data'] | unde
             case CONST.SEARCH.GROUP_BY.TAG: {
                 const tagGroup = group as SearchTagGroup;
                 if (tagGroup.tag !== undefined) {
-                    transactionsQueryJSON = buildSpecificGroupQuery(
-                        queryJSON,
-                        CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
-                        tagGroup.tag === '' || tagGroup.tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : tagGroup.tag,
-                    );
+                    transactionsQueryJSON = buildTagGroupQuery(queryJSON, tagGroup.tag);
                 }
                 break;
             }
@@ -3086,6 +3143,7 @@ function getCardSections(
     translate: LocalizedTranslate,
     cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>,
     customCardNames?: Record<number, string>,
+    cardList?: OnyxEntry<OnyxTypes.CardList>,
 ): [TransactionCardGroupListItemType[], number, boolean] {
     const cardSections: Record<string, TransactionCardGroupListItemType> = {};
     const cardDescriptionByCardID = new Map<number, string>();
@@ -3129,7 +3187,18 @@ function getCardSections(
                 ...personalDetails,
                 ...cardGroup,
                 formattedCardName,
-                formattedFeedName: getFeedNameForDisplay(translate, cardGroup.bank as OnyxTypes.CompanyCardFeed, cardFeeds, undefined, true, cardGroup?.feedCountry),
+                formattedFeedName: getFeedNameForDisplay(
+                    translate,
+                    cardGroup.bank as OnyxTypes.CompanyCardFeed,
+                    cardFeeds,
+                    cardList?.[cardGroup.cardID]?.fundID
+                        ? cardFeeds?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${cardList[cardGroup.cardID].fundID}`]?.settings?.companyCardNicknames?.[
+                              cardGroup.bank as OnyxTypes.CompanyCardFeed
+                          ]
+                        : undefined,
+                    true,
+                    cardGroup?.feedCountry,
+                ),
                 keyForList: key,
             };
         }
@@ -3274,18 +3343,11 @@ function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: Search
         if (isGroupEntry(key)) {
             const tagGroup = data[key] as SearchTagGroup;
 
-            const transactionsQueryJSON =
-                queryJSON && tagGroup.tag !== undefined
-                    ? buildSpecificGroupQuery(
-                          queryJSON,
-                          CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
-                          tagGroup.tag === '' || tagGroup.tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : tagGroup.tag,
-                      )
-                    : undefined;
+            const transactionsQueryJSON = queryJSON && tagGroup.tag !== undefined ? buildTagGroupQuery(queryJSON, tagGroup.tag) : undefined;
 
             // Format the tag name - use translated "No tag" for empty values so it sorts alphabetically
             const rawTag = tagGroup.tag;
-            const isEmptyTag = !rawTag || rawTag === CONST.SEARCH.TAG_EMPTY_VALUE || rawTag === '(untagged)';
+            const isEmptyTag = !rawTag || rawTag === CONST.SEARCH.TAG_EMPTY_VALUE || rawTag === CONST.SEARCH.TAG_UNTAGGED_VALUE;
             const formattedTag = isEmptyTag ? translate('search.noTag') : getCommaSeparatedTagNameWithSanitizedColons(rawTag);
 
             tagSections[key] = {
@@ -3473,6 +3535,7 @@ function getSections({
     isActionLoadingSet,
     isOffline,
     cardFeeds,
+    cardList,
     customCardNames,
     allTransactionViolations,
     visibleReportActionsData,
@@ -3519,7 +3582,7 @@ function getSections({
             case CONST.SEARCH.GROUP_BY.FROM:
                 return getMemberSections(data, queryJSON, formatPhoneNumber);
             case CONST.SEARCH.GROUP_BY.CARD:
-                return getCardSections(data, queryJSON, translate, cardFeeds, customCardNames);
+                return getCardSections(data, queryJSON, translate, cardFeeds, customCardNames, cardList);
             case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
                 return getWithdrawalIDSections(data, queryJSON);
             case CONST.SEARCH.GROUP_BY.CATEGORY:
@@ -3893,8 +3956,18 @@ function getSortedReportData(
 
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL) {
         return data.sort((a, b) => {
-            const aValue = getReimbursableTotal(a);
-            const bValue = getReimbursableTotal(b);
+            const aTotal = a.total;
+            const bTotal = b.total;
+
+            const aNonReimbursableTotal = a.nonReimbursableTotal;
+            const bNonReimbursableTotal = b.nonReimbursableTotal;
+
+            if (aTotal == null || bTotal == null || aNonReimbursableTotal == null || bNonReimbursableTotal == null) {
+                return 0;
+            }
+
+            const aValue = aTotal - aNonReimbursableTotal;
+            const bValue = bTotal - bNonReimbursableTotal;
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
         });
     }
@@ -4309,6 +4382,8 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         shouldShowExpensifyCard,
     } = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard);
     const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id, shouldShowExpensifyCard);
+    const hasAnyPolicyWithWorkflowsEnabled = Object.values(policies ?? {}).some((policy) => policy?.areWorkflowsEnabled);
+    const isTrackIntentWithWorkflowsDisabled = isTrackIntentUser && !hasAnyPolicyWithWorkflowsEnabled;
 
     // Expense reports section
     {
@@ -4324,7 +4399,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
             expenseReportsSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.REPORTS]);
         }
 
-        if (!isTrackIntentUser) {
+        if (!isTrackIntentWithWorkflowsDisabled) {
             if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.SUBMIT]) {
                 expenseReportsSection.menuItems.push({
                     ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SUBMIT],
@@ -4379,7 +4454,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
             menuItems: [],
         };
 
-        if (!isTrackIntentUser) {
+        if (!isTrackIntentWithWorkflowsDisabled) {
             if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.EXPORT]) {
                 accountingSection.menuItems.push({
                     ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.EXPORT],
@@ -4457,7 +4532,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
 
         const insightsSearchKeys = [
             CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME,
-            ...(!isTrackIntentUser ? [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS] : []),
+            ...(!isTrackIntentWithWorkflowsDisabled ? [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS] : []),
             CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES,
             CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS,
         ];
@@ -4618,7 +4693,7 @@ function getCurrencyOptions(currencyList: OnyxTypes.CurrencyList, getCurrencySym
     return Object.keys(currencyList).reduce(
         (options, currencyCode) => {
             if (!currencyList?.[currencyCode]?.retired) {
-                options.push({text: `${currencyCode} - ${getCurrencySymbol(currencyCode)}`, value: currencyCode});
+                options.push({text: `${currencyCode} - ${getCurrencySymbol(currencyCode)}`, value: currencyCode, searchableText: currencyList[currencyCode]?.name});
             }
 
             return options;
@@ -4806,173 +4881,49 @@ const FILTER_TO_SYNTAX_KEY: Partial<Record<SearchAdvancedFiltersKey, Exclude<Sea
     [FILTER_KEYS.PURCHASE_AMOUNT_GREATER_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
 };
 
-type FilterView = {
-    labelKey: TranslationPaths;
-    icon: ExpensifyIconName;
-};
-
-const FILTER_VIEW_MAP = {
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE]: {
-        labelKey: 'task.assignee',
-        icon: 'UserCheck',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE]: {
-        labelKey: 'iou.attendees',
-        icon: 'Users',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE]: {
-        labelKey: 'search.filters.billable',
-        icon: 'Paycheck',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID]: {
-        labelKey: 'common.card',
-        icon: 'CreditCard',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY]: {
-        labelKey: 'common.category',
-        icon: 'Folder',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY]: {
-        labelKey: 'common.currency',
-        icon: 'MoneyCircle',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION]: {
-        labelKey: 'common.description',
-        icon: 'Document',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE]: {
-        labelKey: 'search.expenseType',
-        icon: 'ExpenseCopy',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO]: {
-        labelKey: 'search.exportedTo',
-        icon: 'Export',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED]: {
-        labelKey: 'search.filters.feed',
-        icon: 'CreditCardMultiple',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM]: {
-        labelKey: 'common.from',
-        icon: 'User',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS]: {
-        labelKey: 'search.has',
-        icon: 'Paperclip',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.IN]: {
-        labelKey: 'common.in',
-        icon: 'Inbox',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.IS]: {
-        labelKey: 'search.filters.is',
-        icon: 'DotIndicatorUnfilled',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD]: {
-        labelKey: 'search.filters.keyword',
-        icon: 'Bookmark',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]: {
-        labelKey: 'common.merchant',
-        icon: 'Basket',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID]: {
-        labelKey: 'workspace.common.workspace',
-        icon: 'Building',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY]: {
-        labelKey: 'search.filters.purchaseCurrency',
-        icon: 'MoneyCircle',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE]: {
-        labelKey: 'common.reimbursable',
-        icon: 'Paycheck',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID]: {
-        labelKey: 'common.reportID',
-        icon: 'Fingerprint',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS]: {
-        labelKey: 'common.status',
-        icon: 'DotIndicator',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG]: {
-        labelKey: 'common.tag',
-        icon: 'Tag',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE]: {
-        labelKey: 'workspace.taxes.taxRate',
-        icon: 'Percent',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE]: {
-        labelKey: 'common.type',
-        icon: 'Cash',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TO]: {
-        labelKey: 'common.to',
-        icon: 'UserArrowLeft',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE]: {
-        labelKey: 'common.title',
-        icon: 'Bookmark',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID]: {
-        labelKey: 'common.withdrawalID',
-        icon: 'Fingerprint',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE]: {
-        labelKey: 'search.withdrawalType',
-        icon: 'Cash',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS]: {
-        labelKey: 'common.withdrawalStatus',
-        icon: 'DotIndicator',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT]: {
-        labelKey: 'iou.amount',
-        icon: 'Coins',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT]: {
-        labelKey: 'common.purchaseAmount',
-        icon: 'Coins',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL]: {
-        labelKey: 'common.total',
-        icon: 'Coins',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE]: {
-        labelKey: 'common.date',
-        icon: 'CalendarSolid',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED]: {
-        labelKey: 'search.filters.approved',
-        icon: 'ThumbsUp',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED]: {
-        labelKey: 'search.filters.submitted',
-        icon: 'Send',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID]: {
-        labelKey: 'search.filters.paid',
-        icon: 'MoneyBag',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED]: {
-        labelKey: 'search.filters.exported',
-        icon: 'Export',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED]: {
-        labelKey: 'search.filters.posted',
-        icon: 'Paycheck',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN]: {
-        labelKey: 'search.filters.withdrawn',
-        icon: 'CalendarSolid',
-    },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD]: {
-        labelKey: 'workspace.common.reportField',
-        icon: 'Tag',
-    },
-} satisfies Partial<Record<SyntaxFilterKey, FilterView>>;
+const FILTER_LABEL_MAP = {
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE]: 'task.assignee',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE]: 'iou.attendees',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE]: 'search.filters.billable',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID]: 'common.card',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY]: 'common.category',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY]: 'common.currency',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION]: 'common.description',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE]: 'search.expenseType',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO]: 'search.exportedTo',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED]: 'search.filters.feed',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM]: 'common.from',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]: 'common.groupCurrency',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS]: 'search.has',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.IN]: 'common.in',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.IS]: 'search.filters.is',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD]: 'search.filters.keyword',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]: 'common.merchant',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID]: 'workspace.common.workspace',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY]: 'search.filters.purchaseCurrency',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE]: 'common.reimbursable',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID]: 'common.reportID',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS]: 'common.status',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG]: 'common.tag',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE]: 'workspace.taxes.taxRate',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE]: 'common.type',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TO]: 'common.to',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE]: 'common.title',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID]: 'common.withdrawalID',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS]: 'common.withdrawalStatus',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE]: 'search.withdrawalType',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT]: 'iou.amount',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT]: 'common.purchaseAmount',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL]: 'common.total',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE]: 'common.date',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED]: 'search.filters.approved',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED]: 'search.filters.submitted',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID]: 'search.filters.paid',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED]: 'search.filters.exported',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED]: 'search.filters.posted',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN]: 'search.filters.withdrawn',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD]: 'workspace.common.reportField',
+} satisfies Partial<Record<SyntaxFilterKey, TranslationPaths>>;
 
 function getDateDisplayValue(syntaxKey: SearchDateFilterKeys, form: Partial<SearchAdvancedFiltersForm>, translate: LocalizedTranslate): string {
     const key = getDateFilterKeys(syntaxKey);
@@ -5180,7 +5131,7 @@ const isDateFilterKey = (key: SearchFilter['key']): key is Exclude<SearchDateFil
 };
 
 type SearchFilter = {
-    key: keyof typeof FILTER_VIEW_MAP;
+    key: keyof typeof FILTER_LABEL_MAP;
     label: string;
     value: string | string[];
 };
@@ -5214,7 +5165,7 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
             const displayValue = isAmountFilterKey(syntax)
                 ? getAmountDisplayValue(syntax, searchAdvancedFiltersForm, translate, convertToDisplayStringWithoutCurrency)
                 : getDateDisplayValue(syntax, searchAdvancedFiltersForm, translate);
-            const label = FILTER_VIEW_MAP[syntax].labelKey;
+            const label = FILTER_LABEL_MAP[syntax];
 
             if (displayValue && label) {
                 addedGroups.add(syntax);
@@ -5240,11 +5191,11 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
         }
 
         // Handle regular filters
-        const label = key in FILTER_VIEW_MAP ? FILTER_VIEW_MAP[key as keyof typeof FILTER_VIEW_MAP].labelKey : undefined;
+        const label = key in FILTER_LABEL_MAP ? FILTER_LABEL_MAP[key as keyof typeof FILTER_LABEL_MAP] : undefined;
         const value = getDisplayValue(key, searchAdvancedFiltersForm, type, policyIDQuery, translate, localeCompare);
 
         if (label && value && !(Array.isArray(value) && value.length === 0)) {
-            const filterLabelMapKey = key as keyof typeof FILTER_VIEW_MAP;
+            const filterLabelMapKey = key as keyof typeof FILTER_LABEL_MAP;
             const extra = mapper?.(filterLabelMapKey) ?? ({} as T);
             filters.push({key: filterLabelMapKey, label: translate(label), value, ...extra});
         }
@@ -6112,6 +6063,7 @@ export {
     getSearchReportAvatarProps,
     isTodoSearch,
     getActiveGroupSearchHashes,
+    getSelectedGroupFilterEntry,
     adjustTimeRangeToDateFilters,
     getDateDisplayValue,
     shouldShowFilter,
@@ -6124,7 +6076,7 @@ export {
     TODO_SEARCH_KEYS,
     MONTHLY_ACCRUAL_SEARCH_KEYS,
     RECONCILIATION_SEARCH_KEYS,
-    FILTER_VIEW_MAP,
+    FILTER_LABEL_MAP,
     doesSearchItemMatchSort,
     isPolicyEligibleForSpendOverTime,
     hasFlexColumn,
