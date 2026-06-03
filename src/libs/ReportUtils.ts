@@ -2357,8 +2357,8 @@ function isArchivedReport(reportNameValuePairs?: OnyxInputOrEntry<ReportNameValu
     return !!reportNameValuePairs?.private_isArchived;
 }
 
-function isReportArchivedByID(archivedReportsIDSet: ArchivedReportsIDSet, reportID?: string): boolean {
-    if (!reportID) {
+function isReportArchivedByID(archivedReportsIDSet: ArchivedReportsIDSet | undefined, reportID?: string): boolean {
+    if (!archivedReportsIDSet || !reportID) {
         return false;
     }
     return archivedReportsIDSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
@@ -11545,6 +11545,7 @@ function isReportOutstanding(
 function getOutstandingReportsForUser(
     policyID: string | undefined,
     reportOwnerAccountID: number | undefined,
+    // Temporarily optional while archived report checks are migrated in smaller PRs. Remove this fallback as part of https://github.com/Expensify/App/issues/66422.
     archivedReportsIDSet?: ArchivedReportsIDSet,
     reports: OnyxCollection<Report> = deprecatedAllReports,
     allowSubmitted = true,

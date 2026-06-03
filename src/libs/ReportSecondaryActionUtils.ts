@@ -1137,7 +1137,7 @@ function getSecondaryTransactionThreadActions({
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue;
     isChatReportArchived?: boolean;
     grandParentReport?: OnyxEntry<Report>;
-    archivedReportsIDSet: ArchivedReportsIDSet;
+    archivedReportsIDSet?: ArchivedReportsIDSet;
 }): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
