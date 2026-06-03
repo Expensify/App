@@ -1,5 +1,4 @@
 import React, {useRef} from 'react';
-import {View} from 'react-native';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import Icon from '@components/Icon';
@@ -11,13 +10,13 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
 import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReferralDetailsNavigatorParamList} from '@libs/Navigation/types';
+import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -28,7 +27,6 @@ type DynamicReferralDetailsPageProps = PlatformStackScreenProps<ReferralDetailsN
 
 function DynamicReferralDetailsPage({route}: DynamicReferralDetailsPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Copy', 'NewWindow', 'QuestionMark']);
-    const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const illustrations = useMemoizedLazyIllustrations(['PaymentHands']);
@@ -53,15 +51,13 @@ function DynamicReferralDetailsPage({route}: DynamicReferralDetailsPageProps) {
         <HeaderPageLayout
             title={translate('common.referral')}
             headerContent={
-                <View style={[styles.w100, styles.alignItemsCenter, StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.DYNAMIC_REFERRAL_DETAILS].backgroundColor)]}>
-                    <Icon
-                        src={illustrations.PaymentHands}
-                        width={589}
-                        height={232}
-                    />
-                </View>
+                <Icon
+                    src={illustrations.PaymentHands}
+                    width={589}
+                    height={232}
+                />
             }
-            headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentEnd]}
+            headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentEnd, StyleUtils.getBackgroundColorStyle(colors.pink800)]}
             testID="DynamicReferralDetailsPage"
             onBackButtonPress={() => {
                 Navigation.goBack(backPath);
