@@ -76,7 +76,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         options: listOptions,
         isLoading,
         loadMore: loadMoreReports,
-        hasMore,
+        hasMore: hasMoreFilteredOptions,
     } = useFilteredOptions({
         maxRecentReports: 500,
         enabled: didScreenTransitionEnd,
@@ -183,7 +183,8 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     }, [debouncedSearchTerm]);
 
     const handleEndReached = () => {
-        if ((!hasMoreFilteredPersonalDetails && !hasMorePersonalDetails && !hasMore) || !areOptionsInitialized || !isScreenFocusedRef.current) {
+        const hasNoDataToLoad = !hasMoreFilteredPersonalDetails && !hasMorePersonalDetails && !hasMoreFilteredOptions;
+        if (hasNoDataToLoad || !areOptionsInitialized || !isScreenFocusedRef.current) {
             return;
         }
 
@@ -195,7 +196,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
             loadMorePersonalDetails();
         }
 
-        if (options.recentReports.length < CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW && hasMore) {
+        if (options.recentReports.length < CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW && hasMoreFilteredOptions) {
             loadMoreReports();
         }
     };
