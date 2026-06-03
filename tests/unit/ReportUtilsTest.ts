@@ -12825,6 +12825,13 @@ describe('ReportUtils', () => {
             expect(hasEmptyReportsForPolicy(reports, policyID, {[reportID]: true}, accountID)).toBe(false);
         });
 
+        it('treats a report as empty when its only transactions are pending deletion', () => {
+            const reportID = 'pending-delete-report';
+            const reports = toCollection(buildReport({reportID}));
+
+            expect(hasEmptyReportsForPolicy(reports, policyID, {}, accountID)).toBe(true);
+        });
+
         it('ignores reports owned by other users or policies', () => {
             const reports = toCollection(buildReport({reportID: 'other-owner', ownerAccountID: otherAccountID}), buildReport({reportID: 'other-policy', policyID: otherPolicyID}));
 
