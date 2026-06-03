@@ -4471,7 +4471,7 @@ const staticStyles = (theme: ThemeColors) =>
         inboxTabBadge: {
             minWidth: 18,
             height: 16,
-            marginLeft: 4,
+            marginLeft: 8,
             justifyContent: 'center',
         },
 
