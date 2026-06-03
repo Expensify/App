@@ -1,12 +1,23 @@
 import React from 'react';
-import {StyleSheet, View} from 'react-native';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import { StyleSheet, View } from 'react-native';
+import { useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations } from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import Icon from './Icon';
 import Text from './Text';
+
+
+
+
+
+
+
+
+
+
+
 
 function SAMLLoadingIndicator() {
     const theme = useTheme();
@@ -15,7 +26,7 @@ function SAMLLoadingIndicator() {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
     return (
-        <View style={[StyleSheet.absoluteFillObject, styles.deeplinkWrapperContainer]}>
+        <View style={[StyleSheet.absoluteFill, styles.deeplinkWrapperContainer]}>
             <View style={styles.deeplinkWrapperMessage}>
                 <View style={styles.mb2}>
                     <Icon
