@@ -3,7 +3,6 @@ import DecisionModal from '@components/DecisionModal';
 import WorkspaceCompanyCardsTable from '@components/Tables/WorkspaceCompanyCardsTable';
 import useAssignCard from '@hooks/useAssignCard';
 import useCompanyCards from '@hooks/useCompanyCards';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -13,7 +12,7 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {canMemberWrite, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
+import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import {openPolicyCompanyCardsFeed, openPolicyCompanyCardsPage} from '@userActions/CompanyCards';
@@ -26,13 +25,12 @@ type WorkspaceCompanyCardsPageProps = PlatformStackScreenProps<WorkspaceSplitNav
 function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const policyID = route.params.policyID;
     const {translate} = useLocalize();
-    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const memoizedIllustrations = useMemoizedLazyIllustrations(['CompanyCard']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const policy = usePolicy(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.companyCards');
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const companyCards = useCompanyCards({policyID});
     const {
@@ -89,7 +87,6 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
 
     const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
     const {assignCard, isAssigningCardDisabled} = useAssignCard({feedName, policyID, setShouldShowOfflineModal});
-    const canWriteCompanyCards = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS);
 
     return (
         <AccessOrNotFoundWrapper
@@ -100,7 +97,6 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                 icon={memoizedIllustrations.CompanyCard}
                 headerText={translate('workspace.common.companyCards')}
                 route={route}
-                policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
                 shouldShowOfflineIndicatorInWideScreen
                 showLoadingAsFirstRender={false}
                 addBottomSafeAreaPadding
@@ -111,8 +107,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                     domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
                     companyCards={companyCards}
                     onAssignCard={assignCard}
-                    isAssigningCardDisabled={isAssigningCardDisabled || !canWriteCompanyCards}
-                    canWriteCompanyCards={canWriteCompanyCards}
+                    isAssigningCardDisabled={isAssigningCardDisabled}
                     onReloadPage={loadPolicyCompanyCardsPage}
                     onReloadFeed={loadPolicyCompanyCardsFeed}
                 />

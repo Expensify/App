@@ -544,6 +544,7 @@ const SCREENS = {
     },
 
     WORKSPACES_LIST: 'Workspaces_List',
+    DOMAINS_LIST: 'Domains_List',
 
     WORKSPACE: {
         ACCOUNTING: {
@@ -565,6 +566,8 @@ const SCREENS = {
             QUICKBOOKS_ONLINE_TRAVEL_INVOICING_CONFIGURATION: 'Workspace_Accounting_Quickbooks_Online_Travel_Invoicing_Configuration',
             QUICKBOOKS_ONLINE_TRAVEL_INVOICING_VENDOR_SELECT: 'Workspace_Accounting_Quickbooks_Online_Travel_Invoicing_Vendor_Select',
             QUICKBOOKS_ONLINE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT: 'Workspace_Accounting_Quickbooks_Online_Travel_Invoicing_Payable_Account_Select',
+            DYNAMIC_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_CONFIGURATION: 'Dynamic_Workspace_Accounting_Quickbooks_Desktop_Travel_Invoicing_Configuration',
+            DYNAMIC_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT: 'Dynamic_Workspace_Accounting_Quickbooks_Desktop_Travel_Invoicing_Payable_Account_Select',
             NETSUITE_TRAVEL_INVOICING_CONFIGURATION: 'Workspace_Accounting_NetSuite_Travel_Invoicing_Configuration',
             NETSUITE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT: 'Workspace_Accounting_NetSuite_Travel_Invoicing_Payable_Account_Select',
             DYNAMIC_SAGE_INTACCT_TRAVEL_INVOICING_CONFIGURATION: 'Dynamic_Policy_Accounting_Sage_Intacct_Travel_Invoicing_Configuration',
@@ -630,6 +633,7 @@ const SCREENS = {
             NETSUITE_IMPORT_CUSTOM_FIELD_VIEW: 'Policy_Accounting_NetSuite_Import_Custom_Field_View',
             NETSUITE_IMPORT_CUSTOM_FIELD_EDIT: 'Policy_Accounting_NetSuite_Import_Custom_Field_Edit',
             NETSUITE_IMPORT_CUSTOM_LIST_ADD: 'Policy_Accounting_NetSuite_Import_Custom_List_Add',
+            NETSUITE_IMPORT_CUSTOM_LIST_SELECTOR: 'Policy_Accounting_NetSuite_Import_Custom_List_Selector',
             NETSUITE_IMPORT_CUSTOM_SEGMENT_ADD: 'Policy_Accounting_NetSuite_Import_Custom_Segment_Add',
             NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS: 'Policy_Accounting_NetSuite_Import_CustomersOrProjects',
             NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS_SELECT: 'Policy_Accounting_NetSuite_Import_CustomersOrProjects_Select',
@@ -1085,11 +1089,9 @@ const SCREENS = {
     },
     MULTIFACTOR_AUTHENTICATION: {
         MAGIC_CODE: 'Multifactor_Authentication_Magic_Code',
-        BIOMETRICS_TEST: 'Multifactor_Authentication_Biometrics_Test',
         OUTCOME_SUCCESS: 'Multifactor_Authentication_Outcome_Success',
         OUTCOME_FAILURE: 'Multifactor_Authentication_Outcome_Failure',
         PROMPT: 'Multifactor_Authentication_Prompt',
-        NOT_FOUND: 'Multifactor_Authentication_Not_Found',
         REVOKE: 'Multifactor_Authentication_Revoke',
         AUTHORIZE_TRANSACTION: 'Multifactor_Authentication_Authorize_Transaction',
     },

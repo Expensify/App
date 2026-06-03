@@ -11,7 +11,7 @@ type Session = {
     email?: string;
 
     /** Currently logged in user authToken */
-    [CONST.HTTP_HEADER_NAMES.AUTH_TOKEN]?: string;
+    authToken?: string;
 
     /** Currently logged in user authToken type */
     authTokenType?: ValueOf<typeof CONST.AUTH_TOKEN_TYPES>;
@@ -36,9 +36,6 @@ type Session = {
 
     /** User signed in with short lived token */
     signedInWithShortLivedAuthToken?: boolean;
-
-    /** Indicates whether the user is re-authenticating with shortLivedToken */
-    isAuthenticatingWithShortLivedToken?: boolean;
 
     /** User signed in with SAML */
     signedInWithSAML?: boolean;
