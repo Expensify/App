@@ -2091,7 +2091,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         emptyDomainListStaticIllustrationStyle: {
             width: 274,
-            height: 164,
+            height: 178,
         },
 
         appContent: {
@@ -5692,6 +5692,8 @@ const staticStyles = (theme: ThemeColors) =>
 
         // We have to use 9998 here as sidePanel has to be displayed right under popovers which have z-index of 9999
         sidePanelContainer: {zIndex: variables.sidePanelZIndex},
+
+        mfaModalNavigatorRoot: {zIndex: variables.modalBaseZIndex},
 
         reportPreviewArrowButton: {
             borderRadius: 50,
