@@ -3169,14 +3169,14 @@ function getWorkspaceCustomUnitRateImportedMessage(translate: LocalizedTranslate
 }
 
 function getWorkspaceCustomUnitRateAddedMessage(translate: LocalizedTranslate, action: ReportAction): string {
-    const {customUnitName, rateName, rate, currency, unit, startDate, endDate} =
+    const {customUnitName, rateName, rate, currency, unit, newStartDate, newEndDate} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE>) ?? {};
 
     if (rateName && rate !== undefined && currency && unit) {
         const unitLabel = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
         const formattedRate = `${convertAmountToDisplayString(rate, currency)}/${unitLabel}`;
-        const formattedStartDate = startDate ? DateUtils.formatToReadableString(startDate) : undefined;
-        const formattedEndDate = endDate ? DateUtils.formatToReadableString(endDate) : undefined;
+        const formattedStartDate = newStartDate ? DateUtils.formatToReadableString(newStartDate) : undefined;
+        const formattedEndDate = newEndDate ? DateUtils.formatToReadableString(newEndDate) : undefined;
 
         if (formattedStartDate && formattedEndDate) {
             return translate('workspaceActions.addCustomUnitRateWithAmountAndDates', rateName, formattedRate, formattedStartDate, formattedEndDate);
@@ -3198,7 +3198,7 @@ function getWorkspaceCustomUnitRateAddedMessage(translate: LocalizedTranslate, a
 }
 
 function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate, action: ReportAction): string {
-    const {customUnitName, customUnitRateName, updatedField, oldValue, newValue, newTaxPercentage, oldTaxPercentage, startDate, endDate, oldStartDate, oldEndDate} =
+    const {customUnitName, customUnitRateName, updatedField, oldValue, newValue, newTaxPercentage, oldTaxPercentage, newStartDate, newEndDate, oldStartDate, oldEndDate} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE>) ?? {};
 
     const {RATE_CHANGELOG_UPDATED_FIELD} = CONST.CUSTOM_UNITS;
@@ -3228,37 +3228,42 @@ function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate,
         return translate('workspaceActions.updatedCustomUnitRateEnabled', customUnitName, customUnitRateName, newValue);
     }
 
-    if (customUnitRateName && updatedField === RATE_CHANGELOG_UPDATED_FIELD.START_DATE) {
-        if (!startDate && oldStartDate) {
-            return translate('workspaceActions.removedCustomUnitRateStartDate', customUnitRateName, DateUtils.formatToReadableString(oldStartDate));
-        }
-        if (startDate) {
-            const formattedOldDate = oldStartDate ? DateUtils.formatToReadableString(oldStartDate) : undefined;
-            return translate('workspaceActions.updatedCustomUnitRateStartDate', customUnitRateName, DateUtils.formatToReadableString(startDate), formattedOldDate);
-        }
-    }
+    if (customUnitRateName && updatedField === RATE_CHANGELOG_UPDATED_FIELD.DATE_RANGE) {
+        const startDateChanged = !!newStartDate || !!oldStartDate;
+        const endDateChanged = !!newEndDate || !!oldEndDate;
 
-    if (customUnitRateName && updatedField === RATE_CHANGELOG_UPDATED_FIELD.END_DATE) {
-        if (!endDate && oldEndDate) {
-            return translate('workspaceActions.removedCustomUnitRateEndDate', customUnitRateName, DateUtils.formatToReadableString(oldEndDate));
+        if (startDateChanged && endDateChanged && newStartDate && newEndDate) {
+            const formattedOldStartDate = oldStartDate ? DateUtils.formatToReadableString(oldStartDate) : undefined;
+            const formattedOldEndDate = oldEndDate ? DateUtils.formatToReadableString(oldEndDate) : undefined;
+            return translate(
+                'workspaceActions.updatedCustomUnitRateStartAndEndDate',
+                customUnitRateName,
+                DateUtils.formatToReadableString(newStartDate),
+                DateUtils.formatToReadableString(newEndDate),
+                formattedOldStartDate,
+                formattedOldEndDate,
+            );
         }
-        if (endDate) {
-            const formattedOldDate = oldEndDate ? DateUtils.formatToReadableString(oldEndDate) : undefined;
-            return translate('workspaceActions.updatedCustomUnitRateEndDate', customUnitRateName, DateUtils.formatToReadableString(endDate), formattedOldDate);
-        }
-    }
 
-    if (customUnitRateName && updatedField === RATE_CHANGELOG_UPDATED_FIELD.START_AND_END_DATE && startDate && endDate) {
-        const formattedOldStartDate = oldStartDate ? DateUtils.formatToReadableString(oldStartDate) : undefined;
-        const formattedOldEndDate = oldEndDate ? DateUtils.formatToReadableString(oldEndDate) : undefined;
-        return translate(
-            'workspaceActions.updatedCustomUnitRateStartAndEndDate',
-            customUnitRateName,
-            DateUtils.formatToReadableString(startDate),
-            DateUtils.formatToReadableString(endDate),
-            formattedOldStartDate,
-            formattedOldEndDate,
-        );
+        if (startDateChanged) {
+            if (!newStartDate && oldStartDate) {
+                return translate('workspaceActions.removedCustomUnitRateStartDate', customUnitRateName, DateUtils.formatToReadableString(oldStartDate));
+            }
+            if (newStartDate) {
+                const formattedOldDate = oldStartDate ? DateUtils.formatToReadableString(oldStartDate) : undefined;
+                return translate('workspaceActions.updatedCustomUnitRateStartDate', customUnitRateName, DateUtils.formatToReadableString(newStartDate), formattedOldDate);
+            }
+        }
+
+        if (endDateChanged) {
+            if (!newEndDate && oldEndDate) {
+                return translate('workspaceActions.removedCustomUnitRateEndDate', customUnitRateName, DateUtils.formatToReadableString(oldEndDate));
+            }
+            if (newEndDate) {
+                const formattedOldDate = oldEndDate ? DateUtils.formatToReadableString(oldEndDate) : undefined;
+                return translate('workspaceActions.updatedCustomUnitRateEndDate', customUnitRateName, DateUtils.formatToReadableString(newEndDate), formattedOldDate);
+            }
+        }
     }
 
     return getReportActionText(action);

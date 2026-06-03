@@ -579,16 +579,16 @@ type OriginalMessagePolicyChangeLog = {
     /** Unit of the custom unit (e.g. "mi", "km") */
     unit?: string;
 
-    /** Start date of the custom unit rate in ISO 8601 format */
-    startDate?: string;
+    /** New start date of the custom unit rate (yyyy-MM-dd) */
+    newStartDate?: string;
 
-    /** End date of the custom unit rate in ISO 8601 format */
-    endDate?: string;
+    /** New end date of the custom unit rate (yyyy-MM-dd) */
+    newEndDate?: string;
 
-    /** Previous start date of the custom unit rate */
+    /** Previous start date of the custom unit rate (yyyy-MM-dd) */
     oldStartDate?: string;
 
-    /** Previous end date of the custom unit rate */
+    /** Previous end date of the custom unit rate (yyyy-MM-dd) */
     oldEndDate?: string;
 
     /** Tax percentage of the new tax rate linked to distance rate */

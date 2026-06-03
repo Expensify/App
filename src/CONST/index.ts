@@ -4190,9 +4190,7 @@ const CONST = {
             TAX_RATE_EXTERNAL_ID: 'taxRateExternalID',
             TAX_CLAIMABLE_PERCENTAGE: 'taxClaimablePercentage',
             ENABLED: 'enabled',
-            START_DATE: 'startDate',
-            END_DATE: 'endDate',
-            START_AND_END_DATE: 'startDate,endDate',
+            DATE_RANGE: 'dateRange',
         },
     },
 
