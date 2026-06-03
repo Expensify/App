@@ -1,5 +1,5 @@
 import React, {useMemo} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import {PolarChart} from 'victory-native';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
@@ -20,6 +20,56 @@ function formatTooltipValue(value: number): string {
     return `$${Math.round(value).toLocaleString()}`;
 }
 
+type VictoryChartPolarTooltipsProps = {
+    chartWidth: number;
+    chartHeight: number;
+    innerRadius: number;
+    outerRadius: number;
+};
+
+/**
+ * Captures hover/tap over the pie chart without wrapping PolarChart itself.
+ */
+function VictoryChartPolarTooltips({chartWidth, chartHeight, innerRadius, outerRadius}: VictoryChartPolarTooltipsProps) {
+    const {tooltipData} = useVictoryChartContext();
+
+    const pieGeometry = useMemo(
+        () => ({
+            centerX: chartWidth / 2,
+            centerY: chartHeight / 2,
+            radius: outerRadius,
+        }),
+        [chartHeight, chartWidth, outerRadius],
+    );
+
+    const processedSlices = useMemo(() => processDataIntoSlices(tooltipData, pieGeometry, START_ANGLE), [pieGeometry, tooltipData]);
+
+    const {plotGestures, matchedIndex, isTooltipActive, initialTooltipPosition} = useVictoryChartPieTooltips({
+        slices: processedSlices,
+        pieGeometry,
+        innerRadius,
+    });
+
+    return (
+        <>
+            <GestureDetector gesture={plotGestures}>
+                <View
+                    style={StyleSheet.absoluteFillObject}
+                    pointerEvents="box-only"
+                />
+            </GestureDetector>
+            <ChartTooltipLayer
+                matchedIndex={matchedIndex}
+                isTooltipActive={isTooltipActive}
+                data={tooltipData}
+                formatValue={formatTooltipValue}
+                chartWidth={chartWidth}
+                initialTooltipPosition={initialTooltipPosition}
+            />
+        </>
+    );
+}
+
 /**
  * Renders the PolarChart with data drawn from context.
  */
@@ -32,74 +82,39 @@ function VictoryChartPolar() {
     const innerRadius = pieNode?.attributes.innerradius !== undefined ? Number(parseAttribute(pieNode.attributes.innerradius)) : 0;
     const hasPieTooltips = tooltipData.length > 0;
 
-    const pieGeometry = useMemo(
-        () => ({
-            centerX: chartWidth / 2,
-            centerY: chartHeight / 2,
-            radius: outerRadius,
-        }),
-        [chartHeight, chartWidth, outerRadius],
-    );
-
-    const processedSlices = useMemo(() => {
-        if (!hasPieTooltips || chartWidth === 0 || chartHeight === 0) {
-            return [];
-        }
-
-        return processDataIntoSlices(tooltipData, pieGeometry, START_ANGLE);
-    }, [chartHeight, chartWidth, hasPieTooltips, pieGeometry, tooltipData]);
-
-    const {plotGestures, matchedIndex, isTooltipActive, initialTooltipPosition} = useVictoryChartPieTooltips({
-        slices: processedSlices,
-        pieGeometry,
-        innerRadius,
-    });
-
-    const chartContent = (
-        <PolarChart
-            data={Object.values(data)}
-            labelKey={LABEL_KEY}
-            valueKey={VALUE_KEY}
-            colorKey={COLOR_KEY}
-        >
-            {tnode.children.map((child) => (
-                <VictoryChartCategories
-                    key={`${child.tagName ?? 'node'}-${getHierarchyID(child)}`}
-                    tnode={child}
-                />
-            ))}
-            {labelItems.map((labelItem) => (
-                <VictoryChartLabel
-                    key={`label-${labelItem.x}-${labelItem.y}`}
-                    {...labelItem}
-                />
-            ))}
-            {legendItems.map((legendItem) => (
-                <VictoryChartLegend
-                    key={`legend-${legendItem.x}-${legendItem.y}`}
-                    {...legendItem}
-                />
-            ))}
-        </PolarChart>
-    );
-
     return (
         <>
-            {hasPieTooltips ? (
-                <GestureDetector gesture={plotGestures}>
-                    <View style={{width: chartWidth || '100%', height: chartHeight || '100%'}}>{chartContent}</View>
-                </GestureDetector>
-            ) : (
-                chartContent
-            )}
-            {hasPieTooltips && chartWidth > 0 && (
-                <ChartTooltipLayer
-                    matchedIndex={matchedIndex}
-                    isTooltipActive={isTooltipActive}
-                    data={tooltipData}
-                    formatValue={formatTooltipValue}
+            <PolarChart
+                data={Object.values(data)}
+                labelKey={LABEL_KEY}
+                valueKey={VALUE_KEY}
+                colorKey={COLOR_KEY}
+            >
+                {tnode.children.map((child) => (
+                    <VictoryChartCategories
+                        key={`${child.tagName ?? 'node'}-${getHierarchyID(child)}`}
+                        tnode={child}
+                    />
+                ))}
+                {labelItems.map((labelItem) => (
+                    <VictoryChartLabel
+                        key={`label-${labelItem.x}-${labelItem.y}`}
+                        {...labelItem}
+                    />
+                ))}
+                {legendItems.map((legendItem) => (
+                    <VictoryChartLegend
+                        key={`legend-${legendItem.x}-${legendItem.y}`}
+                        {...legendItem}
+                    />
+                ))}
+            </PolarChart>
+            {hasPieTooltips && chartWidth > 0 && chartHeight > 0 && (
+                <VictoryChartPolarTooltips
                     chartWidth={chartWidth}
-                    initialTooltipPosition={initialTooltipPosition}
+                    chartHeight={chartHeight}
+                    innerRadius={innerRadius}
+                    outerRadius={outerRadius}
                 />
             )}
         </>
