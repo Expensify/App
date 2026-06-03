@@ -1,5 +1,4 @@
 import React, {useRef} from 'react';
-import {View} from 'react-native';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import Icon from '@components/Icon';
@@ -52,15 +51,13 @@ function DynamicReferralDetailsPage({route}: DynamicReferralDetailsPageProps) {
         <HeaderPageLayout
             title={translate('common.referral')}
             headerContent={
-                <View style={[styles.w100, styles.alignItemsCenter, StyleUtils.getBackgroundColorStyle(colors.pink800)]}>
-                    <Icon
-                        src={illustrations.PaymentHands}
-                        width={589}
-                        height={232}
-                    />
-                </View>
+                <Icon
+                    src={illustrations.PaymentHands}
+                    width={589}
+                    height={232}
+                />
             }
-            headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentEnd]}
+            headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentEnd, StyleUtils.getBackgroundColorStyle(colors.pink800)]}
             testID="DynamicReferralDetailsPage"
             onBackButtonPress={() => {
                 Navigation.goBack(backPath);
