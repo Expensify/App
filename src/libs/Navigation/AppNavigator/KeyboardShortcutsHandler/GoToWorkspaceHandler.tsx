@@ -26,7 +26,7 @@ function GoToWorkspaceHandler() {
 
                 const report = getReportOrDraftReport(reportID);
                 const policyID = report?.policyID ?? (report?.parentReportID ? getReportOrDraftReport(report.parentReportID)?.policyID : undefined);
-                if (!policyID) {
+                if (!policyID || policyID === CONST.POLICY.ID_FAKE) {
                     return;
                 }
 
