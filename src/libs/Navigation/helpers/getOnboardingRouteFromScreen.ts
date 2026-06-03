@@ -1,10 +1,7 @@
-import type {ValueOf} from 'type-fest';
+import type {OnboardingScreen} from '@libs/getOnboardingStepCounter';
 import {normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
 import {getUrlWithParams} from '@libs/Url';
 import type {Route} from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
-
-type OnboardingScreen = ValueOf<typeof SCREENS.ONBOARDING>;
 
 function getOnboardingRouteFromScreen(screen: OnboardingScreen, backTo?: string): Route | undefined {
     const path = normalizedConfigs[screen]?.path;
@@ -20,4 +17,3 @@ function getOnboardingRouteFromScreen(screen: OnboardingScreen, backTo?: string)
 }
 
 export default getOnboardingRouteFromScreen;
-export type {OnboardingScreen};
