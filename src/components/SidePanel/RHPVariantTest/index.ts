@@ -59,10 +59,10 @@ const shouldOpenRHPVariant: ShouldOpenRHPVariant = (variantOverride) => {
  * All variants open the side panel without overlay.
  * The control variant is handled separately in navigateAfterOnboarding.
  */
-const handleRHPVariantNavigation: HandleRHPVariantNavigation = (onboardingPolicyID, variantOverride) => {
+const handleRHPVariantNavigation: HandleRHPVariantNavigation = (onboardingPolicyID, variantOverride, navigationOptions) => {
     const variant = variantOverride ?? onboardingRHPVariant;
     if (variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
-        Navigation.navigate(ROUTES.HOME);
+        Navigation.navigate(ROUTES.HOME, navigationOptions);
         SidePanelActions.openSidePanel(true);
         return;
     }
@@ -70,9 +70,9 @@ const handleRHPVariantNavigation: HandleRHPVariantNavigation = (onboardingPolicy
     const isRHPHomePage = variant === CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE;
 
     if (isRHPHomePage) {
-        Navigation.navigate(ROUTES.HOME);
+        Navigation.navigate(ROUTES.HOME, navigationOptions);
     } else {
-        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(onboardingPolicyID));
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(onboardingPolicyID), navigationOptions);
     }
     SidePanelActions.openSidePanel(true);
 };

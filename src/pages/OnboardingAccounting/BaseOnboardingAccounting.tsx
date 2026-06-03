@@ -13,9 +13,9 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useCompleteOnboarding from '@hooks/useCompleteOnboarding';
-import type {OnboardingFeatureMapItem} from '@hooks/useCompleteOnboarding';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -23,6 +23,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setOnboardingAccountingEnabled, setOnboardingAdminsChatReportID, setOnboardingPolicyID, setOnboardingUserReportedIntegration} from '@libs/actions/Welcome';
+import {getDefaultOnboardingFeaturesMap} from '@libs/actions/Welcome/OnboardingFeatures';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
@@ -90,20 +91,6 @@ type OnboardingListItem = ListItem & {
     keyForList: AccountingOptionKey;
 };
 
-const fallbackFeaturesMap: OnboardingFeatureMapItem[] = [
-    {id: CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED, enabled: true, enabledByDefault: true},
-    {id: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED, enabled: true, enabledByDefault: true},
-    {id: CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED, enabled: true, enabledByDefault: true},
-    {id: CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED, enabled: true, enabledByDefault: true},
-    {id: CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED, enabled: false},
-    {id: CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED, enabled: false, requiresUpdate: true},
-    {id: CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED, enabled: false},
-    {id: CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED, enabled: false},
-    {id: CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED, enabled: false},
-    {id: CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED, enabled: false, requiresUpdate: true},
-    {id: CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED, enabled: false},
-];
-
 function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboardingAccountingProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -142,6 +129,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     const [error, setError] = useState('');
 
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
+    const {isOffline} = useNetwork();
     const {completeOnboardingFlow, isLoading: isCompletingOnboarding} = useCompleteOnboarding();
 
     // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signup
@@ -201,7 +189,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
         const integrationValue: OnboardingAccounting = selectedIntegration === 'other' ? otherIntegrationText.trim() : selectedIntegration;
         setOnboardingAccountingEnabled(true);
         setOnboardingUserReportedIntegration(integrationValue);
-        await completeOnboardingFlow({featuresMap: onboardingFeaturesMap ?? fallbackFeaturesMap, userReportedIntegration: integrationValue});
+        await completeOnboardingFlow({featuresMap: onboardingFeaturesMap ?? getDefaultOnboardingFeaturesMap(), userReportedIntegration: integrationValue});
     };
 
     const handleIntegrationSelect = (integrationKey: OnboardingListItem['keyForList']) => {
@@ -288,6 +276,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                     large
                     text={translate('common.continue')}
                     onPress={handleContinue}
+                    isDisabled={isOffline}
                     isLoading={isCompletingOnboarding}
                     pressOnEnter
                     sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}

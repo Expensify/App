@@ -4,10 +4,9 @@ import isSidePanelReportSupported from '@components/SidePanel/isSidePanelReportS
 import {createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from '@libs/actions/Policy/Policy';
 import {completeOnboarding} from '@libs/actions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/actions/Welcome';
+import type {OnboardingFeatureMapItem} from '@libs/actions/Welcome/OnboardingFeatures';
 import Log from '@libs/Log';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
-// eslint-disable-next-line no-restricted-imports
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import type {OnboardingAccounting} from '@src/CONST';
@@ -22,13 +21,6 @@ import useOnboardingMessages from './useOnboardingMessages';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 import useResponsiveLayout from './useResponsiveLayout';
-
-type OnboardingFeatureMapItem = {
-    id: string;
-    enabled: boolean;
-    enabledByDefault?: boolean;
-    requiresUpdate?: boolean;
-};
 
 type CompleteOnboardingParams = {
     featuresMap: OnboardingFeatureMapItem[];
@@ -119,14 +111,6 @@ function useCompleteOnboarding() {
                 isSelfTourViewed,
             });
 
-            TransitionTracker.runAfterTransitions({
-                callback: () => {
-                    setOnboardingAdminsChatReportID();
-                    setOnboardingPolicyID();
-                },
-                waitForUpcomingTransition: true,
-            });
-
             navigateAfterOnboardingWithMicrotaskQueue(
                 isSmallScreenWidth,
                 isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
@@ -135,6 +119,12 @@ function useCompleteOnboarding() {
                 policyID,
                 adminsChatReportID,
                 (session?.email ?? '').includes('+'),
+                {
+                    afterTransition: () => {
+                        setOnboardingAdminsChatReportID();
+                        setOnboardingPolicyID();
+                    },
+                },
             );
         } catch (error) {
             Log.warn('[useCompleteOnboarding] Error completing onboarding', {error});

@@ -11,7 +11,6 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useCompleteOnboarding from '@hooks/useCompleteOnboarding';
-import type {OnboardingFeatureMapItem} from '@hooks/useCompleteOnboarding';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -26,6 +25,8 @@ import {
     setOnboardingPolicyID,
     setOnboardingUserReportedIntegration,
 } from '@libs/actions/Welcome';
+import {ONBOARDING_FEATURES} from '@libs/actions/Welcome/OnboardingFeatures';
+import type {OnboardingFeatureMapItem} from '@libs/actions/Welcome/OnboardingFeatures';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
@@ -54,69 +55,34 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles, route}: BaseOn
     const isVsb = onboarding?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
 
     const features: Feature[] = useMemo(() => {
-        return [
-            {
-                id: CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED,
-                title: translate('workspace.moreFeatures.categories.title'),
-                icon: illustrations.FolderOpen,
-                enabledByDefault: true,
-            },
-            {
-                id: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
-                title: translate('workspace.moreFeatures.connections.title'),
-                icon: illustrations.Accounting,
-                enabledByDefault: true,
-            },
-            {
-                id: CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED,
-                title: translate('workspace.moreFeatures.companyCards.title'),
-                icon: illustrations.CompanyCard,
-                enabledByDefault: true,
-            },
-            {
-                id: CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED,
-                title: translate('workspace.moreFeatures.workflows.title'),
-                icon: illustrations.Workflows,
-                enabledByDefault: true,
-            },
-            {
-                id: CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED,
-                title: translate('workspace.moreFeatures.travel.title'),
-                icon: illustrations.Luggage,
-            },
-            {
-                id: CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
-                title: translate('workspace.moreFeatures.rules.title'),
-                icon: illustrations.Rules,
-                requiresUpdate: true,
-            },
-            {
-                id: CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED,
-                title: translate('workspace.moreFeatures.distanceRates.title'),
-                icon: illustrations.Car,
-            },
-            {
-                id: CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED,
-                title: translate('workspace.moreFeatures.expensifyCard.title'),
-                icon: illustrations.HandCard,
-            },
-            {
-                id: CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED,
-                title: translate('workspace.moreFeatures.tags.title'),
-                icon: illustrations.Tag,
-            },
-            {
-                id: CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
-                title: translate('workspace.moreFeatures.perDiem.title'),
-                icon: illustrations.PerDiem,
-                requiresUpdate: true,
-            },
-            {
-                id: CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED,
-                title: translate('workspace.moreFeatures.timeTracking.title'),
-                icon: illustrations.Clock,
-            },
-        ];
+        return ONBOARDING_FEATURES.map((feature) => {
+            switch (feature.id) {
+                case CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED:
+                    return {...feature, title: translate('workspace.moreFeatures.categories.title'), icon: illustrations.FolderOpen};
+                case CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED:
+                    return {...feature, title: translate('workspace.moreFeatures.connections.title'), icon: illustrations.Accounting};
+                case CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED:
+                    return {...feature, title: translate('workspace.moreFeatures.companyCards.title'), icon: illustrations.CompanyCard};
+                case CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED:
+                    return {...feature, title: translate('workspace.moreFeatures.workflows.title'), icon: illustrations.Workflows};
+                case CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED:
+                    return {...feature, title: translate('workspace.moreFeatures.travel.title'), icon: illustrations.Luggage};
+                case CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED:
+                    return {...feature, title: translate('workspace.moreFeatures.rules.title'), icon: illustrations.Rules};
+                case CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED:
+                    return {...feature, title: translate('workspace.moreFeatures.distanceRates.title'), icon: illustrations.Car};
+                case CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED:
+                    return {...feature, title: translate('workspace.moreFeatures.expensifyCard.title'), icon: illustrations.HandCard};
+                case CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED:
+                    return {...feature, title: translate('workspace.moreFeatures.tags.title'), icon: illustrations.Tag};
+                case CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED:
+                    return {...feature, title: translate('workspace.moreFeatures.perDiem.title'), icon: illustrations.PerDiem};
+                case CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED:
+                    return {...feature, title: translate('workspace.moreFeatures.timeTracking.title'), icon: illustrations.Clock};
+                default:
+                    return {...feature, title: '', icon: illustrations.FolderOpen};
+            }
+        });
     }, [
         illustrations.FolderOpen,
         illustrations.Accounting,

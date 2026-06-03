@@ -22,6 +22,11 @@ Onyx.connectWithoutView({
     },
 });
 
+type NavigateAfterOnboardingOptions = {
+    afterTransition?: () => void;
+    variantOverride?: OnboardingRHPVariant | null;
+};
+
 /**
  * Determines the report ID to navigate to after onboarding for control variant or ineligible users.
  * On large screens, navigates to the admins chat if available. On small screens, finds the last
@@ -66,7 +71,7 @@ function navigateAfterOnboarding(
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
-    variantOverride?: OnboardingRHPVariant | null,
+    options?: NavigateAfterOnboardingOptions,
 ) {
     setDisableDismissOnEscape(false);
 
@@ -74,14 +79,16 @@ function navigateAfterOnboarding(
     // should navigate directly to the Concierge DM (which contains onboarding tasks).
     // This check is outside shouldOpenRHPVariant because that function returns false on native
     // (Side Panel doesn't exist on native), but we still need to navigate to Concierge on mobile.
+    const navigationOptions = options?.afterTransition ? {afterTransition: options.afterTransition} : undefined;
+    const variantOverride = options?.variantOverride;
     const variant = variantOverride ?? onboardingRHPVariant;
     if (isSmallScreenWidth && variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID), navigationOptions);
         return;
     }
 
     if (shouldOpenRHPVariant(variantOverride)) {
-        handleRHPVariantNavigation(onboardingPolicyID, variantOverride);
+        handleRHPVariantNavigation(onboardingPolicyID, variantOverride, navigationOptions);
         return;
     }
 
@@ -95,10 +102,10 @@ function navigateAfterOnboarding(
         shouldPreventOpenAdminRoom,
     );
     if (reportID) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID), navigationOptions);
     } else {
         // Navigate to home to trigger guard evaluation
-        Navigation.navigate(ROUTES.HOME);
+        Navigation.navigate(ROUTES.HOME, navigationOptions);
     }
 }
 
@@ -110,7 +117,7 @@ function navigateAfterOnboardingWithMicrotaskQueue(
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
-    variantOverride?: OnboardingRHPVariant | null,
+    options?: NavigateAfterOnboardingOptions,
 ) {
     Navigation.dismissModal();
     Navigation.setNavigationActionToMicrotaskQueue(() => {
@@ -122,7 +129,7 @@ function navigateAfterOnboardingWithMicrotaskQueue(
             onboardingPolicyID,
             onboardingAdminsChatReportID,
             shouldPreventOpenAdminRoom,
-            variantOverride,
+            options,
         );
     });
 }
