@@ -41,7 +41,16 @@ function MergeHRGroupsPage({
     const policy = usePolicy(policyID);
     const groups = getAvailableMergeHRGroups(policy);
 
-    const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(() => {
+        const currentSelection = policy?.connections?.merge_hris?.config?.groups;
+        if (Array.isArray(currentSelection)) {
+            return new Set(currentSelection);
+        }
+        if (currentSelection === CONST.MERGE_HR.GROUPS_ALL) {
+            return new Set(groups.map((group) => group.id));
+        }
+        return new Set();
+    });
     const [searchText, setSearchText] = useState('');
 
     const filteredGroups = tokenizedSearch(groups, searchText, (group) => [group.name, group.type]);

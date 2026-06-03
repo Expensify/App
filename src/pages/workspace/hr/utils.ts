@@ -4,8 +4,9 @@ import {hasSynchronizationErrorMessage, isConnectionInProgress} from '@libs/acti
 import getGustoSetupLink from '@libs/actions/connections/Gusto';
 import getMergeHRSetupLink from '@libs/actions/connections/MergeHR';
 import getZenefitsSetupLink from '@libs/actions/connections/Zenefits';
-import {getConnectedHRProvider, getHRApprovalMode, isMergeHRSetupComplete} from '@libs/HRUtils';
+import {getAvailableMergeHRGroups, getConnectedHRProvider, getHRApprovalMode, isMergeHRSetupComplete} from '@libs/HRUtils';
 import type {HRConnectionName} from '@libs/HRUtils';
+import {formatList} from '@libs/Localize';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getIntegrationLastSuccessfulDate} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
@@ -47,6 +48,12 @@ type HRCardDescriptor = {
 
     /** Navigation route to the post-connect setup RHP (group selection). Set only while the admin still needs to finish setup. */
     completeSetupRoute?: Route;
+
+    /** Navigation route to the groups selector RHP. Set whenever the admin can edit their groups selection (Merge HR only). */
+    groupsRoute?: Route;
+
+    /** Comma-joined names of the admin's chosen groups, displayed on the Groups row (Merge HR only). */
+    groupsSummary?: string;
 
     /** ISO date string of the last successful sync, used for "last synced" display. */
     successfulDate?: string;
@@ -166,6 +173,20 @@ function getApprovalModeLabel(policy: OnyxEntry<Policy>, connectionName: HRConne
     }
 }
 
+/** Display label for the admin's chosen Merge HR groups: locale-aware list of names, or the localized "All" label for the `'all'` sentinel, or undefined when nothing is chosen. */
+function getMergeHRGroupsSummary(policy: OnyxEntry<Policy>, translate: LocaleContextProps['translate']): string | undefined {
+    const groups = policy?.connections?.merge_hris?.config?.groups;
+    if (!groups) {
+        return undefined;
+    }
+    if (groups === CONST.MERGE_HR.GROUPS_ALL) {
+        return translate('common.all');
+    }
+    const available = getAvailableMergeHRGroups(policy);
+    const names = groups.map((id) => available.find((group) => group.id === id)?.name).filter((name): name is string => !!name);
+    return formatList(names);
+}
+
 /** Resolves the final approver email to a display name via personal details. Returns "Not set" when no approver is configured. */
 function getFinalApproverDisplayName(finalApprover: string | undefined | null, translate: LocaleContextProps['translate']): string {
     if (!finalApprover) {
@@ -280,6 +301,8 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
                 setupLink: getMergeHRSetupLink(policyID, slug),
                 ...(state.isConnected ? state : disconnectedState),
                 completeSetupRoute: needsSetup ? ROUTES.WORKSPACE_HR_MERGE_GROUPS.getRoute(policyID) : undefined,
+                groupsRoute: state.isConnected ? ROUTES.WORKSPACE_HR_MERGE_GROUPS.getRoute(policyID) : undefined,
+                groupsSummary: state.isConnected ? getMergeHRGroupsSummary(policy, translate) : undefined,
                 approvalModeRoute: ROUTES.WORKSPACE_HR_MERGE_APPROVAL_MODE.getRoute(policyID),
                 finalApproverRoute: ROUTES.WORKSPACE_HR_MERGE_FINAL_APPROVER.getRoute(policyID),
                 config,
