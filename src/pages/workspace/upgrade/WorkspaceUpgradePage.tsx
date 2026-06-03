@@ -279,10 +279,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }, [isUpgraded, canPerformUpgrade, confirmUpgrade]),
     );
 
-    // Gate the page to users who can edit workspace settings (admins on any policy,
-    // or editors on Submit policies). `canPerformUpgrade` (strict admin) still controls
-    // whether the upgrade button is active, so editors see the intro but can't upgrade.
-    if (!canEditWorkspaceSettings(policy)) {
+    // Editors can view the intro but only admins can upgrade, so we separate
+    // access (canEditWorkspaceSettings) from the upgrade action (canPerformUpgrade).
+    if (policy ? !canEditWorkspaceSettings(policy) : !canPerformUpgrade) {
         return <NotFoundPage />;
     }
 

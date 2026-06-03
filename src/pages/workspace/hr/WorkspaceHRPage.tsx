@@ -8,7 +8,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import useConfirmModal from '@hooks/useConfirmModal';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHRSyncResultsModal from '@hooks/useHRSyncResultsModal';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -25,7 +24,6 @@ import {openPolicyHRPage} from '@libs/actions/PolicyConnections';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {canMemberWrite} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -49,7 +47,6 @@ function WorkspaceHRPage({
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const policy = usePolicy(policyID);
-    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const icons = useMemoizedLazyExpensifyIcons(['GustoSquare', 'TriNetSquare']);
     const illustrations = useMemoizedLazyIllustrations(['NewUser']);
@@ -87,8 +84,6 @@ function WorkspaceHRPage({
     connectedCards.sort(byName);
     disconnectedCards.sort(byName);
 
-    const canWriteMoreFeatures = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
-
     const handleConnect = (setupLink: string | undefined) => {
         if (!setupLink) {
             return;
@@ -114,7 +109,6 @@ function WorkspaceHRPage({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED}
-            policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -153,7 +147,6 @@ function WorkspaceHRPage({
                                         card={card}
                                         policy={policy}
                                         handleConnect={() => handleConnect(card.setupLink)}
-                                        canWriteMoreFeatures={canWriteMoreFeatures}
                                     />
                                 ))}
                                 {connectedCards.length === 0 &&
@@ -163,7 +156,6 @@ function WorkspaceHRPage({
                                             card={card}
                                             policy={policy}
                                             handleConnect={() => handleConnect(card.setupLink)}
-                                            canWriteMoreFeatures={canWriteMoreFeatures}
                                         />
                                     ))}
                             </View>
@@ -181,7 +173,6 @@ function WorkspaceHRPage({
                                             card={card}
                                             policy={policy}
                                             handleConnect={() => handleConnect(card.setupLink)}
-                                            canWriteMoreFeatures={canWriteMoreFeatures}
                                         />
                                     ))}
                                 </CollapsibleSection>
