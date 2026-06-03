@@ -723,6 +723,26 @@ function ReportActionsList({
         reportScrollManager.scrollToIndex(actionBadgeTargetIndex);
     }, [actionBadgeTargetIndex, reportScrollManager]);
 
+    // Once the current action-badge target is resolved (e.g. the user approves/pays an older report preview),
+    // the badge target advances to the next report preview that requires action. Follow it by scrolling down to it.
+    const actionTargetReportActionID = reportAttributes?.actionTargetReportActionID;
+    const prevActionTargetReportActionID = usePrevious(actionTargetReportActionID);
+    useEffect(() => {
+        if (isProduction || !actionTargetReportActionID || !prevActionTargetReportActionID || actionTargetReportActionID === prevActionTargetReportActionID || actionBadgeTargetIndex < 0) {
+            return;
+        }
+        // Only scroll downward to a newer preview (a lower index in the inverted list), which is what happens once the
+        // previously targeted (older) preview is resolved. Skip when the target moved to an older preview (e.g. while paginating).
+        const prevActionTargetIndex = renderedVisibleReportActions.findIndex((action) => action.reportActionID === prevActionTargetReportActionID);
+        if (prevActionTargetIndex < 0 || actionBadgeTargetIndex >= prevActionTargetIndex) {
+            return;
+        }
+        requestAnimationFrame(() => {
+            scrollToActionBadgeTarget();
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [actionTargetReportActionID]);
+
     /**
      * Thread's divider line should hide when the first chat in the thread is marked as unread.
      * This is so that it will not be conflicting with header's separator line.
