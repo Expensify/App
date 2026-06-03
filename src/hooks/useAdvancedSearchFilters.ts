@@ -2,6 +2,7 @@ import {filterCardsHiddenFromSearch} from '@selectors/Card';
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import {emailSelector} from '@selectors/Session';
 import type {OnyxCollection} from 'react-native-onyx';
+import {getSearchEligibleBankAccounts} from '@libs/BankAccountUtils';
 import {getAllTaxRates, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 import {getAllPolicyValues} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
@@ -331,7 +332,7 @@ function useAdvancedSearchFilters() {
     const shouldDisplayCategoryFilter = shouldDisplayFilter(hasNonPersonalPolicyCategories ? 1 : 0, policyDerived?.areCategoriesEnabled ?? false, selectedPolicyCategories?.length > 0);
     const shouldDisplayTagFilter = shouldDisplayFilter(hasTags ? 1 : 0, policyDerived?.areTagsEnabled ?? false, !!selectedPolicyTagLists);
     const shouldDisplayCardFilter = shouldDisplayFilter(Object.keys(searchCards ?? {}).length, true);
-    const shouldDisplayBankAccountFilter = shouldDisplayFilter(Object.keys(bankAccountList ?? {}).length, true);
+    const shouldDisplayBankAccountFilter = shouldDisplayFilter(Object.keys(getSearchEligibleBankAccounts(bankAccountList)).length, true);
     const shouldDisplayTaxFilter = shouldDisplayFilter(policyDerived?.hasAnyTaxRates ? 1 : 0, policyDerived?.areTaxEnabled ?? false);
     const shouldDisplayWorkspaceFilter = workspaces.some((section) => section.data.length > 1);
 
