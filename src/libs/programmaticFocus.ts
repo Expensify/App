@@ -12,4 +12,4 @@ function markProgrammaticFocus(el: HTMLElement): () => void {
     };
 }
 
-export {markProgrammaticFocus};
+export default markProgrammaticFocus;
