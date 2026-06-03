@@ -342,6 +342,8 @@ function getAccountingIntegrationData(
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING[CONST.POLICY.CONNECTIONS.NAME.CERTINIA].alias,
                     backToAfterWorkspaceUpgradeRoute: getBackToAfterWorkspaceUpgradeRouteForCertinia(),
                 },
+                pendingFields: policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.config?.pendingFields,
+                errorFields: policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.config?.errorFields,
             } as AccountingIntegration;
         default:
             return undefined;
