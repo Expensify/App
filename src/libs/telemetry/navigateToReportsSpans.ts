@@ -1,9 +1,10 @@
+import {spanToJSON} from '@sentry/core';
 import type {SpanAttributes} from '@sentry/core';
 import type {ValueOf} from 'type-fest';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import navigationRef from '@navigation/navigationRef';
 import CONST from '@src/CONST';
-import {cancelSpan, endSpan, endSpanWithAttributes, getSpan, startSpan} from './activeSpans';
+import {cancelSpan, endSpanWithAttributes, getSpan, startSpan} from './activeSpans';
 
 type NavigateToReportsScenario = ValueOf<typeof CONST.TELEMETRY.NAVIGATE_TO_REPORTS_SCENARIO>;
 
@@ -45,26 +46,28 @@ function startNavigateToReportsSpans() {
 }
 
 function endNavigateToReportsFirstPaint(scenario: NavigateToReportsScenario) {
-    // Only the first paint records scenario/query. This runs from several paint sites: in a cold start the
-    // skeleton paint ends FirstPaint (scenario COLD), then the later content paint calls this again (WARM_FIRST).
-    // The guard makes that second call bail (FirstPaint is already ended), so ContentLoad keeps its COLD tag.
+    // The guard bails when FirstPaint already ended (e.g. a later content paint after the skeleton), so ContentLoad keeps its COLD tag.
     if (!getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_FIRST_PAINT)) {
         return;
     }
-    const attributes: SpanAttributes = {
+    // Since ContentLoad ends later and cannot determine the start type (cold/warm), tag its span with the scenario now.
+    getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_CONTENT_LOAD)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_SCENARIO, scenario);
+    endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_FIRST_PAINT, {
         [CONST.TELEMETRY.ATTRIBUTE_SCENARIO]: scenario,
         ...readSearchQueryAttributes(),
-    };
-    // Scenario and the query descriptors are properties of the navigation, not of one span. ContentLoad ends
-    // later (at the real content paint) and cannot tell cold from warm itself, so stamp them onto its span
-    // instance now instead of carrying them in module state shared across navigations.
-    getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_CONTENT_LOAD)?.setAttributes(attributes);
-    endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_FIRST_PAINT, attributes);
+    });
 }
 
 function endNavigateToReportsContentLoad() {
-    // Scenario and query were stamped onto this span instance when FirstPaint ended.
-    endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_CONTENT_LOAD);
+    const span = getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_CONTENT_LOAD);
+    if (!span) {
+        return;
+    }
+    // FirstPaint should set the scenario on this span. UNKNOWN is a fallback: if we see it, FirstPaint did not run and there is a bug.
+    if (spanToJSON(span).data?.[CONST.TELEMETRY.ATTRIBUTE_SCENARIO] === undefined) {
+        span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_SCENARIO, CONST.TELEMETRY.NAVIGATE_TO_REPORTS_SCENARIO.UNKNOWN);
+    }
+    endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_CONTENT_LOAD, readSearchQueryAttributes());
 }
 
 function cancelNavigateToReportsSpans() {

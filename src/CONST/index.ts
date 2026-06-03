@@ -2236,6 +2236,7 @@ const CONST = {
             COLD: 'cold',
             WARM_FIRST: 'warm_first',
             WARM_SUBSEQUENT: 'warm_subsequent',
+            UNKNOWN: 'unknown',
         },
         // Event names
         EVENT_SKELETON_ATTRIBUTES_UPDATE: 'skeleton_attributes_updated',
