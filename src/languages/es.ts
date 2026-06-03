@@ -7536,8 +7536,7 @@ ${amount} para ${merchant} - ${date}`,
             changedToFixedDistance: 'cambió la exclusión de trayectos a una distancia fija por solicitud',
             setFixedDistance: ({distance, unit}) =>
                 `estableció la exclusión de distancia fija en ${distance} ${unit === 'mi' ? (distance === 1 ? 'milla' : 'millas') : distance === 1 ? 'kilómetro' : 'kilómetros'} por solicitud`,
-            changedFixedDistance: ({newDistance, oldDistance, unit}) =>
-                `cambió la exclusión de distancia fija a ${newDistance} ${unit} por solicitud (anteriormente ${oldDistance} ${unit})`,
+            changedFixedDistance: ({newDistance, oldDistance, unit}) => `cambió la exclusión de distancia fija a ${newDistance} ${unit} por solicitud (anteriormente ${oldDistance} ${unit})`,
             disabled: 'desactivó la exclusión de trayectos para tarifas de distancia',
         },
         updatedReimbursementChoice: (newReimbursementChoice, oldReimbursementChoice) =>
