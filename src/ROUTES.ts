@@ -177,11 +177,11 @@ const DYNAMIC_ROUTES = {
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT],
     },
     POLICY_ACCOUNTING_CERTINIA_EXPORT_STATUS: {
-        path: 'certinia-status-select',
+        path: 'certinia-status/select',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT],
     },
     POLICY_ACCOUNTING_CERTINIA_EXPORT_DATE: {
-        path: 'certinia-date-select',
+        path: 'certinia-date/select',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT],
     },
     POLICY_ACCOUNTING_CERTINIA_DEFAULT_VENDOR: {
