@@ -1,50 +1,8 @@
 import {FontStyle, FontWeight, Skia} from '@shopify/react-native-skia';
 import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@shopify/react-native-skia';
-import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
-import {CHART_FONT_FAMILIES, DIAGONAL_ANGLE_RADIAN_THRESHOLD, ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MAX_X_AXIS_LABEL_WIDTH, PIE_CHART_TOOLTIP_RADIUS_DISTANCE, SIN_45} from './constants';
 import type {ChartDataPoint, LabelRotation, PieSlice} from './types';
-
-/**
- * Expensify Chart Color Palette.
- *
- * Shades are ordered (400, 600, 300, 500, 700) so that sequential colors have
- * maximum contrast, making adjacent chart segments easy to distinguish.
- *
- * Within each shade, hues cycle: Yellow, Tangerine, Pink, Green, Ice, Blue.
- */
-const CHART_PALETTE: string[] = (() => {
-    const shades = [400, 600, 300, 500, 700] as const;
-    const hues = ['yellow', 'tangerine', 'pink', 'green', 'ice', 'blue'] as const;
-
-    const palette: string[] = [];
-
-    // Generate the 30 unique combinations (5 shades × 6 hues)
-    for (const shade of shades) {
-        for (const hue of hues) {
-            const colorKey = `${hue}${shade}`;
-            if (colors[colorKey]) {
-                palette.push(colors[colorKey]);
-            }
-        }
-    }
-
-    return palette;
-})();
-
-/**
- * Gets a color from the chart palette based on index.
- * Automatically loops back to the start if the index exceeds 29.
- */
-function getChartColor(index: number): string {
-    if (CHART_PALETTE.length === 0) {
-        return colors.black; // Fallback
-    }
-    return CHART_PALETTE.at(index % CHART_PALETTE.length) ?? colors.black;
-}
-
-/** Default color used for single-color charts (e.g., line chart, single-color bar chart) */
-const DEFAULT_CHART_COLOR = getChartColor(5);
+import VictoryTheme, {DIAGONAL_ANGLE_RADIAN_THRESHOLD, ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MAX_X_AXIS_LABEL_WIDTH, SIN_45} from './VictoryTheme';
 
 /** One reusable ParagraphBuilder per fontMgr instance. Auto-GC'd when fontMgr is released. */
 const builderCache = new WeakMap<SkTypefaceFontProvider, SkParagraphBuilder>();
@@ -67,7 +25,7 @@ function buildChartParagraph(text: string, fontMgr: SkTypefaceFontProvider, font
     }
     return builder
         .pushStyle({
-            fontFamilies: CHART_FONT_FAMILIES,
+            fontFamilies: VictoryTheme.fontFamilies,
             fontStyle: {weight: FontWeight.Normal},
             fontSize,
             ...(color !== undefined ? {color: Skia.Color(color)} : {}),
@@ -105,7 +63,7 @@ function getAdditionalOffset(angleRad: number): number {
 }
 /**
  * Checks whether every character in `text` can be rendered by at least one font
- * in the chart font chain (CHART_FONT_FAMILIES).
+ * in the chart font chain (VictoryTheme.fontFamilies).
  *
  * For each character, iterates through each registered font family and calls
  * `Typeface.getGlyphIDs()`. A glyph ID of 0 means the font has no glyph for
@@ -119,7 +77,7 @@ function canFontRenderText(text: string | undefined, fontMgr: SkTypefaceFontProv
         return true;
     }
 
-    const typefaces = CHART_FONT_FAMILIES.map((family) => fontMgr.matchFamilyStyle(family, FontStyle.Normal));
+    const typefaces = VictoryTheme.fontFamilies.map((family) => fontMgr.matchFamilyStyle(family, FontStyle.Normal));
 
     for (const char of text) {
         const isRenderable = typefaces.some((typeface) => typeface?.getGlyphIDs(char).some((id) => id !== 0));
@@ -254,7 +212,7 @@ function findSliceAtPosition(cursorX: number, cursorY: number, centerX: number, 
 /**
  * Process raw data into pie chart slices sorted by absolute value descending.
  */
-function processDataIntoSlices(data: ChartDataPoint[], startAngle: number, pieGeometry: {centerX: number; centerY: number; radius: number}): PieSlice[] {
+function processDataIntoSlices(data: ChartDataPoint[], pieGeometry: {centerX: number; centerY: number; radius: number}, startAngle: number = VictoryTheme.pie.startAngle): PieSlice[] {
     const total = data.reduce((sum, point) => sum + Math.abs(point.total), 0);
     if (total === 0) {
         return [];
@@ -268,12 +226,12 @@ function processDataIntoSlices(data: ChartDataPoint[], startAngle: number, pieGe
                 const fraction = slice.absTotal / total;
                 const sweepAngle = fraction * 360;
                 const angle = acc.angle + sweepAngle / 2;
-                const tooltipX = pieGeometry.centerX + pieGeometry.radius * PIE_CHART_TOOLTIP_RADIUS_DISTANCE * Math.cos((angle * Math.PI) / 180);
-                const tooltipY = pieGeometry.centerY + pieGeometry.radius * PIE_CHART_TOOLTIP_RADIUS_DISTANCE * Math.sin((angle * Math.PI) / 180);
+                const tooltipX = pieGeometry.centerX + pieGeometry.radius * VictoryTheme.tooltip.pieRadiusDistance * Math.cos((angle * Math.PI) / 180);
+                const tooltipY = pieGeometry.centerY + pieGeometry.radius * VictoryTheme.tooltip.pieRadiusDistance * Math.sin((angle * Math.PI) / 180);
                 acc.slices.push({
                     label: slice.label,
                     value: slice.absTotal,
-                    color: getChartColor(index),
+                    color: VictoryTheme.colors.getColor(index),
                     percentage: fraction * 100,
                     startAngle: acc.angle,
                     endAngle: acc.angle + sweepAngle,
@@ -505,8 +463,6 @@ function getYAxisLabelWidth(rawDataMax: number, rawDataMin: number, tickCount: n
 }
 
 export {
-    getChartColor,
-    DEFAULT_CHART_COLOR,
     buildChartParagraph,
     canFontRenderText,
     getAdditionalOffset,

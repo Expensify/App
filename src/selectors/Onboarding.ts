@@ -67,4 +67,16 @@ function wasInvitedToNewDotSelector(introSelected: OnyxValue<typeof ONYXKEYS.NVP
     return introSelected?.inviteType !== undefined;
 }
 
-export {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, hasSeenTourSelector, wasInvitedToNewDotSelector};
+/**
+ * Combined selector that derives both the self-tour status and the guided-setup
+ * completion flag from a single NVP_ONBOARDING read, avoiding two subscriptions
+ * to the same key from callers that need both.
+ */
+function guidedSetupAndTourStatusSelector(onboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>): {isSelfTourViewed: boolean | undefined; hasCompletedGuidedSetupFlow: boolean | undefined} {
+    return {
+        isSelfTourViewed: hasSeenTourSelector(onboarding),
+        hasCompletedGuidedSetupFlow: hasCompletedGuidedSetupFlowSelector(onboarding),
+    };
+}
+
+export {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, hasSeenTourSelector, wasInvitedToNewDotSelector, guidedSetupAndTourStatusSelector};

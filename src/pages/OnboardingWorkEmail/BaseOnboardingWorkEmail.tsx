@@ -50,6 +50,12 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const illustrations = useMemoizedLazyIllustrations(['EnvelopeReceipt', 'Gears', 'Profile']);
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {
+        selector: (acc) => ({
+            validated: acc?.validated,
+            isFromPublicDomain: acc?.isFromPublicDomain,
+        }),
+    });
     const [formValue] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM);
     const workEmail = formValue?.[INPUT_IDS.ONBOARDING_WORK_EMAIL];
     const [onboardingErrorMessageTranslationKey] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
@@ -69,6 +75,25 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     }, []);
 
     useEffect(() => {
+        const navigateToNextStep = (shouldSkipPrivateDomain = false) => {
+            if (isVsb || isSmb) {
+                Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
+                return;
+            }
+            if (!shouldSkipPrivateDomain && !onboardingValues?.isMergeAccountStepSkipped) {
+                Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(), {forceReplace: true});
+                return;
+            }
+            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
+        };
+
+        // A validated account has no reason to be on the onboarding "add work email" screen. For a public-domain primary the
+        // PRIVATE_DOMAIN screen would reference gmail.com (etc.) so skip it.
+        if (account?.validated) {
+            navigateToNextStep(account?.isFromPublicDomain);
+            return;
+        }
+
         if (onboardingValues?.shouldValidate === undefined && onboardingValues?.isMergeAccountStepCompleted === undefined) {
             return;
         }
@@ -78,25 +103,18 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             Navigation.navigate(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute());
             return;
         }
-        // Once we verify that shouldValidate is false, we need to force replace the screen
-        // so that we don't navigate back on back button press
-        if (isVsb) {
-            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(), {forceReplace: true});
-            return;
-        }
 
-        if (isSmb) {
-            Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
-            return;
-        }
-
-        if (!onboardingValues?.isMergeAccountStepSkipped) {
-            Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(), {forceReplace: true});
-            return;
-        }
-
-        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
-    }, [onboardingValues?.shouldValidate, isVsb, isSmb, isFocused, onboardingValues?.isMergeAccountStepCompleted, onboardingValues?.isMergeAccountStepSkipped]);
+        navigateToNextStep();
+    }, [
+        account?.validated,
+        account?.isFromPublicDomain,
+        onboardingValues?.shouldValidate,
+        isVsb,
+        isSmb,
+        isFocused,
+        onboardingValues?.isMergeAccountStepCompleted,
+        onboardingValues?.isMergeAccountStepSkipped,
+    ]);
 
     const submitWorkEmail = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
         AddWorkEmail(values[INPUT_IDS.ONBOARDING_WORK_EMAIL].trim());
