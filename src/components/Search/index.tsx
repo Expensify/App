@@ -120,19 +120,24 @@ type HoldMenuCallback = (item: TransactionReportGroupListItemType, requestType: 
 
 const hashToString = (queryHash?: number) => (queryHash || queryHash === 0 ? String(queryHash) : undefined);
 
+type TransactionSelectionContext = {
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    archivedReportsIDSet: ArchivedReportsIDSet;
+    outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue | undefined;
+    selfDMReport: OnyxEntry<Report>;
+    isProduction: boolean;
+};
+
 function mapTransactionItemToSelectedEntry(
     item: TransactionListItemType,
     itemTransaction: OnyxEntry<Transaction>,
     originalItemTransaction: OnyxEntry<Transaction>,
-    currentUserLogin: string,
-    currentUserAccountID: number,
-    archivedReportsIDSet: ArchivedReportsIDSet,
-    outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue | undefined,
+    transactionSelectionContext: TransactionSelectionContext,
     allowNegativeAmount: boolean,
     parentReport: OnyxEntry<Report> | undefined,
-    selfDMReport: OnyxEntry<Report> | undefined,
-    isProduction: boolean,
 ): [string, SelectedTransactionInfo] {
+    const {currentUserLogin, currentUserAccountID, archivedReportsIDSet, outstandingReportsByPolicyID, selfDMReport, isProduction} = transactionSelectionContext;
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy, currentUserAccountID);
     const canRejectRequest = item.report ? canRejectReportAction(currentUserLogin, item.report) : false;
     const amount = hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : item.amount;
@@ -230,13 +235,8 @@ function prepareTransactionsList(
     itemTransaction: OnyxEntry<Transaction>,
     originalItemTransaction: OnyxEntry<Transaction>,
     selectedTransactions: SelectedTransactions,
-    currentUserLogin: string,
-    currentUserAccountID: number,
-    archivedReportsIDSet: ArchivedReportsIDSet,
-    outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue | undefined,
+    transactionSelectionContext: TransactionSelectionContext,
     parentReport: OnyxEntry<Report> | undefined,
-    selfDMReport: OnyxEntry<Report> | undefined,
-    isProduction: boolean,
 ) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
         const {[item.keyForList]: omittedTransaction, ...transactions} = selectedTransactions;
@@ -244,19 +244,7 @@ function prepareTransactionsList(
         return transactions;
     }
 
-    const [key, selectedInfo] = mapTransactionItemToSelectedEntry(
-        item,
-        itemTransaction,
-        originalItemTransaction,
-        currentUserLogin,
-        currentUserAccountID,
-        archivedReportsIDSet,
-        outstandingReportsByPolicyID,
-        false,
-        parentReport,
-        selfDMReport,
-        isProduction,
-    );
+    const [key, selectedInfo] = mapTransactionItemToSelectedEntry(item, itemTransaction, originalItemTransaction, transactionSelectionContext, false, parentReport);
 
     return {
         ...selectedTransactions,
@@ -331,6 +319,17 @@ function Search({
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
     const archivedReportsIDSet = useArchivedReportsIDSet();
+    const transactionSelectionContext = useMemo<TransactionSelectionContext>(
+        () => ({
+            currentUserLogin: email ?? '',
+            currentUserAccountID: accountID,
+            archivedReportsIDSet,
+            outstandingReportsByPolicyID,
+            selfDMReport,
+            isProduction,
+        }),
+        [accountID, archivedReportsIDSet, email, isProduction, outstandingReportsByPolicyID, selfDMReport],
+    );
 
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         selector: selectFilteredReportActions,
@@ -1064,19 +1063,7 @@ function Search({
                 const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`] as OnyxEntry<Transaction>;
                 const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
                 const itemParentReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${item.report?.parentReportID}`] as OnyxEntry<Report>;
-                const updatedTransactions = prepareTransactionsList(
-                    item,
-                    itemTransaction,
-                    originalItemTransaction,
-                    selectedTransactions,
-                    email ?? '',
-                    accountID,
-                    archivedReportsIDSet,
-                    outstandingReportsByPolicyID,
-                    itemParentReport,
-                    selfDMReport,
-                    isProduction,
-                );
+                const updatedTransactions = prepareTransactionsList(item, itemTransaction, originalItemTransaction, selectedTransactions, transactionSelectionContext, itemParentReport);
 
                 // Tag individual transactions with their parent group key so export filtering can derive the group when needed.
                 if (areItemsGrouped) {
@@ -1152,14 +1139,9 @@ function Search({
                                 transactionItem,
                                 itemTransaction,
                                 originalItemTransaction,
-                                email ?? '',
-                                accountID,
-                                archivedReportsIDSet,
-                                outstandingReportsByPolicyID,
+                                transactionSelectionContext,
                                 true,
                                 itemParentReport,
-                                selfDMReport,
-                                isProduction,
                             );
                             return [key, {...entry, groupKey: item.keyForList}];
                         }),
@@ -1168,21 +1150,7 @@ function Search({
             setSelectedTransactions(updatedTransactions);
             updateSelectAllMatchingItemsState(updatedTransactions);
         },
-        [
-            selectedTransactions,
-            setSelectedTransactions,
-            updateSelectAllMatchingItemsState,
-            transactions,
-            searchResults?.data,
-            email,
-            accountID,
-            archivedReportsIDSet,
-            outstandingReportsByPolicyID,
-            selfDMReport,
-            isProduction,
-            areItemsGrouped,
-            filteredData,
-        ],
+        [selectedTransactions, setSelectedTransactions, updateSelectAllMatchingItemsState, transactions, searchResults?.data, transactionSelectionContext, areItemsGrouped, filteredData],
     );
 
     const onSelectRowInMobileSelectionMode = (item: SearchListItem) => {
@@ -1490,14 +1458,9 @@ function Search({
                             transactionItem,
                             itemTransaction,
                             originalItemTransaction,
-                            email ?? '',
-                            accountID,
-                            archivedReportsIDSet,
-                            outstandingReportsByPolicyID,
+                            transactionSelectionContext,
                             true,
                             itemParentReport,
-                            selfDMReport,
-                            isProduction,
                         );
                         return [key, {...entry, groupKey: item.keyForList}] as [string, SelectedTransactionInfo];
                     });
@@ -1512,19 +1475,7 @@ function Search({
                         const itemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                         const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
                         const itemParentReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
-                        return mapTransactionItemToSelectedEntry(
-                            transactionItem,
-                            itemTransaction,
-                            originalItemTransaction,
-                            email ?? '',
-                            accountID,
-                            archivedReportsIDSet,
-                            outstandingReportsByPolicyID,
-                            true,
-                            itemParentReport,
-                            selfDMReport,
-                            isProduction,
-                        );
+                        return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, transactionSelectionContext, true, itemParentReport);
                     }),
             );
         }
@@ -1538,13 +1489,8 @@ function Search({
         updateSelectAllMatchingItemsState,
         clearSelectedTransactions,
         transactions,
-        email,
-        accountID,
-        archivedReportsIDSet,
-        outstandingReportsByPolicyID,
         searchResults?.data,
-        selfDMReport,
-        isProduction,
+        transactionSelectionContext,
     ]);
 
     const onLayoutBase = useCallback(() => {
