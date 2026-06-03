@@ -631,6 +631,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                             prompt: updateWorkspaceCurrencyPrompt,
                                             confirmText: translate('workspace.bankAccount.updateWorkspaceCurrency'),
                                             cancelText: translate('common.cancel'),
+                                            shouldHandleNavigationBack: false,
                                         }).then((result) => {
                                             if (result.action !== ModalActions.CONFIRM) {
                                                 return;
