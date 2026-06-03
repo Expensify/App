@@ -1155,7 +1155,6 @@ function getOptionData({
             result.alternateText = getPolicyChangeLogDefaultTitleEnforcedMessage(translate, lastAction);
         } else if (isLeavePolicyAction(lastAction)) {
             result.alternateText = getPolicyChangeLogEmployeeLeftMessage(translate, lastAction, getPersonalDetailsByID(lastAction.actorAccountID, personalDetails), true);
-            console.log('alternate text', result.alternateText);
         } else if (isCardIssuedAction(lastAction)) {
             result.alternateText = getCardIssuedMessage({reportAction: lastAction, expensifyCard: card, translate});
         } else if (lastAction && isOldDotReportAction(lastAction)) {

@@ -3,11 +3,11 @@ import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {getOriginalMessage, getRemovedFromApprovalChainMessage} from '@libs/ReportActionsUtils';
-import CONST from '@src/CONST';
+import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {multiPersonalDetailsSelector} from '@src/selectors/PersonalDetails';
 import type {PersonalDetailsList, ReportAction} from '@src/types/onyx';
-import ReportActionItemBasicMessage from '../ReportActionItemBasicMessage';
+import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 
 type RemovedFromApprovalChainContentProps = {
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN>;
