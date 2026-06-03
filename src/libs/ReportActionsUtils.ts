@@ -3245,24 +3245,35 @@ function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate,
             );
         }
 
+        let startDateMessage = '';
+        let endDateMessage = '';
+
         if (startDateChanged) {
             if (!newStartDate && oldStartDate) {
-                return translate('workspaceActions.removedCustomUnitRateStartDate', customUnitRateName, DateUtils.formatToReadableString(oldStartDate));
-            }
-            if (newStartDate) {
+                startDateMessage = translate('workspaceActions.removedCustomUnitRateStartDate', customUnitRateName, DateUtils.formatToReadableString(oldStartDate));
+            } else if (newStartDate) {
                 const formattedOldDate = oldStartDate ? DateUtils.formatToReadableString(oldStartDate) : undefined;
-                return translate('workspaceActions.updatedCustomUnitRateStartDate', customUnitRateName, DateUtils.formatToReadableString(newStartDate), formattedOldDate);
+                startDateMessage = translate('workspaceActions.updatedCustomUnitRateStartDate', customUnitRateName, DateUtils.formatToReadableString(newStartDate), formattedOldDate);
             }
         }
 
         if (endDateChanged) {
             if (!newEndDate && oldEndDate) {
-                return translate('workspaceActions.removedCustomUnitRateEndDate', customUnitRateName, DateUtils.formatToReadableString(oldEndDate));
-            }
-            if (newEndDate) {
+                endDateMessage = translate('workspaceActions.removedCustomUnitRateEndDate', customUnitRateName, DateUtils.formatToReadableString(oldEndDate));
+            } else if (newEndDate) {
                 const formattedOldDate = oldEndDate ? DateUtils.formatToReadableString(oldEndDate) : undefined;
-                return translate('workspaceActions.updatedCustomUnitRateEndDate', customUnitRateName, DateUtils.formatToReadableString(newEndDate), formattedOldDate);
+                endDateMessage = translate('workspaceActions.updatedCustomUnitRateEndDate', customUnitRateName, DateUtils.formatToReadableString(newEndDate), formattedOldDate);
             }
+        }
+
+        if (startDateMessage && endDateMessage) {
+            return `${startDateMessage}, ${endDateMessage}`;
+        }
+        if (startDateMessage) {
+            return startDateMessage;
+        }
+        if (endDateMessage) {
+            return endDateMessage;
         }
     }
 
