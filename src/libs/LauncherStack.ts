@@ -100,4 +100,4 @@ function resetLauncherStackForTests(): void {
     hasWarnedAboutOverflow = false;
 }
 
-export {pickLauncher, consumeLauncher, setActivePopoverLauncher, scheduleClearActivePopoverLauncher, resetLauncherStackForTests, LAUNCHER_CLEAR_DELAY_MS, LAUNCHER_STACK_MAX};
+export {pickLauncher, consumeLauncher, setActivePopoverLauncher, scheduleClearActivePopoverLauncher, resetLauncherStackForTests};

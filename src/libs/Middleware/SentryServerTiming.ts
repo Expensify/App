@@ -57,7 +57,7 @@ const SentryServerTiming: Middleware = (response, request) => {
         return response;
     }
 
-    const spanId = `${group.spanOp}_${request.requestID}`;
+    const spanId = `${group.spanOp}_${request.requestIndex}`;
     startSpan(spanId, {
         name: group.spanName,
         op: group.spanOp,

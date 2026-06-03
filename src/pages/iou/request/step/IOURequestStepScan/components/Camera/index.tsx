@@ -45,4 +45,3 @@ function Camera(props: CameraProps) {
 Camera.displayName = 'Camera';
 
 export default Camera;
-export type {CameraProps};
