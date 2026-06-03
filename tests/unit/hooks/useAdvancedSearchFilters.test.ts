@@ -378,13 +378,15 @@ describe('useAdvancedSearchFilters', () => {
             });
         });
 
-        it('shows bank account filter for expense type when at least one bank account exists', async () => {
+        it('shows bank account filter for expense type when at least one settlement-eligible bank account exists', async () => {
             const bankAccountID = 42;
             await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {
                 [bankAccountID]: {
                     accountData: {
                         bankAccountID,
                         accountNumber: '123456789012',
+                        type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
                         additionalData: {bankName: CONST.BANK_NAMES.CHASE},
                     },
                 },
@@ -398,13 +400,59 @@ describe('useAdvancedSearchFilters', () => {
             });
         });
 
-        it('does not include bank account filter for non-expense types even when bank accounts exist', async () => {
+        it('hides bank account filter when only personal deposit accounts are present', async () => {
             const bankAccountID = 42;
             await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {
                 [bankAccountID]: {
                     accountData: {
                         bankAccountID,
                         accountNumber: '123456789012',
+                        type: CONST.BANK_ACCOUNT.TYPE.PERSONAL,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        additionalData: {bankName: CONST.BANK_NAMES.CHASE},
+                    },
+                },
+            });
+
+            const {result} = renderHook(() => useAdvancedSearchFilters(), {wrapper});
+
+            await waitFor(() => {
+                const allKeys = result.current.typeFiltersKeys.flat();
+                expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT);
+            });
+        });
+
+        it('hides bank account filter when business accounts are not in OPEN state', async () => {
+            const bankAccountID = 42;
+            await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                [bankAccountID]: {
+                    accountData: {
+                        bankAccountID,
+                        accountNumber: '123456789012',
+                        type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                        state: CONST.BANK_ACCOUNT.STATE.PENDING,
+                        additionalData: {bankName: CONST.BANK_NAMES.CHASE},
+                    },
+                },
+            });
+
+            const {result} = renderHook(() => useAdvancedSearchFilters(), {wrapper});
+
+            await waitFor(() => {
+                const allKeys = result.current.typeFiltersKeys.flat();
+                expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT);
+            });
+        });
+
+        it('does not include bank account filter for non-expense types even when settlement-eligible accounts exist', async () => {
+            const bankAccountID = 42;
+            await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                [bankAccountID]: {
+                    accountData: {
+                        bankAccountID,
+                        accountNumber: '123456789012',
+                        type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
                         additionalData: {bankName: CONST.BANK_NAMES.CHASE},
                     },
                 },
