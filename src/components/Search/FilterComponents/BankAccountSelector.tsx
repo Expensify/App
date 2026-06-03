@@ -58,12 +58,14 @@ function BankAccountSelector({value = [], onChange}: BankAccountSelectorProps) {
     }
 
     const selectedBankAccounts = bankAccountItems.filter((item) => value.includes(item.value));
+    // Pin selected items to the top so the picker matches the Card filter behavior.
+    const sortedBankAccountItems = [...selectedBankAccounts, ...bankAccountItems.filter((item) => !value.includes(item.value))];
 
     return (
         <MultiSelect
             value={selectedBankAccounts}
-            items={bankAccountItems}
-            isSearchable={bankAccountItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
+            items={sortedBankAccountItems}
+            isSearchable={sortedBankAccountItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
             onChange={(bankAccounts) => onChange(bankAccounts.map((item) => item.value))}
         />
     );
