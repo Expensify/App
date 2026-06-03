@@ -43,6 +43,7 @@ function VictoryChartPieLabel({
         x,
         y,
         textAnchor: 'middle',
+        verticalAnchor: 'middle',
     };
 
     return (
