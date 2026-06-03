@@ -9,6 +9,7 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSingleExecution from '@hooks/useSingleExecution';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
@@ -28,6 +29,7 @@ function DynamicReferralDetailsPage({route}: DynamicReferralDetailsPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Copy', 'NewWindow', 'QuestionMark']);
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const illustrations = useMemoizedLazyIllustrations(['PaymentHands']);
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -56,8 +58,11 @@ function DynamicReferralDetailsPage({route}: DynamicReferralDetailsPageProps) {
                     height={232}
                 />
             }
-            headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentEnd]}
-            backgroundColor={theme.PAGE_THEMES[SCREENS.DYNAMIC_REFERRAL_DETAILS].backgroundColor}
+            headerContainerStyles={[
+                styles.staticHeaderImage,
+                styles.justifyContentEnd,
+                StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.DYNAMIC_REFERRAL_DETAILS].backgroundColor),
+            ]}
             testID="DynamicReferralDetailsPage"
             onBackButtonPress={() => {
                 Navigation.goBack(backPath);
