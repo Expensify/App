@@ -1,4 +1,4 @@
-import {useReducer} from 'react';
+import {useRef} from 'react';
 import type {Modifiers, ShiftRangeBatch} from '@libs/shiftRangeSelection';
 
 type ItemWithKey = {keyForList?: string | null};
@@ -42,31 +42,34 @@ function sessionReducer(state: SessionState, event: SessionEvent): SessionState 
 
 /** Shift+click range selection. Consumers notify on plain clicks / select-all so the hook can resolve an anchor for the next shift+click. */
 function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
-    const [state, dispatch] = useReducer(sessionReducer, IDLE);
+    // Session lives entirely in event handlers, never in render output — useRef avoids re-renders that useReducer/useState would trigger.
+    const sessionRef = useRef<SessionState>(IDLE);
 
     return {
         applyShiftClick: (target, options) => {
             if (!options?.shiftKey) {
                 return false;
             }
-            const result = computeShiftRange(params, state, target, !!options.additive);
+            const result = computeShiftRange(params, sessionRef.current, target, !!options.additive);
             if (!result) {
                 return false;
             }
             if (result.batch.toSelect.length || result.batch.toDeselect.length) {
                 params.onApplyRange?.(result.batch);
             }
-            dispatch({type: 'range', anchor: result.anchor, prevEnd: result.prevEnd});
+            sessionRef.current = sessionReducer(sessionRef.current, {type: 'range', anchor: result.anchor, prevEnd: result.prevEnd});
             return true;
         },
         notifyAnchor: (item) => {
             const key = keyOf(params, item);
             if (key) {
-                dispatch({type: 'notify', key});
+                sessionRef.current = sessionReducer(sessionRef.current, {type: 'notify', key});
             }
         },
-        clearAnchor: () => dispatch({type: 'clear'}),
-        getAnchorKey: () => (state.kind === 'idle' ? null : state.anchor),
+        clearAnchor: () => {
+            sessionRef.current = sessionReducer(sessionRef.current, {type: 'clear'});
+        },
+        getAnchorKey: () => (sessionRef.current.kind === 'idle' ? resolveAnchor(params, null) : sessionRef.current.anchor),
     };
 }
 

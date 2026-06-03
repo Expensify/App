@@ -47,8 +47,18 @@ function nthBatchKeys(mockFn: ReturnType<typeof makeApplyMock>, n: number): {toS
 
 describe('useShiftRangeSelection', () => {
     describe('getAnchorKey', () => {
-        it('returns null when no anchor and no session', () => {
+        it('falls back to the first selectable row when no session and no prior anchor', () => {
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams()));
+            expect(result.current.getAnchorKey()).toBe('a');
+        });
+
+        it('falls back to the first selected row when no session', () => {
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({getSelectedKeys: () => new Set(['c'])})));
+            expect(result.current.getAnchorKey()).toBe('c');
+        });
+
+        it('returns null when items is empty and no selection', () => {
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({items: []})));
             expect(result.current.getAnchorKey()).toBeNull();
         });
 
@@ -67,14 +77,14 @@ describe('useShiftRangeSelection', () => {
             expect(result.current.getAnchorKey()).toBe('b');
         });
 
-        it('clearAnchor resets the hook', () => {
+        it('clearAnchor resets the session so the next anchor query falls back to the first selectable row', () => {
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams()));
             act(() => result.current.notifyAnchor(ROWS[0]));
             act(() => {
                 result.current.applyShiftClick(ROWS[2], {shiftKey: true});
             });
             act(() => result.current.clearAnchor());
-            expect(result.current.getAnchorKey()).toBeNull();
+            expect(result.current.getAnchorKey()).toBe('a');
         });
     });
 
@@ -586,14 +596,14 @@ describe('useShiftRangeSelection', () => {
         });
 
         it('ignores notifyAnchor when the item key is empty', () => {
-            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams()));
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({items: []})));
             act(() => result.current.notifyAnchor({keyForList: ''}));
             expect(result.current.getAnchorKey()).toBeNull();
         });
 
-        it('clearAnchor on an idle hook is a no-op', () => {
+        it('clearAnchor on an idle hook does not emit a batch', () => {
             const onApplyRange = makeApplyMock();
-            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({items: [], onApplyRange})));
             act(() => result.current.clearAnchor());
             expect(onApplyRange).not.toHaveBeenCalled();
             expect(result.current.getAnchorKey()).toBeNull();
