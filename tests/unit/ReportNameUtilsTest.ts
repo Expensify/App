@@ -859,6 +859,44 @@ describe('ReportNameUtils', () => {
             );
             expect(name).toBe('changed card feed "Visa Commercial" statement period end day to "15" (previously "20")');
         });
+
+        test('UPDATE_MCC_GROUP_CATEGORY parent action renders the friendly MCC group label', () => {
+            const thread: Report = createWorkspaceThread(75);
+            const parentAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY,
+                reportActionID: String(thread.parentReportActionID),
+                message: [],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+                originalMessage: {
+                    mccGroupName: 'Airlines',
+                    oldCategory: 'Insurance',
+                    newCategory: 'Travel',
+                },
+            } as unknown as ReportAction;
+
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {
+                    [actionId]: parentAction,
+                },
+            };
+
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+            expect(name).toBe('changed the default spend category for "Airlines" to "Travel" (previously "Insurance")');
+        });
     });
 
     describe('getReportName (derived value vs fallback)', () => {
