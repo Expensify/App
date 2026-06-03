@@ -3,6 +3,7 @@ title: Connect Claude to Expensify using MCP
 description: Learn how to connect Claude to Expensify using the Expensify MCP server.
 keywords: [Claude Desktop Expensify MCP, Claude AI, Claude custom connector, connect Claude to Expensify, Expensify MCP Claude setup]
 internalScope: Audience is members using Claude. Covers connecting Claude to Expensify using MCP. Does not cover other AI clients or general MCP workflows.
+order: 3
 ---
 
 # Connect Claude to Expensify using MCP
