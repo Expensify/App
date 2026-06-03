@@ -2175,7 +2175,7 @@ const CONST = {
         ATTRIBUTE_WAS_LIST_EMPTY: 'was_list_empty',
         ATTRIBUTE_SKELETON_PREFIX: 'skeleton.',
         ATTRIBUTE_SCENARIO: 'scenario',
-        // Search query descriptors parsed from the route, stamped on the navigate-to-reports spans.
+        // Search query fields parsed from the route, stamped on the navigate-to-reports spans.
         ATTRIBUTE_SEARCH_TYPE: 'search_type',
         ATTRIBUTE_SEARCH_VIEW: 'search_view',
         ATTRIBUTE_SEARCH_GROUP_BY: 'search_group_by',
@@ -2230,8 +2230,8 @@ const CONST = {
             PER_DIEM: 'per_diem',
             SEND_MONEY: 'send_money',
         },
-        // Start type for the navigate-to-reports first-paint span. Splits the warm start into
-        // first render (warm_first) vs cached tab-navigator re-visit (warm_subsequent).
+        // Start type stamped on the navigate-to-reports spans: cold, warm on the first render (warm_first),
+        // or warm on a cached re-visit (warm_subsequent). UNKNOWN is a fallback that signals a bug.
         NAVIGATE_TO_REPORTS_SCENARIO: {
             COLD: 'cold',
             WARM_FIRST: 'warm_first',

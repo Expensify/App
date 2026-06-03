@@ -11,9 +11,9 @@ type NavigateToReportsScenario = ValueOf<typeof CONST.TELEMETRY.NAVIGATE_TO_REPO
 const SPAN_IDS = [CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_FIRST_PAINT, CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_CONTENT_LOAD] as const;
 
 /**
- * Reads type/view/groupBy from the active search route so the spans can be tagged without callers passing
- * them in. Read at first paint rather than at span start: the start fires before `Navigation.navigate`, so
- * the route still points at the previous page; by the first paint it is the resolved search route.
+ * Reads the search query fields (type/view/groupBy) from the active route to tag the spans. Read at first
+ * paint, not at span start: at start the navigation has not happened yet, so the route still points at the
+ * previous page; by first paint it is the resolved search route.
  */
 function readSearchQueryAttributes(): SpanAttributes {
     const params = navigationRef.getCurrentRoute()?.params;
@@ -32,12 +32,12 @@ function readSearchQueryAttributes(): SpanAttributes {
 }
 
 /**
- * The two spans split the legacy ManualNavigateToReports metric, while it is kept running alongside untouched:
- * - FirstPaint: ends at the first visible paint (skeleton in a cold start, content in a warm start).
- * - ContentLoad: ends only at the real content paint, so it keeps ticking through skeletons.
+ * Splits the legacy ManualNavigateToReports metric into two spans that run alongside the untouched legacy span:
+ * - FirstPaint ends at the first visible paint (skeleton on a cold start, content on a warm start).
+ * - ContentLoad ends only at the real content paint, so it keeps running through skeletons.
  *
- * Both share the tab-tap start time and the same `scenario`. Each ends at several call sites; the first
- * end-call wins because `activeSpans` keeps one span per id and a later end on an already-ended span is a no-op.
+ * Both start at the tab tap and share the same scenario. Each can be ended from several places; the first
+ * end wins, because ending an already-ended span does nothing.
  */
 function startNavigateToReportsSpans() {
     for (const spanId of SPAN_IDS) {
@@ -46,11 +46,11 @@ function startNavigateToReportsSpans() {
 }
 
 function endNavigateToReportsFirstPaint(scenario: NavigateToReportsScenario) {
-    // The guard bails when FirstPaint already ended (e.g. a later content paint after the skeleton), so ContentLoad keeps its COLD tag.
+    // If FirstPaint already ended (e.g. the content painted after the skeleton), bail so ContentLoad keeps its COLD scenario.
     if (!getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_FIRST_PAINT)) {
         return;
     }
-    // Since ContentLoad ends later and cannot determine the start type (cold/warm), tag its span with the scenario now.
+    // ContentLoad ends later and cannot tell cold from warm itself, so tag it with the scenario now.
     getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_CONTENT_LOAD)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_SCENARIO, scenario);
     endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_FIRST_PAINT, {
         [CONST.TELEMETRY.ATTRIBUTE_SCENARIO]: scenario,
@@ -85,9 +85,8 @@ function getNavigateToReportsSpans() {
 }
 
 /**
- * Cancels each new span only if the still-active instance is the same one captured on mount, so an
- * unmount can't cancel a span that a newer navigation already restarted. A span that already ended
- * (e.g. FirstPaint after a skeleton paint) is skipped because its captured instance no longer matches.
+ * Cancels each span only if it is still the same instance captured on mount. This stops an unmount from
+ * canceling spans that a newer navigation already restarted, and skips spans that already ended.
  */
 function cancelNavigateToReportsSpansIfSame(captured: ReturnType<typeof getNavigateToReportsSpans>) {
     if (captured.firstPaint && getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_FIRST_PAINT) === captured.firstPaint) {
