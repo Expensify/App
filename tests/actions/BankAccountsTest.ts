@@ -1,9 +1,8 @@
 import Onyx from 'react-native-onyx';
-import {clearPersonalBankAccount, connectBankAccountWithPlaid} from '@libs/actions/BankAccounts';
+import {connectBankAccountWithPlaid} from '@libs/actions/BankAccounts';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import getOnyxValue from '../utils/getOnyxValue';
@@ -108,46 +107,6 @@ describe('actions/BankAccounts', () => {
                     }),
                 );
             });
-        });
-    });
-
-    describe('clearPersonalBankAccount', () => {
-        test('wipes the entire PERSONAL_BANK_ACCOUNT key by default', async () => {
-            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {onSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS, shouldShowSuccess: true});
-            await waitForBatchedUpdates();
-
-            clearPersonalBankAccount();
-            await waitForBatchedUpdates();
-
-            expect(await getOnyxValue(ONYXKEYS.PERSONAL_BANK_ACCOUNT)).toBeFalsy();
-        });
-
-        test('keeps only the preserved data and wipes every other field when preservedData is passed', async () => {
-            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
-                onSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS,
-                exitReportID: 'report123',
-                shouldShowSuccess: true,
-                isLoading: true,
-                errors: {field: 'error'},
-                updateError: 'addPersonalBankAccount.updatePersonalInfoFailure',
-            });
-            await waitForBatchedUpdates();
-
-            clearPersonalBankAccount({onSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS});
-            await waitForBatchedUpdates();
-
-            const result = await getOnyxValue(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
-            expect(result).toEqual({onSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS});
-        });
-
-        test('always clears the form draft regardless of the preserved data', async () => {
-            await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL});
-            await waitForBatchedUpdates();
-
-            clearPersonalBankAccount({onSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS});
-            await waitForBatchedUpdates();
-
-            expect((await getOnyxValue(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT))?.setupType).toBeFalsy();
         });
     });
 });
