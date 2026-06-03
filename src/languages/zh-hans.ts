@@ -2186,9 +2186,8 @@ const translations: TranslationDeepObject<typeof en> = {
         stepCodes: '恢复代码',
         keepCodesSafe: '妥善保管这些验证码！',
         codesLoseAccess: dedent(`
-            如果你无法使用身份验证应用且没有这些代码，你将无法访问你的账户。
-
-            <strong>注意</strong>：设置双重身份验证后，你将在所有其他活跃会话中退出登录。
+            如果你无法使用验证器应用且没有这些代码，你将无法登录你的账户。<br><br>
+            <strong>注意</strong>：启用双重验证会将你登出所有其他会话。
         `),
         errorStepCodes: '请在继续之前复制或下载这些代码',
         stepVerify: '验证',
@@ -2218,7 +2217,6 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceTitle: '设置新设备',
         verifyNewDeviceDescription: '使用新设备扫描二维码，然后输入代码完成设置。',
         downloadCodes: '下载代码',
-        screenshotTip: '提示：截屏此页面以将其保存到你的相册',
         copyCodes: '复制代码',
     },
     recoveryCodeForm: {
@@ -4509,7 +4507,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             bankAccountDescription: '选择从哪里寄送支票。',
             creditCardAccount: '信用卡账户',
             travelInvoicingDescription: '差旅费用将作为信用卡费用导出到下面指定的 QuickBooks Online 账户。',
-            companyCardsLocationEnabledDescription: 'QuickBooks Online 不支持在供应商账单导出中使用地点。由于您在工作区中启用了地点功能，该导出选项不可用。',
+            companyCardsLocationEnabledDescription: '当地点作为标签导入时，QuickBooks Online 不支持在供应商账单导出中使用地点。由于你的工作区中已将地点作为标签导入，因此此导出选项不可用。',
             outOfPocketTaxEnabledDescription: 'QuickBooks Online 不支持在日记账分录导出中包含税费。由于你已在工作区中启用税费功能，因此无法使用此导出选项。',
             outOfPocketTaxEnabledError: '启用税费时无法使用日记账分录。请选择其他导出选项。',
             advancedConfig: {
