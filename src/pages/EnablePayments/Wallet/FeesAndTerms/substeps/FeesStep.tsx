@@ -7,8 +7,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import LongTermsForm from '@pages/EnablePayments/TermsPage/LongTermsForm';
-import ShortTermsForm from '@pages/EnablePayments/TermsPage/ShortTermsForm';
+import LongTermsForm from '@pages/EnablePayments/shared/TermsForms/LongTermsForm';
+import ShortTermsForm from '@pages/EnablePayments/shared/TermsForms/ShortTermsForm';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function FeesStep({onNext}: SubStepProps) {

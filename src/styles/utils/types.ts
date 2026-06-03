@@ -39,7 +39,7 @@ type AvatarStyle = Dimensions & {
 
 type ButtonSizeValue = ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
 type ButtonStateName = ValueOf<typeof CONST.BUTTON_STATES>;
-type ButtonVariant = 'success' | 'danger' | 'link';
+type ButtonVariant = 'success' | 'danger';
 type ButtonVariantStyles = {
     normal: Record<ButtonVariant, StyleProp<ViewStyle>>;
     disabled: Record<ButtonVariant, StyleProp<ViewStyle>>;
