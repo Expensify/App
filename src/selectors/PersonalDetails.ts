@@ -8,7 +8,7 @@ const personalDetailsSelector = (accountID: number | undefined) => (personalDeta
 
 const multiPersonalDetailsSelector = (accountIDs: (number | undefined)[]) => (personalDetails: OnyxEntry<PersonalDetailsList>) => newGetPersonalDetailsByIDs(accountIDs, personalDetails);
 
-const personalDetailsListSelector = (accountIDs: (number | undefined)[]) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getPersonalDetailsListByIDs(accountIDs, personalDetails);
+const personalDetailsListSelector = (accountIDs: (number | undefined)[]) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getPersonalDetailsListByIDs(accountIDs, personalDetailsList);
 
 const personalDetailsLoginSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getLoginByAccountID(accountID, personalDetailsList);
 
