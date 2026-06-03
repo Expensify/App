@@ -31,12 +31,14 @@ import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
-import {getSubmitReportManagerAccountID, getValidConnectedIntegration, isDelayedSubmissionEnabled, isSubmitPolicy} from '@libs/PolicyUtils';
+import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
+import {getSubmitReportManagerAccountID, getSubmitToAccountID, getValidConnectedIntegration, isDelayedSubmissionEnabled, isSubmitPolicy} from '@libs/PolicyUtils';
 import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
 import {
     buildOptimisticExportIntegrationAction,
     buildOptimisticIOUReportAction,
     generateReportID,
+    getApprovalChain,
     getParsedComment,
     getReportTransactions,
     hasHeldExpenses,
@@ -675,9 +677,17 @@ function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: 
     ];
 
     const trimmedManagerEmail = managerEmail?.trim();
+    const submitToAccountID = getSubmitToAccountID(firstPolicy, firstReport);
+    const managerIDFromChain = getAccountIDsByLogins(getApprovalChain(firstPolicy, firstReport)).at(0);
+    const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDsByLogins([trimmedManagerEmail]).at(0) : undefined;
+    const submitReportManagerAccountID = getSubmitReportManagerAccountID(firstPolicy, firstReport);
+    const managerAccountID = trimmedManagerEmail
+        ? (managerAccountIDFromEmail ?? managerIDFromChain ?? firstReport.managerID)
+        : (submitReportManagerAccountID ?? (submitToAccountID > 0 ? submitToAccountID : firstReport.managerID));
+
     const parameters: SubmitReportParams = {
         reportID: firstReport.reportID,
-        managerAccountID: getSubmitReportManagerAccountID(firstPolicy, firstReport),
+        managerAccountID,
         reportActionID: rand64(),
         ...(trimmedManagerEmail ? {managerEmail: trimmedManagerEmail} : {}),
     };
