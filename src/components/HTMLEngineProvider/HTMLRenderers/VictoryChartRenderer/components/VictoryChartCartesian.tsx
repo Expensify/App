@@ -1,5 +1,6 @@
 import React from 'react';
 import {CartesianChart} from 'victory-native';
+import {ChartFontsProvider} from '@components/Charts/hooks';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import {VictoryChartRenderArgsProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartRenderArgsContext';
 import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getHierarchyID';
@@ -25,20 +26,22 @@ function VictoryChartCartesian() {
             domainPadding={domainPadding}
             padding={padding}
             renderOutside={(renderArgs) => (
-                <VictoryChartRenderArgsProvider value={renderArgs}>
-                    {labelItems.map((labelItem) => (
-                        <VictoryChartLabel
-                            key={`label-${labelItem.x}-${labelItem.y}`}
-                            {...labelItem}
-                        />
-                    ))}
-                    {legendItems.map((legendItem) => (
-                        <VictoryChartLegend
-                            key={`legend-${legendItem.x}-${legendItem.y}`}
-                            {...legendItem}
-                        />
-                    ))}
-                </VictoryChartRenderArgsProvider>
+                <ChartFontsProvider>
+                    <VictoryChartRenderArgsProvider value={renderArgs}>
+                        {labelItems.map((labelItem) => (
+                            <VictoryChartLabel
+                                key={`label-${labelItem.x}-${labelItem.y}`}
+                                {...labelItem}
+                            />
+                        ))}
+                        {legendItems.map((legendItem) => (
+                            <VictoryChartLegend
+                                key={`legend-${legendItem.x}-${legendItem.y}`}
+                                {...legendItem}
+                            />
+                        ))}
+                    </VictoryChartRenderArgsProvider>
+                </ChartFontsProvider>
             )}
         >
             {(renderArgs) => (
