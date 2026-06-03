@@ -4,12 +4,12 @@ import {HTMLContentModel, useAmbientTRenderEngine} from 'react-native-render-htm
 import {Pie} from 'victory-native';
 import VictoryTheme from '@components/Charts/VictoryTheme';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
+import praseShiftedLineSegmentNode from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/shiftedLineSegmentParser';
 import parseVictoryLabelNode from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/victoryLabelParser';
 import type {PolarChartData} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import convertAngleToArcLength from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/convertAngleToArcLength';
 import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import parseComponent from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseComponent';
-import praseShiftedLineSegmentNode from '../parsers/shiftedLineSegmentParser';
 import VictoryChartPieLabel from './VictoryChartPieLabel';
 
 type VictoryChartPieProps = {tnode: TNode};
