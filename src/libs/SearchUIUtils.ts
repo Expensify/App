@@ -4682,7 +4682,7 @@ function getCurrencyOptions(currencyList: OnyxTypes.CurrencyList, getCurrencySym
     return Object.keys(currencyList).reduce(
         (options, currencyCode) => {
             if (!currencyList?.[currencyCode]?.retired) {
-                options.push({text: `${currencyCode} - ${getCurrencySymbol(currencyCode)}`, value: currencyCode});
+                options.push({text: `${currencyCode} - ${getCurrencySymbol(currencyCode)}`, value: currencyCode, searchableText: currencyList[currencyCode]?.name});
             }
 
             return options;
