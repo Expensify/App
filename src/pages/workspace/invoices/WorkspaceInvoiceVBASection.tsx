@@ -29,15 +29,12 @@ import ROUTES from '@src/ROUTES';
 type WorkspaceInvoiceVBASectionProps = {
     /** The policy ID currently being configured */
     policyID: string;
-
-    /** Whether the current user can edit miscellaneous settings. */
-    canWriteMoreFeatures: boolean;
 };
 
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
 // TODO: can be refactored to use ThreeDotsMenu component instead handling the popover and positioning
-function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures}: WorkspaceInvoiceVBASectionProps) {
+function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Star', 'Trashcan']);
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -245,8 +242,7 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures}: WorkspaceI
                 shouldSkipDefaultAccountValidation={!isSupportedGlobalReimbursement}
                 invoiceTransferBankAccountID={transferBankAccountID}
                 activePaymentMethodID={transferBankAccountID}
-                threeDotsMenuItems={canWriteMoreFeatures ? threeDotsMenuItems : undefined}
-                shouldShowAddBankAccount={canWriteMoreFeatures}
+                threeDotsMenuItems={threeDotsMenuItems}
                 style={[styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}
                 listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                 policyID={policyID}
