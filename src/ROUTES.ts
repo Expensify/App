@@ -788,7 +788,7 @@ const DYNAMIC_ROUTES = {
     SEARCH_REPORT_VIEW: {
         path: 'view/:reportID/:reportActionID?',
         entryScreens: [SCREENS.SEARCH.ROOT, SCREENS.DYNAMIC_SEARCH_REPORT],
-        getRoute: (reportID: string, reportActionID?: string) => (reportActionID ? `view/${reportID}/${reportActionID}` : `view/${reportID}`),
+        getRoute: (reportID?: string, reportActionID?: string) => (reportActionID ? `view/${reportID}/${reportActionID}` : `view/${reportID}`),
     },
 } as const satisfies DynamicRoutes;
 

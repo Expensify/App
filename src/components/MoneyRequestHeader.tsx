@@ -15,7 +15,7 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 import {isPersonalCard} from '@libs/CardUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
+import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList, SearchReportNavigatorParamList} from '@libs/Navigation/types';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
 import {isSelfDM, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
@@ -61,7 +61,7 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const route = useRoute<
         | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
-        | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>
+        | PlatformStackRouteProp<SearchReportNavigatorParamList, typeof SCREENS.DYNAMIC_SEARCH_REPORT>
         | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT>
     >();
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
@@ -90,7 +90,7 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
 
     const reportID = report?.reportID;
     const isReportInRHP = route.name === SCREENS.DYNAMIC_SEARCH_REPORT;
-    const isFromReviewDuplicates = !!route.params.backTo?.replaceAll(/\?.*/g, '').endsWith('/duplicates/review');
+    const isFromReviewDuplicates = !!('backTo' in route.params && route.params.backTo?.replaceAll(/\?.*/g, '').endsWith('/duplicates/review'));
     const shouldDisplayTransactionNavigation = !!(reportID && isReportInRHP);
     const shouldOpenParentReportInCurrentTab = !isSelfDM(parentReport);
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine() && (wideRHPRouteKeys.length === 0 || isSmallScreenWidth);

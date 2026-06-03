@@ -39,7 +39,7 @@ import DateUtils from '@src/libs/DateUtils';
 import {buildSearchQueryJSON, getDateRangeForPreset, getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {CustomCardFeedData} from '@src/types/onyx/CardFeeds';
 import type {Connections} from '@src/types/onyx/Policy';
@@ -8934,12 +8934,14 @@ describe('SearchUIUtils', () => {
             SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, shouldNavigate: true});
             // For one-transaction reports (isOneTransactionReport = true), navigation goes to the parent report (item.reportID)
             // instead of the transaction thread report
-            expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.SEARCH_REPORT_VIEW.getRoute(transactionListItem.reportID)));
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.SEARCH_REPORT_VIEW.getRoute(transactionListItem.reportID!)));
         });
 
         test('Should default shouldNavigate to true when not provided', () => {
             SearchUIUtils.createAndOpenSearchTransactionThread(baseParams);
-            expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.SEARCH_REPORT_VIEW.getRoute(transactionListItem.reportID)));
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.SEARCH_REPORT_VIEW.getRoute(transactionListItem.reportID!)));
         });
 
         test('Should fallback to childReportID from IOU action when transaction thread report is not in Onyx', async () => {

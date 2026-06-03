@@ -5,7 +5,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
+import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList, SearchReportNavigatorParamList} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 import MoneyRequestHeaderPrimaryAction from './MoneyRequestHeaderPrimaryAction';
 import MoneyRequestHeaderSecondaryActions from './MoneyRequestHeaderSecondaryActions';
@@ -26,7 +26,7 @@ function MoneyRequestHeaderActions({reportID, onBackButtonPress}: MoneyRequestHe
     const {wideRHPRouteKeys} = useWideRHPState();
     const route = useRoute<
         | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
-        | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>
+        | PlatformStackRouteProp<SearchReportNavigatorParamList, typeof SCREENS.DYNAMIC_SEARCH_REPORT>
         | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT>
     >();
 

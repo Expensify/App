@@ -980,7 +980,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
             // If the deleted expense is opened from the super wide rhp, go back there.
             if (
                 previousRoute?.name === SCREENS.DYNAMIC_SEARCH_REPORT &&
-                (previousRoute.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT])?.reportID === route.params.reportID
+                 (previousRoute.params as {reportID?: string} | undefined)?.reportID === route.params.reportID
             ) {
                 if (isSuperWideRHPDisplayed) {
                     const distanceToPop = rhpRoutes.length - 1 - superWideRHPIndex;

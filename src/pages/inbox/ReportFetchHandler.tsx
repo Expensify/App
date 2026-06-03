@@ -17,7 +17,7 @@ import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getFilteredReportActionsForReportView, getIOUActionForReportID, getOneTransactionThreadReportID, isCreatedAction} from '@libs/ReportActionsUtils';
 import {isChatThread, isHiddenForCurrentUser, isOneTransactionThread, isPolicyExpenseChat, isReportTransactionThread, isTaskReport, isValidReportIDFromPath} from '@libs/ReportUtils';
-import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
+import type {ReportsSplitNavigatorParamList, SearchReportNavigatorParamList} from '@navigation/types';
 import {
     clearStaleDMRecoveryTargetByTargetReportID,
     createTransactionThreadReport,
@@ -34,7 +34,7 @@ import type {Transaction} from '@src/types/onyx';
 
 type ReportScreenRoute =
     | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
-    | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>;
+    | PlatformStackRouteProp<SearchReportNavigatorParamList, typeof SCREENS.DYNAMIC_SEARCH_REPORT>;
 
 const defaultReportMetadata = {
     isOptimisticReport: false,

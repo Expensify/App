@@ -14,7 +14,7 @@ import {markRejectViolationAsResolved} from '@libs/actions/IOU/RejectMoneyReques
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
+import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList, SearchReportNavigatorParamList} from '@libs/Navigation/types';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {changeMoneyRequestHoldStatus} from '@libs/ReportUtils';
@@ -45,14 +45,14 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
     const {wideRHPRouteKeys} = useWideRHPState();
     const route = useRoute<
         | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
-        | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>
+        | PlatformStackRouteProp<SearchReportNavigatorParamList, typeof SCREENS.DYNAMIC_SEARCH_REPORT>
         | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT>
     >();
 
     const shouldUseDesktopLayout = !useShouldDisplayButtonsInSeparateLine();
     const isNarrowButton = shouldUseDesktopLayout || (wideRHPRouteKeys.length > 0 && !isSmallScreenWidth);
     const {isOffline} = useNetwork();
-    const isFromReviewDuplicates = !!route.params.backTo?.replaceAll(/\?.*/g, '').endsWith('/duplicates/review');
+    const isFromReviewDuplicates = !!('backTo' in route.params && route.params.backTo?.replaceAll(/\?.*/g, '').endsWith('/duplicates/review'));
 
     // Per-key Onyx subscriptions
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);

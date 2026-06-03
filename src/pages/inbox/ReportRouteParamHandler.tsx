@@ -6,13 +6,13 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {findLastAccessedReport} from '@libs/ReportUtils';
 import {isNumeric} from '@libs/ValidationUtils';
-import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
+import type {ReportsSplitNavigatorParamList, SearchReportNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
 type ReportScreenRoute =
     | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
-    | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>;
+    | PlatformStackRouteProp<SearchReportNavigatorParamList, typeof SCREENS.DYNAMIC_SEARCH_REPORT>;
 
 /**
  * Component that does not render anything. Resolves the reportID route param when missing,

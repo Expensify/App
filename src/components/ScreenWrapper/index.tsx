@@ -24,7 +24,7 @@ import mergeRefs from '@libs/mergeRefs';
 import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPaneContext';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList, RootNavigatorParamList} from '@libs/Navigation/types';
+import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList, RootNavigatorParamList, SearchReportNavigatorParamList} from '@libs/Navigation/types';
 import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
 import {closeReactNativeApp} from '@userActions/HybridApp';
 import CONFIG from '@src/CONFIG';
@@ -58,7 +58,8 @@ type ScreenWrapperProps = Omit<ScreenWrapperContainerProps, 'children'> &
         navigation?:
             | PlatformStackNavigationProp<RootNavigatorParamList>
             | PlatformStackNavigationProp<ReportsSplitNavigatorParamList>
-            | PlatformStackNavigationProp<RightModalNavigatorParamList>;
+            | PlatformStackNavigationProp<RightModalNavigatorParamList>
+            | PlatformStackNavigationProp<SearchReportNavigatorParamList>;
 
         /** A unique ID to find the screen wrapper in tests */
         testID: string;

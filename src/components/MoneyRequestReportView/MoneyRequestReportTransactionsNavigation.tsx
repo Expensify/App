@@ -8,7 +8,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useOnyx from '@hooks/useOnyx';
 import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
 import {clearActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
-import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
@@ -121,7 +120,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         let backTo = Navigation.getActiveRoute();
         if (isFromReviewDuplicates) {
             const currentRoute = navigationRef.getCurrentRoute();
-            const params = currentRoute?.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT] | undefined;
+                const params = currentRoute?.params as {backTo?: string} | undefined;
             backTo = params?.backTo ?? backTo;
         }
         const nextThreadReportID = nextParentReportAction?.childReportID;
@@ -157,7 +156,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         let backTo = Navigation.getActiveRoute();
         if (isFromReviewDuplicates) {
             const currentRoute = navigationRef.getCurrentRoute();
-            const params = currentRoute?.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT] | undefined;
+                const params = currentRoute?.params as {backTo?: string} | undefined;
             backTo = params?.backTo ?? backTo;
         }
         const prevThreadReportID = prevParentReportAction?.childReportID;

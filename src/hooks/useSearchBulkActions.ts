@@ -34,8 +34,8 @@ import {
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {getSecondaryExportReportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
@@ -866,8 +866,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
 
-            const activeRoute = Navigation.getActiveRoute();
-
             for (const item of selectedOptions) {
                 const itemPolicyID = item.policyID;
                 const itemReportID = item.reportID;
@@ -894,14 +892,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 const hasSelectedBusinessBankAccount = expenseReportBankAccountID != null;
 
                 if (isExpenseReport && lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && !hasPolicyVBBA && !hasSelectedBusinessBankAccount) {
-                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SEARCH_REPORT_VIEW.getRoute(item.reportID)));
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SEARCH_REPORT_VIEW.getRoute(itemReportID)));
                     return;
                 }
                 const isPolicyPaymentMethod = !Object.values(CONST.IOU.PAYMENT_TYPE).includes(lastPolicyPaymentMethod as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>);
                 if (isPolicyPaymentMethod && isIOUReport) {
                     const adminPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${lastPolicyPaymentMethod}`];
                     if (!adminPolicy) {
-                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SEARCH_REPORT_VIEW.getRoute(item.reportID)));
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SEARCH_REPORT_VIEW.getRoute(itemReportID)));
                         return;
                     }
                     const invite = moveIOUReportToPolicyAndInviteSubmitter(

@@ -16,6 +16,14 @@ The navigation in the app is built on top of the `react-navigation` library. To 
   - [Multi-step flows with URL synchronization](#multi-step-flows-with-url-synchronization)
     - [When to use](#when-to-use)
     - [Implementation pattern](#implementation-pattern)
+      - [1. Define your routes](#1-define-your-routes)
+      - [2. Add navigation config](#2-add-navigation-config)
+      - [3. Define page constants](#3-define-page-constants)
+      - [4. Create sub-page components](#4-create-sub-page-components)
+      - [5. Implement the main flow component](#5-implement-the-main-flow-component)
+    - [Using InteractiveStepSubPageHeader](#using-interactivestepsubpageheader)
+      - [6. Handle edit mode](#6-handle-edit-mode)
+      - [7. Skip pages conditionally](#7-skip-pages-conditionally)
   - [Debugging](#debugging)
     - [Reading state when it changes](#reading-state-when-it-changes)
     - [Finding the code that calls the navigation function](#finding-the-code-that-calls-the-navigation-function)
@@ -25,14 +33,22 @@ The navigation in the app is built on top of the `react-navigation` library. To 
     - [When not to use dynamic routes](#when-not-to-use-dynamic-routes)
     - [Dynamic routes configuration](#dynamic-routes-configuration)
     - [Entry screens (access control)](#entry-screens-access-control)
-    - [Current limitations (work in progress)](#current-limitations-work-in-progress)
+      - [Wildcard access (`'*'`)](#wildcard-access-)
+    - [Optional path parameters](#optional-path-parameters)
+      - [Configuration example](#configuration-example)
+      - [Suffix resolution (`findAllMatchingDynamicSuffixes`)](#suffix-resolution-findallmatchingdynamicsuffixes)
+      - [Precedence rules](#precedence-rules)
     - [Multi-segment dynamic routes](#multi-segment-dynamic-routes)
     - [Suffix layering (stacking dynamic routes)](#suffix-layering-stacking-dynamic-routes)
+      - [Authorization per layer](#authorization-per-layer)
+      - [Configuration example](#configuration-example-1)
+      - [Multi-segment suffixes in layered paths](#multi-segment-suffixes-in-layered-paths)
     - [Dynamic routes with query parameters](#dynamic-routes-with-query-parameters)
+      - [How to add query parameters to a dynamic route](#how-to-add-query-parameters-to-a-dynamic-route)
     - [How to add a new dynamic route](#how-to-add-a-new-dynamic-route)
     - [Migrating from backTo to dynamic routes](#migrating-from-backto-to-dynamic-routes)
     - [Backward compatibility for changed paths](#backward-compatibility-for-changed-paths)
-  - [How to remove backTo from URL (Legacy)](#how-to-remove-backto-from-url)
+  - [How to remove backTo from URL](#how-to-remove-backto-from-url)
     - [Separating routes for each screen instance](#separating-routes-for-each-screen-instance)
   - [Generating state from a path](#generating-state-from-a-path)
   - [Setting the correct screen underneath RHP](#setting-the-correct-screen-underneath-rhp)
@@ -1105,7 +1121,7 @@ Considerations when removing `backTo` from a URL:
 ```ts
 type ReportScreenNavigationProps =
     | PlatformStackScreenProps<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
-    | PlatformStackScreenProps<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>;
+    | PlatformStackScreenProps<SearchReportNavigatorParamList, typeof SCREENS.DYNAMIC_SEARCH_REPORT>;
 ```
 
 An example of a screen that is reused in several flows is `VerifyAccountPage`.

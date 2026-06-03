@@ -13,7 +13,7 @@ import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isDeletedParentAction} from '@libs/ReportActionsUtils';
 import {isAdminRoom, isAnnounceRoom, isGroupChat, isMoneyRequest, isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isPolicyExpenseChat} from '@libs/ReportUtils';
-import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
+import type {ReportsSplitNavigatorParamList, SearchReportNavigatorParamList} from '@navigation/types';
 import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -25,7 +25,7 @@ import useReportWasDeleted from './hooks/useReportWasDeleted';
 
 type ReportScreenRoute =
     | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
-    | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>;
+    | PlatformStackRouteProp<SearchReportNavigatorParamList, typeof SCREENS.DYNAMIC_SEARCH_REPORT>;
 
 const reportDetailScreens = [
     ...Object.values(SCREENS.REPORT_DETAILS),
