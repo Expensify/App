@@ -40,9 +40,6 @@ const CENTRAL_PANE_WORKSPACE_SCREENS = {
 
 const Split = createSplitNavigator<WorkspaceSplitNavigatorParamList>();
 
-// Read by the sidebar Split.Screen options below. Set by handleReplaceFullscreenUnderRHP when
-// collapseTabToLeaf propagates the `noEnterAnimation` flag down the focused path; without this,
-// the inner WORKSPACE.INITIAL would still play SLIDE_FROM_RIGHT under the dismissing RHP.
 function hasNoEnterAnimationFlag(params: unknown): boolean {
     return !!(params as {noEnterAnimation?: boolean} | undefined)?.noEnterAnimation;
 }
@@ -51,7 +48,7 @@ function WorkspaceSplitNavigator({route}: PlatformStackScreenProps<WorkspaceNavi
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
     const styles = useThemeStyles();
 
-    const buildSidebarScreenOptions = ({route: screenRoute}: {route: {params?: unknown; name?: string; key?: string}}) => {
+    const buildSidebarScreenOptions = ({route: screenRoute}: {route: {params?: unknown}}) => {
         if (hasNoEnterAnimationFlag(screenRoute.params)) {
             return {...splitNavigatorScreenOptions.sidebarScreen, animation: Animations.NONE};
         }

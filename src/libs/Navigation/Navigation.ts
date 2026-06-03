@@ -1114,7 +1114,6 @@ function removePreInsertedFullscreenIfNeeded() {
 
     const rootState = navigationRef.getRootState();
     if (!rootState) {
-        Log.hmmm('[Navigation] removePreInserted: no rootState');
         return;
     }
 
@@ -1129,29 +1128,23 @@ function removePreInsertedFullscreenIfNeeded() {
         return;
     }
 
-    // RHP already dismissed. Restore the entire TAB_NAVIGATOR route from the snapshot so both
-    // the focused tab AND the focused tab's nested stack are put back. A bare jumpTo here only
-    // covers the cross-tab case (e.g. IOU pre-inserts on a different tab); when the pre-insert
-    // happened in-tab (e.g. workspace creation with `collapseTabToLeaf` that wiped WORKSPACES_LIST
-    // from under the new workspace leaf), jumpTo is a no-op against the current tab and the user
-    // is stranded on the collapsed leaf instead of the screen they came from.
+    // RHP already dismissed. Restore the whole TAB_NAVIGATOR route from the snapshot so both the focused
+    // tab and its nested stack are put back. A bare jumpTo only handles the cross-tab case; an in-tab
+    // pre-insert (e.g. `collapseTabToLeaf` that wiped WORKSPACES_LIST under the new workspace leaf) would
+    // otherwise strand the user on the collapsed leaf.
     const originalTabRoute = getPreInsertedOriginalTabRoute();
     if (originalTabRoute) {
         clearPreInsertedOriginalTabRoute();
-        // Read the root state synchronously inside rAF and dispatch a plain CommonActions.reset on
-        // navigationRef. The function form `dispatch((state) => ...)` would be invoked with the
-        // currently focused navigator's state (the collapsed WorkspaceSplit after RHP dismiss),
-        // which doesn't contain TAB_NAVIGATOR — the previous fallback `reset(state)` then no-op'd
-        // that inner navigator instead of restoring the saved tab snapshot.
+        // Read the root state inside rAF and dispatch CommonActions.reset on navigationRef. The function
+        // form `dispatch((state) => ...)` runs against the focused navigator (the collapsed WorkspaceSplit),
+        // which doesn't contain TAB_NAVIGATOR.
         requestAnimationFrame(() => {
             const rootStateAtRAF = navigationRef.getRootState();
             if (!rootStateAtRAF) {
-                Log.hmmm('[Navigation] removePreInserted: no rootState at rAF time');
                 return;
             }
             const tabNavIndex = rootStateAtRAF.routes.findLastIndex((r) => r.name === NAVIGATORS.TAB_NAVIGATOR);
             if (tabNavIndex < 0) {
-                Log.hmmm('[Navigation] removePreInserted: TAB_NAVIGATOR not in rootState at rAF time', {routeNames: rootStateAtRAF.routes.map((r) => r.name)});
                 return;
             }
             const newRoutes = [...rootStateAtRAF.routes.slice(0, tabNavIndex), originalTabRoute, ...rootStateAtRAF.routes.slice(tabNavIndex + 1)];

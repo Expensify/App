@@ -22,7 +22,7 @@ module.exports = {
     // .worktrees/ holds parallel git worktrees a developer may check out locally.
     // Each one carries its own modules/hybrid-app/package.json, which trips
     // jest-haste-map's "duplicate package name" assertion. Skip them entirely.
-    modulePathIgnorePatterns: ['<rootDir>/.worktrees/', '<rootDir>/.claude/worktrees/'],
+    modulePathIgnorePatterns: ['<rootDir>/.worktrees/'],
     globals: {
         __DEV__: true,
         WebSocket: {},

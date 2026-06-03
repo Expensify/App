@@ -15,10 +15,6 @@ import WorkspaceSplitNavigator from './WorkspaceSplitNavigator';
 
 const Stack = createWorkspaceNavigator<WorkspaceNavigatorParamList>();
 
-// Read by the screen options function below. Set by handleReplaceFullscreenUnderRHP when the
-// workspace tab is collapsed to a freshly-created workspace, so the entering split navigator
-// does not play SLIDE_FROM_RIGHT (which on iOS native-stack would otherwise be deferred and
-// replayed after the RHP dismiss, briefly revealing the collapsed-away WorkspacesList).
 function hasNoEnterAnimationFlag(params: unknown): boolean {
     return !!(params as {noEnterAnimation?: boolean} | undefined)?.noEnterAnimation;
 }
@@ -26,12 +22,10 @@ function hasNoEnterAnimationFlag(params: unknown): boolean {
 function WorkspaceNavigator({route}: PlatformStackScreenProps<TabNavigatorParamList, typeof NAVIGATORS.WORKSPACE_NAVIGATOR>) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    // On narrow layout, use slide animation and enable swipe-back gesture on native platforms from WorkspaceInitialPage and DomainInitialPage.
-    // When the leaf route carries `noEnterAnimation` (set atomically with the navigation state change in
-    // handleReplaceFullscreenUnderRHP for `collapseTabToLeaf`), suppress the slide so the screen mounts instantly.
-    const buildSplitNavigatorOptions = ({route: screenRoute}: {route: {params?: unknown; name?: string; key?: string}}) => {
-        const hasNoEnter = hasNoEnterAnimationFlag(screenRoute.params);
-        if (!shouldUseNarrowLayout || hasNoEnter) {
+    // On narrow layout, slide in the split navigator and enable swipe-back, except when the leaf route carries
+    // `noEnterAnimation` (set by handleReplaceFullscreenUnderRHP for `collapseTabToLeaf`), where it mounts instantly.
+    const buildSplitNavigatorOptions = ({route: screenRoute}: {route: {params?: unknown}}) => {
+        if (!shouldUseNarrowLayout || hasNoEnterAnimationFlag(screenRoute.params)) {
             return {animation: Animations.NONE};
         }
         return {animation: Animations.SLIDE_FROM_RIGHT, gestureEnabled: true};

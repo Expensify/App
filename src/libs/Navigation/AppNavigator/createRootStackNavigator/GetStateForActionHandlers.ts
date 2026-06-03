@@ -184,9 +184,8 @@ function getFocusedRouteFromNavigatorState(navState: NavigationState | PartialSt
 }
 
 /**
- * Recursively tags a route and its focused-path descendants with `noEnterAnimation: true`. Used by
- * collapseTabToLeaf so every nested screen along the focused path (outer leaf, its split, its inner
- * sidebar) reads the flag synchronously when computing screenOptions and mounts with animation: NONE.
+ * Recursively tags a route and its focused-path descendants with `noEnterAnimation: true`, so each
+ * navigator along the focused path reads the flag synchronously and mounts with animation: NONE.
  */
 function tagFocusedPathWithNoEnterAnimation<R extends {params?: unknown; state?: PartialState<NavigationState> | NavigationState | undefined}>(route: R): R {
     const params = {...((route.params as Record<string, unknown> | undefined) ?? {}), noEnterAnimation: true};
@@ -421,14 +420,9 @@ function handleReplaceFullscreenUnderRHP(
             const newNestedRoutes = focusedTargetTab.state?.routes;
             let mergedNestedState = focusedTargetTab.state;
             if (action.payload.collapseTabToLeaf) {
-                // Replace the tab's nested stack with [sidebar, leaf] so:
-                //  - The dismissing modal reveals only the leaf (top of stack covers the sidebar).
-                //  - Swipe-back from the new leaf lands on the sidebar (e.g., WorkspacesList).
-                //  - When the previous leaf was the same-named SPLIT (different policyID), the new
-                //    state has more routes than the old one — RN treats this as a push, not an
-                //    in-place same-name replace which on web exposes a blank frame.
-                // The leaf AND its focused nested descendants are tagged with `noEnterAnimation`
-                // so navigators on the focused path mount with animation: 'none' on first render.
+                // Rebuild the tab's nested stack as [sidebar, leaf] so the dismissing modal reveals only the
+                // leaf and swipe-back lands on the sidebar (e.g. WorkspacesList). The leaf and its focused
+                // descendants are tagged with `noEnterAnimation` so the focused path mounts with animation: NONE.
                 const leafRoute = newNestedRoutes?.at(-1);
                 if (leafRoute && focusedTargetTab.state) {
                     const taggedLeaf = tagFocusedPathWithNoEnterAnimation(leafRoute);
@@ -462,7 +456,7 @@ function handleReplaceFullscreenUnderRHP(
             // follow-up NAVIGATE from it and override the `state` we splice below.
             const sanitizedRoute = withSanitizedDeepLinkParams(r, focusedTargetTab.params as Record<string, unknown> | undefined);
             // A fresh key remounts the workspace tab so react-native-screens builds a new native view that is
-            // drawn before the RHP dismiss reveals it, instead of repainting the heavier multi-tab tree a frame late.
+            // drawn before the RHP dismiss reveals it, instead of repainting the existing tree a frame late.
             let remountKey: {key?: string} = {};
             if (action.payload.collapseTabToLeaf) {
                 workspaceTabRevealKey += 1;
@@ -479,8 +473,7 @@ function handleReplaceFullscreenUnderRHP(
         // Save original route so handleRemoveFullscreenUnderRHP can fully restore it on cancel.
         preInsertedOriginalTabRoute = existingTabRoute;
         const newRoutes = [...routesWithoutRHP.slice(0, tabNavIndex), updatedTabRoute, ...routesWithoutRHP.slice(tabNavIndex + 1), rhpRoute];
-        const rehydrated = stackRouter.getRehydratedState({...state, routes: newRoutes, index: newRoutes.length - 1}, configOptions);
-        return rehydrated;
+        return stackRouter.getRehydratedState({...state, routes: newRoutes, index: newRoutes.length - 1}, configOptions);
     }
 
     // For non-tab fullscreen targets: push the route underneath the RHP (existing behavior).
@@ -541,7 +534,6 @@ function handleRemoveFullscreenUnderRHP(
     if (preInsertedOriginalTabRoute) {
         const tabNavIndex = routesWithoutRHP.findLastIndex((r) => r.name === NAVIGATORS.TAB_NAVIGATOR);
         if (tabNavIndex < 0) {
-            Log.hmmm('[Navigation] handleRemove: TAB_NAVIGATOR not found, clearing snapshot');
             preInsertedOriginalTabRoute = undefined;
             return null;
         }
