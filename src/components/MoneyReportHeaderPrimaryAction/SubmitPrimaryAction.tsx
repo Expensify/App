@@ -36,6 +36,20 @@ type SubmitPrimaryActionProps = {
 };
 
 function SubmitPrimaryAction({reportID}: SubmitPrimaryActionProps) {
+    const {startSubmittingAnimation} = usePaymentAnimationsContext();
+
+    return (
+        <ReportSubmitToPopoverAnchor
+            reportID={reportID}
+            onSubmitSuccess={startSubmittingAnimation}
+            anchorAlignment={ANCHOR_ALIGNMENT}
+        >
+            <SubmitPrimaryActionContent reportID={reportID} />
+        </ReportSubmitToPopoverAnchor>
+    );
+}
+
+function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
     const {isSubmittingAnimationRunning, stopAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -127,20 +141,14 @@ function SubmitPrimaryAction({reportID}: SubmitPrimaryActionProps) {
     };
 
     return (
-        <ReportSubmitToPopoverAnchor
-            reportID={reportID}
-            onSubmitSuccess={startSubmittingAnimation}
-            anchorAlignment={ANCHOR_ALIGNMENT}
-        >
-            <AnimatedSubmitButton
-                success
-                text={translate('common.submit')}
-                onPress={handleSubmit}
-                isSubmittingAnimationRunning={isSubmittingAnimationRunning}
-                onAnimationFinish={stopAnimation}
-                isDisabled={shouldBlockSubmit}
-            />
-        </ReportSubmitToPopoverAnchor>
+        <AnimatedSubmitButton
+            success
+            text={translate('common.submit')}
+            onPress={handleSubmit}
+            isSubmittingAnimationRunning={isSubmittingAnimationRunning}
+            onAnimationFinish={stopAnimation}
+            isDisabled={shouldBlockSubmit}
+        />
     );
 }
 

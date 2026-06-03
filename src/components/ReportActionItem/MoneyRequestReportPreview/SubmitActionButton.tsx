@@ -20,8 +20,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 
 const ANCHOR_ALIGNMENT = {
-    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
 };
 
 type SubmitActionButtonProps = {
@@ -32,12 +32,30 @@ type SubmitActionButtonProps = {
 };
 
 function SubmitActionButton({iouReportID, isSubmittingAnimationRunning, stopAnimation, startSubmittingAnimation}: SubmitActionButtonProps) {
+    return (
+        <ReportSubmitToPopoverAnchor
+            reportID={iouReportID}
+            onSubmitSuccess={startSubmittingAnimation}
+            anchorAlignment={ANCHOR_ALIGNMENT}
+        >
+            <SubmitActionButtonContent
+                iouReportID={iouReportID}
+                isSubmittingAnimationRunning={isSubmittingAnimationRunning}
+                stopAnimation={stopAnimation}
+                startSubmittingAnimation={startSubmittingAnimation}
+            />
+        </ReportSubmitToPopoverAnchor>
+    );
+}
+
+function SubmitActionButtonContent({iouReportID, isSubmittingAnimationRunning, stopAnimation, startSubmittingAnimation}: SubmitActionButtonProps) {
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserDetails.accountID;
     const currentUserEmail = currentUserDetails.email ?? '';
     const {isBetaEnabled} = usePermissions();
+    const openReportSubmitToPopover = useOpenReportSubmitToPopover();
 
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
@@ -49,7 +67,6 @@ function SubmitActionButton({iouReportID, isSubmittingAnimationRunning, stopAnim
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const {isOffline} = useNetwork();
-    const openReportSubmitToPopover = useOpenReportSubmitToPopover();
     const reportTransactionsCollection = useReportTransactionsCollection(iouReportID);
     const transactions = Object.values(reportTransactionsCollection ?? {}).filter(
         (t): t is Transaction => !!t && (isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
@@ -95,20 +112,14 @@ function SubmitActionButton({iouReportID, isSubmittingAnimationRunning, stopAnim
     };
 
     return (
-        <ReportSubmitToPopoverAnchor
-            reportID={iouReportID}
-            onSubmitSuccess={startSubmittingAnimation}
-            anchorAlignment={ANCHOR_ALIGNMENT}
-        >
-            <AnimatedSubmitButton
-                success
-                text={translate('common.submit')}
-                onPress={handleSubmit}
-                isSubmittingAnimationRunning={isSubmittingAnimationRunning}
-                onAnimationFinish={stopAnimation}
-                sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.SUBMIT_BUTTON}
-            />
-        </ReportSubmitToPopoverAnchor>
+        <AnimatedSubmitButton
+            success
+            text={translate('common.submit')}
+            onPress={handleSubmit}
+            isSubmittingAnimationRunning={isSubmittingAnimationRunning}
+            onAnimationFinish={stopAnimation}
+            sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.SUBMIT_BUTTON}
+        />
     );
 }
 

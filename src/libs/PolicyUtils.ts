@@ -1049,7 +1049,7 @@ function isPaidGroupPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
 }
 
 function isSubmitPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
-    return policy?.type === CONST.POLICY.TYPE.SUBMIT;
+    return true//policy?.type === CONST.POLICY.TYPE.SUBMIT;
 }
 
 /**
