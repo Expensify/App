@@ -251,7 +251,7 @@ describe('NetworkTests', () => {
             });
     });
 
-    test('does not reauthenticate on 407 while a recent short-lived token sign-in is in progress', () => {
+    test('does not re-authenticate on 407 while a recent short-lived token sign-in is in progress', () => {
         const TEST_USER_LOGIN = 'test@testguy.com';
         const TEST_USER_ACCOUNT_ID = 1;
 
@@ -287,7 +287,7 @@ describe('NetworkTests', () => {
             });
     });
 
-    test('reauthenticates on 407 when the short-lived token sign-in flag is stale', () => {
+    test('re-authenticates on 407 when the short-lived token sign-in flag is stale', () => {
         const TEST_USER_LOGIN = 'test@testguy.com';
         const TEST_USER_ACCOUNT_ID = 1;
         const NEW_AUTH_TOKEN = 'qwerty12345';
