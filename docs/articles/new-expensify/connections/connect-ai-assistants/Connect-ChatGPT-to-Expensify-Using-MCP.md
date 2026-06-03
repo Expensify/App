@@ -34,30 +34,30 @@ For the latest requirements and instructions, see the [ChatGPT Developer mode do
 2. Go to **Settings**.
 3. Select **Apps**.
 4. Select **Advanced settings**.
-5. Turn on **Developer mode**.
+5. Enable **Developer mode**.
 
 ---
 
 ## How to create the Expensify connector in ChatGPT
 
 1. Open **Settings**.
-2. Select **Connectors**.
-3. Click **Create**.
+2. Select **Apps**.
+3. Select **Create App**.
 4. Enter the following details:
 
-- **Connector name:** Expensify
+- **Name:** Expensify
 - **Description:** Search your Expensify expenses, reports, receipts, trips, and tasks.
-- **Connector URL:** `https://www.expensify.com/mcp/`
+- **Connection:** `https://www.expensify.com/mcp/`
 
 5. Click **Create**.
 6. Complete the OAuth sign-in and approval flow in your browser.
-7. Click **Approve**.
+7. Click **Allow**.
 
 ---
 
 ## How to use the Expensify connector in ChatGPT conversations
 
-1. Open a new chat.
+1. Open a new chat in ChatGPT.
 2. Click the **+** button near the message composer.
 3. Select **More**.
 4. Select the Expensify connector.
@@ -93,9 +93,9 @@ Make sure you completed the OAuth approval flow in your browser.
 
 If ChatGPT still cannot access your data:
 
-- Verify the MCP server URL is correct
-- Reconnect the connector
-- Reauthorize the OAuth connection
+- Go to **Settings** > **Apps** in ChatGPT and confirm that **Expensify** appears under **Enabled Apps**.
+- Open the **Expensify** connector in ChatGPT, select the three dots **(⋮)**, and click **Reconnect**.
+- Remove the Expensify connector and create it again by following the setup instructions in this article.
 
 ## Can ChatGPT edit expenses or approve reports?
 
