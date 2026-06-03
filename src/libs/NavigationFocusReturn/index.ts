@@ -92,11 +92,12 @@ function notifyPushParamsForward(routeKey: string, prevParams: unknown): void {
 
 function notifyPushParamsBackward(routeKey: string, targetParams: unknown): void {
     // Honor a one-shot skip on this param-revert too (form-submit goBack can land as PUSH_PARAMS, not a stack pop).
+    const compoundKey = compoundParamsKey(routeKey, targetParams);
     if (skipNextRestore) {
-        skipNextRestore = false;
+        applySkippedRestore(compoundKey);
         return;
     }
-    scheduleRestore(compoundParamsKey(routeKey, targetParams), {waitForUpcomingTransition: false});
+    scheduleRestore(compoundKey, {waitForUpcomingTransition: false});
 }
 
 /*
@@ -272,6 +273,13 @@ function cancelPendingRestore(): void {
     pendingRestore = null;
 }
 
+/** Skip cleanup: cancel in-flight defer + drop the entry so a stale trigger can't be replayed by a later same-key backward. */
+function applySkippedRestore(restoreKey: string): void {
+    skipNextRestore = false;
+    cancelPendingRestore();
+    triggerMap.delete(restoreKey);
+}
+
 const MAX_RESTORE_FRAMES = 5;
 
 function scheduleRestore(routeKey: string, {waitForUpcomingTransition}: {waitForUpcomingTransition: boolean}): void {
@@ -343,8 +351,7 @@ function handleStateChange(newState: NavigationState | undefined): void {
         lastMouseTriggerAt = 0;
     } else if (action.type === 'backward') {
         if (skipNextRestore) {
-            skipNextRestore = false;
-            cancelPendingRestore();
+            applySkippedRestore(action.restoreKey);
         } else {
             scheduleRestore(action.restoreKey, {waitForUpcomingTransition: true});
         }

@@ -1506,12 +1506,37 @@ describe('handleStateChange integration', () => {
             flushTransitions();
             expect(spy).not.toHaveBeenCalled();
 
-            // The flag is one-shot: a subsequent Back-button dismissal restores normally.
+            // The flag is one-shot: a fresh capture + Back-button dismissal restores normally.
+            fireFocusIn(trigger);
             handleStateChange(onAB);
             trigger.blur();
             handleStateChange(onA);
             flushTransitions();
             expect(spy).toHaveBeenCalled();
+        });
+    });
+
+    it('skipNextFocusRestore drops the entry, so a later same-key backward without re-capture does not replay a stale trigger', () => {
+        withFakeTimers(() => {
+            simulateTab();
+            handleStateChange(onA);
+
+            const trigger = appendButton();
+            fireFocusIn(trigger);
+            handleStateChange(onAB);
+            trigger.blur();
+
+            skipNextFocusRestore();
+            handleStateChange(onA);
+            flushTransitions();
+
+            // No fresh capture between the skipped revert and the next back: the entry must be gone, no stale replay.
+            const spy = jest.spyOn(trigger, 'focus');
+            handleStateChange(onAB);
+            trigger.blur();
+            handleStateChange(onA);
+            flushTransitions();
+            expect(spy).not.toHaveBeenCalled();
         });
     });
 
