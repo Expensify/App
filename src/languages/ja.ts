@@ -2229,9 +2229,8 @@ const translations: TranslationDeepObject<typeof en> = {
         stepCodes: 'リカバリーコード',
         keepCodesSafe: 'これらのコードを安全に保管してください。',
         codesLoseAccess: dedent(`
-            認証アプリへのアクセスを失い、これらのコードも持っていない場合は、お客さまのアカウントへのアクセスもできなくなります。
-
-            <strong>注意</strong>：二要素認証を設定すると、他のすべてのアクティブなセッションからログアウトされます。
+            認証アプリへのアクセスを失い、これらのコードもお持ちでない場合は、アカウントにログインできなくなります。<br><br>
+            <strong>注意</strong>：2FA を有効にすると、他のすべてのセッションからログアウトされます。
         `),
         errorStepCodes: '続行する前にコードをコピーまたはダウンロードしてください',
         stepVerify: '確認',
@@ -2261,7 +2260,6 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceTitle: '新しいデバイスを設定',
         verifyNewDeviceDescription: '新しいデバイスでQRコードをスキャンし、表示されたコードを入力して設定を完了してください。',
         downloadCodes: 'コードをダウンロード',
-        screenshotTip: 'ヒント：スクリーンショットを撮ってフォトライブラリに保存しましょう',
         copyCodes: 'コードをコピー',
     },
     recoveryCodeForm: {
@@ -2963,8 +2961,8 @@ ${date} の ${merchant} への ${amount}`,
         },
         getStarted: 'はじめる',
         whatsYourName: 'あなたの名前は何ですか？',
-        peopleYouMayKnow: '知り合いがすでにここに参加しています！一緒に参加するには、メールアドレスを確認してください。',
-        workspaceYouMayJoin: (domain: string, email: string) => `${domain} のユーザーがすでにワークスペースを作成しています。${email} に送信されたマジックコードを入力してください。`,
+        peopleYouMayKnow: 'あなたのチームが Expensify を利用しているか確認する',
+        workspaceYouMayJoin: (domain: string, email: string) => `${email} に送信されたコードを入力して、${domain} の誰かが参加できるワークスペースを持っているか確認します。`,
         joinAWorkspace: 'ワークスペースに参加',
         listOfWorkspaces: '参加できるワークスペースの一覧です。',
         skipForNow: '今はスキップ',
@@ -3973,7 +3971,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         selectCountry: '国を選択',
         error: {
             connectToWorkspace: (workspaceRoute: string) =>
-                `後のステップでディレクターに署名を依頼できるよう、この銀行口座を<a href="${workspaceRoute}">ワークスペース</a>に接続してください。`,
+                `この銀行口座はワークスペースにリンクする必要があります。<a href="${workspaceRoute}">ワークスペース</a>に移動し、ワークスペースを選択して、ワークフロー > 支払い > 銀行口座を追加 に進んでください。`,
         },
     },
     bankInfoStep: {
@@ -4022,7 +4020,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             `は、従業員への支払いを${currency}で行うため、末尾が${bankAccountLastFour}の${currency}建てビジネス銀行口座をExpensifyに接続しようとしています。次のステップでは、取締役の署名者情報が必要です。`,
         error: {
             emailsMustBeDifferent: 'メールアドレスは異なる必要があります',
-            connectToWorkspace: (workspaceRoute: string) => `この銀行口座を<a href="${workspaceRoute}">ワークスペース</a>に接続して、取締役に署名を依頼してください。`,
         },
     },
     agreementsStep: {
@@ -4595,7 +4592,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             creditCardAccount: 'クレジットカード口座',
             travelInvoicingDescription: '旅費は、以下で指定した QuickBooks Online アカウントにクレジットカード請求としてエクスポートされます。',
             companyCardsLocationEnabledDescription:
-                'QuickBooks Online は仕入先請求書のエクスポートでロケーションをサポートしていません。ワークスペースでロケーションが有効になっているため、このエクスポートオプションは使用できません。',
+                'QuickBooks Online では、ロケーションをタグとして取り込んでいる場合、ベンダー請求書のエクスポートでロケーションをサポートしていません。現在このワークスペースではロケーションがタグとして取り込まれているため、このエクスポートオプションは利用できません。',
             outOfPocketTaxEnabledDescription:
                 'QuickBooks Online は仕訳のエクスポートで税金に対応していません。ワークスペースで税金が有効になっているため、このエクスポートオプションは利用できません。',
             outOfPocketTaxEnabledError: '税金が有効になっている場合、仕訳は利用できません。別のエクスポートオプションを選択してください。',
@@ -7733,6 +7730,8 @@ ${reportName}
             `カード明細フィード「${feedName}」の利用明細期間の終了日を変更しました${newValue ? ` を「${newValue}」に` : ''}${previousValue ? ` （以前の値：「${previousValue}」）` : ''}`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `${fieldType}レポートフィールド「${fieldName}」を追加しました${defaultValue ? ` デフォルト値「${defaultValue}」付き` : ''}`,
+        updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
+            `「${mccGroupName}」のデフォルト支出カテゴリーを「${newCategory}」に変更しました（以前は「${oldCategory}」）`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} の法人カード購入要件`,
         expensifyCardRule: {
             actionVerb: {block: 'ブロック済み', allow: '許可済み'},
