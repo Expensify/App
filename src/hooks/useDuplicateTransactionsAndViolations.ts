@@ -10,7 +10,6 @@ import useOnyx from './useOnyx';
  * @param transactionIDs - An array of transaction IDs to fetch their violations for.
  * @param allTransactionsViolations - A collection of all transaction violations currently in the onyx db.
  * @returns - A collection of violations related to the transaction IDs and if present, the violations of their duplicates.
- * @private
  */
 function selectViolationsWithDuplicates(transactionIDs: string[], allTransactionsViolations: OnyxCollection<TransactionViolations>): OnyxCollection<TransactionViolations> {
     if (!allTransactionsViolations || !transactionIDs?.length) {
@@ -141,3 +140,4 @@ function useDuplicateTransactionsAndViolations(transactionIDs: string[]): Duplic
 }
 
 export default useDuplicateTransactionsAndViolations;
+export {selectViolationsWithDuplicates, selectTransactionsWithDuplicates};
