@@ -1,7 +1,6 @@
 import {pendingChatMembersSelector} from '@selectors/ReportMetaData';
 import React, {useEffect} from 'react';
 import type {SectionListData} from 'react-native';
-import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -26,6 +25,7 @@ import {READ_COMMANDS} from '@libs/API/types';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import HttpUtils from '@libs/HttpUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
@@ -40,7 +40,7 @@ import {getParticipantsAccountIDsForDisplay, isPolicyExpenseChat} from '@libs/Re
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
@@ -79,46 +79,56 @@ function RoomInvitePage({
         excludedUsers[smsDomain] = true;
     }
 
-    const {searchTerm, debouncedSearchTerm, setSearchTerm, selectedOptions, availableOptions, toggleSelection, areOptionsInitialized} = usePersonalDetailSearchSelector({
-        shouldInitialize: didScreenTransitionEnd,
-        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-        excludeLogins: excludedUsers,
-        includeCurrentUser: false,
-        includeRecentReports: false,
-        includeUserToInvite: true,
-        initialSearchPhrase: userSearchPhrase,
-    });
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, selectedOptions, availableOptions, selectedNonExistingOptions, toggleSelection, areOptionsInitialized} =
+        usePersonalDetailSearchSelector({
+            shouldInitialize: didScreenTransitionEnd,
+            selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+            excludeLogins: excludedUsers,
+            includeCurrentUser: false,
+            includeRecentReports: false,
+            includeUserToInvite: true,
+            initialSearchPhrase: userSearchPhrase,
+            shouldKeepSelectedInAvailableOptions: true,
+        });
 
     const sections: MembersSection[] = [];
     if (areOptionsInitialized) {
-        if (availableOptions.userToInvite) {
+        // Selected non-existing users section (e.g., typed email addresses)
+        if (selectedNonExistingOptions.length > 0) {
+            sections.push({
+                title: undefined,
+                data: selectedNonExistingOptions,
+                sectionIndex: 0,
+            });
+        }
+
+        // Contacts section (selected items stay in-place with isSelected flag)
+        if (availableOptions.personalDetails.length > 0) {
+            sections.push({
+                title: translate('common.contacts'),
+                data: availableOptions.personalDetails,
+                sectionIndex: 1,
+            });
+        }
+
+        // User to invite section (hide if already selected)
+        if (availableOptions.userToInvite && !availableOptions.userToInvite.isSelected) {
             sections.push({
                 title: undefined,
                 data: [availableOptions.userToInvite],
-                sectionIndex: 0,
+                sectionIndex: 2,
             });
-        } else {
-            if (availableOptions.selectedOptions.length > 0) {
-                sections.push({
-                    title: undefined,
-                    data: availableOptions.selectedOptions,
-                    sectionIndex: 0,
-                });
-            }
-            if (availableOptions.personalDetails.length > 0) {
-                sections.push({
-                    title: translate('common.contacts'),
-                    data: availableOptions.personalDetails,
-                    sectionIndex: availableOptions.selectedOptions.length > 0 ? 1 : 0,
-                });
-            }
         }
     }
 
     // Non policy members should not be able to view the participants of a room
     const reportID = report?.reportID;
     const isPolicyEmployee = isPolicyEmployeeUtil(report?.policyID, policy);
-    const backRoute = reportID && (!isPolicyEmployee || isReportArchived ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo) : ROUTES.ROOM_MEMBERS.getRoute(reportID, backTo));
+    const backRoute =
+        reportID &&
+        (!isPolicyEmployee || isReportArchived
+            ? createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(reportID))
+            : ROUTES.ROOM_MEMBERS.getRoute(reportID, backTo));
 
     const reportName = getReportName(report, reportAttributes);
 
@@ -139,23 +149,28 @@ function RoomInvitePage({
             invitedEmailsToAccountIDs[login] = accountID;
         }
         if (report?.reportID) {
-            if (isPolicyExpenseChat(report)) {
-                inviteToRoomAction(
-                    report,
-                    ancestors,
-                    invitedEmailsToAccountIDs,
-                    currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE,
-                    currentUserPersonalDetails.accountID,
-                    delegateAccountID,
-                );
-            } else {
-                inviteToRoom(report, invitedEmailsToAccountIDs, formatPhoneNumber);
-            }
             clearUserSearchPhrase();
+            // Defer the invite action until after the navigation transition completes to prevent
+            // a race condition on iOS where optimistic Onyx updates trigger a re-render of the
+            // underlying RoomMembersPage during the native screen transition animation, causing a crash.
+            const afterTransition = () => {
+                if (isPolicyExpenseChat(report)) {
+                    inviteToRoomAction(
+                        report,
+                        ancestors,
+                        invitedEmailsToAccountIDs,
+                        currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE,
+                        currentUserPersonalDetails.accountID,
+                        delegateAccountID,
+                    );
+                } else {
+                    inviteToRoom(report, invitedEmailsToAccountIDs, formatPhoneNumber);
+                }
+            };
             if (backTo) {
-                Navigation.goBack(backTo);
+                Navigation.goBack(backTo, {afterTransition});
             } else {
-                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(report.reportID), {afterTransition});
             }
         }
     };
@@ -191,6 +206,17 @@ function RoomInvitePage({
         headerMessage: getHeaderMessageText(),
     };
 
+    const footerContent = (
+        <FormAlertWithSubmitButton
+            isDisabled={!validSelectedOptions.length}
+            buttonText={translate('common.invite')}
+            onSubmit={inviteUsers}
+            containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+            enabledWhenOffline
+            isAlertVisible={false}
+        />
+    );
+
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
@@ -213,24 +239,18 @@ function RoomInvitePage({
                     textInputOptions={textInputOptions}
                     onSelectRow={toggleSelection}
                     confirmButtonOptions={{
+                        isDisabled: !validSelectedOptions.length,
                         onConfirm: inviteUsers,
                     }}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                    shouldUpdateFocusedIndex
+                    shouldPreventAutoScrollOnSelect
                     shouldShowLoadingPlaceholder={!areOptionsInitialized}
                     isLoadingNewOptions={!!isSearchingForReports}
                     shouldShowTextInput
                     canSelectMultiple
+                    footerContent={footerContent}
                 />
-                <View style={[styles.flexShrink0]}>
-                    <FormAlertWithSubmitButton
-                        isDisabled={!validSelectedOptions.length}
-                        buttonText={translate('common.invite')}
-                        onSubmit={inviteUsers}
-                        containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5, styles.ph5]}
-                        enabledWhenOffline
-                        isAlertVisible={false}
-                    />
-                </View>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

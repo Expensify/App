@@ -18,7 +18,6 @@ import useAllPolicyExpenseChatReportActions from '@hooks/useAllPolicyExpenseChat
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {openExternalLink} from '@libs/actions/Link';
@@ -37,7 +36,7 @@ import AccessOrNotFoundWrapper from '@src/pages/workspace/AccessOrNotFoundWrappe
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route as Routes} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkspaceInviteMessageForm';
-import type {PersonalDetails} from '@src/types/onyx';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -46,7 +45,7 @@ type WorkspaceInviteMessageComponentProps = {
     policy: OnyxEntry<Policy>;
     policyID: string;
     backTo: Routes | undefined;
-    currentUserPersonalDetails: OnyxEntry<PersonalDetails>;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
     shouldShowTooltip?: boolean;
     shouldShowBackButton?: boolean;
     shouldShowMemberNames?: boolean;
@@ -78,9 +77,6 @@ function WorkspaceInviteMessageComponent({
     const [invitedEmailsToAccountIDsDraft, invitedEmailsToAccountIDsDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`);
     const [workspaceInviteMessageDraft, workspaceInviteMessageDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${policyID}`);
     const [workspaceInviteRoleDraft = CONST.POLICY.ROLE.USER] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`);
-    const {isBetaEnabled} = usePermissions();
-    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
-
     const defaultApprover = getDefaultApprover(policy);
     const [approverDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`);
     const workspaceInviteApproverDraft = approverDraft ?? defaultApprover;
@@ -160,7 +156,12 @@ function WorkspaceInviteMessageComponent({
             policyMemberAccountIDs,
             workspaceInviteRoleDraft,
             formatPhoneNumber,
-            currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            {
+                accountID: currentUserPersonalDetails?.accountID,
+                displayName: currentUserPersonalDetails?.displayName,
+                email: currentUserPersonalDetails.email,
+                avatar: currentUserPersonalDetails?.avatar,
+            },
             shouldShowApproverRow ? validatedApprover : undefined,
             filteredReportActions,
         );
@@ -277,7 +278,7 @@ function WorkspaceInviteMessageComponent({
                                 description={translate('common.role')}
                                 shouldShowRightIcon
                                 onPress={() => {
-                                    if (tryNavigateToSubmitWorkspaceUpgrade(policy, true, CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias, isSubmit2026BetaEnabled)) {
+                                    if (tryNavigateToSubmitWorkspaceUpgrade(policy, true, CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias)) {
                                         return;
                                     }
                                     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE_MESSAGE_ROLE.path));
