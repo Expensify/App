@@ -1,6 +1,5 @@
 import {delegateEmailSelector} from '@selectors/Account';
 import React from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
 import {ReportSubmitToPopoverAnchor, useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -18,98 +17,12 @@ import {submitReport} from '@userActions/IOU/ReportWorkflow';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
-import type TransactionViolations from '@src/types/onyx/TransactionViolation';
+import type {Transaction} from '@src/types/onyx';
 
-type SubmitActionButtonContentProps = {
-    iouReportID: string | undefined;
-    iouReport: OnyxEntry<OnyxTypes.Report>;
-    policy: OnyxEntry<OnyxTypes.Policy>;
-    userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
-    iouReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
-    amountOwed: OnyxEntry<number>;
-    ownerBillingGracePeriodEnd: OnyxEntry<number>;
-    transactionViolations: OnyxCollection<TransactionViolations>;
-    reportActions: OnyxEntry<OnyxTypes.ReportActions>;
-    transactions: OnyxTypes.Transaction[];
-    currentUserAccountID: number;
-    currentUserEmail: string;
-    delegateEmail: string | undefined;
-    isASAPSubmitBetaEnabled: boolean;
-    hasViolations: boolean;
-    hasAnyPendingRTERViolation: boolean;
-    isSubmittingAnimationRunning: boolean;
-    stopAnimation: () => void;
-    startSubmittingAnimation: () => void;
+const ANCHOR_ALIGNMENT = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
-
-function SubmitActionButtonContent({
-    iouReportID,
-    iouReport,
-    policy,
-    userBillingGracePeriodEnds,
-    iouReportNextStep,
-    amountOwed,
-    ownerBillingGracePeriodEnd,
-    transactionViolations,
-    reportActions,
-    transactions,
-    currentUserAccountID,
-    currentUserEmail,
-    delegateEmail,
-    isASAPSubmitBetaEnabled,
-    hasViolations,
-    hasAnyPendingRTERViolation,
-    isSubmittingAnimationRunning,
-    stopAnimation,
-    startSubmittingAnimation,
-}: SubmitActionButtonContentProps) {
-    const {translate} = useLocalize();
-    const {showConfirmModal} = useConfirmModal();
-    const openReportSubmitToPopover = useOpenReportSubmitToPopover();
-
-    const handleMarkPendingRTERTransactionsAsCash = () => {
-        markPendingRTERTransactionsAsCash(transactions, transactionViolations, Object.values(reportActions ?? {}));
-    };
-
-    const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
-
-    return (
-        <AnimatedSubmitButton
-            success
-            text={translate('common.submit')}
-            onPress={() => {
-                if (hasOnlyPendingCardTransactions(transactions)) {
-                    showPendingCardTransactionsBlockModal(showConfirmModal, translate);
-                    return;
-                }
-                confirmPendingRTERAndProceed(() => {
-                    if (isSubmitPolicy(policy) && iouReportID) {
-                        openReportSubmitToPopover();
-                        return;
-                    }
-                    submitReport({
-                        expenseReport: iouReport,
-                        policy,
-                        currentUserAccountIDParam: currentUserAccountID,
-                        currentUserEmailParam: currentUserEmail,
-                        hasViolations,
-                        isASAPSubmitBetaEnabled,
-                        expenseReportCurrentNextStepDeprecated: iouReportNextStep,
-                        userBillingGracePeriodEnds,
-                        amountOwed,
-                        onSubmitted: startSubmittingAnimation,
-                        ownerBillingGracePeriodEnd,
-                        delegateEmail,
-                    });
-                });
-            }}
-            isSubmittingAnimationRunning={isSubmittingAnimationRunning}
-            onAnimationFinish={stopAnimation}
-            sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.SUBMIT_BUTTON}
-        />
-    );
-}
 
 type SubmitActionButtonProps = {
     iouReportID: string | undefined;
@@ -119,6 +32,8 @@ type SubmitActionButtonProps = {
 };
 
 function SubmitActionButton({iouReportID, isSubmittingAnimationRunning, stopAnimation, startSubmittingAnimation}: SubmitActionButtonProps) {
+    const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserDetails.accountID;
     const currentUserEmail = currentUserDetails.email ?? '';
@@ -134,40 +49,64 @@ function SubmitActionButton({iouReportID, isSubmittingAnimationRunning, stopAnim
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const {isOffline} = useNetwork();
+    const openReportSubmitToPopover = useOpenReportSubmitToPopover();
     const reportTransactionsCollection = useReportTransactionsCollection(iouReportID);
     const transactions = Object.values(reportTransactionsCollection ?? {}).filter(
-        (t): t is OnyxTypes.Transaction => !!t && (isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
+        (t): t is Transaction => !!t && (isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
     );
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
     const hasAnyPendingRTERViolation = hasAnyPendingRTERViolationTransactionUtils(transactions, transactionViolations, currentUserEmail, currentUserAccountID, iouReport, policy);
 
+    const handleMarkPendingRTERTransactionsAsCash = () => {
+        markPendingRTERTransactionsAsCash(transactions, transactionViolations, Object.values(reportActions ?? {}));
+    };
+
+    const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
+
+    const handleSubmit = () => {
+        if (hasOnlyPendingCardTransactions(transactions)) {
+            showPendingCardTransactionsBlockModal(showConfirmModal, translate);
+            return;
+        }
+
+        confirmPendingRTERAndProceed(() => {
+            if (isSubmitPolicy(policy) && iouReportID) {
+                openReportSubmitToPopover();
+                return;
+            }
+
+            submitReport({
+                expenseReport: iouReport,
+                policy,
+                currentUserAccountIDParam: currentUserAccountID,
+                currentUserEmailParam: currentUserEmail,
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                expenseReportCurrentNextStepDeprecated: iouReportNextStep,
+                userBillingGracePeriodEnds,
+                amountOwed,
+                onSubmitted: startSubmittingAnimation,
+                ownerBillingGracePeriodEnd,
+                delegateEmail,
+            });
+        });
+    };
+
     return (
         <ReportSubmitToPopoverAnchor
             reportID={iouReportID}
             onSubmitSuccess={startSubmittingAnimation}
+            anchorAlignment={ANCHOR_ALIGNMENT}
         >
-            <SubmitActionButtonContent
-                iouReportID={iouReportID}
-                iouReport={iouReport}
-                policy={policy}
-                userBillingGracePeriodEnds={userBillingGracePeriodEnds}
-                iouReportNextStep={iouReportNextStep}
-                amountOwed={amountOwed}
-                ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
-                transactionViolations={transactionViolations}
-                reportActions={reportActions}
-                transactions={transactions}
-                currentUserAccountID={currentUserAccountID}
-                currentUserEmail={currentUserEmail}
-                delegateEmail={delegateEmail}
-                isASAPSubmitBetaEnabled={isASAPSubmitBetaEnabled}
-                hasViolations={hasViolations}
-                hasAnyPendingRTERViolation={hasAnyPendingRTERViolation}
+            <AnimatedSubmitButton
+                success
+                text={translate('common.submit')}
+                onPress={handleSubmit}
                 isSubmittingAnimationRunning={isSubmittingAnimationRunning}
-                stopAnimation={stopAnimation}
-                startSubmittingAnimation={startSubmittingAnimation}
+                onAnimationFinish={stopAnimation}
+                sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.SUBMIT_BUTTON}
             />
         </ReportSubmitToPopoverAnchor>
     );
