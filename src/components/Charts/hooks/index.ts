@@ -6,7 +6,6 @@ export {default as useChartFontManager} from './useChartFontManager/useChartFont
 export {default as ChartDefaultTypefaceProvider} from '../context/ChartDefaultTypefaceProvider';
 export {getChartSkiaTypeface} from '../context/getChartSkiaTypeface';
 export {useChartDefaultTypeface} from '../context/ChartDefaultTypefaceContext';
-export type {ChartDefaultTypeface, ChartSkiaTypefaceKey} from '../context/chartSkiaTypefaceTypes';
 export {useChartInteractions, TOOLTIP_BAR_GAP} from './useChartInteractions';
 export type {HitTestArgs} from './useChartInteractions';
 export {default as useChartLabelFormats} from './useChartLabelFormats';

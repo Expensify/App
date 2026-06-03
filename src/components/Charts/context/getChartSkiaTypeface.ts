@@ -56,4 +56,3 @@ function getChartSkiaTypeface(
 }
 
 export {getChartSkiaTypeface};
-export type {ChartLabelFontStyle, ChartLabelFontWeight};
