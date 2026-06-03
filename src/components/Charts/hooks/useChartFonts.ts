@@ -1,5 +1,5 @@
 import {useEffect, useSyncExternalStore} from 'react';
-import type {ChartFontsValue} from '@components/Charts/types/chartFontsTypes';
+import type ChartFontsValue from '@components/Charts/types/chartFontsTypes';
 import {getChartFontsSnapshot, loadChartFontsOnce, subscribeToChartFonts} from '@components/Charts/utils/chartFontsCache';
 
 function useChartFonts(): ChartFontsValue {

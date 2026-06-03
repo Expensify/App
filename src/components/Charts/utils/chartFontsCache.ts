@@ -1,10 +1,10 @@
 import type {DataModule, SkTypeface} from '@shopify/react-native-skia';
 import {Skia} from '@shopify/react-native-skia';
 import {Image} from 'react-native';
-import type {ChartFontsValue} from '@components/Charts/types/chartFontsTypes';
+import type ChartFontsValue from '@components/Charts/types/chartFontsTypes';
 import type {ChartDefaultTypeface, ChartSkiaTypefaceKey} from '@components/Charts/types/chartSkiaTypefaceTypes';
 import Log from '@libs/Log';
-import {CHART_FONT_MGR_NOTO_ASSETS, CHART_SKIA_TYPEFACE_ASSETS} from './chartFontAssets';
+import {CHART_FONT_MGR_SUPPLEMENTAL_ASSETS, CHART_SKIA_TYPEFACE_ASSETS} from './chartFontAssets';
 import {CHART_FONT_MGR_FROM_TYPEFACES} from './chartFontConstants';
 
 const EMPTY_CHART_FONTS: ChartFontsValue = {
@@ -67,7 +67,7 @@ function buildChartFontsValue(typefaces: ChartDefaultTypeface): Promise<ChartFon
     }
 
     return Promise.all(
-        Object.entries(CHART_FONT_MGR_NOTO_ASSETS).map(async ([familyName, asset]) => {
+        Object.entries(CHART_FONT_MGR_SUPPLEMENTAL_ASSETS).map(async ([familyName, asset]) => {
             const typeface = await loadTypefaceFromAsset(asset);
 
             if (typeface) {
