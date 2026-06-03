@@ -161,9 +161,6 @@ function IOURequestStartPage({
         return undefined;
     }, [transaction?.iouRequestType, isStaleTransactionDraft, shouldUseTab, selectedTab, availableTabs]);
 
-    const {isBetaEnabled} = usePermissions();
-    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
-
     const resetIOUTypeIfChanged = useResetIOUType({
         reportID,
         report,
@@ -173,7 +170,6 @@ function IOURequestStartPage({
         transactionRequestType,
         policy,
         skipKeyboardDismissForPerDiem: true,
-        isNewManualExpenseFlowEnabled,
     });
 
     useEffect(() => {
@@ -197,6 +193,9 @@ function IOURequestStartPage({
     const focusTrapContainerElements = useMemo(() => {
         return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element);
     }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
+
+    const {isBetaEnabled} = usePermissions();
+    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
 
     const onBackButtonPress = () => {
         navigateBack();
