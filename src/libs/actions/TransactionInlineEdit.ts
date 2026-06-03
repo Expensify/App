@@ -10,7 +10,6 @@ import type {ValueOf} from 'type-fest';
 import {isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import {isValidMerchant, isValidMoneyRequestAmount} from '@libs/MoneyRequestUtils';
-import {getIsOffline} from '@libs/NetworkState';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
 import {getTagLists, isMultiLevelTags} from '@libs/PolicyUtils';
@@ -181,6 +180,7 @@ type GetIouParamsInput = {
 
 type TransactionInlineEditParams = GetIouParamsInput & {
     hash: number | undefined;
+    isOffline: boolean;
 };
 
 /**
@@ -283,7 +283,7 @@ function editTransactionDateInline(params: TransactionInlineEditParams, newDate:
         value: newDate,
         transactions: allTransactions,
         transactionViolations: allTransactionViolations,
-        isOffline: getIsOffline(),
+        isOffline: params.isOffline,
         hash: params.hash,
     });
 }
@@ -301,6 +301,7 @@ function editTransactionMerchantInline(params: TransactionInlineEditParams, newM
         ...iouParams,
         value: newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
         hash: params.hash,
+        isOffline: params.isOffline,
     });
 }
 
@@ -365,6 +366,7 @@ function editTransactionTagInline(params: TransactionInlineEditParams, newTag: s
         tag: newTag,
         policyRecentlyUsedTags: iouParams.policyRecentlyUsedTags,
         hash: params.hash,
+        isOffline: params.isOffline,
     });
 }
 
