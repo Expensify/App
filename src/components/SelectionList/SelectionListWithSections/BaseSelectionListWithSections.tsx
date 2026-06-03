@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useImperativeHandle, useRef} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -11,6 +11,7 @@ import TextInput from '@components/SelectionList/components/TextInput';
 import useFlattenedSections, {isItemSelected, shouldTreatItemAsDisabled} from '@components/SelectionList/hooks/useFlattenedSections';
 import useSearchFocusSync from '@components/SelectionList/hooks/useSearchFocusSync';
 import useSelectedItemFocusSync from '@components/SelectionList/hooks/useSelectedItemFocusSync';
+import useSelectionListKeyboardFocus from '@components/SelectionList/hooks/useSelectionListKeyboardFocus';
 import useSelectionListScroll from '@components/SelectionList/hooks/useSelectionListScroll';
 import ListItemRenderer from '@components/SelectionList/ListItem/ListItemRenderer';
 import type {InteractiveElementRoles} from '@components/SelectionList/types';
@@ -18,7 +19,6 @@ import {getListboxRole} from '@components/SelectionList/utils/getListboxRole';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useActiveElementRole from '@hooks/useActiveElementRole';
-import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
@@ -27,8 +27,6 @@ import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
-import {isFocusRestoreInProgress} from '@libs/NavigationFocusReturn';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import type {FlattenedItem, ListItem, SelectionListWithSectionsProps} from './types';
@@ -91,9 +89,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const {singleExecution} = useSingleExecution();
     const innerTextInputRef = useRef<BaseTextInputRef | null>(null);
     const isTextInputFocusedRef = useRef<boolean>(false);
-    const hasKeyBeenPressed = useRef(false);
-    const [isKeyboardNavigating, setIsKeyboardNavigating] = useState(false);
-    const suppressNextFocusScrollRef = useRef(false);
     const activeElementRole = useActiveElementRole();
     const {isKeyboardShown} = useKeyboardState();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
@@ -104,68 +99,20 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const listRef = useRef<FlashListRef<FlattenedItem<TItem>> | null>(null);
     const {scrollToIndex, debouncedScrollToIndex} = useSelectionListScroll(listRef, flattenedData);
 
-    const setHasKeyBeenPressed = () => {
-        if (hasKeyBeenPressed.current) {
-            return;
-        }
-        hasKeyBeenPressed.current = true;
-        setIsKeyboardNavigating(true);
-    };
-
-    // Arrow keys are handled via setHasKeyBeenPressed in useArrowKeyFocusManager.
-    // Tab also needs to trigger the flag so rows highlight when the user tabs into the list.
-    useEffect(() => {
-        const handleTabKeyDown = (event: KeyboardEvent) => {
-            if (event.key !== CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
-                return;
-            }
-            setHasKeyBeenPressed();
-        };
-
-        addKeyDownPressListener(handleTabKeyDown);
-        return () => removeKeyDownPressListener(handleTabKeyDown);
-    }, []);
-
-    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
-        initialFocusedIndex,
-        maxIndex: flattenedData.length - 1,
-        disabledIndexes,
-        isActive: isScreenFocused && itemsCount > 0,
-        onFocusedIndexChange: (index: number) => {
-            if (suppressNextFocusScrollRef.current) {
-                suppressNextFocusScrollRef.current = false;
-                return;
-            }
-            if (!shouldScrollToFocusedIndex) {
-                return;
-            }
-
-            (shouldDebounceScrolling ? debouncedScrollToIndex : scrollToIndex)(index);
-        },
-        setHasKeyBeenPressed,
-        isFocused: isScreenFocused,
-        onArrowUpDownCallback: () => {
-            setShouldDisableHoverStyle(true);
-            listRef.current?.announceProgrammaticScroll();
-        },
-    });
-
-    // Move the cursor, and skip the scroll the move would otherwise trigger when the index actually changes.
-    const setFocusedIndexWithoutScrollOnChange = (index: number) => {
-        if (index !== focusedIndex) {
-            suppressNextFocusScrollRef.current = true;
-        }
-        setFocusedIndex(index);
-    };
-
-    // Keep the cursor on the restored row so keyboard nav continues from there, but don't scroll to it on the way back.
-    const setFocusedIndexFromRowFocus = (index: number) => {
-        if (isFocusRestoreInProgress()) {
-            setFocusedIndexWithoutScrollOnChange(index);
-        } else {
-            setFocusedIndex(index);
-        }
-    };
+    const {focusedIndex, setFocusedIndex, setFocusedIndexFromRowFocus, setFocusedIndexWithoutScrollOnChange, suppressNextFocusScroll, isKeyboardNavigating, setHasKeyBeenPressed} =
+        useSelectionListKeyboardFocus({
+            initialFocusedIndex,
+            maxIndex: flattenedData.length - 1,
+            disabledIndexes,
+            isActive: isScreenFocused && itemsCount > 0,
+            isFocused: isScreenFocused,
+            shouldScrollToFocusedIndex,
+            shouldDebounceScrolling,
+            scrollToIndex,
+            debouncedScrollToIndex,
+            listRef,
+            setShouldDisableHoverStyle,
+        });
 
     const getFocusedItem = (): TItem | undefined => {
         if (focusedIndex < 0 || focusedIndex >= flattenedData.length) {
@@ -219,7 +166,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
 
     const updateAndScrollToFocusedIndex = (index: number, shouldScroll = true) => {
         if (!shouldScroll) {
-            suppressNextFocusScrollRef.current = true;
+            suppressNextFocusScroll();
         }
         setFocusedIndex(index);
         if (shouldScroll) {
@@ -291,10 +238,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         searchValue: syncedSearchValue,
         setFocusedIndex,
     });
-
-    const suppressNextFocusScroll = () => {
-        suppressNextFocusScrollRef.current = true;
-    };
 
     useSearchFocusSync({
         searchValue: syncedSearchValue,
