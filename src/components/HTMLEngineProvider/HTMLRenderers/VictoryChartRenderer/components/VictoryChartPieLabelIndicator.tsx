@@ -30,10 +30,10 @@ function VictoryChartPieLabelIndicator({
     const labelIndicatorInnerRadius = midRadius + (labelIndicatorInnerOffset ?? 0);
     const labelIndicatorOuterRadius = labelRadius - (labelIndicatorOuterOffset ?? 0);
 
-    const x1 = slice.center.x + labelIndicatorInnerRadius * Math.cos(-midAngle * RADIAN) + (labelIndicatorXShift ?? 0);
+    const x1 = slice.center.x + labelIndicatorInnerRadius * Math.cos(midAngle * RADIAN) + (labelIndicatorXShift ?? 0);
     const y1 = slice.center.y + labelIndicatorInnerRadius * Math.sin(midAngle * RADIAN) + (labelIndicatorYShift ?? 0);
 
-    const x2 = slice.center.x + labelIndicatorOuterRadius * Math.cos(-midAngle * RADIAN) + (labelIndicatorXShift ?? 0);
+    const x2 = slice.center.x + labelIndicatorOuterRadius * Math.cos(midAngle * RADIAN) + (labelIndicatorXShift ?? 0);
     const y2 = slice.center.y + labelIndicatorOuterRadius * Math.sin(midAngle * RADIAN) + (labelIndicatorYShift ?? 0);
 
     const path = Skia.Path.Make();

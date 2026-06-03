@@ -34,7 +34,7 @@ function VictoryChartPieLabel({
 }: VictoryChartPieLabelProps) {
     const text = label ?? slice.label;
     const midAngle = (slice.startAngle + slice.endAngle) / 2;
-    const x = slice.center.x + (labelRadius ?? slice.radius) * Math.cos(-midAngle * RADIAN);
+    const x = slice.center.x + (labelRadius ?? slice.radius) * Math.cos(midAngle * RADIAN);
     const y = slice.center.y + (labelRadius ?? slice.radius) * Math.sin(midAngle * RADIAN);
 
     const labelItem: LabelItem = {
