@@ -99,6 +99,10 @@ function getDisplayNameOrDefault(
     return shouldFallbackToHidden ? hiddenTranslation : '';
 }
 
+function getPersonalDetailsByID(accountID: number | undefined, personalDetailsList: OnyxEntry<PersonalDetailsList>): PersonalDetails | undefined {
+    return accountID ? (personalDetailsList?.[accountID] ?? undefined) : undefined;
+}
+
 /**
  * Given a list of account IDs (as number) it will return an array of personal details objects.
  * @param accountIDs  - Array of accountIDs
@@ -138,7 +142,7 @@ function getPersonalDetailsByIDs({
 function newGetPersonalDetailsByIDs(accountIDs: Array<number | undefined>, personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetails[] {
     const result: PersonalDetails[] = [];
     for (const accountID of accountIDs) {
-        const detail = accountID ? personalDetails?.[accountID] : undefined;
+        const detail = getPersonalDetailsByID(accountID, personalDetails);
         if (!detail) {
             continue;
         }
@@ -484,6 +488,7 @@ function areTravelPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<Priva
 
 export {
     getDisplayNameOrDefault,
+    getPersonalDetailsByID,
     getPersonalDetailsByIDs,
     newGetPersonalDetailsByIDs,
     getPersonalDetailsListByIDs,
