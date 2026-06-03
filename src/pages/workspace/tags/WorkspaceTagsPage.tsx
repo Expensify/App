@@ -411,7 +411,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         styles.flexRow,
         styles.mr3,
         canWriteTags,
-        showReadOnlyModal,
+        getReadOnlyDisabledAction,
     ]);
 
     const filterTag = useCallback((tag: TagListItem, searchInput: string) => {

@@ -192,7 +192,7 @@ function WorkspaceTaxesPage({
                 ),
             };
         });
-    }, [canWriteTaxes, getReadOnlyDisabledAction, policy, showReadOnlyModal, textForDefault, translate, updateWorkspaceTaxEnabled]);
+    }, [canWriteTaxes, getReadOnlyDisabledAction, policy, textForDefault, translate, updateWorkspaceTaxEnabled]);
 
     const filterTax = useCallback((tax: ListItem, searchInput: string) => {
         const results = tokenizedSearch([tax], searchInput, (option) => [option.text ?? '', option.alternateText ?? '']);

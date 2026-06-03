@@ -24,7 +24,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 type IndividualExpenseRulesSectionProps = {
     policyID: string;
     canWriteRules: boolean;
-    showReadOnlyModal: () => void;
     getReadOnlyDisabledAction: (disabledAction?: () => void | Promise<void>) => (() => void | Promise<void>) | undefined;
 };
 
@@ -63,7 +62,7 @@ function IndividualExpenseRulesSectionSubtitle({policy, translate, environmentUR
     return <SectionSubtitleHTML html={translate('workspace.rules.individualExpenseRules.subtitle', categoriesPageLink, tagsPageLink)} />;
 }
 
-function IndividualExpenseRulesSection({policyID, canWriteRules, showReadOnlyModal, getReadOnlyDisabledAction}: IndividualExpenseRulesSectionProps) {
+function IndividualExpenseRulesSection({policyID, canWriteRules, getReadOnlyDisabledAction}: IndividualExpenseRulesSectionProps) {
     const {convertToDisplayString} = useCurrencyListActions();
     const {translate} = useLocalize();
     const styles = useThemeStyles();

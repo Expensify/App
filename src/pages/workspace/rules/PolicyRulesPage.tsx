@@ -87,7 +87,6 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                     <IndividualExpenseRulesSection
                         policyID={policyID}
                         canWriteRules={canWriteRules}
-                        showReadOnlyModal={showReadOnlyModal}
                         getReadOnlyDisabledAction={getReadOnlyDisabledAction}
                     />
                     <MerchantRulesSection

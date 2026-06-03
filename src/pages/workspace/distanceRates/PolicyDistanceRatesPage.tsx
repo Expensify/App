@@ -273,7 +273,7 @@ function PolicyDistanceRatesPage({
             unitTranslation,
             customUnit?.pendingFields?.attributes,
             policy?.pendingAction,
-            showReadOnlyModal,
+            getReadOnlyDisabledAction,
             updateDistanceRateEnabled,
         ],
     );

@@ -328,7 +328,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         switchContainerStyle,
         shouldShowApproverColumn,
         canWriteCategories,
-        showReadOnlyModal,
+        getReadOnlyDisabledAction,
         styles.alignItemsCenter,
         styles.flexRow,
         styles.mr3,
