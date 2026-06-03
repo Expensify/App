@@ -1,10 +1,10 @@
 import React, {useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
+import {getChangeTransactionsReportData, getTransactionViolationsForChangeReport} from '@hooks/useChangeTransactionsReportData';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
 import useOnyx from '@hooks/useOnyx';
@@ -32,18 +32,10 @@ function SearchTransactionsChangeReport() {
     const {selectedTransactions} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
-    const transactions = useMemo(
-        () =>
-            Object.values(selectedTransactions).reduce(
-                (transactionsCollection, transactionItem) => {
-                    // eslint-disable-next-line no-param-reassign
-                    transactionsCollection[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transaction?.transactionID}`] = transactionItem.transaction;
-                    return transactionsCollection;
-                },
-                {} as NonNullable<OnyxCollection<Transaction>>,
-            ),
-        [selectedTransactions],
-    );
+    // Search-selected transactions are not in COLLECTION.TRANSACTION — extract from `selectedTransactions` directly.
+    const transactions = Object.values(selectedTransactions)
+        .map((transactionItem) => transactionItem.transaction)
+        .filter((transaction): transaction is Transaction => !!transaction);
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -56,6 +48,11 @@ function SearchTransactionsChangeReport() {
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionsKeys);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const violationsByTransactionID = getTransactionViolationsForChangeReport(selectedTransactionsKeys, transactionViolations);
+    const {currentTransactionViolations, transactionDuplicatesByTransactionID, siblingNonDuplicatedViolationsByTransactionID} = useMemo(
+        () => getChangeTransactionsReportData(transactions, violationsByTransactionID),
+        [transactions, violationsByTransactionID],
+    );
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
@@ -119,9 +116,12 @@ function SearchTransactionsChangeReport() {
                 policy: policyForMovingExpenses,
                 reportNextStep,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyForMovingExpensesID}`],
-                allTransactions: transactions,
                 policyTagList,
+                transactions,
                 transactionViolations,
+                currentTransactionViolations,
+                transactionDuplicatesByTransactionID,
+                siblingNonDuplicatedViolationsByTransactionID,
             });
             clearSelectedTransactions();
         });
@@ -196,9 +196,12 @@ function SearchTransactionsChangeReport() {
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
             reportNextStep,
             policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
-            allTransactions: transactions,
             policyTagList,
+            transactions,
             transactionViolations,
+            currentTransactionViolations,
+            transactionDuplicatesByTransactionID,
+            siblingNonDuplicatedViolationsByTransactionID,
         });
         InteractionManager.runAfterInteractions(() => {
             clearSelectedTransactions();
@@ -218,9 +221,12 @@ function SearchTransactionsChangeReport() {
             accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             email: session?.email ?? '',
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
-            allTransactions: transactions,
             policyTagList,
+            transactions,
             transactionViolations,
+            currentTransactionViolations,
+            transactionDuplicatesByTransactionID,
+            siblingNonDuplicatedViolationsByTransactionID,
         });
         clearSelectedTransactions();
         Navigation.goBack();

@@ -1,8 +1,10 @@
+import {useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
+import useChangeTransactionsReportData from '@hooks/useChangeTransactionsReportData';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {setCustomUnitID, setCustomUnitRateID} from '@libs/actions/IOU/MoneyRequest';
@@ -100,11 +102,19 @@ function useReportSelectionActions({
 }: UseReportSelectionActionsParams): UseReportSelectionActionsResult {
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {removeTransaction} = useSearchSelectionActions();
     const {isBetaEnabled} = usePermissions();
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
+
+    const targetTransactionIDs = useMemo(() => (transaction ? [transaction.transactionID] : []), [transaction]);
+    const {
+        transactions: targetTransactions,
+        currentTransactionViolations,
+        transactionDuplicatesByTransactionID,
+        siblingNonDuplicatedViolationsByTransactionID,
+    } = useChangeTransactionsReportData(targetTransactionIDs);
 
     const buildParticipants = (report: OnyxEntry<Report>) => [
         {
@@ -168,8 +178,6 @@ function useReportSelectionActions({
         }
     };
 
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-
     const handleRegularReportSelection = (item: TransactionGroupListItem, report: OnyxEntry<Report>) => {
         if (!transaction) {
             return;
@@ -192,7 +200,7 @@ function useReportSelectionActions({
                 if (isEditing) {
                     const policyTagList = item?.policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
                     changeTransactionsReport({
-                        transactionIDs: [transaction.transactionID],
+                        transactionIDs: targetTransactionIDs,
                         isASAPSubmitBetaEnabled,
                         accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         email: session?.email ?? '',
@@ -200,9 +208,12 @@ function useReportSelectionActions({
                         policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
                         reportNextStep: undefined,
                         policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
-                        allTransactions,
                         policyTagList,
+                        transactions: targetTransactions,
                         transactionViolations,
+                        currentTransactionViolations,
+                        transactionDuplicatesByTransactionID,
+                        siblingNonDuplicatedViolationsByTransactionID,
                     });
                     removeTransaction(transaction.transactionID);
                 }
@@ -218,14 +229,17 @@ function useReportSelectionActions({
         InteractionManager.runAfterInteractions(() => {
             const policyTagList = personalPolicyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicyID}`] : {};
             changeTransactionsReport({
-                transactionIDs: [transaction.transactionID],
+                transactionIDs: targetTransactionIDs,
                 isASAPSubmitBetaEnabled,
                 accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 email: session?.email ?? '',
                 policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
-                allTransactions,
                 policyTagList,
+                transactions: targetTransactions,
                 transactionViolations,
+                currentTransactionViolations,
+                transactionDuplicatesByTransactionID,
+                siblingNonDuplicatedViolationsByTransactionID,
             });
             removeTransaction(transaction.transactionID);
         });

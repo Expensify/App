@@ -23,7 +23,8 @@ import type {PersonalDetailsList, Policy, Report, ReportNameValuePairs} from '@s
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
-import {changeTransactionsReport} from '../../src/libs/actions/Transaction';
+import {getChangeTransactionsReportData, getTransactionViolationsForChangeReport} from '../../src/hooks/useChangeTransactionsReportData';
+import {changeTransactionsReport as changeTransactionsReportAction} from '../../src/libs/actions/Transaction';
 import currencyList from '../unit/currencyList.json';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
@@ -31,6 +32,20 @@ import {createRandomReport} from '../utils/collections/reports';
 import getOnyxValue from '../utils/getOnyxValue';
 import {getGlobalFetchMock, getOnyxData} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+type LegacyChangeTransactionsReportProps = Omit<
+    Parameters<typeof changeTransactionsReportAction>[0],
+    'transactions' | 'currentTransactionViolations' | 'transactionDuplicatesByTransactionID' | 'siblingNonDuplicatedViolationsByTransactionID'
+> & {
+    allTransactions: OnyxCollection<Transaction>;
+};
+
+function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations, ...rest}: LegacyChangeTransactionsReportProps) {
+    const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction);
+    const violationsByTransactionID = getTransactionViolationsForChangeReport(transactionIDs, transactionViolations);
+    const derived = getChangeTransactionsReportData(transactions, violationsByTransactionID);
+    changeTransactionsReportAction({transactionIDs, transactionViolations, ...rest, ...derived});
+}
 
 const topMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({

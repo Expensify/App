@@ -10,6 +10,7 @@ import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import {getChangeTransactionsReportData, getTransactionViolationsForChangeReport} from '@hooks/useChangeTransactionsReportData';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCreateNewReport from '@hooks/useCreateNewReport';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -114,9 +115,18 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
         if (isMovingExpenses && (!!selectedTransactionsKeys.length || !!selectedTransactionIDs.length)) {
             const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
             const policyTagList = policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : {};
+            const transactionIDs = selectedTransactionsKeys.length ? selectedTransactionsKeys : selectedTransactionIDs;
+            const transactions = transactionIDs
+                .map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`])
+                .filter((transaction): transaction is NonNullable<typeof transaction> => !!transaction);
+            const violationsByTransactionID = getTransactionViolationsForChangeReport(transactionIDs, transactionViolations);
+            const {currentTransactionViolations, transactionDuplicatesByTransactionID, siblingNonDuplicatedViolationsByTransactionID} = getChangeTransactionsReportData(
+                transactions,
+                violationsByTransactionID,
+            );
             setNavigationActionToMicrotaskQueue(() => {
                 changeTransactionsReport({
-                    transactionIDs: selectedTransactionsKeys.length ? selectedTransactionsKeys : selectedTransactionIDs,
+                    transactionIDs,
                     isASAPSubmitBetaEnabled,
                     accountID: currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     email: currentUserPersonalDetails?.email ?? '',
@@ -124,9 +134,12 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                     policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
                     reportNextStep,
                     policyCategories: undefined,
-                    allTransactions,
                     policyTagList,
+                    transactions,
                     transactionViolations,
+                    currentTransactionViolations,
+                    transactionDuplicatesByTransactionID,
+                    siblingNonDuplicatedViolationsByTransactionID,
                 });
 
                 // eslint-disable-next-line rulesdir/no-default-id-values

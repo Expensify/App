@@ -1,6 +1,5 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -10,6 +9,7 @@ import {useSearchSelectionActions, useSearchSelectionContext} from '@components/
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
 import useActivePolicy from '@hooks/useActivePolicy';
+import {getChangeTransactionsReportData, getTransactionViolationsForChangeReport} from '@hooks/useChangeTransactionsReportData';
 import useCreateNewReport from '@hooks/useCreateNewReport';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
@@ -90,21 +90,15 @@ function IOURequestStepUpgrade({
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
-    // Build transactions map from selectedTransactions (search results) instead of Onyx TRANSACTION collection
-    // This ensures that transactions selected from search are properly included in the map passed to changeTransactionsReport
-    const allTransactions = useMemo(
-        () =>
-            Object.values(selectedTransactions).reduce(
-                (transactionsCollection, transactionItem) => {
-                    if (transactionItem.transaction) {
-                        // eslint-disable-next-line no-param-reassign
-                        transactionsCollection[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transaction.transactionID}`] = transactionItem.transaction;
-                    }
-                    return transactionsCollection;
-                },
-                {} as NonNullable<OnyxCollection<Transaction>>,
-            ),
-        [selectedTransactions],
+    // Search-selected transactions are not in COLLECTION.TRANSACTION — extract from `selectedTransactions` directly.
+    const transactions = Object.values(selectedTransactions)
+        .map((transactionItem) => transactionItem.transaction)
+        .filter((item): item is Transaction => !!item);
+
+    const violationsByTransactionID = getTransactionViolationsForChangeReport(selectedTransactionsKeys, transactionViolations);
+    const {currentTransactionViolations, transactionDuplicatesByTransactionID, siblingNonDuplicatedViolationsByTransactionID} = useMemo(
+        () => getChangeTransactionsReportData(transactions, violationsByTransactionID),
+        [transactions, violationsByTransactionID],
     );
 
     const {isBetaEnabled} = usePermissions();
@@ -149,9 +143,12 @@ function IOURequestStepUpgrade({
                 policy: newPolicy,
                 reportNextStep,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`],
-                allTransactions,
                 policyTagList,
+                transactions,
                 transactionViolations,
+                currentTransactionViolations,
+                transactionDuplicatesByTransactionID,
+                siblingNonDuplicatedViolationsByTransactionID,
             });
 
             clearSelectedTransactions();
@@ -242,7 +239,10 @@ function IOURequestStepUpgrade({
         session?.accountID,
         session?.email,
         ownerPersonalDetails,
-        allTransactions,
+        transactions,
+        currentTransactionViolations,
+        transactionDuplicatesByTransactionID,
+        siblingNonDuplicatedViolationsByTransactionID,
         betas,
         iouType,
         isTrack,

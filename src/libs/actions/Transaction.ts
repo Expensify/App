@@ -839,9 +839,17 @@ type ChangeTransactionsReportProps = {
     policy: OnyxEntry<Policy>;
     reportNextStep?: OnyxEntry<ReportNextStepDeprecated>;
     policyCategories?: OnyxEntry<PolicyCategories>;
-    allTransactions: OnyxCollection<Transaction>;
     policyTagList: OnyxEntry<PolicyTagLists>;
+    /** The transactions being moved. Pre-resolved by the caller (typically via useChangeTransactionsReportData). */
+    transactions: Transaction[];
+    /** Full TRANSACTION_VIOLATIONS Onyx collection — still needed for `hasViolationsReportUtils` lookups across reports outside the move batch. */
     transactionViolations: OnyxCollection<TransactionViolation[]>;
+    /** Per-transactionID lookup of that transaction's current violations (bare-id keys). Used for failure rollback and downstream callbacks. */
+    currentTransactionViolations: Record<string, TransactionViolation[]>;
+    /** Per-transactionID lookup of the IDs of the transactions it is a duplicate of (`undefined` if no DUPLICATED_TRANSACTION violation). */
+    transactionDuplicatesByTransactionID: Record<string, string[] | undefined>;
+    /** Per-sibling-id lookup of that sibling's violations with the DUPLICATED_TRANSACTION marker stripped. Only contains sibling IDs that are referenced from `transactionDuplicatesByTransactionID`. */
+    siblingNonDuplicatedViolationsByTransactionID: Record<string, TransactionViolation[]>;
 };
 
 function changeTransactionsReport({
@@ -853,13 +861,15 @@ function changeTransactionsReport({
     policy,
     reportNextStep,
     policyCategories,
-    allTransactions,
     policyTagList,
+    transactions,
     transactionViolations,
+    currentTransactionViolations,
+    transactionDuplicatesByTransactionID,
+    siblingNonDuplicatedViolationsByTransactionID,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
-    const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is NonNullable<typeof t> => t !== undefined);
     const transactionIDToReportActionAndThreadData: Record<string, TransactionThreadInfo> = {};
     const updatedReportTotals: Record<string, number> = {};
     const updatedReportTransactionCounts: Record<string, number> = {};
@@ -868,12 +878,6 @@ function changeTransactionsReport({
     const staleReportIDs = new Set<string>();
     const optimisticPendingFieldsByReport: Record<string, Partial<NonNullable<Report['pendingFields']>>> = {};
     const targetReportCurrenciesByReport: Record<string, Set<string>> = {};
-
-    // Store current violations for each transaction to restore on failure
-    const currentTransactionViolations: Record<string, TransactionViolation[]> = {};
-    for (const id of transactionIDs) {
-        currentTransactionViolations[id] = allTransactionViolation?.[id] ?? [];
-    }
 
     const optimisticData: Array<
         OnyxUpdate<
@@ -1132,17 +1136,13 @@ function changeTransactionsReport({
 
         // Optimistically clear all violations for the transaction when moving to self DM report
         if (isUnreported) {
-            const duplicateViolation = currentTransactionViolations?.[transaction.transactionID]?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
-            const duplicateTransactionIDs = duplicateViolation?.data?.duplicates;
+            const duplicateTransactionIDs = transactionDuplicatesByTransactionID[transaction.transactionID];
             if (duplicateTransactionIDs) {
                 for (const id of duplicateTransactionIDs) {
-                    const siblingNonDuplicatedViolations = (transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? []).filter(
-                        (violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
-                    );
                     optimisticData.push({
                         onyxMethod: Onyx.METHOD.SET,
                         key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
-                        value: siblingNonDuplicatedViolations,
+                        value: siblingNonDuplicatedViolationsByTransactionID[id],
                     });
                 }
             }
@@ -1283,7 +1283,7 @@ function changeTransactionsReport({
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
-                value: allTransactionViolation?.[transaction.transactionID] ?? null,
+                value: currentTransactionViolations[transaction.transactionID] ?? null,
             });
             if (Array.isArray(violationData.value) && hasSubmissionBlockingViolationInList(violationData.value)) {
                 shouldFixViolations = true;
@@ -1721,7 +1721,7 @@ function changeTransactionsReport({
 
         const predictedNextStatus = updatedReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN;
 
-        const hasViolations = hasViolationsReportUtils(updatedReport.reportID, allTransactionViolation, accountID, email ?? '');
+        const hasViolations = hasViolationsReportUtils(updatedReport.reportID, transactionViolations, accountID, email ?? '');
         const isDestinationReport = affectedReportID === destinationReportID;
         const shouldFixViolationsForReport = isDestinationReport ? shouldFixViolations : false;
         const shouldUseUnreportedNextStepKey = reportID === CONST.REPORT.UNREPORTED_REPORT_ID && isDestinationReport;
