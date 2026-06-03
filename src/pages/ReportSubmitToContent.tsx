@@ -343,5 +343,4 @@ function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, 
     );
 }
 
-export type {ReportSubmitToContentProps};
 export default ReportSubmitToContent;

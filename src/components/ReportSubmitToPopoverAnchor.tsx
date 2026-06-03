@@ -200,4 +200,3 @@ function ReportSubmitToPopoverAnchor({reportID, onSubmitSuccess, anchorAlignment
 }
 
 export {ReportSubmitToPopoverAnchor, ReportSubmitToPopoverHost, ReportSubmitToPopoverMeasurableAnchor, ReportSubmitToPopoverRoot, useOpenReportSubmitToPopover};
-export type {ReportSubmitToPopoverOpenOptions};
