@@ -7,11 +7,11 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getMemberChangeMessageFragment, getOriginalMessage} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
+import TextCommentFragment from '@pages/inbox/report/comment/TextCommentFragment';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {personalDetailsListSelector, personalDetailsSelector} from '@src/selectors/PersonalDetails';
 import type {ReportAction} from '@src/types/onyx';
-import TextCommentFragment from '@pages/inbox/report/comment/TextCommentFragment';
 
 type MemberChangeContentProps = {
     action: ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>>;
