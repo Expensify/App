@@ -45,7 +45,7 @@ import {resolveTransactionCardFields} from '@libs/CardUtils';
 import {hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {isPolicyTaxEnabled} from '@libs/PolicyUtils';
-import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {groupTransactionsByCategory, groupTransactionsByTag} from '@libs/ReportLayoutUtils';
 import {
     canAddTransaction,
@@ -330,6 +330,23 @@ function MoneyRequestReportTransactionList({
 
     // Convert reportActions array to a record keyed by reportActionID for transactionHasRBR
     const reportActionsMap = useMemo(() => Object.fromEntries(reportActions.map((ra) => [ra.reportActionID, ra])), [reportActions]);
+
+    // Precompute transactionID → transaction-thread report ID in a single pass so each row can pass it to the RBR,
+    // which lets rows without RBR content early-return instead of mounting the heavy RBR inner (6 Onyx subscriptions).
+    // Without this, the per-row alternative would re-scan every report action (O(transactions × actions)).
+    const transactionThreadReportIDByTransactionID = useMemo(() => {
+        const map = new Map<string, string>();
+        for (const action of reportActions) {
+            if (!isMoneyRequestAction(action)) {
+                continue;
+            }
+            const iouTransactionID = getOriginalMessage(action)?.IOUTransactionID;
+            if (iouTransactionID && action.childReportID) {
+                map.set(iouTransactionID, action.childReportID);
+            }
+        }
+        return map;
+    }, [reportActions]);
 
     // Precompute the set of RBR-flagged transaction IDs
     const rbrTransactionIDs = useMemo(() => {
@@ -685,6 +702,7 @@ function MoneyRequestReportTransactionList({
             nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards ?? {}}
             isLastItem={!showPendingExpensePlaceholder && transaction.transactionID === lastTransactionID}
             shouldScrollHorizontally={shouldScrollHorizontally}
+            transactionThreadReportID={transactionThreadReportIDByTransactionID.get(transaction.transactionID)}
         />
     );
 
