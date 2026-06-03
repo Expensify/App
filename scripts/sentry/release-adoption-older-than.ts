@@ -7,7 +7,7 @@
  * Create at: https://sentry.io/settings/account/api/auth-tokens/
  *
  * @example
- *   export SENTRY_AUTH_TOKEN=sntrys_...
+ *   export SENTRY_AUTH_TOKEN=your-token-here
  *   bun scripts/sentry/release-adoption-older-than.ts --threshold 9.3.79-4 --period 14d
  *   bun scripts/sentry/release-adoption-older-than.ts --threshold 9.3.79-4 --start 2026-05-22T00:00:00Z --end 2026-06-03T23:59:59Z
  *   bun scripts/sentry/release-adoption-older-than.ts --help
@@ -21,6 +21,9 @@ const DEFAULT_RELEASE_PREFIX = 'new.expensify@';
 const DEFAULT_ENVIRONMENT = 'production';
 const DEFAULT_DATASET = 'errors';
 const OR_QUERY_CHUNK_SIZE = 25;
+
+/** Sentry Discover aggregate field for unique user counts. */
+const COUNT_UNIQUE_USER_FIELD = 'count_unique(user)';
 
 type Version = {
     major: number;
@@ -51,8 +54,7 @@ type SentryProject = {
 
 type ReleaseRow = {
     release: string | null;
-    'count_unique(user)': number | string;
-};
+} & Record<typeof COUNT_UNIQUE_USER_FIELD, number | string | undefined>;
 
 type EventsTableResponse = {
     data?: ReleaseRow[];
@@ -114,12 +116,13 @@ function isOlderThan(version: Version, threshold: Version): boolean {
 }
 
 function getAuthToken(): string {
-    const token = process.env.SENTRY_AUTH_TOKEN;
-    if (!token) {
+    const {SENTRY_AUTH_TOKEN: authToken} = process.env;
+
+    if (typeof authToken !== 'string' || authToken.length === 0) {
         throw new Error('SENTRY_AUTH_TOKEN is not set');
     }
 
-    return token;
+    return authToken;
 }
 
 async function sentryRequest<T>(path: string, searchParams: URLSearchParams, context: SentryRequestContext): Promise<{body: T; headers: Headers}> {
@@ -256,11 +259,11 @@ async function countUniqueUsers({options, projectId, query}: {options: ScriptOpt
     const rows = await queryEventsTable({
         options,
         projectId,
-        fields: ['count_unique(user)'],
+        fields: [COUNT_UNIQUE_USER_FIELD],
         query,
     });
 
-    const value = rows[0]?.['count_unique(user)'];
+    const value = rows.at(0)?.[COUNT_UNIQUE_USER_FIELD];
     return typeof value === 'number' ? value : Number(value ?? 0);
 }
 
@@ -293,9 +296,7 @@ async function countUniqueUsersOnReleases({options, projectId, baseQuery, releas
         chunks.push(releases.slice(i, i + OR_QUERY_CHUNK_SIZE));
     }
 
-    console.error(
-        `Warning: ${releases.length} older releases required ${chunks.length} OR queries. ` + 'Summing chunk counts can over-count users who hit errors on more than one old build.',
-    );
+    console.error(`Warning: ${releases.length} older releases required ${chunks.length} OR queries. Summing chunk counts can over-count users who hit errors on more than one old build.`);
 
     let total = 0;
     for (const chunk of chunks) {
@@ -311,8 +312,8 @@ function collectOlderReleases({releaseRows, options, threshold}: {releaseRows: R
 
     for (const row of releaseRows) {
         const version = parseReleaseVersion(row.release, options.prefix);
-        if (version && isOlderThan(version, threshold)) {
-            older.add(row.release as string);
+        if (version && isOlderThan(version, threshold) && row.release) {
+            older.add(row.release);
         }
     }
 
@@ -337,22 +338,7 @@ function collectOlderReleases({releaseRows, options, threshold}: {releaseRows: R
     });
 }
 
-function createCli(): CLI<{
-    flags: {
-        json: {description: string};
-    };
-    namedArgs: {
-        threshold: {description: string; parse: (val: string) => string};
-        period: {description: string; default: string; supersedes: string[]};
-        start: {description: string; required: false; supersedes: string[]};
-        end: {description: string; required: false};
-        environment: {description: string; default: string};
-        prefix: {description: string; default: string};
-        org: {description: string; default: string};
-        project: {description: string; default: string};
-        region: {description: string; default: string; parse: (val: string) => string};
-    };
-}> {
+function createCli() {
     return new CLI({
         flags: {
             json: {
@@ -438,9 +424,9 @@ async function main(): Promise<void> {
         queryEventsTable({
             options,
             projectId,
-            fields: ['release', 'count_unique(user)'],
+            fields: ['release', COUNT_UNIQUE_USER_FIELD],
             query: baseQuery,
-            sort: '-count_unique(user)',
+            sort: `-${COUNT_UNIQUE_USER_FIELD}`,
         }),
         countUniqueUsers({options, projectId, query: baseQuery}),
     ]);
@@ -499,7 +485,7 @@ async function main(): Promise<void> {
             continue;
         }
 
-        console.log(`  ${row.release}: ${Number(row['count_unique(user)']).toLocaleString()} users`);
+        console.log(`  ${row.release}: ${Number(row[COUNT_UNIQUE_USER_FIELD]).toLocaleString()} users`);
     }
     console.log('');
     console.log(`Sentry Discover: ${options.region.replace(/\/$/, '')}/organizations/${options.org}/explore/discover/`);
