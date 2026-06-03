@@ -1,5 +1,6 @@
 import type {FlashListProps} from '@shopify/flash-list';
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
+import type {FlatListRefType} from '@pages/inbox/ReportScreenContext';
 
 type FlashListScrollKeyProps<T> = {
     /** The array of items to render in the list. */
@@ -16,11 +17,29 @@ type FlashListScrollKeyProps<T> = {
 
     /** Whether the list should handle `maintainVisibleContentPosition` */
     shouldMaintainVisibleContentPosition?: boolean;
+
+    /** Ref to the underlying list instance, used to nudge the initial scroll position. */
+    ref?: FlatListRefType;
+
+    /**
+     * Number of pixels of later content to reveal underneath the anchored item once the deep-link handoff settles.
+     * When set, the list stops short of pinning the anchor flush against the bottom, hinting there is more content below it.
+     */
+    initialScrollOffset?: number;
 };
 
-export default function useFlashListScrollKey<T>({data, keyExtractor, initialScrollKey, onStartReached, shouldMaintainVisibleContentPosition}: FlashListScrollKeyProps<T>) {
+export default function useFlashListScrollKey<T>({
+    data,
+    keyExtractor,
+    initialScrollKey,
+    onStartReached,
+    shouldMaintainVisibleContentPosition,
+    ref,
+    initialScrollOffset,
+}: FlashListScrollKeyProps<T>) {
     const [isInitialRender, setIsInitialRender] = useState(!!initialScrollKey);
     const [hasLinkingSettled, setHasLinkingSettled] = useState(!initialScrollKey);
+    const hasAppliedInitialScrollOffset = useRef(false);
 
     // Two-frame handoff for deep-link:
     // RAF 1: switch from sliced data to the full array — FlashList's default MVCP pins the
@@ -43,8 +62,25 @@ export default function useFlashListScrollKey<T>({data, keyExtractor, initialScr
 
         requestAnimationFrame(() => {
             setIsInitialRender(false);
-            requestAnimationFrame(() => setHasLinkingSettled(true));
+            requestAnimationFrame(() => {
+                setHasLinkingSettled(true);
+
+                // The slice handoff above leaves the anchored item flush against the bottom of the (inverted) list.
+                // When there is later content above the anchor in the data (i.e. it is not the newest item), nudge the
+                // list toward that content so a sliver of it peeks out underneath the anchor — hinting there is more here.
+                if (!initialScrollOffset || hasAppliedInitialScrollOffset.current) {
+                    return;
+                }
+                const anchorIndex = data.findIndex((item, index) => keyExtractor(item, index) === initialScrollKey);
+                if (anchorIndex <= 0) {
+                    return;
+                }
+                hasAppliedInitialScrollOffset.current = true;
+                // A negative viewOffset scrolls toward the newest (later) content, revealing `initialScrollOffset` px of it below the anchor.
+                ref?.current?.scrollToIndex({index: anchorIndex, viewOffset: -initialScrollOffset, animated: false});
+            });
         });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isInitialRender, initialScrollKey]);
 
     const maintainVisibleContentPosition: FlashListProps<T>['maintainVisibleContentPosition'] = {disabled: !shouldMaintainVisibleContentPosition && hasLinkingSettled};

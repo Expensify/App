@@ -20,6 +20,9 @@ type InvertedFlashListProps<T> = FlashListProps<T> & {
 
     /** Whether the list should handle `maintainVisibleContentPosition` */
     shouldMaintainVisibleContentPosition?: boolean;
+
+    /** Number of pixels of later content to reveal underneath the item anchored via `initialScrollKey`. */
+    initialScrollOffset?: number;
 };
 
 function InvertedFlashList<T>({
@@ -29,6 +32,7 @@ function InvertedFlashList<T>({
     onStartReached: onStartReachedProp,
     maintainVisibleContentPosition: maintainVisibleContentPositionProp,
     shouldMaintainVisibleContentPosition,
+    initialScrollOffset,
     ...restProps
 }: InvertedFlashListProps<T>) {
     const {
@@ -41,6 +45,8 @@ function InvertedFlashList<T>({
         initialScrollKey,
         onStartReached: onStartReachedProp,
         shouldMaintainVisibleContentPosition,
+        ref: restProps.ref,
+        initialScrollOffset,
     });
 
     const maintainVisibleContentPosition = maintainVisibleContentPositionProp
