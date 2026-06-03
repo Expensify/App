@@ -6618,7 +6618,6 @@ const translations = {
                 groups: {
                     title: 'Groups',
                     description: 'Choose the groups of employees you would like to sync with this workspace',
-                    searchPlaceholder: 'Search',
                 },
             },
         },

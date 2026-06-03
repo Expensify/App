@@ -114,7 +114,7 @@ function MergeHRGroupsPage({
                         onSelectRow={toggleItem}
                         onSelectAll={toggleSelectAll}
                         textInputOptions={{
-                            label: translate('workspace.hr.mergeHR.groups.searchPlaceholder'),
+                            label: translate('common.search'),
                             value: searchText,
                             onChangeText: setSearchText,
                             style: {containerStyle: styles.pb5},
