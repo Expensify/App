@@ -160,8 +160,7 @@ function SpendRulesSection({policyID, canWriteRules, showReadOnlyModal}: SpendRu
                 accessibilityLabel={`${descriptionLabel}. ${blockLabel} ${defaultRuleTitle}`}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
                 onPress={showBuiltInProtectionModal}
-                shouldShowRightIcon={canWriteRules}
-                interactive={canWriteRules}
+                shouldShowRightIcon
             />
             {isLoadingCardRules ? (
                 <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.mt5, styles.mb3]}>
@@ -183,10 +182,9 @@ function SpendRulesSection({policyID, canWriteRules, showReadOnlyModal}: SpendRu
                         <MenuItem
                             accessibilityLabel={rule.accessibilityLabel}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
-                            shouldShowRightIcon={canWriteRules}
+                            shouldShowRightIcon
                             disabled={rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                             onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_EDIT.getRoute(policyID, rule.ruleID))}
-                            interactive={canWriteRules}
                             wrapperStyle={[styles.borderedContentCard, styles.mt2, styles.ph4, styles.pv4]}
                             titleComponent={
                                 <View>

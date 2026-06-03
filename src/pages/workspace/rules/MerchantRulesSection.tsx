@@ -173,9 +173,8 @@ function MerchantRulesSection({policyID, canWriteRules, showReadOnlyModal}: Merc
                                         wrapperStyle={[styles.borderedContentCard, styles.ph4, styles.pv4]}
                                         descriptionTextStyle={[styles.textNormalThemeText, {lineHeight: variables.fontSizeNormalHeight}]}
                                         titleStyle={[styles.textLabelSupporting, styles.fontSizeLabel]}
-                                        shouldShowRightIcon={canWriteRules}
+                                        shouldShowRightIcon
                                         onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, rule.ruleID))}
-                                        interactive={canWriteRules}
                                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_ITEM}
                                         disabled={rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                                     />
