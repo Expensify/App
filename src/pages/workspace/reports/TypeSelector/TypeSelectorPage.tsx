@@ -44,10 +44,14 @@ function TypeSelectorPage({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const onTypeSelected = (item: ReportFieldItemType) => {
-        setDraftValues(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM, {
-            [INPUT_IDS.TYPE]: item.value,
-            [INPUT_IDS.INITIAL_VALUE]: getDefaultInitialValueForReportFieldType(item.value),
-        });
+        // Only reset the initial value when the type actually changes. Re-selecting the same type
+        // would otherwise clobber the user's in-progress initial value with the type's default.
+        if (item.value !== currentType) {
+            setDraftValues(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM, {
+                [INPUT_IDS.TYPE]: item.value,
+                [INPUT_IDS.INITIAL_VALUE]: getDefaultInitialValueForReportFieldType(item.value),
+            });
+        }
         Navigation.goBack(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID));
     };
 
