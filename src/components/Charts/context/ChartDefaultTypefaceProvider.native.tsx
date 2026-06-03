@@ -6,8 +6,9 @@ import {ChartDefaultTypefaceContext} from './ChartDefaultTypefaceContext';
 function ChartDefaultTypefaceProvider({children}: {children: React.ReactNode}) {
     const regular = useTypeface(require('@assets/fonts/native/ExpensifyNeue-Regular.otf') as DataModule);
     const bold = useTypeface(require('@assets/fonts/native/ExpensifyNeue-Bold.otf') as DataModule);
+    const kansas = useTypeface(require('@assets/fonts/native/ExpensifyNewKansas-Medium.otf') as DataModule);
 
-    return <ChartDefaultTypefaceContext.Provider value={{regular, bold}}>{children}</ChartDefaultTypefaceContext.Provider>;
+    return <ChartDefaultTypefaceContext.Provider value={{regular, bold, kansas}}>{children}</ChartDefaultTypefaceContext.Provider>;
 }
 
 export default ChartDefaultTypefaceProvider;

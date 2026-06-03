@@ -5,6 +5,7 @@ export {default as useYAxisLabelWidth} from './useYAxisLabelWidth';
 export {default as useChartFontManager} from './useChartFontManager/useChartFontManager';
 export {default as ChartDefaultTypefaceProvider} from '../context/ChartDefaultTypefaceProvider';
 export {useChartDefaultTypeface} from '../context/ChartDefaultTypefaceContext';
+export type {ChartDefaultTypeface} from '../context/ChartDefaultTypefaceContext';
 export {useChartInteractions, TOOLTIP_BAR_GAP} from './useChartInteractions';
 export type {HitTestArgs} from './useChartInteractions';
 export {default as useChartLabelFormats} from './useChartLabelFormats';

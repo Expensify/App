@@ -36,6 +36,7 @@ type RawLabelStyle = {
     fill?: Color;
     fontSize?: string | number;
     fontWeight?: string | number;
+    fontFamily?: string;
 };
 
 type RawLegendStyle = {
@@ -80,6 +81,9 @@ type LabelItem = {
 
     /** Font weight (per line) */
     fontWeight?: Record<number, 'normal' | 'bold'>;
+
+    /** Font family (per line) */
+    fontFamily?: Record<number, string>;
 
     /** Line height (per line) */
     lineHeight?: Record<number, number>;

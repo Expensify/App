@@ -4,6 +4,7 @@ import {createContext, useContext} from 'react';
 type ChartDefaultTypeface = {
     regular: SkTypeface | null;
     bold: SkTypeface | null;
+    kansas: SkTypeface | null;
 };
 
 const ChartDefaultTypefaceContext = createContext<ChartDefaultTypeface | null>(null);
