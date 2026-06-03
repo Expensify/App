@@ -366,7 +366,12 @@ function Button({
             primaryText
         );
 
-        const defaultFill = success || danger ? theme.textLight : theme.buttonIcon;
+        let defaultFill = theme.buttonIcon;
+        if (danger) {
+            defaultFill = theme.buttonDangerText;
+        } else if (success) {
+            defaultFill = theme.textLight;
+        }
 
         if (icon || shouldShowRightIcon) {
             return (
@@ -469,6 +474,13 @@ function Button({
         };
     }, [buttonStyles, shouldBlendOpacity]);
 
+    let loadingIndicatorColor = theme.text;
+    if (danger) {
+        loadingIndicatorColor = theme.buttonDangerText;
+    } else if (success) {
+        loadingIndicatorColor = theme.textLight;
+    }
+
     return (
         <>
             {pressOnEnter && (
@@ -551,7 +563,7 @@ function Button({
                 {renderContent()}
                 {isLoading && (
                     <ActivityIndicator
-                        color={success || danger ? theme.textLight : theme.text}
+                        color={loadingIndicatorColor}
                         style={[styles.pAbsolute, styles.l0, styles.r0]}
                         size={extraSmall ? 12 : undefined}
                         reasonAttributes={buttonLoadingReasonAttributes}

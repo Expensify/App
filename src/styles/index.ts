@@ -949,7 +949,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         buttonDangerText: {
-            color: theme.textLight,
+            color: theme.buttonDangerText,
         },
 
         buttonBlendContainer: {
