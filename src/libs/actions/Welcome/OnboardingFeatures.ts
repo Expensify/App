@@ -32,4 +32,4 @@ function getDefaultOnboardingFeaturesMap(): OnboardingFeatureMapItem[] {
 }
 
 export {getDefaultOnboardingFeaturesMap, ONBOARDING_FEATURES};
-export type {OnboardingFeatureConfig, OnboardingFeatureMapItem};
+export type {OnboardingFeatureMapItem};

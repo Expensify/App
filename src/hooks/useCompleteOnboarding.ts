@@ -139,4 +139,3 @@ function useCompleteOnboarding() {
 }
 
 export default useCompleteOnboarding;
-export type {OnboardingFeatureMapItem};
