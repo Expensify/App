@@ -36,6 +36,8 @@ type ThemeColors = {
     linkReversed: Color;
     buttonDefaultBG: Color;
     buttonHoveredBG: Color;
+    /** Hover background for buttons rendered on an inverse-colored surface (e.g. the growl notification). */
+    buttonHoveredBGReversed: Color;
     buttonPressedBG: Color;
     buttonSuccessText: Color;
     danger: Color;

@@ -3349,7 +3349,14 @@ const staticStyles = (theme: ThemeColors) =>
             flexDirection: 'row',
             justifyContent: 'space-between',
             boxShadow: `${theme.shadow}`,
-            ...spacing.p5,
+            // Spec: padding-left 16px, padding-top/right/bottom 8px, 12px gap between items.
+            // The 8px top/bottom padding + the 40px-tall Medium Link action button add up to the
+            // 56px growl height from the design.
+            ...spacing.pl4,
+            ...spacing.pt2,
+            ...spacing.pr2,
+            ...spacing.pb2,
+            ...spacing.gap3,
         },
 
         growlNotificationText: {
@@ -3357,7 +3364,6 @@ const staticStyles = (theme: ThemeColors) =>
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             lineHeight: variables.fontSizeNormalHeight,
             color: theme.textReversed,
-            ...spacing.ml4,
         },
 
         growlNotificationTextWithoutAction: {
@@ -3365,8 +3371,17 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         growlNotificationTextWithAction: {
-            flexShrink: 1,
+            flex: 1,
             minWidth: 0,
+        },
+
+        // "View" action rendered as a Medium Link Button on the growl's inverse-colored surface.
+        growlNotificationActionText: {
+            color: theme.linkReversed,
+        },
+
+        growlNotificationActionHovered: {
+            backgroundColor: theme.buttonHoveredBGReversed,
         },
 
         noSelect: {

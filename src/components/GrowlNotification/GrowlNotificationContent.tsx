@@ -4,6 +4,7 @@ import {Directions, Gesture, GestureDetector} from 'react-native-gesture-handler
 import {useSharedValue, withSpring} from 'react-native-reanimated';
 import type {SvgProps} from 'react-native-svg';
 import ActivityIndicator from '@components/ActivityIndicator';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Pressables from '@components/Pressable';
 import Text from '@components/Text';
@@ -181,7 +182,9 @@ function GrowlNotificationContent({bodyText, type, duration, action, onDismissed
                             )}
                             <Text style={[styles.growlNotificationText, action ? styles.growlNotificationTextWithAction : styles.growlNotificationTextWithoutAction]}>{bodyText}</Text>
                             {!!action && (
-                                <PressableWithoutFeedback
+                                <Button
+                                    medium
+                                    text={action.label}
                                     accessibilityLabel={action.label}
                                     sentryLabel="GrowlNotification-Action"
                                     onPress={() => {
@@ -192,10 +195,12 @@ function GrowlNotificationContent({bodyText, type, duration, action, onDismissed
                                         triggerDismiss();
                                         action.onPress();
                                     }}
-                                    style={[styles.mlAuto, styles.p2]}
-                                >
-                                    <Text style={[styles.growlNotificationText, styles.textBold, {color: theme.linkReversed}]}>{action.label}</Text>
-                                </PressableWithoutFeedback>
+                                    innerStyles={styles.bgTransparent}
+                                    textStyles={styles.growlNotificationActionText}
+                                    shouldUseDefaultHover={false}
+                                    hoverStyles={styles.growlNotificationActionHovered}
+                                    isNested
+                                />
                             )}
                         </View>
                     </GestureDetector>

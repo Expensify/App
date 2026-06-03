@@ -11,7 +11,6 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {showExpenseAddedGrowl} from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
@@ -820,9 +819,9 @@ function sendInvoice({
             isFromGlobalCreate,
             isInvoice: true,
         });
-    } else if (isFromGlobalCreate && isSearchTopmostFullScreenRoute()) {
+    } else if (isFromGlobalCreate) {
         // Dismiss-first paths (orchestrator owns navigation); still surface the "Expense added"
-        // growl with "View" when the user lands on Spend.
+        // growl with "View" wherever the user lands after the dismissal (Spend or a report).
         showExpenseAddedGrowl({
             iouReportID: invoiceReportID,
             transactionID,

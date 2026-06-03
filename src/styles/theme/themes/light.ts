@@ -30,6 +30,7 @@ const lightTheme = {
     linkReversed: colors.blue300,
     buttonDefaultBG: colors.productLight400,
     buttonHoveredBG: colors.productLight500,
+    buttonHoveredBGReversed: colors.productDark500,
     buttonPressedBG: colors.productLight600,
     buttonSuccessText: colors.productLight100,
     danger: colors.red,

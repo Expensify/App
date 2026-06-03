@@ -198,14 +198,26 @@ function navigateAfterExpenseCreate({
     const isUserOnInbox = isReportTopmostSplitNavigator();
     const isUserOnSpend = isSearchTopmostFullScreenRoute();
 
-    // If the expense is not created from global create or is currently on the inbox tab,
-    // we just need to dismiss the money request flow screens
-    // and open the report chat containing the IOU report
-    if (!isFromGlobalCreate || isUserOnInbox || !transactionID) {
+    // If the expense is not created from global create or there is no transaction to link,
+    // we just need to dismiss the money request flow screens and open the report chat
+    // containing the IOU report. No growl is shown in this case.
+    if (!isFromGlobalCreate || !transactionID) {
         dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice, hasMultipleTransactions);
         if (shouldAddPendingNewTransactionIDs) {
             addPendingNewTransactionIDs(activeReportID, transactionID);
         }
+        return;
+    }
+
+    // From global create on the Inbox tab: stay on Inbox (dismiss the flow and open the report
+    // chat containing the IOU report) and show the "Expense added" growl on top of it. We don't
+    // redirect to Spend here - the growl just shows.
+    if (isUserOnInbox) {
+        dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice, hasMultipleTransactions);
+        if (shouldAddPendingNewTransactionIDs) {
+            addPendingNewTransactionIDs(activeReportID, transactionID);
+        }
+        showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadReportID: providedTransactionThreadReportID});
         return;
     }
 
