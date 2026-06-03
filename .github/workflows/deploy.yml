@@ -875,14 +875,17 @@ jobs:
 
   createRelease:
     runs-on: blacksmith-2vcpu-ubuntu-2404
-    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
-    needs: [prep, checkDeploymentSuccess]
+    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) && needs.victoryChartRendererBuild.result == 'success' }}
+    needs: [prep, checkDeploymentSuccess, victoryChartRendererBuild]
     permissions:
       contents: write
     steps:
       # v4.2.1
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
+
+      - name: Verify victory-chart-renderer artifact
+        run: test -x ./victory-chart-renderer-linux-x64-artifact/victory-chart-renderer-linux-x64
 
       - name: Get last production release
         id: get_last_prod_version
@@ -952,7 +955,6 @@ jobs:
             ./web-sourcemaps-artifact/web-merged-source-map.js.map#web-sourcemap.js.map
             ./web-build-tar-gz-artifact/webBuild.tar.gz#web.tar.gz
             ./web-build-zip-artifact/webBuild.zip#web.zip
-            ./victory-chart-renderer-linux-x64-artifact/victory-chart-renderer-linux-x64#victory-chart-renderer-linux-x64
           "
 
           # Loop through each file and upload individually (so if one fails, we still have other platforms uploaded)
@@ -964,6 +966,13 @@ jobs:
               echo "❌ Failed to upload {}"
             fi
           '
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Upload victory-chart-renderer to GitHub Release
+        run: |
+          gh release upload "${{ needs.prep.outputs.TAG }}" --repo "${{ github.repository }}" --clobber \
+            "./victory-chart-renderer-linux-x64-artifact/victory-chart-renderer-linux-x64#victory-chart-renderer-linux-x64"
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
