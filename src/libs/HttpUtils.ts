@@ -148,6 +148,7 @@ function processHTTPRequest<TKey extends OnyxKey>(
                     message: CONST.ERROR.DUPLICATE_RECORD,
                     status: CONST.JSON_CODE.BAD_REQUEST.toString(),
                     title: CONST.ERROR_TITLE.DUPLICATE_RECORD,
+                    requestID: response.requestID,
                 });
             }
 
@@ -166,6 +167,7 @@ function processHTTPRequest<TKey extends OnyxKey>(
                     message: CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED,
                     status: CONST.JSON_CODE.EXP_ERROR.toString(),
                     title: CONST.ERROR_TITLE.SOCKET,
+                    requestID: response.requestID,
                 });
             }
 
