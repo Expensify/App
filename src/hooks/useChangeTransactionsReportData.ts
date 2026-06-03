@@ -98,4 +98,3 @@ function useChangeTransactionsReportData(transactionIDs: string[]): ChangeTransa
 
 export default useChangeTransactionsReportData;
 export {getChangeTransactionsReportData, getTransactionViolationsForChangeReport};
-export type {ChangeTransactionsReportData};
