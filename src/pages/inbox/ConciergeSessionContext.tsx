@@ -1,11 +1,7 @@
 import React, {createContext, useCallback, useContext, useMemo, useState} from 'react';
 import type {PropsWithChildren} from 'react';
-import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
-import useOnyx from '@hooks/useOnyx';
 import DateUtils from '@libs/DateUtils';
-import Navigation from '@libs/Navigation/Navigation';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import CONST from '@src/CONST';
 
 type ConciergeSessionStateContextType = {
     sessionStartTime: string | null;
@@ -40,50 +36,26 @@ const ConciergeSessionActionsContext = createContext<ConciergeSessionActionsCont
  * Session start is triggered eagerly by consumers (via startSession())
  * using useLayoutEffect, so the timestamp is set before the browser paints.
  *
- * Session clearing uses two mechanisms:
- * 1. "State during render" pattern on currentReportID (handles direct navigation detection)
- * 2. "Pending clear" from endSession (handles component unmount with deferred resolution)
+ * Session reset uses a staleness check: if the existing session is older
+ * than SESSION_EXPIRATION_TIME_MS (2 hours), it is discarded and a new
+ * session begins. Brief detours (settings, workspace links, app
+ * backgrounding) preserve the session; closing the app resets it
+ * naturally since the state is React-only (not persisted to Onyx).
  */
 function ConciergeSessionProvider({children}: PropsWithChildren) {
-    const {currentReportID} = useCurrentReportIDState();
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const isConciergeMainDM = !!currentReportID && currentReportID === conciergeReportID;
-
     const [sessionStartTime, setSessionStartTime] = useState<string | null>(null);
     const [showFullHistory, setShowFullHistory] = useState(false);
     const [hadMessagesAtSessionStart, setHadMessagesAtSessionStart] = useState(false);
-    const [prevIsConciergeMainDM, setPrevIsConciergeMainDM] = useState(isConciergeMainDM);
-    const [pendingClear, setPendingClear] = useState(false);
-
-    if (pendingClear && currentReportID) {
-        setPendingClear(false);
-        if (currentReportID !== conciergeReportID) {
-            setSessionStartTime(null);
-            setShowFullHistory(false);
-            setHadMessagesAtSessionStart(false);
-        }
-    }
-
-    if (prevIsConciergeMainDM !== isConciergeMainDM) {
-        setPrevIsConciergeMainDM(isConciergeMainDM);
-        if (!isConciergeMainDM) {
-            // Only clear the session when navigating to a report or the
-            // chat list (LHN). Preserve for non-report pages like Settings
-            // (Claim Offer → /settings/subscription).
-            const activeRoute = Navigation.getActiveRoute();
-            const isReportOrInbox = activeRoute.startsWith('/r/') || activeRoute === `/${ROUTES.INBOX}`;
-            if (isReportOrInbox) {
-                setSessionStartTime(null);
-                setShowFullHistory(false);
-                setHadMessagesAtSessionStart(false);
-            }
-        }
-    }
 
     const startSession = useCallback((unreadBoundary?: string | null) => {
+        let sessionExpired = false;
         setSessionStartTime((prev) => {
             if (prev) {
-                return prev;
+                const elapsed = Date.now() - new Date(`${prev}Z`).getTime();
+                if (elapsed < CONST.SESSION_EXPIRATION_TIME_MS) {
+                    return prev;
+                }
+                sessionExpired = true;
             }
             const now = DateUtils.getDBTime();
             if (unreadBoundary && unreadBoundary < now) {
@@ -91,10 +63,15 @@ function ConciergeSessionProvider({children}: PropsWithChildren) {
             }
             return now;
         });
+        if (sessionExpired) {
+            setShowFullHistory(false);
+            setHadMessagesAtSessionStart(false);
+        }
     }, []);
 
     const endSession = useCallback(() => {
-        setPendingClear(true);
+        // No-op: session persists until it expires or the app restarts.
+        // Kept for API compatibility with the sidebar pattern.
     }, []);
 
     const stateValue = useMemo(() => ({sessionStartTime, showFullHistory, hadMessagesAtSessionStart}), [sessionStartTime, showFullHistory, hadMessagesAtSessionStart]);

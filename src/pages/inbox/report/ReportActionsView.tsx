@@ -3,6 +3,7 @@ import React, {useEffect, useLayoutEffect, useMemo, useRef} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
+import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -62,6 +63,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
     const hasOnceLoadedReportActions = reportLoadingState?.hasOnceLoadedReportActions;
 
+    const {currentReportID} = useCurrentReportIDState();
     const {sessionStartTime: mainDMSessionStartTime, showFullHistory: conciergeShowFullHistory, hadMessagesAtSessionStart: conciergeHadMessagesAtSessionStart} = useConciergeSessionState();
     const {startSession, endSession, setShowFullHistory: setConciergeShowFullHistory, setHadMessagesAtSessionStart: setConciergeHadMessagesAtSessionStart} = useConciergeSessionActions();
     const isReportTransactionThread = isReportTransactionThreadUtil(report);
@@ -137,16 +139,15 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
 
     // On native the component stays mounted in the navigation stack, so the
     // effect above never re-fires (its isConciergeMainDM dep is always true).
-    // When the provider clears the session (user navigated away), this effect
-    // detects sessionStartTime === null and restarts with the correct unread
-    // boundary instead of a bare "now" timestamp.
+    // Re-trigger startSession when the globally-focused report matches this
+    // report so the session age check runs after navigating away and back.
     useLayoutEffect(() => {
-        if (!isConciergeMainDM || !hasOnceLoadedReportActions || mainDMSessionStartTime !== null) {
+        if (!isConciergeMainDM || !hasOnceLoadedReportActions || currentReportID !== reportID) {
             return;
         }
         startSession(oldestUnreadReportAction ? report?.lastReadTime : undefined);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to session being cleared
-    }, [isConciergeMainDM, hasOnceLoadedReportActions, mainDMSessionStartTime, startSession]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to currentReportID returning to this report
+    }, [currentReportID, reportID, isConciergeMainDM, hasOnceLoadedReportActions, startSession]);
 
     const isSingleExpenseReport = reportPreviewAction?.childMoneyRequestCount === 1;
     const isMissingTransactionThreadReportID = !transactionThreadReport?.reportID;
