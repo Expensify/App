@@ -12,7 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getBankAccountSearchLabel} from '@libs/BankAccountUtils';
+import {getBankAccountSearchLabel, getSearchEligibleBankAccounts} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import {updateAdvancedFilters} from '@userActions/Search';
@@ -32,7 +32,7 @@ function SearchFiltersBankAccountPage() {
     const selectedBankAccountIDs = searchAdvancedFiltersForm?.bankAccount ?? [];
 
     const bankAccountItems: Array<SearchMultipleSelectionPickerItem<string>> = [];
-    for (const bankAccount of Object.values(bankAccountList ?? {})) {
+    for (const bankAccount of Object.values(getSearchEligibleBankAccounts(bankAccountList))) {
         const bankAccountID = bankAccount?.accountData?.bankAccountID;
         if (!bankAccountID) {
             continue;
