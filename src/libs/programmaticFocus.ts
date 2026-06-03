@@ -12,4 +12,4 @@ function markProgrammaticFocus(el: HTMLElement): () => void {
     };
 }
 
-export {PROGRAMMATIC_FOCUS_DATA_ATTRIBUTE, markProgrammaticFocus};
+export {markProgrammaticFocus};

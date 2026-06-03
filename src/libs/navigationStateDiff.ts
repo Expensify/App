@@ -49,4 +49,3 @@ function diffNavigationState(prev: AnyState, next: NavigationState): {action: Di
 }
 
 export {collectRouteKeys, diffNavigationState};
-export type {AnyState, DiffAction};
