@@ -5,8 +5,8 @@ import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import Navigation from '@navigation/Navigation';
-import * as BankAccounts from '@userActions/BankAccounts';
-import * as Wallet from '@userActions/Wallet';
+import {acceptWalletTerms, clearPersonalBankAccount} from '@userActions/BankAccounts';
+import {resetWalletAdditionalDetailsDraft, updateCurrentStep} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -20,19 +20,22 @@ function FeesAndTerms() {
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
 
     const submit = () => {
-        BankAccounts.acceptWalletTerms({
+        acceptWalletTerms({
             hasAcceptedTerms: true,
+            // eslint-disable-next-line rulesdir/no-default-id-values -- empty string is the expected fallback for acceptWalletTerms
             reportID: walletTerms?.chatReportID ?? '',
         });
-        BankAccounts.clearPersonalBankAccount();
-        Wallet.resetWalletAdditionalDetailsDraft();
+        clearPersonalBankAccount();
+        resetWalletAdditionalDetailsDraft();
         Navigation.navigate(ROUTES.SETTINGS_WALLET);
     };
+
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- will be migrated to useSubPage in the EnablePayments navigation refactor PR
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent: termsAndFeesSubsteps, startFrom: 0, onFinished: submit});
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
-            Wallet.updateCurrentStep(CONST.WALLET.STEP.ONFIDO);
+            updateCurrentStep(CONST.WALLET.STEP.ONFIDO);
             return;
         }
         prevScreen();
