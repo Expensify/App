@@ -1,30 +1,23 @@
-import type {DataModule, SkTypefaceFontProvider} from '@shopify/react-native-skia';
+import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import {useFonts, useTypeface} from '@shopify/react-native-skia';
-
-function webFont(url: string): DataModule {
-    // We construct a fake ESModule-shaped object because react-native-skia's `useFonts` on web expects
-    // a DataModule (i.e. the result of a dynamic `require()` call), which always has the shape
-    // `{ __esModule: true, default: <url> }`. The `__esModule` property uses a double-underscore prefix
-    // that violates the naming-convention rule, but it is mandated by the library's internal contract.
-    return {__esModule: true, default: url} as unknown as DataModule;
-}
+import chartWebFont from '@components/Charts/context/chartWebFont';
 
 function useChartFontManager(): SkTypefaceFontProvider | null {
     return useFonts({
         ExpensifyNeue: [
-            webFont(require('@assets/fonts/web/ExpensifyNeue-Regular.woff2') as string),
-            webFont(require('@assets/fonts/web/ExpensifyNeue-Bold.woff2') as string),
-            webFont(require('@assets/fonts/web/ExpensifyNeue-Italic.woff2') as string),
-            webFont(require('@assets/fonts/web/ExpensifyNeue-BoldItalic.woff2') as string),
+            chartWebFont(require('@assets/fonts/web/ExpensifyNeue-Regular.woff2') as string),
+            chartWebFont(require('@assets/fonts/web/ExpensifyNeue-Bold.woff2') as string),
+            chartWebFont(require('@assets/fonts/web/ExpensifyNeue-Italic.woff2') as string),
+            chartWebFont(require('@assets/fonts/web/ExpensifyNeue-BoldItalic.woff2') as string),
         ],
-        NotoSansSymbols: [webFont(require('@assets/fonts/NotoSans-Symbols.ttf') as string)],
-        NotoSansSCMonths: [webFont(require('@assets/fonts/NotoSansSC-Months.ttf') as string)],
+        NotoSansSymbols: [chartWebFont(require('@assets/fonts/NotoSans-Symbols.ttf') as string)],
+        NotoSansSCMonths: [chartWebFont(require('@assets/fonts/NotoSansSC-Months.ttf') as string)],
     });
 }
 
 function useChartDefaultTypeface() {
-    const regular = useTypeface(webFont(require('@assets/fonts/web/ExpensifyNeue-Regular.woff2') as string));
-    const bold = useTypeface(webFont(require('@assets/fonts/web/ExpensifyNeue-Bold.woff2') as string));
+    const regular = useTypeface(chartWebFont(require('@assets/fonts/web/ExpensifyNeue-Regular.woff2') as string));
+    const bold = useTypeface(chartWebFont(require('@assets/fonts/web/ExpensifyNeue-Bold.woff2') as string));
     return {regular, bold};
 }
 
