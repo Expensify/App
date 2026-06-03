@@ -15,7 +15,7 @@ type RemovedFromApprovalChainContentProps = {
 
 function submitterNamesSelector(submittersAccountIDs: number[] | undefined) {
     return (personalDetailsList: OnyxEntry<PersonalDetailsList>) => {
-        multiPersonalDetailsSelector(submittersAccountIDs)(personalDetailsList)?.map(({displayName, login}) => displayName ?? login ?? 'Unknown Submitter');
+        return multiPersonalDetailsSelector(submittersAccountIDs)(personalDetailsList)?.map(({displayName, login}) => displayName ?? login ?? 'Unknown Submitter');
     };
 }
 
