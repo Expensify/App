@@ -23,7 +23,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {getReportName} from '@libs/ReportNameUtils';
-import {getReimbursableTotal, isExpenseReport} from '@libs/ReportUtils';
+import {isExpenseReport} from '@libs/ReportUtils';
 import {
     getAmount,
     getConvertedAmount,
@@ -289,7 +289,7 @@ function TransactionItemRowWide({
                                 reportID={transactionItem.reportID}
                                 policyID={report?.policyID}
                                 hash={transactionItem?.hash}
-                                amount={getReimbursableTotal(report)}
+                                amount={report?.total}
                                 shouldDisablePointerEvents={isDisabled}
                             />
                         )}

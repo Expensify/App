@@ -35,6 +35,7 @@ import Fullstory from '@libs/Fullstory';
 import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
 import Log from '@libs/Log';
+import {findMatchingDynamicSuffix} from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import * as MainQueue from '@libs/Network/MainQueue';
@@ -43,7 +44,7 @@ import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import Pusher from '@libs/Pusher';
 import reauthenticate from '@libs/Reauthentication';
-import {getReportIDFromLink, parseReportRouteParams as parseReportRouteParamsReportUtils} from '@libs/ReportUtils';
+import {getReportIDFromLink} from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import {checkIfShouldUseNewPartnerName, resetDidUserLogInDuringSession} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
@@ -62,8 +63,8 @@ import CONFIG from '@src/CONFIG';
 import CONST, {FRAUD_PROTECTION_EVENT} from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {TryNewDot} from '@src/types/onyx';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Locale from '@src/types/onyx/Locale';
@@ -819,7 +820,7 @@ function beginGoogleSignIn(token: string | null, preferredLocale: Locale | undef
  */
 function signInWithShortLivedAuthToken(authToken: string, isSAML = false) {
     const {optimisticData, failureData, finallyData} = getShortLivedLoginParams(false, isSAML);
-    const authMethod = isSAML ? CONST.AUTH_METHOD.SAML : undefined;
+    const authMethod = isSAML ? CONST.AUTH_METHOD.SAML : CONST.AUTH_METHOD.SHORT_LIVED_AUTH_TOKEN;
     API.read(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, {authToken, skipReauthentication: true, authMethod}, {optimisticData, failureData, finallyData});
     NetworkStore.setLastShortAuthToken(authToken);
 }
@@ -1432,31 +1433,34 @@ function signInWithValidateCodeAndNavigate(accountID: number, validateCode: stri
     }
 }
 
+const ANONYMOUS_ACCESSIBLE_DYNAMIC_SUFFIXES = new Set<DynamicRouteSuffix>([DYNAMIC_ROUTES.REPORT_DETAILS.path, DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_CODE.path]);
+
 /**
  * check if the route can be accessed by anonymous user
  *
- * @param {string} route
+ * @param route
  */
-
 const canAnonymousUserAccessRoute = (route: string) => {
     const reportID = getReportIDFromLink(route);
     if (reportID) {
         return true;
     }
-    const parsedReportRouteParams = parseReportRouteParamsReportUtils(route);
-    let routeRemovedReportId = route;
-    if ((parsedReportRouteParams as {reportID: string})?.reportID) {
-        routeRemovedReportId = route.replace((parsedReportRouteParams as {reportID: string})?.reportID, ':reportID');
-    }
-    if (route.startsWith('/')) {
-        routeRemovedReportId = routeRemovedReportId.slice(1);
-    }
-    const routesAccessibleByAnonymousUser = [ROUTES.SIGN_IN_MODAL, ROUTES.REPORT_WITH_ID_DETAILS.route, ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.route, ROUTES.CONCIERGE];
-    const isMagicLink = CONST.REGEX.ROUTES.VALIDATE_LOGIN.test(`/${route}`);
 
-    if ((routesAccessibleByAnonymousUser as string[]).includes(routeRemovedReportId) || isMagicLink) {
+    const normalizedRoute = route.startsWith('/') ? route.slice(1) : route;
+    if (normalizedRoute === ROUTES.SIGN_IN_MODAL || normalizedRoute === ROUTES.CONCIERGE) {
         return true;
     }
+
+    const isMagicLink = CONST.REGEX.ROUTES.VALIDATE_LOGIN.test(`/${route}`);
+    if (isMagicLink) {
+        return true;
+    }
+
+    const suffixMatch = findMatchingDynamicSuffix(normalizedRoute);
+    if (suffixMatch && ANONYMOUS_ACCESSIBLE_DYNAMIC_SUFFIXES.has(suffixMatch.pattern as DynamicRouteSuffix)) {
+        return CONST.REGEX.REPORT_ID_FROM_PATH.test(`/${normalizedRoute}`);
+    }
+
     return false;
 };
 
