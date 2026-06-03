@@ -1,6 +1,6 @@
 import type {DataModule} from '@shopify/react-native-skia';
 import {useTypeface} from '@shopify/react-native-skia';
-import type {ChartDefaultTypeface} from '../types/chartSkiaTypefaceTypes';
+import type {ChartDefaultTypeface} from '@components/Charts/types/chartSkiaTypefaceTypes';
 
 function useChartSkiaTypefaces(): ChartDefaultTypeface {
     return {

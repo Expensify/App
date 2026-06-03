@@ -3,9 +3,9 @@ export {default as useChartLabelMeasurements} from './useChartLabelMeasurements'
 export {default as useChartParagraphs} from './useChartParagraphs';
 export {default as useYAxisLabelWidth} from './useYAxisLabelWidth';
 export {default as useChartFontManager} from './useChartFontManager/useChartFontManager';
-export {default as ChartDefaultTypefaceProvider} from '../context/ChartDefaultTypefaceProvider';
-export {getChartSkiaTypeface} from '../utils/getChartSkiaTypeface';
-export {useChartDefaultTypeface} from '../context/ChartDefaultTypefaceContext';
+export {default as ChartDefaultTypefaceProvider} from '@components/Charts/context/ChartDefaultTypefaceProvider';
+export {default as getChartSkiaTypeface} from '@components/Charts/utils/getChartSkiaTypeface';
+export {useChartDefaultTypeface} from '@components/Charts/context/ChartDefaultTypefaceContext';
 export {useChartInteractions, TOOLTIP_BAR_GAP} from './useChartInteractions';
 export type {HitTestArgs} from './useChartInteractions';
 export {default as useChartLabelFormats} from './useChartLabelFormats';

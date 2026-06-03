@@ -1,5 +1,5 @@
 import React from 'react';
-import useChartSkiaTypefaces from '../hooks/useChartSkiaTypefaces';
+import useChartSkiaTypefaces from '@components/Charts/hooks/useChartSkiaTypefaces';
 import {ChartDefaultTypefaceContext} from './ChartDefaultTypefaceContext';
 
 function ChartDefaultTypefaceProvider({children}: {children: React.ReactNode}) {
