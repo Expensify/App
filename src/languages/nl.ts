@@ -3427,6 +3427,7 @@ ${amount} voor ${merchant} - ${date}`,
     },
     welcomeSignUpForm: {
         join: 'Deelnemen',
+        marketingSMSConsent: 'Ik ga akkoord met het ontvangen van marketing-sms van Expensify',
     },
     detailsPage: {
         localTime: 'Lokale tijd',

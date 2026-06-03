@@ -3447,6 +3447,7 @@ ${amount} pour ${merchant} - ${date}`,
     },
     welcomeSignUpForm: {
         join: 'Rejoindre',
+        marketingSMSConsent: "J'accepte de recevoir des SMS marketing d'Expensify",
     },
     detailsPage: {
         localTime: 'Heure locale',

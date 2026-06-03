@@ -3340,6 +3340,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     },
     welcomeSignUpForm: {
         join: '加入',
+        marketingSMSConsent: '我同意接收来自 Expensify 的营销短信',
     },
     detailsPage: {
         localTime: '本地时间',

@@ -3517,6 +3517,7 @@ const translations = {
     },
     welcomeSignUpForm: {
         join: 'Join',
+        marketingSMSConsent: 'I agree to receive marketing texts from Expensify',
     },
     detailsPage: {
         localTime: 'Local time',

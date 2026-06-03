@@ -3431,6 +3431,7 @@ ${amount} per ${merchant} - ${date}`,
     },
     welcomeSignUpForm: {
         join: 'Partecipa',
+        marketingSMSConsent: 'Accetto di ricevere SMS di marketing da Expensify',
     },
     detailsPage: {
         localTime: 'Ora locale',
