@@ -13,7 +13,7 @@ export default function useStableListWidth(): StableListWidthResult {
     const [stableListWidth, setStableListWidth] = useState<number>();
 
     const onStableListLayout = (event: LayoutChangeEvent) => {
-        setStableListWidth(event.nativeEvent.layout.width);
+        setStableListWidth(event?.nativeEvent?.layout?.width);
     };
 
     return {stableListWidth, onStableListLayout};
