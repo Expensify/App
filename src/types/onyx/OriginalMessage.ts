@@ -579,10 +579,16 @@ type OriginalMessagePolicyChangeLog = {
     /** Unit of the custom unit (e.g. "mi", "km") */
     unit?: string;
 
-    /** New start date of the custom unit rate (yyyy-MM-dd) */
+    /** Start date of the custom unit rate (yyyy-MM-dd), used in ADD actions */
+    startDate?: string;
+
+    /** End date of the custom unit rate (yyyy-MM-dd), used in ADD actions */
+    endDate?: string;
+
+    /** New start date of the custom unit rate (yyyy-MM-dd), used in UPDATE actions */
     newStartDate?: string;
 
-    /** New end date of the custom unit rate (yyyy-MM-dd) */
+    /** New end date of the custom unit rate (yyyy-MM-dd), used in UPDATE actions */
     newEndDate?: string;
 
     /** Previous start date of the custom unit rate (yyyy-MM-dd) */

@@ -3169,14 +3169,14 @@ function getWorkspaceCustomUnitRateImportedMessage(translate: LocalizedTranslate
 }
 
 function getWorkspaceCustomUnitRateAddedMessage(translate: LocalizedTranslate, action: ReportAction): string {
-    const {customUnitName, rateName, rate, currency, unit, newStartDate, newEndDate} =
+    const {customUnitName, rateName, rate, currency, unit, startDate, endDate} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE>) ?? {};
 
     if (rateName && rate !== undefined && currency && unit) {
         const unitLabel = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
         const formattedRate = `${convertAmountToDisplayString(rate, currency)}/${unitLabel}`;
-        const formattedStartDate = newStartDate ? DateUtils.formatToReadableString(newStartDate) : undefined;
-        const formattedEndDate = newEndDate ? DateUtils.formatToReadableString(newEndDate) : undefined;
+        const formattedStartDate = startDate ? DateUtils.formatToReadableString(startDate) : undefined;
+        const formattedEndDate = endDate ? DateUtils.formatToReadableString(endDate) : undefined;
 
         if (formattedStartDate && formattedEndDate) {
             return translate('workspaceActions.addCustomUnitRateWithAmountAndDates', rateName, formattedRate, formattedStartDate, formattedEndDate);
@@ -3229,8 +3229,8 @@ function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate,
     }
 
     if (customUnitRateName && updatedField === RATE_CHANGELOG_UPDATED_FIELD.DATE_RANGE) {
-        const startDateChanged = !!newStartDate || !!oldStartDate;
-        const endDateChanged = !!newEndDate || !!oldEndDate;
+        const startDateChanged = newStartDate !== oldStartDate;
+        const endDateChanged = newEndDate !== oldEndDate;
 
         if (startDateChanged && endDateChanged && newStartDate && newEndDate) {
             const formattedOldStartDate = oldStartDate ? DateUtils.formatToReadableString(oldStartDate) : undefined;
