@@ -46,6 +46,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
         const [betas] = useOnyx(ONYXKEYS.BETAS);
         const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props.route.params.reportID}`);
         const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+        const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
         const parentReportAction = useParentReportAction(report);
         const linkedReportAction = useMemo(() => {
@@ -75,7 +76,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
         const isLoadingReport = isLoadingReportData && !report?.reportID;
         const isLoadingReportAction = isEmptyObject(reportActions) || (reportLoadingState?.isLoadingInitialReportActions && isEmptyObject(linkedReportAction));
         const isReportArchived = useReportIsArchived(report?.reportID);
-        const shouldHideReport = !isLoadingReport && (!report?.reportID || !canAccessReport(report, betas, isReportArchived));
+        const shouldHideReport = !isLoadingReport && (!report?.reportID || !canAccessReport(report, betas, personalDetailsList, isReportArchived));
 
         if ((isLoadingReport || isLoadingReportAction) && !shouldHideReport) {
             const reasonAttributes: SkeletonSpanReasonAttributes = {

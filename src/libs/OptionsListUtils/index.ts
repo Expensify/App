@@ -2118,6 +2118,8 @@ function isValidReport(option: SearchOption<Report>, policy: OnyxEntry<Policy>, 
         draftComment,
         currentUserLogin,
         currentUserAccountID,
+        // TODO: Pass personalDetailsList once callers are fully migrated (https://github.com/Expensify/App/issues/66413); hasExpensifyGuidesEmails falls back to module-level Onyx value
+        personalDetailsList: undefined,
     });
 
     if (!shouldBeInOptionList) {

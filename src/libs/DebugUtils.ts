@@ -1452,6 +1452,8 @@ function getReasonForShowingRowInLHN({
         draftComment,
         currentUserLogin,
         currentUserAccountID,
+        // TODO: Pass personalDetailsList once callers are fully migrated (https://github.com/Expensify/App/issues/66413); hasExpensifyGuidesEmails falls back to module-level Onyx value
+        personalDetailsList: undefined,
     });
 
     if (!([CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS, CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS] as Array<typeof reason>).includes(reason) && hasRBR) {

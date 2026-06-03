@@ -35,8 +35,10 @@ function ReportRouteParamHandler() {
             return;
         }
 
+        // TODO: Pass personalDetailsList once findLastAccessedReport callers are fully migrated (https://github.com/Expensify/App/issues/66413); hasExpensifyGuidesEmails falls back to module-level Onyx value
         const lastAccessedReportID = findLastAccessedReport(
             !isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+            undefined,
             'openOnAdminRoom' in route.params && !!route.params.openOnAdminRoom,
             undefined,
             archivedReportsIdSet,

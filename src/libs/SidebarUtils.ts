@@ -353,6 +353,8 @@ function shouldDisplayReportInLHN({
         requiresAttention,
         currentUserLogin,
         currentUserAccountID,
+        // TODO: Pass personalDetailsList once callers are fully migrated (https://github.com/Expensify/App/issues/66413); hasExpensifyGuidesEmails falls back to module-level Onyx value
+        personalDetailsList: undefined,
     });
 
     return {shouldDisplay};
@@ -1324,7 +1326,7 @@ function getOptionData({
 
     result.isIOUReportOwner = isIOUOwnedByCurrentUser(result as Report);
 
-    if (isJoinRequestInAdminRoom(report)) {
+    if (isJoinRequestInAdminRoom(report, currentUserLogin)) {
         result.isUnread = true;
     }
 

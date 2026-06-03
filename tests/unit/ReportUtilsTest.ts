@@ -121,6 +121,7 @@ import {
     getWorkspaceNameUpdatedMessage,
     hasActionWithErrorsForTransaction,
     hasEmptyReportsForPolicy,
+    hasExpensifyGuidesEmails,
     hasExportError,
     hasReceiptError,
     hasSmartscanError,
@@ -134,6 +135,7 @@ import {
     isConciergeChatReport,
     isDeprecatedGroupDM,
     isHarvestCreatedExpenseReport,
+    isJoinRequestInAdminRoom,
     isMoneyRequestReportEligibleForMerge,
     isPayer,
     isReportIneligibleForMoveExpenses,
@@ -6145,6 +6147,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    personalDetailsList: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6169,6 +6172,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    personalDetailsList: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6198,6 +6202,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    personalDetailsList: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6251,6 +6256,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    personalDetailsList: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6274,6 +6280,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    personalDetailsList: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6297,6 +6304,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: 'fake draft',
                     isReportArchived: undefined,
+                    personalDetailsList: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6320,6 +6328,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    personalDetailsList: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6356,6 +6365,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    personalDetailsList: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6387,6 +6397,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     isReportArchived: isReportArchived.current,
                     draftComment: '',
+                    personalDetailsList: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6418,6 +6429,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     isReportArchived: isReportArchived.current,
                     draftComment: '',
+                    personalDetailsList: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6443,6 +6455,7 @@ describe('ReportUtils', () => {
                     includeSelfDM,
                     draftComment: '',
                     isReportArchived: undefined,
+                    personalDetailsList: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6470,6 +6483,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    personalDetailsList: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6490,6 +6504,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    personalDetailsList: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6513,6 +6528,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    personalDetailsList: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6556,6 +6572,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    personalDetailsList: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6576,6 +6593,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: true,
                     draftComment: '',
                     isReportArchived: undefined,
+                    personalDetailsList: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6604,6 +6622,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: true,
                     draftComment: '',
                     isReportArchived: undefined,
+                    personalDetailsList: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
         });
@@ -6626,6 +6645,7 @@ describe('ReportUtils', () => {
                     includeDomainEmail: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    personalDetailsList: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6672,6 +6692,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    personalDetailsList: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6692,6 +6713,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    personalDetailsList: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6726,6 +6748,7 @@ describe('ReportUtils', () => {
                     draftComment: '',
                     betas: undefined,
                     isReportArchived: undefined,
+                    personalDetailsList: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6757,6 +6780,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    personalDetailsList: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.IS_UNREAD);
         });
@@ -6786,6 +6810,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    personalDetailsList: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6808,6 +6833,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    personalDetailsList: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS);
         });
@@ -6852,6 +6878,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    personalDetailsList: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6903,6 +6930,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    personalDetailsList: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.PINNED_BY_USER);
         });
@@ -6925,6 +6953,7 @@ describe('ReportUtils', () => {
                     includeSelfDM: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    personalDetailsList: undefined,
                 }),
             ).toBeNull();
         });
@@ -6946,6 +6975,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: true,
                     draftComment: '',
                     isReportArchived: undefined,
+                    personalDetailsList: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -6967,6 +6997,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    personalDetailsList: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -6988,6 +7019,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    personalDetailsList: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -7009,6 +7041,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    personalDetailsList: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -7025,6 +7058,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    personalDetailsList: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -7081,6 +7115,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                personalDetailsList: undefined,
             });
 
             expect(reason).not.toBe(CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS);
@@ -7772,7 +7807,7 @@ describe('ReportUtils', () => {
         });
 
         it('should not return an archived report even if it was most recently accessed', () => {
-            const result = findLastAccessedReport(false);
+            const result = findLastAccessedReport(false, undefined);
 
             // Even though the archived report has a more recent lastVisitTime,
             // the function should filter it out and return the normal report
@@ -7825,7 +7860,7 @@ describe('ReportUtils', () => {
         });
 
         it('findLastAccessedReport should return owned report if no reports was accessed before', () => {
-            const result = findLastAccessedReport(false);
+            const result = findLastAccessedReport(false, undefined);
 
             // Even though the archived report has a more recent lastVisitTime,
             // the function should filter it out and return the normal report
@@ -11312,7 +11347,7 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
             };
-            expect(canSeeDefaultRoom(report, betas, true)).toBe(true);
+            expect(canSeeDefaultRoom(report, betas, undefined, true)).toBe(true);
         });
         it('should return true if the room has an assigned guide', () => {
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
@@ -11321,14 +11356,14 @@ describe('ReportUtils', () => {
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID, 8]),
             };
             Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails).then(() => {
-                expect(canSeeDefaultRoom(report, betas, false)).toBe(true);
+                expect(canSeeDefaultRoom(report, betas, undefined, false)).toBe(true);
             });
         });
         it('should return true if the report is admin room', () => {
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
             const report: Report = createRandomReport(40002, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS);
             Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails).then(() => {
-                expect(canSeeDefaultRoom(report, betas, false)).toBe(true);
+                expect(canSeeDefaultRoom(report, betas, undefined, false)).toBe(true);
             });
         });
     });
@@ -13099,6 +13134,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: undefined,
+            personalDetailsList: undefined,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -13157,6 +13193,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: undefined,
+            personalDetailsList: undefined,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
@@ -13264,6 +13301,7 @@ describe('ReportUtils', () => {
                 draftComment: undefined,
                 betas: undefined,
                 isReportArchived: undefined,
+                personalDetailsList: undefined,
             });
 
             expect(reasonForOptionList).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -13307,6 +13345,7 @@ describe('ReportUtils', () => {
                 draftComment: undefined,
                 betas: undefined,
                 isReportArchived: undefined,
+                personalDetailsList: undefined,
             });
 
             expect(reasonForOptionList).toBe(null);
@@ -13833,6 +13872,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: undefined,
+            personalDetailsList: undefined,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -14016,6 +14056,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: undefined,
+            personalDetailsList: undefined,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
@@ -14201,6 +14242,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: archiveState.current,
+            personalDetailsList: undefined,
         });
 
         expect(reasonBeforeDelete).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -14223,6 +14265,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: archiveState.current,
+            personalDetailsList: undefined,
         });
 
         expect(reasonAfterDelete).toBe(CONST.REPORT_IN_LHN_REASONS.IS_ARCHIVED);
@@ -14324,6 +14367,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: isReportArchivedBefore.current,
+            personalDetailsList: undefined,
         });
 
         expect(reasonBeforeRemoval).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -14364,6 +14408,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: isReportArchivedAfter.current,
+            personalDetailsList: undefined,
         });
 
         expect(reasonAfterRemoval).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -14952,6 +14997,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 isReportArchived: false,
                 draftComment: '',
+                personalDetailsList: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -15019,6 +15065,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 isReportArchived: false,
                 draftComment: '',
+                personalDetailsList: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -15090,6 +15137,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 isReportArchived: false,
                 draftComment: '',
+                personalDetailsList: undefined,
             });
             expect(reason).not.toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -15160,6 +15208,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 isReportArchived: false,
                 draftComment: '',
+                personalDetailsList: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -16936,6 +16985,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 isReportArchived: false,
                 draftComment: '',
+                personalDetailsList: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -17005,6 +17055,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 isReportArchived: false,
                 draftComment: '',
+                personalDetailsList: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -18208,6 +18259,39 @@ describe('ReportUtils', () => {
             } as Report;
 
             expect(getBankAccountRoute(report, false)).toBe(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route);
+        });
+    });
+
+    describe('hasExpensifyGuidesEmails', () => {
+        it('returns true when personalDetailsList contains a guide email', () => {
+            const personalDetailsList: PersonalDetailsList = {
+                1: {accountID: 1, login: 'guide@team.expensify.com'},
+                2: {accountID: 2, login: 'user@example.com'},
+            };
+            expect(hasExpensifyGuidesEmails([1, 2], personalDetailsList)).toBe(true);
+        });
+
+        it('returns false when no participant has a guide email', () => {
+            const personalDetailsList: PersonalDetailsList = {
+                1: {accountID: 1, login: 'user1@example.com'},
+                2: {accountID: 2, login: 'user2@example.com'},
+            };
+            expect(hasExpensifyGuidesEmails([1, 2], personalDetailsList)).toBe(false);
+        });
+
+        it('returns false when personalDetailsList is undefined (falls back to module-level)', () => {
+            expect(hasExpensifyGuidesEmails([999], undefined)).toBe(false);
+        });
+    });
+
+    describe('isJoinRequestInAdminRoom', () => {
+        it('returns false when report is undefined', () => {
+            expect(isJoinRequestInAdminRoom(undefined, undefined)).toBe(false);
+        });
+
+        it('returns false when report has no policyID and no join request', () => {
+            const report = {reportID: '1'} as Report;
+            expect(isJoinRequestInAdminRoom(report, 'user@example.com')).toBe(false);
         });
     });
 });

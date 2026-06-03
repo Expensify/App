@@ -50,7 +50,8 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<TabNavigatorPar
             return '';
         }
 
-        const initialReport = ReportUtils.findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), isOpenOnAdminRoom, undefined, archivedReportsIdSet);
+        // TODO: Pass personalDetailsList once findLastAccessedReport callers are fully migrated (https://github.com/Expensify/App/issues/66413); hasExpensifyGuidesEmails falls back to module-level Onyx value
+        const initialReport = ReportUtils.findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), undefined, isOpenOnAdminRoom, undefined, archivedReportsIdSet);
         // eslint-disable-next-line rulesdir/no-default-id-values
         return initialReport?.reportID ?? '';
     });
