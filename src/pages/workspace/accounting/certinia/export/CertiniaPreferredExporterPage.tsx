@@ -1,5 +1,5 @@
 import isEmpty from 'lodash/isEmpty';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
@@ -32,61 +32,51 @@ function CertiniaPreferredExporterPage({policy}: WithPolicyConnectionsProps) {
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_PREFERRED_EXPORTER.path);
 
-    const data: ExporterListItem[] = useMemo(() => {
-        if (!isEmpty(policyOwner) && isEmpty(exporters)) {
-            return [
-                {
-                    value: policyOwner,
-                    text: policyOwner,
-                    keyForList: policyOwner,
-                    isSelected: exportConfig?.exporter === policyOwner,
-                },
-            ];
+    let data: ExporterListItem[];
+    if (!isEmpty(policyOwner) && isEmpty(exporters)) {
+        data = [
+            {
+                value: policyOwner,
+                text: policyOwner,
+                keyForList: policyOwner,
+                isSelected: exportConfig?.exporter === policyOwner,
+            },
+        ];
+    } else {
+        data =
+            exporters?.reduce<ExporterListItem[]>((options, exporter) => {
+                if (!exporter.email) {
+                    return options;
+                }
+
+                // Don't show guides if the current user is not a guide themselves or an Expensify employee
+                if (isExpensifyTeam(exporter.email) && !isExpensifyTeam(policyOwner) && !isExpensifyTeam(currentUserLogin)) {
+                    return options;
+                }
+
+                options.push({
+                    value: exporter.email,
+                    text: exporter.email,
+                    keyForList: exporter.email,
+                    isSelected: (exportConfig?.exporter ?? policyOwner) === exporter.email,
+                });
+                return options;
+            }, []) ?? [];
+    }
+
+    const headerContent = (
+        <View style={[styles.pb2, styles.ph5]}>
+            <Text style={[styles.pb2, styles.textNormal]}>{translate('workspace.accounting.exportPreferredExporterNote')}</Text>
+            <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.accounting.exportPreferredExporterSubNote')}</Text>
+        </View>
+    );
+
+    const selectExporter = (row: ExporterListItem) => {
+        if (row.value !== exportConfig?.exporter && policyID) {
+            updateFinancialForceExporter(policyID, row.value, exportConfig?.exporter ?? '');
         }
-
-        return exporters?.reduce<ExporterListItem[]>((options, exporter) => {
-            if (!exporter.email) {
-                return options;
-            }
-
-            // Don't show guides if the current user is not a guide themselves or an Expensify employee
-            if (isExpensifyTeam(exporter.email) && !isExpensifyTeam(policyOwner) && !isExpensifyTeam(currentUserLogin)) {
-                return options;
-            }
-
-            options.push({
-                value: exporter.email,
-                text: exporter.email,
-                keyForList: exporter.email,
-                isSelected: (exportConfig?.exporter ?? policyOwner) === exporter.email,
-            });
-            return options;
-        }, []);
-    }, [currentUserLogin, exportConfig?.exporter, exporters, policyOwner]);
-
-    const goBack = useCallback(() => {
         Navigation.goBack(backPath);
-    }, [backPath]);
-
-    const selectExporter = useCallback(
-        (row: ExporterListItem) => {
-            if (row.value !== exportConfig?.exporter && policyID) {
-                updateFinancialForceExporter(policyID, row.value, exportConfig?.exporter ?? '');
-            }
-            goBack();
-        },
-        [exportConfig?.exporter, goBack, policyID],
-    );
-
-    const headerContent = useMemo(
-        () => (
-            <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb2, styles.textNormal]}>{translate('workspace.accounting.exportPreferredExporterNote')}</Text>
-                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.accounting.exportPreferredExporterSubNote')}</Text>
-            </View>
-        ),
-        [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal],
-    );
+    };
 
     return (
         <SelectionScreen
@@ -100,7 +90,7 @@ function CertiniaPreferredExporterPage({policy}: WithPolicyConnectionsProps) {
             onSelectRow={selectExporter}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={exportConfig?.exporter}
-            onBackButtonPress={goBack}
+            onBackButtonPress={() => Navigation.goBack(backPath)}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.CERTINIA}
             pendingAction={settingsPendingAction([CONST.CERTINIA_CONFIG.EXPORTER], config?.pendingFields)}
             errors={getLatestErrorField(config, CONST.CERTINIA_CONFIG.EXPORTER)}

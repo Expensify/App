@@ -1,9 +1,9 @@
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
+import React from 'react';
+import BlockingView from '@components/BlockingViews/BlockingView';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
-import Text from '@components/Text';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearFinancialForceErrorField, updateFinancialForceDefaultVendor} from '@libs/actions/connections/FinancialForce';
@@ -12,6 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
@@ -27,37 +28,31 @@ function CertiniaDefaultVendorPage({policy}: WithPolicyConnectionsProps) {
     const exportConfig = config?.export;
     const vendors = data?.vendors ?? [];
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_DEFAULT_VENDOR.path);
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
-    const dataOptions: VendorListItem[] = useMemo(
-        () =>
-            vendors.map((vendor) => ({
-                value: vendor.id,
-                text: vendor.name,
-                keyForList: vendor.id,
-                isSelected: exportConfig?.vendorAccount === vendor.id,
-            })),
-        [exportConfig?.vendorAccount, vendors],
-    );
+    const dataOptions: VendorListItem[] = vendors.map((vendor) => ({
+        value: vendor.id,
+        text: vendor.name,
+        keyForList: vendor.id,
+        isSelected: exportConfig?.vendorAccount === vendor.id,
+    }));
     const listEmptyContent = (
-        <View style={[styles.ph5, styles.pv5]}>
-            <Text style={styles.textHeadlineH2}>{translate('workspace.certinia.noVendorsFound')}</Text>
-            <Text style={[styles.mt2, styles.textLabelSupporting, styles.colorMuted]}>{translate('workspace.certinia.noVendorsFoundDescription')}</Text>
-        </View>
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.certinia.noVendorsFound')}
+            subtitle={translate('workspace.certinia.noVendorsFoundDescription')}
+            containerStyle={styles.pb10}
+        />
     );
 
-    const goBack = useCallback(() => {
+    const selectVendor = (row: VendorListItem) => {
+        if (row.value !== exportConfig?.vendorAccount && policyID) {
+            updateFinancialForceDefaultVendor(policyID, row.value, exportConfig?.vendorAccount ?? null);
+        }
         Navigation.goBack(backPath);
-    }, [backPath]);
-
-    const selectVendor = useCallback(
-        (row: VendorListItem) => {
-            if (row.value !== exportConfig?.vendorAccount && policyID) {
-                updateFinancialForceDefaultVendor(policyID, row.value, exportConfig?.vendorAccount ?? null);
-            }
-            goBack();
-        },
-        [exportConfig?.vendorAccount, goBack, policyID],
-    );
+    };
 
     return (
         <SelectionScreen
@@ -69,7 +64,7 @@ function CertiniaDefaultVendorPage({policy}: WithPolicyConnectionsProps) {
             onSelectRow={selectVendor}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={exportConfig?.vendorAccount}
-            onBackButtonPress={goBack}
+            onBackButtonPress={() => Navigation.goBack(backPath)}
             title="workspace.accounting.defaultVendor"
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.CERTINIA}

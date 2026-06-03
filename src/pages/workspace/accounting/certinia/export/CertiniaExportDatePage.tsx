@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import type {ValueOf} from 'type-fest';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
@@ -27,30 +27,19 @@ function CertiniaExportDatePage({policy}: WithPolicyConnectionsProps) {
     const selectedExportDate = exportConfig?.exportDate;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT_DATE.path);
 
-    const data: ExportDateListItem[] = useMemo(
-        () =>
-            Object.values(CONST.CERTINIA_EXPORT_DATE).map((date) => ({
-                value: date,
-                text: translate(`workspace.certinia.exportDate.values.${date}`),
-                keyForList: date,
-                isSelected: selectedExportDate === date,
-            })),
-        [selectedExportDate, translate],
-    );
+    const data: ExportDateListItem[] = Object.values(CONST.CERTINIA_EXPORT_DATE).map((date) => ({
+        value: date,
+        text: translate(`workspace.certinia.exportDate.values.${date}`),
+        keyForList: date,
+        isSelected: selectedExportDate === date,
+    }));
 
-    const goBack = useCallback(() => {
+    const selectExportDate = (row: ExportDateListItem) => {
+        if (row.value !== selectedExportDate && policyID) {
+            updateFinancialForceExportDate(policyID, row.value, exportConfig?.exportDate ?? null);
+        }
         Navigation.goBack(backPath);
-    }, [backPath]);
-
-    const selectExportDate = useCallback(
-        (row: ExportDateListItem) => {
-            if (row.value !== selectedExportDate && policyID) {
-                updateFinancialForceExportDate(policyID, row.value, exportConfig?.exportDate ?? null);
-            }
-            goBack();
-        },
-        [exportConfig?.exportDate, goBack, policyID, selectedExportDate],
-    );
+    };
 
     return (
         <SelectionScreen
@@ -62,8 +51,8 @@ function CertiniaExportDatePage({policy}: WithPolicyConnectionsProps) {
             onSelectRow={selectExportDate}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={selectedExportDate}
-            onBackButtonPress={goBack}
-            title="workspace.accounting.exportDate"
+            onBackButtonPress={() => Navigation.goBack(backPath)}
+            title="workspace.certinia.exportDate.label"
             connectionName={CONST.POLICY.CONNECTIONS.NAME.CERTINIA}
             pendingAction={settingsPendingAction([CONST.CERTINIA_CONFIG.EXPORT_DATE], config?.pendingFields)}
             errors={getLatestErrorField(config, CONST.CERTINIA_CONFIG.EXPORT_DATE)}

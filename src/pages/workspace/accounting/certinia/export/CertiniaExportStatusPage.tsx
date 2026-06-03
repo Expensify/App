@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import type {ValueOf} from 'type-fest';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
@@ -29,30 +29,19 @@ function CertiniaExportStatusPage({policy}: WithPolicyConnectionsProps) {
     const selectedExportStatus = exportConfig?.exportStatus;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT_STATUS.path);
 
-    const data: ExportStatusListItem[] = useMemo(
-        () =>
-            FFA_EXPORT_STATUSES.map((status) => ({
-                value: status,
-                text: translate(`workspace.certinia.exportStatus.values.${status}`),
-                keyForList: status,
-                isSelected: selectedExportStatus === status,
-            })),
-        [selectedExportStatus, translate],
-    );
+    const data: ExportStatusListItem[] = FFA_EXPORT_STATUSES.map((status) => ({
+        value: status,
+        text: translate(`workspace.certinia.exportStatus.values.${status}`),
+        keyForList: status,
+        isSelected: selectedExportStatus === status,
+    }));
 
-    const goBack = useCallback(() => {
+    const selectExportStatus = (row: ExportStatusListItem) => {
+        if (row.value !== selectedExportStatus && policyID) {
+            updateFinancialForceExportStatus(policyID, row.value, exportConfig?.exportStatus ?? null);
+        }
         Navigation.goBack(backPath);
-    }, [backPath]);
-
-    const selectExportStatus = useCallback(
-        (row: ExportStatusListItem) => {
-            if (row.value !== selectedExportStatus && policyID) {
-                updateFinancialForceExportStatus(policyID, row.value, exportConfig?.exportStatus ?? null);
-            }
-            goBack();
-        },
-        [exportConfig?.exportStatus, goBack, policyID, selectedExportStatus],
-    );
+    };
 
     return (
         <SelectionScreen
@@ -64,7 +53,7 @@ function CertiniaExportStatusPage({policy}: WithPolicyConnectionsProps) {
             onSelectRow={selectExportStatus}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={selectedExportStatus}
-            onBackButtonPress={goBack}
+            onBackButtonPress={() => Navigation.goBack(backPath)}
             title="workspace.certinia.exportStatus.label"
             connectionName={CONST.POLICY.CONNECTIONS.NAME.CERTINIA}
             pendingAction={settingsPendingAction([CONST.CERTINIA_CONFIG.EXPORT_STATUS], config?.pendingFields)}
