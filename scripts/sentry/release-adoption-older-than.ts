@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 /**
  * Report what share of New Expensify production users (by Sentry error events)
  * were on a release strictly older than a given version.
@@ -8,8 +8,8 @@
  *
  * @example
  *   export SENTRY_AUTH_TOKEN=sntrys_...
- *   node scripts/sentry/release-adoption-older-than.mjs --threshold 9.3.79-4 --period 14d
- *   node scripts/sentry/release-adoption-older-than.mjs --threshold 9.3.79-4 --start 2026-05-22T00:00:00Z --end 2026-06-03T23:59:59Z
+ *   bun scripts/sentry/release-adoption-older-than.ts --threshold 9.3.79-4 --period 14d
+ *   bun scripts/sentry/release-adoption-older-than.ts --threshold 9.3.79-4 --start 2026-05-22T00:00:00Z --end 2026-06-03T23:59:59Z
  */
 
 const DEFAULT_ORG = 'expensify';
@@ -20,8 +20,63 @@ const DEFAULT_ENVIRONMENT = 'production';
 const DEFAULT_DATASET = 'errors';
 const OR_QUERY_CHUNK_SIZE = 25;
 
-function printUsage() {
-    console.error(`Usage: release-adoption-older-than.mjs --threshold <major.minor.patch-build> [options]
+type Version = {
+    major: number;
+    minor: number;
+    patch: number;
+    build: number;
+};
+
+type CliOptions = {
+    threshold: string | null;
+    period: string;
+    start: string | null;
+    end: string | null;
+    environment: string;
+    prefix: string;
+    org: string;
+    project: string;
+    region: string;
+    json: boolean;
+    help: boolean;
+};
+
+type SentryRequestContext = Pick<CliOptions, 'org' | 'region'>;
+
+type SentryProject = {
+    id: string | number;
+    slug: string;
+};
+
+type ReleaseRow = {
+    release: string | null;
+    'count_unique(user)': number | string;
+};
+
+type EventsTableResponse = {
+    data?: ReleaseRow[];
+};
+
+type AdoptionResult = {
+    organization: string;
+    project: string;
+    environment: string;
+    dataset: string;
+    window: string;
+    threshold: string;
+    releasePrefix: string;
+    totalUniqueUsers: number;
+    uniqueUsersOnOlderReleases: number;
+    percentOnOlderReleases: number;
+    olderReleaseCount: number;
+    olderReleases: string[];
+    releaseRowsInWindow: number;
+    metric: string;
+    caveats: string[];
+};
+
+function printUsage(): void {
+    console.error(`Usage: release-adoption-older-than.ts --threshold <major.minor.patch-build> [options]
 
 Options:
   --threshold <ver>     Version to compare against (e.g. 9.3.79-4). Users on this exact build are NOT counted as older.
@@ -46,8 +101,8 @@ Metric:
 `);
 }
 
-function parseArgs(argv) {
-    const options = {
+function parseArgs(argv: string[]): CliOptions {
+    const options: CliOptions = {
         threshold: null,
         period: '14d',
         start: null,
@@ -120,8 +175,7 @@ function parseArgs(argv) {
     return options;
 }
 
-/** @returns {{major: number, minor: number, patch: number, build: number} | null} */
-function parseThreshold(version) {
+function parseThreshold(version: string): Version {
     const match = /^(\d+)\.(\d+)\.(\d+)-(\d+)$/.exec(version);
     if (!match) {
         throw new Error(`Invalid threshold "${version}". Expected format: major.minor.patch-build (e.g. 9.3.79-4)`);
@@ -135,8 +189,7 @@ function parseThreshold(version) {
     };
 }
 
-/** @returns {{major: number, minor: number, patch: number, build: number} | null} */
-function parseReleaseVersion(release, prefix) {
+function parseReleaseVersion(release: string | null | undefined, prefix: string): Version | null {
     if (!release || !release.startsWith(prefix)) {
         return null;
     }
@@ -145,8 +198,7 @@ function parseReleaseVersion(release, prefix) {
     return parseThreshold(suffix);
 }
 
-/** @returns {boolean} True when version is strictly less than threshold. */
-function isOlderThan(version, threshold) {
+function isOlderThan(version: Version, threshold: Version): boolean {
     if (version.major !== threshold.major) {
         return version.major < threshold.major;
     }
@@ -160,7 +212,7 @@ function isOlderThan(version, threshold) {
     return version.build < threshold.build;
 }
 
-function getAuthToken() {
+function getAuthToken(): string {
     const token = process.env.SENTRY_AUTH_TOKEN;
     if (!token) {
         throw new Error('SENTRY_AUTH_TOKEN is not set');
@@ -169,8 +221,8 @@ function getAuthToken() {
     return token;
 }
 
-async function sentryRequest(path, searchParams, {org, region}) {
-    const url = new URL(`${region}/api/0${path}`);
+async function sentryRequest<T>(path: string, searchParams: URLSearchParams, context: SentryRequestContext): Promise<{body: T; headers: Headers}> {
+    const url = new URL(`${context.region}/api/0${path}`);
     for (const [key, value] of searchParams.entries()) {
         url.searchParams.append(key, value);
     }
@@ -183,11 +235,11 @@ async function sentryRequest(path, searchParams, {org, region}) {
     });
 
     const bodyText = await response.text();
-    let body;
+    let body: T;
     try {
-        body = bodyText ? JSON.parse(bodyText) : null;
+        body = bodyText ? (JSON.parse(bodyText) as T) : (null as T);
     } catch {
-        body = bodyText;
+        throw new Error(`Sentry API returned non-JSON response: ${bodyText}`);
     }
 
     if (!response.ok) {
@@ -198,8 +250,8 @@ async function sentryRequest(path, searchParams, {org, region}) {
     return {body, headers: response.headers};
 }
 
-async function resolveProjectId(options) {
-    const {body} = await sentryRequest(`/organizations/${options.org}/projects/`, new URLSearchParams(), options);
+async function resolveProjectId(options: CliOptions): Promise<string> {
+    const {body} = await sentryRequest<SentryProject[]>(`/organizations/${options.org}/projects/`, new URLSearchParams(), options);
 
     const project = body.find((entry) => entry.slug === options.project);
     if (!project) {
@@ -209,7 +261,21 @@ async function resolveProjectId(options) {
     return String(project.id);
 }
 
-function buildEventsSearchParams({options, projectId, fields, query, sort, cursor}) {
+function buildEventsSearchParams({
+    options,
+    projectId,
+    fields,
+    query,
+    sort,
+    cursor,
+}: {
+    options: CliOptions;
+    projectId: string;
+    fields: string[];
+    query: string;
+    sort?: string;
+    cursor?: string | null;
+}): URLSearchParams {
     const params = new URLSearchParams();
     params.append('dataset', DEFAULT_DATASET);
     params.append('project', projectId);
@@ -236,7 +302,7 @@ function buildEventsSearchParams({options, projectId, fields, query, sort, curso
     return params;
 }
 
-function getNextCursor(linkHeader) {
+function getNextCursor(linkHeader: string | null): string | null {
     if (!linkHeader) {
         return null;
     }
@@ -256,15 +322,15 @@ function getNextCursor(linkHeader) {
     return null;
 }
 
-async function queryEventsTable({options, projectId, fields, query, sort}) {
-    const rows = [];
-    let cursor = null;
+async function queryEventsTable({options, projectId, fields, query, sort}: {options: CliOptions; projectId: string; fields: string[]; query: string; sort?: string}): Promise<ReleaseRow[]> {
+    const rows: ReleaseRow[] = [];
+    let cursor: string | null = null;
 
     do {
         const params = buildEventsSearchParams({options, projectId, fields, query, sort, cursor});
         params.append('per_page', '100');
 
-        const {body, headers} = await sentryRequest(`/organizations/${options.org}/events/`, params, options);
+        const {body, headers} = await sentryRequest<EventsTableResponse>(`/organizations/${options.org}/events/`, params, options);
         rows.push(...(body.data ?? []));
 
         cursor = getNextCursor(headers.get('link'));
@@ -273,7 +339,7 @@ async function queryEventsTable({options, projectId, fields, query, sort}) {
     return rows;
 }
 
-async function countUniqueUsers({options, projectId, query}) {
+async function countUniqueUsers({options, projectId, query}: {options: CliOptions; projectId: string; query: string}): Promise<number> {
     const rows = await queryEventsTable({
         options,
         projectId,
@@ -285,7 +351,7 @@ async function countUniqueUsers({options, projectId, query}) {
     return typeof value === 'number' ? value : Number(value ?? 0);
 }
 
-function buildReleaseFilter(releases) {
+function buildReleaseFilter(releases: string[]): string | null {
     if (releases.length === 0) {
         return null;
     }
@@ -293,7 +359,7 @@ function buildReleaseFilter(releases) {
     return `release:[${releases.join(',')}]`;
 }
 
-async function countUniqueUsersOnReleases({options, projectId, baseQuery, releases}) {
+async function countUniqueUsersOnReleases({options, projectId, baseQuery, releases}: {options: CliOptions; projectId: string; baseQuery: string; releases: string[]}): Promise<number> {
     if (releases.length === 0) {
         return 0;
     }
@@ -309,14 +375,13 @@ async function countUniqueUsersOnReleases({options, projectId, baseQuery, releas
         }
     }
 
-    const chunks = [];
+    const chunks: string[][] = [];
     for (let i = 0; i < releases.length; i += OR_QUERY_CHUNK_SIZE) {
         chunks.push(releases.slice(i, i + OR_QUERY_CHUNK_SIZE));
     }
 
     console.error(
-        `Warning: ${releases.length} older releases required ${chunks.length} OR queries. ` +
-            'Summing chunk counts can over-count users who hit errors on more than one old build.',
+        `Warning: ${releases.length} older releases required ${chunks.length} OR queries. ` + 'Summing chunk counts can over-count users who hit errors on more than one old build.',
     );
 
     let total = 0;
@@ -328,14 +393,13 @@ async function countUniqueUsersOnReleases({options, projectId, baseQuery, releas
     return total;
 }
 
-function collectOlderReleases({releaseRows, options, threshold}) {
-    const older = new Set();
+function collectOlderReleases({releaseRows, options, threshold}: {releaseRows: ReleaseRow[]; options: CliOptions; threshold: Version}): string[] {
+    const older = new Set<string>();
 
     for (const row of releaseRows) {
-        const release = row.release;
-        const version = parseReleaseVersion(release, options.prefix);
+        const version = parseReleaseVersion(row.release, options.prefix);
         if (version && isOlderThan(version, threshold)) {
-            older.add(release);
+            older.add(row.release as string);
         }
     }
 
@@ -360,9 +424,9 @@ function collectOlderReleases({releaseRows, options, threshold}) {
     });
 }
 
-async function main() {
+async function main(): Promise<void> {
     const options = parseArgs(process.argv);
-    const threshold = parseThreshold(options.threshold);
+    const threshold = parseThreshold(options.threshold as string);
     const baseQuery = `environment:${options.environment}`;
 
     const projectId = await resolveProjectId(options);
@@ -387,16 +451,15 @@ async function main() {
     });
 
     const percent = totalUsers === 0 ? 0 : (usersOnOlderReleases / totalUsers) * 100;
-    const windowLabel =
-        options.start && options.end ? `${options.start} → ${options.end}` : `last ${options.period}`;
+    const windowLabel = options.start && options.end ? `${options.start} → ${options.end}` : `last ${options.period}`;
 
-    const result = {
+    const result: AdoptionResult = {
         organization: options.org,
         project: options.project,
         environment: options.environment,
         dataset: DEFAULT_DATASET,
         window: windowLabel,
-        threshold: options.threshold,
+        threshold: options.threshold as string,
         releasePrefix: options.prefix,
         totalUniqueUsers: totalUsers,
         uniqueUsersOnOlderReleases: usersOnOlderReleases,
@@ -404,8 +467,7 @@ async function main() {
         olderReleaseCount: olderReleases.length,
         olderReleases,
         releaseRowsInWindow: releaseRows.length,
-        metric:
-            'Users with ≥1 error on a release strictly older than threshold / users with ≥1 error in window',
+        metric: 'Users with ≥1 error on a release strictly older than threshold / users with ≥1 error in window',
         caveats: [
             'Based on Sentry error events, not all active users (silent users are excluded).',
             'Users who upgraded mid-window may appear on both old and new releases in the breakdown table; the headline % uses a deduplicated OR query when it fits in one chunk.',
@@ -440,7 +502,7 @@ async function main() {
     console.log(`Sentry Discover: ${options.region.replace(/\/$/, '')}/organizations/${options.org}/explore/discover/`);
 }
 
-main().catch((error) => {
+main().catch((error: Error) => {
     console.error(error.message);
     process.exit(1);
 });
