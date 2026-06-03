@@ -875,7 +875,7 @@ jobs:
 
   createRelease:
     runs-on: blacksmith-2vcpu-ubuntu-2404
-    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) && needs.victoryChartRendererBuild.result == 'success' }}
+    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
     needs: [prep, checkDeploymentSuccess, victoryChartRendererBuild]
     permissions:
       contents: write
@@ -883,9 +883,6 @@ jobs:
       # v4.2.1
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
-
-      - name: Verify victory-chart-renderer artifact
-        run: test -x ./victory-chart-renderer-linux-x64-artifact/victory-chart-renderer-linux-x64
 
       - name: Get last production release
         id: get_last_prod_version
@@ -970,11 +967,19 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: Upload victory-chart-renderer to GitHub Release
+        if: ${{ needs.victoryChartRendererBuild.result == 'success' }}
         run: |
+          test -x ./victory-chart-renderer-linux-x64-artifact/victory-chart-renderer-linux-x64
           gh release upload "${{ needs.prep.outputs.TAG }}" --repo "${{ github.repository }}" --clobber \
             "./victory-chart-renderer-linux-x64-artifact/victory-chart-renderer-linux-x64#victory-chart-renderer-linux-x64"
         env:
           GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Report victory-chart-renderer build failure
+        if: ${{ needs.victoryChartRendererBuild.result != 'success' }}
+        run: |
+          echo "::error::victory-chart-renderer build did not succeed (result: ${{ needs.victoryChartRendererBuild.result }}). GitHub Release was created without victory-chart-renderer-linux-x64."
+          exit 1
 
       - name: Warn deployers if deploy failed
         if: ${{ failure() }}
