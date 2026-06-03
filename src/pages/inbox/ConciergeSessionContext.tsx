@@ -37,7 +37,7 @@ const ConciergeSessionActionsContext = createContext<ConciergeSessionActionsCont
  * using useLayoutEffect, so the timestamp is set before the browser paints.
  *
  * Session reset uses a staleness check: if the existing session is older
- * than SESSION_EXPIRATION_TIME_MS (2 hours), it is discarded and a new
+ * than CONCIERGE_SESSION_EXPIRATION_MS (2 hours), it is discarded and a new
  * session begins. Brief detours (settings, workspace links, app going
  * to background) preserve the session; closing the app resets it
  * naturally since the state is React-only (not persisted to Onyx).
@@ -52,7 +52,7 @@ function ConciergeSessionProvider({children}: PropsWithChildren) {
         setSessionStartTime((prev) => {
             if (prev) {
                 const elapsed = Date.now() - new Date(`${prev}Z`).getTime();
-                if (elapsed < CONST.SESSION_EXPIRATION_TIME_MS) {
+                if (elapsed < CONST.CONCIERGE_SESSION_EXPIRATION_MS) {
                     return prev;
                 }
                 sessionExpired = true;
