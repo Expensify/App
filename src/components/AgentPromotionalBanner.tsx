@@ -83,7 +83,7 @@ function AgentPromotionalBanner({title, subtitle, onDismiss, dismissSentryLabel,
         return (
             <Button
                 success
-                small
+                medium
                 text={ctaText}
                 onPress={onCtaPress}
                 sentryLabel={ctaSentryLabel}
@@ -97,8 +97,8 @@ function AgentPromotionalBanner({title, subtitle, onDismiss, dismissSentryLabel,
                 icon={illustrations.AiBot}
                 title={titleNode}
                 subtitle={subtitle}
-                subtitleStyle={[styles.mt1]}
-                style={[styles.borderRadiusComponentLarge, styles.gap4]}
+                subtitleStyle={[styles.mt1, styles.textLabel]}
+                style={[styles.borderRadiusComponentLarge]}
                 rightIcon={expensifyIcons.Close}
                 onRightIconPress={onDismiss}
                 rightIconAccessibilityLabel={translate('common.dismiss')}

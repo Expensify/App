@@ -1,8 +1,11 @@
 import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountSubmitCallback from '@hooks/useReimbursementAccountSubmitCallback';
+import useThemeStyles from '@hooks/useThemeStyles';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import {getBankAccountIDAsNumber} from '@libs/ReimbursementAccountUtils';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
@@ -30,6 +33,7 @@ const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 const receivedRedirectURI = getPlaidOAuthReceivedRedirectURI();
 
 function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
+    const styles = useThemeStyles();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [plaidLinkToken] = useOnyx(ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN);
@@ -87,7 +91,23 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
         markSubmitting();
     };
 
-    const BankInfoPage = setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID ? Plaid : Manual;
+    const renderBankInfo = () => {
+        switch (setupType) {
+            case CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID:
+                return <Plaid onNext={submit} />;
+            case CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL:
+                return <Manual onNext={submit} />;
+            default:
+                return (
+                    <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            reasonAttributes={{context: 'BankInfo'}}
+                        />
+                    </View>
+                );
+        }
+    };
 
     // Some services user connects to via Plaid return dummy account numbers and routing numbers e.g. Chase
     // In this case we need to redirect user to manual flow to enter real account number and routing number
@@ -115,7 +135,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
             startStepIndex={1}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
-            <BankInfoPage onNext={submit} />
+            {renderBankInfo()}
         </InteractiveStepWrapper>
     );
 }
