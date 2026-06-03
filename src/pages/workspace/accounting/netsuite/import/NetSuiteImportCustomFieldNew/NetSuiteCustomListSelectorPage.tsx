@@ -1,41 +1,37 @@
 import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
+import {setDraftValues} from '@libs/actions/FormActions';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {CustomListSelectorType} from '@pages/workspace/accounting/netsuite/types';
 import CONST from '@src/CONST';
-import type {Policy} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 
-type NetSuiteCustomListSelectorModalProps = {
-    /** Whether the modal is visible */
-    isVisible: boolean;
+type NetSuiteCustomListSelectorPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT_CUSTOM_LIST_SELECTOR>;
 
-    /** Function to call when the user closes the business type selector modal */
-    onClose: () => void;
-
-    /** Label to display on field */
-    label: string;
-
-    /** Custom List value selected  */
-    currentCustomListValue: string;
-
-    policy?: Policy;
-
-    /** Function to call when the user selects a custom list */
-    onCustomListSelected: (value: CustomListSelectorType) => void;
-
-    /** Function to call when the user presses on the modal backdrop */
-    onBackdropPress?: () => void;
-};
-
-function NetSuiteCustomListSelectorModal({isVisible, currentCustomListValue, onCustomListSelected, onClose, label, policy, onBackdropPress}: NetSuiteCustomListSelectorModalProps) {
+function NetSuiteCustomListSelectorPage({
+    route: {
+        params: {policyID, action},
+    },
+}: NetSuiteCustomListSelectorPageProps) {
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    const policy = usePolicy(policyID);
+    const [formDraft] = useOnyx(ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM_DRAFT);
+    const currentCustomListValue = formDraft?.[INPUT_IDS.LIST_NAME] ?? '';
 
     const rawCustomLists = policy?.connections?.netsuite?.options?.data?.customLists;
 
@@ -69,29 +65,39 @@ function NetSuiteCustomListSelectorModal({isVisible, currentCustomListValue, onC
         [searchValue, showTextInput, translate, setSearchValue, debouncedSearchValue, options.length],
     );
 
+    const label = translate('workspace.netsuite.import.importCustomFields.customLists.fields.listName');
+
+    const goBack = () =>
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_ADD.getRoute(policyID, CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_LIST.PAGE_NAME.NAME, action));
+
+    const onSelectRow = (item: CustomListSelectorType) => {
+        setDraftValues(ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM, {
+            [INPUT_IDS.LIST_NAME]: item.value,
+            [INPUT_IDS.INTERNAL_ID]: item.id,
+        });
+        goBack();
+    };
+
     return (
-        <Modal
-            type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
-            isVisible={isVisible}
-            onClose={onClose}
-            onModalHide={onClose}
-            onBackdropPress={onBackdropPress}
-            enableEdgeToEdgeBottomSafeAreaPadding
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
         >
             <ScreenWrapper
                 includePaddingTop={false}
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID="NetSuiteCustomListSelectorModal"
+                testID="NetSuiteCustomListSelectorPage"
             >
                 <HeaderWithBackButton
                     title={label}
                     shouldShowBackButton
-                    onBackButtonPress={onClose}
+                    onBackButtonPress={goBack}
                 />
                 <SelectionList
                     data={options}
                     textInputOptions={textInputOptions}
-                    onSelectRow={onCustomListSelected}
+                    onSelectRow={onSelectRow}
                     ListItem={SingleSelectListItem}
                     initiallyFocusedItemKey={currentCustomListValue}
                     shouldSingleExecuteRowSelect
@@ -99,8 +105,10 @@ function NetSuiteCustomListSelectorModal({isVisible, currentCustomListValue, onC
                     addBottomSafeAreaPadding
                 />
             </ScreenWrapper>
-        </Modal>
+        </AccessOrNotFoundWrapper>
     );
 }
 
-export default NetSuiteCustomListSelectorModal;
+NetSuiteCustomListSelectorPage.displayName = 'NetSuiteCustomListSelectorPage';
+
+export default NetSuiteCustomListSelectorPage;

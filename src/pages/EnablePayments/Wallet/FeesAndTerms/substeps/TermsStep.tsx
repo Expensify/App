@@ -62,7 +62,7 @@ function TermsStep({onNext}: SubStepProps) {
         if (!hasAcceptedDisclosure || !hasAcceptedPrivacyPolicyAndWalletAgreement) {
             return;
         }
-
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- clears the validation error immediately when both checkboxes become checked, so the error doesn't persist until the next submit attempt
         setError(false);
     }, [hasAcceptedDisclosure, hasAcceptedPrivacyPolicyAndWalletAgreement]);
 
