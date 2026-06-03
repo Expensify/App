@@ -1,6 +1,7 @@
 import {differenceInMilliseconds} from 'date-fns/differenceInMilliseconds';
 import {useErrorBoundary} from 'react-error-boundary';
 import clearWorkboxRecoveryCaches from '@libs/clearWorkboxRecoveryCaches';
+import reloadWithCacheBust from '@libs/reloadWithCacheBust';
 import CONST from '@src/CONST';
 import type UsePageRefresh from './type';
 
@@ -18,7 +19,7 @@ const usePageRefresh: UsePageRefresh = () => {
         }
 
         sessionStorage.removeItem(CONST.SESSION_STORAGE_KEYS.LAST_REFRESH_TIMESTAMP);
-        clearWorkboxRecoveryCaches().then(() => window.location.reload());
+        clearWorkboxRecoveryCaches().then(() => reloadWithCacheBust());
     };
 };
 
