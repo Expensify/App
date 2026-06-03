@@ -29,6 +29,7 @@ import {
     getIntegrationSyncFailedMessage,
     getInvoiceCompanyNameUpdateMessage,
     getInvoiceCompanyWebsiteUpdateMessage,
+    getMccGroupCategoryMessage,
     getModerationFlagState,
     getOneTransactionThreadReportID,
     getOriginalMessage,
@@ -54,7 +55,7 @@ import {
 } from '../../src/libs/ReportActionsUtils';
 import {buildOptimisticCreatedReportForUnapprovedAction} from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import shouldDisplayNewMarkerOnReportAction from '../../src/pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
+import shouldDisplayNewMarkerOnReportAction, {getUnreadMarkerReportAction} from '../../src/pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
 import type {Card, DecisionName, OriginalMessageIOU, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
@@ -4502,6 +4503,42 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getMccGroupCategoryMessage', () => {
+        it('should render the friendly MCC group label that the emitter already resolved', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    mccGroupName: 'Airlines',
+                    oldCategory: 'Insurance',
+                    newCategory: 'Travel',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getMccGroupCategoryMessage(translateLocal, action);
+            expect(result).toBe('changed the default spend category for "Airlines" to "Travel" (previously "Insurance")');
+        });
+
+        it('should pass through a fallback raw groupID when the emitter could not resolve it', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    mccGroupName: 'spaceflight',
+                    oldCategory: 'Travel',
+                    newCategory: 'Equipment',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getMccGroupCategoryMessage(translateLocal, action);
+            expect(result).toBe('changed the default spend category for "spaceflight" to "Equipment" (previously "Travel")');
+        });
+    });
+
     describe('isNewerReportAction', () => {
         const makeAction = (overrides: Partial<ReportAction>): ReportAction =>
             ({
@@ -4973,8 +5010,7 @@ describe('ReportActionsUtils', () => {
             unreadMarkerTime,
             currentUserAccountID,
             prevSortedVisibleReportActionsObjects: {},
-            scrollingVerticalOffset: CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD + 1,
-            prevUnreadMarkerReportActionID: 'some-id',
+            isScrolledOverThreshold: true,
         };
 
         it('returns true when isEarliestReceivedOfflineMessage is true and next message is not unread', () => {
@@ -5035,17 +5071,178 @@ describe('ReportActionsUtils', () => {
             ).toBe(false);
         });
 
-        it('returns false when message is from current user, is new, and no prevUnreadMarkerReportActionID', () => {
+        it('returns false when message is from current user and is new', () => {
             const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'new-action-id'});
             expect(
                 shouldDisplayNewMarkerOnReportAction({
                     ...baseParams,
                     message,
-                    prevUnreadMarkerReportActionID: null,
                     prevSortedVisibleReportActionsObjects: {},
                     isOffline: false,
                 }),
             ).toBe(false);
+        });
+
+        it('returns false when message is from current user and was previously optimistic (now confirmed)', () => {
+            const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'confirmed-action-id', pendingAction: null});
+            const prevSortedVisibleReportActionsObjects = {
+                [message.reportActionID]: makeAction({
+                    actorAccountID: currentUserAccountID,
+                    reportActionID: 'confirmed-action-id',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                }),
+            };
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevSortedVisibleReportActionsObjects,
+                    isOffline: false,
+                }),
+            ).toBe(false);
+        });
+
+        it('returns true when message is from current user but is already present (not new, not optimistic)', () => {
+            const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'existing-action-id'});
+            const prevSortedVisibleReportActionsObjects = {
+                [message.reportActionID]: makeAction({actorAccountID: currentUserAccountID, reportActionID: 'existing-action-id'}),
+            };
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevSortedVisibleReportActionsObjects,
+                    isOffline: false,
+                }),
+            ).toBe(true);
+        });
+
+        it('returns true when an unread message from another user is new and the list is scrolled over the threshold', () => {
+            const message = makeAction({reportActionID: 'other-new-id'});
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevSortedVisibleReportActionsObjects: {},
+                    isScrolledOverThreshold: true,
+                    isOffline: false,
+                }),
+            ).toBe(true);
+        });
+
+        it('returns false when an unread message from another user is new and the list is within the threshold', () => {
+            const message = makeAction({reportActionID: 'other-new-id'});
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevSortedVisibleReportActionsObjects: {},
+                    isScrolledOverThreshold: false,
+                    isOffline: false,
+                }),
+            ).toBe(false);
+        });
+
+        it('returns true for an already-present unread message from another user regardless of scroll threshold', () => {
+            const message = makeAction({reportActionID: 'other-existing-id'});
+            const prevSortedVisibleReportActionsObjects = {
+                [message.reportActionID]: makeAction({reportActionID: 'other-existing-id'}),
+            };
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevSortedVisibleReportActionsObjects,
+                    isScrolledOverThreshold: false,
+                    isOffline: false,
+                }),
+            ).toBe(true);
+        });
+    });
+
+    describe('getUnreadMarkerReportAction', () => {
+        const unreadMarkerTime = '2023-01-01 10:00:00.000';
+        const currentUserAccountID = 1;
+
+        function makeAction(overrides: Partial<ReportAction> = {}): ReportAction {
+            return getFakeReportAction(2, {
+                actorAccountID: 99,
+                created: '2023-01-01 11:00:00.000',
+                ...overrides,
+            });
+        }
+
+        const baseScanParams = {
+            earliestReceivedOfflineMessageIndex: undefined,
+            currentUserAccountID,
+            prevSortedVisibleReportActionsObjects: {},
+            unreadMarkerTime,
+            isScrolledOverThreshold: true,
+            isOffline: false,
+            isReversed: false,
+        };
+
+        it('short-circuits to [null, -1] for an anonymous user', () => {
+            const visibleReportActions = [makeAction({reportActionID: 'a'})];
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions,
+                    isAnonymousUser: true,
+                }),
+            ).toEqual([null, -1]);
+        });
+
+        it('returns [null, -1] when no action qualifies (all read)', () => {
+            const visibleReportActions = [makeAction({reportActionID: 'a', created: '2023-01-01 09:00:00.000'}), makeAction({reportActionID: 'b', created: '2023-01-01 08:00:00.000'})];
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions,
+                }),
+            ).toEqual([null, -1]);
+        });
+
+        it('returns the [reportActionID, index] of the first qualifying unread action in a forward scan', () => {
+            const visibleReportActions = [makeAction({reportActionID: 'newest'}), makeAction({reportActionID: 'older', created: '2023-01-01 09:00:00.000'})];
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions,
+                }),
+            ).toEqual(['newest', 0]);
+        });
+
+        it('skips the concierge greeting action during a forward scan', () => {
+            const visibleReportActions = [makeAction({reportActionID: CONST.CONCIERGE_GREETING_ACTION_ID}), makeAction({reportActionID: 'real-unread'})];
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions,
+                }),
+            ).toEqual(['real-unread', 1]);
+        });
+
+        it('starts the forward scan at earliestReceivedOfflineMessageIndex', () => {
+            const visibleReportActions = [makeAction({reportActionID: 'before-offline'}), makeAction({reportActionID: 'offline-anchor'})];
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions,
+                    earliestReceivedOfflineMessageIndex: 1,
+                }),
+            ).toEqual(['offline-anchor', 1]);
+        });
+
+        it('scans from high index to low when isReversed is true', () => {
+            const visibleReportActions = [makeAction({reportActionID: 'read-older', created: '2023-01-01 09:00:00.000'}), makeAction({reportActionID: 'unread-newer'})];
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions,
+                    isReversed: true,
+                }),
+            ).toEqual(['unread-newer', 1]);
         });
     });
 
