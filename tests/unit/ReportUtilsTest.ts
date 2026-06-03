@@ -18200,6 +18200,9 @@ describe('ReportUtils', () => {
         it('should return true when personalDetail is undefined or empty', () => {
             expect(isOptimisticPersonalDetail(77777, undefined)).toBe(true);
             expect(isOptimisticPersonalDetail(77777, {} as PersonalDetails)).toBe(true);
+        });
+    });
+
     describe('getBankAccountRoute', () => {
         it('returns the policy bank account setup route when the report is a policy expense chat', () => {
             const policyID = 'POLICY_EXP_1';
