@@ -963,6 +963,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'Portefeuille',
             },
+            enterSignerInfo: {title: 'Informations du signataire requises', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Compte bancaire ${bankAccountLastFour}`},
         },
         announcements: 'Annonces',
         discoverSection: {
@@ -1530,6 +1531,7 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Certains de ces doublons ont déjà été approuvés ou payés.',
         reviewDuplicates: 'Examiner les doublons',
         keepAll: 'Tout garder',
+        keepSelected: 'Garder la sélection',
         noDuplicatesTitle: 'Tout est en ordre !',
         noDuplicatesDescription: "Il n'y a aucune transaction en double à vérifier ici.",
         confirmApprove: 'Confirmer le montant approuvé',
@@ -1985,11 +1987,7 @@ const translations: TranslationDeepObject<typeof en> = {
             saved: 'Enregistré',
         },
     },
-    securityPage: {
-        title: 'Options de sécurité',
-        subtitle: 'Activez l’authentification à deux facteurs pour sécuriser votre compte.',
-        goToSecurity: 'Revenir à la page de sécurité',
-    },
+    securityPage: {title: 'Sécurité', subtitle: 'Protégez votre compte.', goToSecurity: 'Revenir à la page de sécurité'},
     shareCodePage: {
         title: 'Votre code',
         subtitle: 'Invitez des membres sur Expensify en partageant votre code QR personnel ou votre lien de parrainage.',

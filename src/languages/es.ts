@@ -921,6 +921,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'Billetera',
             },
+            enterSignerInfo: {title: 'Se necesita la información del firmante', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Cuenta bancaria ${bankAccountLastFour}`},
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `Prueba gratuita: ${days} ${days === 1 ? 'día' : 'días'} restantes!`,
@@ -1486,6 +1487,7 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Algunos de estos duplicados ya han sido aprobados o pagados.',
         reviewDuplicates: 'Revisar duplicados',
         keepAll: 'Mantener todos',
+        keepSelected: 'Mantener seleccionado',
         noDuplicatesTitle: '¡Todo listo!',
         noDuplicatesDescription: 'No hay transacciones duplicadas para revisar aquí.',
         confirmApprove: 'Confirmar importe a aprobar',
@@ -1866,11 +1868,7 @@ const translations: TranslationDeepObject<typeof en> = {
             saved: 'Guardado',
         },
     },
-    securityPage: {
-        title: 'Opciones de seguridad',
-        subtitle: 'Activa la autenticación de dos factores para mantener tu cuenta segura.',
-        goToSecurity: 'Volver a la página de seguridad',
-    },
+    securityPage: {title: 'Seguridad', subtitle: 'Mantén tu cuenta segura.', goToSecurity: 'Volver a la página de seguridad'},
     shareCodePage: {
         title: 'Tu código',
         subtitle: 'Invita a miembros a Expensify compartiendo tu código QR personal o enlace de invitación.',
