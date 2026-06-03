@@ -96,6 +96,7 @@ function TransactionItemRow({
     const {translate} = useLocalize();
     const createdAt = getTransactionCreated(transactionItem);
     const transactionThreadReportID = reportActions ? getIOUActionForTransactionID(reportActions, transactionItem.transactionID)?.childReportID : undefined;
+    const transactionAttendees = useAttendees(transactionItem);
 
     const bgActiveStyles = isSelected && shouldHighlightItemWhenSelected ? styles.activeComponentBG : EMPTY_ACTIVE_STYLE;
     const merchant = getMerchantName(transactionItem, translate);
@@ -135,6 +136,7 @@ function TransactionItemRow({
         const narrowForwardedProps = {
             transactionItem,
             report,
+            policy,
             isSelected,
             shouldShowTooltip,
             onCheckboxPress,
@@ -219,7 +221,6 @@ function TransactionItemRow({
     const description = getDescription(transactionItem);
     const exchangeRateMessage = getExchangeRate(transactionItem, report?.currency ?? policy?.outputCurrency);
     const cardName = getCompanyCardDescription(translate, transactionItem?.cardName, transactionItem?.cardID, nonPersonalAndWorkspaceCards);
-    const transactionAttendees = useAttendees(transactionItem);
     const isUnreported = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const shouldShowAttendees = (isUnreported ? !!isAttendeesEnabledForMovingPolicy : shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, policy)) && transactionAttendees.length > 0;
 
