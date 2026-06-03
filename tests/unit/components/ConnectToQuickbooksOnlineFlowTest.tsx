@@ -1,0 +1,27 @@
+import {render} from '@testing-library/react-native';
+import React from 'react';
+import ConnectToQuickbooksOnlineFlow from '@components/ConnectToQuickbooksOnlineFlow/index.native';
+import Navigation from '@libs/Navigation/Navigation';
+import ROUTES from '@src/ROUTES';
+
+jest.mock('@libs/Navigation/Navigation', () => ({
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
+    navigate: jest.fn(),
+}));
+
+const mockedNavigate = jest.mocked(Navigation.navigate);
+
+describe('ConnectToQuickbooksOnlineFlow (native)', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('navigates to the QBO setup page on mount', () => {
+        const policyID = '123';
+
+        render(<ConnectToQuickbooksOnlineFlow policyID={policyID} />);
+
+        expect(mockedNavigate).toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_SETUP.getRoute(policyID));
+    });
+});
