@@ -772,13 +772,11 @@ describe('Unread Indicators', () => {
                 created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
             },
             isASAPSubmitBetaEnabled: true,
-            currentUserAccountIDParam: USER_A_ACCOUNT_ID,
-            currentUserEmailParam: USER_A_EMAIL,
+            currentUser: {accountID: USER_A_ACCOUNT_ID, email: USER_A_EMAIL},
             introSelected: undefined,
             quickAction: undefined,
             recentWaypoints,
             betas: [CONST.BETAS.ALL],
-            draftTransactionIDs: [fakeTransaction.transactionID],
             isSelfTourViewed: false,
         });
         await waitForBatchedUpdates();
@@ -828,9 +826,11 @@ describe('Unread Indicators', () => {
 
         await waitForBatchedUpdates();
         const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
-        const displayNameTexts = screen.queryAllByLabelText(hintText);
-        expect(displayNameTexts).toHaveLength(1);
-        expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
+        await waitFor(() => {
+            const displayNameTexts = screen.queryAllByLabelText(hintText);
+            expect(displayNameTexts).toHaveLength(1);
+            expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
+        });
     });
 
     it('Mark the last comment as unread should set lastReadTime to the last action’s creation time', async () => {

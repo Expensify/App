@@ -1,6 +1,6 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useAttendees from '@hooks/useAttendees';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCompanyCardDescription} from '@libs/CardUtils';
@@ -10,7 +10,6 @@ import {isExpenseReport, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     getAmount,
-    getAttendees,
     getDescription,
     getExchangeRate,
     getMerchant,
@@ -66,6 +65,9 @@ function TransactionItemRow({
     isInSingleTransactionReport = false,
     shouldShowRadioButton = false,
     onRadioButtonPress = () => {},
+    shouldStopRadioButtonMouseDownPropagation = false,
+    radioButtonContainerStyle,
+    radioButtonWrapperStyle,
     shouldShowErrors = true,
     shouldHighlightItemWhenSelected = true,
     isDisabled = false,
@@ -75,17 +77,31 @@ function TransactionItemRow({
     isHover = false,
     shouldShowArrowRightOnNarrowLayout,
     reportActions,
+    transactionThreadReportID: transactionThreadReportIDProp,
     checkboxSentryLabel,
     nonPersonalAndWorkspaceCards = {},
-    policyForMovingExpenses,
+    isAttendeesEnabledForMovingPolicy,
     isActionColumnWide: isActionColumnWideProp,
     shouldRemoveTotalColumnFlex,
+    onEditDate,
+    onEditMerchant,
+    onEditDescription,
+    onEditCategory,
+    onEditAmount,
+    onEditTag,
+    canEditDate,
+    canEditMerchant,
+    canEditDescription,
+    canEditCategory,
+    canEditAmount,
+    canEditTag,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const createdAt = getTransactionCreated(transactionItem);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const transactionThreadReportID = reportActions ? getIOUActionForTransactionID(reportActions, transactionItem.transactionID)?.childReportID : undefined;
+    const transactionThreadReportID =
+        transactionThreadReportIDProp ?? (reportActions ? getIOUActionForTransactionID(reportActions, transactionItem.transactionID)?.childReportID : undefined);
+    const transactionAttendees = useAttendees(transactionItem);
 
     const bgActiveStyles = isSelected && shouldHighlightItemWhenSelected ? styles.activeComponentBG : EMPTY_ACTIVE_STYLE;
     const merchant = getMerchantName(transactionItem, translate);
@@ -121,10 +137,11 @@ function TransactionItemRow({
         const categoryForDisplay = isCategoryMissing(transactionItem?.category) ? '' : getDecodedCategoryName(transactionItem?.category ?? '');
         const shouldRenderChatBubbleCell = columns?.includes(CONST.SEARCH.TABLE_COLUMNS.COMMENTS) ?? false;
 
-        // TransactionItemRowNarrow intentionally omits column sizing, hover, action button, and related table-only props that only the wide layout consumes
+        // TransactionItemRowNarrow intentionally omits column sizing, hover, action button, and related table-only props that only the wide layout consumes.
         const narrowForwardedProps = {
             transactionItem,
             report,
+            policy,
             isSelected,
             shouldShowTooltip,
             onCheckboxPress,
@@ -133,6 +150,9 @@ function TransactionItemRow({
             isInSingleTransactionReport,
             shouldShowRadioButton,
             onRadioButtonPress,
+            shouldStopRadioButtonMouseDownPropagation,
+            radioButtonContainerStyle,
+            radioButtonWrapperStyle,
             shouldShowErrors,
             isDisabled,
             violations,
@@ -144,7 +164,6 @@ function TransactionItemRow({
 
         return (
             <TransactionItemRowNarrow
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...narrowForwardedProps}
                 bgActiveStyles={bgActiveStyles}
                 merchant={merchant}
@@ -180,6 +199,8 @@ function TransactionItemRow({
         isInSingleTransactionReport,
         shouldShowRadioButton,
         onRadioButtonPress,
+        shouldStopRadioButtonMouseDownPropagation,
+        radioButtonContainerStyle,
         shouldShowErrors,
         shouldHighlightItemWhenSelected,
         isDisabled,
@@ -193,21 +214,31 @@ function TransactionItemRow({
         nonPersonalAndWorkspaceCards,
         isActionColumnWide: isActionColumnWideProp,
         shouldRemoveTotalColumnFlex,
+        onEditDate,
+        onEditMerchant,
+        onEditDescription,
+        onEditCategory,
+        onEditAmount,
+        onEditTag,
+        canEditDate,
+        canEditMerchant,
+        canEditDescription,
+        canEditCategory,
+        canEditAmount,
+        canEditTag,
     };
 
     const description = getDescription(transactionItem);
     const exchangeRateMessage = getExchangeRate(transactionItem, report?.currency ?? policy?.outputCurrency);
     const cardName = getCompanyCardDescription(translate, transactionItem?.cardName, transactionItem?.cardID, nonPersonalAndWorkspaceCards);
-    const transactionAttendees = getAttendees(transactionItem, currentUserPersonalDetails);
     const isUnreported = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-    const shouldShowAttendees = shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, isUnreported ? policyForMovingExpenses : policy) && transactionAttendees.length > 0;
+    const shouldShowAttendees = (isUnreported ? !!isAttendeesEnabledForMovingPolicy : shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, policy)) && transactionAttendees.length > 0;
 
     const attendeesCount = transactionAttendees.length ?? 0;
     const totalAmount = getAmount(transactionItem, isExpenseReport(report));
 
     return (
         <TransactionItemRowWide
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...wideForwardedProps}
             bgActiveStyles={bgActiveStyles}
             merchant={merchant}
@@ -225,4 +256,3 @@ function TransactionItemRow({
 }
 
 export default TransactionItemRow;
-export type {TransactionWithOptionalSearchFields, TransactionItemRowProps};

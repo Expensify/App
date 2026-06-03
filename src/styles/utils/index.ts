@@ -587,7 +587,7 @@ function getIconWidthAndHeightStyle(
     }
 }
 
-function getButtonSizeStyle(styles: ThemeStyles, size?: ButtonSizeValue): ViewStyle | undefined {
+function getButtonSizeStyle(styles: ThemeStyles, size: ButtonSizeValue): ViewStyle | undefined {
     const sizeStyleMap: Record<ButtonSizeValue, ViewStyle> = {
         [CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL]: styles.buttonExtraSmall,
         [CONST.DROPDOWN_BUTTON_SIZE.SMALL]: styles.buttonSmall,
@@ -597,11 +597,7 @@ function getButtonSizeStyle(styles: ThemeStyles, size?: ButtonSizeValue): ViewSt
     return size ? sizeStyleMap[size] : undefined;
 }
 
-function getButtonPaddingStyle(styles: ThemeStyles, size?: ButtonSizeValue, hasIcon?: boolean, hasText?: boolean, shouldShowRightIcon?: boolean): ViewStyle | undefined {
-    if (!size) {
-        return hasIcon && !hasText ? {...styles.buttonMedium, ...styles.ph0} : undefined;
-    }
-
+function getButtonPaddingStyle(styles: ThemeStyles, size: ButtonSizeValue, hasIcon?: boolean, hasText?: boolean, shouldShowRightIcon?: boolean): ViewStyle | undefined {
     const hasSymmetricIcons = !!hasIcon === !!shouldShowRightIcon;
     if (hasSymmetricIcons) {
         return undefined;
@@ -620,7 +616,7 @@ function getButtonPaddingStyle(styles: ThemeStyles, size?: ButtonSizeValue, hasI
     return horizontalPaddingBySize[size];
 }
 
-function getButtonStyleWithIcon(styles: ThemeStyles, size?: ButtonSizeValue, hasIcon?: boolean, hasText?: boolean, shouldShowRightIcon?: boolean): StyleProp<ViewStyle> {
+function getButtonStyleWithIcon(styles: ThemeStyles, size: ButtonSizeValue, hasIcon?: boolean, hasText?: boolean, shouldShowRightIcon?: boolean): StyleProp<ViewStyle> {
     const buttonSizeStyle = getButtonSizeStyle(styles, size);
     const buttonPaddingStyle = getButtonPaddingStyle(styles, size, hasIcon, hasText, shouldShowRightIcon);
     return [buttonSizeStyle, buttonPaddingStyle];
@@ -631,12 +627,10 @@ function getButtonVariantStyles(styles: ThemeStyles): ButtonVariantStyles {
         normal: {
             success: styles.buttonSuccess,
             danger: styles.buttonDanger,
-            link: {},
         },
         disabled: {
             success: [styles.buttonOpacityDisabled],
             danger: [styles.buttonOpacityDisabled],
-            link: [styles.buttonOpacityDisabled, styles.buttonDisabled],
         },
     };
 }
@@ -1842,14 +1836,14 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         borderRadius: 0,
         borderBottomWidth: isLastItem ? 0 : 1,
         borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
-        ...(isLastItem ? styles.searchTableBottomRadius : {}),
+        ...(isLastItem ? styles.tableBottomRadius : {}),
     }),
 
     getSearchTableGroupRowBorderStyle: (isFirstItem?: boolean, isLastItem?: boolean, isSelected?: boolean): ViewStyle => ({
         borderRadius: 0,
         borderTopWidth: isFirstItem ? 0 : 1,
         borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
-        ...(isLastItem ? styles.searchTableBottomRadius : {}),
+        ...(isLastItem ? styles.tableBottomRadius : {}),
     }),
 
     getSearchTableRowPressableStyle: (isLastItem?: boolean, isSelected?: boolean, padding?: {vertical?: number; horizontal?: number}): ViewStyle => ({
@@ -1860,7 +1854,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         borderBottomRightRadius: 0,
         borderBottomWidth: isLastItem ? 0 : 1,
         borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
-        ...(isLastItem ? styles.searchTableBottomRadius : {}),
+        ...(isLastItem ? styles.tableBottomRadius : {}),
         ...(padding?.vertical !== undefined && {paddingVertical: padding.vertical}),
         ...(padding?.horizontal !== undefined && {paddingHorizontal: padding.horizontal}),
     }),
@@ -1916,7 +1910,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {...getWidthStyle(isExportedColumnWide ? variables.w92 : variables.w72)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.DATE:
-                columnWidth = {...getWidthStyle(isDateColumnWide ? variables.w92 : variables.w52)};
+                columnWidth = {...getWidthStyle(isDateColumnWide ? variables.w102 : variables.w62)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN:

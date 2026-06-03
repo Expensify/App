@@ -1,7 +1,7 @@
 import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
-import type {PropsWithChildren, SetStateAction} from 'react';
+import type {PropsWithChildren} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import type {FilterConfig, FilterConfigEntry, FilteringMethods, IsItemInFilterCallback} from './middlewares/filtering';
+import type {FilterConfig, FilteringMethods, IsItemInFilterCallback} from './middlewares/filtering';
 import type {IsItemInSearchCallback, SearchingMethods} from './middlewares/searching';
 import type {ActiveSorting, CompareItemsCallback, SortingMethods} from './middlewares/sorting';
 
@@ -31,8 +31,14 @@ type TableColumn<ColumnKey extends string = string> = {
     /** Display label shown in the table header. */
     label: string;
 
+    /** Optional fixed width in pixels. When set, the column uses this width instead of an equal-share `1fr` track. */
+    width?: number;
+
     /** Optional styling configuration for the column. */
     styling?: TableColumnStyling;
+
+    /** Whether or not the column is sortable */
+    sortable: boolean;
 };
 
 /**
@@ -53,7 +59,11 @@ type TableMethods<ColumnKey extends string = string, FilterKey extends string = 
  * @template ColumnKey - A string literal type representing the valid column keys.
  * @template FilterKey - A string literal type representing the valid filter keys.
  */
-type TableHandle<T, ColumnKey extends string = string, FilterKey extends string = string> = FlashListRef<T> & TableMethods<ColumnKey, FilterKey>;
+type TableHandle<T, ColumnKey extends string = string, FilterKey extends string = string> = FlashListRef<T> &
+    TableMethods<ColumnKey, FilterKey> & {
+        /** Method to get all of the processed data after filtering, searching, and sorting have been applied. */
+        getProcessedData: () => T[];
+    };
 
 /**
  * FlashList props with the 'data' prop omitted, as the Table manages data internally.
@@ -61,20 +71,6 @@ type TableHandle<T, ColumnKey extends string = string, FilterKey extends string 
  * @template T - The type of items in the table's data array.
  */
 type SharedListProps<T> = Omit<FlashListProps<T>, 'data'>;
-
-/**
- * Callback types for getting active state.
- */
-type GetActiveFiltersCallback<FilterKey extends string = string> = () => Record<FilterKey, unknown>;
-type GetActiveSearchStringCallback = () => string;
-
-/**
- * Callback types for updating table state.
- */
-type UpdateFilterCallback = (params: {key: string; value: unknown}) => void;
-type UpdateSortingCallback<ColumnKey extends string = string> = (value: SetStateAction<ActiveSorting<ColumnKey>>) => void;
-type UpdateSearchStringCallback = (value: string) => void;
-type ToggleSortingCallback<ColumnKey extends string = string> = (columnKey?: ColumnKey) => void;
 
 /**
  * Props for the Table component.
@@ -105,6 +101,9 @@ type ToggleSortingCallback<ColumnKey extends string = string> = (columnKey?: Col
  */
 type TableProps<T, ColumnKey extends string = string, FilterKey extends string = string> = SharedListProps<T> &
     PropsWithChildren<{
+        /** The title for the table when shown on smaller screens */
+        title?: string;
+
         /** Array of data items to display in the table. */
         data: T[] | undefined;
 
@@ -146,23 +145,4 @@ type TableProps<T, ColumnKey extends string = string, FilterKey extends string =
         ref?: React.Ref<TableHandle<T, ColumnKey, FilterKey>>;
     }>;
 
-export type {
-    TableColumn,
-    TableColumnStyling,
-    TableMethods,
-    TableHandle,
-    TableProps,
-    SharedListProps,
-    CompareItemsCallback,
-    IsItemInFilterCallback,
-    IsItemInSearchCallback,
-    FilterConfig,
-    FilterConfigEntry,
-    GetActiveFiltersCallback,
-    GetActiveSearchStringCallback,
-    UpdateFilterCallback,
-    UpdateSortingCallback,
-    UpdateSearchStringCallback,
-    ToggleSortingCallback,
-    ActiveSorting,
-};
+export type {TableColumn, TableMethods, TableHandle, TableProps, SharedListProps, CompareItemsCallback, IsItemInFilterCallback, IsItemInSearchCallback, FilterConfig, ActiveSorting};
