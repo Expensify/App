@@ -1,6 +1,6 @@
 import React from 'react';
 import {CartesianChart} from 'victory-native';
-import {ChartDefaultTypefaceProvider} from '@components/Charts/hooks';
+import {ChartFontsProvider} from '@components/Charts/hooks';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import {VictoryChartRenderArgsProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartRenderArgsContext';
 import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getHierarchyID';
@@ -26,7 +26,7 @@ function VictoryChartCartesian() {
             domainPadding={domainPadding}
             padding={padding}
             renderOutside={(renderArgs) => (
-                <ChartDefaultTypefaceProvider>
+                <ChartFontsProvider>
                     <VictoryChartRenderArgsProvider value={renderArgs}>
                         {labelItems.map((labelItem) => (
                             <VictoryChartLabel
@@ -41,7 +41,7 @@ function VictoryChartCartesian() {
                             />
                         ))}
                     </VictoryChartRenderArgsProvider>
-                </ChartDefaultTypefaceProvider>
+                </ChartFontsProvider>
             )}
         >
             {(renderArgs) => (

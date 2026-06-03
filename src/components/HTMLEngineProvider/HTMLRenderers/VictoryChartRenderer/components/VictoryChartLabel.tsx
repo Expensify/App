@@ -1,7 +1,7 @@
 import {Skia, Text as SkText} from '@shopify/react-native-skia';
 import type {Color, SkFont} from '@shopify/react-native-skia';
 import React from 'react';
-import {getChartSkiaTypeface, useChartDefaultTypeface} from '@components/Charts/hooks';
+import {getChartSkiaTypeface, useChartTypefaces} from '@components/Charts/hooks';
 import type {LabelItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import computeTextAnchorPosition from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeTextAnchorPosition';
 
@@ -21,7 +21,7 @@ type ProcessedLine = {
  * Intended for use inside CartesianChart's `renderOutside` callback.
  */
 function VictoryChartLabel({x, y, text, color, fontSize, fontWeight, fontFamily, fontStyle, lineHeight, textAnchor = 'start', verticalAnchor = 'start'}: VictoryChartLabelsProps) {
-    const typefaces = useChartDefaultTypeface();
+    const typefaces = useChartTypefaces();
     const processedLines = text.split('\n').reduce(
         (acc, line, index) => {
             const lineColor = color?.[index];

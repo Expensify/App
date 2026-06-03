@@ -1,7 +1,7 @@
 import {Circle, Skia, Text as SkText} from '@shopify/react-native-skia';
 import type {Color, SkFont} from '@shopify/react-native-skia';
 import React, {Fragment} from 'react';
-import {getChartSkiaTypeface, useChartDefaultTypeface} from '@components/Charts/hooks';
+import {getChartSkiaTypeface, useChartTypefaces} from '@components/Charts/hooks';
 import type {LegendItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 
 type VictoryChartLegendProps = LegendItem;
@@ -23,7 +23,7 @@ type ProcessedEntry = {
  * Intended for use inside CartesianChart's `renderOutside` callback.
  */
 function VictoryChartLegend({x, y, entries, gutter, symbolSpacer}: VictoryChartLegendProps) {
-    const typefaces = useChartDefaultTypeface();
+    const typefaces = useChartTypefaces();
     const processedEntries = entries.reduce(
         (acc, {text, color, fontSize, fontWeight, fontFamily, fontStyle, symbolColor, symbolSize}) => {
             const typeface = getChartSkiaTypeface(typefaces, {fontFamily, fontStyle, fontWeight});
