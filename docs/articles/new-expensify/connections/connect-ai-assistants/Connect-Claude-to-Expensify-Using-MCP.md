@@ -25,38 +25,12 @@ Claude Free plans support one custom connector.
 
 Claude supports connecting to remote MCP servers through custom connectors.
 
-For more information and instructions on how to add a custom connector, see [Claude's custom connectors documentation](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp).
+For instructions on how to add a custom connector, see Claude's documentation: [How to add a custom conector](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp#h_3d1a65aded).
 
 1. Open Claude and add a custom connector.
 2. Enter `https://www.expensify.com/mcp/` as the server URL.
 3. Complete the OAuth sign-in and approval flow in your browser.
 4. Click **Approve**.
-
-## How to connect Claude to Expensify using the Developer settings
-
-If you prefer to configure MCP servers manually, Claude Desktop also supports adding the Expensify MCP server through the Developer settings.
-
-1. Open Claude.
-2. Go to **Settings**.
-3. Select the **Developer** tab.
-4. Click **Edit Config**.
-5. Add the Expensify MCP server configuration:
-
-```json
-{
-  "mcpServers": {
-    "expensify": {
-      "url": "https://www.expensify.com/mcp/"
-    }
-  }
-}
-```
-
-6. Save the configuration file.
-7. Restart Claude. 
-8. Ask Claude a question that requires Expensify data.
-9. Complete the OAuth sign-in and approval flow in your browser.
-10. Click **Approve**.
 
 ## What happens after you connect Claude to Expensify using MCP
 
