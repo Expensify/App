@@ -146,11 +146,14 @@ describe('SearchAutocompleteList', () => {
         };
 
         OptionsListUtils.getSearchOptions.mockImplementation(() => ({
-            recentReports: [],
-            personalDetails: [],
-            currentUserOption: null,
-            userToInvite: inviteOption,
-            categoryOptions: [],
+            options: {
+                recentReports: [],
+                personalDetails: [],
+                currentUserOption: null,
+                userToInvite: inviteOption,
+                categoryOptions: [],
+            },
+            hasMore: false,
         }));
         OptionsListUtils.combineOrderingOfReportsAndPersonalDetails.mockImplementation(() => ({recentReports: [], personalDetails: []}));
 
@@ -172,19 +175,22 @@ describe('SearchAutocompleteList', () => {
 
         // Restore default mock so other tests are not affected
         OptionsListUtils.getSearchOptions.mockImplementation(() => ({
-            recentReports: [
-                {
-                    reportID: '10',
-                    keyForList: '10',
-                    text: 'Test Report',
-                    alternateText: 'alternate text',
-                    lastMessageText: 'last message',
-                },
-            ],
-            personalDetails: [],
-            currentUserOption: null,
-            userToInvite: null,
-            categoryOptions: [],
+            options: {
+                recentReports: [
+                    {
+                        reportID: '10',
+                        keyForList: '10',
+                        text: 'Test Report',
+                        alternateText: 'alternate text',
+                        lastMessageText: 'last message',
+                    },
+                ],
+                personalDetails: [],
+                currentUserOption: null,
+                userToInvite: null,
+                categoryOptions: [],
+            },
+            hasMore: false,
         }));
         OptionsListUtils.combineOrderingOfReportsAndPersonalDetails.mockImplementation(() => ({recentReports: [], personalDetails: []}));
     });
