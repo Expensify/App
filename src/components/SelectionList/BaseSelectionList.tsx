@@ -9,7 +9,6 @@ import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
-import useDebounce from '@hooks/useDebounce';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
@@ -27,6 +26,7 @@ import ListHeader from './components/ListHeader';
 import TextInput from './components/TextInput';
 import useSearchFocusSync from './hooks/useSearchFocusSync';
 import useSelectedItemFocusSync from './hooks/useSelectedItemFocusSync';
+import useSelectionListScroll from './hooks/useSelectionListScroll';
 import ListItemRenderer from './ListItem/ListItemRenderer';
 import type {DataDetailsType, InteractiveElementRoles, ListItem, SelectionListProps} from './types';
 import {getListboxRole} from './utils/getListboxRole';
@@ -112,6 +112,7 @@ function BaseSelectionList<TItem extends ListItem>({
     const hasKeyBeenPressed = useRef(false);
     const [isKeyboardNavigating, setIsKeyboardNavigating] = useState(false);
     const listRef = useRef<FlashListRef<TItem> | null>(null);
+    const {scrollToIndex, debouncedScrollToIndex} = useSelectionListScroll(listRef, data);
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const keyboardListenerRef = useRef<ReturnType<typeof Keyboard.addListener> | null>(null);
     const suppressNextFocusScrollRef = useRef(false);
@@ -190,29 +191,6 @@ function BaseSelectionList<TItem extends ListItem>({
         addKeyDownPressListener(handleNavigationKeyDown);
         return () => removeKeyDownPressListener(handleNavigationKeyDown);
     }, [handleNavigationKeyDown]);
-
-    const scrollToIndex = useCallback(
-        (index: number, animated = true) => {
-            // Bounds check: ensure index is valid for current data
-            if (index < 0 || index >= data.length) {
-                return;
-            }
-            const item = data.at(index);
-            if (!listRef.current || !item) {
-                return;
-            }
-            try {
-                listRef.current.scrollToIndex({index, animated});
-            } catch (error) {
-                // FlashList may throw if layout for this index doesn't exist yet
-                // This can happen when data changes rapidly (e.g., during search filtering)
-                // The layout will be computed on next render, so we can safely ignore this
-            }
-        },
-        [data],
-    );
-
-    const debouncedScrollToIndex = useDebounce(scrollToIndex, CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME, {leading: true, trailing: true});
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex,

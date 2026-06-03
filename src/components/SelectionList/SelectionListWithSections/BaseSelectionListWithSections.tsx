@@ -11,6 +11,7 @@ import TextInput from '@components/SelectionList/components/TextInput';
 import useFlattenedSections, {isItemSelected, shouldTreatItemAsDisabled} from '@components/SelectionList/hooks/useFlattenedSections';
 import useSearchFocusSync from '@components/SelectionList/hooks/useSearchFocusSync';
 import useSelectedItemFocusSync from '@components/SelectionList/hooks/useSelectedItemFocusSync';
+import useSelectionListScroll from '@components/SelectionList/hooks/useSelectionListScroll';
 import ListItemRenderer from '@components/SelectionList/ListItem/ListItemRenderer';
 import type {InteractiveElementRoles} from '@components/SelectionList/types';
 import {getListboxRole} from '@components/SelectionList/utils/getListboxRole';
@@ -18,7 +19,6 @@ import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
-import useDebounce from '@hooks/useDebounce';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
@@ -28,7 +28,6 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
-import Log from '@libs/Log';
 import {isFocusRestoreInProgress} from '@libs/NavigationFocusReturn';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
@@ -90,7 +89,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const isScreenFocused = useIsFocused();
     const scrollEnabled = useScrollEnabled();
     const {singleExecution} = useSingleExecution();
-    const listRef = useRef<FlashListRef<FlattenedItem<TItem>> | null>(null);
     const innerTextInputRef = useRef<BaseTextInputRef | null>(null);
     const isTextInputFocusedRef = useRef<boolean>(false);
     const hasKeyBeenPressed = useRef(false);
@@ -103,6 +101,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const paddingBottomStyle = !isKeyboardShown && !footerContent && safeAreaPaddingBottomStyle;
 
     const {flattenedData, disabledIndexes, itemsCount, selectedItems, initialFocusedIndex, firstFocusableIndex} = useFlattenedSections(sections, initiallyFocusedItemKey);
+    const listRef = useRef<FlashListRef<FlattenedItem<TItem>> | null>(null);
+    const {scrollToIndex, debouncedScrollToIndex} = useSelectionListScroll(listRef, flattenedData);
 
     const setHasKeyBeenPressed = () => {
         if (hasKeyBeenPressed.current) {
@@ -125,26 +125,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         addKeyDownPressListener(handleTabKeyDown);
         return () => removeKeyDownPressListener(handleTabKeyDown);
     }, []);
-
-    const scrollToIndex = (index: number, animated = true) => {
-        if (index < 0 || index >= flattenedData.length || !listRef.current) {
-            return;
-        }
-        const item = flattenedData.at(index);
-        if (!item) {
-            return;
-        }
-        try {
-            listRef.current.scrollToIndex({index, animated});
-        } catch (error) {
-            // FlashList may throw if layout for this index doesn't exist yet
-            // This can happen when data changes rapidly (e.g., during search filtering)
-            // The layout will be computed on next render, so we can safely ignore this
-            Log.warn('SelectionListWithSections: error scrolling to index', {error});
-        }
-    };
-
-    const debouncedScrollToIndex = useDebounce(scrollToIndex, CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME, {leading: true, trailing: true});
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex,
