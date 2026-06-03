@@ -37,10 +37,20 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
+    const accessibilityLabel = [
+        item.name,
+        item.enabled ? translate('common.enabled') : translate('common.disabled'),
+        shouldShowGLCodeColumn && item.glCode ? `${translate('workspace.categories.glCode')}: ${item.glCode}` : null,
+        shouldShowApproverColumn && item.approverDisplayName ? `${translate('common.approver')}: ${item.approverDisplayName}` : null,
+    ]
+        .filter(Boolean)
+        .join(', ');
+
     return (
         <Table.Row
             rowIndex={rowIndex}
             interactive={!item.disabled}
+            accessibilityLabel={accessibilityLabel}
             skeletonReasonAttributes={{context: 'categoriesTableRow'}}
             onPress={item.action}
             offlineWithFeedback={{

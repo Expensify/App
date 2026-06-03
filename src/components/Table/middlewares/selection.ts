@@ -74,7 +74,7 @@ export default function useSelection<DataType extends TableData>({data, selected
     const handleSelectAll = () => {
         const areAllSelectableRowsSelected = selectableKeys.every((key) => selectedKeys.includes(key));
 
-        if (areAllSelectableRowsSelected) {
+        if (!areAllSelectableRowsSelected) {
             onRowSelectionChange?.([]);
         } else {
             onRowSelectionChange?.(selectableKeys);

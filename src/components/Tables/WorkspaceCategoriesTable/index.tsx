@@ -4,6 +4,7 @@ import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableDat
 import Table from '@components/Table/';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -105,7 +106,8 @@ export default function WorkspaceCategoriesTable({ref, categories, selectedKeys,
 
     const isItemInSearch: IsItemInSearchCallback<WorkspaceCategoryTableRowData> = (item, searchValue) => {
         const searchLower = searchValue.toLowerCase();
-        return !!item.name.toLowerCase().includes(searchLower) || !!item.glCode?.toLowerCase().includes(searchLower);
+        const results = tokenizedSearch([item], searchLower, (option) => [option.name, option.glCode ?? '']);
+        return results.length > 0;
     };
 
     const renderCategoryItem = ({item, index}: ListRenderItemInfo<WorkspaceCategoryTableRowData>) => (
@@ -131,7 +133,7 @@ export default function WorkspaceCategoriesTable({ref, categories, selectedKeys,
             selectedKeys={selectedKeys}
             onRowSelectionChange={onRowSelectionChange}
         >
-            {categories.length > CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.categories.findCategory')} />}
+            {categories.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.categories.findCategory')} />}
             <Table.Header />
             <Table.Body />
         </Table>
