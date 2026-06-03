@@ -686,6 +686,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         iouTransaction,
         parentReport,
         delegateEmail,
+        conciergeReportID,
     ]);
 
     const icons = useMemo(
