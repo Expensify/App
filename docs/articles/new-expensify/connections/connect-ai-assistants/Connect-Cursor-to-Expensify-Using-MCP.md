@@ -3,6 +3,7 @@ title: Connect Cursor to Expensify using MCP
 description: Learn how to connect Cursor to Expensify using the Expensify MCP server.
 keywords: [Cursor Expensify MCP, connect Cursor to Expensify, Expensify MCP Cursor setup]
 internalScope: Audience is members using Cursor. Covers connecting Cursor to Expensify using MCP. Does not cover other AI clients or general MCP workflows.
+order: 4
 ---
 
 # Connect Cursor to Expensify using MCP
