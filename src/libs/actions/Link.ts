@@ -1,5 +1,4 @@
 import {findFocusedRoute} from '@react-navigation/native';
-// eslint-disable-next-line no-restricted-imports
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import * as API from '@libs/API';
