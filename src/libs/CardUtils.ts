@@ -1114,6 +1114,60 @@ function filterInactiveCards(cardsList: WorkspaceCardsList | undefined) {
     } as WorkspaceCardsList;
 }
 
+/** Onyx selector: returns only frozen Expensify cards from a workspace card feed. */
+function selectFrozenExpensifyCardsFromWorkspaceFeed(cardsList: WorkspaceCardsList | undefined) {
+    if (!cardsList) {
+        return undefined;
+    }
+
+    const {cardList, ...assignedCards} = cardsList;
+    const frozenCards = Object.fromEntries(Object.entries(assignedCards).filter(([, entry]) => isCard(entry) && isCardFrozen(entry)));
+
+    if (Object.keys(frozenCards).length === 0) {
+        return undefined;
+    }
+
+    return {
+        ...(cardList ? {cardList} : {}),
+        ...frozenCards,
+    } as WorkspaceCardsList;
+}
+
+function getFrozenExpensifyCardIDsFromWorkspaceFeeds(expensifyCardFeed: WorkspaceCardsList | undefined, travelExpensifyCardFeed: WorkspaceCardsList | undefined) {
+    const frozenCardIDs = new Set<string>();
+
+    for (const feed of [expensifyCardFeed, travelExpensifyCardFeed]) {
+        if (!feed) {
+            continue;
+        }
+
+        for (const [entryKey, entry] of Object.entries(feed)) {
+            if (entryKey === 'cardList' || !isCard(entry) || !isCardFrozen(entry)) {
+                continue;
+            }
+
+            frozenCardIDs.add(entry.cardID.toString());
+        }
+    }
+
+    return frozenCardIDs;
+}
+
+/** Onyx selector factory: returns CARD_LIST entries that match frozen Expensify cards on the workspace feeds. */
+function selectCardListForFrozenWorkspaceExpensifyCards(expensifyCardFeed: WorkspaceCardsList | undefined, travelExpensifyCardFeed: WorkspaceCardsList | undefined) {
+    const frozenCardIDs = getFrozenExpensifyCardIDsFromWorkspaceFeeds(expensifyCardFeed, travelExpensifyCardFeed);
+
+    return (cardList: CardList | undefined) => {
+        if (!cardList || frozenCardIDs.size === 0) {
+            return undefined;
+        }
+
+        const filteredCardList = Object.fromEntries(Object.entries(cardList).filter(([cardID, card]) => frozenCardIDs.has(cardID) && isCard(card))) as CardList;
+
+        return Object.keys(filteredCardList).length > 0 ? filteredCardList : undefined;
+    };
+}
+
 /**
  * Onyx selector for workspace Expensify Card management pages. Same as `filterInactiveCards`, but also
  * keeps all suspended cards so admins can view and edit them.
@@ -1910,6 +1964,8 @@ export {
     isPolicyIDInLinkedExpensifyCardPolicyList,
     filterAllInactiveCards,
     filterInactiveCards,
+    selectFrozenExpensifyCardsFromWorkspaceFeed,
+    selectCardListForFrozenWorkspaceExpensifyCards,
     filterInactiveCardsForWorkspace,
     getPersonalBankCardDetailsImage,
     isCardPendingIssue,

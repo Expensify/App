@@ -35,7 +35,7 @@ import {clearCopyPolicySettings} from '@libs/actions/Policy/CopyPolicySettings';
 import {clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
 import {calculateBillNewDot, clearDeleteWorkspaceError, clearDuplicateWorkspace, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
-import {filterInactiveCards} from '@libs/CardUtils';
+import {filterInactiveCards, selectCardListForFrozenWorkspaceExpensifyCards, selectFrozenExpensifyCardsFromWorkspaceFeed} from '@libs/CardUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import openInternalRouteInNewTab from '@libs/Navigation/helpers/openInternalRouteInNewTab';
@@ -160,8 +160,13 @@ function WorkspacesListPage() {
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
         selector: filterInactiveCards,
     });
-    const [allWorkspaceCardsList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [frozenExpensifyCardFeed] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
+        selector: selectFrozenExpensifyCardsFromWorkspaceFeed,
+    });
+    const [frozenTravelExpensifyCardFeed] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`, {
+        selector: selectFrozenExpensifyCardsFromWorkspaceFeed,
+    });
+    const [frozenCardsList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: selectCardListForFrozenWorkspaceExpensifyCards(frozenExpensifyCardFeed, frozenTravelExpensifyCardFeed)});
     const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID);
 
     const hasCardFeedOrExpensifyCard =
@@ -217,8 +222,9 @@ function WorkspacesListPage() {
             hasDeleteWorkspaceExpensifyCardsError,
             currentUserAccountID: currentUserPersonalDetails.accountID,
             accountIDToLogin: accountIDToLogin ?? {},
-            allWorkspaceCardsList,
-            cardList,
+            expensifyCardFeed: frozenExpensifyCardFeed,
+            travelExpensifyCardFeed: frozenTravelExpensifyCardFeed,
+            cardList: frozenCardsList,
         });
         if (isOffline) {
             setIsDeleteModalOpen(false);

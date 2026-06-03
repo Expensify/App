@@ -55,7 +55,7 @@ import {
     updatePolicyRulesDocument,
     updateWorkspaceAvatar,
 } from '@libs/actions/Policy/Policy';
-import {filterInactiveCards, getCardSettings} from '@libs/CardUtils';
+import {filterInactiveCards, getCardSettings, selectCardListForFrozenWorkspaceExpensifyCards, selectFrozenExpensifyCardsFromWorkspaceFeed} from '@libs/CardUtils';
 import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -141,8 +141,13 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
         selector: filterInactiveCards,
     });
-    const [allWorkspaceCardsList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [frozenExpensifyCardFeed] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
+        selector: selectFrozenExpensifyCardsFromWorkspaceFeed,
+    });
+    const [frozenTravelExpensifyCardFeed] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`, {
+        selector: selectFrozenExpensifyCardsFromWorkspaceFeed,
+    });
+    const [frozenCardsList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: selectCardListForFrozenWorkspaceExpensifyCards(frozenExpensifyCardFeed, frozenTravelExpensifyCardFeed)});
     const hasCardFeedOrExpensifyCard =
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         !isEmptyObject(cardFeeds) || !isEmptyObject(cardsList) || ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.policyAccountID);
@@ -350,8 +355,9 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             hasDeleteWorkspaceExpensifyCardsError,
             currentUserAccountID: accountID,
             accountIDToLogin: accountIDToLogin ?? {},
-            allWorkspaceCardsList,
-            cardList,
+            expensifyCardFeed: frozenExpensifyCardFeed,
+            travelExpensifyCardFeed: frozenTravelExpensifyCardFeed,
+            cardList: frozenCardsList,
         });
         if (isOffline) {
             setIsDeleteModalOpen(false);

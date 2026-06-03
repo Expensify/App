@@ -383,7 +383,8 @@ type DeleteWorkspaceActionParams = {
     hasDeleteWorkspaceExpensifyCardsError?: boolean;
     currentUserAccountID: number;
     accountIDToLogin: Record<number, string>;
-    allWorkspaceCardsList?: OnyxCollection<WorkspaceCardsList>;
+    expensifyCardFeed?: WorkspaceCardsList;
+    travelExpensifyCardFeed?: WorkspaceCardsList;
     cardList?: CardList;
 };
 
@@ -409,7 +410,8 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
         hasDeleteWorkspaceExpensifyCardsError,
         currentUserAccountID,
         accountIDToLogin,
-        allWorkspaceCardsList,
+        expensifyCardFeed,
+        travelExpensifyCardFeed,
         cardList,
     } = params;
 
@@ -699,7 +701,8 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
     if (!hasDeleteWorkspaceExpensifyCardsError && workspaceAccountID) {
         const {optimisticData: frozenCardOptimisticData, failureData: frozenCardFailureData} = buildOptimisticRemoveWorkspaceFrozenExpensifyCardsUpdates({
             workspaceAccountID,
-            allWorkspaceCardsList,
+            expensifyCardFeed,
+            travelExpensifyCardFeed,
             cardList,
             currentUserAccountID,
         });

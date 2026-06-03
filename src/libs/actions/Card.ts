@@ -26,7 +26,7 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CardProgramKey} from '@libs/CardUtils';
-import {getTranslationKeyForLimitType, isCard, isCardFrozen} from '@libs/CardUtils';
+import {getTranslationKeyForLimitType, isCard} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -849,8 +849,9 @@ function clearIssueNewCardError(policyID: string | undefined) {
 
 type BuildOptimisticRemoveWorkspaceFrozenExpensifyCardsUpdatesParams = {
     workspaceAccountID: number;
-    allWorkspaceCardsList: OnyxCollection<WorkspaceCardsList> | undefined;
-    cardList: CardList | undefined;
+    expensifyCardFeed?: WorkspaceCardsList;
+    travelExpensifyCardFeed?: WorkspaceCardsList;
+    cardList?: CardList;
     currentUserAccountID: number;
 };
 
@@ -859,7 +860,8 @@ type BuildOptimisticRemoveWorkspaceFrozenExpensifyCardsUpdatesParams = {
  */
 function buildOptimisticRemoveWorkspaceFrozenExpensifyCardsUpdates({
     workspaceAccountID,
-    allWorkspaceCardsList,
+    expensifyCardFeed,
+    travelExpensifyCardFeed,
     cardList,
     currentUserAccountID,
 }: BuildOptimisticRemoveWorkspaceFrozenExpensifyCardsUpdatesParams): {optimisticData: CardOnyxUpdate[]; failureData: CardOnyxUpdate[]} {
@@ -868,19 +870,21 @@ function buildOptimisticRemoveWorkspaceFrozenExpensifyCardsUpdates({
     let cardListOptimistic: Record<string, null> | undefined;
     let cardListFailure: Record<string, Card> | undefined;
 
-    const expensifyCardFeedKeys = [
-        `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
-        `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`,
+    const workspaceExpensifyCardFeeds: Array<{onyxKey: string; feed: WorkspaceCardsList | undefined}> = [
+        {onyxKey: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, feed: expensifyCardFeed},
+        {
+            onyxKey: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`,
+            feed: travelExpensifyCardFeed,
+        },
     ];
 
-    for (const onyxKey of expensifyCardFeedKeys) {
-        const feed = allWorkspaceCardsList?.[onyxKey];
+    for (const {onyxKey, feed} of workspaceExpensifyCardFeeds) {
         if (!feed) {
             continue;
         }
 
         for (const [entryKey, entry] of Object.entries(feed)) {
-            if (entryKey === ONYXKEYS.CARD_LIST || !isCard(entry) || !isCardFrozen(entry)) {
+            if (entryKey === ONYXKEYS.CARD_LIST || !isCard(entry)) {
                 continue;
             }
 
