@@ -10,11 +10,11 @@ import CONST from '@src/CONST';
 
 type GetStartedTravelProps = {
     policyID: string;
-    canWriteMoreFeatures: boolean;
+    canWriteTravelFeature: boolean;
     showReadOnlyModal: () => void;
 };
 
-function GetStartedTravel({policyID, canWriteMoreFeatures, showReadOnlyModal}: GetStartedTravelProps) {
+function GetStartedTravel({policyID, canWriteTravelFeature, showReadOnlyModal}: GetStartedTravelProps) {
     const handleCtaPress = () => {};
 
     const {translate} = useLocalize();
@@ -33,7 +33,7 @@ function GetStartedTravel({policyID, canWriteMoreFeatures, showReadOnlyModal}: G
             illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter]}
             titleStyles={styles.textHeadlineH1}
             footer={
-                canWriteMoreFeatures ? (
+                canWriteTravelFeature ? (
                     <BookTravelButton
                         text={translate('workspace.moreFeatures.travel.getStarted.ctaText')}
                         activePolicyID={policyID}

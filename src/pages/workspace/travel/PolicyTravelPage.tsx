@@ -86,7 +86,7 @@ function WorkspaceTravelPage({
                 return (
                     <GetStartedTravel
                         policyID={policyID}
-                        canWriteMoreFeatures={canWriteMoreFeatures}
+                        canWriteTravelFeature={canWriteMoreFeatures}
                         showReadOnlyModal={showReadOnlyModal}
                     />
                 );
