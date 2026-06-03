@@ -10,6 +10,4 @@ function ChartDefaultTypefaceProvider({children}: {children: React.ReactNode}) {
     return <ChartDefaultTypefaceContext.Provider value={{regular, bold}}>{children}</ChartDefaultTypefaceContext.Provider>;
 }
 
-ChartDefaultTypefaceProvider.displayName = 'ChartDefaultTypefaceProvider';
-
 export default ChartDefaultTypefaceProvider;
