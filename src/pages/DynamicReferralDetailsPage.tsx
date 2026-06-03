@@ -1,4 +1,5 @@
 import React, {useRef} from 'react';
+import {View} from 'react-native';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import Icon from '@components/Icon';
@@ -9,25 +10,26 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSingleExecution from '@hooks/useSingleExecution';
-import useTheme from '@hooks/useTheme';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
 import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReferralDetailsNavigatorParamList} from '@libs/Navigation/types';
+import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import {showContextMenu} from './inbox/report/ContextMenu/ReportActionContextMenu';
 
 type DynamicReferralDetailsPageProps = PlatformStackScreenProps<ReferralDetailsNavigatorParamList, typeof SCREENS.DYNAMIC_REFERRAL_DETAILS>;
 
 function DynamicReferralDetailsPage({route}: DynamicReferralDetailsPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Copy', 'NewWindow', 'QuestionMark']);
-    const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const illustrations = useMemoizedLazyIllustrations(['PaymentHands']);
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -50,14 +52,15 @@ function DynamicReferralDetailsPage({route}: DynamicReferralDetailsPageProps) {
         <HeaderPageLayout
             title={translate('common.referral')}
             headerContent={
-                <Icon
-                    src={illustrations.PaymentHands}
-                    width={589}
-                    height={232}
-                />
+                <View style={[styles.w100, styles.alignItemsCenter, StyleUtils.getBackgroundColorStyle(colors.pink800)]}>
+                    <Icon
+                        src={illustrations.PaymentHands}
+                        width={589}
+                        height={232}
+                    />
+                </View>
             }
             headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentEnd]}
-            backgroundColor={theme.PAGE_THEMES[SCREENS.DYNAMIC_REFERRAL_DETAILS].backgroundColor}
             testID="DynamicReferralDetailsPage"
             onBackButtonPress={() => {
                 Navigation.goBack(backPath);
