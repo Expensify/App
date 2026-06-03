@@ -4,7 +4,7 @@
 import colors from '@styles/theme/colors';
 
 /** Font families used by all chart label components (Paragraph API multi-font fallback). */
-const CHART_FONT_FAMILIES = ['ExpensifyNeue', 'NotoSansSymbols', 'NotoSansSCMonths'];
+const CHART_FONT_FAMILIES = ['ExpensifyNeue', 'ExpensifyMono', 'ExpensifyNewKansas', 'NotoSansSymbols', 'NotoSansSCMonths'];
 
 /**
  * Expensify Chart Color Palette.
