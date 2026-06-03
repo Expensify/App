@@ -85,6 +85,7 @@ function useAutoCreateTrackWorkspace() {
                       betas,
                       isSelfTourViewed,
                       hasActiveAdminPolicies,
+                      personalTrackGoal: onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL && !!personalTrackGoal ? personalTrackGoal : undefined,
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 

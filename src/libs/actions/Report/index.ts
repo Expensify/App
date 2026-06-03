@@ -5453,7 +5453,7 @@ async function completeOnboarding({
         selfDMCreatedReportActionID: selfDMParameters.createdReportActionID,
         optimisticConciergeReportActionID,
         selectedInterestedFeatures: selectedInterestedFeatures && selectedInterestedFeatures.length > 0 ? JSON.stringify(selectedInterestedFeatures) : undefined,
-        personaltrackgoal: personalTrackGoal,
+        personalTrackGoal,
     };
 
     if (shouldWaitForRHPVariantInitialization) {
