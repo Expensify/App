@@ -150,7 +150,7 @@ function WorkspacePageWithSections({
         selector: emailSelector,
     });
 
-    const isLoading = (!shouldSkipVBBACall && reimbursementAccount?.isLoading) || isPageLoading;
+    const isLoading = isPageLoading ? true : !shouldSkipVBBACall && (reimbursementAccount?.isLoading ?? false);
     const isUsingECard = account?.isUsingExpensifyCard ?? false;
     const content = typeof children === 'function' ? children(policyID, isUsingECard) : children;
     const {shouldUseNarrowLayout} = useResponsiveLayout();
