@@ -33,7 +33,6 @@ import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import type {Selection} from '@libs/focusComposerWithDelay/types';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import reportActionItemEventHandler from '@libs/ReportActionItemEventHandler';
 import {isDeletedAction} from '@libs/ReportActionsUtils';
 import {chatIncludesConcierge, isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import {isBlockedFromConcierge} from '@userActions/User';
@@ -460,12 +459,6 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
                                 }
                             }}
                             onBlur={() => setIsFocused(false)}
-                            onLayout={(event) => {
-                                if (!isFocused) {
-                                    return;
-                                }
-                                reportActionItemEventHandler.handleComposerLayoutChange(reportScrollManager, index)(event);
-                            }}
                             selection={selection}
                             onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
                             isGroupPolicyReport={isGroupPolicyReport}
