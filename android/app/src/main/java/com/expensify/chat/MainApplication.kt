@@ -74,6 +74,10 @@ class MainApplication : MultiDexApplication(), ReactApplication {
             return
         }
 
+        // Install certificate pinning for React Native's shared OkHttp client (covers
+        // react-native-blob-util). Must run before any networking, including the Nitro prefetch below.
+        CertificatePinning.install()
+
         // This is the entrypoint for prefetching with `react-native-nitro-fetch`.
         try {
             AutoPrefetcher.prefetchOnStart(this)

@@ -25,6 +25,7 @@
 		383643682B6D4AE2005BB9AE /* DeviceCheck.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 383643672B6D4AE2005BB9AE /* DeviceCheck.framework */; };
 		388141582B58B5617B33FE99 /* Pods_NewExpensify.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E887A8466FD8FE3B8A0F396 /* Pods_NewExpensify.framework */; };
 		47347EFF2DA5664A00633001 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47347EFE2DA5664A00633001 /* AppDelegate.swift */; };
+		CE2710A22DA5664A00633001 /* CertificatePinning.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE2710A12DA5664A00633001 /* CertificatePinning.swift */; };
 		524F95D57E75496EBD14B0AA /* ExpensifyMono-BoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = A96F65C6624044318D21DAB1 /* ExpensifyMono-BoldItalic.otf */; };
 		59164B2F48344A53975791A9 /* CustomEmojiNativeFont.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B42BBCC5FB8E4E40B1A9202C /* CustomEmojiNativeFont.ttf */; };
 		6E13A7D92F519F8F00B2FA13 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E13A7D82F519F8F00B2FA13 /* WidgetKit.framework */; };
@@ -128,6 +129,7 @@
 		4521D653AC9D36713686E739 /* Pods_NotificationServiceExtension.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_NotificationServiceExtension.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		46CFEEC62CA1C2E0003D36CC /* ShareViewController.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ShareViewController.entitlements; sourceTree = "<group>"; };
 		47347EFE2DA5664A00633001 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		CE2710A12DA5664A00633001 /* CertificatePinning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CertificatePinning.swift; sourceTree = "<group>"; };
 		47347F002DA56FAC00633001 /* NewExpensify-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NewExpensify-Bridging-Header.h"; sourceTree = "<group>"; };
 		499B0DA92BE2A1C000CABFB0 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		4D20D83B0E39BA6D21761E72 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-NewExpensify/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
@@ -248,6 +250,7 @@
 				0F5E534F263B73FD004CA14F /* EnvironmentChecker.m */,
 				0D3F9E814828D91464DF9D35 /* PrivacyInfo.xcprivacy */,
 				47347EFE2DA5664A00633001 /* AppDelegate.swift */,
+				CE2710A12DA5664A00633001 /* CertificatePinning.swift */,
 			);
 			name = NewExpensify;
 			sourceTree = "<group>";
@@ -876,6 +879,7 @@
 				18D050E0262400AF000D658B /* BridgingFile.swift in Sources */,
 				0DFC45942C884E0A00B56C91 /* RCTShortcutManagerModule.m in Sources */,
 				47347EFF2DA5664A00633001 /* AppDelegate.swift in Sources */,
+				CE2710A22DA5664A00633001 /* CertificatePinning.swift in Sources */,
 				0F5E5350263B73FD004CA14F /* EnvironmentChecker.m in Sources */,
 				374FB8D728A133FE000D84EF /* OriginImageRequestHandler.mm in Sources */,
 				DD79042B2792E76D004484B4 /* RCTBootSplash.mm in Sources */,

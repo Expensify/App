@@ -21,6 +21,9 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
   var reactNativeFactory: RCTReactNativeFactory?
 
   override func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+    // Initialize certificate pinning before any networking starts (Iteration 1 - NewDot).
+    CertificatePinning.initialize()
+
     let appStartTimePreferencesKey = "AppStartTime"
     UserDefaults.standard.set(Date().timeIntervalSince1970 * 1000, forKey: appStartTimePreferencesKey)
     let delegate = ReactNativeDelegate()

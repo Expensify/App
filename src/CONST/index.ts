@@ -2070,6 +2070,7 @@ const CONST = {
             AUTHENTICATION_FUNCTION: 'authentication_function',
             AUTHENTICATION_ERROR_TYPE: 'authentication_error_type',
             AUTHENTICATION_JSON_CODE: 'authentication_json_code',
+            CERTIFICATE_PINNING_HOST: 'certificate_pinning_host',
             EXPENSE_ERROR_TYPE: 'expense_error_type',
             EXPENSE_ERROR_SOURCE: 'expense_error_source',
             EXPENSE_IS_REQUEST_PENDING: 'expense_is_request_pending',

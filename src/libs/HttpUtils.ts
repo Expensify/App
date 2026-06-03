@@ -12,6 +12,7 @@ import {setTimeSkew} from './actions/Network';
 import {alertUser} from './actions/UpdateRequired';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
 import {getCommandURL} from './ApiUtils';
+import {isCertificatePinningError, reportCertificatePinningError} from './CertificatePinning';
 import HttpsError from './Errors/HttpsError';
 import Log from './Log';
 import {setLoadTestParameters} from './Network/LoadTestState';
@@ -208,6 +209,17 @@ function processHTTPRequest<TKey extends OnyxKey>(
                 alertUser();
             }
             return response;
+        })
+        .catch((error: unknown) => {
+            // A certificate-pinning failure surfaces as a rejected fetch. It is security-relevant
+            // (possible MITM/TLS-proxy, or a cert rotation the shipped app predates) so we report it
+            // distinctly from generic connectivity errors, then rethrow to keep the existing
+            // offline-handling behavior intact.
+            if (isCertificatePinningError(error)) {
+                Log.alert('[HttpUtils] Certificate pinning validation failed', {url, command});
+                reportCertificatePinningError(error, url);
+            }
+            throw error;
         })
         .finally(() => markAppStartupNetworkRequestEnd(command));
 }
