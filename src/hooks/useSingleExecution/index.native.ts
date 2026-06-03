@@ -1,4 +1,5 @@
 import {useCallback, useRef, useState} from 'react';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
 type Action<T extends unknown[]> = (...params: T) => void | Promise<void>;
 
@@ -22,14 +23,18 @@ export default function useSingleExecution() {
                 isExecutingRef.current = true;
 
                 const execution = action(...params);
-                requestAnimationFrame(() => {
-                    if (!(execution instanceof Promise)) {
-                        setIsExecuting(false);
-                        return;
-                    }
-                    execution.finally(() => {
-                        setIsExecuting(false);
-                    });
+
+                TransitionTracker.runAfterTransitions({
+                    callback: () => {
+                        if (!(execution instanceof Promise)) {
+                            setIsExecuting(false);
+                            return;
+                        }
+                        execution.finally(() => {
+                            setIsExecuting(false);
+                        });
+                    },
+                    waitForUpcomingTransition: true,
                 });
             },
         [],
