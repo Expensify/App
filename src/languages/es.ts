@@ -921,6 +921,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'Billetera',
             },
+            enterSignerInfo: {title: 'Se necesita la información del firmante', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Cuenta bancaria ${bankAccountLastFour}`},
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `Prueba gratuita: ${days} ${days === 1 ? 'día' : 'días'} restantes!`,
@@ -3896,7 +3897,7 @@ ${amount} para ${merchant} - ${date}`,
         selectCountry: 'Seleccione su país',
         error: {
             connectToWorkspace: (workspaceRoute: string) =>
-                `Por favor, conecta esta cuenta bancaria a un <a href="${workspaceRoute}">espacio de trabajo</a> para que puedas invitar a un director a firmar en un paso posterior.`,
+                `Esta cuenta bancaria debe vincularse a un espacio de trabajo. Ve a <a href="${workspaceRoute}">Espacios de trabajo</a>, selecciona tu espacio de trabajo y luego navega a Flujos de trabajo > Pagos > Añadir cuenta bancaria.`,
         },
     },
     bankInfoStep: {
@@ -3942,8 +3943,6 @@ ${amount} para ${merchant} - ${date}`,
             `está conectando una cuenta bancaria comercial en ${currency} que termina en ${bankAccountLastFour} a Expensify para pagar a los empleados en ${currency}. El siguiente paso requiere la información del firmante de un director.`,
         error: {
             emailsMustBeDifferent: 'Los correos electrónicos deben ser diferentes',
-            connectToWorkspace: (workspaceRoute: string) =>
-                `Por favor, conecta esta cuenta bancaria a un <a href="${workspaceRoute}">espacio de trabajo</a> para invitar a un director a firmar.`,
         },
     },
     agreementsStep: {
@@ -7593,6 +7592,8 @@ ${amount} para ${merchant} - ${date}`,
         updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
             `cambió el umbral de autopago de informes aprobados a "${newLimit}" (previamente "${oldLimit}")`,
         removedAutoPayApprovedReportsLimit: 'eliminó el umbral de autopago de informes aprobados',
+        updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
+            `cambió la categoría de gasto predeterminada para "${mccGroupName}" a "${newCategory}" (previamente "${oldCategory}")`,
         changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
             previousApprover ? `cambió el aprobador predeterminado a ${newApprover} (anteriormente ${previousApprover})` : `cambió el aprobador predeterminado a ${newApprover}`,
         changedSubmitsToApprover: ({
