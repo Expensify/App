@@ -1,12 +1,13 @@
 /**
  * Regression tests for the Safari PWA ChunkLoadError crash loop.
  *
- * Before the fix, both recovery paths used a bare window.location.reload().
- * In Safari PWA standalone mode this re-serves the stale service-worker
- * precache, reproducing the identical ChunkLoadError on every refresh.
- * The fix routes each reload through clearWorkboxRecoveryCaches() first,
- * which unregisters the SW and clears Cache Storage so the next load fetches
- * a fresh, internally-consistent shell from the CDN.
+ * usePageRefresh: clears SW caches then reloads on any chunk-load error (the Refresh
+ * button is only shown after the automatic lazyRetry cycle has already run, so we are
+ * already on the second failure by the time the user taps it).
+ *
+ * lazyRetry uses a two-phase approach:
+ *   - First failure  → plain reload (cheap; handles transient network blips).
+ *   - Second failure → clear SW caches then reload (handles stale post-deploy shell).
  */
 import {renderHook} from '@testing-library/react-native';
 import type {ComponentType} from 'react';
@@ -98,8 +99,20 @@ describe('ChunkLoadError recovery', () => {
     });
 
     describe('lazyRetry', () => {
-        it('clears caches before reloading on the first chunk load failure', async () => {
+        it('plain-reloads on the first chunk load failure without clearing caches', async () => {
             sessionStorage.removeItem(CONST.SESSION_STORAGE_KEYS.RETRY_LAZY_REFRESHED);
+            const failingImport = jest.fn().mockRejectedValue(new Error('chunk failed')) as unknown as ComponentImport<ComponentType>;
+
+            lazyRetry(failingImport);
+            await flushMicrotasks();
+
+            expect(reloadMock).toHaveBeenCalledTimes(1);
+            expect(mockClearWorkboxRecoveryCaches).not.toHaveBeenCalled();
+            expect(callOrder).toEqual(['reload']);
+        });
+
+        it('clears SW caches before reloading on the second chunk load failure', async () => {
+            sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.RETRY_LAZY_REFRESHED, 'true');
             const failingImport = jest.fn().mockRejectedValue(new Error('chunk failed')) as unknown as ComponentImport<ComponentType>;
 
             lazyRetry(failingImport);
