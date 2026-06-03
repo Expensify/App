@@ -632,6 +632,10 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
                 }
 
                 // Self review
+                let actionText = 'add';
+                if (hasTransactions) {
+                    actionText = shouldShowMarkAsDoneCopy ? 'mark this as done' : 'submit';
+                }
                 optimisticNextStep = {
                     type,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -648,7 +652,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
                             text: ' to ',
                         },
                         {
-                            text: hasTransactions ? (shouldShowMarkAsDoneCopy ? 'mark this as done' : 'submit') : 'add',
+                            text: actionText,
                         },
                         {
                             text: shouldShowMarkAsDoneCopy ? '.' : ' %expenses.',
