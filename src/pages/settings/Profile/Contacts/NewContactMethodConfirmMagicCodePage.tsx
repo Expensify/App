@@ -1,3 +1,4 @@
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useEffect} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 import useLocalize from '@hooks/useLocalize';
@@ -8,7 +9,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getContactMethod} from '@libs/UserUtils';
-import {CONST as COMMON_CONST} from 'expensify-common';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';

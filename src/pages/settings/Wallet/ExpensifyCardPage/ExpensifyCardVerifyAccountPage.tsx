@@ -1,3 +1,4 @@
+import {CONST} from 'expensify-common';
 import React, {useState} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 import useLocalize from '@hooks/useLocalize';
@@ -8,7 +9,6 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DomainCardNavigatorParamList, SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {CONST} from 'expensify-common';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';

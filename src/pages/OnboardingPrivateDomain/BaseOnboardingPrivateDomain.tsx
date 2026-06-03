@@ -1,3 +1,4 @@
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -17,7 +18,6 @@ import {isCurrentUserValidated} from '@libs/UserUtils';
 import {clearGetAccessiblePoliciesErrors, getAccessiblePolicies} from '@userActions/Policy/Policy';
 import {resendValidateCode} from '@userActions/User';
 import CONST from '@src/CONST';
-import {CONST as COMMON_CONST} from 'expensify-common'
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';

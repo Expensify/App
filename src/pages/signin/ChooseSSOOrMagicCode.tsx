@@ -1,3 +1,4 @@
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useEffect} from 'react';
 import {Keyboard, View} from 'react-native';
 import Button from '@components/Button';
@@ -13,7 +14,6 @@ import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {clearSignInData, resendValidateCode} from '@userActions/Session';
 import CONST from '@src/CONST';
-import {CONST as COMMON_CONST} from 'expensify-common';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';

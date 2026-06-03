@@ -1,4 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
@@ -35,7 +36,6 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {CONST as COMMON_CONST} from 'expensify-common';
 import type ValidateCodeFormProps from './types';
 
 type BaseValidateCodeFormProps = WithToggleVisibilityViewProps &

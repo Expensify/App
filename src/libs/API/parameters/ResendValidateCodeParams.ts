@@ -1,5 +1,5 @@
-import type {ValueOf} from 'type-fest';
 import type {CONST} from 'expensify-common';
+import type {ValueOf} from 'type-fest';
 
 type ResendValidateCodeBaseParams = {
     // Exclude reasons that require parameters - redefine them as separate types below to enforce their parameters are always passed
@@ -14,7 +14,7 @@ type ResendValidateCodeForRevealCardDetailsParams = {
 // Will be removed eventually
 type ResendValidateCodeNotYetImplementedParams = {
     reasonCode: null;
-}
+};
 
 type ResendValidateCodeParams = ResendValidateCodeBaseParams | ResendValidateCodeNotYetImplementedParams | ResendValidateCodeForRevealCardDetailsParams;
 

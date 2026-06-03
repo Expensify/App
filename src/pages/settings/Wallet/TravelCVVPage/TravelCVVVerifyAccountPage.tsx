@@ -1,3 +1,4 @@
+import {CONST} from 'expensify-common';
 import React, {useCallback} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 import useLocalize from '@hooks/useLocalize';
@@ -8,7 +9,6 @@ import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/acti
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTravelInvoicingCard} from '@libs/TravelInvoicingUtils';
-import {CONST} from 'expensify-common';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';

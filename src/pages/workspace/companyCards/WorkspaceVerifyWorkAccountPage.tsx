@@ -1,3 +1,4 @@
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 import useCardFeedsForActivePolicies from '@hooks/useCardFeedsForActivePolicies';
@@ -15,7 +16,6 @@ import {linkCardFeedToPolicy} from '@userActions/CompanyCards';
 import {clearGetAccessiblePoliciesErrors, getAccessiblePolicies} from '@userActions/Policy/Policy';
 import {resendValidateCode} from '@userActions/User';
 import CONST from '@src/CONST';
-import {CONST as COMMON_CONST} from 'expensify-common';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
