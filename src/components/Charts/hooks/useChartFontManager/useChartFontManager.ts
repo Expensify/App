@@ -1,6 +1,6 @@
 import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import {useFonts} from '@shopify/react-native-skia';
-import chartWebFont from '@components/Charts/context/chartWebFont';
+import chartWebFont from '@components/Charts/utils/chartWebFont';
 
 function useChartFontManager(): SkTypefaceFontProvider | null {
     return useFonts({

@@ -1,5 +1,5 @@
 import {createContext, useContext} from 'react';
-import type {ChartDefaultTypeface} from './chartSkiaTypefaceTypes';
+import type {ChartDefaultTypeface} from '../types/chartSkiaTypefaceTypes';
 
 const ChartDefaultTypefaceContext = createContext<ChartDefaultTypeface | null>(null);
 

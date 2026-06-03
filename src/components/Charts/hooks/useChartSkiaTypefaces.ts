@@ -1,6 +1,6 @@
 import {useTypeface} from '@shopify/react-native-skia';
-import type {ChartDefaultTypeface} from './chartSkiaTypefaceTypes';
-import chartWebFont from './chartWebFont';
+import type {ChartDefaultTypeface} from '../types/chartSkiaTypefaceTypes';
+import chartWebFont from '../utils/chartWebFont';
 
 function useChartSkiaTypefaces(): ChartDefaultTypeface {
     return {
