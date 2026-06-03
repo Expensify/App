@@ -481,12 +481,8 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
             invoiceReceiverPolicy,
             reportActions,
         }) && hasOnlyHeldExpenses(reportTransactions);
-    const isApproveActionWithAllExpensesHeld = isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy) && hasOnlyHeldExpenses(reportTransactions);
-    const isSubmitActionWithAllExpensesHeld =
-        isSubmitAction(report, reportTransactions, reportMetadata, policy, reportNameValuePairs, violations, currentUserLogin, currentUserAccountID) &&
-        hasOnlyHeldExpenses(reportTransactions);
     const expensesToHold = getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy, currentUserAccountID);
-    const shouldRemoveHoldForAllHeldExpenses = (isPayActionWithAllExpensesHeld || isApproveActionWithAllExpensesHeld || isSubmitActionWithAllExpensesHeld) && !!expensesToHold.length;
+    const shouldRemoveHoldForAllHeldExpenses = hasOnlyHeldExpenses(reportTransactions) && !!expensesToHold.length;
 
     if (isMarkAsCashAction(currentUserLogin, currentUserAccountID, report, reportTransactions, violations, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH;
@@ -500,7 +496,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.APPROVE;
     }
 
-    if (isRemoveHoldAction(report, chatReport, reportTransactions) || shouldRemoveHoldForAllHeldExpenses) {
+    if (isRemoveHoldAction(report, chatReport, reportTransactions) || (isPayActionWithAllExpensesHeld && expensesToHold.length)) {
         return CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
     }
 
@@ -508,7 +504,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_RESOLVED;
     }
 
-    if (isSubmitAction(report, reportTransactions, reportMetadata, policy, reportNameValuePairs, violations, currentUserLogin, currentUserAccountID)) {
+    if (isSubmitAction(report, reportTransactions, reportMetadata, policy, reportNameValuePairs, violations, currentUserLogin, currentUserAccountID) && !shouldRemoveHoldForAllHeldExpenses) {
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
     }
 
