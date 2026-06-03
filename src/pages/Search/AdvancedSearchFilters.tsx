@@ -19,7 +19,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import type {WorkspaceListItem} from '@hooks/useWorkspaceList';
-import {getBankAccountSearchLabel} from '@libs/BankAccountUtils';
+import {getBankAccountSearchLabel, isSearchEligibleBankAccount} from '@libs/BankAccountUtils';
 import {createCardFeedKey, getCardFeedKey, getCardFeedNamesWithType, getFeedCountryForDisplay, getWorkspaceCardFeedKey} from '@libs/CardFeedUtils';
 import {getCardDescription} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -309,7 +309,7 @@ function getFilterBankAccountDisplayTitle(filters: Partial<SearchAdvancedFilters
     return selectedIDs
         .map((id) => {
             const bankAccount = bankAccountList?.[id];
-            return bankAccount ? getBankAccountSearchLabel(bankAccount) : id;
+            return bankAccount && isSearchEligibleBankAccount(bankAccount) ? getBankAccountSearchLabel(bankAccount) : id;
         })
         .join(', ');
 }
