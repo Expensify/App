@@ -13,7 +13,6 @@ import {createTaskAndNavigate, setNewOptimisticAssignee} from '@libs/actions/Tas
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {rand64} from '@libs/NumberUtils';
 import {addDomainToShortMention} from '@libs/ParsingUtils';
-import {getPersonalDetailsListByIDs} from '@libs/PersonalDetailsUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {generateAccountID} from '@libs/UserUtils';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
@@ -110,6 +109,12 @@ function useComposerSubmit(reportID: string) {
                         taskTitle = `@${mentionWithDomain} ${taskTitle}`;
                     }
                 }
+
+                const taskCreatorAndAssigneeDetails = {[currentUserPersonalDetails.accountID]: currentUserPersonalDetails};
+                if (assignee) {
+                    taskCreatorAndAssigneeDetails[assignee.accountID] = assignee;
+                }
+
                 createTaskAndNavigate({
                     parentReport: report,
                     title: taskTitle,
@@ -125,7 +130,7 @@ function useComposerSubmit(reportID: string) {
                     isCreatedUsingMarkdown: true,
                     quickAction,
                     ancestors: reportAncestors,
-                    taskCreatorAndAssigneeDetails: getPersonalDetailsListByIDs([currentUserPersonalDetails.accountID, assignee?.accountID], personalDetails),
+                    taskCreatorAndAssigneeDetails,
                 });
                 return;
             }
