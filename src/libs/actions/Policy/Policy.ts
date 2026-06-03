@@ -5762,19 +5762,19 @@ function upgradeSubmit(
     const priorOwner = policy?.owner;
     const priorOwnerAccountID = policy?.ownerAccountID;
 
-    const memberEmails = new Set(Object.keys(policy?.employeeList ?? {}));
-    if (priorOwner && !memberEmails.has(priorOwner)) {
-        memberEmails.add(priorOwner);
+    const employeeList = policy?.employeeList ?? {};
+    const memberEmails = Object.keys(employeeList);
+    if (priorOwner && !(priorOwner in employeeList)) {
+        memberEmails.push(priorOwner);
     }
-    if (currentUserLogin && !memberEmails.has(currentUserLogin)) {
-        memberEmails.add(currentUserLogin);
+    if (currentUserLogin && !(currentUserLogin in employeeList)) {
+        memberEmails.push(currentUserLogin);
     }
 
     const optimisticEmployeeList: Record<string, PolicyEmployee> = {};
-    const successEmployeeList: Record<string, Pick<PolicyEmployee, 'role'>> = {};
 
     for (const email of memberEmails) {
-        const existing = policy?.employeeList?.[email] ?? {};
+        const existing = employeeList[email] ?? {};
         const isCurrentUser = email === currentUserLogin;
         const nextRole = isCurrentUser ? CONST.POLICY.ROLE.ADMIN : CONST.POLICY.ROLE.USER;
         optimisticEmployeeList[email] = {
@@ -5782,9 +5782,15 @@ function upgradeSubmit(
             ...(existing.email ? {} : {email}),
             ...(existing.submitsTo === undefined && isCurrentUser ? {submitsTo: email} : {}),
             role: nextRole,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
         };
-        successEmployeeList[email] = {role: nextRole};
     }
+
+    const successEmployeeList = memberEmails.reduce<Record<string, Pick<PolicyEmployee, 'pendingAction'>>>((member, email) => {
+        // eslint-disable-next-line no-param-reassign
+        member[email] = {pendingAction: null};
+        return member;
+    }, {});
 
     const optimisticOwnerAccountID = currentUserAccountID !== undefined && currentUserLogin ? Number(currentUserAccountID) : priorOwnerAccountID;
 
@@ -5817,7 +5823,7 @@ function upgradeSubmit(
                 canDowngrade: false,
                 areCompanyCardsEnabled: true,
                 reimbursementChoice: newReimbursementChoice,
-                owner: currentUserLogin || priorOwner,
+                owner: currentUserLogin,
                 ...(optimisticOwnerAccountID !== undefined ? {ownerAccountID: optimisticOwnerAccountID} : {}),
                 role: CONST.POLICY.ROLE.ADMIN,
                 employeeList: optimisticEmployeeList,
