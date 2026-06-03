@@ -131,6 +131,9 @@ type ReceiptImageProps = (
 
     /** Any additional styles to apply */
     style?: StyleProp<ViewStyle & ImageStyle>;
+
+    /** Low-resolution URI shown as a placeholder while the full image loads */
+    previewUri?: string;
 };
 
 function ReceiptImage({
@@ -161,6 +164,7 @@ function ReceiptImage({
     onLoadFailure,
     resizeMode,
     style,
+    previewUri,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
     const [receiptImageWidth, setReceiptImageWidth] = useState<number | undefined>(undefined);
@@ -216,6 +220,7 @@ function ReceiptImage({
         return (
             <ThumbnailImage
                 previewSourceURL={source ?? ''}
+                previewUri={previewUri}
                 style={[styles.w100, styles.h100, style, thumbnailContainerStyles]}
                 isAuthTokenRequired={isAuthTokenRequired ?? false}
                 shouldDynamicallyResize={false}
@@ -255,6 +260,7 @@ function ReceiptImage({
             onError={onLoadFailure}
             resizeMode={resizeMode}
             reasonAttributes={reasonAttributes}
+            previewUri={previewUri}
         />
     );
 }

@@ -1,7 +1,7 @@
 ---
 title: Edit Expenses
 description: Learn how to edit individual expenses, and edit multiple expenses at once.
-keywords: [bulk edit expenses, edit multiple expenses Expensify, update expenses in bulk, modify multiple expenses]
+keywords: [bulk edit expenses, edit multiple expenses Expensify, update expenses in bulk, modify multiple expenses, inline editing, edit expense inline]
 internalScope: Audience is all members. Covers editing expenses individually and in bulk editing multiple expenses at once. Does not cover creating, submitting or reopening reports. 
 ---
 
@@ -26,6 +26,8 @@ Expenses on Approved reports must be unapproved before they can be edited. Expen
 3. Select the field you want to edit. 
 4. Make your update. 
 5. Click **Save**.
+
+**Tip (desktop only):** You can also edit an expense directly from the table without opening it. Click a **date**, **merchant**, **description**, **category**, **tag**, or **amount** cell to edit the value inline. Click outside the cell or press Enter to save.
 
 ---
 
