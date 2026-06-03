@@ -1,5 +1,6 @@
 import React from 'react';
 import {PolarChart} from 'victory-native';
+import {ChartDefaultTypefaceProvider} from '@components/Charts/hooks';
 import {COLOR_KEY, LABEL_KEY, VALUE_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getHierarchyID';
@@ -20,24 +21,26 @@ function VictoryChartPolar() {
             valueKey={VALUE_KEY}
             colorKey={COLOR_KEY}
         >
-            {tnode.children.map((child) => (
-                <VictoryChartCategories
-                    key={`${child.tagName ?? 'node'}-${getHierarchyID(child)}`}
-                    tnode={child}
-                />
-            ))}
-            {labelItems.map((labelItem) => (
-                <VictoryChartLabel
-                    key={`label-${labelItem.x}-${labelItem.y}`}
-                    {...labelItem}
-                />
-            ))}
-            {legendItems.map((legendItem) => (
-                <VictoryChartLegend
-                    key={`legend-${legendItem.x}-${legendItem.y}`}
-                    {...legendItem}
-                />
-            ))}
+            <ChartDefaultTypefaceProvider>
+                {tnode.children.map((child) => (
+                    <VictoryChartCategories
+                        key={`${child.tagName ?? 'node'}-${getHierarchyID(child)}`}
+                        tnode={child}
+                    />
+                ))}
+                {labelItems.map((labelItem) => (
+                    <VictoryChartLabel
+                        key={`label-${labelItem.x}-${labelItem.y}`}
+                        {...labelItem}
+                    />
+                ))}
+                {legendItems.map((legendItem) => (
+                    <VictoryChartLegend
+                        key={`legend-${legendItem.x}-${legendItem.y}`}
+                        {...legendItem}
+                    />
+                ))}
+            </ChartDefaultTypefaceProvider>
         </PolarChart>
     );
 }
