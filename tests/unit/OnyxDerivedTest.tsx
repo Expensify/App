@@ -720,6 +720,11 @@ describe('OnyxDerived', () => {
                 const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
                 expect(todos?.reportsToApprove.map((r) => r.reportID)).not.toContain(HELD_APPROVE_REPORT_ID);
             });
+
+            it('excludes an all-held report from reportsToPay', async () => {
+                const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
+                expect(todos?.reportsToPay.map((r) => r.reportID)).not.toContain(HELD_PAY_REPORT_ID);
+            });
         });
 
         describe('categorizes reports correctly', () => {
