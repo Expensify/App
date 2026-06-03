@@ -1,8 +1,6 @@
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -10,10 +8,12 @@ import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
+    getInvoiceReceiverPolicyID,
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
     isChatRoom as isChatRoomReportUtils,
@@ -28,7 +28,7 @@ import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
@@ -51,11 +51,10 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID || undefined}`);
-    const invoiceReceiverPolicyID = report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? report?.invoiceReceiver?.policyID : undefined;
+    const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(report);
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
     const isChatRoom = isChatRoomReportUtils(report);
     const isSelfDM = isSelfDMReportUtils(report);
@@ -66,7 +65,6 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true, true, reportMetadata);
     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs, betas, isReportArchived, isRestrictedToPreferredPolicy);
     const policyName = getPolicyName({report});
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const filteredOptions = moneyRequestOptions.filter(
         (
@@ -91,7 +89,9 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK) ||
         moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT);
 
-    const reportDetailsLink = report?.reportID ? `${environmentURL}/${ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, Navigation.getReportRHPActiveRoute())}` : '';
+    const reportRHPActiveRoute = Navigation.getReportRHPActiveRoute();
+    const reportDetailsPath = reportRHPActiveRoute ? createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, reportRHPActiveRoute) : createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path);
+    const reportDetailsLink = report?.reportID ? `${environmentURL}/${reportDetailsPath}` : '';
 
     let welcomeHeroText = translate('reportActionsView.sayHello');
     if (isConciergeChat) {
@@ -125,8 +125,6 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         reportDetailsLink,
         shouldShowUsePlusButtonText,
         additionalText,
-        isTrackIntentUser: !!isTrackIntentUser,
-        currentUserAccountID,
     });
 
     return (

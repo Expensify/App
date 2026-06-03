@@ -2,6 +2,7 @@ import {
     areAllTargetsAccountingCompatible,
     areAllTargetsCompatibleForAccountingPart,
     arePoliciesAccountingCompatible,
+    FEATURE_ROWS,
     getAccountingConnectionIdentity,
     getConnectionCompanyID,
     isCopyPolicySettingsPartEnabledOnSource,
@@ -147,6 +148,7 @@ describe('CopyPolicySettingsUtils', () => {
             connectedIntegrationCount: 1,
             hasWorkflowRules: true,
             hasWorkspaceRules: true,
+            codingRulesCount: 1,
             hasInvoiceConfiguration: true,
             isCollectPolicy: false,
         };
@@ -168,6 +170,12 @@ describe('CopyPolicySettingsUtils', () => {
         it('shows per diem when rates exist', () => {
             expect(isCopyPolicySettingsPartEnabledOnSource('perDiem', {...baseContext, perDiemCount: 0})).toBe(false);
             expect(isCopyPolicySettingsPartEnabledOnSource('perDiem', baseContext)).toBe(true);
+        });
+
+        it('shows merchant rules only when coding rules exist and not collect', () => {
+            expect(isCopyPolicySettingsPartEnabledOnSource('codingRules', {...baseContext, codingRulesCount: 0})).toBe(false);
+            expect(isCopyPolicySettingsPartEnabledOnSource('codingRules', {...baseContext, isCollectPolicy: true})).toBe(false);
+            expect(isCopyPolicySettingsPartEnabledOnSource('codingRules', baseContext)).toBe(true);
         });
 
         it('hides travel when the source policy does not have travel enabled', () => {
@@ -252,6 +260,26 @@ describe('CopyPolicySettingsUtils', () => {
             const targetA = createRandomPolicy(1);
             const targetB = createRandomPolicy(2);
             expect(areAllTargetsAccountingCompatible(empty, [targetA, targetB])).toBe(true);
+        });
+    });
+
+    describe('FEATURE_ROWS', () => {
+        it('has all copy-settings parts mapped to their respective translation keys', () => {
+            const parts = FEATURE_ROWS.map((row) => row.part);
+            expect(parts).toContain('overview');
+            expect(parts).toContain('members');
+            expect(parts).toContain('reports');
+            expect(parts).toContain('accounting');
+            expect(parts).toContain('categories');
+            expect(parts).toContain('tags');
+            expect(parts).toContain('taxes');
+            expect(parts).toContain('workflows');
+            expect(parts).toContain('rules');
+            expect(parts).toContain('codingRules');
+            expect(parts).toContain('distanceRates');
+            expect(parts).toContain('perDiem');
+            expect(parts).toContain('invoices');
+            expect(parts).toContain('travel');
         });
     });
 });

@@ -37,7 +37,7 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route}: WorkspaceComp
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
