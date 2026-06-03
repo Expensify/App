@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {useAmbientTRenderEngine} from 'react-native-render-html';
 import type {TNode} from 'react-native-render-html';
 import {Pie} from 'victory-native';
@@ -22,14 +22,11 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
     const size = radius ? radius * 2 : undefined;
     const labelRadius = tnode.attributes.labelradius !== undefined ? Number(parseAttribute(tnode.attributes.labelradius)) : undefined;
 
-    const pieLabelConfig = useMemo(() => {
-        const labelComponentNode = parseComponent(tnode.attributes.labelcomponent, renderEngine, 'victorylabel');
-        const labelItemTemplate = labelComponentNode ? parseVictoryLabelNode(labelComponentNode).labelItems?.at(0) : undefined;
-        const dataLabels = Object.values(data).map((entry) => (entry as PolarChartData).label);
-        const labels = parseAttribute<string[]>(tnode.attributes.labels);
-
-        return {labelItemTemplate, dataLabels, labels};
-    }, [data, renderEngine, tnode.attributes.labelcomponent, tnode.attributes.labels]);
+    const labelComponentNode = parseComponent(tnode.attributes.labelcomponent, renderEngine, 'victorylabel');
+    const labelItemTemplate = labelComponentNode ? parseVictoryLabelNode(labelComponentNode).labelItems?.at(0) : undefined;
+    const dataLabels = Object.values(data).map((entry) => (entry as PolarChartData).label);
+    const labels = parseAttribute<string[]>(tnode.attributes.labels);
+    const pieLabelConfig = {labelItemTemplate, dataLabels, labels};
 
     return (
         <Pie.Chart

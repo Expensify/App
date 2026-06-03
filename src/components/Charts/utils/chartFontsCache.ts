@@ -3,6 +3,7 @@ import {Skia} from '@shopify/react-native-skia';
 import {Image} from 'react-native';
 import type {ChartFontsValue} from '@components/Charts/types/chartFontsTypes';
 import type {ChartDefaultTypeface, ChartSkiaTypefaceKey} from '@components/Charts/types/chartSkiaTypefaceTypes';
+import Log from '@libs/Log';
 import {CHART_FONT_MANAGER_FAMILIES, CHART_SKIA_TYPEFACE_ASSETS} from './chartFontAssets';
 import createChartFontsValue from './createChartFontsValue';
 
@@ -108,9 +109,13 @@ function loadChartFontsOnce(): Promise<ChartFontsValue> {
                 notifyChartFontLoadListeners();
                 return fonts;
             })
-            .catch((error) => {
+            .catch((error: unknown) => {
+                Log.hmmm('Chart fonts failed to load', {
+                    error: error instanceof Error ? error.message : String(error),
+                });
                 loadPromise = null;
-                throw error;
+                notifyChartFontLoadListeners();
+                return EMPTY_CHART_FONTS;
             });
     }
 

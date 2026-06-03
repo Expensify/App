@@ -6,9 +6,7 @@ function useChartFonts(): ChartFontsValue {
     const fonts = useSyncExternalStore(subscribeToChartFonts, getChartFontsSnapshot, getChartFontsSnapshot);
 
     useEffect(() => {
-        loadChartFontsOnce().catch(() => {
-            // Chart consumers null-guard fontMgr and typefaces until load succeeds.
-        });
+        loadChartFontsOnce();
     }, []);
 
     return fonts;
