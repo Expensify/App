@@ -12,7 +12,11 @@ function normalizeFontStyle(fontStyle: string | undefined): ChartLabelFontStyle 
 }
 
 function normalizeFontWeight(fontWeight: string | number | undefined): ChartLabelFontWeight {
-    return Number(fontWeight) === 700 ? 'bold' : 'normal';
+    if (fontWeight === 'bold' || Number(fontWeight) === 700) {
+        return 'bold';
+    }
+
+    return 'normal';
 }
 
 function fontWeightMatches(definitionWeight: TextStyle['fontWeight'], labelWeight: ChartLabelFontWeight): boolean {
@@ -32,11 +36,14 @@ function getChartSkiaTypefaceKey(fontFamily: string | undefined, fontStyle: Char
         return fontStyle === 'italic' ? 'EXP_NEW_KANSAS_MEDIUM_ITALIC' : 'EXP_NEW_KANSAS_MEDIUM';
     }
 
-    const matchingEntry = (Object.entries(singleFontFamily) as Array<[ChartSkiaTypefaceKey, (typeof singleFontFamily)[ChartSkiaTypefaceKey]]>).find(
-        ([, definition]) => definition.fontFamily === resolvedFontFamily && normalizeFontStyle(definition.fontStyle) === fontStyle && fontWeightMatches(definition.fontWeight, fontWeight),
-    );
+    const matchingKey = (Object.keys(singleFontFamily) as Array<keyof typeof singleFontFamily>)
+        .filter((key): key is ChartSkiaTypefaceKey => key !== 'SYSTEM')
+        .find((key) => {
+            const definition = singleFontFamily[key];
+            return definition.fontFamily === resolvedFontFamily && normalizeFontStyle(definition.fontStyle) === fontStyle && fontWeightMatches(definition.fontWeight, fontWeight);
+        });
 
-    return matchingEntry?.[0] ?? 'EXP_NEUE';
+    return matchingKey ?? 'EXP_NEUE';
 }
 
 function getChartSkiaTypeface(
