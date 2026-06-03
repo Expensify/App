@@ -983,7 +983,7 @@ describe('actions/Domain', () => {
             const memberAccountIDs = ['100', '200', '300'];
             setDomainMembersSelectedForMove(memberAccountIDs);
             await TestHelper.getOnyxData({
-                key: ONYXKEYS.DOMAIN_MEMBERS_SELECTED_FOR_MOVE,
+                key: ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE,
                 waitForCollectionCallback: false,
                 callback: (value) => {
                     expect(value).toEqual(memberAccountIDs);
@@ -994,7 +994,7 @@ describe('actions/Domain', () => {
         it('sets an empty array when called with empty array', async () => {
             setDomainMembersSelectedForMove([]);
             await TestHelper.getOnyxData({
-                key: ONYXKEYS.DOMAIN_MEMBERS_SELECTED_FOR_MOVE,
+                key: ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE,
                 waitForCollectionCallback: false,
                 callback: (value) => {
                     expect(value).toEqual([]);
@@ -1003,10 +1003,10 @@ describe('actions/Domain', () => {
         });
 
         it('clearDomainMembersSelectedForMove resets the selection to an empty array', async () => {
-            await Onyx.set(ONYXKEYS.DOMAIN_MEMBERS_SELECTED_FOR_MOVE, ['100', '200']);
+            await Onyx.set(ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE, ['100', '200']);
             clearDomainMembersSelectedForMove();
             await TestHelper.getOnyxData({
-                key: ONYXKEYS.DOMAIN_MEMBERS_SELECTED_FOR_MOVE,
+                key: ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE,
                 waitForCollectionCallback: false,
                 callback: (value) => {
                     expect(value).toEqual([]);
