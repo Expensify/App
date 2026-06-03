@@ -79,6 +79,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import HoveredDistanceEReceipt from './HoveredDistanceEReceipt';
 import {isElementHovered, resetButtonHoverState} from './receiptHoverUtils';
 import ReportActionItemImage from './ReportActionItemImage';
 
@@ -172,6 +173,7 @@ function MoneyRequestReceiptView({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${moneyRequestReport?.policyID}`);
 
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
+    const isMapDistanceRequest = !!transaction && isDistanceRequest && !isManualDistanceRequest(transaction);
     const hasReceipt = hasReceiptTransactionUtils(updatedTransaction ?? transaction);
     const isTransactionScanning = isScanning(updatedTransaction ?? transaction);
     const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
@@ -504,8 +506,6 @@ function MoneyRequestReceiptView({
 
     const showBorderlessLoading = isLoading && fillSpace;
 
-    const isMapDistanceRequest = !!transaction && isDistanceRequest && !isManualDistanceRequest(transaction);
-
     const canShowReceiptActions = hasReceipt && !isLoading && isEditable && !isMapDistanceRequest && !mergeTransactionID;
     const receiptPendingAction = isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt');
     const isReceiptOfflinePending = isOffline && !!receiptPendingAction;
@@ -623,23 +623,28 @@ function MoneyRequestReceiptView({
                                     isEnabled={canZoomReceipt}
                                     hoverContainerRef={receiptContainerRef}
                                 >
-                                    <ReportActionItemImage
-                                        shouldUseThumbnailImage={!fillSpace}
-                                        shouldUseFullHeight={fillSpace}
-                                        thumbnail={receiptURIs?.thumbnail}
-                                        fileExtension={receiptURIs?.fileExtension}
-                                        isThumbnail={receiptURIs?.isThumbnail}
-                                        image={receiptURIs?.image}
-                                        isLocalFile={receiptURIs?.isLocalFile}
-                                        filename={receiptURIs?.filename}
-                                        transaction={updatedTransaction ?? transaction}
-                                        enablePreviewModal
-                                        readonly={readonly || !canEditReceipt}
-                                        mergeTransactionID={mergeTransactionID}
-                                        report={report}
-                                        onLoad={() => setIsLoading(false)}
-                                        onLoadFailure={() => setIsLoading(false)}
-                                    />
+                                    <>
+                                        <ReportActionItemImage
+                                            shouldUseThumbnailImage={!fillSpace}
+                                            shouldUseFullHeight={fillSpace}
+                                            thumbnail={receiptURIs?.thumbnail}
+                                            fileExtension={receiptURIs?.fileExtension}
+                                            isThumbnail={receiptURIs?.isThumbnail}
+                                            image={receiptURIs?.image}
+                                            isLocalFile={receiptURIs?.isLocalFile}
+                                            filename={receiptURIs?.filename}
+                                            transaction={updatedTransaction ?? transaction}
+                                            enablePreviewModal
+                                            readonly={readonly || !canEditReceipt}
+                                            mergeTransactionID={mergeTransactionID}
+                                            report={report}
+                                            onLoad={() => setIsLoading(false)}
+                                            onLoadFailure={() => setIsLoading(false)}
+                                        />
+                                        {/* On hover, a map distance receipt overlays the full e-receipt (map + amount + waypoints), scaled to fit the
+                                            box without resizing it, matching Expensify Classic. The map underneath keeps the box at its resting size. */}
+                                        {isMapDistanceRequest && hovered && !!transactionForReceipt && <HoveredDistanceEReceipt transaction={transactionForReceipt} />}
+                                    </>
                                 </ReceiptHoverZoom>
                             </View>
                             {canShowReceiptActions && (
