@@ -13,14 +13,18 @@ import MoneyRequestReportPreview from '@components/ReportActionItem/MoneyRequest
 import type {MoneyRequestReportPreviewProps} from '@components/ReportActionItem/MoneyRequestReportPreview/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
+import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+import * as ReportActions from '@libs/actions/Report';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {getFormattedCreated, isManagedCardTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
 import {getReportName} from '@src/libs/ReportNameUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Report, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import {actionR14932 as mockAction} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
@@ -65,6 +69,45 @@ jest.mock('@src/hooks/useReportWithTransactionsAndViolations', () => ({
     __esModule: true,
     default: (...args: Parameters<typeof mockUseReportWithTransactionsAndViolations>) => mockUseReportWithTransactionsAndViolations(...args),
 }));
+
+// Lets a single test force the narrow (mobile) layout. When left undefined every other test
+// runs the real hook unchanged, so the existing wide-layout tests keep their behavior.
+let mockResponsiveLayoutOverride: ResponsiveLayoutResult | undefined;
+jest.mock('@hooks/useResponsiveLayout', () => {
+    const actual = jest.requireActual<{default: () => ResponsiveLayoutResult}>('@hooks/useResponsiveLayout');
+    return {
+        __esModule: true,
+        default: () => mockResponsiveLayoutOverride ?? actual.default(),
+    };
+});
+
+const narrowResponsiveLayout: ResponsiveLayoutResult = {
+    shouldUseNarrowLayout: true,
+    isSmallScreenWidth: true,
+    isInNarrowPaneModal: false,
+    isExtraSmallScreenHeight: false,
+    isMediumScreenWidth: false,
+    isLargeScreenWidth: false,
+    isExtraLargeScreenWidth: false,
+    isExtraSmallScreenWidth: false,
+    isSmallScreen: true,
+    onboardingIsMediumOrLargerScreenWidth: false,
+    isInLandscapeMode: false,
+};
+
+const wideResponsiveLayout: ResponsiveLayoutResult = {
+    shouldUseNarrowLayout: false,
+    isSmallScreenWidth: false,
+    isInNarrowPaneModal: false,
+    isExtraSmallScreenHeight: false,
+    isMediumScreenWidth: false,
+    isLargeScreenWidth: true,
+    isExtraLargeScreenWidth: false,
+    isExtraSmallScreenWidth: false,
+    isSmallScreen: false,
+    onboardingIsMediumOrLargerScreenWidth: true,
+    isInLandscapeMode: false,
+};
 
 const getIOUActionForReportID = (reportID: string | undefined, transactionID: string | undefined) => {
     if (!reportID || !transactionID) {
@@ -289,5 +332,83 @@ describe('MoneyRequestReportPreview', () => {
         });
 
         expect(screen.queryByText(TestHelper.translateLocal('search.moneyRequestReport.emptyStateTitle'))).not.toBeOnTheScreen();
+    });
+
+    describe('pressing a transaction in the carousel', () => {
+        const navigateSpy = jest.spyOn(Navigation, 'navigate');
+
+        // Give every transaction its own thread report so the assertion proves the *pressed* card
+        // drives navigation, instead of every card sharing one parent-report handler.
+        const buildActionWithThread = (reportID: string | undefined, transactionID: string | undefined) => {
+            if (!reportID || !transactionID) {
+                return undefined;
+            }
+            return {...mockAction, childReportID: `thread_${transactionID}`, originalMessage: {...mockAction, IOUTransactionID: transactionID}};
+        };
+
+        const renderAndPopulateCarousel = async () => {
+            renderPage({});
+            await waitForBatchedUpdatesWithAct();
+            setCurrentWidth();
+            await act(async () => {
+                await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, mockOnyxTransactions);
+                await waitForBatchedUpdatesWithAct();
+            });
+            await waitForBatchedUpdatesWithAct();
+        };
+
+        const pressSecondTransaction = async () => {
+            const {transactionDisplayAmount} = getTransactionDisplayAmountAndHeaderText(mockSecondTransaction);
+            fireEvent.press(screen.getByText(transactionDisplayAmount));
+            await waitForBatchedUpdatesWithAct();
+        };
+
+        beforeEach(() => {
+            navigateSpy.mockImplementation(() => {});
+            jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue('');
+        });
+
+        afterEach(() => {
+            mockResponsiveLayoutOverride = undefined;
+        });
+
+        it('opens the pressed expense in the RHP on wide layouts', async () => {
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+
+            expect(navigateSpy).toHaveBeenCalledTimes(1);
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: ''}));
+        });
+
+        it('pushes the report then the expense on narrow layouts so back returns to the report', async () => {
+            mockResponsiveLayoutOverride = narrowResponsiveLayout;
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+
+            expect(navigateSpy).toHaveBeenCalledTimes(2);
+            expect(navigateSpy).toHaveBeenNthCalledWith(1, ROUTES.REPORT_WITH_ID.getRoute(mockIOUReport.reportID, undefined, undefined, ''));
+            expect(navigateSpy).toHaveBeenNthCalledWith(2, ROUTES.REPORT_WITH_ID.getRoute(`thread_${mockSecondTransactionID}`, undefined, undefined, ''));
+        });
+
+        it('falls back to opening the parent report when the pressed expense has no thread', async () => {
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            jest.spyOn(ReportActions, 'createTransactionThreadReport').mockReturnValue(undefined);
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation((reportID, transactionID) => {
+                if (!reportID || !transactionID) {
+                    return undefined;
+                }
+                return {...mockAction, childReportID: undefined, originalMessage: {...mockAction, IOUTransactionID: transactionID}};
+            });
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: mockIOUReport.reportID, backTo: ''}));
+        });
     });
 });
