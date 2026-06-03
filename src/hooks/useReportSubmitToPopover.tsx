@@ -4,6 +4,7 @@ import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getSubmitToEmail} from '@libs/PolicyUtils';
 import ReportSubmitToContent from '@pages/ReportSubmitToContent';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -62,6 +63,8 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const [willAlertModalBecomeVisible] = useOnyx(ONYXKEYS.MODAL, {selector: willAlertModalBecomeVisibleSelector});
+
+    const submitToContentKey = useMemo(() => `${reportID ?? ''}:${getSubmitToEmail(policy, report)}`, [reportID, policy, report]);
 
     const consumeIgnoreNextSearchSubmitPress = useCallback(() => {
         if (!ignoreNextSearchSubmitPressRef.current) {
@@ -158,6 +161,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
                     style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, styles.pt4]}
                 >
                     <ReportSubmitToContent
+                        key={submitToContentKey}
                         report={report}
                         policy={policy}
                         isLoadingReportData={isLoadingReportData}
@@ -187,6 +191,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
             handleCombinedSubmitSuccess,
             isSearchSubmitFlow,
             handleSearchSubmitWithManagerEmail,
+            submitToContentKey,
         ],
     );
 
