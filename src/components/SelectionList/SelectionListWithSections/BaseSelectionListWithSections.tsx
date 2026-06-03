@@ -2,7 +2,6 @@ import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
 import React, {useImperativeHandle, useRef} from 'react';
-import type {TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
@@ -13,19 +12,16 @@ import useSearchFocusSync from '@components/SelectionList/hooks/useSearchFocusSy
 import useSelectedItemFocusSync from '@components/SelectionList/hooks/useSelectedItemFocusSync';
 import useSelectionListKeyboardFocus from '@components/SelectionList/hooks/useSelectionListKeyboardFocus';
 import useSelectionListScroll from '@components/SelectionList/hooks/useSelectionListScroll';
+import useSelectionListShortcuts from '@components/SelectionList/hooks/useSelectionListShortcuts';
+import useSelectionListTextInput from '@components/SelectionList/hooks/useSelectionListTextInput';
 import ListItemRenderer from '@components/SelectionList/ListItem/ListItemRenderer';
-import type {InteractiveElementRoles} from '@components/SelectionList/types';
 import {getListboxRole} from '@components/SelectionList/utils/getListboxRole';
 import Text from '@components/Text';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
-import useActiveElementRole from '@hooks/useActiveElementRole';
-import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSingleExecution from '@hooks/useSingleExecution';
-import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
@@ -87,9 +83,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const isScreenFocused = useIsFocused();
     const scrollEnabled = useScrollEnabled();
     const {singleExecution} = useSingleExecution();
-    const innerTextInputRef = useRef<BaseTextInputRef | null>(null);
-    const isTextInputFocusedRef = useRef<boolean>(false);
-    const activeElementRole = useActiveElementRole();
     const {isKeyboardShown} = useKeyboardState();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const triggerScrollEvent = useScrollEventEmitter();
@@ -113,6 +106,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             listRef,
             setShouldDisableHoverStyle,
         });
+
+    const {innerTextInputRef, isTextInputFocusedRef, focusTextInput, textInputKeyPress} = useSelectionListTextInput(setHasKeyBeenPressed);
 
     const getFocusedItem = (): TItem | undefined => {
         if (focusedIndex < 0 || focusedIndex >= flattenedData.length) {
@@ -143,8 +138,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         }
         onSelectRow(item);
 
-        if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && innerTextInputRef.current) {
-            innerTextInputRef.current.focus();
+        if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow) {
+            focusTextInput();
         }
     };
 
@@ -154,10 +149,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             return;
         }
         selectRow(focusedItem);
-    };
-
-    const focusTextInput = () => {
-        innerTextInputRef.current?.focus();
     };
 
     const clearInputAfterSelect = () => {
@@ -194,41 +185,18 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         [focusTextInput, scrollToIndex, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, getFocusedItem],
     );
 
-    // Disable `Enter` shortcut if the active element is a button, checkbox, or switch
-    const disableEnterShortcut = activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX, CONST.ROLE.SWITCH].includes(activeElementRole as InteractiveElementRoles);
     const syncedSearchValue = searchValueForFocusSync ?? textInputOptions?.value;
 
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedItem, {
-        captureOnInputs: true,
-        shouldBubble: itemsCount > 0 && !getFocusedItem(),
+    useSelectionListShortcuts({
+        selectFocusedItem,
+        getFocusedOption: getFocusedItem,
+        confirmButtonOptions,
+        isActive: isScreenFocused,
+        focusedIndex,
+        disableKeyboardShortcuts,
         shouldStopPropagation,
-        isActive: !disableKeyboardShortcuts && isScreenFocused && focusedIndex >= 0 && !disableEnterShortcut,
+        shouldBubble: itemsCount > 0 && !getFocusedItem(),
     });
-
-    useKeyboardShortcut(
-        CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER,
-        (e) => {
-            if (confirmButtonOptions?.onConfirm) {
-                const focusedOption = getFocusedItem();
-                confirmButtonOptions?.onConfirm(e, focusedOption);
-                return;
-            }
-            selectFocusedItem();
-        },
-        {
-            captureOnInputs: true,
-            shouldBubble: itemsCount > 0 && !getFocusedItem(),
-            isActive: !disableKeyboardShortcuts && isScreenFocused && !confirmButtonOptions?.isDisabled,
-        },
-    );
-
-    const textInputKeyPress = (event: TextInputKeyPressEvent) => {
-        if (event.nativeEvent.key !== CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
-            return;
-        }
-        setHasKeyBeenPressed();
-        focusedItemRef?.focus();
-    };
 
     useSelectedItemFocusSync({
         data: flattenedData,
