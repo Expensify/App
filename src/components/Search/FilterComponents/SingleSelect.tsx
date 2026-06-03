@@ -11,6 +11,7 @@ import ListFilterWrapper from './ListFilterViewWrapper';
 type SingleSelectItem<T> = {
     text: string;
     value: T;
+    searchableText?: string;
 };
 
 type SingleSelectProps<T> = {
@@ -62,11 +63,13 @@ function SingleSelect<T extends string>({
     const {options, noResultsFound} = (() => {
         // If the selection is searchable, we push the initially selected item into its own section and display it at the top
         if (isSearchable) {
-            const initiallySelectedOption = value?.text.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
-                ? [{text: value.text, keyForList: value.value, isSelected: selectedItem?.value === value.value}]
-                : [];
+            const searchLower = debouncedSearchTerm.toLowerCase();
+            const initiallySelectedOption =
+                value?.text.toLowerCase().includes(searchLower) || value?.searchableText?.toLowerCase().includes(searchLower)
+                    ? [{text: value.text, keyForList: value.value, isSelected: selectedItem?.value === value.value}]
+                    : [];
             const remainingOptions = items
-                .filter((item) => item.value !== value?.value && item.text.toLowerCase().includes(debouncedSearchTerm.toLowerCase()))
+                .filter((item) => item.value !== value?.value && (item.text.toLowerCase().includes(searchLower) || item.searchableText?.toLowerCase().includes(searchLower)))
                 .map((item) => ({
                     text: item.text,
                     keyForList: item.value,

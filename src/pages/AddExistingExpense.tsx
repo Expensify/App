@@ -424,7 +424,10 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
                             {
                                 buttonText: translate('iou.createExpense'),
                                 buttonAction: () => {
-                                    if (report?.policyID && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+                                    if (
+                                        report?.policyID &&
+                                        shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)
+                                    ) {
                                         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(report.policyID));
                                         return;
                                     }
