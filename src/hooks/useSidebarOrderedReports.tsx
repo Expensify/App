@@ -1,8 +1,6 @@
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
-import {getTransactionThreadReportID} from '@libs/MergeTransactionUtils';
-import {isOneTransactionReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
@@ -125,13 +123,7 @@ function SidebarOrderedReportsContextProvider({
             }
         }
         if (transactionsUpdates) {
-            // We need to select the report linked to a transaction, to properly recalculate getReceiptUploadErrorReason, which is the expense report if it is isOneTransactionReport
-            // or the transaction thread report if it is otherwise.
-            for (const key of Object.values(transactionsUpdates ?? {}).map((transaction) =>
-                transaction?.reportID && isOneTransactionReport(chatReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`])
-                    ? `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`
-                    : `${ONYXKEYS.COLLECTION.REPORT}${getTransactionThreadReportID(transaction)}`,
-            )) {
+            for (const key of Object.values(transactionsUpdates ?? {}).map((transaction) => `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`)) {
                 reportsToUpdate.add(key);
             }
         }
