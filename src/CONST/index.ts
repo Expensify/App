@@ -378,6 +378,10 @@ const CONST = {
         INFINITE_SESSION: 'infiniteSession',
     },
 
+    // The maximum time a short-lived auth token sign-in is expected to take. After this window we treat the
+    // in-progress flag as stale so a sign-in that never resolves can't block re-authentication indefinitely.
+    SHORT_LIVED_AUTH_TOKEN_EXPIRATION_TIME_MS: 60 * 1000,
+
     AVATAR_MAX_ATTACHMENT_SIZE: 6291456,
 
     AVATAR_ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'],

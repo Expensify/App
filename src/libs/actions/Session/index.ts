@@ -172,6 +172,7 @@ function getShortLivedLoginParams(isSupportAuthTokenUsed = false, isSAML = false
                 signedInWithShortLivedAuthToken: true,
                 signedInWithSAML: isSAML,
                 isAuthenticatingWithShortLivedToken: true,
+                shortLivedAuthTokenAuthStartTime: Date.now(),
                 isSupportAuthTokenUsed,
             },
         },
@@ -194,6 +195,7 @@ function getShortLivedLoginParams(isSupportAuthTokenUsed = false, isSAML = false
                 signedInWithSAML: isSAML,
                 isSupportAuthTokenUsed: null,
                 isAuthenticatingWithShortLivedToken: false,
+                shortLivedAuthTokenAuthStartTime: null,
             },
         },
     ];

@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const NEW_PARTNER_USER_ID_PREFIX = 'expensify.cash-';
@@ -122,4 +123,21 @@ function useIsAgentAccount(): boolean {
     return isAgentEmail(sessionEmail);
 }
 
-export {isLoggingInAsNewUser, didUserLogInDuringSession, resetDidUserLogInDuringSession, checkIfShouldUseNewPartnerName, isLoggingInAsDelegate, isAgentEmail, useIsAgentAccount};
+/**
+ * Determine whether a short-lived token sign-in is actively in progress. The in-progress flag is only honored within a
+ * recent window so a sign-in that never resolves (e.g. interrupted by a reload) can't block re-authentication forever.
+ */
+function isShortLivedTokenAuthInProgress(isAuthenticatingWithShortLivedToken?: boolean, shortLivedAuthTokenAuthStartTime?: number): boolean {
+    return !!isAuthenticatingWithShortLivedToken && Date.now() - (shortLivedAuthTokenAuthStartTime ?? 0) < CONST.SHORT_LIVED_AUTH_TOKEN_EXPIRATION_TIME_MS;
+}
+
+export {
+    isLoggingInAsNewUser,
+    didUserLogInDuringSession,
+    resetDidUserLogInDuringSession,
+    checkIfShouldUseNewPartnerName,
+    isLoggingInAsDelegate,
+    isAgentEmail,
+    useIsAgentAccount,
+    isShortLivedTokenAuthInProgress,
+};

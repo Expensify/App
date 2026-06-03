@@ -14,7 +14,7 @@ import Log from './Log';
 import {post} from './Network';
 import {getCredentials, hasReadRequiredDataFromStorage, setAuthToken, setIsAuthenticating} from './Network/NetworkStore';
 import requireParameters from './requireParameters';
-import {checkIfShouldUseNewPartnerName} from './SessionUtils';
+import {checkIfShouldUseNewPartnerName, isShortLivedTokenAuthInProgress} from './SessionUtils';
 import trackAuthenticationError from './telemetry/trackAuthenticationError';
 
 type Parameters = {
@@ -29,6 +29,7 @@ type Parameters = {
 };
 
 let isAuthenticatingWithShortLivedToken = false;
+let shortLivedAuthTokenAuthStartTime = 0;
 let isSupportAuthTokenUsed = false;
 
 // These session values are only used to help the user authentication with the API.
@@ -37,6 +38,7 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         isAuthenticatingWithShortLivedToken = !!value?.isAuthenticatingWithShortLivedToken;
+        shortLivedAuthTokenAuthStartTime = value?.shortLivedAuthTokenAuthStartTime ?? 0;
         isSupportAuthTokenUsed = !!value?.isSupportAuthTokenUsed;
 
         Sentry.setUser({
@@ -107,8 +109,8 @@ function reauthenticate(command = ''): Promise<boolean> {
         command,
     });
 
-    // Prevent re-authentication if authentication with shortLiveToken is in progress
-    if (isAuthenticatingWithShortLivedToken) {
+    // Prevent re-authentication if authentication with shortLiveToken is in progress.
+    if (isShortLivedTokenAuthInProgress(isAuthenticatingWithShortLivedToken, shortLivedAuthTokenAuthStartTime)) {
         Log.hmmm('[Reauthenticate] Authentication with shortLivedToken is in progress. Re-authentication aborted.', {
             command,
             isSupportAuthTokenUsed,

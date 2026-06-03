@@ -251,6 +251,90 @@ describe('NetworkTests', () => {
             });
     });
 
+    test('does not reauthenticate on 407 while a recent short-lived token sign-in is in progress', () => {
+        const TEST_USER_LOGIN = 'test@testguy.com';
+        const TEST_USER_ACCOUNT_ID = 1;
+
+        return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
+            .then(() =>
+                // Mark a short-lived token sign-in as just started
+                Onyx.merge(ONYXKEYS.SESSION, {
+                    isAuthenticatingWithShortLivedToken: true,
+                    shortLivedAuthTokenAuthStartTime: Date.now(),
+                }),
+            )
+            .then(waitForBatchedUpdates)
+            .then(() => {
+                // Every request returns an expired session
+                const mockedXhr = jest.fn().mockImplementation(() =>
+                    Promise.resolve({
+                        jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
+                    }),
+                );
+                HttpUtils.xhr = mockedXhr;
+
+                PersonalDetails.openPublicProfilePage(TEST_USER_ACCOUNT_ID);
+                return waitForBatchedUpdates();
+            })
+            .then(() => {
+                // The request was actually made and got the expired session, so the 407 path was exercised
+                const callsToOpenPublicProfilePage = (HttpUtils.xhr as jest.Mock).mock.calls.filter(([command]) => command === 'OpenPublicProfilePage');
+                expect(callsToOpenPublicProfilePage.length).toBe(1);
+
+                // Re-authentication is suppressed while the in-progress flag is recent, so Authenticate is never called
+                const callsToAuthenticate = (HttpUtils.xhr as jest.Mock).mock.calls.filter(([command]) => command === 'Authenticate');
+                expect(callsToAuthenticate.length).toBe(0);
+            });
+    });
+
+    test('reauthenticates on 407 when the short-lived token sign-in flag is stale', () => {
+        const TEST_USER_LOGIN = 'test@testguy.com';
+        const TEST_USER_ACCOUNT_ID = 1;
+        const NEW_AUTH_TOKEN = 'qwerty12345';
+
+        return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
+            .then(() =>
+                // Mark a short-lived token sign-in as in progress, but started long enough ago to be considered stale
+                Onyx.merge(ONYXKEYS.SESSION, {
+                    isAuthenticatingWithShortLivedToken: true,
+                    shortLivedAuthTokenAuthStartTime: Date.now() - (CONST.SHORT_LIVED_AUTH_TOKEN_EXPIRATION_TIME_MS + 1000),
+                }),
+            )
+            .then(waitForBatchedUpdates)
+            .then(() => {
+                const mockedXhr = jest
+                    .fn()
+                    // The expired session triggers reauthentication
+                    .mockImplementationOnce(() =>
+                        Promise.resolve({
+                            jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
+                        }),
+                    )
+                    // Authenticate succeeds
+                    .mockImplementationOnce(() =>
+                        Promise.resolve({
+                            jsonCode: CONST.JSON_CODE.SUCCESS,
+                            authToken: NEW_AUTH_TOKEN,
+                        }),
+                    )
+                    // Any follow-up requests (e.g. the reconnect after re-authentication) succeed
+                    .mockImplementation(() =>
+                        Promise.resolve({
+                            jsonCode: CONST.JSON_CODE.SUCCESS,
+                        }),
+                    );
+                HttpUtils.xhr = mockedXhr;
+
+                PersonalDetails.openPublicProfilePage(TEST_USER_ACCOUNT_ID);
+                return waitForBatchedUpdates();
+            })
+            .then(() => {
+                // The stale flag is ignored, so the expired token triggers a single reauthentication
+                const callsToAuthenticate = (HttpUtils.xhr as jest.Mock).mock.calls.filter(([command]) => command === 'Authenticate');
+                expect(callsToAuthenticate.length).toBe(1);
+            });
+    });
+
     test('Request will not run until credentials are read from Onyx', () => {
         // In order to test an scenario where the auth token and credentials hasn't been read from storage we reset hasReadRequiredDataFromStorage
         // and set the session and credentials to "ready" the Network

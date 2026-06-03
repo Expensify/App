@@ -40,6 +40,9 @@ type Session = {
     /** Indicates whether the user is re-authenticating with shortLivedToken */
     isAuthenticatingWithShortLivedToken?: boolean;
 
+    /** Timestamp (ms) of when the short-lived token sign-in started, used to expire a stale in-progress flag */
+    shortLivedAuthTokenAuthStartTime?: number;
+
     /** User signed in with SAML */
     signedInWithSAML?: boolean;
 

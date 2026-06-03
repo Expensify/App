@@ -5,6 +5,7 @@ import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {isAuthenticating as isAuthenticatingNetworkStore} from '@libs/Network/NetworkStore';
 import {getIsOffline} from '@libs/NetworkState';
+import {isShortLivedTokenAuthInProgress} from '@libs/SessionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Network, Session} from '@src/types/onyx';
 import captureRequestsQueueState from './RequestsQueuesState';
@@ -54,7 +55,8 @@ function captureNavigationState(): NavigationStateInfo {
 function captureSessionState(): SessionStateInfo {
     // Check multiple authentication states to get complete picture
     const isSessionLoading = !!currentSession?.loading;
-    const isAuthenticatingWithShortLivedToken = !!currentSession?.isAuthenticatingWithShortLivedToken;
+    // Report the effective state the re-authentication guard sees: a stale in-progress flag is treated as not authenticating.
+    const isAuthenticatingWithShortLivedToken = isShortLivedTokenAuthInProgress(currentSession?.isAuthenticatingWithShortLivedToken, currentSession?.shortLivedAuthTokenAuthStartTime);
     const isAuthenticatingFromNetworkStore = isAuthenticatingNetworkStore();
 
     return {
