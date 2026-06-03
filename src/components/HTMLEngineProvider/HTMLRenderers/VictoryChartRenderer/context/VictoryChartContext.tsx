@@ -4,7 +4,7 @@ import type {ChartDataPoint} from '@components/Charts/types';
 import {useChartDefaultTypeface} from '@components/Charts/hooks';
 import {CHART_TYPE, LABEL_KEY, X_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import processVictoryChartTree from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/processVictoryChartTree';
-import type {BarSeriesConfig, ChartType, ProcessNodeResult, YKey} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import type {BarGroupLayout, BarSeriesConfig, ChartType, ProcessNodeResult, YKey} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import parseStyles from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseStyles';
 
 type VictoryChartContextValue = {
@@ -23,6 +23,7 @@ type VictoryChartContextValue = {
     legendItems: ProcessNodeResult['legendItems'];
     barYKeys: YKey[];
     barSeriesConfig: Partial<Record<YKey, BarSeriesConfig>>;
+    barGroupLayouts: BarGroupLayout[];
     tooltipData: ChartDataPoint[];
     tooltipKeyToIndex: Record<string, number>;
     chartContentStyles: ReturnType<typeof parseStyles>['nodeStyles'];
@@ -32,7 +33,7 @@ type VictoryChartContextValue = {
 
 const VictoryChartContext = createContext<VictoryChartContextValue | null>(null);
 
-function buildTooltipLookup(entries: ProcessNodeResult['barTooltipEntries']): {tooltipData: ChartDataPoint[]; tooltipKeyToIndex: Record<string, number>} {
+function buildBarTooltipLookup(entries: ProcessNodeResult['barTooltipEntries']): {tooltipData: ChartDataPoint[]; tooltipKeyToIndex: Record<string, number>} {
     const tooltipData: ChartDataPoint[] = entries.map((entry) => ({
         label: entry.label,
         total: entry.total,
@@ -48,6 +49,14 @@ function buildTooltipLookup(entries: ProcessNodeResult['barTooltipEntries']): {t
     });
 
     return {tooltipData, tooltipKeyToIndex};
+}
+
+function buildPieTooltipData(entries: ProcessNodeResult['pieTooltipEntries']): ChartDataPoint[] {
+    return entries.map((entry) => ({
+        label: entry.label,
+        total: entry.total,
+        isLabelOnly: entry.isLabelOnly,
+    }));
 }
 
 /**
@@ -72,9 +81,20 @@ function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.
         barTooltipEntries,
         barYKeys,
         barSeriesConfig,
+        barGroupLayouts,
+        pieTooltipEntries,
     } = processVictoryChartTree(tnode, regularTypeface, null);
     const {nodeStyles: chartContentStyles, parentNodeStyles: chartContainerStyles} = parseStyles(tnode);
-    const {tooltipData, tooltipKeyToIndex} = useMemo(() => buildTooltipLookup(barTooltipEntries), [barTooltipEntries]);
+    const {tooltipData, tooltipKeyToIndex} = useMemo(() => {
+        if (barTooltipEntries.length > 0) {
+            return buildBarTooltipLookup(barTooltipEntries);
+        }
+
+        return {
+            tooltipData: buildPieTooltipData(pieTooltipEntries),
+            tooltipKeyToIndex: {},
+        };
+    }, [barTooltipEntries, pieTooltipEntries]);
 
     const hasCartesianData = Object.values(data).some((entry) => X_KEY in entry);
     const hasPolarData = Object.values(data).some((entry) => LABEL_KEY in entry);
@@ -109,6 +129,7 @@ function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.
         legendItems,
         barYKeys,
         barSeriesConfig,
+        barGroupLayouts,
         tooltipData,
         tooltipKeyToIndex,
         chartContentStyles,

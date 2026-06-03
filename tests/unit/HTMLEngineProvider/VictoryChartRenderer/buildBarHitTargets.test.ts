@@ -19,6 +19,7 @@ describe('buildBarHitTargets', () => {
             },
             barYKeys: [yKey],
             barSeriesConfig: {[yKey]: {barWidth: 11}},
+            barGroupLayouts: [],
             tooltipKeyToIndex,
             isHorizontal: false,
             valueAxisZero: 200,
@@ -48,6 +49,7 @@ describe('buildBarHitTargets', () => {
             },
             barYKeys: [yKey],
             barSeriesConfig: {[yKey]: {barWidth: 16}},
+            barGroupLayouts: [],
             tooltipKeyToIndex,
             isHorizontal: true,
             categories: ['Carlos Martins'],
@@ -62,5 +64,43 @@ describe('buildBarHitTargets', () => {
             bottom: 128,
             tooltipIndex: 1,
         });
+    });
+
+    it('offsets grouped horizontal bars so each series has a distinct hit target', () => {
+        const thisMonthKey = 'y-this-month';
+        const lastMonthKey = 'y-last-month';
+        const tooltipKeyToIndex = {
+            [getBarTooltipKey(thisMonthKey, 'Carlos Martins')]: 0,
+            [getBarTooltipKey(lastMonthKey, 'Carlos Martins')]: 1,
+        };
+
+        const targets = buildBarHitTargets({
+            points: {
+                [thisMonthKey]: [createPoint(220, 200, 220, 0)],
+                [lastMonthKey]: [createPoint(140, 200, 140, 0)],
+            },
+            barYKeys: [thisMonthKey, lastMonthKey],
+            barSeriesConfig: {
+                [thisMonthKey]: {barWidth: 16},
+                [lastMonthKey]: {barWidth: 16},
+            },
+            barGroupLayouts: [
+                {
+                    yKeys: [thisMonthKey, lastMonthKey],
+                    barWidth: 16,
+                    offset: 18,
+                },
+            ],
+            tooltipKeyToIndex,
+            isHorizontal: true,
+            categories: ['Carlos Martins'],
+            valueAxisZero: 96,
+        });
+
+        expect(targets).toHaveLength(2);
+        expect(targets.at(0)?.tooltipIndex).toBe(0);
+        expect(targets.at(1)?.tooltipIndex).toBe(1);
+        expect(targets.at(0)?.top).toBeLessThan(targets.at(1)?.top ?? 0);
+        expect(targets.at(0)?.bottom).toBeLessThan(targets.at(1)?.top ?? 0);
     });
 });

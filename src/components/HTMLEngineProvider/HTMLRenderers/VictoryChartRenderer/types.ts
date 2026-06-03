@@ -34,6 +34,28 @@ type BarSeriesConfig = {
     barWidth?: number;
 };
 
+type BarGroupLayout = {
+    /** yKeys for each `<victorybar>` child, in render order */
+    yKeys: YKey[];
+
+    /** Bar width shared by the group, when specified on the child nodes */
+    barWidth?: number;
+
+    /** Pixel spacing between bars in the group (from the `offset` attribute) */
+    offset: number;
+};
+
+type PieTooltipEntry = {
+    /** Tooltip label text */
+    label: string;
+
+    /** Slice value in display units (dollars) */
+    total: number;
+
+    /** When true, the tooltip shows only the label without a separate amount */
+    isLabelOnly: boolean;
+};
+
 type RawLegendData = {
     name: string;
     symbol?: {
@@ -170,6 +192,8 @@ type ProcessNodeResult = {
     barTooltipEntries: BarTooltipEntry[];
     barYKeys: YKey[];
     barSeriesConfig: Partial<Record<YKey, BarSeriesConfig>>;
+    barGroupLayouts: BarGroupLayout[];
+    pieTooltipEntries: PieTooltipEntry[];
 };
 
 /** Partial slice produced by a single per-tag parser before merging. */
@@ -184,6 +208,8 @@ export type {
     RawChartData,
     BarTooltipEntry,
     BarSeriesConfig,
+    BarGroupLayout,
+    PieTooltipEntry,
     RawLegendData,
     RawAxisStyle,
     RawLabelStyle,

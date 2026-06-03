@@ -17,18 +17,27 @@ type BarHitTarget = {
 const DEFAULT_BAR_WIDTH = 20;
 
 /**
- * Finds the bar hit target under the cursor, if any.
+ * Finds the bar hit target under the cursor, preferring the closest bar when several overlap.
  */
 function findBarAtCursor(targets: BarHitTarget[], cursorX: number, cursorY: number): BarHitTarget | null {
     'worklet';
 
+    let bestTarget: BarHitTarget | null = null;
+    let bestDistance = Number.POSITIVE_INFINITY;
+
     for (const target of targets) {
         if (cursorX >= target.left && cursorX <= target.right && cursorY >= target.top && cursorY <= target.bottom) {
-            return target;
+            const targetCenterY = (target.top + target.bottom) / 2;
+            const distance = Math.abs(cursorY - targetCenterY);
+
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                bestTarget = target;
+            }
         }
     }
 
-    return null;
+    return bestTarget;
 }
 
 /**

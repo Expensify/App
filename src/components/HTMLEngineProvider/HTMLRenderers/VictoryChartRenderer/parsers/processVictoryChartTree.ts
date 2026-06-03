@@ -2,7 +2,7 @@ import type {SkTypeface} from '@shopify/react-native-skia';
 import lodashMerge from 'lodash/merge';
 import type {TNode} from 'react-native-render-html';
 import {X_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
-import type {BarSeriesConfig, BarTooltipEntry, ProcessNodeResult, YKey} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import type {BarGroupLayout, BarSeriesConfig, BarTooltipEntry, PieTooltipEntry, ProcessNodeResult, YKey} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import PARSER_REGISTRY from './parserRegistry';
 
 /**
@@ -24,6 +24,8 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
     const barTooltipEntries: BarTooltipEntry[] = [];
     const barYKeys: YKey[] = [];
     const barSeriesConfig: Partial<Record<YKey, BarSeriesConfig>> = {};
+    const barGroupLayouts: BarGroupLayout[] = [];
+    const pieTooltipEntries: PieTooltipEntry[] = [];
 
     const parser = PARSER_REGISTRY[tnode.tagName ?? ''];
     if (parser) {
@@ -70,6 +72,12 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
         if (result.barSeriesConfig) {
             lodashMerge(barSeriesConfig, result.barSeriesConfig);
         }
+        if (result.barGroupLayouts) {
+            barGroupLayouts.push(...result.barGroupLayouts);
+        }
+        if (result.pieTooltipEntries) {
+            pieTooltipEntries.push(...result.pieTooltipEntries);
+        }
     }
 
     // If we have `rootProcessedResult` then forward it as is, otherwise we must be the root so pass the data that we just built
@@ -91,6 +99,8 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
             barTooltipEntries,
             barYKeys,
             barSeriesConfig,
+            barGroupLayouts,
+            pieTooltipEntries,
         } satisfies ProcessNodeResult);
 
     for (const child of tnode.children) {
@@ -123,6 +133,8 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
         barTooltipEntries.push(...childResult.barTooltipEntries);
         barYKeys.push(...childResult.barYKeys);
         lodashMerge(barSeriesConfig, childResult.barSeriesConfig);
+        barGroupLayouts.push(...childResult.barGroupLayouts);
+        pieTooltipEntries.push(...childResult.pieTooltipEntries);
     }
 
     return {
@@ -141,6 +153,8 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
         barTooltipEntries,
         barYKeys,
         barSeriesConfig,
+        barGroupLayouts,
+        pieTooltipEntries,
     };
 }
 

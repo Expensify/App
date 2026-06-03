@@ -36,6 +36,7 @@ function VictoryChartCartesian() {
         legendItems,
         barYKeys,
         barSeriesConfig,
+        barGroupLayouts,
         tooltipData,
         tooltipKeyToIndex,
         chartContentStyles,
@@ -58,6 +59,7 @@ function VictoryChartCartesian() {
                     points: renderArgs.points,
                     barYKeys,
                     barSeriesConfig,
+                    barGroupLayouts,
                     tooltipKeyToIndex,
                     isHorizontal: isHorizontal ?? false,
                     categories,
@@ -65,7 +67,7 @@ function VictoryChartCartesian() {
                 }),
             );
         },
-        [barSeriesConfig, barYKeys, categories, hasBarTooltips, isHorizontal, tooltipKeyToIndex, updateHitTargets],
+        [barGroupLayouts, barSeriesConfig, barYKeys, categories, hasBarTooltips, isHorizontal, tooltipKeyToIndex, updateHitTargets],
     );
 
     return (

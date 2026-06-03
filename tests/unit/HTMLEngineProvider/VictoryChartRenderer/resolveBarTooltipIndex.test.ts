@@ -53,4 +53,30 @@ describe('findBarAtCursor', () => {
     it('returns null when the cursor is outside the bar bounds', () => {
         expect(findBarAtCursor(targets, 20, 5)).toBeNull();
     });
+
+    it('prefers the closest bar when multiple grouped targets overlap horizontally', () => {
+        const overlappingTargets = [
+            {
+                left: 0,
+                right: 100,
+                top: 90,
+                bottom: 106,
+                tooltipIndex: 0,
+                centerX: 50,
+                barTopY: 90,
+            },
+            {
+                left: 0,
+                right: 100,
+                top: 110,
+                bottom: 126,
+                tooltipIndex: 1,
+                centerX: 50,
+                barTopY: 110,
+            },
+        ];
+
+        expect(findBarAtCursor(overlappingTargets, 50, 95)?.tooltipIndex).toBe(0);
+        expect(findBarAtCursor(overlappingTargets, 50, 120)?.tooltipIndex).toBe(1);
+    });
 });
