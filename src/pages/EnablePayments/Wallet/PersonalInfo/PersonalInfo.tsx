@@ -7,9 +7,9 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import {clearPersonalBankAccount} from '@libs/actions/BankAccounts';
 import Navigation from '@libs/Navigation/Navigation';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
-import IdologyQuestions from '@pages/EnablePayments/IdologyQuestions';
-import getInitialSubstepForPersonalInfo from '@pages/EnablePayments/utils/getInitialSubstepForPersonalInfo';
-import getSubstepValues from '@pages/EnablePayments/utils/getSubstepValues';
+import IdologyQuestions from '@pages/EnablePayments/shared/IdologyQuestions';
+import getInitialSubstepForPersonalInfo from '@pages/EnablePayments/Wallet/utils/getInitialSubstepForPersonalInfo';
+import getSubstepValues from '@pages/EnablePayments/Wallet/utils/getSubstepValues';
 import {setAdditionalDetailsQuestions, updatePersonalDetails} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -65,6 +65,7 @@ function PersonalInfoPage() {
         moveTo,
         screenIndex,
         goToTheLastStep,
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- will be migrated to useSubPage in the EnablePayments navigation refactor PR
     } = useSubStep({
         bodyContent,
         startFrom,
