@@ -602,6 +602,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
                 break;
             }
             if (isReopen) {
+                const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice), report, policy});
                 optimisticNextStep = {
                     type,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -618,16 +619,17 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
                             text: ' to ',
                         },
                         {
-                            text: 'submit',
+                            text: shouldShowMarkAsDoneCopy ? 'mark this as done' : 'submit',
                         },
                         {
-                            text: ' %expenses.',
+                            text: shouldShowMarkAsDoneCopy ? '.' : ' %expenses.',
                         },
                     ],
                 };
                 break;
             }
 
+            const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice), report, policy});
             // Self review
             optimisticNextStep = {
                 type,
@@ -645,10 +647,10 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
                         text: ' to ',
                     },
                     {
-                        text: hasTransactions ? 'submit' : 'add',
+                        text: shouldShowMarkAsDoneCopy ? 'mark this as done' : 'submit',
                     },
                     {
-                        text: ' %expenses.',
+                        text: shouldShowMarkAsDoneCopy ? '.' : ' %expenses.',
                     },
                 ],
             };
@@ -709,6 +711,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
 
             // Manual submission
             if (hasTransactions && !policy?.harvesting?.enabled) {
+                const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice), report, policy});
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
@@ -722,10 +725,10 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
                         text: ' to ',
                     },
                     {
-                        text: 'submit',
+                        text: shouldShowMarkAsDoneCopy ? 'mark this as done' : 'submit',
                     },
                     {
-                        text: ' %expenses.',
+                        text: shouldShowMarkAsDoneCopy ? '.' : ' %expenses.',
                     },
                 ];
             }
