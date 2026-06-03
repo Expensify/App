@@ -54,8 +54,7 @@ Each AI client has its own MCP configuration flow, but the general setup process
 
 Supported setup guides: 
  - [Connect ChatGPT to Expensify using MCP](/articles/new-expensify/connections/connect-ai-assistants/Connect-ChatGPT-to-Expensify-Using-MCP)
- - [Connect Claude Desktop to Expensify using MCP](/articles/new-expensify/connections/connect-ai-assistants/Connect-Claude-Desktop-to-Expensify-Using-MCP)
- - [Connect Claude.ai to Expensify using MCP](/articles/new-expensify/connections/connect-ai-assistants/Connect-Claude.ai-to-Expensify-Using-MCP)
+ - [Connect Claude to Expensify using MCP](/articles/new-expensify/connections/connect-ai-assistants/Connect-Claude-to-Expensify-Using-MCP)
  - [Connect Cursor to Expensify using MCP](/articles/new-expensify/connections/connect-ai-assistants/Connect-Cursor-to-Expensify-Using-MCP)
 
 ## What you can do with Expensify’s MCP server
@@ -140,13 +139,7 @@ The MCP server supports read-only workflows focused on:
 
 ## Which AI assistants work with Expensify’s MCP server?
 
-Any MCP-compatible AI client may work with Expensify’s MCP server.
-
-Official setup guides are available for:
-
- - Claude: [Connect Claude to Expensify](/articles/new-expensify/connections/connect-ai-assistants/Connect-Claude-to-Expensify-Using-MCP)
- - ChatGPT: [Connect ChatGPT to Expensify](/articles/new-expensify/connections/connect-ai-assistants/Connect-ChatGPT-to-Expensify-Using-MCP)
- - [Cursor](/articles/new-expensify/connections/connect-ai-assistants/Connect-Cursor-to-Expensify-Using-MCP)
+Any MCP-compatible AI client may work with Expensify’s MCP server. Official setup guides are available for Claude, ChatGPT and Cursor. 
 
 ## What data can Expensify’s MCP server access?
 
