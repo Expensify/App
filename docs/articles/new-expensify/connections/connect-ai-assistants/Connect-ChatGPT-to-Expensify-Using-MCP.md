@@ -3,6 +3,7 @@ title: Connect ChatGPT to Expensify using MCP
 description: Learn how to connect ChatGPT to Expensify using the Expensify MCP server.
 keywords: [ChatGPT Expensify MCP, connect ChatGPT to Expensify, Expensify MCP ChatGPT setup]
 internalScope: Audience is members using ChatGPT. Covers connecting ChatGPT to Expensify using MCP. Does not cover other AI clients or general MCP workflows.
+order: 2
 ---
 
 # Connect ChatGPT to Expensify using MCP
