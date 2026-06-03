@@ -4,23 +4,11 @@ import {Image} from 'react-native';
 import type {ChartFontsValue} from '@components/Charts/types/chartFontsTypes';
 import type {ChartDefaultTypeface, ChartSkiaTypefaceKey} from '@components/Charts/types/chartSkiaTypefaceTypes';
 import Log from '@libs/Log';
-import {CHART_FONT_MANAGER_FAMILIES, CHART_SKIA_TYPEFACE_ASSETS} from './chartFontAssets';
-import createChartFontsValue from './createChartFontsValue';
+import {CHART_FONT_MGR_NOTO_ASSETS, CHART_SKIA_TYPEFACE_ASSETS} from './chartFontAssets';
+import {CHART_FONT_MGR_FROM_TYPEFACES} from './chartFontConstants';
 
 const EMPTY_CHART_FONTS: ChartFontsValue = {
-    typefaces: {
-        MONOSPACE: null,
-        MONOSPACE_BOLD: null,
-        MONOSPACE_ITALIC: null,
-        MONOSPACE_BOLD_ITALIC: null,
-        EXP_NEUE: null,
-        EXP_NEUE_BOLD: null,
-        EXP_NEUE_ITALIC: null,
-        EXP_NEUE_BOLD_ITALIC: null,
-        EXP_NEW_KANSAS_MEDIUM: null,
-        EXP_NEW_KANSAS_MEDIUM_ITALIC: null,
-        CUSTOM_EMOJI_FONT: null,
-    },
+    typefaces: Object.fromEntries((Object.keys(CHART_SKIA_TYPEFACE_ASSETS) as ChartSkiaTypefaceKey[]).map((key) => [key, null])) as ChartDefaultTypeface,
     fontMgr: null,
 };
 
@@ -65,18 +53,32 @@ function loadChartSkiaTypefaces(): Promise<ChartDefaultTypeface> {
     ).then((entries) => Object.fromEntries(entries) as ChartDefaultTypeface);
 }
 
-function loadFontManagerFamilies(): Promise<Record<string, SkTypeface[]>> {
-    return Promise.all(
-        Object.entries(CHART_FONT_MANAGER_FAMILIES).map(async ([familyName, familyAssets]) => {
-            const familyTypefaces = await Promise.all(familyAssets.map((asset) => loadTypefaceFromAsset(asset)));
+function buildChartFontsValue(typefaces: ChartDefaultTypeface): Promise<ChartFontsValue> {
+    const fontMgr = Skia.TypefaceFontProvider.Make();
 
-            return [familyName, familyTypefaces.filter((typeface): typeface is SkTypeface => typeface !== null)] as const;
+    for (const [familyName, typefaceKeys] of Object.entries(CHART_FONT_MGR_FROM_TYPEFACES)) {
+        for (const typefaceKey of typefaceKeys) {
+            const typeface = typefaces[typefaceKey];
+
+            if (typeface) {
+                fontMgr.registerFont(typeface, familyName);
+            }
+        }
+    }
+
+    return Promise.all(
+        Object.entries(CHART_FONT_MGR_NOTO_ASSETS).map(async ([familyName, asset]) => {
+            const typeface = await loadTypefaceFromAsset(asset);
+
+            if (typeface) {
+                fontMgr.registerFont(typeface, familyName);
+            }
         }),
-    ).then((entries) => Object.fromEntries(entries));
+    ).then(() => ({typefaces, fontMgr}));
 }
 
 function loadChartFonts(): Promise<ChartFontsValue> {
-    return Promise.all([loadChartSkiaTypefaces(), loadFontManagerFamilies()]).then(([typefaces, fontManagerFamilies]) => createChartFontsValue(typefaces, fontManagerFamilies));
+    return loadChartSkiaTypefaces().then(buildChartFontsValue);
 }
 
 function subscribeToChartFonts(listener: () => void): () => void {
