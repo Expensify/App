@@ -35,7 +35,12 @@ jest.mock('@hooks/useCurrentReportID', () => ({
 }));
 
 jest.mock('@components/Search/SearchContext', () => ({
-    useSearchStateContext: () => mockSearchState,
+    useSearchQueryContext: () => ({currentSearchQueryJSON: mockSearchState.currentSearchQueryJSON}),
+    useSearchSelectionContext: () => ({
+        selectedTransactionIDs: mockSearchState.selectedTransactionIDs,
+        selectedTransactions: mockSearchState.selectedTransactions,
+        selectedReports: mockSearchState.selectedReports,
+    }),
 }));
 
 function resetMocks() {

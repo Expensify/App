@@ -58,6 +58,14 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
 
     const getApprovalPendingAction = useCallback(
         (index: number) => {
+            // The approver's own `pendingAction` takes precedence — it's set when an approver was
+            // seeded from an optimistic agent creation (Workflows > Add agent) and the
+            // CREATE_AGENT response hasn't arrived yet. Showing opacity here is exactly what
+            // signals to the admin that the agent is still being confirmed by the server.
+            const approverPendingAction = approvalWorkflow?.approvers.at(index)?.pendingAction;
+            if (approverPendingAction) {
+                return approverPendingAction;
+            }
             let pendingAction: PendingAction | undefined;
             if (index === 0) {
                 if (approvalWorkflow?.members) {
