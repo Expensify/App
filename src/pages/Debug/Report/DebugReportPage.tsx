@@ -1,5 +1,5 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {conciergePersonalDetailSelector, personalDetailByAccountIDSelector} from '@selectors/PersonalDetails';
+import {conciergePersonalDetailSelector, hasExpensifyGuidesEmailsSelector, personalDetailByAccountIDSelector} from '@selectors/PersonalDetails';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -84,6 +84,8 @@ function DebugReportPage({
     const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: reportOwnerSelector}, [reportOwnerSelector]);
     const transactionID = DebugUtils.getTransactionID(report, reportActions);
     const isReportArchived = useReportIsArchived(reportID);
+    const participantAccountIDs = useMemo(() => Object.keys(report?.participants ?? {}).map(Number), [report?.participants]);
+    const [hasGuidesEmails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: hasExpensifyGuidesEmailsSelector(participantAccountIDs)});
 
     const metadata = useMemo<Metadata[]>(() => {
         if (!report) {
@@ -119,6 +121,7 @@ function DebugReportPage({
             draftComment,
             currentUserLogin: currentUserLogin ?? '',
             currentUserAccountID,
+            hasGuidesEmails: hasGuidesEmails ?? false,
         });
 
         return [

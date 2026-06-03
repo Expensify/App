@@ -181,7 +181,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 draftComment: undefined,
                 isReportArchived: false,
-                personalDetailsList: undefined,
+                hasGuidesEmails: false,
             }),
         );
     });

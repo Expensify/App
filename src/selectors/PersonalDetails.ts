@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
 import {getDisplayNameOrDefault, getLoginByAccountID, newGetPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
@@ -30,6 +31,11 @@ const accountIDToLoginSelector = (reportsToArchive: Report[]) => (personalDetail
     return map;
 };
 
+const hasExpensifyGuidesEmailsSelector =
+    (participantAccountIDs: number[]) =>
+    (personalDetailsList: OnyxEntry<PersonalDetailsList>): boolean =>
+        participantAccountIDs.some((accountID) => Str.extractEmailDomain(personalDetailsList?.[accountID]?.login ?? '') === CONST.EMAIL.GUIDES_DOMAIN);
+
 export {
     personalDetailsSelector,
     multiPersonalDetailsSelector,
@@ -38,4 +44,5 @@ export {
     personalDetailByAccountIDSelector,
     conciergePersonalDetailSelector,
     accountIDToLoginSelector,
+    hasExpensifyGuidesEmailsSelector,
 };

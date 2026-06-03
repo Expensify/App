@@ -74,8 +74,7 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
                 draftComment,
                 currentUserLogin,
                 currentUserAccountID,
-                // TODO: Pass personalDetailsList once callers are fully migrated (https://github.com/Expensify/App/issues/66413); hasExpensifyGuidesEmails falls back to module-level Onyx value
-                personalDetailsList: undefined,
+                hasGuidesEmails: ReportUtils.hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number), undefined),
             }) &&
             /**
              * Chats with hidden preference remain invisible in the LHN and are not considered "unread."
