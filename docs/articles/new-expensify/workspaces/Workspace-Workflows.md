@@ -80,7 +80,7 @@ If you prefer to reimburse your employees using a method outside of Expensify—
 1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces** > your **workspace name** > **Workflows**.
 2. Toggle on **Payments**.
 
-Once enabled, you can mark reports as paid manually to keep track of reimbursements made outside of Expensify. 
+Once enabled, you can use **Mark as Paid** to keep track of reimbursements made outside of Expensify.
 
 ---
 
