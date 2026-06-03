@@ -6,6 +6,7 @@ import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {ReportExportType} from '@components/ButtonWithDropdownMenu/types';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type PolicyData from '@hooks/usePolicyData/types';
+import {buildOptimisticRemoveWorkspaceFrozenExpensifyCardsUpdates} from '@libs/actions/Card';
 import * as API from '@libs/API';
 import type {
     AddBillingCardAndRequestWorkspaceOwnerChangeParams,
@@ -111,6 +112,7 @@ import type {
     BankAccountList,
     Beta,
     CardFeeds,
+    CardList,
     DuplicateWorkspace,
     IntroSelected,
     InvitedEmailsToAccountIDs,
@@ -127,6 +129,7 @@ import type {
     TaxRatesWithDefault,
     Transaction,
     TransactionViolations,
+    WorkspaceCardsList,
 } from '@src/types/onyx';
 import type {CompanyCardFeedWithDomainID, FundID} from '@src/types/onyx/CardFeeds';
 import type {Participant} from '@src/types/onyx/IOU';
@@ -380,6 +383,8 @@ type DeleteWorkspaceActionParams = {
     hasDeleteWorkspaceExpensifyCardsError?: boolean;
     currentUserAccountID: number;
     accountIDToLogin: Record<number, string>;
+    allWorkspaceCardsList?: OnyxCollection<WorkspaceCardsList>;
+    cardList?: CardList;
 };
 
 /**
@@ -404,6 +409,8 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
         hasDeleteWorkspaceExpensifyCardsError,
         currentUserAccountID,
         accountIDToLogin,
+        allWorkspaceCardsList,
+        cardList,
     } = params;
 
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
@@ -425,6 +432,8 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
             | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD
+            | typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST
+            | typeof ONYXKEYS.CARD_LIST
         >
     > = [
         {
@@ -484,6 +493,8 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
             | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST
+            | typeof ONYXKEYS.CARD_LIST
         >
     > = [
         {
@@ -684,6 +695,18 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
             });
         }
     }
+
+    if (!hasDeleteWorkspaceExpensifyCardsError && workspaceAccountID) {
+        const {optimisticData: frozenCardOptimisticData, failureData: frozenCardFailureData} = buildOptimisticRemoveWorkspaceFrozenExpensifyCardsUpdates({
+            workspaceAccountID,
+            allWorkspaceCardsList,
+            cardList,
+            currentUserAccountID,
+        });
+        optimisticData.push(...frozenCardOptimisticData);
+        failureData.push(...frozenCardFailureData);
+    }
+
     const apiParams: DeleteWorkspaceParams = {policyID, reportIDToOptimisticCloseReportActionID: JSON.stringify(reportIDToOptimisticCloseReportActionID)};
 
     API.write(WRITE_COMMANDS.DELETE_WORKSPACE, apiParams, {optimisticData, finallyData, failureData});

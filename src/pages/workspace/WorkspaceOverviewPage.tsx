@@ -141,6 +141,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
         selector: filterInactiveCards,
     });
+    const [allWorkspaceCardsList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const hasCardFeedOrExpensifyCard =
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         !isEmptyObject(cardFeeds) || !isEmptyObject(cardsList) || ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.policyAccountID);
@@ -348,6 +350,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             hasDeleteWorkspaceExpensifyCardsError,
             currentUserAccountID: accountID,
             accountIDToLogin: accountIDToLogin ?? {},
+            allWorkspaceCardsList,
+            cardList,
         });
         if (isOffline) {
             setIsDeleteModalOpen(false);

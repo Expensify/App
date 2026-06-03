@@ -160,6 +160,8 @@ function WorkspacesListPage() {
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
         selector: filterInactiveCards,
     });
+    const [allWorkspaceCardsList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID);
 
     const hasCardFeedOrExpensifyCard =
@@ -215,6 +217,8 @@ function WorkspacesListPage() {
             hasDeleteWorkspaceExpensifyCardsError,
             currentUserAccountID: currentUserPersonalDetails.accountID,
             accountIDToLogin: accountIDToLogin ?? {},
+            allWorkspaceCardsList,
+            cardList,
         });
         if (isOffline) {
             setIsDeleteModalOpen(false);

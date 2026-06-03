@@ -26,7 +26,7 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CardProgramKey} from '@libs/CardUtils';
-import {getTranslationKeyForLimitType} from '@libs/CardUtils';
+import {getTranslationKeyForLimitType, isCard, isCardFrozen} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -39,7 +39,7 @@ import {buildSpendRuleAST} from '@libs/SpendRulesUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SpendRuleForm} from '@src/types/form';
-import type {Card, CompanyCardFeedWithDomainID, PersonalDetailsList, Report, Transaction} from '@src/types/onyx';
+import type {Card, CardList, CompanyCardFeedWithDomainID, PersonalDetailsList, Report, Transaction, WorkspaceCardsList} from '@src/types/onyx';
 import type {CardLimitType, ExpensifyCardDetails, IssueNewCardData, IssueNewCardStep, PossibleFraudData} from '@src/types/onyx/Card';
 import type {ExpensifyCardRule} from '@src/types/onyx/ExpensifyCardSettings';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
@@ -845,6 +845,83 @@ function clearIssueNewCardFormData() {
 
 function clearIssueNewCardError(policyID: string | undefined) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {errors: null});
+}
+
+type BuildOptimisticRemoveWorkspaceFrozenExpensifyCardsUpdatesParams = {
+    workspaceAccountID: number;
+    allWorkspaceCardsList: OnyxCollection<WorkspaceCardsList> | undefined;
+    cardList: CardList | undefined;
+    currentUserAccountID: number;
+};
+
+/**
+ * Builds optimistic Onyx updates to remove frozen Expensify cards for a workspace being deleted.
+ * Matches Auth's removeCardFromOnyxForAdminsAndCardAssignee (MERGE null per cardID) for cards that
+ * remain visible in the client via filterInactiveCards while suspended and frozen.
+ */
+function buildOptimisticRemoveWorkspaceFrozenExpensifyCardsUpdates({
+    workspaceAccountID,
+    allWorkspaceCardsList,
+    cardList,
+    currentUserAccountID,
+}: BuildOptimisticRemoveWorkspaceFrozenExpensifyCardsUpdatesParams): {optimisticData: CardOnyxUpdate[]; failureData: CardOnyxUpdate[]} {
+    const optimisticByKey: Record<string, Record<string, null>> = {};
+    const failureByKey: Record<string, Record<string, Card>> = {};
+    let cardListOptimistic: Record<string, null> | undefined;
+    let cardListFailure: Record<string, Card> | undefined;
+
+    const workspaceAccountIDString = workspaceAccountID.toString();
+
+    for (const [onyxKey, feed] of Object.entries(allWorkspaceCardsList ?? {})) {
+        if (!onyxKey.includes(workspaceAccountIDString) || !onyxKey.includes(CONST.EXPENSIFY_CARD.BANK)) {
+            continue;
+        }
+
+        for (const [entryKey, entry] of Object.entries(feed ?? {})) {
+            if (entryKey === 'cardList' || !isCard(entry) || !isCardFrozen(entry)) {
+                continue;
+            }
+
+            const cardID = entry.cardID;
+            optimisticByKey[onyxKey] = {...optimisticByKey[onyxKey], [cardID]: null};
+            failureByKey[onyxKey] = {...failureByKey[onyxKey], [cardID]: entry};
+
+            if (entry.accountID === currentUserAccountID || cardList?.[cardID]) {
+                cardListOptimistic = {...cardListOptimistic, [cardID]: null};
+                cardListFailure = {...cardListFailure, [cardID]: entry};
+            }
+        }
+    }
+
+    const optimisticData: CardOnyxUpdate[] = Object.entries(optimisticByKey).map(([key, value]) => ({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: key as `${typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${string}`,
+        value,
+    }));
+
+    if (cardListOptimistic && Object.keys(cardListOptimistic).length > 0) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: cardListOptimistic,
+        });
+    }
+
+    const failureData: CardOnyxUpdate[] = Object.entries(failureByKey).map(([key, value]) => ({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: key as `${typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${string}`,
+        value,
+    }));
+
+    if (cardListFailure && Object.keys(cardListFailure).length > 0) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: cardListFailure,
+        });
+    }
+
+    return {optimisticData, failureData};
 }
 
 function buildCardListUpdates(workspaceAccountID: number, cardID: number, cardUpdateData: CardListUpdateData, shouldUpdateCardList: boolean): CardOnyxUpdate[] {
@@ -1982,6 +2059,7 @@ function exportExpensifyCardListToCSV({policyID, cards, personalDetailsList, set
 }
 
 export {
+    buildOptimisticRemoveWorkspaceFrozenExpensifyCardsUpdates,
     requestReplacementExpensifyCard,
     activatePhysicalExpensifyCard,
     clearCardListErrors,
