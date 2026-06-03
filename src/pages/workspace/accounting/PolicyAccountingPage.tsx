@@ -429,7 +429,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         : undefined,
                 pendingAction: settingsPendingAction(integrationData?.subscribedExportSettings, integrationData?.pendingFields),
             },
-            ...(shouldShowCardReconciliationOption
+            ...(shouldShowCardReconciliationOption && integrationData?.onCardReconciliationPagePress
                 ? [
                       {
                           icon: icons.ExpensifyCard,

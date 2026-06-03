@@ -63,7 +63,7 @@ import type {SortableColumnName} from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, getTableMinWidth, hasFlexColumn, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {transactionHasRBR} from '@libs/TransactionPreviewUtils';
-import {getTransactionPendingAction, isTransactionPendingDelete, shouldShowExpenseBreakdown} from '@libs/TransactionUtils';
+import {getTransactionPendingAction, getVisibleTransactionViolations, isTransactionPendingDelete, shouldShowExpenseBreakdown} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import isReportOpenInSuperWideRHP from '@navigation/helpers/isReportOpenInSuperWideRHP';
 import Navigation from '@navigation/Navigation';
@@ -85,6 +85,32 @@ import MoneyRequestReportTransactionItem from './MoneyRequestReportTransactionIt
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 
 const PENDING_EXPENSE_REASON_ATTRIBUTES = {context: 'MoneyRequestReportTransactionList.PendingExpensePlaceholder'} as const;
+
+const EMPTY_VIOLATIONS: OnyxTypes.TransactionViolations = [];
+
+/**
+ * Looks up violations from the bulk collection and filters them via `getVisibleTransactionViolations`.
+ * Returns the stable EMPTY_VIOLATIONS reference for the common no-violations case so the row's prop
+ * identity stays stable across FlashList recycles.
+ */
+function filterTransactionViolations(
+    transaction: TransactionWithOptionalHighlight,
+    allViolations: Record<string, OnyxTypes.TransactionViolations | undefined> | undefined,
+    email: string,
+    accountID: number,
+    report: OnyxTypes.Report,
+    policy: OnyxTypes.Policy | undefined,
+): OnyxTypes.TransactionViolations {
+    if (!allViolations) {
+        return EMPTY_VIOLATIONS;
+    }
+    const raw = allViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
+    if (!raw?.length) {
+        return EMPTY_VIOLATIONS;
+    }
+    const filtered = getVisibleTransactionViolations(transaction, raw, email, accountID, report, policy);
+    return filtered.length === 0 ? EMPTY_VIOLATIONS : filtered;
+}
 
 type MoneyRequestReportTransactionListProps = {
     /** The money request report containing the transactions */
@@ -198,8 +224,20 @@ function MoneyRequestReportTransactionList({
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 lastDistanceExpenseType,
+                currentUserAccountID: currentUserDetails?.accountID,
             }),
-        [translate, expensifyIcons, report?.reportID, policy, userBillingGracePeriodEnds, amountOwed, lastDistanceExpenseType, ownerBillingGracePeriodEnd, draftTransactionIDs],
+        [
+            translate,
+            expensifyIcons,
+            report?.reportID,
+            policy,
+            userBillingGracePeriodEnds,
+            amountOwed,
+            lastDistanceExpenseType,
+            ownerBillingGracePeriodEnd,
+            draftTransactionIDs,
+            currentUserDetails?.accountID,
+        ],
     );
 
     const hasPendingAction = useMemo(() => {
@@ -614,10 +652,22 @@ function MoneyRequestReportTransactionList({
         return visibleTransactions.at(-1)?.transactionID;
     }, [shouldShowGroupedTransactions, groupedTransactions, resolvedTransactions, isOffline]);
 
+    const violationsByTransactionID = useMemo(() => {
+        const map = new Map<string, OnyxTypes.TransactionViolations>();
+        const email = currentUserDetails.email ?? '';
+        const accountID = currentUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID;
+
+        for (const transaction of resolvedTransactions) {
+            map.set(transaction.transactionID, filterTransactionViolations(transaction, allTransactionViolations, email, accountID, report, policy ?? undefined));
+        }
+        return map;
+    }, [resolvedTransactions, allTransactionViolations, currentUserDetails.email, currentUserDetails.accountID, report, policy]);
+
     const renderTransactionItem = (transaction: TransactionWithOptionalHighlight) => (
         <MoneyRequestReportTransactionItem
             key={transaction.transactionID}
             transaction={transaction}
+            violations={violationsByTransactionID.get(transaction.transactionID) ?? EMPTY_VIOLATIONS}
             shouldBeHighlighted={highlightedTransactionIDs.has(transaction.transactionID)}
             columns={columnsToShow}
             report={report}
