@@ -14,4 +14,3 @@ const CHART_FONT_MGR_FROM_TYPEFACES: Record<Exclude<ChartFontFamilyName, 'NotoSa
 };
 
 export {CHART_FONT_FAMILY_NAMES, CHART_FONT_MGR_FROM_TYPEFACES};
-export type {ChartFontFamilyName};
