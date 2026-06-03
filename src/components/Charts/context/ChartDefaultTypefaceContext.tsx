@@ -17,4 +17,3 @@ function useChartDefaultTypeface(): ChartDefaultTypeface {
 }
 
 export {ChartDefaultTypefaceContext, useChartDefaultTypeface};
-export type {ChartDefaultTypeface};
