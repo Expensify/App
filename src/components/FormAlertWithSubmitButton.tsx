@@ -1,5 +1,5 @@
 import type {Ref} from 'react';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -112,17 +112,13 @@ function FormAlertWithSubmitButton({
     const [isPressed, setIsPressed] = useState(false);
     const isSpinning = isPressed || isLoading;
 
-    useEffect(() => {
-        if (isPressed && isLoading) {
-            setIsPressed(false);
-        }
-    }, [isPressed, isLoading]);
-
     const handlePress = useCallback(() => {
         setIsPressed(true);
-        // Defer onSubmit so React commits isPressed=true (and paints the spinner)
-        // before consumer code triggers Onyx-driven re-renders that would otherwise batch into the same paint
-        setTimeout(() => onSubmit?.(), 0);
+        // Defer onSubmit so React commits isPressed=true (and paints the spinner) before consumer code blocks the main thread
+        setTimeout(() => {
+            onSubmit?.();
+            setIsPressed(false);
+        }, 0);
     }, [onSubmit]);
 
     // Disable pressOnEnter for Android Native to avoid issues with the Samsung keyboard,
