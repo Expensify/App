@@ -20,10 +20,13 @@ function useCopyPolicySettingsProgressModal() {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
-    const currentStep = copyPolicySettings?.currentStep;
+    const copyInProgressStep = copyPolicySettings?.currentStep === 'loading';
+    const requestNotificationStep = copyPolicySettings?.currentStep === 'complete';
+    const isVisible = copyInProgressStep || requestNotificationStep;
     const isCopySettingsComplete = bulkPolicyCopySettings?.state === 'complete';
-    const shouldShowAllSet = currentStep === 'loading' && isCopySettingsComplete;
-    const isVisible = currentStep === 'loading' || currentStep === 'complete';
+
+    // Show "All Set" when backend NVP reports complete AND user is still viewing the modal
+    const shouldShowAllSet = isVisible && isCopySettingsComplete;
 
     if (shouldShowAllSet) {
         return {
@@ -40,7 +43,7 @@ function useCopyPolicySettingsProgressModal() {
         };
     }
 
-    if (currentStep === 'loading') {
+    if (copyInProgressStep) {
         return {
             isVisible,
             title: translate('workspace.copyPolicySettings.progress.copyInProgressTitle'),
@@ -56,7 +59,7 @@ function useCopyPolicySettingsProgressModal() {
         };
     }
 
-    if (currentStep === 'complete') {
+    if (requestNotificationStep) {
         return {
             isVisible,
             title: translate('workspace.copyPolicySettings.progress.conciergeNotificationTitle'),

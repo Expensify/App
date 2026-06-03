@@ -12,10 +12,13 @@ type CopyPolicySettings = {
     parts?: string[];
 
     /**
-     * Which step of the copy is happening in the backend
-     * - `loading`: copy in progress
-     * - `complete`: backend finished
-     * - null: copy hasn't started yet (e.g. user is still selecting features)
+     * Current step of the copy progress modal (UI state, not backend state)
+     * - `loading`: showing "Copy in progress" with option to request notification
+     * - `complete`: user requested notification, showing "Concierge will let you know"
+     * - null: modal is hidden (copy hasn't started or was dismissed)
+     *
+     * Note: This is distinct from `NVP_BULK_POLICY_COPY_SETTINGS.state` which tracks
+     * the actual backend copy progress ('in-progress' | 'complete').
      */
     currentStep?: 'loading' | 'complete' | null;
 

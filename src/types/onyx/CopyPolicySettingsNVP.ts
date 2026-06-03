@@ -1,5 +1,5 @@
 /** Backend progress state for bulk copy settings. */
-type CopyPolicySettingsNVPState = 'in-progress' | 'complete' | null;
+type CopyPolicySettingsNVPState = 'in-progress' | 'complete' | 'failed' | null;
 
 /** NVP payload for bulk copy settings progress. */
 type CopyPolicySettingsNVP = {

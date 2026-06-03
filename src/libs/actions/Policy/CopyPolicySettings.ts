@@ -146,7 +146,8 @@ type CopyPolicySettingsOnyxKeys =
     | typeof ONYXKEYS.COLLECTION.POLICY
     | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES
     | typeof ONYXKEYS.COLLECTION.POLICY_TAGS
-    | typeof ONYXKEYS.COPY_POLICY_SETTINGS;
+    | typeof ONYXKEYS.COPY_POLICY_SETTINGS
+    | typeof ONYXKEYS.NVP_BULK_POLICY_COPY_SETTINGS;
 
 function buildCopyPolicySettingsData(
     sourcePolicy: Policy,
@@ -294,6 +295,14 @@ function buildCopyPolicySettingsData(
         onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.COPY_POLICY_SETTINGS,
         value: {currentStep: 'loading'},
+    });
+
+    // Optimistically set NVP state to 'in-progress' to avoid stale state flash
+    // (e.g., if prior run left it at 'complete', user would briefly see "All Set")
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.NVP_BULK_POLICY_COPY_SETTINGS,
+        value: {state: 'in-progress'},
     });
 
     failureData.push({
