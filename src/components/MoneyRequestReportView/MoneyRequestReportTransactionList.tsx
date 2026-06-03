@@ -328,24 +328,26 @@ function MoneyRequestReportTransactionList({
     const {sortBy, sortOrder} = sortConfig;
     const isDefaultSort = sortBy === CONST.SEARCH.TABLE_COLUMNS.DATE && sortOrder === CONST.SEARCH.SORT_ORDER.ASC;
 
-    // Convert reportActions array to a record keyed by reportActionID for transactionHasRBR
-    const reportActionsMap = useMemo(() => Object.fromEntries(reportActions.map((ra) => [ra.reportActionID, ra])), [reportActions]);
-
-    // Precompute transactionID → transaction-thread report ID in a single pass so each row can pass it to the RBR,
-    // which lets rows without RBR content early-return instead of mounting the heavy RBR inner (6 Onyx subscriptions).
-    // Without this, the per-row alternative would re-scan every report action (O(transactions × actions)).
-    const transactionThreadReportIDByTransactionID = useMemo(() => {
-        const map = new Map<string, string>();
+    // In a single pass over reportActions, build:
+    // - reportActionsMap: keyed by reportActionID for transactionHasRBR.
+    // - transactionThreadReportIDByTransactionID: transactionID → transaction-thread report ID, so each row can pass it
+    //   to the RBR, letting rows without RBR content early-return instead of mounting the heavy RBR inner (6 Onyx
+    //   subscriptions). Without this, the per-row alternative would re-scan every report action (O(transactions × actions)).
+    const {reportActionsMap, transactionThreadReportIDByTransactionID} = useMemo(() => {
+        const actionsMap: Record<string, OnyxTypes.ReportAction> = {};
+        const threadReportIDByTransactionID = new Map<string, string>();
         for (const action of reportActions) {
+            actionsMap[action.reportActionID] = action;
             if (!isMoneyRequestAction(action)) {
                 continue;
             }
             const iouTransactionID = getOriginalMessage(action)?.IOUTransactionID;
-            if (iouTransactionID && action.childReportID) {
-                map.set(iouTransactionID, action.childReportID);
+            // First match wins to mirror getIOUActionForTransactionID's `.find` semantics (reportActions are sorted newest→oldest).
+            if (iouTransactionID && action.childReportID && !threadReportIDByTransactionID.has(iouTransactionID)) {
+                threadReportIDByTransactionID.set(iouTransactionID, action.childReportID);
             }
         }
-        return map;
+        return {reportActionsMap: actionsMap, transactionThreadReportIDByTransactionID: threadReportIDByTransactionID};
     }, [reportActions]);
 
     // Precompute the set of RBR-flagged transaction IDs
