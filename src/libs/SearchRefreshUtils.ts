@@ -25,4 +25,3 @@ function refreshSearchAfterReportAction({currentSearchQueryJSON, currentSearchKe
 }
 
 export default refreshSearchAfterReportAction;
-export type {RefreshSearchParams};

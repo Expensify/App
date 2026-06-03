@@ -315,4 +315,3 @@ function useSelectionModePayment({
 }
 
 export default useSelectionModePayment;
-export type {HoldMenuOpenParams};
