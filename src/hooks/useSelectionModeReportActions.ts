@@ -310,9 +310,12 @@ function useSelectionModeReportActions({
         }
         const doSubmit = () => {
             if (hasSelectedTransactionsOnSubmitPolicy) {
-                openReportSubmitToPopover();
-                clearSelectedTransactions(true);
-                turnOffMobileSelectionMode();
+                openReportSubmitToPopover({
+                    onSubmitSuccess: () => {
+                        clearSelectedTransactions(true);
+                        turnOffMobileSelectionMode();
+                    },
+                });
                 return;
             }
             submitReport({

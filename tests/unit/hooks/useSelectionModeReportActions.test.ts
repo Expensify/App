@@ -578,10 +578,19 @@ describe('useSelectionModeReportActions', () => {
             submitAction?.onSelected?.();
 
             await waitFor(() => {
-                expect(mockOpenReportSubmitToPopover).toHaveBeenCalled();
+                expect(mockOpenReportSubmitToPopover).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        onSubmitSuccess: expect.any(Function),
+                    }),
+                );
                 expect(IOUActions.submitReport).not.toHaveBeenCalled();
-                expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
+                expect(mockClearSelectedTransactions).not.toHaveBeenCalled();
             });
+
+            const {onSubmitSuccess} = mockOpenReportSubmitToPopover.mock.calls.at(-1)?.[0] ?? {};
+            onSubmitSuccess?.();
+
+            expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
         });
 
         it('does not submit when multiple selected transactions belong to a submit policy', () => {

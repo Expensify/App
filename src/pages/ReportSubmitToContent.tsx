@@ -225,8 +225,8 @@ function ReportSubmitToContent({
                     isLoading: !!currentSearchResults?.search?.isLoading,
                 });
             }
-            onSubmitSuccess?.();
             onDismiss();
+            onSubmitSuccess?.();
             if (shouldDismissRHPAfterSubmit) {
                 Navigation.dismissToPreviousRHP();
             }
@@ -257,8 +257,8 @@ function ReportSubmitToContent({
                         isLoading: !!currentSearchResults?.search?.isLoading,
                     });
                 }
-                onSubmitSuccess?.();
                 onDismiss();
+                onSubmitSuccess?.();
                 if (shouldDismissRHPAfterSubmit) {
                     Navigation.dismissToPreviousRHP();
                 }

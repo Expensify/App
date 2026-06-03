@@ -64,7 +64,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const [willAlertModalBecomeVisible] = useOnyx(ONYXKEYS.MODAL, {selector: willAlertModalBecomeVisibleSelector});
 
-    const submitToContentKey = useMemo(() => `${reportID ?? ''}:${getSubmitToEmail(policy, report)}`, [reportID, policy, report]);
+    const submitToContentKey = useMemo(() => `${reportID}:${getSubmitToEmail(policy, report)}`, [reportID, policy, report]);
 
     const consumeIgnoreNextSearchSubmitPress = useCallback(() => {
         if (!ignoreNextSearchSubmitPressRef.current) {
