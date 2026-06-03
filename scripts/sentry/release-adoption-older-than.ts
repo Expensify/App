@@ -10,7 +10,9 @@
  *   export SENTRY_AUTH_TOKEN=sntrys_...
  *   bun scripts/sentry/release-adoption-older-than.ts --threshold 9.3.79-4 --period 14d
  *   bun scripts/sentry/release-adoption-older-than.ts --threshold 9.3.79-4 --start 2026-05-22T00:00:00Z --end 2026-06-03T23:59:59Z
+ *   bun scripts/sentry/release-adoption-older-than.ts --help
  */
+import CLI from '../utils/CLI';
 
 const DEFAULT_ORG = 'expensify';
 const DEFAULT_PROJECT = 'app';
@@ -27,21 +29,20 @@ type Version = {
     build: number;
 };
 
-type CliOptions = {
-    threshold: string | null;
+type ScriptOptions = {
+    threshold: string;
     period: string;
-    start: string | null;
-    end: string | null;
+    start?: string;
+    end?: string;
     environment: string;
     prefix: string;
     org: string;
     project: string;
     region: string;
     json: boolean;
-    help: boolean;
 };
 
-type SentryRequestContext = Pick<CliOptions, 'org' | 'region'>;
+type SentryRequestContext = Pick<ScriptOptions, 'org' | 'region'>;
 
 type SentryProject = {
     id: string | number;
@@ -74,106 +75,6 @@ type AdoptionResult = {
     metric: string;
     caveats: string[];
 };
-
-function printUsage(): void {
-    console.error(`Usage: release-adoption-older-than.ts --threshold <major.minor.patch-build> [options]
-
-Options:
-  --threshold <ver>     Version to compare against (e.g. 9.3.79-4). Users on this exact build are NOT counted as older.
-  --period <period>     Sentry statsPeriod (e.g. 24h, 14d, 30d). Ignored if --start/--end are set.
-  --start <iso>         Window start (ISO-8601). Use with --end instead of --period.
-  --end <iso>           Window end (ISO-8601).
-  --environment <name>  Sentry environment filter (default: ${DEFAULT_ENVIRONMENT})
-  --prefix <prefix>     Release name prefix (default: ${DEFAULT_RELEASE_PREFIX})
-  --org <slug>          Sentry organization (default: ${DEFAULT_ORG})
-  --project <slug>      Sentry project (default: ${DEFAULT_PROJECT})
-  --region <url>        Sentry region base URL (default: ${DEFAULT_REGION})
-  --json                Print machine-readable JSON only
-  --help                Show this help
-
-Environment:
-  SENTRY_AUTH_TOKEN     Required. Bearer token for Sentry API.
-
-Metric:
-  unique users with at least one error event in the window on a matching release
-  strictly older than --threshold, divided by all unique users with any error event
-  in the same window (same environment / project / dataset).
-`);
-}
-
-function parseArgs(argv: string[]): CliOptions {
-    const options: CliOptions = {
-        threshold: null,
-        period: '14d',
-        start: null,
-        end: null,
-        environment: DEFAULT_ENVIRONMENT,
-        prefix: DEFAULT_RELEASE_PREFIX,
-        org: DEFAULT_ORG,
-        project: DEFAULT_PROJECT,
-        region: DEFAULT_REGION,
-        json: false,
-        help: false,
-    };
-
-    for (let i = 2; i < argv.length; i += 1) {
-        const arg = argv[i];
-        switch (arg) {
-            case '--help':
-            case '-h':
-                options.help = true;
-                break;
-            case '--json':
-                options.json = true;
-                break;
-            case '--threshold':
-                options.threshold = argv[++i];
-                break;
-            case '--period':
-                options.period = argv[++i];
-                break;
-            case '--start':
-                options.start = argv[++i];
-                break;
-            case '--end':
-                options.end = argv[++i];
-                break;
-            case '--environment':
-                options.environment = argv[++i];
-                break;
-            case '--prefix':
-                options.prefix = argv[++i];
-                break;
-            case '--org':
-                options.org = argv[++i];
-                break;
-            case '--project':
-                options.project = argv[++i];
-                break;
-            case '--region':
-                options.region = argv[++i].replace(/\/$/, '');
-                break;
-            default:
-                throw new Error(`Unknown argument: ${arg}`);
-        }
-    }
-
-    if (options.help) {
-        printUsage();
-        process.exit(0);
-    }
-
-    if (!options.threshold) {
-        printUsage();
-        throw new Error('--threshold is required');
-    }
-
-    if ((options.start && !options.end) || (!options.start && options.end)) {
-        throw new Error('Provide both --start and --end, or use --period');
-    }
-
-    return options;
-}
 
 function parseThreshold(version: string): Version {
     const match = /^(\d+)\.(\d+)\.(\d+)-(\d+)$/.exec(version);
@@ -250,7 +151,7 @@ async function sentryRequest<T>(path: string, searchParams: URLSearchParams, con
     return {body, headers: response.headers};
 }
 
-async function resolveProjectId(options: CliOptions): Promise<string> {
+async function resolveProjectId(options: ScriptOptions): Promise<string> {
     const {body} = await sentryRequest<SentryProject[]>(`/organizations/${options.org}/projects/`, new URLSearchParams(), options);
 
     const project = body.find((entry) => entry.slug === options.project);
@@ -269,7 +170,7 @@ function buildEventsSearchParams({
     sort,
     cursor,
 }: {
-    options: CliOptions;
+    options: ScriptOptions;
     projectId: string;
     fields: string[];
     query: string;
@@ -322,7 +223,19 @@ function getNextCursor(linkHeader: string | null): string | null {
     return null;
 }
 
-async function queryEventsTable({options, projectId, fields, query, sort}: {options: CliOptions; projectId: string; fields: string[]; query: string; sort?: string}): Promise<ReleaseRow[]> {
+async function queryEventsTable({
+    options,
+    projectId,
+    fields,
+    query,
+    sort,
+}: {
+    options: ScriptOptions;
+    projectId: string;
+    fields: string[];
+    query: string;
+    sort?: string;
+}): Promise<ReleaseRow[]> {
     const rows: ReleaseRow[] = [];
     let cursor: string | null = null;
 
@@ -339,7 +252,7 @@ async function queryEventsTable({options, projectId, fields, query, sort}: {opti
     return rows;
 }
 
-async function countUniqueUsers({options, projectId, query}: {options: CliOptions; projectId: string; query: string}): Promise<number> {
+async function countUniqueUsers({options, projectId, query}: {options: ScriptOptions; projectId: string; query: string}): Promise<number> {
     const rows = await queryEventsTable({
         options,
         projectId,
@@ -359,7 +272,7 @@ function buildReleaseFilter(releases: string[]): string | null {
     return `release:[${releases.join(',')}]`;
 }
 
-async function countUniqueUsersOnReleases({options, projectId, baseQuery, releases}: {options: CliOptions; projectId: string; baseQuery: string; releases: string[]}): Promise<number> {
+async function countUniqueUsersOnReleases({options, projectId, baseQuery, releases}: {options: ScriptOptions; projectId: string; baseQuery: string; releases: string[]}): Promise<number> {
     if (releases.length === 0) {
         return 0;
     }
@@ -393,7 +306,7 @@ async function countUniqueUsersOnReleases({options, projectId, baseQuery, releas
     return total;
 }
 
-function collectOlderReleases({releaseRows, options, threshold}: {releaseRows: ReleaseRow[]; options: CliOptions; threshold: Version}): string[] {
+function collectOlderReleases({releaseRows, options, threshold}: {releaseRows: ReleaseRow[]; options: ScriptOptions; threshold: Version}): string[] {
     const older = new Set<string>();
 
     for (const row of releaseRows) {
@@ -424,9 +337,99 @@ function collectOlderReleases({releaseRows, options, threshold}: {releaseRows: R
     });
 }
 
+function createCli(): CLI<{
+    flags: {
+        json: {description: string};
+    };
+    namedArgs: {
+        threshold: {description: string; parse: (val: string) => string};
+        period: {description: string; default: string; supersedes: string[]};
+        start: {description: string; required: false; supersedes: string[]};
+        end: {description: string; required: false};
+        environment: {description: string; default: string};
+        prefix: {description: string; default: string};
+        org: {description: string; default: string};
+        project: {description: string; default: string};
+        region: {description: string; default: string; parse: (val: string) => string};
+    };
+}> {
+    return new CLI({
+        flags: {
+            json: {
+                description: 'Print machine-readable JSON only.',
+            },
+        },
+        namedArgs: {
+            threshold: {
+                description: 'Version to compare against (e.g. 9.3.79-4). Users on this exact build are not counted as older.',
+                parse: (val: string) => {
+                    parseThreshold(val);
+                    return val;
+                },
+            },
+            period: {
+                description: 'Sentry statsPeriod (e.g. 24h, 14d, 30d). Ignored when --start and --end are set.',
+                default: '14d',
+            },
+            start: {
+                description: 'Window start (ISO-8601). Use with --end instead of --period.',
+                required: false,
+                supersedes: ['period'],
+            },
+            end: {
+                description: 'Window end (ISO-8601). Use with --start instead of --period.',
+                required: false,
+            },
+            environment: {
+                description: 'Sentry environment filter.',
+                default: DEFAULT_ENVIRONMENT,
+            },
+            prefix: {
+                description: 'Release name prefix.',
+                default: DEFAULT_RELEASE_PREFIX,
+            },
+            org: {
+                description: 'Sentry organization slug.',
+                default: DEFAULT_ORG,
+            },
+            project: {
+                description: 'Sentry project slug.',
+                default: DEFAULT_PROJECT,
+            },
+            region: {
+                description: 'Sentry region base URL.',
+                default: DEFAULT_REGION,
+                parse: (val: string) => val.replace(/\/$/, ''),
+            },
+        },
+    });
+}
+
+function getScriptOptions(cli: ReturnType<typeof createCli>): ScriptOptions {
+    const {start, end} = cli.namedArgs;
+
+    if ((start && !end) || (!start && end)) {
+        throw new Error('Provide both --start and --end, or use --period');
+    }
+
+    return {
+        threshold: cli.namedArgs.threshold,
+        period: cli.namedArgs.period,
+        start,
+        end,
+        environment: cli.namedArgs.environment,
+        prefix: cli.namedArgs.prefix,
+        org: cli.namedArgs.org,
+        project: cli.namedArgs.project,
+        region: cli.namedArgs.region,
+        json: cli.flags.json,
+    };
+}
+
 async function main(): Promise<void> {
-    const options = parseArgs(process.argv);
-    const threshold = parseThreshold(options.threshold as string);
+    const cli = createCli();
+    const options = getScriptOptions(cli);
+    const threshold = parseThreshold(options.threshold);
     const baseQuery = `environment:${options.environment}`;
 
     const projectId = await resolveProjectId(options);
@@ -459,7 +462,7 @@ async function main(): Promise<void> {
         environment: options.environment,
         dataset: DEFAULT_DATASET,
         window: windowLabel,
-        threshold: options.threshold as string,
+        threshold: options.threshold,
         releasePrefix: options.prefix,
         totalUniqueUsers: totalUsers,
         uniqueUsersOnOlderReleases: usersOnOlderReleases,
