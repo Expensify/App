@@ -554,16 +554,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
             setActiveExportID(exportID);
         },
-        [
-            selectedReports,
-            selectedTransactions,
-            isOffline,
-            areAllMatchingItemsSelected,
-            currentSearchResults?.data,
-            queryJSON,
-            selectedTransactionReportIDs,
-            selectedTransactionsKeys,
-        ],
+        [selectedReports, selectedTransactions, isOffline, areAllMatchingItemsSelected, currentSearchResults?.data, queryJSON, selectedTransactionReportIDs, selectedTransactionsKeys],
     );
 
     const policyIDsWithVBBA = useMemo(() => {
@@ -596,12 +587,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
             const reportIDList = selectedReports?.map((report) => report?.reportID).filter((reportID) => reportID !== undefined) ?? [];
-            queueExportSearchItemsToCSV({
+            const exportID = queueExportSearchItemsToCSV({
                 query: status,
                 jsonQuery: serializedQuery,
                 reportIDList,
                 transactionIDList: selectedTransactionsKeys,
             });
+            setActiveExportID(exportID);
             selectAllMatchingItems(false);
             clearSelectedTransactions();
             return;

@@ -220,13 +220,11 @@ describe('useSearchBulkActions - CSV export flow', () => {
         const exportOption = result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
         expect(exportOption).toBeDefined();
 
-        const basicExportSubItem = exportOption?.subMenuItems?.find((item) => item.text === 'export.basicExport');
+        const onSelected = exportOption?.subMenuItems?.find((item) => item.text === 'export.basicExport')?.onSelected ?? exportOption?.onSelected;
 
-        if (basicExportSubItem?.onSelected) {
-            act(() => {
-                basicExportSubItem.onSelected?.();
-            });
-        }
+        await act(async () => {
+            onSelected?.();
+        });
 
         expect(mockQueueExportSearchItemsToCSV).toHaveBeenCalled();
         expect(result.current.activeExportID).toBe('mock-export-id');
@@ -280,13 +278,11 @@ describe('useSearchBulkActions - CSV export flow', () => {
         });
 
         const exportOption = result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-        const basicExportSubItem = exportOption?.subMenuItems?.find((item) => item.text === 'export.basicExport');
+        const onSelected = exportOption?.subMenuItems?.find((item) => item.text === 'export.basicExport')?.onSelected ?? exportOption?.onSelected;
 
-        if (basicExportSubItem?.onSelected) {
-            act(() => {
-                basicExportSubItem.onSelected?.();
-            });
-        }
+        await act(async () => {
+            onSelected?.();
+        });
 
         expect(result.current.activeExportID).toBe('mock-export-id');
 
