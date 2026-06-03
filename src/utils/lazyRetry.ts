@@ -26,11 +26,11 @@ function isChunkLoadError(error: unknown): boolean {
  * Attempts to lazily import a React component with a graduated retry strategy.
  *
  * - First failure: plain reload — handles transient network blips without touching caches.
- * - Second failure that is a ChunkLoadError AND the device is online: clear the SW precache
- *   and reload — handles the post-deploy stale-shell scenario where the SW pinned an old
- *   index.html that references chunk hashes no longer on the CDN.
+ * - Second failure that is a ChunkLoadError AND the device is online: clear the service worker
+ *   cache and reload — handles the post-deploy stale-shell scenario where the SW is serving an
+ *   old index.html that references chunk hashes no longer on the CDN.
  *   The online guard is critical: a chunk fetch that fails while offline also produces a
- *   ChunkLoadError, and clearing the Workbox precaches in that case would destroy the offline
+ *   ChunkLoadError, and clearing the service worker cache in that case would destroy the cached
  *   app shell that is the only thing keeping the PWA usable until connectivity returns.
  * - Any subsequent failure, a second failure that is not a ChunkLoadError, or a second failure
  *   while offline: propagate to the React error boundary so the user sees the error page.
@@ -56,9 +56,9 @@ const lazyRetry = function <T extends ComponentType<any>>(componentImport: Compo
                     window.location.reload();
                 } else if (retryState === RETRY_STATE.RELOADED && isChunkLoadError(error) && navigator.onLine) {
                     // Second failure, it is a ChunkLoadError, and the device is online: the plain
-                    // reload did not help — likely a stale SW precache after a deploy. Clear caches
-                    // and reload. Keep the flag at CACHE_CLEARED so a third failure surfaces the
-                    // error boundary rather than starting the cycle over.
+                    // reload did not fix it — likely the SW is serving a stale shell after a deploy.
+                    // Clear the service worker cache and reload. Keep the flag at CACHE_CLEARED so
+                    // a third failure surfaces the error boundary instead of starting over.
                     console.error('Failed to lazily import a React component after reload, clearing SW caches and reloading.', error);
                     sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.RETRY_LAZY_REFRESHED, RETRY_STATE.CACHE_CLEARED);
                     clearWorkboxRecoveryCaches().then(() => window.location.reload());

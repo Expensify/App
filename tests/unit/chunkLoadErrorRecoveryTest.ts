@@ -7,10 +7,10 @@
  *
  * lazyRetry uses a three-state strategy:
  *   - First failure                        → plain reload.
- *   - Second failure, ChunkLoadError, online→ clear SW caches then reload.
- *   - Second failure, ChunkLoadError, offline→ reject to error boundary (preserve offline precache).
- *   - Second failure, non-ChunkLoadError    → reject to error boundary.
- *   - Third failure                         → reject to error boundary (loop prevention).
+ *   - Second failure, ChunkLoadError, online → clear SW cache then reload.
+ *   - Second failure, ChunkLoadError, offline→ reject to error boundary (keep cached offline assets).
+ *   - Second failure, non-ChunkLoadError     → reject to error boundary.
+ *   - Third failure                          → reject to error boundary (loop prevention).
  */
 import {renderHook} from '@testing-library/react-native';
 import type {ComponentType} from 'react';
