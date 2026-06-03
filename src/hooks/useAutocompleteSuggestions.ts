@@ -9,7 +9,7 @@ import {getCardDescription, isCard, isCardHiddenFromSearch} from '@libs/CardUtil
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import type {OptionList} from '@libs/OptionsListUtils';
 import {getSearchOptions} from '@libs/OptionsListUtils';
-import {getAllTaxRates, getCleanedTagName, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getAllTaxRates, getCleanedTagName, getExpensifyTeamExclusions, shouldShowPolicy} from '@libs/PolicyUtils';
 import {
     getAutocompleteCategories,
     getAutocompleteRecentCategories,
@@ -64,6 +64,7 @@ const GROUP_BY_FRIENDLY_VALUES = Object.values(CONST.SEARCH.GROUP_BY).map((value
 const VIEW_FRIENDLY_VALUES = Object.values(CONST.SEARCH.VIEW).map((value) => getUserFriendlyValue(value));
 const EXPENSE_TYPE_FRIENDLY_VALUES = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
 const WITHDRAWAL_TYPE_VALUES = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE);
+const WITHDRAWAL_STATUS_VALUES = Object.values(CONST.SEARCH.SETTLEMENT_STATUS);
 const BOOLEAN_VALUES = Object.values(CONST.SEARCH.BOOLEAN);
 const ACTION_FILTER_VALUES = Object.values(CONST.SEARCH.ACTION_FILTERS);
 const IS_VALUES_LIST = Object.values(CONST.SEARCH.IS_VALUES);
@@ -218,6 +219,9 @@ function useAutocompleteSuggestions({
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER: {
+            // Soft-exclude Expensify-team logins (current and former AMs/Guides) from user filter suggestions. Users can still type any email manually because the search bar accepts free text.
+            const memberExclusions = getExpensifyTeamExclusions(personalDetails, policies, currentUserEmail);
+
             const participants = getSearchOptions({
                 options,
                 draftComments,
@@ -239,7 +243,8 @@ function useAutocompleteSuggestions({
                 personalDetails,
                 sortedActions,
                 conciergeReportID,
-            }).personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
+                excludeFromSuggestionsOnly: memberExclusions,
+            }).options.personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
             return participants.map((participant) => ({
                 filterKey: autocompleteKey,
@@ -276,7 +281,7 @@ function useAutocompleteSuggestions({
                 personalDetails,
                 sortedActions,
                 conciergeReportID,
-            }).recentReports.filter((chat) => {
+            }).options.recentReports.filter((chat) => {
                 if (!chat.text) {
                     return false;
                 }
@@ -366,6 +371,16 @@ function useAutocompleteSuggestions({
             return filteredWithdrawalTypes.map((withdrawalType) => ({
                 filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.WITHDRAWAL_TYPE,
                 text: withdrawalType,
+            }));
+        }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS: {
+            const filteredWithdrawalStatuses = WITHDRAWAL_STATUS_VALUES.filter(
+                (withdrawalStatus) => withdrawalStatus.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(withdrawalStatus),
+            ).sort();
+
+            return filteredWithdrawalStatuses.map((withdrawalStatus) => ({
+                filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.WITHDRAWAL_STATUS,
+                text: withdrawalStatus,
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED: {
@@ -525,4 +540,3 @@ function useAutocompleteSuggestions({
 }
 
 export default useAutocompleteSuggestions;
-export type {AutocompleteItemData};

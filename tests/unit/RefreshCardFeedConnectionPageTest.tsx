@@ -13,13 +13,11 @@ jest.mock('@pages/workspace/withPolicyAndFullscreenLoading', () => (Component: R
 const mockCloseRHPFlow = jest.fn();
 
 jest.mock('@hooks/useCardFeeds', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
 }));
 
 jest.mock('@pages/workspace/companyCards/BankConnection', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
 
     default: () => {
@@ -30,7 +28,6 @@ jest.mock('@pages/workspace/companyCards/BankConnection', () => ({
 }));
 
 jest.mock('@pages/workspace/companyCards/addNew/PlaidConnectionStep', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
 
     default: () => {
@@ -41,7 +38,6 @@ jest.mock('@pages/workspace/companyCards/addNew/PlaidConnectionStep', () => ({
 }));
 
 jest.mock('@pages/LoadingPage', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
 
     default: () => {
@@ -52,7 +48,6 @@ jest.mock('@pages/LoadingPage', () => ({
 }));
 
 jest.mock('@pages/ErrorPage/NotFoundPage', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
 
     default: () => {
@@ -64,6 +59,8 @@ jest.mock('@pages/ErrorPage/NotFoundPage', () => ({
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     closeRHPFlow: mockCloseRHPFlow,
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
     navigate: jest.fn(),
     goBack: jest.fn(),
     setNavigationActionToMicrotaskQueue: jest.fn(),
@@ -75,7 +72,6 @@ jest.mock('@libs/actions/CompanyCards', () => ({
 }));
 
 jest.mock('@hooks/useLocalize', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({translate: (key: string) => key}),
 }));

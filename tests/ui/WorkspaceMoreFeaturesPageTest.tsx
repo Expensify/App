@@ -53,7 +53,6 @@ jest.mock('@components/Modal/ReanimatedModal', () => {
     };
 });
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 jest.mock('@hooks/useIsPolicyConnectedToUberReceiptPartner', () => ({__esModule: true, default: jest.fn(() => false)}));
 
 jest.mock('@libs/CardUtils', () => {
@@ -288,7 +287,7 @@ describe('WorkspaceMoreFeaturesPage', () => {
             getCompanyFeedsMock.mockReturnValue({});
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID, areExpensifyCardsEnabled: true}));
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${LHNTestUtils.getFakePolicy().workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID}_${CONST.EXPENSIFY_CARD.BANK}`, {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${LHNTestUtils.getFakePolicy().policyAccountID ?? CONST.DEFAULT_NUMBER_ID}_${CONST.EXPENSIFY_CARD.BANK}`, {
                     someCardID: {nameValuePairs: {}},
                 });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}1`, {paymentBankAccountID: 1});

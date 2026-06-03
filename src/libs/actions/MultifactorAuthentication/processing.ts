@@ -55,4 +55,3 @@ async function processScenarioAction(
 }
 
 export {processRegistration, processScenarioAction};
-export type {RegistrationParams};

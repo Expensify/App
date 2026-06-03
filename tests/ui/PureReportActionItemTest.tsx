@@ -14,13 +14,17 @@ import {openLink} from '@libs/actions/Link';
 import {setHasRadio} from '@libs/NetworkState';
 import Parser from '@libs/Parser';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
+import type * as UrlType from '@libs/Url';
 import PureReportActionItem from '@pages/inbox/report/PureReportActionItem';
+import ReportActionItemMessage from '@pages/inbox/report/ReportActionItemMessage';
 import colors from '@styles/theme/colors';
+import type CONFIGType from '@src/CONFIG';
+import type CONSTType from '@src/CONST';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, ReportAction} from '@src/types/onyx';
+import type {ReportAction} from '@src/types/onyx';
 import type {OriginalMessage} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {translateLocal} from '../utils/TestHelper';
@@ -29,13 +33,46 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 
 jest.mock('@react-navigation/native');
 
-type LinkModuleMock = {openLink: typeof openLink} & Record<string, unknown>;
-
+// Stub `@libs/actions/Link` without spreading `requireActual` — its transitive Navigation/ReportUtils
+// chain races with the lightweight `useOnyx → SearchContext` import path and can hand consumers
+// (e.g. ReportActionItemMessageWithExplain) the real `openLink` reference before the mock factory
+// finishes wiring up. Reimplement only the URL helpers AnchorRenderer needs for internal-link detection.
 jest.mock('@libs/actions/Link', () => {
-    const actual = jest.requireActual<LinkModuleMock>('@libs/actions/Link');
+    const Url = jest.requireActual<typeof UrlType>('@libs/Url');
+    const CONSTreal = jest.requireActual<{default: typeof CONSTType}>('@src/CONST').default;
+    const CONFIGreal = jest.requireActual<{default: typeof CONFIGType}>('@src/CONFIG').default;
     return {
-        ...actual,
         openLink: jest.fn(),
+        openOldDotLink: jest.fn(),
+        openExternalLink: jest.fn(),
+        openTravelDotLink: jest.fn(),
+        openReportFromDeepLink: jest.fn(),
+        getTravelDotLink: jest.fn(),
+        buildOldDotURL: jest.fn(),
+        buildTravelDotURL: jest.fn(),
+        getInternalNewExpensifyPath: (href: string) => {
+            if (!href) {
+                return '';
+            }
+            const attrPath = Url.getPathFromURL(href);
+            return (Url.hasSameExpensifyOrigin(href, CONSTreal.NEW_EXPENSIFY_URL) ||
+                Url.hasSameExpensifyOrigin(href, CONSTreal.STAGING_NEW_EXPENSIFY_URL) ||
+                href.startsWith(CONSTreal.DEV_NEW_EXPENSIFY_URL)) &&
+                !CONSTreal.PATHS_TO_TREAT_AS_EXTERNAL.find((p) => attrPath.startsWith(p))
+                ? attrPath
+                : '';
+        },
+        getInternalExpensifyPath: (href: string) => {
+            if (!href) {
+                return '';
+            }
+            const attrPath = Url.getPathFromURL(href);
+            const hasExpensifyOrigin = Url.hasSameExpensifyOrigin(href, CONFIGreal.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(href, CONFIGreal.EXPENSIFY.STAGING_API_ROOT);
+            if (!hasExpensifyOrigin || attrPath.startsWith(CONFIGreal.EXPENSIFY.CONCIERGE_URL_PATHNAME) || attrPath.startsWith(CONFIGreal.EXPENSIFY.DEVPORTAL_URL_PATHNAME)) {
+                return '';
+            }
+            return attrPath;
+        },
     };
 });
 
@@ -101,13 +138,12 @@ describe('PureReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <PureReportActionItem
-                                personalPolicyID={undefined}
                                 report={undefined}
+                                transactionThreadReport={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
                                 shouldDisplayNewMarker={false}
-                                index={0}
                                 isFirstVisibleReportAction={false}
                             />
                         </PortalProvider>
@@ -377,6 +413,7 @@ describe('PureReportActionItem', () => {
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}testPolicy`, dewPolicy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}testReport`, reportMetadata);
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -387,16 +424,13 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    personalPolicyID={undefined}
-                                    policy={dewPolicy as Policy}
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
-                                    reportMetadata={reportMetadata}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -438,14 +472,12 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    personalPolicyID={undefined}
-                                    policy={basicPolicy as Policy}
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -482,6 +514,7 @@ describe('PureReportActionItem', () => {
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}testPolicy`, dewPolicy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}testReport`, reportMetadata);
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -491,16 +524,13 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    personalPolicyID={undefined}
-                                    policy={dewPolicy as Policy}
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
-                                    reportMetadata={reportMetadata}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -538,14 +568,12 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    personalPolicyID={undefined}
-                                    policy={dewPolicy as Policy}
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -603,19 +631,23 @@ describe('PureReportActionItem', () => {
                 type: CONST.REPORT.TYPE.CHAT,
             };
 
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            });
+
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
                     <OptionsListContextProvider>
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    personalPolicyID={undefined}
                                     report={report}
+                                    transactionThreadReport={undefined}
+                                    originalReportID={report.reportID}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -660,19 +692,23 @@ describe('PureReportActionItem', () => {
                 type: CONST.REPORT.TYPE.CHAT,
             };
 
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            });
+
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
                     <OptionsListContextProvider>
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    personalPolicyID={undefined}
                                     report={report}
+                                    transactionThreadReport={undefined}
+                                    originalReportID={report.reportID}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -750,13 +786,12 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    personalPolicyID={undefined}
                                     report={report}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -930,13 +965,12 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    personalPolicyID={undefined}
                                     report={report}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -978,13 +1012,12 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    personalPolicyID={undefined}
                                     report={report}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1133,13 +1166,12 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    personalPolicyID={undefined}
                                     report={report}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1313,13 +1345,12 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    personalPolicyID={undefined}
                                     report={{reportID: 'testReport', policyID: 'pol123'}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1405,13 +1436,12 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    personalPolicyID={undefined}
                                     report={{reportID: 'testReport'}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                     isClosedExpenseReportWithNoExpenses
                                 />
@@ -1442,13 +1472,12 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    personalPolicyID={undefined}
                                     report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1480,13 +1509,12 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    personalPolicyID={undefined}
                                     report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1523,7 +1551,6 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    personalPolicyID={undefined}
                                     report={{
                                         reportID: 'threadReport',
                                         type: CONST.REPORT.TYPE.CHAT,
@@ -1531,12 +1558,11 @@ describe('PureReportActionItem', () => {
                                         parentReportActionID: 'parentAction',
                                         ownerAccountID: 0,
                                     }}
-                                    parentReport={{reportID: 'parentReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1567,13 +1593,12 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    personalPolicyID={undefined}
                                     report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1585,7 +1610,7 @@ describe('PureReportActionItem', () => {
 
             expect(screen.queryByText(translateLocal('bankAccount.addBankAccount'))).toBeNull();
             expect(screen.queryByText(translateLocal('iou.enableWallet'))).toBeNull();
-            expect(screen.getByText(translateLocal('iou.waitingOnBankAccount', 'Hidden'))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.waitingOnBankAccount', actorEmail))).toBeOnTheScreen();
         });
 
         it('REIMBURSEMENT_QUEUED with a Gold wallet tier hides the enable wallet button', async () => {
@@ -1608,13 +1633,12 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    personalPolicyID={undefined}
                                     report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1625,7 +1649,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.queryByText(translateLocal('iou.enableWallet'))).toBeNull();
-            expect(screen.getByText(translateLocal('iou.waitingOnEnabledWallet', 'Hidden'))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.waitingOnEnabledWallet', actorEmail))).toBeOnTheScreen();
         });
 
         it('IOU PAY VBBA manual renders business bank account message with last 4 digits', async () => {
@@ -1647,13 +1671,12 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    personalPolicyID={undefined}
                                     report={undefined}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1685,13 +1708,12 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    personalPolicyID={undefined}
                                     report={undefined}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1726,13 +1748,12 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    personalPolicyID={undefined}
                                     report={undefined}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1768,13 +1789,12 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    personalPolicyID={undefined}
                                     report={undefined}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1805,6 +1825,45 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(/exported to/i)).toBeOnTheScreen();
+        });
+
+        it('EXPORTED_TO_INTEGRATION with reasoning shows Explain link', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, {
+                label: 'NetSuite',
+                automaticAction: true,
+                reasoning: 'Test reasoning',
+            });
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('Explain')).toBeOnTheScreen();
+        });
+
+        it('EXPORTED_TO_INTEGRATION without reasoning does not show Explain link', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, {
+                label: 'NetSuite',
+                automaticAction: true,
+            });
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText('Explain')).not.toBeOnTheScreen();
+        });
+
+        it('EXPORTED_TO_INTEGRATION with reasoning does not produce double period before Explain', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, {
+                label: 'NetSuite',
+                automaticAction: true,
+                reasoning: 'Test reasoning',
+                reimbursableUrls: ['https://system.netsuite.com/'],
+            });
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            // The rendered text must not contain ".." before "Explain"
+            const text = screen.getByText('Explain');
+            expect(text).toBeOnTheScreen();
+            expect(document.body.textContent).not.toMatch(/\.\.\s*Explain/);
         });
     });
 
@@ -1855,13 +1914,12 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    personalPolicyID={undefined}
                                     report={{reportID: 'testReport', type: CONST.REPORT.TYPE.CHAT}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1893,13 +1951,12 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    personalPolicyID={undefined}
                                     report={{reportID: 'testReport', isWaitingOnBankAccount: true}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -2473,13 +2530,12 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    personalPolicyID={undefined}
                                     report={{reportID: 'testReport', chatReportID: 'chatReport1'}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -2554,7 +2610,18 @@ describe('PureReportActionItem', () => {
             expect(screen.getByTestId('MoneyRequestReportPreviewContent-wrapper')).toBeOnTheScreen();
         });
 
+        const HARVEST_REPORT_ID = 'harvestReport123';
+        const ORIGINAL_REPORT_ID = 'origReport123';
+
         it('CREATED harvest renders CreateHarvestReportAction via BasicMessage', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${HARVEST_REPORT_ID}`, {
+                    origin: 'harvest',
+                    originalID: ORIGINAL_REPORT_ID,
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.CREATED, {});
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
@@ -2562,16 +2629,14 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    personalPolicyID={undefined}
-                                    report={undefined}
+                                    transactionThreadReport={undefined}
+                                    report={{reportID: HARVEST_REPORT_ID}}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
-                                    reportNameValuePairsOrigin="harvest"
-                                    reportNameValuePairsOriginalID="origReport123"
+                                    isHarvestCreatedExpenseReport
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -2581,6 +2646,49 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(/created this report to hold/i)).toBeOnTheScreen();
+            // When the original report is not loaded in Onyx, the link must fall back to "#<originalID>"
+            // instead of rendering an empty hyperlink (regression guard for issue #90422).
+            expect(screen.getByText(`#${ORIGINAL_REPORT_ID}`)).toBeOnTheScreen();
+        });
+        it('CREATED harvest renders the original report name when it is loaded in Onyx', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${HARVEST_REPORT_ID}`, {
+                    origin: 'harvest',
+                    originalID: ORIGINAL_REPORT_ID,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${ORIGINAL_REPORT_ID}`, {
+                    reportID: ORIGINAL_REPORT_ID,
+                    reportName: 'Q1 Expenses',
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.CREATED, {});
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <PureReportActionItem
+                                    report={{reportID: HARVEST_REPORT_ID}}
+                                    parentReportAction={undefined}
+                                    transactionThreadReport={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    shouldDisplayNewMarker={false}
+                                    isFirstVisibleReportAction={false}
+                                    isHarvestCreatedExpenseReport
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/created this report to hold/i)).toBeOnTheScreen();
+            expect(screen.getByText('Q1 Expenses')).toBeOnTheScreen();
+            expect(screen.queryByText(`#${ORIGINAL_REPORT_ID}`)).not.toBeOnTheScreen();
         });
         it('isWhisperActionTargetedToOthers returns null', async () => {
             await act(async () => {
@@ -2611,13 +2719,12 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    personalPolicyID={undefined}
                                     report={undefined}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                     isThreadReportParentAction
                                 />
@@ -2664,6 +2771,79 @@ describe('PureReportActionItem', () => {
 
             expect(screen.getByText(translateLocal('actionableMentionTrackExpense.submit' as TranslationPaths))).toBeOnTheScreen();
             expect(screen.getByText(translateLocal('actionableMentionTrackExpense.nothing' as TranslationPaths))).toBeOnTheScreen();
+        });
+    });
+
+    // Path: No FE flow creates IOU + reject/cancel/delete/approve actions; this defensive path is only
+    // reachable from BE-emitted actions
+    describe('IOUReportActionMessage edge subtypes', () => {
+        const TEST_REPORT_ID = 'iouEdgeReport123';
+        const TEST_TRANSACTION_ID = 'iouEdgeTx456';
+
+        it.each([CONST.IOU.REPORT_ACTION_TYPE.REJECT, CONST.IOU.REPORT_ACTION_TYPE.CANCEL, CONST.IOU.REPORT_ACTION_TYPE.DELETE, CONST.IOU.REPORT_ACTION_TYPE.APPROVE])(
+            'renders IOU display text for IOU + %s action when transaction exists in Onyx',
+            async (subtype) => {
+                await act(async () => {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, {
+                        transactionID: TEST_TRANSACTION_ID,
+                        amount: 4200,
+                        currency: 'USD',
+                        reportID: TEST_REPORT_ID,
+                        merchant: 'Test Merchant',
+                    });
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_REPORT_ID}`, {
+                        reportID: TEST_REPORT_ID,
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    });
+                });
+
+                const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                    type: subtype,
+                    IOUReportID: TEST_REPORT_ID,
+                    IOUTransactionID: TEST_TRANSACTION_ID,
+                    amount: 4200,
+                    currency: 'USD',
+                });
+                renderItemWithAction(action);
+                await waitForBatchedUpdatesWithAct();
+
+                // getIOUReportActionDisplayMessage only special-cases `type === 'pay'`. For all other action
+                // types, the displayed text is picked from the REPORT's state (isSettled, isReportApproved)
+                // and the action's structural shape (split bill, track expense).
+                expect(screen.getByText(translateLocal('iou.expenseAmount', '-$42.00', 'Test Merchant'))).toBeOnTheScreen();
+            },
+        );
+
+        it('renders flagged content text instead of IOU display when isHidden is true', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                type: CONST.IOU.REPORT_ACTION_TYPE.REJECT,
+                IOUReportID: TEST_REPORT_ID,
+                IOUTransactionID: TEST_TRANSACTION_ID,
+                amount: 4200,
+                currency: 'USD',
+            });
+
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <ReportActionItemMessage
+                                    action={action}
+                                    displayAsGroup={false}
+                                    reportID={TEST_REPORT_ID}
+                                    isHidden
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(translateLocal('moderation.flaggedContent'))).toBeOnTheScreen();
         });
     });
 });
