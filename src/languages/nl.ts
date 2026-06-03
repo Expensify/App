@@ -2246,9 +2246,8 @@ const translations: TranslationDeepObject<typeof en> = {
         stepCodes: 'Herstelcodes',
         keepCodesSafe: 'Bewaar deze codes goed!',
         codesLoseAccess: dedent(`
-            Als je de toegang tot je authenticator-app verliest en deze codes niet hebt, verlies je de toegang tot je account.
-
-            <strong>Let op</strong>: Het instellen van twee-factor-authenticatie zal je bij alle andere actieve sessies afmelden.
+            Als je de toegang tot je authenticator-app kwijtraakt en deze codes niet hebt, word je uit je account afgesloten.<br><br>
+            <strong>Let op</strong>: Het inschakelen van 2FA logt je uit in alle andere sessies.
         `),
         errorStepCodes: 'Kopieer of download de codes voordat je verdergaat',
         stepVerify: 'Verifiëren',
@@ -2278,7 +2277,6 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceTitle: 'Nieuw apparaat instellen',
         verifyNewDeviceDescription: 'Scan de QR-code met je nieuwe apparaat en voer daarna de code in om de installatie te voltooien.',
         downloadCodes: 'Codes downloaden',
-        screenshotTip: 'Tip: maak een screenshot om dit op te slaan in je fotobibliotheek',
         copyCodes: 'Codes kopiëren',
     },
     recoveryCodeForm: {
@@ -2980,8 +2978,9 @@ ${amount} voor ${merchant} - ${date}`,
         },
         getStarted: 'Aan de slag',
         whatsYourName: 'Hoe heet je?',
-        peopleYouMayKnow: 'Mensen die je misschien kent zijn hier al! Verifieer je e-mailadres om je bij hen aan te sluiten.',
-        workspaceYouMayJoin: (domain: string, email: string) => `Iemand van ${domain} heeft al een workspace gemaakt. Voer de magische code in die is verzonden naar ${email}.`,
+        peopleYouMayKnow: 'Kijk of je team al in Expensify zit',
+        workspaceYouMayJoin: (domain: string, email: string) =>
+            `Voer de code in die is verzonden naar ${email} om te controleren of iemand van ${domain} een workspace heeft waar je lid van kunt worden.`,
         joinAWorkspace: 'Lid worden van een workspace',
         listOfWorkspaces: 'Hier is de lijst met werkruimtes waartoe je je kunt aansluiten.',
         skipForNow: 'Voorlopig overslaan',
@@ -3997,7 +3996,7 @@ ${amount} voor ${merchant} - ${date}`,
         selectCountry: 'Selecteer land',
         error: {
             connectToWorkspace: (workspaceRoute: string) =>
-                `Verbind deze bankrekening met een <a href="${workspaceRoute}">werkruimte</a> zodat je in een latere stap een directeur kunt uitnodigen om te ondertekenen.`,
+                `Deze bankrekening moet worden gekoppeld aan een werkruimte. Ga naar <a href="${workspaceRoute}">Werkruimtes</a>, selecteer je werkruimte en navigeer vervolgens naar Workflows > Betalingen > Bankrekening toevoegen.`,
         },
     },
     bankInfoStep: {
@@ -4046,8 +4045,6 @@ ${amount} voor ${merchant} - ${date}`,
             `verbindt een zakelijke ${currency}-bankrekening die eindigt op ${bankAccountLastFour} met Expensify om werknemers in ${currency} te betalen. De volgende stap vereist ondertekenaarsgegevens van een directeur.`,
         error: {
             emailsMustBeDifferent: 'E-mails moeten verschillend zijn',
-            connectToWorkspace: (workspaceRoute: string) =>
-                `Koppel deze bankrekening alstublieft aan een <a href="${workspaceRoute}">werkruimte</a> om een directeur uit te nodigen te ondertekenen.`,
         },
     },
     agreementsStep: {
@@ -4391,11 +4388,10 @@ ${amount} voor ${merchant} - ${date}`,
             travelInvoicingPayableAccount: 'Reiscrediteurenrekening',
             hr: 'HR',
             rooms: 'Kamers',
+            findDomain: 'Domein zoeken',
             cardAdminAlternateText: 'Werkruimtekaarten beheren.',
             peopleAdminAlternateText: 'Beheer leden en goedkeuringsworkflows.',
             paymentsAdminAlternateText: 'Workflowsbetalingen beheren.',
-            readOnlyActionTitle: 'Niet zo snel...',
-            readOnlyActionPrompt: 'Je rol in de workspace kan deze instellingen bekijken, maar niet bewerken.',
         },
         createdForClient: {
             title: 'Je hebt een werkruimte voor je klant aangemaakt!',
@@ -4622,7 +4618,7 @@ ${amount} voor ${merchant} - ${date}`,
             creditCardAccount: 'Creditcardrekening',
             travelInvoicingDescription: 'Reiskosten worden als creditcardkosten geëxporteerd naar het hieronder opgegeven QuickBooks Online-account.',
             companyCardsLocationEnabledDescription:
-                'QuickBooks Online ondersteunt geen locaties bij het exporteren van leveranciersfacturen. Omdat je locaties hebt ingeschakeld in je workspace, is deze exportoptie niet beschikbaar.',
+                'QuickBooks Online ondersteunt geen locaties op leveranciersfactuur-exporten wanneer locaties als tags worden geïmporteerd. Omdat je in je werkruimte locaties als tags hebt geïmporteerd, is deze exportoptie niet beschikbaar.',
             outOfPocketTaxEnabledDescription:
                 'QuickBooks Online ondersteunt geen belastingen op exports van journaalboekingen. Omdat je belastingen hebt ingeschakeld in je workspace, is deze exportoptie niet beschikbaar.',
             outOfPocketTaxEnabledError: 'Boekingen zijn niet beschikbaar wanneer belastingen zijn ingeschakeld. Kies een andere exportoptie.',
@@ -6035,16 +6031,27 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             error: 'Er is een fout opgetreden bij het dupliceren van je nieuwe werkruimte. Probeer het opnieuw.',
         },
         copyPolicySettings: {
-            error: 'Er is een fout opgetreden bij het kopiëren van de werkruimtainstellingen. Probeer het opnieuw.',
             title: 'Instellingen kopiëren',
-            selectWorkspaces: 'Selecteer werkruimtes',
-            description: 'Kies de werkruimtes waarnaar je instellingen wilt kopiëren en selecteer daarna de instellingen die je wilt kopiëren.',
-            searchPlaceholder: 'Werkruimtes zoeken',
-            selectFeatures: 'Selecteer functies om te kopiëren',
-            whichFeatures: 'Selecteer de instellingen die je wilt overschrijven in je bestaande werkruimtes.',
-            workflowsWithoutMembersConfirm: 'Doorgaan zonder leden',
-            workflowsWithoutMembersPrompt: 'Workflows kopiëren zonder leden kopieert geen goedkeuringsworkflows. Instellingen voor indienen en betalen worden nog steeds gekopieerd.',
-            accountingMismatch: ({part}: {part: string}) => `Je kunt ${part} alleen kopiëren als alle werkruimtes hetzelfde boekhoudsysteem en dezelfde bedrijfsverbinding gebruiken.`,
+            error: 'Er is een fout opgetreden bij het kopiëren van de werkruimtainstellingen. Probeer het opnieuw.',
+            selectWorkspaces: {
+                title: 'Selecteer werkruimtes',
+                description: 'Kies de werkruimtes waarnaar je instellingen wilt kopiëren en selecteer daarna de instellingen die je wilt kopiëren.',
+                searchPlaceholder: 'Werkruimtes zoeken',
+            },
+            selectSettings: {
+                title: 'Selecteer functies om te kopiëren',
+                description: 'Selecteer de instellingen die je wilt overschrijven in je bestaande werkruimtes.',
+                accountingMismatch: ({part}: {part: string}) => `Je kunt ${part} alleen kopiëren als alle werkruimtes hetzelfde boekhoudsysteem en dezelfde bedrijfsverbinding gebruiken.`,
+            },
+            confirmSettings: {
+                title: 'Laten we controleren of alles er goed uitziet.',
+                description: ({workspaceName}: {workspaceName: string}) =>
+                    `We kopiëren de volgende instellingen van <strong>${workspaceName}</strong> naar de werkruimtes die je hebt opgegeven`,
+            },
+            confirmWorkflows: {
+                continue: 'Doorgaan zonder leden',
+                description: 'Workflows kopiëren zonder leden zal goedkeuringsworkflows niet kopiëren. Instellingen voor indienen en betalen worden nog steeds gekopieerd.',
+            },
         },
         emptyWorkspace: {
             title: 'Je hebt geen werkruimtes',
@@ -7263,6 +7270,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             syncingModalDescription: 'De eerste verbinding kan even duren. Je krijgt een melding als er fouten optreden.',
             syncing: 'Werknemers synchroniseren',
         },
+        emptyDomain: {title: 'Verbeter je beveiliging met domeinen', subtitle: 'Vereis dat leden op je domein inloggen via single sign-on, beperk het aanmaken van werkruimtes en meer.'},
     },
     getAssistancePage: {
         title: 'Hulp krijgen',
@@ -7784,6 +7792,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             `heeft de einddag van de afrekenperiode van kaartfeed "${feedName}" gewijzigd${newValue ? ` naar "${newValue}"` : ''}${previousValue ? ` (voorheen "${previousValue}")` : ''}`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `heeft ${fieldType}-rapportveld "${fieldName}" toegevoegd${defaultValue ? ` met standaardwaarde "${defaultValue}"` : ''}`,
+        updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
+            `heeft de standaarduitgavencategorie voor ‘${mccGroupName}’ gewijzigd in ‘${newCategory}’ (voorheen ‘${oldCategory}’)`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `vereiste ${enabled ? 'ingeschakeld' : 'uitgeschakeld'} voor bedrijfskaarttransacties`,
         expensifyCardRule: {
             actionVerb: {block: 'geblokkeerd', allow: 'toegestaan'},
