@@ -171,6 +171,7 @@ function IOURequestStartPage({
         isLoadingTransaction,
         isLoadingSelectedTab,
         transactionRequestType,
+        iouType,
         policy,
         skipKeyboardDismissForPerDiem: true,
         isNewManualExpenseFlowEnabled,
